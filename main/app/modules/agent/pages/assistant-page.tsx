@@ -4,11 +4,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
 import { Suggestions } from "../components/suggestions /suggestions"
-import { suggestionsDummy } from "../components/suggestions /suggestions-dummy"
+import { generateSuggestions, previewSuggestions } from "../components/suggestions /suggestions-dummy"
 import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
-import { toast } from "sonner"
+import { SuggestionInputs } from "../components/suggestions /suggestion-inputs"
 
 export default function AssistantPage() {
   const { messages, append, isLoading, stop, setMessages } = useChat({
@@ -17,7 +17,6 @@ export default function AssistantPage() {
     initialMessages: [],
   });
 
-  const suggestions = suggestionsDummy;
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = React.useRef(0);
@@ -37,6 +36,8 @@ export default function AssistantPage() {
     path: string;
   } | null>(null);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
+  const [type, setType] = useState<"Generate" | "Preview">("Generate");
+  const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!uploadedFiles) return;
@@ -123,6 +124,7 @@ export default function AssistantPage() {
   const handleNewMessage = async (value: string) => {
     setShowSuggestions(false);
     setIsDragging(false);
+    setFollowUpSuggestions([]);
     
     let messageContent = value;
     
@@ -145,15 +147,27 @@ export default function AssistantPage() {
       content: messageContent,
       role: 'user'
     }, Object.keys(options).length ? options : undefined);
-
-
-    console.log(messageContent)
-
-    setUploadedFiles(null);
-    setTableContent(null);
-    setTextContent(null);
-    setFileMetadata(null);
   };
+
+  useEffect(() => {
+    if (messages.length > 0 && 
+        messages[messages.length - 1].role === 'assistant' && 
+        !isLoading) {
+      const fetchSuggestions = async () => {
+        const response = await fetch('/api/suggestions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ messages }),
+        });
+        const data = await response.json();
+        setFollowUpSuggestions(data.suggestions);
+      };
+      
+      fetchSuggestions();
+    }
+  }, [messages, isLoading]);
 
   const handleFileSelect = (files: FileList) => {
     setUploadedFiles(files);
@@ -193,6 +207,10 @@ export default function AssistantPage() {
 
   };
 
+  const getCurrentSuggestions = () => {
+    return type === "Generate" ? generateSuggestions : previewSuggestions;
+  };
+
   return (
     <div 
       className="flex h-full"
@@ -222,9 +240,17 @@ export default function AssistantPage() {
         <div className="sticky bottom-0 bg-background">
           <div className="flex flex-col gap-4 p-4 mx-auto w-full max-w-5xl">
             <Suggestions
-              items={suggestions}
+              items={getCurrentSuggestions()}
               onSelect={handleNewMessage}
               visible={showSuggestions && messages.length === 0}
+            />
+            
+            <SuggestionInputs
+              suggestions={followUpSuggestions}
+              onSendMessage={handleNewMessage}
+              visible={messages.length > 0 && 
+                messages[messages.length - 1].role === 'assistant' && 
+                !isLoading}
             />
             
             {(uploadedFiles || isDragging) && 
@@ -247,6 +273,8 @@ export default function AssistantPage() {
               className="max-w-none"
               isLoading={isLoading}
               onStop={stop}
+              type={type}
+              onTypeChange={setType}
             />
           </div>
         </div>

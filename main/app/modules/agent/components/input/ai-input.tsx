@@ -9,6 +9,7 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -21,6 +22,8 @@ interface AIInputWithSearchProps {
   className?: string;
   isLoading?: boolean;
   onStop?: () => void;
+  type: "Generate" | "Preview";
+  onTypeChange?: (type: "Generate" | "Preview") => void;
 }
 
 export function AIInputWithSearch({
@@ -33,7 +36,9 @@ export function AIInputWithSearch({
   onVoiceText,
   className,
   isLoading,
-  onStop
+  onStop,
+  type = "Generate",
+  onTypeChange
 }: AIInputWithSearchProps) {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -44,6 +49,13 @@ export function AIInputWithSearch({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+
+  const getPlaceholder = () => {
+    if (type === "Generate" || type === "Preview") {
+      return `Please ${type.toLowerCase()}...`;
+    }
+    return placeholder;
+  };
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
@@ -141,7 +153,7 @@ export function AIInputWithSearch({
               <Textarea
                 id={id}
                 value={value}
-                placeholder={placeholder}
+                placeholder={getPlaceholder()}
                 className="w-full rounded-xl rounded-b-none px-4 py-3 bg-black/5 dark:bg-white/5 border-none dark:text-white placeholder:text-black/70 dark:placeholder:text-white/70 resize-none focus-visible:ring-0 leading-[1.2]"
                 ref={textareaRef}
                 onKeyDown={(e) => {
@@ -168,6 +180,18 @@ export function AIInputWithSearch({
                 />
                 <Paperclip className="w-4 h-4 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors" />
               </label>
+              <Select 
+                value={type} 
+                onValueChange={(value: "Generate" | "Preview") => onTypeChange?.(value)}
+              >
+                <SelectTrigger className="w-[100px] h-8 bg-black/5 dark:bg-white/5 border-none text-sm px-2">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Generate">Generate</SelectItem>
+                  <SelectItem value="Preview">Preview</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="absolute right-3 bottom-3 flex items-center gap-2">
               <Button

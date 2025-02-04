@@ -13,6 +13,8 @@ import { EditMessage } from "./chat-messages-edit-message"
 import { StripeProvider } from "../tools/stripe/stripe-provider"
 import { PaymentForm } from "../tools/stripe/stripe-paymenet-card"
 import { EventCardsList } from "../tools/eventbrite/event-cards/event-card-list"
+import ProgressStates from "../tools/generate-component/generate-component-loading-bar"
+import { CalendarView } from "../tools/calendar/calendar-view"
 
 interface ChatMessagesProps {
   messages: any[]
@@ -257,6 +259,58 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                             <CardFooter>
                               <Skeleton className="h-10 w-full" />
                             </CardFooter>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (toolName === 'generateComponentTool') {
+                      if (state === 'result' && toolInvocation.result?.success) {
+                        return (
+                          <div className="max-w-3xl w-full" key={toolCallId}>
+                            <ProgressStates progressStates={toolInvocation.result.progressStates} title={toolInvocation.result.title} />
+                          </div>
+                        );
+                      }
+                      
+                      if (state === 'partial-call' || state === 'call') {
+                        return (
+                          <Card className="w-full" key={toolCallId}>
+                            <CardHeader>
+                              <Skeleton className="h-6 w-1/2" />
+                            </CardHeader>
+                            <CardContent>
+                              <Skeleton className="h-40 w-full mb-4" />
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    }
+
+                    if (toolName === 'createCalendarEventTool') {
+                      if (state === 'result' && toolInvocation.result?.success) {
+                        return (
+                          <div className="max-w-3xl w-full" key={toolCallId}>
+                            <CalendarView data={[{
+                              day: new Date(toolInvocation.result.event.datetime),
+                              events: [{
+                                ...toolInvocation.result.event,
+                                is_new: true
+                              }]
+                            }]} />
+                          </div>
+                        );
+                      }
+                      
+                      if (state === 'partial-call' || state === 'call') {
+                        return (
+                          <Card className="w-full" key={toolCallId}>
+                            <CardHeader>
+                              <Skeleton className="h-6 w-1/2" />
+                            </CardHeader>
+                            <CardContent>
+                              <Skeleton className="h-40 w-full mb-4" />
+                            </CardContent>
                           </Card>
                         );
                       }

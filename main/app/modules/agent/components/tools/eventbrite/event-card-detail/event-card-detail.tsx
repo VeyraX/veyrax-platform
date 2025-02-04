@@ -68,7 +68,7 @@ export function EventDetailCard({ event, isLoading, onSendMessage }: EventDetail
     <Card className="w-full max-w-3xl mx-auto">
       <div className="flex justify-center py-4 border-b">
         <img 
-          src="/logos/eventbrite.svg" 
+          src="/logos/eventbrite-icon.svg" 
           alt="Eventbrite Logo" 
           className="h-4"
         />

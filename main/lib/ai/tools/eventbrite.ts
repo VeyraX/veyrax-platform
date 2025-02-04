@@ -4,21 +4,40 @@ import { dummyEvents } from '@/app/modules/agent/components/tools/eventbrite/eve
 import type { Event } from '@/app/modules/agent/components/tools/eventbrite/event-card-types';
 
 export const getEventsTool = tool({
-  description: 'Get a list of available events, optionally filtered by location',
+  description: 'Get a list of available events, filtered by location and/or date range',
   parameters: z.object({
-    location: z.string().optional().describe('Optional location to filter events'),
+    location: z.string().optional().describe('Location to filter events (e.g., "San Francisco")'),
+    startDate: z.string().optional().describe('Start date for filtering events (YYYY-MM-DD)'),
+    endDate: z.string().optional().describe('End date for filtering events (YYYY-MM-DD)'),
   }),
-  execute: async function({ location }): Promise<{ success: boolean, events?: Event[], error?: string }> {
+  execute: async function({ location, startDate, endDate }): Promise<{ success: boolean, events?: Event[], error?: string }> {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       let filteredEvents = dummyEvents;
       
       if (location) {
-        filteredEvents = dummyEvents.filter(event => 
+        filteredEvents = filteredEvents.filter(event => 
           !event.isOnline && 
           event.location.toLowerCase().includes(location.toLowerCase())
         );
+      }
+
+      if (startDate || endDate) {
+        filteredEvents = filteredEvents.filter(event => {
+          const eventDate = new Date(event.startDate);
+          const start = startDate ? new Date(startDate) : null;
+          const end = endDate ? new Date(endDate) : null;
+
+          if (start && end) {
+            return eventDate >= start && eventDate <= end;
+          } else if (start) {
+            return eventDate >= start;
+          } else if (end) {
+            return eventDate <= end;
+          }
+          return true;
+        });
       }
 
       return {

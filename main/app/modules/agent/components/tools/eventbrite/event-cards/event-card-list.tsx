@@ -12,9 +12,9 @@ export function EventCardsList({ events, isLoading, onSendMessage }: EventCardsL
   if (isLoading) {
     return (
       <>
-        <div className="flex justify-center mb-1">
+        <div className="flex justify-center mb-3">
           <img 
-            src="/logos/eventbrite.svg" 
+            src="/logos/eventbrite-icon.svg" 
             alt="Eventbrite Logo" 
             className="h-4"
           />
@@ -41,7 +41,7 @@ export function EventCardsList({ events, isLoading, onSendMessage }: EventCardsL
     <div className="flex flex-col items-center gap-4">
       <div className="flex justify-center w-full mb-1">
         <img 
-          src="/logos/eventbrite.svg" 
+          src="/logos/eventbrite-icon.svg" 
           alt="Eventbrite Logo" 
           className="h-4"
         />
