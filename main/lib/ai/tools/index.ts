@@ -1,6 +1,10 @@
-import { pythonTool } from './execute_python';
+import { getEventsTool, getEventDetailTool } from './eventbrite';
+import { createPaymentTool } from './stripe';
+
 export const tools = {
-  pythonTool,
+  getEventsTool,
+  getEventDetailTool,
+  createPaymentTool,
 };
 
 export type Tools = typeof tools;

@@ -37,6 +37,13 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Eventbrite brand colors */
+    --eventbrite-orange: 14 100% 50%;      /* #F05537 - Primary brand color */
+    --eventbrite-blue: 198 100% 29%;       /* #0D8484 - Secondary color */
+    --eventbrite-purple: 271 91% 65%;      /* #B666D2 - Accent color */
+    --eventbrite-green: 158 96% 40%;       /* #00C38D - Success color */
+    --eventbrite-yellow: 45 93% 47%;       /* #F3B935 - Warning color */
   }
 
   .dark {
@@ -72,6 +79,13 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Eventbrite brand colors - slightly adjusted for dark mode */
+    --eventbrite-orange: 14 90% 55%;       /* Slightly muted orange */
+    --eventbrite-blue: 198 85% 35%;        /* Slightly muted blue */
+    --eventbrite-purple: 271 80% 70%;      /* Slightly lighter purple */
+    --eventbrite-green: 158 85% 45%;       /* Slightly muted green */
+    --eventbrite-yellow: 45 85% 52%;       /* Slightly muted yellow */
   }
 }
 

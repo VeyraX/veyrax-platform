@@ -11,20 +11,20 @@ export async function middleware(req: NextRequest) {
 
   if (pathname === '/login') {
     if (authToken && isValidToken) {
-      return NextResponse.redirect(new URL('/assistant', req.url));
+      return NextResponse.redirect(new URL('/agent', req.url));
     }
     return NextResponse.next();
   }
 
   if (pathname === '/') {
     if (authToken && isValidToken) {
-      return NextResponse.redirect(new URL('/assistant', req.url));
+      return NextResponse.redirect(new URL('/agent', req.url));
     } else {
       return NextResponse.redirect(new URL('/login', req.url));
     }
   }
 
-  if (pathname.startsWith('/assistant')) {
+  if (pathname.startsWith('/agent')) {
     if (!authToken || !isValidToken) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
@@ -35,5 +35,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/assistant/:path*']
+  matcher: ['/', '/login', '/agent/:path*']
 }

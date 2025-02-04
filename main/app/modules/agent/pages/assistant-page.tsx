@@ -210,6 +210,12 @@ export default function AssistantPage() {
             isLoading={isLoading}
             sandboxId={sandboxId}
             onEditMessage={handleEditMessage}
+            onSendMessage={async (message: string) => {
+              await append({
+                content: message,
+                role: 'user'
+              });
+            }}
           />
         </ScrollArea>
 

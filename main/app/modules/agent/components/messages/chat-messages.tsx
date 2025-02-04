@@ -1,10 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageFormatter } from "./message-formatter"
-import { ToolInvocationCard } from "../tools/tool-invocation-card"
 import { Button } from "@/components/ui/button"
 import { ThumbsDown, ThumbsUp, Pencil } from "lucide-react"
 import React from "react"
-import { Textarea } from "@/components/ui/textarea"
+import EventCard from "../tools/eventbrite/event-cards/event-card"
+import { EventDetailCard } from "../tools/eventbrite/event-card-detail/event-card-detail"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { Event } from "../tools/eventbrite/event-card-types"
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
+import { useChatScroll } from "@/hooks/use-chat-scroll"
+import { EditMessage } from "./chat-messages-edit-message"
+import { StripeProvider } from "../tools/stripe/stripe-provider"
+import { PaymentForm } from "../tools/stripe/stripe-paymenet-card"
+import { EventCardsList } from "../tools/eventbrite/event-cards/event-card-list"
+
 interface ChatMessagesProps {
   messages: any[]
   messageAttachments: {
@@ -16,6 +25,7 @@ interface ChatMessagesProps {
   isLoading: boolean
   sandboxId: string | null
   onEditMessage?: (messageId: string, content: string) => void
+  onSendMessage?: (message: string) => void
 }
 
 function parseMessageContent(content: string) {
@@ -43,10 +53,10 @@ function parseMessageContent(content: string) {
   return cleanContent;
 }
 
-export function ChatMessages({ messages, messageAttachments, isLoading, sandboxId, onEditMessage }: ChatMessagesProps) {
+export function ChatMessages({ messages, messageAttachments, isLoading, sandboxId, onEditMessage, onSendMessage }: ChatMessagesProps) {
   const [ratedMessageIds, setRatedMessageIds] = React.useState<Set<string>>(new Set());
   const [editingMessageId, setEditingMessageId] = React.useState<string | null>(null);
-  const [editContent, setEditContent] = React.useState<string>("");
+  const { containerRef, lastMessageRef } = useChatScroll(messages, isLoading);
 
   const handleRate = (messageId: string) => {
     setRatedMessageIds(prev => new Set(prev).add(messageId));
@@ -54,30 +64,35 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
 
   const handleEditStart = (message: any) => {
     setEditingMessageId(message.id);
-    setEditContent(parseMessageContent(message.content));
   };
 
-  const handleEditSave = async (messageId: string) => {
-    await onEditMessage?.(messageId, editContent);
+  const handleEditSave = async (messageId: string, content: string) => {
+    await onEditMessage?.(messageId, content);
     setEditingMessageId(null);
-    setEditContent("");
   };
 
   const handleEditCancel = () => {
     setEditingMessageId(null);
-    setEditContent("");
   };
 
   return (
-    <div className="flex flex-col gap-8 p-4 max-w-5xl mx-auto w-full">
+    <div 
+      ref={containerRef}
+      className="flex flex-col gap-8 p-4 max-w-5xl mx-auto w-full overflow-y-auto"
+    >
       {messages.map((message, index) => {
         const showAvatar = index === 0 || messages[index - 1].role !== message.role;
         const currentAttachments = messageAttachments[message.id];
         const isLastAssistantMessage = message.role === 'assistant' && 
           (index === messages.length - 1 || messages[index + 1]?.role === 'user');
+        const isLastMessage = index === messages.length - 1;
         
         return (
-          <div key={message.id} className="flex gap-4 group">
+          <div 
+            key={message.id} 
+            ref={isLastMessage ? lastMessageRef : undefined}
+            className="flex gap-4 group"
+          >
             {showAvatar ? (
               <Avatar className="h-8 w-8">
                 <AvatarImage src={message.role === 'user' ? '/placeholder.svg' : '/placeholder.svg'} />
@@ -129,31 +144,11 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
               )}
               <div className="text-sm leading-relaxed relative">
                 {editingMessageId === message.id ? (
-                  <div className="flex flex-col gap-2">
-                    <Textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                      rows={3}
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="link"
-                        onClick={() => handleEditSave(message.id)}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="link"
-                        onClick={handleEditCancel}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
+                  <EditMessage
+                    content={parseMessageContent(message.content)}
+                    onSave={(content: string) => handleEditSave(message.id, content)}
+                    onCancel={handleEditCancel}
+                  />
                 ) : (
                   <>
                     <div className="flex justify-between items-start">
@@ -180,6 +175,8 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   {message.toolInvocations.map((toolInvocation: any) => {
                     const { toolName, toolCallId, state, args } = toolInvocation;
                     
+                    console.log('Tool invocation:', toolInvocation);
+                    
                     const status = (() => {
                       switch (state) {
                         case 'partial-call':
@@ -195,34 +192,81 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                       }
                     })();
 
-                    if (toolName === 'pythonTool') {
-                      return (
-                        <div className="w-[900px]">
-                          <ToolInvocationCard
+                    if (toolName === 'getEvents' || toolName === 'getEventsTool') {
+                      if (state === 'result' && toolInvocation.result?.success) {
+                        return (
+                          <EventCardsList 
                             key={toolCallId}
-                            title="Python Code Execution"
-                            status={status}
-                            query={args?.code}
-                            error={state === 'result' ? toolInvocation.result?.error : undefined}
-                            result={state === 'result' ? toolInvocation.result : undefined}
-                            toolName={toolName}
-                            sandboxId={sandboxId}
+                            events={toolInvocation.result.events}
+                            onSendMessage={onSendMessage}
                           />
-                        </div>
-                      );
+                        );
+                      }
+                      
+                      if (state === 'partial-call' || state === 'call') {
+                        return (
+                          <EventCardsList 
+                            key={toolCallId}
+                            isLoading={true}
+                          />
+                        );
+                      }
+                    }
+                    
+                    if (toolName === 'getEventDetail' || toolName === 'getEventDetailTool') {
+                      if (state === 'result' && toolInvocation.result?.success) {
+                        return (
+                          <div className="max-w-3xl" key={toolCallId}>
+                            <EventDetailCard 
+                              event={toolInvocation.result.event} 
+                              onSendMessage={onSendMessage}
+                            />
+                          </div>
+                        );
+                      }
+                      
+                      if (state === 'partial-call' || state === 'call') {
+                        return (
+                          <div className="max-w-3xl" key={toolCallId}>
+                            <EventDetailCard isLoading />
+                          </div>
+                        );
+                      }
+                    }
+
+                    if (toolName === 'createPaymentTool') {
+                      if (state === 'result' && toolInvocation.result?.success) {
+                        return (
+                          <div className="max-w-3xl w-full" key={toolCallId}>
+                            <StripeProvider clientSecret={toolInvocation.result.clientSecret}>
+                              <PaymentForm />
+                            </StripeProvider>
+                          </div>
+                        );
+                      }
+                      
+                      if (state === 'partial-call' || state === 'call') {
+                        return (
+                          <Card className="w-full" key={toolCallId}>
+                            <CardHeader>
+                              <Skeleton className="h-6 w-1/2" />
+                            </CardHeader>
+                            <CardContent>
+                              <Skeleton className="h-40 w-full mb-4" />
+                            </CardContent>
+                            <CardFooter>
+                              <Skeleton className="h-10 w-full" />
+                            </CardFooter>
+                          </Card>
+                        );
+                      }
                     }
 
                     return (
-                      <div className="w-[900px]">
-                        <ToolInvocationCard
-                          key={toolCallId}
-                          toolName={toolName}
-                          title="Tool Execution"
-                          status={status}
-                          query={args?.query}
-                          error={state === 'result' ? toolInvocation.result?.error : undefined}
-                          result={state === 'result' ? toolInvocation.result : undefined}
-                        />
+                      <div className="max-w-3xl border rounded-lg p-4" key={toolCallId}>
+                        <pre className="text-sm">
+                          {JSON.stringify({ toolName, state, result: toolInvocation.result }, null, 2)}
+                        </pre>
                       </div>
                     );
                   })}
