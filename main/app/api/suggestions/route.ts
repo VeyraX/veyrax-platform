@@ -13,8 +13,6 @@ export async function POST(req: Request) {
     (m: any) => m.role === 'assistant'
   );
 
-  console.log(lastUserMessage, lastAssistantMessage)
-
   const { object } = await generateObject({
     model: openai('gpt-4o'),
     system: suggestions_system_prompt,
