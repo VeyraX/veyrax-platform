@@ -55,8 +55,9 @@ export const TextBlock: FC<TextBlockProps> = ({ className }) => {
     >
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl space-y-4">
-          <h2 className="text-5xl md:text-7xl tracking-tighter text-center font-bold">
-            Introducing ACI
+          <h2 className="text-5xl md:text-7xl tracking-tighter text-center">
+            <span className="font-normal">Introducing</span>{" "}
+            <span className="font-bold">ACI</span>
           </h2>
           
           <h3 className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground text-center">

@@ -7,7 +7,9 @@ export const Features = () => (
       <div className="flex flex-col gap-20">
         <div className="flex flex-col items-center text-center mb-10">
           <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter font-regular">
-            <span className="text-spektr-cyan-50">AI Agents is a new way to interact with the web</span>
+            <span className="text-spektr-cyan-50 [word-spacing:-3px] md:[word-spacing:normal]">
+              AI Agents is a<br className="md:hidden" /> new way to<br className="md:hidden" /> interact with the web
+            </span>
           </h1>
           <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl mt-4">
             Old software, websites and apps will be replaced by AI Agents. Users don't need to manage multiple apps, they just need to get job done.
