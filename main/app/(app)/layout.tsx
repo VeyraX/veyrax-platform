@@ -11,7 +11,7 @@ export default async function AppLayout({
 }) {
   return (
     <div className="app-layout">
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <AppSidebar collapsible="offcanvas" />
         <main className="flex-1 flex flex-col h-screen">
           <div className="flex-1">

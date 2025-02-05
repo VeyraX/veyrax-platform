@@ -6,6 +6,7 @@ export interface Endpoint {
 }
 
 export interface EndpointData {
+  path: string
   method: string
   description: string
   inputSchema: object

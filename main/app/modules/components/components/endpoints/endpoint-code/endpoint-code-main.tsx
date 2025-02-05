@@ -1,4 +1,4 @@
-import type { EndpointData } from "../../../endpoint-types"
+import type { EndpointData } from "../../endpoint-types"
 import { useState } from "react"
 import { FileTree } from "./endpoint-code-file-tree"
 import { CodeDisplay } from "./endpoint-code"

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { EndpointData } from "../../endpoint-types"
+import type { EndpointData } from "../endpoint-types"
 import Api from "./endpoint-api"
 import EndpointCodeMain from "./endpoint-code/endpoint-code-main"
 import Preview from "./endpoint-preview"
@@ -13,17 +13,13 @@ interface EndpointViewProps {
 }
 
 export default function EndpointView({ data, path }: EndpointViewProps) {
-  const [activeLowTab, setActiveLowTab] = useState("API")
+  const [activeLowTab, setActiveLowTab] = useState("Installation")
   const [hoveredLowTab, setHoveredLowTab] = useState<number | null>(null)
 
-  const lowTabs = ["API", "Code", "Preview"]
+  const lowTabs = ["Installation", "Preview"]
 
   return (
-    <div>
-      <div className="mb-4 p-3 bg-[#0e0f1114] dark:bg-[#ffffff0a] rounded-md">
-        <code className="text-sm font-mono">npx veyrax add {path}</code>
-      </div>
-
+    <div className="w-full">
       <div className="relative mb-4">
         <div
           className="absolute h-[30px] transition-all duration-300 ease-out bg-[#0e0f1114] dark:bg-[#ffffff1a] rounded-[6px]"
@@ -59,13 +55,15 @@ export default function EndpointView({ data, path }: EndpointViewProps) {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          {activeLowTab === "API" && <Api data={data} />}
-          {activeLowTab === "Code" && <EndpointCodeMain data={data} />}
-          {activeLowTab === "Preview" && <Preview data={data} />}
-        </CardContent>
-      </Card>
+      {activeLowTab === "Installation" ? (
+        <div className="p-4">
+          <Api data={data} />
+        </div>
+      ) : (
+        <div className="p-4">
+          <Preview data={data} />
+        </div>
+      )}
     </div>
   )
 }

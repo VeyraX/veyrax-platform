@@ -1,4 +1,4 @@
-import type { EndpointsData } from "./endpoint-types"
+import type { EndpointsData } from "./components/endpoint-types"
 import { ReactNode } from 'react'
 import EventCard from "@/app/modules/agent/components/tools/eventbrite/event-cards/event-card"
 import { EventDetailCard } from "@/app/modules/agent/components/tools/eventbrite/event-card-detail/event-card-detail"
@@ -10,6 +10,7 @@ export const endpoints = [
 
 export const endpointsData: EndpointsData = {
   "/get/events/": {
+    path: "/get/events/",
     method: "GET",
     description: "Retrieve a paginated list of events from Eventbrite",
     inputSchema: {
@@ -48,7 +49,7 @@ export const endpointsData: EndpointsData = {
       }
     },
     preview: (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex justify-start">
         <EventCard 
           event={{
             id: "1",
@@ -67,21 +68,6 @@ export const endpointsData: EndpointsData = {
               { id: "B1", row: "B", seatNumber: 1, isAvailable: true },
               { id: "B2", row: "B", seatNumber: 2, isAvailable: true }
             ]
-          }}
-          onSendMessage={() => {}}
-        />
-        <EventCard 
-          event={{
-            id: "2",
-            name: "Virtual Yoga Workshop",
-            description: "Transform your practice with our online yoga workshop suitable for all levels. Learn new techniques and deepen your understanding.",
-            startDate: "2024-05-20T10:00:00Z",
-            endDate: "2024-05-20T12:00:00Z",
-            location: "",
-            isOnline: true,
-            price: 25.00,
-            image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b",
-            availableTickets: 100
           }}
           onSendMessage={() => {}}
         />
@@ -174,6 +160,7 @@ EVENTBRITE_ORGANIZATION_ID=your_organization_id_here`
   },
 
   "/get/event/{id}": {
+    path: "/get/event/{id}",
     method: "GET",
     description: "Get detailed information about a specific event",
     inputSchema: {
@@ -206,29 +193,31 @@ EVENTBRITE_ORGANIZATION_ID=your_organization_id_here`
       }
     },
     preview: (
-      <EventDetailCard
-        event={{
-          id: "1",
-          name: "Tech Conference 2024",
-          description: "Join us for the biggest tech conference of the year featuring keynotes from industry leaders, workshops, and networking opportunities.",
-          startDate: "2024-06-15T09:00:00Z",
-          endDate: "2024-06-17T17:00:00Z",
-          location: "San Francisco Convention Center",
-          isOnline: false,
-          price: 299.99,
-          image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87",
-          availableTickets: 500,
-          seats: [
-            { id: "A1", row: "A", seatNumber: 1, isAvailable: true },
-            { id: "A2", row: "A", seatNumber: 2, isAvailable: true },
-            { id: "A3", row: "A", seatNumber: 3, isAvailable: true },
-            { id: "B1", row: "B", seatNumber: 1, isAvailable: true },
-            { id: "B2", row: "B", seatNumber: 2, isAvailable: true },
-            { id: "B3", row: "B", seatNumber: 3, isAvailable: true }
-          ]
-        }}
-        onSendMessage={() => {}}
-      />
+      <div className="flex justify-start">
+        <EventDetailCard
+          event={{
+            id: "1",
+            name: "Tech Conference 2024",
+            description: "Join us for the biggest tech conference of the year featuring keynotes from industry leaders, workshops, and networking opportunities.",
+            startDate: "2024-06-15T09:00:00Z",
+            endDate: "2024-06-17T17:00:00Z",
+            location: "San Francisco Convention Center",
+            isOnline: false,
+            price: 299.99,
+            image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87",
+            availableTickets: 500,
+            seats: [
+              { id: "A1", row: "A", seatNumber: 1, isAvailable: true },
+              { id: "A2", row: "A", seatNumber: 2, isAvailable: true },
+              { id: "A3", row: "A", seatNumber: 3, isAvailable: true },
+              { id: "B1", row: "B", seatNumber: 1, isAvailable: true },
+              { id: "B2", row: "B", seatNumber: 2, isAvailable: true },
+              { id: "B3", row: "B", seatNumber: 3, isAvailable: true }
+            ]
+          }}
+          onSendMessage={() => {}}
+        />
+      </div>
     ) as ReactNode,
     code: [
       {
