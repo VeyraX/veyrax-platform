@@ -31,9 +31,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith('/components/')) {
+    if (!authToken || !isValidToken) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+    return NextResponse.next();
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/login', '/agent/:path*']
+  matcher: ['/', '/login', '/agent/:path*', '/components/:path*']
 }

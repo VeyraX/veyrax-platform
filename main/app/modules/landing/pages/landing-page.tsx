@@ -1,10 +1,10 @@
 'use client'
 import { Features } from "../components/features"
 import { Hero } from "../components/hero"
-import { Components } from "../components/components"
+import { CTA } from "../components/cta"
 import { TextBlock } from "../components/text"
 import { useEffect } from "react"
-
+import { Footer } from "../components/footer"
 export default function LandingPage() {
   useEffect(() => {
     const hash = window.location.hash;
@@ -14,11 +14,12 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <>
+    <div className="flex flex-col gap-32">
       <Hero />
       <TextBlock />
       <Features />
-      <Components />
-    </>
+      <CTA />
+      <Footer />
+    </div>
   )
 }

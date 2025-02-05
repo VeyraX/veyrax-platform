@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 
 export const Features = () => (
-  <div className="w-full py-20 lg:py-40">
+  <div className="w-full">
     <div className="container mx-auto">
       <div className="flex flex-col gap-20">
         <div className="flex flex-col items-center text-center mb-10">
@@ -14,68 +14,65 @@ export const Features = () => (
           </p>
         </div>
 
-        {/* First Block */}
-        <div className="flex flex-col lg:flex-row gap-20 lg:items-start">
-          <div className="flex gap-4 flex-col flex-1 lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col">
+        <div className="flex flex-col lg:flex-row gap-20 lg:items-start p-4 lg:p-0">
+          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-2 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
-                Fetching data from any source
+                Agentic API Format
               </h2>
               <p className="text-xl max-w-xl lg:max-w-sm leading-relaxed tracking-tight text-muted-foreground text-left">
-                AI Agents connect to any API and database to fetch real-time data from multiple sources simultaneously. This enables automatic data processing from your favorite services without manual input.
+                A seamless API with built-in context management, standardized message format (JSON-RPC 2.0), and tool execution capabilities.
               </p>
             </div>
           </div>
-          <div className="relative h-[800px] w-full flex-[2] lg:ml-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:ml-20">
             <Image
               src="/landing/features/feature_1.png"
-              alt="Feature 1"
+              alt="Agentic API Format"
               fill
-              className="rounded-md object-contain"
+              className="rounded-md object-contain object-top"
             />
           </div>
         </div>
 
-        {/* Second Block */}
-        <div className="flex flex-col lg:flex-row-reverse gap-20 lg:items-start">
-          <div className="flex gap-4 flex-col flex-1 lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col">
+        <div className="flex flex-col lg:flex-row-reverse gap-20 lg:items-start p-4 lg:p-0">
+          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-2 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
-                Uncredieble convenient
+                Embedded UI Components
               </h2>
               <p className="text-xl max-w-xl lg:max-w-sm leading-relaxed tracking-tight text-muted-foreground text-left">
-                Handle all your digital operations from a single interface without switching between different apps. AI Agents automatically process payments, manage subscriptions, and schedule appointments across all connected services.
+                Pre-built UI forms for each tool that enhance user interaction with your Agent.
               </p>
             </div>
           </div>
-          <div className="relative h-[800px] w-full flex-[2] lg:mr-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:mr-20">
             <Image
               src="/landing/features/feature_2.png"
-              alt="Feature 2"
+              alt="Embedded UI Components"
               fill
-              className="rounded-md object-contain"
+              className="rounded-md object-contain object-top"
             />
           </div>
         </div>
 
-        {/* Third Block */}
-        <div className="flex flex-col lg:flex-row gap-20 lg:items-start">
-          <div className="flex gap-4 flex-col flex-1 lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col">
+        <div className="flex flex-col lg:flex-row gap-20 lg:items-start p-4 lg:p-0">
+          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-2 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
-                Action execution
+                Quick Setup
               </h2>
               <p className="text-xl max-w-xl lg:max-w-sm leading-relaxed tracking-tight text-muted-foreground text-left">
-                Execute complex tasks by asking. They automate routine operations that we use to do manually across multiple apps.
+                Integrate in just a few clicks with our production-ready components and endpoints.
               </p>
             </div>
           </div>
-          <div className="relative h-[800px] w-full flex-[2] lg:ml-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:ml-20">
             <Image
               src="/landing/features/feature_3.png"
-              alt="Feature 3"
+              alt="Quick Integration"
               fill
-              className="rounded-md object-contain"
+              className="rounded-md object-contain object-top"
             />
           </div>
         </div>

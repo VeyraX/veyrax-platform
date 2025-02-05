@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import Particles from "@/components/ui/particles";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-export const Components = () => {
+export const CTA = () => {
   const { resolvedTheme } = useTheme();
   const [color, setColor] = useState("#ffffff");
 
@@ -13,7 +14,7 @@ export const Components = () => {
   }, [resolvedTheme]);
 
   return (
-    <div className="w-full py-20 lg:py-40">
+    <div className="w-full">
       <div className="container mx-auto">
         <div className="flex flex-col items-center text-center relative">
           <Particles
@@ -23,7 +24,7 @@ export const Components = () => {
             color={color}
             refresh
           />
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center pb-24">
             <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter font-regular">
               <span className="text-spektr-cyan-50">AI</span> will eat the web
             </h1>
@@ -33,14 +34,16 @@ export const Components = () => {
             <div className="flex gap-4 mt-8">
               <Button
                 size="lg"
+                asChild
               >
-                Join Waitlist
+                <Link href="/waitlist">Join Waitlist</Link>
               </Button>
               <Button
                 variant="outline"
                 size="lg"
+                asChild
               >
-                Explore Components
+                <Link href="/components">Explore Components</Link>
               </Button>
             </div>
           </div>

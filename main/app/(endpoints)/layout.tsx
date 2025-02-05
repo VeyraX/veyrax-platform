@@ -4,7 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import "@/app/globals.css"
 import { TopBarMenu } from "@/app/modules/general/components/topbar-menu"
 
-export default async function AppLayout({
+export default async function EndpointsLayout({
   children,
 }: {
   children: React.ReactNode

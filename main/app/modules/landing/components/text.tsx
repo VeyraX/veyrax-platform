@@ -51,11 +51,11 @@ export const TextBlock: FC<TextBlockProps> = ({ className }) => {
   return (
     <section 
       id="text-block"
-      className={cn('relative w-full py-4 md:py-6', className)}
+      className={cn('relative w-full', className)}
     >
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl space-y-4">
-          <h2 className="text-5xl md:text-5xl tracking-tighter text-center font-bold">
+          <h2 className="text-5xl md:text-7xl tracking-tighter text-center font-bold">
             Introducing ACI
           </h2>
           
@@ -85,11 +85,11 @@ export const TextBlock: FC<TextBlockProps> = ({ className }) => {
             </div>
           </div>
 
-          <div className="relative h-[800px] w-full flex items-center justify-center overflow-hidden -mt-8">
-            <div
-              className="relative flex w-full items-center justify-center"
-              ref={containerRef}
-            >
+          <div 
+            ref={containerRef}
+            className="relative w-full items-center justify-center hidden md:flex"
+          >
+            <div className="relative h-[600px] w-full flex items-center justify-center overflow-hidden">
               <AnimatedBeam containerRef={containerRef} fromRef={service1Ref} toRef={centerRef} />
               <AnimatedBeam containerRef={containerRef} fromRef={service2Ref} toRef={centerRef} />
               <AnimatedBeam containerRef={containerRef} fromRef={service3Ref} toRef={centerRef} />
