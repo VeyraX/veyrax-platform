@@ -18,10 +18,9 @@ export async function middleware(req: NextRequest) {
 
   if (pathname === '/') {
     if (authToken && isValidToken) {
-      return NextResponse.redirect(new URL('/agent', req.url));
-    } else {
-      return NextResponse.redirect(new URL('/login', req.url));
+      return NextResponse.redirect(new URL('/web', req.url));
     }
+    return NextResponse.next();
   }
 
   if (pathname.startsWith('/agent')) {
