@@ -16,7 +16,9 @@ export const Footer = () => {
     <footer className="bg-primary py-12 text-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center">
-          <div className="mb-8 rounded-full bg-white h-10 w-10"></div>
+          <div className="mb-8 rounded-full bg-white h-10 w-10">
+            <img src="/logo_light.svg" alt="Logo" className="h-10 w-10" />
+          </div>
           <nav className="mb-8 flex flex-wrap justify-center gap-6">
             <a href="/" className="transition-colors hover:text-gray-300">Home</a>
             <a 
@@ -33,16 +35,38 @@ export const Footer = () => {
             <a href="mailto:korzhov.work2019@gmail.com" className="transition-colors hover:text-gray-300">Contacts</a>
           </nav>
           <div className="mb-8 flex space-x-4">
-            <Button variant="outline" size="icon" className="rounded-full">
-              <Image src={X} alt="X" className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              asChild
+            >
+              <a
+                href="https://x.com/korzhov_dm"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image src={X} alt="X" className="h-4 w-4" />
+              </a>
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full">
-              <Image src={LinkedIn} alt="LinkedIn" className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              asChild
+            >
+              <a
+                href="https://www.linkedin.com/in/korzhovdm/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image src={LinkedIn} alt="LinkedIn" className="h-4 w-4" />
+              </a>
             </Button>
           </div>
           <div className="text-center">
             <p className="text-sm text-white/80">
-              © 2025 VeryraX. All rights reserved.
+              © 2025 VeyraX. All rights reserved.
             </p>
           </div>
         </div>

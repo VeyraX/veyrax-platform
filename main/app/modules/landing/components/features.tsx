@@ -2,9 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 
 export const Features = () => (
-  <div className="w-full">
-    <div className="container mx-auto">
-      <div className="flex flex-col gap-20">
+  <div className="w-full py-20">
+    <div className="container mx-auto px-4">
+      <div className="flex flex-col gap-32">
         <div className="flex flex-col items-center text-center mb-10">
           <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter font-regular">
             <span className="text-spektr-cyan-50 [word-spacing:-3px] md:[word-spacing:normal]">
@@ -16,9 +16,9 @@ export const Features = () => (
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-20 lg:items-start p-4 lg:p-0">
-          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col items-start">
+        <div className="flex flex-col lg:flex-row gap-20 lg:items-start">
+          <div className="flex gap-6 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-4 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
                 Agentic API Format
               </h2>
@@ -27,19 +27,19 @@ export const Features = () => (
               </p>
             </div>
           </div>
-          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:ml-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[600px] flex-[2]">
             <Image
               src="/landing/features/feature_1.png"
               alt="Agentic API Format"
               fill
-              className="rounded-md object-contain object-top"
+              className="rounded-lg object-contain object-top"
             />
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row-reverse gap-20 lg:items-start p-4 lg:p-0">
-          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col items-start">
+        <div className="flex flex-col lg:flex-row-reverse gap-20 lg:items-start">
+          <div className="flex gap-6 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-4 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
                 Embedded UI Components
               </h2>
@@ -48,19 +48,19 @@ export const Features = () => (
               </p>
             </div>
           </div>
-          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:mr-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[600px] flex-[2]">
             <Image
               src="/landing/features/feature_2.png"
               alt="Embedded UI Components"
               fill
-              className="rounded-md object-contain object-top"
+              className="rounded-lg object-contain object-top"
             />
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-20 lg:items-start p-4 lg:p-0">
-          <div className="flex gap-4 flex-col flex-[1.5] lg:sticky lg:top-20">
-            <div className="flex gap-2 flex-col items-start">
+        <div className="flex flex-col lg:flex-row gap-20 lg:items-start">
+          <div className="flex gap-6 flex-col flex-[1.5] lg:sticky lg:top-20">
+            <div className="flex gap-4 flex-col items-start">
               <h2 className="text-3xl md:text-5xl tracking-tighter lg:max-w-xl font-regular text-left">
                 Quick Setup
               </h2>
@@ -69,12 +69,12 @@ export const Features = () => (
               </p>
             </div>
           </div>
-          <div className="relative w-full aspect-[4/3] lg:h-[800px] flex-[2] lg:ml-20">
+          <div className="relative w-full aspect-[4/3] lg:h-[600px] flex-[2]">
             <Image
               src="/landing/features/feature_3.png"
               alt="Quick Integration"
               fill
-              className="rounded-md object-contain object-top"
+              className="rounded-lg object-contain object-top"
             />
           </div>
         </div>

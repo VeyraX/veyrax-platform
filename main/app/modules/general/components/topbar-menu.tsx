@@ -5,8 +5,9 @@ import { useTheme } from "next-themes"
 import { usePathname } from "next/navigation"
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Sun, Moon } from "lucide-react"
+import { Sun, Moon, MoveRight } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { WaitlistDialog } from "@/app/modules/landing/components/waitlist-dialog"
 
 
 export function TopBarMenu() {
@@ -21,7 +22,12 @@ export function TopBarMenu() {
     return (
       <nav className="flex h-14 w-full items-center justify-between border-b px-6">
         <div className="flex items-center gap-4">
-          <div className="w-6 h-6 rounded-full bg-black dark:bg-white" />
+          <img 
+            src="/logo.svg"
+            alt="Logo"
+            className="w-7 h-7 cursor-pointer" 
+            onClick={() => router.push('/web')}
+          />
           
           {showEvenbright && (
             <Breadcrumb>
@@ -43,12 +49,13 @@ export function TopBarMenu() {
               <span className="text-sm">{user.email}</span>
             </div>
           ) : (
-            <Button 
-              variant="default" 
-              onClick={() => router.push('/waitlist')}
-            >
-              Join Waitlist
-            </Button>
+            <WaitlistDialog 
+              trigger={
+                <Button variant="default" className="gap-2" size="sm">
+                  Join Waitlist <MoveRight className="h-4 w-4" />
+                </Button>
+              }
+            />
           )}
         </div>
       </nav>
