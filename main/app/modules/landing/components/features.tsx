@@ -12,7 +12,7 @@ export const Features = () => (
             </span>
           </h1>
           <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl mt-4">
-            Old software, websites and apps will be replaced by <span className="font-bold">AI Agents</span>. Users don't need to manage multiple apps, they just need to get job done.
+            Old software, websites and apps will be replaced by AI Agents. Users don't need to manage multiple apps, they just need to get job done.
           </p>
         </div>
 
