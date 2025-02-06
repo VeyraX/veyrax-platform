@@ -33,7 +33,7 @@ export const CTA = () => {
                 <span className="font-semibold">will eat the web</span>
               </h1>
               <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl">
-                Everything will be consilated and tools development the last bottleneck. We will try our best to help it do so.
+                Everything will be consilated and tools integration is last bottleneck. We will try our best to help it do so.
               </p>
             </div>
             <div className="flex gap-4 mt-8">

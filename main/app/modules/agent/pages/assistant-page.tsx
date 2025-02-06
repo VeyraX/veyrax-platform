@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
 import { Suggestions } from "../components/suggestions /suggestions"
-import { generateSuggestions, previewSuggestions } from "../components/suggestions /suggestions-dummy"
+import { SuggestionsDummy } from "../components/suggestions /suggestions-dummy"
 import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
@@ -36,7 +36,6 @@ export default function AssistantPage() {
     path: string;
   } | null>(null);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
-  const [type, setType] = useState<"Generate" | "Preview">("Generate");
   const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -208,7 +207,7 @@ export default function AssistantPage() {
   };
 
   const getCurrentSuggestions = () => {
-    return type === "Generate" ? generateSuggestions : previewSuggestions;
+    return SuggestionsDummy;
   };
 
   return (
@@ -273,8 +272,6 @@ export default function AssistantPage() {
               className="max-w-none"
               isLoading={isLoading}
               onStop={stop}
-              type={type}
-              onTypeChange={setType}
             />
           </div>
         </div>

@@ -28,14 +28,22 @@ import { usePathname } from "next/navigation"
 
 const items = [
   {
-    title: "Agent",
+    title: "ACI",
     items: [
       {
-        title: "Memory",
-        url: "",
+        title: "Playground",
+        url: "/agent",
       },
       {
         title: "Integrations",
+        url: "",
+      },
+      {
+        title: "Analytics",
+        url: "",
+      },
+      {
+        title: "Settings",
         url: "",
       },
     ],
@@ -61,21 +69,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
           <div className="flex items-center gap-2 px-3 py-4">
-            <img src="/placeholder.svg" alt="Logo" className="h-10 w-15" />
+            <img src="/logo.svg" alt="Logo" className="h-7 w-7" />
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <Button 
-                variant="outline"
-                className="w-full justify-center" 
-                onClick={() => window.location.reload()}
-              >
-                <span>New Chat</span>
-              </Button>
-            </SidebarGroupContent>
-          </SidebarGroup>
 
           {items.map((group) => (
             <SidebarGroup key={group.title}>
@@ -100,21 +97,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarGroup>
           ))}
 
-          <SidebarGroup>
-            <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem className='cursor-pointer'>
-                  <SidebarMenuButton
-                  >
-                    <div>
-                      <span>Something interesting</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>

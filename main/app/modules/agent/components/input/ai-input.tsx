@@ -9,7 +9,7 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToolSelector } from "./tool-selector";
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -22,8 +22,7 @@ interface AIInputWithSearchProps {
   className?: string;
   isLoading?: boolean;
   onStop?: () => void;
-  type: "Generate" | "Preview";
-  onTypeChange?: (type: "Generate" | "Preview") => void;
+  onToolSelect?: (toolIds: string[]) => void;
 }
 
 export function AIInputWithSearch({
@@ -37,8 +36,7 @@ export function AIInputWithSearch({
   className,
   isLoading,
   onStop,
-  type = "Generate",
-  onTypeChange
+  onToolSelect
 }: AIInputWithSearchProps) {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -51,9 +49,6 @@ export function AIInputWithSearch({
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
 
   const getPlaceholder = () => {
-    if (type === "Generate" || type === "Preview") {
-      return `Please ${type.toLowerCase()}...`;
-    }
     return placeholder;
   };
 
@@ -172,26 +167,23 @@ export function AIInputWithSearch({
 
           <div className="h-12 bg-black/5 dark:bg-white/5 rounded-b-xl">
             <div className="absolute left-3 bottom-3 flex items-center gap-2">
-              <label className="cursor-pointer rounded-lg p-2 bg-black/5 dark:bg-white/5">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => document.getElementById('file-input')?.click()}
+              >
+                <Paperclip className="w-4 h-4" />
                 <input 
+                  id="file-input"
                   type="file" 
                   className="hidden" 
                   onChange={handleFileChange}
                 />
-                <Paperclip className="w-4 h-4 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors" />
-              </label>
-              <Select 
-                value={type} 
-                onValueChange={(value: "Generate" | "Preview") => onTypeChange?.(value)}
-              >
-                <SelectTrigger className="w-[100px] h-8 bg-black/5 dark:bg-white/5 border-none text-sm px-2">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Generate">Generate</SelectItem>
-                  <SelectItem value="Preview">Preview</SelectItem>
-                </SelectContent>
-              </Select>
+              </Button>
+              <div className="w-[200px]">
+                <ToolSelector />
+              </div>
             </div>
             <div className="absolute right-3 bottom-3 flex items-center gap-2">
               <Button

@@ -9,16 +9,14 @@ export async function middleware(req: NextRequest) {
 
   const isValidToken = cookieToken === envToken;
 
+
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/web', req.url));
+  }
+
   if (pathname === '/login') {
     if (authToken && isValidToken) {
       return NextResponse.redirect(new URL('/agent', req.url));
-    }
-    return NextResponse.next();
-  }
-
-  if (pathname === '/') {
-    if (authToken && isValidToken) {
-      return NextResponse.redirect(new URL('/web', req.url));
     }
     return NextResponse.next();
   }
