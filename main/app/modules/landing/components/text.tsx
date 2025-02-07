@@ -96,7 +96,7 @@ export const TextBlock: FC<TextBlockProps> = ({ className }) => {
                 </p>
 
                 <p className="text-muted-foreground">
-                  VeryraX bridges this gap by combining both: providing unified API and UI
+                  VeyraX bridges this gap by combining both: providing unified API and UI
                   components designed for seamless integration into any Agentic system.
                 </p>
               </div>
