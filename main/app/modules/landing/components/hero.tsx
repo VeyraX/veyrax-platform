@@ -126,15 +126,15 @@ export const Hero = () => {
                   <HeroVideoDialog
                     className="dark:hidden block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
-                    thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
+                    videoSrc="https://www.youtube.com/embed/i7bNafDInRA?si=4rb-zSdDkVK9qxxb"
+                    thumbnailSrc="/landing/hero_video.png"
                     thumbnailAlt="Hero Video"
                   />
                   <HeroVideoDialog
                     className="hidden dark:block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
-                    thumbnailSrc="https://startup-template-sage.vercel.app/hero-dark.png"
+                    videoSrc="https://www.youtube.com/embed/i7bNafDInRA?si=4rb-zSdDkVK9qxxb"
+                    thumbnailSrc="/landing/hero_video.png"
                     thumbnailAlt="Hero Video"
                   />
                 </div>
