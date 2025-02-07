@@ -109,5 +109,42 @@ export const dummyEvents: Event[] = [
       { id: "P4", row: "P", seatNumber: 4, isAvailable: true },
       { id: "P5", row: "P", seatNumber: 5, isAvailable: true }
     ]
+  },
+  {
+    id: "7",
+    name: "Valentine's Day Concert",
+    description: "A romantic evening of classical music featuring renowned musicians performing love-themed compositions.",
+    startDate: new Date("2025-02-14T20:00:00"),
+    endDate: new Date("2025-02-14T22:30:00"),
+    location: "Carnegie Hall, New York, NY",
+    price: 85.00,
+    image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae",
+    isOnline: false,
+    availableTickets: 400,
+    seats: [
+      { id: "V1", row: "V", seatNumber: 1, isAvailable: true },
+      { id: "V2", row: "V", seatNumber: 2, isAvailable: true },
+      { id: "V3", row: "V", seatNumber: 3, isAvailable: true },
+      { id: "V4", row: "V", seatNumber: 4, isAvailable: true }
+    ]
+  },
+  {
+    id: "8",
+    name: "Winter Film Festival",
+    description: "Three-day showcase of independent films from around the world, featuring Q&A sessions with directors.",
+    startDate: new Date("2025-02-20T11:00:00"),
+    endDate: new Date("2025-02-22T23:00:00"),
+    location: "Lincoln Center, New York, NY",
+    price: 65.00,
+    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba",
+    isOnline: false,
+    availableTickets: 250,
+    seats: [
+      { id: "F1", row: "F", seatNumber: 1, isAvailable: true },
+      { id: "F2", row: "F", seatNumber: 2, isAvailable: true },
+      { id: "F3", row: "F", seatNumber: 3, isAvailable: true },
+      { id: "F4", row: "F", seatNumber: 4, isAvailable: true },
+      { id: "F5", row: "F", seatNumber: 5, isAvailable: true }
+    ]
   }
 ]

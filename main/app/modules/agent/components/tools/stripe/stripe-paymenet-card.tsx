@@ -10,6 +10,7 @@ export function PaymentForm() {
   const elements = useElements()
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -22,16 +23,27 @@ export function PaymentForm() {
 
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/payment-confirmation`,
-      },
+      redirect: "if_required",
     })
 
     if (error) {
       setErrorMessage(error.message)
+      setIsSuccess(false)
+    } else {
+      setIsSuccess(true)
+      setErrorMessage("Payment successful!")
     }
 
     setIsLoading(false)
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="text-center p-4">
+        <div className="text-green-500 font-medium mb-2">✓ Payment successful!</div>
+        <div className="text-sm text-muted-foreground">Thank you for your purchase</div>
+      </div>
+    )
   }
 
   return (

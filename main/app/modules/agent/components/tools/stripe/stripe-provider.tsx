@@ -13,7 +13,13 @@ interface StripeProviderProps {
 
 export function StripeProvider({ children, clientSecret }: StripeProviderProps) {
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <Elements 
+      stripe={stripePromise} 
+      options={{ 
+        clientSecret,
+        locale: 'en'
+      }}
+    >
       {children}
     </Elements>
   )
