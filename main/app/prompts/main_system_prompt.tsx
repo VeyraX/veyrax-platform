@@ -7,7 +7,7 @@ const formattedDate = today.toLocaleDateString('en-US', {
 })
 
 export const main_system_prompt = `
-Do not repeat the tool output. You have a cards that displays the information.
+Do not repeat the tool output. You have a cards that displays the information. NEVER repeat the tool output, it is prohibited. Just say that you have retunred someithing, NEVER repeat the tool output. User will see in the dedicated UI. 
 
 Stripe tool output JUST create a payment form that user need to fill up, once user fill up the form, you need to say "Payment successful, would you like to add it to your calendar?.
 
