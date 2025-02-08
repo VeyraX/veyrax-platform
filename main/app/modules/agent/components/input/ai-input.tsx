@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
 import { ToolSelector } from "./tool-selector";
+import { DocsInput } from "./docs-input";
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -23,6 +24,9 @@ interface AIInputWithSearchProps {
   isLoading?: boolean;
   onStop?: () => void;
   onToolSelect?: (toolIds: string[]) => void;
+  type?: 'default' | 'generate';
+  onAddDocLink?: (link: string) => void;
+  onRemoveDocLink?: (link: string) => void;
 }
 
 export function AIInputWithSearch({
@@ -36,7 +40,10 @@ export function AIInputWithSearch({
   className,
   isLoading,
   onStop,
-  onToolSelect
+  onToolSelect,
+  type = 'default',
+  onAddDocLink,
+  onRemoveDocLink,
 }: AIInputWithSearchProps) {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -181,9 +188,16 @@ export function AIInputWithSearch({
                   onChange={handleFileChange}
                 />
               </Button>
-              <div className="w-[200px]">
-                <ToolSelector />
-              </div>
+              {type === 'default' ? (
+                <div className="w-[200px]">
+                  <ToolSelector />
+                </div>
+              ) : (
+                <DocsInput 
+                  onAddLink={onAddDocLink}
+                  onRemoveLink={onRemoveDocLink}
+                />
+              )}
             </div>
             <div className="absolute right-3 bottom-3 flex items-center gap-2">
               <Button

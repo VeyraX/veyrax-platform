@@ -6,17 +6,18 @@ import type { EndpointData } from "../endpoint-types"
 import Api from "./endpoint-api"
 import EndpointCodeMain from "./endpoint-code/endpoint-code-main"
 import Preview from "./endpoint-preview"
-
+import Code from "./endpoint-code/endpoint-code-main"
 interface EndpointViewProps {
   data: EndpointData
   path: string
+  isPreview: boolean
 }
 
-export default function EndpointView({ data, path }: EndpointViewProps) {
+export default function EndpointView({ data, path, isPreview }: EndpointViewProps) {
   const [activeLowTab, setActiveLowTab] = useState("Installation")
   const [hoveredLowTab, setHoveredLowTab] = useState<number | null>(null)
 
-  const lowTabs = ["Installation", "Preview"]
+  const lowTabs = isPreview ? ["Installation", "Code", "Preview"] : ["Installation", "Preview"]
 
   return (
     <div className="w-full">
@@ -40,16 +41,16 @@ export default function EndpointView({ data, path }: EndpointViewProps) {
           {lowTabs.map((tab, index) => (
             <div
               key={index}
-              className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] w-[80px] ${
+              className={`flex items-center justify-center px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] w-[80px] ${
                 tab === activeLowTab ? "text-[#0e0e10] dark:text-white" : "text-[#0e0f1199] dark:text-[#ffffff99]"
               }`}
               onMouseEnter={() => setHoveredLowTab(index)}
               onMouseLeave={() => setHoveredLowTab(null)}
               onClick={() => setActiveLowTab(tab)}
             >
-              <div className="text-sm font-[var(--www-mattmannucci-me-geist-regular-font-family)] leading-5 whitespace-nowrap flex items-center justify-center h-full">
+              <span className="text-sm font-[var(--www-mattmannucci-me-geist-regular-font-family)] leading-5">
                 {tab}
-              </div>
+              </span>
             </div>
           ))}
         </div>
@@ -58,6 +59,10 @@ export default function EndpointView({ data, path }: EndpointViewProps) {
       {activeLowTab === "Installation" ? (
         <div className="p-4">
           <Api data={data} />
+        </div>
+      ) : activeLowTab === "Code" ? (
+        <div className="p-4">
+          <EndpointCodeMain data={data} />
         </div>
       ) : (
         <div className="p-4">

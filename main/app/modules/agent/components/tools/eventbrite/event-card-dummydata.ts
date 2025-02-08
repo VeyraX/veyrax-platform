@@ -2,29 +2,6 @@ import { Event } from "./event-card-types"
 
 export const dummyEvents: Event[] = [
   {
-    id: "1",
-    name: "Tech Conference 2025",
-    description: "Join us for the biggest tech conference of the year featuring keynotes from industry leaders, workshops, and networking opportunities.",
-    startDate: new Date("2025-01-15T09:00:00"),
-    endDate: new Date("2025-01-17T17:00:00"),
-    location: "San Francisco Convention Center, San Francisco, CA",
-    price: 299.99,
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87",
-    isOnline: false,
-    availableTickets: 500,
-    seats: [
-      { id: "A1", row: "A", seatNumber: 1, isAvailable: true },
-      { id: "A2", row: "A", seatNumber: 2, isAvailable: true },
-      { id: "A3", row: "A", seatNumber: 3, isAvailable: true },
-      { id: "B1", row: "B", seatNumber: 1, isAvailable: true },
-      { id: "B2", row: "B", seatNumber: 2, isAvailable: true },
-      { id: "B3", row: "B", seatNumber: 3, isAvailable: true },
-      { id: "C1", row: "C", seatNumber: 1, isAvailable: true },
-      { id: "C2", row: "C", seatNumber: 2, isAvailable: true },
-      { id: "C3", row: "C", seatNumber: 3, isAvailable: true }
-    ]
-  },
-  {
     id: "2",
     name: "Virtual Yoga Workshop",
     description: "Transform your practice with our online yoga workshop suitable for all levels. Learn new techniques and deepen your understanding.",
@@ -146,5 +123,71 @@ export const dummyEvents: Event[] = [
       { id: "F4", row: "F", seatNumber: 4, isAvailable: true },
       { id: "F5", row: "F", seatNumber: 5, isAvailable: true }
     ]
+  },
+  {
+    id: "9",
+    name: "After Midnight: Chappell Roan VALENTINE'S DAY Dance Party",
+    description: "Join us for a special Valentine's Day dance party featuring Chappell Roan at the iconic Rickshaw Stop.",
+    startDate: new Date("2025-02-14T21:00:00"),
+    endDate: new Date("2025-02-15T02:00:00"),
+    location: "Rickshaw Stop, San Francisco, CA",
+    price: 35.83,
+    image: "/events/image_1.jpg",
+    isOnline: false,
+    availableTickets: 200,
+    seats: [
+      { id: "R1", row: "R", seatNumber: 1, isAvailable: true },
+      { id: "R2", row: "R", seatNumber: 2, isAvailable: true },
+      { id: "R3", row: "R", seatNumber: 3, isAvailable: true },
+      { id: "R4", row: "R", seatNumber: 4, isAvailable: true }
+    ]
+  },
+  {
+    id: "10",
+    name: "CUPIDO IN THE BAY",
+    description: "Experience a romantic evening cruise on the San Francisco Belle with Latin music and dancing.",
+    startDate: new Date("2025-02-15T20:30:00"),
+    endDate: new Date("2025-02-16T01:00:00"),
+    location: "San Francisco Belle, Pier 3, San Francisco, CA",
+    price: 65.86,
+    image: "/events/image_2.jpg",
+    isOnline: false,
+    availableTickets: 300,
+    seats: [
+      { id: "B1", row: "B", seatNumber: 1, isAvailable: true },
+      { id: "B2", row: "B", seatNumber: 2, isAvailable: true },
+      { id: "B3", row: "B", seatNumber: 3, isAvailable: true },
+      { id: "B4", row: "B", seatNumber: 4, isAvailable: true },
+      { id: "B5", row: "B", seatNumber: 5, isAvailable: true }
+    ]
+  },
+  {
+    id: "11",
+    name: "San Francisco Career Fair",
+    description: "Connect with top employers at this in-person career fair at the Hilton. Bring your resume and dress professionally.",
+    startDate: new Date("2025-02-17T09:30:00"),
+    endDate: new Date("2025-02-17T16:30:00"),
+    location: "Hilton San Francisco, San Francisco, CA",
+    price: 0,
+    image: "/events/image_3.jpg",
+    isOnline: false,
+    availableTickets: 1000,
+    seats: [
+      { id: "H1", row: "H", seatNumber: 1, isAvailable: true },
+      { id: "H2", row: "H", seatNumber: 2, isAvailable: true },
+      { id: "H3", row: "H", seatNumber: 3, isAvailable: true }
+    ]
+  },
+  {
+    id: "12",
+    name: "Career Fair: Exclusive Tech Hiring Event",
+    description: "Virtual tech career fair featuring leading technology companies. Network and interview with hiring managers.",
+    startDate: new Date("2025-02-28T09:00:00"),
+    endDate: new Date("2025-02-28T17:00:00"),
+    location: "Virtual Event",
+    price: 0,
+    image: "/events/image_4.jpg",
+    isOnline: true,
+    availableTickets: 2000
   }
 ]

@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ApiCardProps } from './component-types'
-import { WaitlistDialog } from '../../landing/components/waitlist-dialog'
+import { useRouter } from 'next/navigation'
 
 const ComponentCard: FC<ApiCardProps> = (props) => {
+  const router = useRouter()
+
   return (
     <Card className="w-full border shadow-none rounded-lg h-[204px]">
       <CardContent className="p-4 h-full flex flex-col">
@@ -42,13 +44,13 @@ const ComponentCard: FC<ApiCardProps> = (props) => {
               </Badge>
             ))}
           </div>
-          <WaitlistDialog
-            trigger={
-              <Button variant="outline" size="sm">
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            }
-          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.push(`/components/${props.provider_tag}`)}
+          >
+            <ArrowUpRight className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>

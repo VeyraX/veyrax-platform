@@ -35,6 +35,10 @@ const items = [
         url: "/agent",
       },
       {
+        title: "ACI Generation",
+        url: "/generate",
+      },
+      {
         title: "Integrations",
         url: "",
       },

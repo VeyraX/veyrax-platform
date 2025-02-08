@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
 import { Suggestions } from "../components/suggestions /suggestions"
-import { SuggestionsDummy } from "../components/suggestions /suggestions-dummy"
+import { SuggestionsDummyAgent } from "../components/suggestions /suggestions-dummy"
 import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
@@ -207,7 +207,7 @@ export default function AssistantPage() {
   };
 
   const getCurrentSuggestions = () => {
-    return SuggestionsDummy;
+    return SuggestionsDummyAgent;
   };
 
   return (

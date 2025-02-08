@@ -65,7 +65,7 @@ export default function ProgressStates({ progressStates, title }: { progressStat
         ) : (
           <Button 
             className="w-full" 
-            onClick={() => window.open('/components/eventbright', '_blank')}
+            onClick={() => window.open('/components/preview/eventbrite', '_blank')}
           >
             Open Component
           </Button>

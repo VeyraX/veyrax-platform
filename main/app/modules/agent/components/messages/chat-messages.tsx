@@ -34,6 +34,7 @@ function parseMessageContent(content: string) {
   const tableMarker = "\n\nTable content:";
   const textMarker = "\n\nText content:";
   const fileMarker = "\n\nFile Information:";
+  const referenceDocMarker = "\n\nReference Documentation:";
   
   let cleanContent = content;
   
@@ -51,6 +52,13 @@ function parseMessageContent(content: string) {
   if (fileIndex !== -1) {
     cleanContent = cleanContent.substring(0, fileIndex);
   }
+  
+  const referenceDocIndex = cleanContent.indexOf(referenceDocMarker);
+  if (referenceDocIndex !== -1) {
+    cleanContent = cleanContent.substring(0, referenceDocIndex);
+  }
+  
+  cleanContent = cleanContent.trim();
   
   return cleanContent;
 }
