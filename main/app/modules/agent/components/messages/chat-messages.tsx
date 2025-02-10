@@ -16,8 +16,6 @@ import { EventCardsList } from "../tools/eventbrite/event-cards/event-card-list"
 import ProgressStates from "../tools/generate-component/generate-component-loading-bar"
 import { CalendarView } from "../tools/calendar/calendar-view"
 
-
-
 interface ChatMessagesProps {
   messages: any[]
   messageAttachments: {
