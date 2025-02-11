@@ -7,7 +7,7 @@ import pickle
 import os
 from datetime import datetime
 
-router = APIRouter(prefix="/calendar", tags=["calendar"])
+router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
 
 async def get_calendar_service():
     if os.path.exists('credentials/token.pickle'):
