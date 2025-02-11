@@ -1,14 +1,15 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from .client import GmailClient
 from .schema import MessageList, Message, DraftResponse, DraftList, DraftUpdate, MessageFilters
 import base64
 from datetime import datetime
+from email.mime.text import MIMEText
 
 class GmailService:
     def __init__(self, client: GmailClient):
         self.client = client
 
-    def get_messages(self, page_token: Optional[str] = None, filters: Optional[MessageFilters] = None) -> MessageList:
+    def get_messages(self, pageToken: Optional[str] = None, filters: Optional[MessageFilters] = None) -> MessageList:
         query_parts = []
         
         if filters:
@@ -25,8 +26,8 @@ class GmailService:
                 before_date = datetime.fromisoformat(filters.before_date).strftime('%Y/%m/%d')
                 query_parts.append(f'before:{before_date}')
         
-        query = ' '.join(query_parts) if query_parts else None
-        response = self.client.list_messages(page_token=page_token, query=query)
+        q = ' '.join(query_parts) if query_parts else None
+        response = self.client.list_messages(pageToken=pageToken, q=q, maxResults=20)
         messages = []
         
         for msg in response.get('messages', []):
@@ -40,7 +41,7 @@ class GmailService:
             
         return MessageList(
             messages=messages,
-            next_page_token=response.get('nextPageToken')
+            pageToken=response.get('nextPageToken')
         )
 
     def get_message(self, message_id: str) -> Message:
@@ -63,8 +64,18 @@ class GmailService:
     def delete_message(self, message_id: str) -> None:
         self.client.delete_message(message_id)
 
+    def _create_mime_message(self, to: str, subject: str, body: str) -> Dict[str, Any]:
+        message = MIMEText(body)
+        message['to'] = to
+        message['subject'] = subject
+        
+        return {
+            'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
+        }
+
     def create_draft(self, to: str, subject: str, body: str) -> DraftResponse:
-        draft = self.client.create_draft(to, subject, body)
+        message = self._create_mime_message(to, subject, body)
+        draft = self.client.create_draft(message)
         return DraftResponse(
             draft_id=draft['id'],
             message_id=draft['message']['id']
@@ -73,8 +84,8 @@ class GmailService:
     def delete_draft(self, draft_id: str) -> None:
         self.client.delete_draft(draft_id)
 
-    def get_drafts(self, page_token: Optional[str] = None) -> DraftList:
-        response = self.client.list_drafts(page_token=page_token)
+    def get_drafts(self, pageToken: Optional[str] = None) -> DraftList:
+        response = self.client.list_drafts(pageToken=pageToken, maxResults=20)
         drafts = []
         
         for draft in response.get('drafts', []):
@@ -89,12 +100,20 @@ class GmailService:
             
         return DraftList(
             drafts=drafts,
-            next_page_token=response.get('nextPageToken')
+            pageToken=response.get('nextPageToken')
         )
 
     def modify_draft(self, draft_id: str, to: Optional[str] = None,
                     subject: Optional[str] = None, body: Optional[str] = None) -> Message:
-        draft = self.client.modify_draft(draft_id, to, subject, body)
+        current_draft = self.client.get_draft(draft_id)
+        current_message = current_draft['message']
+        
+        new_to = to or self._get_header(current_message, 'To')
+        new_subject = subject or self._get_header(current_message, 'Subject')
+        new_body = body or self._get_body(current_message)
+        
+        message = self._create_mime_message(new_to, new_subject, new_body)
+        draft = self.client.update_draft(draft_id, message)
         return self.get_message(draft['message']['id'])
 
     def _get_header(self, message: dict, name: str) -> Optional[str]:

@@ -20,7 +20,7 @@ async def get_gmail_service():
 
 @router.get("/messages", response_model=MessageList)
 async def get_messages(
-    page_token: Optional[str] = None,
+    pageToken: Optional[str] = None,
     body_keywords: Optional[str] = None,
     recipient: Optional[str] = None,
     subject_keywords: Optional[str] = None,
@@ -35,7 +35,7 @@ async def get_messages(
         after_date=after_date,
         before_date=before_date
     )
-    return service.get_messages(page_token, filters)
+    return service.get_messages(pageToken, filters)
 
 @router.get("/messages/{message_id}", response_model=Message)
 async def get_message(
@@ -62,10 +62,10 @@ async def send_message(
 
 @router.get("/drafts", response_model=DraftList)
 async def get_drafts(
-    page_token: Optional[str] = None,
+    pageToken: Optional[str] = None,
     service: GmailService = Depends(get_gmail_service)
 ):
-    return service.get_drafts(page_token)
+    return service.get_drafts(pageToken)
 
 @router.post("/drafts", response_model=DraftResponse)
 async def create_draft(
@@ -81,14 +81,6 @@ async def delete_draft(
 ):
     service.delete_draft(draft_id)
     return {"status": "success"}
-
-@router.post("/drafts/{draft_id}/send")
-async def send_draft(
-    draft_id: str,
-    service: GmailService = Depends(get_gmail_service)
-):
-    message_id = service.send_draft(draft_id)
-    return {"message_id": message_id}
 
 @router.patch("/drafts/{draft_id}", response_model=Message)
 async def modify_draft(

@@ -30,11 +30,11 @@ class DraftResponse(BaseModel):
 
 class MessageList(BaseModel):
     messages: List[MessageBase]
-    next_page_token: Optional[str]
+    pageToken: Optional[str]
 
 class DraftList(BaseModel):
     drafts: List[DraftBase]
-    next_page_token: Optional[str]
+    pageToken: Optional[str]
 
 class DraftUpdate(BaseModel):
     recipient: Optional[str] = None
