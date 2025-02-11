@@ -34,3 +34,7 @@ main/.vercel
 # typescript
 main/*.tsbuildinfo
 main/next-env.d.ts
+
+# act
+aci_server/.env
+aci_server/credentials/
