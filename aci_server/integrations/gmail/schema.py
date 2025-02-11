@@ -36,11 +36,6 @@ class DraftList(BaseModel):
     drafts: List[DraftBase]
     pageToken: Optional[str]
 
-class DraftUpdate(BaseModel):
-    recipient: Optional[str] = None
-    subject: Optional[str] = None
-    body: Optional[str] = None
-
 class MessageFilters(BaseModel):
     body_keywords: Optional[str] = None
     recipient: Optional[str] = None

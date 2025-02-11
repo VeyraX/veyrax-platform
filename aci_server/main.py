@@ -20,6 +20,6 @@ async def get_tools():
     for router in routers:
         if router.tags and len(router.tags) > 0:
             integration_name = router.tags[0].lower()
-            tools[integration_name] = get_router_tools(router, integration_name)
+            tools[integration_name] = get_router_tools(router)
     
     return {"tools": tools}

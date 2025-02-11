@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Optional
-from .schema import MessageList, Message, DraftMessage, DraftResponse, DraftList, DraftUpdate, MessageFilters
+from .schema import MessageList, Message, DraftMessage, DraftResponse, DraftList, MessageFilters
 from .service import GmailService
 from .client import GmailClient
 import pickle
@@ -23,20 +23,9 @@ async def get_gmail_service():
 @router.get("/messages", response_model=MessageList)
 async def get_messages(
     pageToken: Optional[str] = None,
-    body_keywords: Optional[str] = None,
-    recipient: Optional[str] = None,
-    subject_keywords: Optional[str] = None,
-    after_date: Optional[str] = None,
-    before_date: Optional[str] = None,
+    filters: MessageFilters = Depends(),
     service: GmailService = Depends(get_gmail_service)
 ):
-    filters = MessageFilters(
-        body_keywords=body_keywords,
-        recipient=recipient,
-        subject_keywords=subject_keywords,
-        after_date=after_date,
-        before_date=before_date
-    )
     return service.get_messages(pageToken, filters)
 
 @router.get("/messages/{message_id}", response_model=Message)
@@ -71,10 +60,10 @@ async def get_drafts(
 
 @router.post("/drafts", response_model=DraftResponse)
 async def create_draft(
-    draft: DraftMessage,
+    draft_args: DraftMessage,
     service: GmailService = Depends(get_gmail_service)
 ):
-    return service.create_draft(draft.to, draft.subject, draft.body)
+    return service.create_draft(draft_args.to, draft_args.subject, draft_args.body)
 
 @router.delete("/drafts/{draft_id}")
 async def delete_draft(
@@ -87,13 +76,13 @@ async def delete_draft(
 @router.patch("/drafts/{draft_id}", response_model=Message)
 async def modify_draft(
     draft_id: str,
-    update: DraftUpdate,
+    update_args: DraftMessage,
     service: GmailService = Depends(get_gmail_service)
 ):
     return service.modify_draft(
         draft_id,
-        to=update.recipient,
-        subject=update.subject,
-        body=update.body
+        to=update_args.recipient,
+        subject=update_args.subject,
+        body=update_args.body
     )
 

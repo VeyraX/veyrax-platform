@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any
 from .client import GmailClient
-from .schema import MessageList, Message, DraftResponse, DraftList, DraftUpdate, MessageFilters
+from .schema import MessageList, Message, DraftResponse, DraftList, MessageFilters, DraftMessage
 import base64
 from datetime import datetime
 from email.mime.text import MIMEText
@@ -73,8 +73,8 @@ class GmailService:
             'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
         }
 
-    def create_draft(self, to: str, subject: str, body: str) -> DraftResponse:
-        message = self._create_mime_message(to, subject, body)
+    def create_draft(self, draft_args: DraftMessage) -> DraftResponse:
+        message = self._create_mime_message(draft_args.to, draft_args.subject, draft_args.body)
         draft = self.client.create_draft(message)
         return DraftResponse(
             draft_id=draft['id'],
@@ -103,14 +103,13 @@ class GmailService:
             pageToken=response.get('nextPageToken')
         )
 
-    def modify_draft(self, draft_id: str, to: Optional[str] = None,
-                    subject: Optional[str] = None, body: Optional[str] = None) -> Message:
+    def modify_draft(self, draft_id: str, draft_args: DraftMessage) -> Message:
         current_draft = self.client.get_draft(draft_id)
         current_message = current_draft['message']
         
-        new_to = to or self._get_header(current_message, 'To')
-        new_subject = subject or self._get_header(current_message, 'Subject')
-        new_body = body or self._get_body(current_message)
+        new_to = draft_args.to or self._get_header(current_message, 'To')
+        new_subject = draft_args.subject or self._get_header(current_message, 'Subject')
+        new_body = draft_args.body or self._get_body(current_message)
         
         message = self._create_mime_message(new_to, new_subject, new_body)
         draft = self.client.update_draft(draft_id, message)
