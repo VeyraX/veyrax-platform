@@ -9,7 +9,7 @@ import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
 import { SuggestionInputs } from "../components/suggestions /suggestion-inputs"
-
+import { type Message } from 'ai/react'
 export default function AssistantPageGenerate() {
   const { messages, append, isLoading, stop, setMessages } = useChat({
     api: '/api/chat',
@@ -235,7 +235,7 @@ export default function AssistantPageGenerate() {
         <Header />
         <ScrollArea className="flex-1">
           <ChatMessages 
-            messages={messages}
+            messages={messages as Message[]}
             messageAttachments={messageAttachments}
             isLoading={isLoading}
             sandboxId={sandboxId}

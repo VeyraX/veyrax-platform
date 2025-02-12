@@ -4,6 +4,25 @@ import { useState } from "react"
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+
+export function PaymentFormSkeleton() {
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Payment Details</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Skeleton className="h-[40px] w-full" />
+        <Skeleton className="h-[40px] w-full" />
+        <Skeleton className="h-[40px] w-full" />
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  )
+}
 
 export function PaymentForm() {
   const stripe = useStripe()

@@ -11,13 +11,14 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { useChatScroll } from "@/hooks/use-chat-scroll"
 import { EditMessage } from "./chat-messages-edit-message"
 import { StripeProvider } from "../tools/stripe/stripe-provider"
-import { PaymentForm } from "../tools/stripe/stripe-paymenet-card"
+import { PaymentForm, PaymentFormSkeleton } from "../tools/stripe/stripe-paymenet-card"
 import { EventCardsList } from "../tools/eventbrite/event-cards/event-card-list"
 import ProgressStates from "../tools/generate-component/generate-component-loading-bar"
 import { CalendarView } from "../tools/calendar/calendar-view"
+import { type Message } from 'ai/react'
 
 interface ChatMessagesProps {
-  messages: any[]
+  messages: Message[]
   messageAttachments: {
     [messageId: string]: {
       files: File[]
@@ -163,7 +164,87 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   <>
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <MessageFormatter content={parseMessageContent(message.content)} />
+                        {message.parts?.map((part, partIndex) => {
+                          if (part.type === 'text') {
+                            return (
+                              <MessageFormatter 
+                                key={partIndex} 
+                                content={part.text} 
+                              />
+                            );
+                          }
+                          if (part.type === 'tool-invocation') {
+                            const { toolCallId, toolName, args, state } = part.toolInvocation;
+                            const result = part.toolInvocation.state === 'result' ? part.toolInvocation.result : undefined;
+
+                            return (
+                              <div key={toolCallId} className="py-4">
+                                {(() => {
+                                  switch(toolName) {
+                                    case 'getEvents':
+                                    case 'getEventsTool':
+                                      return (
+                                        <EventCardsList 
+                                          events={result?.events}
+                                          isLoading={['partial-call', 'call'].includes(state)}
+                                          onSendMessage={onSendMessage}
+                                        />
+                                      );
+
+                                    case 'getEventDetail':
+                                    case 'getEventDetailTool':
+                                      return (
+                                        <div className="max-w-3xl">
+                                          <EventDetailCard 
+                                            event={result?.event} 
+                                            isLoading={['partial-call', 'call'].includes(state)}
+                                            onSendMessage={onSendMessage}
+                                          />
+                                        </div>
+                                      );
+
+                                    case 'createPaymentTool':
+                                      return (
+                                        <div className="max-w-3xl w-full">
+                                          {result?.clientSecret ? (
+                                            <StripeProvider clientSecret={result.clientSecret}>
+                                              <PaymentForm />
+                                            </StripeProvider>
+                                          ) : (
+                                            <PaymentFormSkeleton />
+                                          )}
+                                        </div>
+                                      );
+
+                                    case 'generateComponentTool':
+                                      return (
+                                        <div className="max-w-3xl w-full">
+                                          <ProgressStates 
+                                            progressStates={result?.progressStates} 
+                                            title={result?.title} 
+                                          />
+                                        </div>
+                                      );
+
+                                    case 'createCalendarEventTool':
+                                      return (
+                                        <div className="max-w-3xl w-full">
+                                          <CalendarView data={[{
+                                            day: new Date(result?.event.datetime),
+                                            events: [{
+                                              ...result?.event,
+                                              is_new: true
+                                            }]
+                                          }]} />
+                                        </div>
+                                      );
+                                  }
+                                })()}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })}
                       </div>
                       {message.role === 'user' && (
                         <Button
@@ -179,161 +260,6 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   </>
                 )}
               </div>
-              
-              {message.role === 'assistant' && message.toolInvocations && (
-                <div className="mt-4">
-                  {message.toolInvocations.map((toolInvocation: any) => {
-                    const { toolName, toolCallId, state, args } = toolInvocation;
-                    
-                    console.log('Tool invocation:', toolInvocation);
-                    
-                    const status = (() => {
-                      switch (state) {
-                        case 'partial-call':
-                          return 'executing';
-                        case 'call':
-                          return 'executed';
-                        case 'result':
-                          return toolInvocation.result?.success === false 
-                            ? 'failed' 
-                            : 'executed';
-                        default:
-                          return 'executing';
-                      }
-                    })();
-
-                    if (toolName === 'getEvents' || toolName === 'getEventsTool') {
-                      if (state === 'result' && toolInvocation.result?.success) {
-                        return (
-                          <EventCardsList 
-                            key={toolCallId}
-                            events={toolInvocation.result.events}
-                            onSendMessage={onSendMessage}
-                          />
-                        );
-                      }
-                      
-                      if (state === 'partial-call' || state === 'call') {
-                        return (
-                          <EventCardsList 
-                            key={toolCallId}
-                            isLoading={true}
-                          />
-                        );
-                      }
-                    }
-                    
-                    if (toolName === 'getEventDetail' || toolName === 'getEventDetailTool') {
-                      if (state === 'result' && toolInvocation.result?.success) {
-                        return (
-                          <div className="max-w-3xl" key={toolCallId}>
-                            <EventDetailCard 
-                              event={toolInvocation.result.event} 
-                              onSendMessage={onSendMessage}
-                            />
-                          </div>
-                        );
-                      }
-                      
-                      if (state === 'partial-call' || state === 'call') {
-                        return (
-                          <div className="max-w-3xl" key={toolCallId}>
-                            <EventDetailCard isLoading />
-                          </div>
-                        );
-                      }
-                    }
-
-                    if (toolName === 'createPaymentTool') {
-                      if (state === 'result' && toolInvocation.result?.success) {
-                        return (
-                          <div className="max-w-3xl w-full" key={toolCallId}>
-                            <StripeProvider clientSecret={toolInvocation.result.clientSecret}>
-                              <PaymentForm />
-                            </StripeProvider>
-                          </div>
-                        );
-                      }
-                      
-                      if (state === 'partial-call' || state === 'call') {
-                        return (
-                          <Card className="w-full" key={toolCallId}>
-                            <CardHeader>
-                              <Skeleton className="h-6 w-1/2" />
-                            </CardHeader>
-                            <CardContent>
-                              <Skeleton className="h-40 w-full mb-4" />
-                            </CardContent>
-                            <CardFooter>
-                              <Skeleton className="h-10 w-full" />
-                            </CardFooter>
-                          </Card>
-                        );
-                      }
-                    }
-
-                    if (toolName === 'generateComponentTool') {
-                      if (state === 'result' && toolInvocation.result?.success) {
-                        return (
-                          <div className="max-w-3xl w-full" key={toolCallId}>
-                            <ProgressStates progressStates={toolInvocation.result.progressStates} title={toolInvocation.result.title} />
-                          </div>
-                        );
-                      }
-                      
-                      if (state === 'partial-call' || state === 'call') {
-                        return (
-                          <Card className="w-full" key={toolCallId}>
-                            <CardHeader>
-                              <Skeleton className="h-6 w-1/2" />
-                            </CardHeader>
-                            <CardContent>
-                              <Skeleton className="h-40 w-full mb-4" />
-                            </CardContent>
-                          </Card>
-                        );
-                      }
-                    }
-
-                    if (toolName === 'createCalendarEventTool') {
-                      if (state === 'result' && toolInvocation.result?.success) {
-                        return (
-                          <div className="max-w-3xl w-full" key={toolCallId}>
-                            <CalendarView data={[{
-                              day: new Date(toolInvocation.result.event.datetime),
-                              events: [{
-                                ...toolInvocation.result.event,
-                                is_new: true
-                              }]
-                            }]} />
-                          </div>
-                        );
-                      }
-                      
-                      if (state === 'partial-call' || state === 'call') {
-                        return (
-                          <Card className="w-full" key={toolCallId}>
-                            <CardHeader>
-                              <Skeleton className="h-6 w-1/2" />
-                            </CardHeader>
-                            <CardContent>
-                              <Skeleton className="h-40 w-full mb-4" />
-                            </CardContent>
-                          </Card>
-                        );
-                      }
-                    }
-
-                    return (
-                      <div className="max-w-3xl border rounded-lg p-4" key={toolCallId}>
-                        <pre className="text-sm">
-                          {JSON.stringify({ toolName, state, result: toolInvocation.result }, null, 2)}
-                        </pre>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
 
               {isLastAssistantMessage && !isLoading && !ratedMessageIds.has(message.id) && (
                 <div className="flex gap-1 -translate-y-1">
