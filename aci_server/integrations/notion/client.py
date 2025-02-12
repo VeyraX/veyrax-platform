@@ -6,8 +6,8 @@ class NotionClient:
         self.base_url = "https://api.notion.com/v1"
         self.headers = {
             "Authorization": f"Bearer {auth_token}",
-            "Notion-Version": "2022-06-28",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Notion-Version": "2022-06-28"
         }
 
     def list_databases(self, **kwargs) -> Dict[str, Any]:
@@ -51,9 +51,19 @@ class NotionClient:
             json={"archived": True}
         ).json()
 
-    def search_pages(self, **kwargs) -> Dict[str, Any]:
+    def search_pages(self, query="", **kwargs):
         return requests.post(
             f"{self.base_url}/search",
             headers=self.headers,
-            json=kwargs
+            json={
+                "query": query,
+                **kwargs
+            }
+        ).json()
+
+    def query_database(self, database_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        return requests.post(
+            f"{self.base_url}/databases/{database_id}/query",
+            headers=self.headers,
+            json=params
         ).json()

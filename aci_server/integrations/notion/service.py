@@ -20,26 +20,77 @@ class NotionService:
         return response
 
     def list_databases(self, start_cursor: Optional[str] = None) -> DatabaseList:
-        response = self.client.list_databases(start_cursor=start_cursor)
+        params = {
+            "filter": {
+                "property": "object",
+                "value": "database"
+            },
+            "page_size": 100
+        }
+        
+        if start_cursor:
+            params["start_cursor"] = start_cursor
+        
+        response = self.client.search_pages(**params)
+        print("Raw Notion Response:", response)
+        
+        databases = []
+        for db in response.get('results', []):
+            title = " ".join(
+                text.get("plain_text", "")
+                for text in db.get('title', [])
+            )
+            databases.append({
+                "id": db.get('id'),
+                "title": title
+            })
+        
         return DatabaseList(
-            items=response.get('results', []),
+            items=databases,
             next_cursor=response.get('next_cursor')
         )
 
     def list_pages(self, database_id: str, 
                   start_cursor: Optional[str] = None,
                   filters: Optional[PageFilters] = None) -> PageList:
-        params = {"start_cursor": start_cursor}
         
+        params = {
+            "page_size": 100
+        }
+        
+        if start_cursor:
+            params["start_cursor"] = start_cursor
         if filters:
             if filters.filter_by:
                 params["filter"] = filters.filter_by
             if filters.sort_by:
                 params["sorts"] = filters.sort_by
-
-        response = self.client.list_pages(database_id, **params)
+        
+        response = self.client.query_database(database_id, params)
+        print("Raw Notion Response:", response)
+        
+        pages = []
+        for page in response.get('results', []):
+            title = ""
+            properties = page.get('properties', {})
+            title_prop = properties.get('Name') or properties.get('Title')
+            if title_prop and title_prop.get('title'):
+                title = " ".join(
+                    text.get('plain_text', '')
+                    for text in title_prop['title']
+                )
+            
+            pages.append({
+                "id": page.get('id'),
+                "title": title, 
+                "created_time": page.get('created_time'),
+                "last_edited_time": page.get('last_edited_time'),
+                "archived": page.get('archived', False),
+                "url": page.get('url')
+            })
+        
         return PageList(
-            items=response.get('results', []),
+            items=pages,
             next_cursor=response.get('next_cursor')
         )
 

@@ -1,22 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-class DatabaseBase(BaseModel):
+class Database(BaseModel):
     id: str
     title: str
-    description: Optional[str]
-    created_time: datetime
-    last_edited_time: datetime
-    url: str
-
-class Database(DatabaseBase):
-    properties: Dict[str, Any]
 
 class DatabaseList(BaseModel):
-    items: List[DatabaseBase]
-    next_cursor: Optional[str]
+    items: List[Database]
+    next_cursor: Optional[str] = None
 
+class DatabaseList(BaseModel):
+    items: List[Database]
+    next_cursor: Optional[str] = None
 class PageBase(BaseModel):
     id: str
     created_time: datetime
@@ -24,14 +20,17 @@ class PageBase(BaseModel):
     archived: bool
     url: str
 
-class Page(PageBase):
-    parent: Dict[str, Any]
-    properties: Dict[str, Any]
-    content: Optional[Dict[str, Any]]
+class Page(BaseModel):
+    id: str
+    title: str
+    created_time: str
+    last_edited_time: str
+    archived: bool
+    url: str
 
 class PageList(BaseModel):
-    items: List[PageBase]
-    next_cursor: Optional[str]
+    items: List[Page]
+    next_cursor: Optional[str] = None
 
 class PageCreate(BaseModel):
     parent_id: str

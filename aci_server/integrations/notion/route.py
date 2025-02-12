@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Optional
+from typing import Optional, Dict, Any
 from .schema import (
     DatabaseList, Database, PageList, Page, 
     PageCreate, PageUpdate, PageFilters
@@ -11,7 +11,12 @@ import os
 router = APIRouter(prefix="/notion", tags=["notion"])
 
 async def get_notion_service():
-    token = os.getenv("NOTION_API_KEY")
+    with open("credentials/token.notion", "r") as file:
+        for line in file:
+            if line.startswith('NOTION_API_KEY='):
+                token = line.split('=')[1].strip()
+                print(token)
+                break
     if not token:
         raise HTTPException(status_code=401, detail="Notion token not found")
     
@@ -25,11 +30,11 @@ async def list_databases(
 ):
     return service.list_databases(start_cursor)
 
-@router.get("/databases/{database_id}/pages", response_model=PageList)
+@router.post("/databases/{database_id}/pages", response_model=PageList)
 async def list_pages(
     database_id: str,
     start_cursor: Optional[str] = None,
-    filters: PageFilters = Depends(),
+    filters: Optional[PageFilters] = None,
     service: NotionService = Depends(get_notion_service)
 ):
     return service.list_pages(database_id, start_cursor, filters)
