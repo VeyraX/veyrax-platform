@@ -1,55 +1,58 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, Field
+from typing import List, Optional, Annotated
 from datetime import datetime
+from fastapi import Query
 
 class EventBase(BaseModel):
     id: str
     summary: str
-    description: Optional[str]
+    description: Optional[str] = None
     start: datetime
     end: datetime
+    htmlLink: Optional[str] = None
+    location: Optional[str] = None
+    creator: Optional[dict] = None
+    attendees: Optional[List[dict]] = None
+    status: Optional[str] = None
 
 class Event(EventBase):
-    location: Optional[str]
-    creator: dict
-    attendees: Optional[List[dict]]
-    status: str
-    html_link: str
+    pass
 
 class EventCreate(BaseModel):
     summary: str
     description: Optional[str]
     location: Optional[str]
-    start_time: datetime
-    end_time: datetime
-    attendees: Optional[List[str]] = None
+    start: dict 
+    end: dict   
+    attendees: Optional[List[dict]] = None 
 
 class EventUpdate(BaseModel):
     summary: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    attendees: Optional[List[str]] = None
+    start: Optional[dict] = None
+    end: Optional[dict] = None
+    attendees: Optional[List[dict]] = None
 
 class EventList(BaseModel):
-    events: List[EventBase]
-    next_page_token: Optional[str]
+    items: List[EventBase]
+    nextPageToken: Optional[str]
 
 class EventFilters(BaseModel):
-    calendar_id: Optional[str] = None
-    time_min: Optional[datetime] = None
-    time_max: Optional[datetime] = None
-    query: Optional[str] = None
+    calendarId: Optional[str] = None
+    keywords: Optional[str] = None
+    attendees: Optional[str] = None 
+    after_date: Optional[str] = None
+    before_date: Optional[str] = None
 
 class Calendar(BaseModel):
     id: str
     summary: str
     description: Optional[str]
     primary: bool = False
-    time_zone: Optional[str]
-    background_color: Optional[str]
-    foreground_color: Optional[str]
+    timeZone: Optional[str]
+    backgroundColor: Optional[str]
+    foregroundColor: Optional[str]
 
 class CalendarList(BaseModel):
-    calendars: List[Calendar]
+    items: List[Calendar]

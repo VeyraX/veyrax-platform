@@ -1,99 +1,72 @@
 from typing import Optional, Dict, Any, List
 from .client import CalendarClient
-from .schema import EventList, Event, EventCreate, EventUpdate, Calendar, CalendarList
+from .schema import EventList, Event, EventCreate, EventUpdate, Calendar, CalendarList, EventFilters
 from datetime import datetime
 
 class CalendarService:
     def __init__(self, client: CalendarClient):
         self.client = client
 
-    def list_events(self, page_token: Optional[str] = None, 
-                   time_min: Optional[datetime] = None,
-                   time_max: Optional[datetime] = None,
-                   query: Optional[str] = None,
-                   calendar_id: Optional[str] = None) -> EventList:
+    def list_events(self, pageToken: Optional[str] = None, 
+                   filters: Optional[EventFilters] = None) -> EventList:
         params = {
-            'pageToken': page_token,
             'maxResults': 20,
             'singleEvents': True,
             'orderBy': 'startTime',
-            'calendarId': calendar_id or 'primary'
+            'pageToken': pageToken
         }
         
-        if time_min:
-            params['timeMin'] = time_min.isoformat() + 'Z'
-        if time_max:
-            params['timeMax'] = time_max.isoformat() + 'Z'
-        if query:
-            params['q'] = query
+        query_parts = []
+        calendar_id = 'primary'
+        
+        if filters:
+            if filters.calendarId:
+                calendar_id = filters.calendarId
+            
+            if filters.keywords:
+                query_parts.append(f'"{filters.keywords}"')
+            
+            if filters.attendees:
+                query_parts.append(f"{filters.attendees}")
+            
+            if filters.after_date:
+                after_date = datetime.fromisoformat(filters.after_date)
+                params['timeMin'] = after_date.isoformat() + 'Z'
+            
+            if filters.before_date:
+                before_date = datetime.fromisoformat(filters.before_date)
+                params['timeMax'] = before_date.isoformat() + 'Z'
 
-        calendar_id = params.pop('calendarId')
+        if query_parts:
+            params['q'] = ' '.join(query_parts)
+
         response = self.client.list_events(calendar_id=calendar_id, **params)
         events = []
         
         for event in response.get('items', []):
-            events.append({
-                'id': event['id'],
-                'summary': event.get('summary', ''),
-                'description': event.get('description'),
-                'start': self._parse_datetime(event['start']),
-                'end': self._parse_datetime(event['end'])
-            })
+            event_data = event.copy()
+            event_data['start'] = self._parse_datetime(event['start'])
+            event_data['end'] = self._parse_datetime(event['end'])
+            events.append(Event(**event_data))
             
         return EventList(
-            events=events,
-            next_page_token=response.get('nextPageToken')
+            items=events,
+            nextPageToken=response.get('nextPageToken')
         )
 
     def get_event(self, event_id: str) -> Event:
         event = self.client.get_event(event_id)
-        return Event(
-            id=event['id'],
-            summary=event.get('summary', ''),
-            description=event.get('description'),
-            location=event.get('location'),
-            start=self._parse_datetime(event['start']),
-            end=self._parse_datetime(event['end']),
-            creator=event['creator'],
-            attendees=event.get('attendees'),
-            status=event['status'],
-            html_link=event['htmlLink']
-        )
+        event_data = event.copy()
+        event_data['start'] = self._parse_datetime(event['start'])
+        event_data['end'] = self._parse_datetime(event['end'])
+        return Event(**event_data)
 
     def create_event(self, event_data: EventCreate) -> Event:
-        event_body = {
-            'summary': event_data.summary,
-            'description': event_data.description,
-            'start': {'dateTime': event_data.start_time.isoformat()},
-            'end': {'dateTime': event_data.end_time.isoformat()}
-        }
-
-        if event_data.location:
-            event_body['location'] = event_data.location
-        
-        if event_data.attendees:
-            event_body['attendees'] = [{'email': email} for email in event_data.attendees]
-
-        response = self.client.create_event(event_body)
+        response = self.client.create_event(event_data.dict(exclude_none=True))
         return self.get_event(response['id'])
 
     def update_event(self, event_id: str, event_data: EventUpdate) -> Event:
-        current_event = self.client.get_event(event_id)
-        event_body = {}
-
-        if event_data.summary is not None:
-            event_body['summary'] = event_data.summary
-        if event_data.description is not None:
-            event_body['description'] = event_data.description
-        if event_data.location is not None:
-            event_body['location'] = event_data.location
-        if event_data.start_time is not None:
-            event_body['start'] = {'dateTime': event_data.start_time.isoformat()}
-        if event_data.end_time is not None:
-            event_body['end'] = {'dateTime': event_data.end_time.isoformat()}
-        if event_data.attendees is not None:
-            event_body['attendees'] = [{'email': email} for email in event_data.attendees]
-
+        event_body = event_data.dict(exclude_none=True)
         response = self.client.update_event(event_id, event_body)
         return self.get_event(response['id'])
 
@@ -109,14 +82,6 @@ class CalendarService:
         calendars = []
         
         for calendar in response.get('items', []):
-            calendars.append(Calendar(
-                id=calendar['id'],
-                summary=calendar.get('summary', ''),
-                description=calendar.get('description'),
-                primary=calendar.get('primary', False),
-                time_zone=calendar.get('timeZone'),
-                background_color=calendar.get('backgroundColor'),
-                foreground_color=calendar.get('foregroundColor')
-            ))
+            calendars.append(Calendar(**calendar))
             
-        return CalendarList(calendars=calendars)
+        return CalendarList(items=calendars)

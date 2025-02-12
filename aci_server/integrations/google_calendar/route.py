@@ -21,17 +21,11 @@ async def get_calendar_service():
 
 @router.get("/events", response_model=EventList)
 async def list_events(
-    page_token: Optional[str] = None,
-    filters: EventFilters = Depends(),
+    pageToken: Optional[str] = None,
+    filters: EventFilters = Depends(),  
     service: CalendarService = Depends(get_calendar_service)
 ):
-    return service.list_events(
-        page_token=page_token,
-        time_min=filters.time_min,
-        time_max=filters.time_max,
-        query=filters.query,
-        calendar_id=filters.calendar_id
-    )
+    return service.list_events(pageToken=pageToken, filters=filters)
 
 @router.get("/events/{event_id}", response_model=Event)
 async def get_event(
