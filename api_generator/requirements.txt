@@ -1,0 +1,17 @@
+anyio==4.4.0
+aiosqlite==0.20.0
+alembic==1.13.2
+asyncpg==0.29.0
+fastapi==0.115.8
+pydantic==2.8.2
+pydantic_core==2.20.1
+SQLAlchemy==2.0.32
+uvicorn==0.30.6
+gunicorn==23.0.0
+requests==2.26.0
+redis==4.3.4
+supabase==2.13.0
+python-dotenv==1.0.1
+firecrawl-py==1.11.1
+tavily-python==0.5.1
+openai==1.61.1

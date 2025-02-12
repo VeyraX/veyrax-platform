@@ -39,4 +39,7 @@ main/next-env.d.ts
 aci_server/.env
 aci_server/credentials/
 
+.env
+
+
 **/__pycache__/
