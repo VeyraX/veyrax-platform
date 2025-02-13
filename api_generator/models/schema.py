@@ -8,25 +8,16 @@ class ExtractedEndpoint(BaseModel):
     endpoint: str
     method: str
 
-    created_at: datetime
-    updated_at: datetime
-
-
 class ExtractedEndpointList(BaseModel):
     endpoints: List[ExtractedEndpoint]
-
-    created_at: datetime
-    updated_at: datetime
-
 
 class EndpointGeneratedFile(BaseModel):
     name: str
     content: str
 
+class EndpointGeneratedFilesList(BaseModel):
+    files: List[EndpointGeneratedFile]
 
 class EndpointGeneratedFiles(BaseModel):
     endpoint: ExtractedEndpoint
-    files: List[EndpointGeneratedFile]
-
-    created_at: datetime
-    updated_at: datetime
+    files: EndpointGeneratedFilesList

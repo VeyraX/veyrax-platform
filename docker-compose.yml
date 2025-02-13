@@ -8,15 +8,5 @@ services:
     volumes:
       - ./aci_server:/app
     env_file:
-      - ./aci_server/.env
+      - .env
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
-  api_generator:
-    build: ./api_generator
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./api_generator:/app
-    env_file:
-      - ./api_generator/.env
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]

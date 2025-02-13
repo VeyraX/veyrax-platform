@@ -16,3 +16,4 @@ google-auth-httplib2==0.2.0
 google-api-python-client==2.160.0
 python-dotenv==1.0.1
 notion-client==2.3.0
+slack-sdk==3.34.0
