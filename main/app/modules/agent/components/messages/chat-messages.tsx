@@ -23,6 +23,8 @@ import { ToolWrapper } from "../tools/tool-wrapper"
 import { NotionDatabaseList, NotionDatabaseListSkeleton } from "../tools/notion/card-view.notion"
 import { NotionPageListSkeleton } from "../tools/notion/card-view.notion"
 import Weather from "../tools/openweather/weather-widget.openweather"
+import { type PerplexityResponse } from "../tools/perplexity/types.perplexity"
+import { PerplexityResponseView, PerplexityResponseSkeleton } from "../tools/perplexity/response-view.perplexity"
 
 
 interface ChatMessagesProps {
@@ -372,6 +374,21 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                                     ? result.weather 
                                                     : result.forecast} 
                                                 />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'askPerplexityTool':
+                                      return (
+                                        <ToolWrapper toolName="perplexity">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <PerplexityResponseSkeleton />
+                                            ) : (
+                                              result?.success && result.response && (
+                                                <PerplexityResponseView response={result.response} />
                                               )
                                             )}
                                           </div>

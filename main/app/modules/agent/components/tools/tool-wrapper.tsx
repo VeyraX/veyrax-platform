@@ -29,6 +29,10 @@ const TOOL_CONFIGS = {
     logo: '/logos/openweather-logo.png',
     label: 'OpenWeather',
   },
+  perplexity: {
+    logo: '/logos/perplexity-logo.svg',
+    label: 'Perplexity',
+  },
 }
 
 export function ToolWrapper({ toolName, children }: ToolWrapperProps) {
