@@ -14,17 +14,26 @@ class EventBase(BaseModel):
     creator: Optional[dict] = None
     attendees: Optional[List[dict]] = None
     status: Optional[str] = None
+    filters: Optional[dict] = None
 
 class Event(EventBase):
     pass
 
 class EventCreate(BaseModel):
     summary: str
-    description: Optional[str]
-    location: Optional[str]
-    start: dict 
-    end: dict   
-    attendees: Optional[List[dict]] = None 
+    description: Optional[str] = None
+    location: Optional[str] = None
+    start: dict = Field(..., example={
+        "dateTime": "2024-03-20T09:00:00-07:00",
+        "timeZone": "America/Los_Angeles"
+    })
+    end: dict = Field(..., example={
+        "dateTime": "2024-03-20T10:00:00-07:00",
+        "timeZone": "America/Los_Angeles"
+    })
+    attendees: Optional[List[dict]] = Field(None, example=[
+        {"email": "attendee@example.com"}
+    ])
 
 class EventUpdate(BaseModel):
     summary: Optional[str] = None

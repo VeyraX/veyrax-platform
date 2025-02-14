@@ -47,6 +47,14 @@ class CalendarService:
             event_data = event.copy()
             event_data['start'] = self._parse_datetime(event['start'])
             event_data['end'] = self._parse_datetime(event['end'])
+            if filters:
+                event_data['filters'] = {
+                    'keywords': filters.keywords,
+                    'attendees': filters.attendees,
+                    'afterDate': filters.after_date,
+                    'beforeDate': filters.before_date,
+                    'calendarId': filters.calendarId
+                }
             events.append(Event(**event_data))
             
         return EventList(
@@ -62,7 +70,20 @@ class CalendarService:
         return Event(**event_data)
 
     def create_event(self, event_data: EventCreate) -> Event:
-        response = self.client.create_event(event_data.dict(exclude_none=True))
+        event_body = {
+            'summary': event_data.summary,
+            'start': event_data.start,
+            'end': event_data.end
+        }
+        
+        if event_data.description:
+            event_body['description'] = event_data.description
+        if event_data.location:
+            event_body['location'] = event_data.location
+        if event_data.attendees:
+            event_body['attendees'] = event_data.attendees
+
+        response = self.client.create_event(event_body)
         return self.get_event(response['id'])
 
     def update_event(self, event_id: str, event_data: EventUpdate) -> Event:

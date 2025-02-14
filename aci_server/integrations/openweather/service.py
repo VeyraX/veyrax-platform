@@ -21,14 +21,28 @@ class WeatherService:
         )
 
     def get_forecast(self, city: str, country: str) -> ForecastData:
-        response = self.client.get_forecast_by_city(city, country)
+        current_weather = self.client.get_weather_by_city(city, country)
+        forecast_response = self.client.get_forecast_by_city(city, country)
         
         forecast_items = []
-        daily_forecasts = {}
+        
+        current_dt = datetime.fromtimestamp(current_weather['dt'])
+        current_date = current_dt.date() 
+        forecast_items.append(
+            ForecastItem(
+                date=current_dt,
+                temperature=current_weather['main']['temp'],
+                feels_like=current_weather['main']['feels_like'],
+                humidity=current_weather['main']['humidity'],
+                pressure=current_weather['main']['pressure'],
+                description=current_weather['weather'][0]['description'],
+                wind_speed=current_weather['wind']['speed']
+            )
+        )
 
-        for item in response['list']:
+        for item in forecast_response['list']:
             dt = datetime.fromtimestamp(item['dt'])
-            if dt.hour == 12:
+            if dt.hour == 12 and dt.date() != current_date:
                 forecast_items.append(
                     ForecastItem(
                         date=dt,
@@ -42,7 +56,7 @@ class WeatherService:
                 )
 
         return ForecastData(
-            city_name=response['city']['name'],
-            country=response['city']['country'],
+            city_name=forecast_response['city']['name'],
+            country=forecast_response['city']['country'],
             forecast=forecast_items
         )

@@ -6,13 +6,22 @@ from .client import CalendarClient
 import pickle
 import os
 from datetime import datetime
+from google.oauth2.credentials import Credentials
 
 router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
 
 async def get_calendar_service():
-    if os.path.exists('credentials/token.pickle'):
-        with open('credentials/token.pickle', 'rb') as token:
-            creds = pickle.load(token)
+    if os.path.exists('credentials/google_token.pickle'):
+        with open('credentials/google_token.pickle', 'rb') as token:
+            creds_dict = pickle.load(token)
+            creds = Credentials(
+                token=creds_dict['access_token'],
+                refresh_token=creds_dict['refresh_token'],
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=os.getenv('GOOGLE_CLIENT_ID'),
+                client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+                scopes=creds_dict['scope'].split()
+            )
     else:
         raise HTTPException(status_code=404, detail="Credentials file not found")
     

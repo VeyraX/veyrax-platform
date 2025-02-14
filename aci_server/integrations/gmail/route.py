@@ -6,14 +6,23 @@ from .client import GmailClient
 import pickle
 import os
 from ..common.utils import get_router_tools
+from google.oauth2.credentials import Credentials
 
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
 async def get_gmail_service():
-    if os.path.exists('credentials/token.pickle'):
-        with open('credentials/token.pickle', 'rb') as token:
-            creds = pickle.load(token)
+    if os.path.exists('credentials/google_token.pickle'):
+        with open('credentials/google_token.pickle', 'rb') as token:
+            creds_dict = pickle.load(token)
+            creds = Credentials(
+                token=creds_dict['access_token'],
+                refresh_token=creds_dict['refresh_token'],
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=os.getenv('GOOGLE_CLIENT_ID'),
+                client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+                scopes=creds_dict['scope'].split()
+            )
     else:
         raise HTTPException(status_code=404, detail="Credentials file not found")
     
@@ -63,7 +72,7 @@ async def create_draft(
     draft_args: DraftMessage,
     service: GmailService = Depends(get_gmail_service)
 ):
-    return service.create_draft(draft_args.to, draft_args.subject, draft_args.body)
+    return service.create_draft(draft_args)
 
 @router.delete("/drafts/{draft_id}")
 async def delete_draft(

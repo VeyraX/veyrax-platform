@@ -4,6 +4,7 @@ from .schema import MessageList, Message, DraftResponse, DraftList, MessageFilte
 import base64
 from datetime import datetime
 from email.mime.text import MIMEText
+from dateutil import parser
 
 class GmailService:
     def __init__(self, client: GmailClient):
@@ -36,7 +37,11 @@ class GmailService:
                 'id': message['id'],
                 'thread_id': message['threadId'],
                 'snippet': message['snippet'],
-                'subject': self._get_header(message, 'Subject')
+                'subject': self._get_header(message, 'Subject'),
+                'body': self._get_body(message),
+                'recipient': self._get_header(message, 'To'),
+                'sender': self._get_header(message, 'From'),
+                'date': parser.parse(self._get_header(message, 'Date'))
             })
             
         return MessageList(
@@ -58,7 +63,22 @@ class GmailService:
         )
 
     def send_message(self, message_id: str) -> str:
-        response = self.client.send_message(message_id)
+        draft = self.client.get_draft(message_id)
+        message = draft['message']
+        
+        new_message = MIMEText(self._get_body(message))
+        new_message['to'] = self._get_header(message, 'To')
+        new_message['subject'] = self._get_header(message, 'Subject')
+        
+        raw_message = {
+            'raw': base64.urlsafe_b64encode(new_message.as_bytes()).decode('utf-8')
+        }
+        
+        response = self.client.service.users().messages().send(
+            userId='me',
+            body=raw_message
+        ).execute()
+        
         return response['id']
 
     def delete_message(self, message_id: str) -> None:
@@ -121,8 +141,22 @@ class GmailService:
         return header['value'] if header else None
 
     def _get_body(self, message: dict) -> str:
-        if 'parts' in message['payload']:
-            for part in message['payload']['parts']:
-                if part['mimeType'] == 'text/plain':
-                    return base64.urlsafe_b64decode(part['body']['data']).decode()
-        return base64.urlsafe_b64decode(message['payload']['body']['data']).decode()
+        try:
+            if 'parts' in message['payload']:
+                for part in message['payload']['parts']:
+                    if part['mimeType'] == 'text/plain':
+                        if 'data' in part['body']:
+                            return base64.urlsafe_b64decode(part['body']['data']).decode()
+                        elif 'attachmentId' in part['body']:
+                            continue
+                for part in message['payload']['parts']:
+                    if 'data' in part['body']:
+                        return base64.urlsafe_b64decode(part['body']['data']).decode()
+            
+            if 'body' in message['payload'] and 'data' in message['payload']['body']:
+                return base64.urlsafe_b64decode(message['payload']['body']['data']).decode()
+            
+            return ""
+        except Exception as e:
+            print(f"Error decoding message body: {e}")
+            return ""

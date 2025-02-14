@@ -3,19 +3,27 @@ import { MessageFormatter } from "./message-formatter"
 import { Button } from "@/components/ui/button"
 import { ThumbsDown, ThumbsUp, Pencil } from "lucide-react"
 import React from "react"
-import EventCard from "../tools/eventbrite/event-cards/event-card"
-import { EventDetailCard } from "../tools/eventbrite/event-card-detail/event-card-detail"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Event } from "../tools/eventbrite/event-card-types"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { useChatScroll } from "@/hooks/use-chat-scroll"
 import { EditMessage } from "./chat-messages-edit-message"
-import { StripeProvider } from "../tools/stripe/stripe-provider"
-import { PaymentForm, PaymentFormSkeleton } from "../tools/stripe/stripe-paymenet-card"
-import { EventCardsList } from "../tools/eventbrite/event-cards/event-card-list"
-import ProgressStates from "../tools/generate-component/generate-component-loading-bar"
-import { CalendarView } from "../tools/calendar/calendar-view"
 import { type Message } from 'ai/react'
+import { DraftMessageCard } from "../tools/gmail/draft-message-card.gmail"
+import { MessageCard } from "../tools/gmail/message-card.gmail"
+import { DraftMessageCardSkeleton } from "../tools/gmail/draft-message-card.gmail"
+import { MessageCardSkeleton } from "../tools/gmail/message-card.gmail"
+import { SendingMessageCard } from "../tools/gmail/sending-message-card.gmail"
+import { EventCard, EventCardSkeleton } from "../tools/calendar/event-card.google-calendar"
+import { Event } from "../tools/calendar/types.google-calendar"
+import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
+import Link from "next/link"
+import { NotionPageList } from "../tools/notion/card-view.notion"
+import { FilterDisplay } from "../tools/calendar/event-card.google-calendar"
+import { ToolWrapper } from "../tools/tool-wrapper"
+import { NotionDatabaseList, NotionDatabaseListSkeleton } from "../tools/notion/card-view.notion"
+import { NotionPageListSkeleton } from "../tools/notion/card-view.notion"
+import Weather from "../tools/openweather/weather-widget.openweather"
+
 
 interface ChatMessagesProps {
   messages: Message[]
@@ -181,62 +189,193 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                               <div key={toolCallId} className="py-4">
                                 {(() => {
                                   switch(toolName) {
-                                    case 'getEvents':
-                                    case 'getEventsTool':
+                                    case 'createDraftTool':
                                       return (
-                                        <EventCardsList 
-                                          events={result?.events}
-                                          isLoading={['partial-call', 'call'].includes(state)}
-                                          onSendMessage={onSendMessage}
-                                        />
+                                        <ToolWrapper toolName="gmail">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <DraftMessageCardSkeleton />
+                                            ) : (
+                                              <DraftMessageCard
+                                                to={args.to}
+                                                subject={args.subject}
+                                                body={args.body}
+                                                onSendMessage={onSendMessage}
+                                              />
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
                                       );
 
-                                    case 'getEventDetail':
-                                    case 'getEventDetailTool':
+                                    case 'listMessagesTool':
                                       return (
-                                        <div className="max-w-3xl">
-                                          <EventDetailCard 
-                                            event={result?.event} 
-                                            isLoading={['partial-call', 'call'].includes(state)}
-                                            onSendMessage={onSendMessage}
-                                          />
-                                        </div>
+                                        <ToolWrapper toolName="gmail">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <MessageCardSkeleton />
+                                                <MessageCardSkeleton />
+                                                <MessageCardSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.messages?.map((message: any, idx: number) => (
+                                                <MessageCard
+                                                  key={idx}
+                                                  {...message}
+                                                />
+                                              ))
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
                                       );
 
-                                    case 'createPaymentTool':
+                                    case 'sendMessageTool':
                                       return (
-                                        <div className="max-w-3xl w-full">
-                                          {result?.clientSecret ? (
-                                            <StripeProvider clientSecret={result.clientSecret}>
-                                              <PaymentForm />
-                                            </StripeProvider>
-                                          ) : (
-                                            <PaymentFormSkeleton />
-                                          )}
-                                        </div>
+                                        <ToolWrapper toolName="gmail">
+                                          <div className="max-w-3xl w-full">
+                                            <SendingMessageCard
+                                              state={['partial-call', 'call'].includes(state) ? 'sending' : 
+                                                     result?.success ? 'success' : 'error'}
+                                            />
+                                          </div>
+                                        </ToolWrapper>
                                       );
 
-                                    case 'generateComponentTool':
+                                    case 'createEventTool':
                                       return (
-                                        <div className="max-w-3xl w-full">
-                                          <ProgressStates 
-                                            progressStates={result?.progressStates} 
-                                            title={result?.title} 
-                                          />
-                                        </div>
+                                        <ToolWrapper toolName="google-calendar">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <EventCardSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <EventCard {...result.event} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
                                       );
 
-                                    case 'createCalendarEventTool':
+                                    case 'listEventsTool':
                                       return (
-                                        <div className="max-w-3xl w-full">
-                                          <CalendarView data={[{
-                                            day: new Date(result?.event.datetime),
-                                            events: [{
-                                              ...result?.event,
-                                              is_new: true
-                                            }]
-                                          }]} />
-                                        </div>
+                                        <ToolWrapper toolName="google-calendar">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <EventCardSkeleton />
+                                                <EventCardSkeleton />
+                                                <EventCardSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.success && (
+                                                <>
+                                                  {args && <FilterDisplay filters={args} />}
+                                                  <div className="flex flex-wrap gap-4">
+                                                    {result.events?.map((event: Event) => (
+                                                      <EventCard
+                                                        key={event.id}
+                                                        {...event}
+                                                      />
+                                                    ))}
+                                                  </div>
+                                                </>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'listDatabasesTool':
+                                      return (
+                                        <ToolWrapper toolName="notion">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <NotionDatabaseListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <NotionDatabaseList databases={result.databases} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'listPagesTool':
+                                      return (
+                                        <ToolWrapper toolName="notion">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <NotionPageListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <NotionPageList pages={result.pages} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'createPageTool':
+                                      return (
+                                        <ToolWrapper toolName="notion">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <Card className="w-full max-w-md animate-pulse">
+                                                <CardHeader>
+                                                  <Skeleton className="h-4 w-3/4" />
+                                                </CardHeader>
+                                                <CardContent className="space-y-2">
+                                                  <Skeleton className="h-4 w-1/2" />
+                                                  <Skeleton className="h-4 w-2/3" />
+                                                </CardContent>
+                                              </Card>
+                                            ) : (
+                                              result?.success && (
+                                                <Card>
+                                                  <CardHeader>
+                                                    <h3 className="text-lg font-semibold">Page Created Successfully</h3>
+                                                  </CardHeader>
+                                                  <CardContent>
+                                                    <p>Title: {result.page.title}</p>
+                                                    <Link 
+                                                      href={result.page.url} 
+                                                      className="text-blue-600 hover:text-blue-800"
+                                                      target="_blank"
+                                                    >
+                                                      View Page →
+                                                    </Link>
+                                                  </CardContent>
+                                                </Card>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'getCurrentWeatherTool':
+                                    case 'getWeatherForecastTool':
+                                      return (
+                                        <ToolWrapper toolName="openweather">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <Card className="w-full animate-pulse">
+                                                <CardContent className="space-y-2">
+                                                  <Skeleton className="h-4 w-3/4" />
+                                                  <Skeleton className="h-4 w-1/2" />
+                                                </CardContent>
+                                              </Card>
+                                            ) : (
+                                              result?.success && (
+                                                console.log(result),
+                                                <Weather 
+                                                  data={toolName === 'getCurrentWeatherTool' 
+                                                    ? result.weather 
+                                                    : result.forecast} 
+                                                />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
                                       );
                                   }
                                 })()}

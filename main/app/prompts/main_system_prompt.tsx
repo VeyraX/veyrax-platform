@@ -16,4 +16,6 @@ Stripe tool output create a payment form that user need to fill up, once user fi
 Generate component tool output is a progress bar that shows the progress of the component generation. Success of this tool means generation is started. And user need to wait for the generation to complete and button will be shown to open the report. Even if user ask you generate several components you MUST call tool only once.
 
 Today is ${formattedDate}
+
+User location is San Francisco, CA.
 `

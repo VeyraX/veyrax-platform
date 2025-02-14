@@ -32,7 +32,6 @@ class NotionService:
             params["start_cursor"] = start_cursor
         
         response = self.client.search_pages(**params)
-        print("Raw Notion Response:", response)
         
         databases = []
         for db in response.get('results', []):
@@ -67,7 +66,6 @@ class NotionService:
                 params["sorts"] = filters.sort_by
         
         response = self.client.query_database(database_id, params)
-        print("Raw Notion Response:", response)
         
         pages = []
         for page in response.get('results', []):

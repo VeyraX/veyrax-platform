@@ -1,11 +1,16 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 class MessageBase(BaseModel):
     id: str
     thread_id: str
     subject: Optional[str]
     snippet: str
+    body: str
+    recipient: str
+    sender: str
+    date: datetime
 
 class Message(MessageBase):
     body: str
