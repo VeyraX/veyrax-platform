@@ -1,12 +1,13 @@
 'use client'
 
 import { FC } from 'react'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowUpRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
+import { OAuthButton } from './ouauth-buttons'
 
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const router = useRouter()
@@ -39,21 +40,17 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
         </div>
 
         <div className="flex items-center mt-3 pt-3 justify-end">
-          <Button 
-            variant={props.connected ? "secondary" : "outline"}
-            size="sm" 
-            onClick={() => router.push(`/components/${props.provider_tag}`)}
-          >
-            {props.connected ? (
-              <>
-                <ArrowUpRight className="h-4 w-4" /> Manage
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" /> Connect
-              </>
-            )}
-          </Button>
+          <OAuthButton 
+            provider={{ 
+              id: props.id, 
+              name: props.name, 
+              description: props.description, 
+              logo: props.logo, 
+              provider_tag: props.provider_tag 
+            }} 
+            connected={props.connected}
+            onConnectionChange={props.onConnectionChange}
+          />
         </div>
       </CardContent>
     </Card>

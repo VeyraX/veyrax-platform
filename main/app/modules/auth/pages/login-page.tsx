@@ -24,7 +24,7 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/api/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -101,7 +101,7 @@ export function LoginForm() {
               variant="outline"
               type="button"
               onClick={handleGoogleLogin}
-              disabled
+              disabled={loading}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

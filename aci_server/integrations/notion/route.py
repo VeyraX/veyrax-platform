@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from typing import Optional, Dict, Any
 from .schema import (
     DatabaseList, Database, PageList, Page, 
@@ -6,21 +6,15 @@ from .schema import (
 )
 from .service import NotionService
 from .client import NotionClient
+from ..common.auth import TokenService
 import os
 
 router = APIRouter(prefix="/notion", tags=["notion"])
 
-async def get_notion_service():
-    with open("credentials/token.notion", "r") as file:
-        for line in file:
-            if line.startswith('NOTION_API_KEY='):
-                token = line.split('=')[1].strip()
-                print(token)
-                break
-    if not token:
-        raise HTTPException(status_code=401, detail="Notion token not found")
+async def get_notion_service(request: FastAPIRequest):
+    token_data = await TokenService.get_user_token(request, 'notion')
     
-    client = NotionClient(token)
+    client = NotionClient(token_data['access_token'])
     return NotionService(client)
 
 @router.get("/databases", response_model=DatabaseList)

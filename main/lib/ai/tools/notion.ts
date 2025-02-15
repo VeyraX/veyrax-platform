@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import { getAuthHeaders } from '@/lib/actions/actions';
 
 export const listDatabasesTool = tool({
   description: 'List available Notion databases',
@@ -11,7 +12,14 @@ export const listDatabasesTool = tool({
       const params = new URLSearchParams();
       if (startCursor) params.append('start_cursor', startCursor);
 
-      const response = await fetch(`http://localhost:8000/notion/databases?${params.toString()}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `http://localhost:8000/notion/databases?${params.toString()}`,
+        {
+          headers,
+          credentials: 'include'
+        }
+      );
       if (!response.ok) throw new Error('Failed to fetch databases');
       
       const data = await response.json();
@@ -47,9 +55,14 @@ export const listPagesTool = tool({
         sort_by: sortBy
       };
 
+      const headers = await getAuthHeaders();
       const response = await fetch(`http://localhost:8000/notion/databases/${databaseId}/pages`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({
           start_cursor: startCursor,
           filters
@@ -83,9 +96,14 @@ export const createPageTool = tool({
   }),
   execute: async function({ parentId, title, properties, content }) {
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch('http://localhost:8000/notion/pages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({
           parent_id: parentId,
           title,
@@ -122,7 +140,14 @@ export const searchPagesTool = tool({
       params.append('query', query);
       if (startCursor) params.append('start_cursor', startCursor);
 
-      const response = await fetch(`http://localhost:8000/notion/search?${params.toString()}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `http://localhost:8000/notion/search?${params.toString()}`,
+        {
+          headers,
+          credentials: 'include'
+        }
+      );
       if (!response.ok) throw new Error('Failed to search pages');
       
       const data = await response.json();

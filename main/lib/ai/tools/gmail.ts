@@ -1,6 +1,8 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { MessageProps, DraftMessageProps } from '@/app/modules/agent/components/tools/gmail/types.gmail';
+import { createClient } from '@/lib/utils/supabase/server';
+import { getAuthHeaders } from '@/lib/actions/actions';
 
 export const createDraftTool = tool({
   description: 'Create a new draft email message',
@@ -15,10 +17,13 @@ export const createDraftTool = tool({
     error?: string 
   }> {
     try {
+      const headers = await getAuthHeaders();
+      
       const response = await fetch('http://localhost:8000/gmail/drafts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ to, subject, body }),
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to create draft');
@@ -59,7 +64,15 @@ export const listMessagesTool = tool({
       if (afterDate) params.append('after_date', afterDate);
       if (beforeDate) params.append('before_date', beforeDate);
 
-      const response = await fetch(`http://localhost:8000/gmail/messages?${params.toString()}`);
+      const url = `http://localhost:8000/gmail/messages?${params.toString()}`;
+      
+      const headers = await getAuthHeaders();
+      const response = await fetch(url, 
+        { 
+          method: 'GET',
+          headers, 
+          credentials: 'include' 
+        });
       if (!response.ok) throw new Error('Failed to fetch messages');
       
       const data = await response.json();
@@ -87,11 +100,13 @@ export const sendMessageTool = tool({
     error?: string 
   }> {
     try {
-      const response = await fetch(`http://localhost:8000/gmail/messages/${messageId}/send`, {
+      const url = `http://localhost:8000/gmail/messages/${messageId}/send`;
+      
+      const headers = await getAuthHeaders();
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers,
+        credentials: 'include'
       });
 
       if (!response.ok) {

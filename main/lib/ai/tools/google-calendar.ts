@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import { getAuthHeaders } from '@/lib/actions/actions';
 
 export const createEventTool = tool({
   description: 'Create a new calendar event',
@@ -21,9 +22,12 @@ export const createEventTool = tool({
   }),
   execute: async function({ summary, description, location, start, end, attendees }) {
     try {
+      const headers = await getAuthHeaders();
+      
       const response = await fetch('http://localhost:8000/google_calendar/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({
           summary,
           description,
@@ -68,7 +72,14 @@ export const listEventsTool = tool({
       if (beforeDate) params.append('before_date', beforeDate);
       if (calendarId) params.append('calendarId', calendarId);
 
-      const response = await fetch(`http://localhost:8000/google_calendar/events?${params.toString()}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `http://localhost:8000/google_calendar/events?${params.toString()}`,
+        {
+          headers,
+          credentials: 'include'
+        }
+      );
       if (!response.ok) throw new Error('Failed to fetch events');
       
       const data = await response.json();

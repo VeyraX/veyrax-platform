@@ -1,37 +1,27 @@
-import uuid
-from pydantic import BaseModel, Field
-from uuid import UUID
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 
-class SupabaseModel(BaseModel):
-    """Base model for all Supabase tables"""
-    class Config:
-        table_name: str
-        primary_key: str = "id"
-
-class Provider(SupabaseModel):
+class Provider(BaseModel):
+    id: int
+    provider_tag: str
     name: str
     description: str
     logo: str
-    
-    created_at: int
-    updated_at: int
+    created_at: datetime
 
     class Config:
-        table_name = "provider"
+        table_name = "providers"
 
-class UserOAuthToken(SupabaseModel):
-    id: UUID = Field(default_factory=uuid.uuid4, description="Unique identifier for the OAuth token")
-    user_id: UUID = Field(..., description="Supabase user UUID")
-    provider_id: UUID = Field(..., description="Reference to the provider table")
+class UserOAuthToken(BaseModel):
+    user_id: str
+    provider_id: int
     access_token: str
-    refresh_token: str
-    expires_at: int
+    refresh_token: Optional[str]
+    expires_at: Optional[datetime]
     scopes: str
-    created_at: int
-    updated_at: int
+    raw_token_data: Dict[str, Any]
+    created_at: datetime
 
     class Config:
-        table_name = "user_oauth_token"
-    
+        table_name = "users_oauth_tokens"
