@@ -1,43 +1,33 @@
-import { NextResponse, NextRequest } from "next/server";
-import { GetAuthToken } from "./lib/actions/actions";
+import { NextResponse, type NextRequest } from 'next/server'
+import { updateSession } from './lib/utils/supabase/middleware'
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const authToken = await GetAuthToken();
-  const cookieToken = req.cookies.get('authToken')?.value;
-  const envToken = process.env.NEXT_PUBLIC_AUTH_TOKEN_DATA;
-
-  const isValidToken = cookieToken === envToken;
-
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const { response, session } = await updateSession(request)
 
   if (pathname === '/') {
-    return NextResponse.redirect(new URL('/web', req.url));
+    return NextResponse.redirect(new URL('/web', request.url))
   }
 
-  if (pathname === '/login') {
-    if (authToken && isValidToken) {
-      return NextResponse.redirect(new URL('/agent', req.url));
+  if (pathname.startsWith('/agent') || pathname.startsWith('/components/')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url))
     }
-    return NextResponse.next();
   }
 
-  if (pathname.startsWith('/agent')) {
-    if (!authToken || !isValidToken) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    return NextResponse.next();
+  if (pathname === '/login' && session) {
+    return NextResponse.redirect(new URL('/agent', request.url))
   }
 
-  if (pathname.startsWith('/components/')) {
-    if (!authToken || !isValidToken) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    return NextResponse.next();
-  }
-
-  return NextResponse.next();
+  return response
 }
 
 export const config = {
-  matcher: ['/', '/login', '/agent/:path*', '/components/:path*']
+  matcher: [
+    '/',
+    '/login',
+    '/agent/:path*',
+    '/components/:path*',
+    '/web'
+  ]
 }

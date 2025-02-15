@@ -6,40 +6,38 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ValidateCredentials, HandleLogin } from "@/lib/actions/actions"
+import { createClient } from '@/lib/utils/supabase/client'
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  const supabase = createClient();
 
-  const submitLogin = async () => {
+  const handleGoogleLogin = async () => {
     setLoading(true);
     setError([]);
     
     try {
-      const isValid = await ValidateCredentials(email, password);
-      console.log(email);
-      console.log(password);
-      console.log(isValid);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
       
-      if (isValid) {
-        await HandleLogin(process.env.NEXT_PUBLIC_AUTH_TOKEN_DATA || '');
-        window.location.href = '/assistant';
-      } else {
-        setError(['Invalid email or password']);
-      }
     } catch (error) {
-      setError(['An error occurred during login']);
+      setError(['Произошла ошибка при входе через Google']);
     } finally {
       setLoading(false);
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      submitLogin();
     }
   };
 
@@ -68,7 +66,6 @@ export function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleKeyPress}
               />
             </div>
             <div className="grid gap-2">
@@ -79,16 +76,38 @@ export function LoginForm() {
                 required 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
-                onKeyDown={handleKeyPress}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full" 
-              onClick={submitLogin} 
               disabled={loading}
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign in with Google"
+              )}
             </Button>
           </div>
         </div>

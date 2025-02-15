@@ -1,0 +1,81 @@
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from typing import Optional, Dict, Any, IO
+import io
+
+class DriveClient:
+    def __init__(self, credentials: Credentials):
+        self.service = build('drive', 'v3', credentials=credentials)
+
+    def list_files(self, **kwargs) -> Dict[str, Any]:
+        return self.service.files().list(
+            fields="nextPageToken, files(id, name, mimeType, parents, createdTime, modifiedTime, size)",
+            **kwargs
+        ).execute()
+
+    def get_file(self, file_id: str) -> Dict[str, Any]:
+        return self.service.files().get(
+            fileId=file_id,
+            fields="id, name, mimeType, parents, createdTime, modifiedTime, size"
+        ).execute()
+
+    def create_folder(self, name: str, parent_id: Optional[str] = None) -> Dict[str, Any]:
+        file_metadata = {
+            'name': name,
+            'mimeType': 'application/vnd.google-apps.folder'
+        }
+        if parent_id:
+            file_metadata['parents'] = [parent_id]
+        
+        return self.service.files().create(
+            body=file_metadata,
+            fields='id, name, mimeType, parents'
+        ).execute()
+
+    def upload_file(self, name: str, file_content: IO, mime_type: str, parent_id: Optional[str] = None) -> Dict[str, Any]:
+        file_metadata = {'name': name}
+        if parent_id:
+            file_metadata['parents'] = [parent_id]
+
+        media = MediaFileUpload(
+            file_content,
+            mimetype=mime_type,
+            resumable=True
+        )
+        
+        return self.service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id, name, mimeType, parents, size'
+        ).execute()
+
+    def download_file(self, file_id: str) -> IO:
+        request = self.service.files().get_media(fileId=file_id)
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request)
+        
+        done = False
+        while not done:
+            _, done = downloader.next_chunk()
+        
+        file_content.seek(0)
+        return file_content
+
+    def delete_file(self, file_id: str) -> None:
+        self.service.files().delete(fileId=file_id).execute()
+
+    def move_file(self, file_id: str, new_parent_id: str) -> Dict[str, Any]:
+        file = self.service.files().get(
+            fileId=file_id,
+            fields='parents'
+        ).execute()
+        
+        previous_parents = ",".join(file.get('parents', []))
+        
+        return self.service.files().update(
+            fileId=file_id,
+            addParents=new_parent_id,
+            removeParents=previous_parents,
+            fields='id, parents'
+        ).execute()

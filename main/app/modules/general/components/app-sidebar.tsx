@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { HandleLogout } from "@/lib/actions/actions"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -58,10 +58,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
   const { state } = useSidebar()
+  const supabase = createClientComponentClient()
 
   const handleLogoutClick = async () => {
     try {
-      await HandleLogout()
+      await supabase.auth.signOut()
+      router.refresh()
       router.push('/login')
     } catch (error) {
       console.error('Logout failed:', error)

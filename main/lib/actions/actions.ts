@@ -1,22 +1,8 @@
 'use server'
 
 import { cookies } from "next/headers";
-
-export async function HandleLogin(authToken: string) {
-  const cookieStore = cookies();
-  cookieStore.set(
-    'authToken', 
-    authToken,
-    {
-      maxAge: 60 * 60 * 24 * 30,
-    }
-  );
-}
-
-export async function HandleLogout() {
-  const cookieStore = cookies();
-  cookieStore.delete('authToken');
-}
+import { createClient } from '@/lib/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 export async function GetAuthToken() {
   const cookieStore = cookies();
