@@ -11,7 +11,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     .from('providers')
     .select('*')
 
-
   const { data: userTokens } = await supabase
     .from('users_oauth_tokens')
     .select('provider_id')

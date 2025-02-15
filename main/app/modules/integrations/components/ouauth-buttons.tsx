@@ -28,6 +28,11 @@ export function OAuthButton({ provider, connected, onConnectionChange }: OAuthBu
     };
 
     const handleConnect = async () => {
+        if (provider.auth_method === 'api_key') {
+            console.log('API key flow not implemented');
+            return;
+        }
+
         try {
             setLoading(true);
             const response = await fetch(`/api/oauth/${provider.provider_tag}`);
@@ -71,7 +76,7 @@ export function OAuthButton({ provider, connected, onConnectionChange }: OAuthBu
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 </>
             ) : (
-                'Connect'
+                provider.auth_method === 'api_key' ? 'Enable' : 'Connect'
             )}
         </Button>
     );

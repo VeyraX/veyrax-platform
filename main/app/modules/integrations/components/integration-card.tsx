@@ -18,7 +18,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
         <div className="flex flex-col gap-3 flex-1">
           <div className="flex justify-between items-center">
             <img 
-              src={props.logo || '/default-logo.svg'} 
+              src={props.logo_url || '/default-logo.svg'} 
               alt={props.name} 
               width={36} 
               height={36} 
@@ -45,8 +45,9 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
               id: props.id, 
               name: props.name, 
               description: props.description, 
-              logo: props.logo, 
-              provider_tag: props.provider_tag 
+              logo_url: props.logo_url, 
+              provider_tag: props.provider_tag,
+              auth_method: props.auth_method as 'oauth' | 'api_key'
             }} 
             connected={props.connected}
             onConnectionChange={props.onConnectionChange}
