@@ -9,8 +9,7 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, deleteProviderIndex } from '../api/api.integrantions'
-import { createClient } from '@/lib/utils/supabase/client'
+import { disconnectProvider, deleteProviderIndex, initiateOAuthFlow, enableApiKeyProvider, createProviderIndex } from '../api/api.integrantions'
 
 
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
@@ -28,14 +27,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const handleSettingsConfirm = async (scopes: string[], enableIndex: boolean) => {
     setShowSettings(false);
     try {
-      const response = await fetch(`/api/oauth/${props.provider_tag}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ scopes })
-      });
-      const { url } = await response.json();
+      const url = await initiateOAuthFlow(props.provider_tag, scopes);
       window.location.href = url;
     } catch (error) {
       console.error(`Failed to start OAuth flow for ${props.name}:`, error);
@@ -44,19 +36,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
 
   const handleApiKeyEnable = async () => {
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('users_providers')
-        .upsert({
-          user_id: user?.id,
-          provider_id: props.id
-        }, {
-          onConflict: 'provider_id,user_id'
-        });
-
-      if (error) throw error;
+      await enableApiKeyProvider(props.id);
       props.onConnectionChange?.();
     } catch (error) {
       console.error(`Failed to enable ${props.name}:`, error);
@@ -101,7 +81,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
                     if (props.hasIndex) {
                       await deleteProviderIndex(props.id);
                     } else {
-                      console.log('Index creation will be implemented later');
+                      await createProviderIndex(props.id, props.provider_tag);
                     }
                     props.onConnectionChange?.();
                   } catch (error) {

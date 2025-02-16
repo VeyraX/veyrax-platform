@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from typing import Dict, Any
 from integrations.google_drive.service import DriveService
 from integrations.google_drive.route import get_drive_service
@@ -11,37 +11,50 @@ from integrations.common.auth import TokenService
 from integrations.common.auth import GoogleTokenRefresher
 
 from integrations.common.auth import get_user_from_request
-from vector_tools.schema import SearchParams, SearchRequest
+from vector_tools.schema import SearchParams, SearchRequest, CreateIndexRequest
 from .service import VectorSearchService
 from google.oauth2.credentials import Credentials
 import os
 from integrations.google_drive.client import DriveClient
 from fastapi import Request
 
-router = APIRouter(prefix="/vector", tags=["vector"])
+router = APIRouter(prefix="/vector-tools", tags=["vector-tools"])
 
-@router.post("/process-google-drive")
-async def process_google_drive_documents(
+@router.post("/index-data")
+async def process_documents(
     request: Request,
-    drive_service: DriveService = Depends(get_drive_service)
 ) -> Dict[str, Any]:
     try:
-        token_data = await TokenService.get_user_token(request, 'google-drive')
+        body = await request.json()
+        collection_name = body['collection_name']
         
-        if TokenService.is_token_expired(token_data):
-            token_data = await GoogleTokenRefresher.refresh(request, token_data)
-        
-        service_credentials = {
-            'access_token': token_data['access_token'],
-            'refresh_token': token_data['refresh_token'],
-            'scopes': token_data['scopes']
-        }
-        
-        task = process_google_drive_documents_task.delay(service_credentials)
+        if collection_name == 'google-drive':
+            token_data = await TokenService.get_user_token(request, 'google-drive')
+            
+            if TokenService.is_token_expired(token_data):
+                token_data = await GoogleTokenRefresher.refresh(request, token_data)
+            
+            service_credentials = {
+                'access_token': token_data['access_token'],
+                'refresh_token': token_data['refresh_token'],
+                'scopes': token_data['scopes']
+            }
+            
+            task = process_google_drive_documents_task.delay(service_credentials)
+            
+        elif collection_name == 'notion':
+            auth_token = await TokenService.get_user_token(request, 'notion')
+            task = process_notion_documents_task.delay(auth_token)
+            
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported provider: {collection_name}"
+            )
         
         return {
             "status": "accepted",
-            "message": "Processing started",
+            "message": f"Processing started for {collection_name}",
             "task_id": task.id
         }
         
@@ -64,25 +77,6 @@ async def get_task_status(task_id: str) -> Dict[str, Any]:
         response["result"] = task.get()
     
     return response
-
-@router.post("/process-notion")
-async def process_notion_documents(request: Request) -> Dict[str, Any]:
-    try:
-        auth_token = await TokenService.get_user_token(request, 'notion')
-            
-        task = process_notion_documents_task.delay(auth_token)
-        
-        return {
-            "status": "accepted",
-            "message": "Processing started",
-            "task_id": task.id
-        }
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error starting document processing: {str(e)}"
-        )
 
 @router.post("/search")
 async def search_documents(

@@ -12,13 +12,6 @@ export interface Provider {
   has_index_capability?: boolean;
 }
 
-export interface UserOAuthToken {
-  user_id: string;
-  provider_id: string;
-  access_token: string;
-  refresh_token: string;
-}
-
 export interface IntegrationCardProps extends Provider {
   connected: boolean;
   hasIndex: boolean;

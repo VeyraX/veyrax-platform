@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/utils/supabase/client'
 import { IntegrationCardProps, Provider } from './types.integrations'
+import { getAuthHeaders } from '@/lib/actions/actions'
 
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
   const supabase = createClient()
@@ -74,4 +75,62 @@ export const deleteProviderIndex = async (providerId: string): Promise<void> => 
       user_id: user?.id,
       provider_id: providerId
     })
+}
+
+export const createProviderIndex = async (providerId: string, providerTag: string): Promise<void> => {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/index-data`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ 
+      collection_name: providerTag 
+    }),
+    credentials: 'include'
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create index');
+  }
+
+  await supabase
+    .from('users_provider_indexes')
+    .upsert({
+      user_id: user?.id,
+      provider_id: providerId,
+      status: 'syncing'
+    }, {
+      onConflict: 'provider_id,user_id'
+    });
+}
+
+export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {
+  const response = await fetch(`/api/oauth/${providerTag}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ scopes })
+  });
+  
+  const { url } = await response.json();
+  return url;
+}
+
+export const enableApiKeyProvider = async (providerId: string): Promise<void> => {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { error } = await supabase
+    .from('users_providers')
+    .upsert({
+      user_id: user?.id,
+      provider_id: providerId
+    }, {
+      onConflict: 'provider_id,user_id'
+    });
+
+  if (error) throw error;
 }
