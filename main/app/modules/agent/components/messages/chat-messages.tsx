@@ -13,20 +13,20 @@ import { MessageCard } from "../tools/gmail/message-card.gmail"
 import { DraftMessageCardSkeleton } from "../tools/gmail/draft-message-card.gmail"
 import { MessageCardSkeleton } from "../tools/gmail/message-card.gmail"
 import { SendingMessageCard } from "../tools/gmail/sending-message-card.gmail"
-import { EventCard, EventCardSkeleton } from "../tools/calendar/event-card.google-calendar"
-import { Event } from "../tools/calendar/types.google-calendar"
+import { EventCard, EventCardSkeleton } from "../tools/google-calendar/event-card.google-calendar"
+import { Event } from "../tools/google-calendar/types.google-calendar"
 import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
 import Link from "next/link"
-import { NotionPageList } from "../tools/notion/card-view.notion"
-import { FilterDisplay } from "../tools/calendar/event-card.google-calendar"
-import { ToolWrapper } from "../tools/tool-wrapper"
+import { FilterDisplay } from "../tools/google-calendar/event-card.google-calendar"
+import { ToolWrapper } from "../tools/common/tool-wrapper"
 import { NotionDatabaseList, NotionDatabaseListSkeleton } from "../tools/notion/card-view.notion"
-import { NotionPageListSkeleton } from "../tools/notion/card-view.notion"
 import Weather from "../tools/openweather/weather-widget.openweather"
 import { type PerplexityResponse } from "../tools/perplexity/types.perplexity"
 import { PerplexityResponseView, PerplexityResponseSkeleton } from "../tools/perplexity/response-view.perplexity"
 import { FileCard, FileCardSkeleton } from "../tools/google-drive/file-card.google-drive"
 import { FileList, FileListSkeleton } from "../tools/google-drive/file-list.google-drive"
+import { NotionPageCard, NotionPageCardSkeleton } from "../tools/notion/card-view.notion"
+import { Page } from "../tools/notion/types.notion"
 
 
 interface ChatMessagesProps {
@@ -309,10 +309,10 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         <ToolWrapper toolName="notion">
                                           <div className="max-w-3xl w-full">
                                             {['partial-call', 'call'].includes(state) ? (
-                                              <NotionPageListSkeleton />
+                                              <NotionPageCardSkeleton />
                                             ) : (
                                               result?.success && (
-                                                <NotionPageList pages={[result.page]} />
+                                                <NotionPageCard {...result.page} />
                                               )
                                             )}
                                           </div>
@@ -322,12 +322,23 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                     case 'notion_listPages':
                                       return (
                                         <ToolWrapper toolName="notion">
-                                          <div className="max-w-3xl w-full">
+                                          <div className="max-w-3xl w-full space-y-4">
                                             {['partial-call', 'call'].includes(state) ? (
-                                              <NotionPageListSkeleton />
+                                              <>
+                                                <NotionPageCardSkeleton />
+                                                <NotionPageCardSkeleton />
+                                                <NotionPageCardSkeleton />
+                                              </>
                                             ) : (
                                               result?.success && (
-                                                <NotionPageList pages={result.pages} />
+                                                <div className="flex flex-wrap gap-4">
+                                                  {result.pages?.map((page: Page) => (
+                                                    <NotionPageCard
+                                                      key={page.url}
+                                                      {...page}
+                                                    />
+                                                  ))}
+                                                </div>
                                               )
                                             )}
                                           </div>

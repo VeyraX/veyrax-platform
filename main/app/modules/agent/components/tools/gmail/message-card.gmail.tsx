@@ -46,7 +46,10 @@ export function MessageCard({ subject, snippet, body, sender, recipient, labels 
               <div>From: {sender}</div>
               <div>{new Date(date).toLocaleString()}</div>
             </div>
-            <div className="whitespace-pre-wrap">{body}</div>
+            <div 
+              className="whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: body }}
+            />
           </div>
         </div>
       )}

@@ -40,7 +40,7 @@ const items = [
       },
       {
         title: "Integrations",
-        url: "",
+        url: "/integrations",
       },
       {
         title: "Analytics",

@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
                 access_token: tokens.access_token,
                 refresh_token: null,
                 expires_at: null,
-                scopes: scopes,
+                scopes: Array.isArray(scopes) ? scopes.join(',') : scopes,
                 raw_token_data: tokens,
             }, {
                 onConflict: 'user_id,provider_id'
