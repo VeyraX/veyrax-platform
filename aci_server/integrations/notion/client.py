@@ -67,3 +67,11 @@ class NotionClient:
             headers=self.headers,
             json=params
         ).json()
+
+    def get_block_children(self, block_id: str, **kwargs) -> Dict[str, Any]:
+        """Get children blocks for a given block ID"""
+        return requests.get(
+            f"{self.base_url}/blocks/{block_id}/children",
+            headers=self.headers,
+            params=kwargs
+        ).json()

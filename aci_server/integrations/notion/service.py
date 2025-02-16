@@ -96,7 +96,30 @@ class NotionService:
         try:
             response = self.client.get_page(page_id)
             validated_response = self._handle_notion_response(response)
-            return Page(**validated_response)
+            
+            blocks_response = self.client.get_block_children(page_id)
+            validated_blocks = self._handle_notion_response(blocks_response)
+            
+            title = ""
+            properties = validated_response.get('properties', {})
+            title_prop = properties.get('Name') or properties.get('Title')
+            if title_prop and title_prop.get('title'):
+                title = " ".join(
+                    text.get('plain_text', '')
+                    for text in title_prop['title']
+                )
+            
+            page_data = {
+                "id": validated_response.get('id'),
+                "title": title,
+                "created_time": validated_response.get('created_time'),
+                "last_edited_time": validated_response.get('last_edited_time'),
+                "archived": validated_response.get('archived', False),
+                "url": validated_response.get('url'),
+                "content": validated_blocks.get('results', [])
+            }
+            
+            return Page(**page_data)
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=str(e))
 

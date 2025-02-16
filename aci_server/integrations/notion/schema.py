@@ -28,6 +28,7 @@ class Page(BaseModel):
     last_edited_time: str
     archived: bool
     url: str
+    content: Optional[List[Dict[str, Any]]] = None
 
 class PageList(BaseModel):
     items: List[Page]

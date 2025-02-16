@@ -9,15 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
 import { Database } from "./types.notion"
 type NotionPageListProps = {
-  pages: Page[]
+  pages: Page[] | undefined;
 }
 
 export const NotionPageList: React.FC<NotionPageListProps> = ({ pages }) => {
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Notion Pages</h1>
       <div className="flex flex-wrap gap-4">
-        {pages.map((page, index) => (
+        {pages?.map((page, index) => (
           <Card key={index} className="w-[300px]">
             <CardContent className="p-3 flex flex-col">
               <div className="flex items-center justify-between gap-2 mb-2">
@@ -104,7 +103,6 @@ export function NotionDatabaseListSkeleton() {
 export function NotionPageListSkeleton() {
   return (
     <div className="container mx-auto p-4">
-      <Skeleton className="h-8 w-48 mb-4" />
       <div className="flex flex-wrap gap-4">
         {[1, 2, 3].map((i) => (
           <NotionPageCardSkeleton key={i} />

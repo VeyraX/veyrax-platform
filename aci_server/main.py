@@ -8,9 +8,13 @@ from integrations.linear.route import router as linear_router
 from integrations.openweather.route import router as openweather_router
 from integrations.perplexity.route import router as perplexity_router
 from integrations.google_drive.route import router as google_drive_router
+from vector_tools.route import router as vector_router
 from integrations.common.utils import get_router_tools
+from celery_app import celery_app
 
 app = FastAPI()
+
+app.state.celery = celery_app
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +32,7 @@ app.include_router(linear_router)
 app.include_router(openweather_router)
 app.include_router(perplexity_router)
 app.include_router(google_drive_router)
-
+app.include_router(vector_router)
 
 @app.get("/")
 async def root():

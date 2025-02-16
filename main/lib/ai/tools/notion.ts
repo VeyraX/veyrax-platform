@@ -164,3 +164,35 @@ export const searchPagesTool = tool({
     }
   }
 });
+
+export const readNotionPageTool = tool({
+  description: 'Get details of a specific Notion page by ID',
+  parameters: z.object({
+    pageId: z.string().describe('ID of the page to fetch')
+  }),
+  execute: async function({ pageId }) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `http://localhost:8000/notion/pages/${pageId}`,
+        {
+          headers,
+          credentials: 'include'
+        }
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch page');
+      
+      const data = await response.json();
+      return {
+        success: true,
+        page: data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch page'
+      };
+    }
+  }
+});

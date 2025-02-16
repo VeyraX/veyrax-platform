@@ -10,6 +10,7 @@ export type Page = {
     last_edited_time: string
     archived: boolean
     url: string
+    content: any[]
   }
   
 export type PageList = {

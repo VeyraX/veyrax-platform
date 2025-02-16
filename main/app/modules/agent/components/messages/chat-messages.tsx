@@ -25,6 +25,8 @@ import { NotionPageListSkeleton } from "../tools/notion/card-view.notion"
 import Weather from "../tools/openweather/weather-widget.openweather"
 import { type PerplexityResponse } from "../tools/perplexity/types.perplexity"
 import { PerplexityResponseView, PerplexityResponseSkeleton } from "../tools/perplexity/response-view.perplexity"
+import { FileCard, FileCardSkeleton } from "../tools/google-drive/file-card.google-drive"
+import { FileList, FileListSkeleton } from "../tools/google-drive/file-list.google-drive"
 
 
 interface ChatMessagesProps {
@@ -301,6 +303,21 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                           </div>
                                         </ToolWrapper>
                                       );
+                                    case 'readNotionPageTool':
+                                      console.log(result)
+                                      return (
+                                        <ToolWrapper toolName="notion">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <NotionPageListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <NotionPageList pages={[result.page]} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
 
                                     case 'listPagesTool':
                                       return (
@@ -389,6 +406,59 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                             ) : (
                                               result?.success && result.response && (
                                                 <PerplexityResponseView response={result.response} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'listFilesTool':
+                                    case 'moveFileTool':
+                                    case 'listFoldersTool':
+                                      return (
+                                        <ToolWrapper toolName="google-drive">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <FileListSkeleton />
+                                                <FileListSkeleton />
+                                                <FileListSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.success && (
+                                                <FileList files={result.files || result.folders} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'getFileTool':
+                                      return (
+                                        <ToolWrapper toolName="google-drive">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <FileCardSkeleton />
+                                            ) : (
+                                              result?.success && result.file && (
+                                                <FileCard file={result.file} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'readFileTool':
+                                      return (
+                                        <ToolWrapper toolName="google-drive">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <FileCardSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <div className="space-y-4">
+                                                  {result.file && <FileCard file={result.file} />}
+                                                </div>
                                               )
                                             )}
                                           </div>

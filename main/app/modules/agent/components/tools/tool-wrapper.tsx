@@ -33,6 +33,10 @@ const TOOL_CONFIGS = {
     logo: '/logos/perplexity-logo.svg',
     label: 'Perplexity',
   },
+  'google-drive': {
+    logo: '/logos/drive-logo.svg',
+    label: 'Google Drive',
+  },
 }
 
 export function ToolWrapper({ toolName, children }: ToolWrapperProps) {

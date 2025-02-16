@@ -7,9 +7,12 @@ class DriveFile(BaseModel):
     name: str
     mime_type: str
     parent_ids: Optional[List[str]]
+    parent_names: Optional[List[str]]
     created_time: datetime
     modified_time: datetime
     size: Optional[int]
+    web_view_link: Optional[str] = None
+    web_content_link: Optional[str] = None
 
 class FileList(BaseModel):
     files: List[DriveFile]
@@ -33,3 +36,4 @@ class FileFilters(BaseModel):
     parent_id: Optional[str] = None
     created_after: Optional[str] = None
     created_before: Optional[str] = None
+    folders_only: Optional[bool] = False

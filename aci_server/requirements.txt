@@ -9,7 +9,6 @@ SQLAlchemy==2.0.32
 uvicorn==0.30.6
 gunicorn==23.0.0
 requests==2.26.0
-redis==4.3.4
 supabase==2.13.0
 google-auth-oauthlib==1.2.1
 google-auth-httplib2==0.2.0
@@ -19,3 +18,11 @@ notion-client==2.3.0
 slack-sdk==3.34.0
 httpx==0.28.1
 python-multipart==0.0.20
+qdrant-client==1.10.1
+openai==1.63.0
+celery[redis]==5.4.0
+redis==5.2.1
+flower==2.0.1
+PyPDF2==3.0.1
+docx==0.2.4
+openpyxl==3.1.2

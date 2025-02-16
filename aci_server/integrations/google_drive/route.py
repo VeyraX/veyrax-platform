@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request as FastAPIRequest
 from typing import Optional
 from .schema import FileList, DriveFile, FileFilters, FolderCreate, FileMove
 from .service import DriveService
@@ -8,34 +8,25 @@ import os
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from fastapi.responses import StreamingResponse
+from ..common.auth import TokenService, GoogleTokenRefresher
+from ..common.file_reader import read_file_content
 
 
-router = APIRouter(prefix="/drive", tags=["drive"])
+router = APIRouter(prefix="/google_drive", tags=["google_drive"])
 
-async def get_drive_service():
-    if os.path.exists('credentials/google_token.pickle'):
-        with open('credentials/google_token.pickle', 'rb') as token:
-            creds_dict = pickle.load(token)
-            creds = Credentials(
-                token=creds_dict['access_token'],
-                refresh_token=creds_dict['refresh_token'],
-                token_uri="https://oauth2.googleapis.com/token",
-                client_id=os.getenv('GOOGLE_CLIENT_ID'),
-                client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-                scopes=creds_dict['scope'].split()
-            )
+async def get_drive_service(request: FastAPIRequest):
+    token_data = await TokenService.get_user_token(request, 'google-drive')
+    if TokenService.is_token_expired(token_data):
+        token_data = await GoogleTokenRefresher.refresh(request, token_data)
         
-            if creds.expired:
-                creds.refresh(Request())
-                updated_creds_dict = {
-                    'access_token': creds.token,
-                    'refresh_token': creds.refresh_token,
-                    'scope': ' '.join(creds.scopes),
-                }
-                with open('credentials/google_token.pickle', 'wb') as token:
-                    pickle.dump(updated_creds_dict, token)
-    else:
-        raise HTTPException(status_code=404, detail="Credentials file not found")
+    creds = Credentials(
+        token=token_data['access_token'],
+        refresh_token=token_data['refresh_token'],
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=os.getenv('GOOGLE_CLIENT_ID'),
+        client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+        scopes=token_data['scopes'].split()
+    )
     
     client = DriveClient(creds)
     return DriveService(client)
@@ -68,12 +59,22 @@ async def download_file(
     file_id: str,
     service: DriveService = Depends(get_drive_service)
 ):
-    file_content = service.download_file(file_id)
+    file_content, mime_type = service.download_file(file_id)
     file_info = service.get_file(file_id)
+    
+    file_content.seek(0)
+    
+    extension = {
+        'application/pdf': '.pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    }.get(mime_type, '')
+    
+    filename = f"{file_info.name}{extension}"
+    
     return StreamingResponse(
-        file_content,
-        media_type="application/octet-stream",
-        headers={"Content-Disposition": f"attachment; filename={file_info.name}"}
+        iter([file_content.read()]),
+        media_type=mime_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 @router.delete("/files/{file_id}")
@@ -98,3 +99,48 @@ async def move_file(
     service: DriveService = Depends(get_drive_service)
 ):
     return service.move_file(file_id, move.new_parent_id)
+
+@router.get("/folders", response_model=FileList)
+async def list_folders(
+    page_token: Optional[str] = None,
+    name_contains: Optional[str] = None,
+    parent_id: Optional[str] = None,
+    service: DriveService = Depends(get_drive_service)
+):
+    filters = FileFilters(
+        name_contains=name_contains,
+        parent_id=parent_id,
+        folders_only=True
+    )
+    return service.list_files(page_token, filters)
+
+@router.get("/files/{file_id}/read")
+async def read_file(
+    file_id: str,
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        file_content, mime_type = service.download_file(file_id)
+        file_info = service.get_file(file_id)
+        
+        if any(x in mime_type for x in ['spreadsheet', 'excel', 'csv']):
+            return {
+                "success": False,
+                "error": "Spreadsheet files are not supported for text reading",
+                "file": file_info.dict()
+            }
+            
+        text_content, success = read_file_content(file_content, mime_type)
+        
+        return {
+            "success": success,
+            "content": text_content,
+            "file": file_info.dict(),
+            "mime_type": mime_type
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }

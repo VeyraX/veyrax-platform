@@ -42,7 +42,6 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
       throw new Error('No active session');
     }
     
-    console.log('Current auth token:', session.access_token.slice(0, 10) + '...');
     return {
       'Authorization': `Bearer ${session.access_token}`,
       'Content-Type': 'application/json'

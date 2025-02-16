@@ -6,18 +6,19 @@ import io
 
 class DriveClient:
     def __init__(self, credentials: Credentials):
+        self.credentials = credentials
         self.service = build('drive', 'v3', credentials=credentials)
 
     def list_files(self, **kwargs) -> Dict[str, Any]:
         return self.service.files().list(
-            fields="nextPageToken, files(id, name, mimeType, parents, createdTime, modifiedTime, size)",
+            fields="nextPageToken, files(id, name, mimeType, parents, createdTime, modifiedTime, size, webViewLink, webContentLink)",
             **kwargs
         ).execute()
 
     def get_file(self, file_id: str) -> Dict[str, Any]:
         return self.service.files().get(
             fileId=file_id,
-            fields="id, name, mimeType, parents, createdTime, modifiedTime, size"
+            fields="id, name, mimeType, parents, createdTime, modifiedTime, size, webViewLink, webContentLink"
         ).execute()
 
     def create_folder(self, name: str, parent_id: Optional[str] = None) -> Dict[str, Any]:
@@ -50,32 +51,64 @@ class DriveClient:
             fields='id, name, mimeType, parents, size'
         ).execute()
 
-    def download_file(self, file_id: str) -> IO:
-        request = self.service.files().get_media(fileId=file_id)
+    def download_file(self, file_id: str, mime_type: Optional[str] = None) -> IO:
         file_content = io.BytesIO()
-        downloader = MediaIoBaseDownload(file_content, request)
         
+        if mime_type:
+            request = self.service.files().export_media(
+                fileId=file_id,
+                mimeType=mime_type
+            )
+        else:
+            request = self.service.files().get_media(fileId=file_id)
+            
+        downloader = MediaIoBaseDownload(file_content, request)
         done = False
         while not done:
             _, done = downloader.next_chunk()
-        
-        file_content.seek(0)
         return file_content
 
     def delete_file(self, file_id: str) -> None:
         self.service.files().delete(fileId=file_id).execute()
 
     def move_file(self, file_id: str, new_parent_id: str) -> Dict[str, Any]:
-        file = self.service.files().get(
-            fileId=file_id,
-            fields='parents'
-        ).execute()
+        try:
+            file = self.service.files().get(
+                fileId=file_id,
+                fields='parents,permissions',
+                supportsAllDrives=True
+            ).execute()
+            
+            previous_parents = file.get('parents', [])
+            
+            if not any(p.get('role') in ['owner', 'writer'] for p in file.get('permissions', [])):
+                raise PermissionError(f"No write access for file {file_id}")
+
+            params = {
+                'fileId': file_id,
+                'fields': 'id, name, mimeType, parents, createdTime, modifiedTime, size',
+                'supportsAllDrives': True,
+                'addParents': new_parent_id,
+                'removeParents': ','.join(previous_parents) if previous_parents else None
+            }
+
+            if not previous_parents:
+                del params['removeParents']
+                params['body'] = {'parents': [new_parent_id]}
+
+            return self.service.files().update(**params).execute()
+
+        except Exception as e:
+            print(f"Move operation failed: {str(e)}")
+            if "cannotAddParent" in str(e):
+                print("Domain policy prevents adding parents. Verify Google Workspace settings.")
+            raise
+
+    def read_file(self, file_id: str) -> tuple[bytes, str]:
+        file = self.service.files().get(fileId=file_id, fields='mimeType').execute()
+        mime_type = file.get('mimeType', '')
         
-        previous_parents = ",".join(file.get('parents', []))
+        request = self.service.files().get_media(fileId=file_id)
+        file_content = request.execute()
         
-        return self.service.files().update(
-            fileId=file_id,
-            addParents=new_parent_id,
-            removeParents=previous_parents,
-            fields='id, parents'
-        ).execute()
+        return file_content, mime_type
