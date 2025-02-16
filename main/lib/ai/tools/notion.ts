@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { getAuthHeaders } from '@/lib/actions/actions';
 
-export const listDatabasesTool = tool({
+export const notion_listDatabases = tool({
   description: 'List available Notion databases',
   parameters: z.object({
     startCursor: z.string().optional().describe('Cursor for pagination')
@@ -37,7 +37,7 @@ export const listDatabasesTool = tool({
   }
 });
 
-export const listPagesTool = tool({
+export const notion_listPages = tool({
   description: 'List pages from a specific Notion database with optional filters',
   parameters: z.object({
     databaseId: z.string().describe('ID of the database to query'),
@@ -86,7 +86,7 @@ export const listPagesTool = tool({
   }
 });
 
-export const createPageTool = tool({
+export const notion_createPage = tool({
   description: 'Create a new page in a Notion database',
   parameters: z.object({
     parentId: z.string().describe('ID of the database'),
@@ -128,7 +128,7 @@ export const createPageTool = tool({
   }
 });
 
-export const searchPagesTool = tool({
+export const notion_searchPages = tool({
   description: 'Search for pages across all Notion databases',
   parameters: z.object({
     query: z.string().describe('Search query string'),
@@ -165,7 +165,7 @@ export const searchPagesTool = tool({
   }
 });
 
-export const readNotionPageTool = tool({
+export const notion_readPage = tool({
   description: 'Get details of a specific Notion page by ID',
   parameters: z.object({
     pageId: z.string().describe('ID of the page to fetch')

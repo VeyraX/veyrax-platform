@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { type PerplexityResponse } from '@/app/modules/agent/components/tools/perplexity/types.perplexity';
 
-export const askPerplexityTool = tool({
+export const perplexity_ask = tool({
   description: 'Ask a question using Perplexity AI',
   parameters: z.object({
     content: z.string().describe('The question or prompt to send to Perplexity'),

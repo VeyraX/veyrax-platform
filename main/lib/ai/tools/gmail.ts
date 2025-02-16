@@ -4,7 +4,7 @@ import { MessageProps, DraftMessageProps } from '@/app/modules/agent/components/
 import { createClient } from '@/lib/utils/supabase/server';
 import { getAuthHeaders } from '@/lib/actions/actions';
 
-export const createDraftTool = tool({
+export const gmail_createDraft = tool({
   description: 'Create a new draft email message',
   parameters: z.object({
     to: z.string().describe('Email address of the recipient'),
@@ -42,7 +42,7 @@ export const createDraftTool = tool({
   }
 });
 
-export const listMessagesTool = tool({
+export const gmail_listMessages = tool({
   description: 'List email messages with optional filters',
   parameters: z.object({
     bodyKeywords: z.string().optional().describe('Keywords to search in email body'),
@@ -89,7 +89,7 @@ export const listMessagesTool = tool({
   }
 });
 
-export const sendMessageTool = tool({
+export const gmail_sendMessage = tool({
   description: 'Send an existing draft message by its ID',
   parameters: z.object({
     messageId: z.string().describe('ID of the draft message to send'),

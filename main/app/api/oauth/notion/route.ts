@@ -1,14 +1,7 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const SCOPES = [
-    'read_databases',
-    'write_databases',
-    'read_pages',
-    'write_pages'
-].join(' ');
-
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -16,6 +9,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { scopes } = await request.json();
+    
     const { data: provider } = await supabase
         .from('providers')
         .select('id')
@@ -27,7 +22,8 @@ export async function GET(request: NextRequest) {
     }
 
     const state = Buffer.from(JSON.stringify({
-        provider_id: provider.id
+        provider_id: provider.id,
+        scopes
     })).toString('base64');
 
     const redirectUri = `${request.nextUrl.origin}/api/oauth/notion/callback`;
@@ -41,3 +37,5 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ url: authUrl });
 }
+
+export { POST as GET };

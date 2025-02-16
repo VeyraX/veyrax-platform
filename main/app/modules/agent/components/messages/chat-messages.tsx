@@ -193,7 +193,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                               <div key={toolCallId} className="py-4">
                                 {(() => {
                                   switch(toolName) {
-                                    case 'createDraftTool':
+                                    case 'gmail_createDraft':
                                       return (
                                         <ToolWrapper toolName="gmail">
                                           <div className="max-w-3xl w-full">
@@ -211,7 +211,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'listMessagesTool':
+                                    case 'gmail_listMessages':
                                       return (
                                         <ToolWrapper toolName="gmail">
                                           <div className="max-w-3xl w-full space-y-4">
@@ -233,7 +233,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'sendMessageTool':
+                                    case 'gmail_sendMessage':
                                       return (
                                         <ToolWrapper toolName="gmail">
                                           <div className="max-w-3xl w-full">
@@ -245,7 +245,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'createEventTool':
+                                    case 'googleCalendar_createEvent':
                                       return (
                                         <ToolWrapper toolName="google-calendar">
                                           <div className="max-w-3xl w-full">
@@ -260,7 +260,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'listEventsTool':
+                                    case 'googleCalendar_listEvents':
                                       return (
                                         <ToolWrapper toolName="google-calendar">
                                           <div className="max-w-3xl w-full space-y-4">
@@ -289,7 +289,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'listDatabasesTool':
+                                    case 'notion_listDatabases':
                                       return (
                                         <ToolWrapper toolName="notion">
                                           <div className="max-w-3xl w-full space-y-4">
@@ -303,7 +303,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                           </div>
                                         </ToolWrapper>
                                       );
-                                    case 'readNotionPageTool':
+                                    case 'notion_readPage':
                                       console.log(result)
                                       return (
                                         <ToolWrapper toolName="notion">
@@ -319,7 +319,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'listPagesTool':
+                                    case 'notion_listPages':
                                       return (
                                         <ToolWrapper toolName="notion">
                                           <div className="max-w-3xl w-full">
@@ -334,7 +334,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'createPageTool':
+                                    case 'notion_createPage':
                                       return (
                                         <ToolWrapper toolName="notion">
                                           <div className="max-w-3xl w-full">
@@ -371,7 +371,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'getCurrentWeatherTool':
+                                    case 'openweather_getWeather':
                                     case 'getWeatherForecastTool':
                                       return (
                                         <ToolWrapper toolName="openweather">
@@ -387,7 +387,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                               result?.success && (
                                                 console.log(result),
                                                 <Weather 
-                                                  data={toolName === 'getCurrentWeatherTool' 
+                                                  data={toolName === 'openweather_getWeather' 
                                                     ? result.weather 
                                                     : result.forecast} 
                                                 />
@@ -397,7 +397,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'askPerplexityTool':
+                                    case 'perplexity_ask':
                                       return (
                                         <ToolWrapper toolName="perplexity">
                                           <div className="max-w-3xl w-full">
@@ -412,9 +412,9 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'listFilesTool':
-                                    case 'moveFileTool':
-                                    case 'listFoldersTool':
+                                    case 'googleDrive_listFiles':
+                                    case 'googleDrive_moveFile':
+                                    case 'googleDrive_listFolders':
                                       return (
                                         <ToolWrapper toolName="google-drive">
                                           <div className="max-w-3xl w-full">
@@ -433,7 +433,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'getFileTool':
+                                    case 'googleDrive_getFile':
                                       return (
                                         <ToolWrapper toolName="google-drive">
                                           <div className="max-w-3xl w-full">
@@ -448,7 +448,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                         </ToolWrapper>
                                       );
 
-                                    case 'readFileTool':
+                                    case 'googleDrive_readFile':
                                       return (
                                         <ToolWrapper toolName="google-drive">
                                           <div className="max-w-3xl w-full">

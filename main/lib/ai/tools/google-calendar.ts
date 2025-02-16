@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { getAuthHeaders } from '@/lib/actions/actions';
 
-export const createEventTool = tool({
+export const googleCalendar_createEvent = tool({
   description: 'Create a new calendar event',
   parameters: z.object({
     summary: z.string().describe('Title of the event'),
@@ -54,7 +54,7 @@ export const createEventTool = tool({
   }
 });
 
-export const listEventsTool = tool({
+export const googleCalendar_listEvents = tool({
   description: 'List calendar events with optional filters',
   parameters: z.object({
     keywords: z.string().optional().describe('Keywords to search in event title and description'),

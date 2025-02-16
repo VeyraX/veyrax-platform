@@ -8,14 +8,14 @@ class MessageBase(BaseModel):
     subject: Optional[str]
     snippet: str
     body: str
-    recipient: str
-    sender: str
+    recipient: Optional[str]
+    sender: Optional[str]
     date: datetime
 
 class Message(MessageBase):
     body: str
-    sender: str
-    recipient: str
+    sender: Optional[str]
+    recipient: Optional[str]
     labels: List[str]
 
 class DraftBase(BaseModel):

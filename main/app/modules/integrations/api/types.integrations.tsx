@@ -5,6 +5,11 @@ export interface Provider {
   logo_url?: string;
   provider_tag: string;
   auth_method: 'oauth' | 'api_key';
+  scopes?: {
+    scope: string;
+    scope_name: string;
+  }[];
+  has_index_capability?: boolean;
 }
 
 export interface UserOAuthToken {
@@ -14,15 +19,16 @@ export interface UserOAuthToken {
   refresh_token: string;
 }
 
-
-export interface IntegrationCardProps {
-  id: string;
-  name: string;
-  description: string;
-  logo_url?: string;
-  provider_tag: string;
+export interface IntegrationCardProps extends Provider {
   connected: boolean;
-  auth_method: string;
+  hasIndex: boolean;
   onConnectionChange?: () => void;
+  onShowSettings?: (provider: Provider) => void;
+}
+
+export interface UserProvider {
+  id: string;
+  user_id: string;
+  provider_id: string;
 }
   

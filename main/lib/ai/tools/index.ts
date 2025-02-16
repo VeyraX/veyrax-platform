@@ -1,27 +1,27 @@
-import { createDraftTool, listMessagesTool, sendMessageTool } from './gmail';
-import { listEventsTool, createEventTool } from './google-calendar';
-import { listDatabasesTool, listPagesTool, createPageTool, readNotionPageTool } from './notion';
-import { getWeatherForecastTool } from './openweather';
-import { askPerplexityTool } from './perplexity';
-import { listFilesTool, listFoldersTool, getFileTool, moveFileTool, readFileTool } from './google-drive';
+import { gmail_createDraft, gmail_listMessages, gmail_sendMessage } from './gmail';
+import { googleCalendar_listEvents, googleCalendar_createEvent } from './google-calendar';
+import { notion_listDatabases, notion_listPages, notion_createPage, notion_readPage } from './notion';
+import { openweather_getWeather } from './openweather';
+import { perplexity_ask } from './perplexity';
+import { googleDrive_listFiles, googleDrive_listFolders, googleDrive_getFile, googleDrive_moveFile, googleDrive_readFile } from './google-drive';
 
 export const tools = {
-  createDraftTool,
-  listMessagesTool,
-  sendMessageTool,
-  listEventsTool,
-  createEventTool,
-  listDatabasesTool,
-  listPagesTool,
-  createPageTool,
-  getWeatherForecastTool,
-  askPerplexityTool,
-  listFilesTool,
-  listFoldersTool,
-  getFileTool,
-  moveFileTool,
-  readFileTool,
-  readNotionPageTool
+  gmail_createDraft,
+  gmail_listMessages,
+  gmail_sendMessage,
+  googleCalendar_listEvents,
+  googleCalendar_createEvent,
+  notion_listDatabases,
+  notion_listPages,
+  notion_createPage,
+  openweather_getWeather,
+  perplexity_ask,
+  googleDrive_listFiles,
+  googleDrive_listFolders,
+  googleDrive_getFile,
+  googleDrive_moveFile,
+  googleDrive_readFile,
+  notion_readPage
 };
 
 export type Tools = typeof tools;

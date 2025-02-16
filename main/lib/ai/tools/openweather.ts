@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
-export const getWeatherForecastTool = tool({
+export const openweather_getWeather = tool({
   description: 'Get weather forecast and current weather for a specific city and country',
   parameters: z.object({
     city: z.string().describe('Name of the city'),

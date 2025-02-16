@@ -39,8 +39,8 @@ class GmailService:
                 'snippet': message['snippet'],
                 'subject': self._get_header(message, 'Subject'),
                 'body': self._get_body(message),
-                'recipient': self._get_header(message, 'To'),
-                'sender': self._get_header(message, 'From'),
+                'recipient': self._get_header(message, 'To') or None,
+                'sender': self._get_header(message, 'From') or None,
                 'date': parser.parse(self._get_header(message, 'Date'))
             })
             

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getAuthHeaders } from '@/lib/actions/actions';
 import * as pdfjs from 'pdfjs-dist';
 
-export const listFilesTool = tool({
+export const googleDrive_listFiles = tool({
   description: 'List files in Google Drive with optional filters',
   parameters: z.object({
     nameContains: z.string().optional().describe('Filter files by name containing this string'),
@@ -45,7 +45,7 @@ export const listFilesTool = tool({
   }
 });
 
-export const listFoldersTool = tool({
+export const googleDrive_listFolders = tool({
   description: 'List folders in Google Drive',
   parameters: z.object({
     nameContains: z.string().optional().describe('Filter folders by name containing this string'),
@@ -82,7 +82,7 @@ export const listFoldersTool = tool({
 });
 
 
-export const getFileTool = tool({
+export const googleDrive_getFile = tool({
   description: 'Get file metadata from Google Drive',
   parameters: z.object({
     fileId: z.string().describe('ID of the file to get information about'),
@@ -110,7 +110,7 @@ export const getFileTool = tool({
   }
 });
 
-export const moveFileTool = tool({
+export const googleDrive_moveFile = tool({
   description: 'Move a file to a different folder in Google Drive',
   parameters: z.object({
     fileId: z.string().describe('ID of the file to move'),
@@ -145,7 +145,7 @@ export const moveFileTool = tool({
   }
 });
 
-export const readFileTool = tool({
+export const googleDrive_readFile = tool({
   description: 'Read content from a file in Google Drive (supports text files, PDFs, DOC, etc. but not spreadsheets)',
   parameters: z.object({
     fileId: z.string().describe('ID of the file to read'),

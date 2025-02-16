@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { SCOPES } from '../route';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
         console.log('Decoded state:', decodedState);
-        const { provider_id } = JSON.parse(decodedState);
+        const { provider_id, scopes } = JSON.parse(decodedState);
         
         console.log('Provider ID:', provider_id);
 
@@ -64,6 +63,20 @@ export async function GET(request: NextRequest) {
             throw new Error(tokens.error_description || tokens.error);
         }
 
+        const { error: providerUpsertError } = await supabase
+            .from('users_providers')
+            .upsert({
+                user_id: user.id,
+                provider_id: provider_id
+            }, {
+                onConflict: 'user_id,provider_id'
+            });
+
+        if (providerUpsertError) {
+            console.error('Provider upsert error:', providerUpsertError);
+            throw providerUpsertError;
+        }
+
         const { error: upsertError } = await supabase
             .from('users_oauth_tokens')
             .upsert({
@@ -72,7 +85,7 @@ export async function GET(request: NextRequest) {
                 access_token: tokens.access_token,
                 refresh_token: null,
                 expires_at: null,
-                scopes: SCOPES,
+                scopes: scopes,
                 raw_token_data: tokens,
             }, {
                 onConflict: 'user_id,provider_id'

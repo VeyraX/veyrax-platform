@@ -1,59 +1,168 @@
 'use client'
 
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowUpRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
-import { OAuthButton } from './ouauth-buttons'
+import { ScopeDialog } from './integration-settings'
+import { Provider } from '../api/types.integrations'
+import { disconnectProvider, deleteProviderIndex } from '../api/api.integrantions'
+import { createClient } from '@/lib/utils/supabase/client'
+
 
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const router = useRouter()
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleShowSettings = (provider: Provider) => {
+    setShowSettings(true);
+  };
+
+  const handleSettingsClose = () => {
+    setShowSettings(false);
+  };
+
+  const handleSettingsConfirm = async (scopes: string[], enableIndex: boolean) => {
+    setShowSettings(false);
+    try {
+      const response = await fetch(`/api/oauth/${props.provider_tag}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ scopes })
+      });
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error(`Failed to start OAuth flow for ${props.name}:`, error);
+    }
+  };
+
+  const handleApiKeyEnable = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('users_providers')
+        .upsert({
+          user_id: user?.id,
+          provider_id: props.id
+        }, {
+          onConflict: 'provider_id,user_id'
+        });
+
+      if (error) throw error;
+      props.onConnectionChange?.();
+    } catch (error) {
+      console.error(`Failed to enable ${props.name}:`, error);
+    }
+  };
 
   return (
-    <Card className="w-full border shadow-none rounded-lg h-[204px]">
-      <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex flex-col gap-3 flex-1">
-          <div className="flex justify-between items-center">
-            <img 
-              src={props.logo_url || '/default-logo.svg'} 
-              alt={props.name} 
-              width={36} 
-              height={36} 
-              className="rounded-lg object-contain w-[36px] h-[36px] p-[3px]"
-              onError={(e) => {
-                e.currentTarget.src = '/default-logo.svg'
-              }}
-            />
-            {props.connected && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Connected
-              </Badge>
+    <>
+      <Card className="w-full border shadow-none rounded-lg h-[204px]">
+        <CardContent className="p-4 h-full flex flex-col">
+          <div className="flex flex-col gap-3 flex-1">
+            <div className="flex justify-between items-center">
+              <img 
+                src={props.logo_url || '/default-logo.svg'} 
+                alt={props.name} 
+                width={36} 
+                height={36} 
+                className="rounded-lg object-contain w-[36px] h-[36px] p-[3px]"
+                onError={(e) => {
+                  e.currentTarget.src = '/default-logo.svg'
+                }}
+              />
+              {props.connected && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Connected
+                </Badge>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold truncate">{props.name}</h2>
+              <p className="text-muted-foreground mt-1 text-sm line-clamp-2">{props.description}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center mt-3 pt-3 justify-between">
+            {props.connected && props.has_index_capability && (
+              <Button 
+                variant="ghost" 
+                className={props.hasIndex ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
+                onClick={async () => {
+                  try {
+                    if (props.hasIndex) {
+                      await deleteProviderIndex(props.id);
+                    } else {
+                      console.log('Index creation will be implemented later');
+                    }
+                    props.onConnectionChange?.();
+                  } catch (error) {
+                    console.error(`Failed to ${props.hasIndex ? 'delete' : 'create'} index for ${props.name}:`, error);
+                  }
+                }}
+              >
+                {props.hasIndex ? 'Delete Index' : 'Index Data'}
+              </Button>
+            )}
+            
+            {props.connected ? (
+              <Button 
+                variant="ghost" 
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={async () => {
+                  try {
+                    await disconnectProvider(props.id);
+                    props.onConnectionChange?.();
+                  } catch (error) {
+                    console.error(`Failed to disconnect ${props.name}:`, error);
+                  }
+                }}
+              >
+                Disconnect
+              </Button>
+            ) : (
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  if (props.auth_method === 'api_key') {
+                    handleApiKeyEnable();
+                  } else {
+                    handleShowSettings(props as Provider);
+                  }
+                }}
+              >
+                {props.auth_method === 'api_key' ? 'Enable' : 'Connect'}
+              </Button>
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold truncate">{props.name}</h2>
-            <p className="text-muted-foreground mt-1 text-sm line-clamp-2">{props.description}</p>
-          </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex items-center mt-3 pt-3 justify-end">
-          <OAuthButton 
-            provider={{ 
-              id: props.id, 
-              name: props.name, 
-              description: props.description, 
-              logo_url: props.logo_url, 
-              provider_tag: props.provider_tag,
-              auth_method: props.auth_method as 'oauth' | 'api_key'
-            }} 
-            connected={props.connected}
-            onConnectionChange={props.onConnectionChange}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      {props.auth_method === 'oauth' && (
+        <ScopeDialog
+          provider={{
+            id: props.id,
+            name: props.name,
+            description: props.description,
+            logo_url: props.logo_url,
+            provider_tag: props.provider_tag,
+            auth_method: props.auth_method as 'oauth' | 'api_key',
+            scopes: props.scopes,
+            has_index_capability: props.has_index_capability
+          }}
+          open={showSettings}
+          onClose={handleSettingsClose}
+          onConfirm={handleSettingsConfirm}
+        />
+      )}
+    </>
   )
 }
