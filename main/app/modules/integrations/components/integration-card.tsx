@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useState } from 'react'
+import { FC, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowUpRight, Plus } from 'lucide-react'
@@ -9,12 +9,14 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, deleteProviderIndex, initiateOAuthFlow, enableApiKeyProvider, createProviderIndex } from '../api/api.integrantions'
+import { disconnectProvider, deleteProviderIndex, initiateOAuthFlow, enableApiKeyProvider, createProviderIndex, checkIndexStatus } from '../api/api.integrantions'
+import { ManageDialog } from './integration-manage'
 
 
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const router = useRouter()
   const [showSettings, setShowSettings] = useState(false);
+  const [showManage, setShowManage] = useState(false);
 
   const handleShowSettings = (provider: Provider) => {
     setShowSettings(true);
@@ -71,42 +73,13 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
             </div>
           </div>
 
-          <div className="flex items-center mt-3 pt-3 justify-between">
-            {props.connected && props.has_index_capability && (
-              <Button 
-                variant="ghost" 
-                className={props.hasIndex ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
-                onClick={async () => {
-                  try {
-                    if (props.hasIndex) {
-                      await deleteProviderIndex(props.id);
-                    } else {
-                      await createProviderIndex(props.id, props.provider_tag);
-                    }
-                    props.onConnectionChange?.();
-                  } catch (error) {
-                    console.error(`Failed to ${props.hasIndex ? 'delete' : 'create'} index for ${props.name}:`, error);
-                  }
-                }}
-              >
-                {props.hasIndex ? 'Delete Index' : 'Index Data'}
-              </Button>
-            )}
-            
+          <div className="flex items-center mt-3 pt-3 justify-end">
             {props.connected ? (
-              <Button 
-                variant="ghost" 
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={async () => {
-                  try {
-                    await disconnectProvider(props.id);
-                    props.onConnectionChange?.();
-                  } catch (error) {
-                    console.error(`Failed to disconnect ${props.name}:`, error);
-                  }
-                }}
+              <Button
+                variant="ghost"
+                onClick={() => setShowManage(true)}
               >
-                Disconnect
+                Manage
               </Button>
             ) : (
               <Button 
@@ -125,6 +98,15 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
           </div>
         </CardContent>
       </Card>
+
+      {props.connected && (
+        <ManageDialog
+          provider={props}
+          open={showManage}
+          onClose={() => setShowManage(false)}
+          onUpdate={props.onConnectionChange || (() => {})}
+        />
+      )}
 
       {props.auth_method === 'oauth' && (
         <ScopeDialog

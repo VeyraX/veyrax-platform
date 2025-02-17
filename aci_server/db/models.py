@@ -25,3 +25,13 @@ class UserOAuthToken(BaseModel):
 
     class Config:
         table_name = "users_oauth_tokens"
+
+class UserProviderIndex(BaseModel):
+    user_id: str
+    collection_name: str
+    status: str
+    last_sync_date: Optional[datetime]
+    created_at: datetime
+
+    class Config:
+        table_name = "users_provider_indexes"

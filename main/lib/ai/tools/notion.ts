@@ -14,7 +14,7 @@ export const notion_listDatabases = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/notion/databases?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/notion/databases?${params.toString()}`,
         {
           headers,
           credentials: 'include'
@@ -56,7 +56,7 @@ export const notion_listPages = tool({
       };
 
       const headers = await getAuthHeaders();
-      const response = await fetch(`http://localhost:8000/notion/databases/${databaseId}/pages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/databases/${databaseId}/pages`, {
         method: 'POST',
         headers: {
           ...headers,
@@ -97,7 +97,7 @@ export const notion_createPage = tool({
   execute: async function({ parentId, title, properties, content }) {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('http://localhost:8000/notion/pages', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/pages`, {
         method: 'POST',
         headers: {
           ...headers,
@@ -142,7 +142,7 @@ export const notion_searchPages = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/notion/search?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/notion/search?${params.toString()}`,
         {
           headers,
           credentials: 'include'
@@ -174,7 +174,7 @@ export const notion_readPage = tool({
     try {
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/notion/pages/${pageId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/notion/pages/${pageId}`,
         {
           headers,
           credentials: 'include'
@@ -192,6 +192,51 @@ export const notion_readPage = tool({
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch page'
+      };
+    }
+  }
+});
+
+export const notion_vectorSearch = tool({
+  description: 'Search through indexed Notion pages using semantic search',
+  parameters: z.object({
+    queryText: z.string().describe('The search query text'),
+    docId: z.string().optional().describe('Filter by specific document ID'),
+    title: z.string().optional().describe('Filter by page title'),
+    databaseId: z.string().optional().describe('Filter by database ID'),
+    url: z.string().optional().describe('Filter by page URL'),
+    lastEditedTime: z.string().optional().describe('Filter by last edited time')
+  }),
+  execute: async function({ queryText, ...filters }) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/search`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          query_text: queryText,
+          search_params: {
+            collection: 'notion',
+            query: filters
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to search documents');
+      
+      const data = await response.json();
+      return {
+        success: true,
+        results: data.results
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to search documents'
       };
     }
   }

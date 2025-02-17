@@ -1,4 +1,4 @@
-
+from db.supabase import get_supabase
 
 
 def split_document(text_content: str, max_length: int = 6000) -> list[tuple[str, int, int]]:
@@ -24,3 +24,14 @@ def split_document(text_content: str, max_length: int = 6000) -> list[tuple[str,
         parts.append((content_part, part + 1, total_parts))
     
     return parts
+
+
+def validate_user_index(user_id: str, collection_name: str) -> bool:
+    supabase = get_supabase()
+    result = supabase.table('users_provider_indexes') \
+        .select('*') \
+        .eq('user_id', user_id) \
+        .eq('collection_name', collection_name) \
+        .execute()
+    
+    return result.data is not None

@@ -14,19 +14,17 @@ router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
 
 async def get_calendar_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'google-calendar')
-    
     if TokenService.is_token_expired(token_data):
         token_data = await GoogleTokenRefresher.refresh(request, token_data)
-        
+    
     creds = Credentials(
         token=token_data['access_token'],
         refresh_token=token_data['refresh_token'],
         token_uri="https://oauth2.googleapis.com/token",
         client_id=os.getenv('GOOGLE_CLIENT_ID'),
         client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-        scopes=token_data['scopes'].split()
+        scopes=token_data['scopes'].split(',')
     )
-    
     client = CalendarClient(creds)
     return CalendarService(client)
 

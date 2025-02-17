@@ -79,7 +79,7 @@ class GoogleTokenRefresher:
                 token_uri="https://oauth2.googleapis.com/token",
                 client_id=os.getenv('GOOGLE_CLIENT_ID'),
                 client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-                scopes=token_data['scopes'].split()
+                scopes=token_data['scopes'].split(',')
             )
             
             creds.refresh(GoogleRequest())

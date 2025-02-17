@@ -72,3 +72,25 @@ export interface DriveFile {
     file?: DriveFile;
     error?: string;
   }
+  
+  export interface VectorSearchResult {
+    score: number;
+    payload: {
+      source: 'google_drive';
+      doc_id: string;
+      title: string;
+      modified_time: string;
+      web_view_link?: string;
+      parent_ids?: string[];
+      user_id: string;
+      content: string;
+      part?: number;
+      total_parts?: number;
+    };
+  }
+  
+  export interface VectorSearchResponse {
+    success: boolean;
+    results?: VectorSearchResult[];
+    error?: string;
+  }

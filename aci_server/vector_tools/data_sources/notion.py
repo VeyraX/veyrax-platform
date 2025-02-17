@@ -4,8 +4,9 @@ from vector_tools.utils import split_document
 from integrations.notion.service import NotionService
 
 class NotionSource(BaseDataSource):
-    def __init__(self, notion_service: NotionService):
+    def __init__(self, notion_service: NotionService, user_id: str):
         self.notion_service = notion_service
+        self.user_id = user_id
     
     def get_source_name(self) -> str:
         return "notion"
@@ -30,7 +31,6 @@ class NotionSource(BaseDataSource):
                             if not text_content:
                                 continue
                             
-                            # Объединяем заголовок и содержимое
                             combined_content = f"{page.title}\n\n{text_content}"
                                 
                             base_metadata = {
@@ -40,7 +40,7 @@ class NotionSource(BaseDataSource):
                                 'database_id': db.id,
                                 'url': page.url,
                                 'last_edited_time': page.last_edited_time,
-                                'user_id': 'f26eb696-52a7-428a-9ddb-b37c5506d9e1'
+                                'user_id': self.user_id
                             }
 
                             for content_part, part_num, total_parts in split_document(combined_content):

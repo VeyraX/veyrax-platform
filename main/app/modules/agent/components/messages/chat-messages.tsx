@@ -27,6 +27,8 @@ import { FileCard, FileCardSkeleton } from "../tools/google-drive/file-card.goog
 import { FileList, FileListSkeleton } from "../tools/google-drive/file-list.google-drive"
 import { NotionPageCard, NotionPageCardSkeleton } from "../tools/notion/card-view.notion"
 import { Page } from "../tools/notion/types.notion"
+import { GoogleDriveResponseSkeleton, GoogleDriveResponseView } from "../tools/google-drive/vector-search-view.google-drive"
+import { NotionResponseSkeleton, NotionResponseView } from "../tools/notion/vector-search-view.notion"
 
 
 interface ChatMessagesProps {
@@ -469,6 +471,48 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                               result?.success && (
                                                 <div className="space-y-4">
                                                   {result.file && <FileCard file={result.file} />}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'googleDrive_vectorSearch':
+                                      return (
+                                        <ToolWrapper toolName="google-drive">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <GoogleDriveResponseSkeleton />
+                                                <GoogleDriveResponseSkeleton />
+                                                <GoogleDriveResponseSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.success && (
+                                                <div className="flex flex-wrap gap-4">
+                                                  <GoogleDriveResponseView response={result} />
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'notion_vectorSearch':
+                                      return (
+                                        <ToolWrapper toolName="notion">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <NotionResponseSkeleton />
+                                                <NotionResponseSkeleton />
+                                                <NotionResponseSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.success && (
+                                                <div className="flex flex-wrap gap-4">
+                                                  <NotionResponseView response={result} />
                                                 </div>
                                               )
                                             )}

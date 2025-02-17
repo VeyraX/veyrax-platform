@@ -3,8 +3,9 @@ from vector_tools.data_sources.base_source import BaseDataSource
 from vector_tools.utils import split_document
 
 class GoogleDriveSource(BaseDataSource):
-    def __init__(self, drive_client):
+    def __init__(self, drive_client, user_id: str):
         self.drive_client = drive_client
+        self.user_id = user_id
     
     def get_source_name(self) -> str:
         return "google_drive"
@@ -40,7 +41,7 @@ class GoogleDriveSource(BaseDataSource):
                                 'modified_time': file['modifiedTime'],
                                 'web_view_link': file.get('webViewLink'),
                                 'parent_ids': file.get('parents', []),
-                                'user_id': 'f26eb696-52a7-428a-9ddb-b37c5506d9e1'
+                                'user_id': self.user_id
                             }
 
                             for content_part, part_num, total_parts in split_document(combined_content):

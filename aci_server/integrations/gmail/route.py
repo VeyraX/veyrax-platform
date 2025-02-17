@@ -15,16 +15,11 @@ router = APIRouter(prefix="/gmail", tags=["gmail"])
 
 async def get_gmail_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'gmail')
-    print('Initial token data:', token_data)
-    print('Token expired:', TokenService.is_token_expired(token_data))
     
     if TokenService.is_token_expired(token_data):
-        print('Attempting to refresh token...')
         try:
             token_data = await GoogleTokenRefresher.refresh(request, token_data)
-            print('Refreshed token data:', token_data)
         except Exception as e:
-            print('Token refresh error:', str(e))
             raise HTTPException(status_code=401, detail="Failed to refresh token")
         
     creds = Credentials(
@@ -33,10 +28,9 @@ async def get_gmail_service(request: FastAPIRequest):
         token_uri="https://oauth2.googleapis.com/token",
         client_id=os.getenv('GOOGLE_CLIENT_ID'),
         client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-        scopes=token_data['scopes'].split()
+        scopes=token_data['scopes'].split(',')
     )
     
-    print('Created credentials object')
     client = GmailClient(creds)
     return GmailService(client)
 

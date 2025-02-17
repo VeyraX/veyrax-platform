@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Provider } from "../api/types.integrations";
 import { useState } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle } from "lucide-react";
 
 interface ScopeDialogProps {
   provider: Provider;
@@ -51,31 +49,6 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
               </div>
             </div>
           ))}
-
-          {provider.has_index_capability && (
-            <div className="flex items-start space-x-2 mt-4 pt-4 border-t">
-              <Checkbox
-                id="enable-index"
-                checked={enableIndex}
-                onCheckedChange={(checked) => setEnableIndex(checked as boolean)}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="enable-index">Enable Content Indexing</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>We will vectorize your content and you will be able to ask questions about it</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <DialogFooter>

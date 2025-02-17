@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from typing import Dict, Any
+from vector_tools.utils import validate_user_index
 from integrations.google_drive.service import DriveService
 from integrations.google_drive.route import get_drive_service
 from vector_tools.vector_tools import VectorStoreActions
@@ -9,7 +10,6 @@ from integrations.notion.service import NotionService
 from integrations.notion.route import get_notion_service
 from integrations.common.auth import TokenService
 from integrations.common.auth import GoogleTokenRefresher
-
 from integrations.common.auth import get_user_from_request
 from vector_tools.schema import SearchParams, SearchRequest
 from .service import VectorSearchService
@@ -27,6 +27,13 @@ async def process_documents(
     try:
         body = await request.json()
         collection_name = body['collection_name']
+        user_id = await get_user_from_request(request)
+        
+        if not validate_user_index(user_id, collection_name):
+            raise HTTPException(
+                status_code=400,
+                detail=f"User {user_id} does not have an index for {collection_name}"
+            )   
         
         if collection_name == 'google-drive':
             token_data = await TokenService.get_user_token(request, 'google-drive')
@@ -40,11 +47,11 @@ async def process_documents(
                 'scopes': token_data['scopes']
             }
             
-            task = process_google_drive_documents_task.delay(service_credentials)
+            task = process_google_drive_documents_task.delay(service_credentials, user_id)
             
         elif collection_name == 'notion':
             auth_token = await TokenService.get_user_token(request, 'notion')
-            task = process_notion_documents_task.delay(auth_token)
+            task = process_notion_documents_task.delay(auth_token, user_id)
             
         else:
             raise HTTPException(
@@ -86,13 +93,16 @@ async def search_documents(
     try:
         user_id = await get_user_from_request(request)
         
-        search_request.search_params.query.user_id = user_id
+        # Add debug logging
+        print(f"Search request: {search_request.dict()}")
+        print(f"Collection: {search_request.search_params.collection}")
+        print(f"Query type: {type(search_request.search_params.query)}")
         
-        search_service = VectorSearchService()
+        search_service = VectorSearchService(user_id)
         
         results = search_service.search_documents(
             search_params=search_request.search_params,
-            query_text=search_request.query_text
+            query_text=search_request.query_text,
         )
         
         return {
@@ -101,12 +111,17 @@ async def search_documents(
         }
         
     except ValueError as e:
+        error_msg = f"Validation error: {str(e)}"
+        print(error_msg) 
         raise HTTPException(
             status_code=400,
-            detail=str(e)
+            detail=error_msg
         )
     except Exception as e:
+        error_msg = f"Error searching documents: {str(e)}"
+        print(error_msg)
         raise HTTPException(
             status_code=500,
-            detail=f"Error searching documents: {str(e)}"
+            detail=error_msg
         )
+

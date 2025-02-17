@@ -65,7 +65,7 @@ class VectorStoreActions:
         except Exception as e:
             raise Exception(f"Error running vector search query: {e}")
 
-    def run_search_query_with_text(self, text: str, limit: int = 10, filters: models.Filter = None):
+    def run_search_query_with_text(self, text: str, limit: int = 5, filters: models.Filter = None):
         try:
             query_vector = self.generate_vector(text)
             search_results = self.run_vector_search_query_with_vector(

@@ -24,7 +24,7 @@ export const googleDrive_listFiles = tool({
       if (createdBefore) params.append('created_before', createdBefore);
       if (pageToken) params.append('page_token', pageToken);
 
-      const response = await fetch(`http://localhost:8000/google_drive/files?${params.toString()}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/files?${params.toString()}`, {
         headers,
         credentials: 'include'
       });
@@ -60,7 +60,7 @@ export const googleDrive_listFolders = tool({
       if (parentId) params.append('parent_id', parentId);
       if (pageToken) params.append('page_token', pageToken);
 
-      const response = await fetch(`http://localhost:8000/google_drive/folders?${params.toString()}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/folders?${params.toString()}`, {
         headers,
         credentials: 'include'
       });
@@ -90,7 +90,7 @@ export const googleDrive_getFile = tool({
   execute: async function({ fileId }) {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch(`http://localhost:8000/google_drive/files/${fileId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/files/${fileId}`, {
         headers,
         credentials: 'include'
       });
@@ -119,7 +119,7 @@ export const googleDrive_moveFile = tool({
   execute: async function({ fileId, newParentId }) {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch(`http://localhost:8000/google_drive/files/${fileId}/move`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/files/${fileId}/move`, {
         method: 'PATCH',
         headers: {
           ...headers,
@@ -153,7 +153,7 @@ export const googleDrive_readFile = tool({
   execute: async function({ fileId }) {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch(`http://localhost:8000/google_drive/files/${fileId}/read`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/files/${fileId}/read`, {
         headers,
         credentials: 'include'
       });
@@ -171,6 +171,51 @@ export const googleDrive_readFile = tool({
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to read file'
+      };
+    }
+  }
+});
+
+export const googleDrive_vectorSearch = tool({
+  description: 'Search through indexed Google Drive documents using semantic search',
+  parameters: z.object({
+    queryText: z.string().describe('The search query text'),
+    docId: z.string().optional().describe('Filter by specific document ID'),
+    title: z.string().optional().describe('Filter by document title'),
+    modifiedTime: z.string().optional().describe('Filter by modification time'),
+    webViewLink: z.string().optional().describe('Filter by web view link'),
+    parentIds: z.array(z.string()).optional().describe('Filter by parent folder IDs'),
+  }),
+  execute: async function({ queryText, ...filters }) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/search`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          query_text: queryText,
+          search_params: {
+            collection: 'google-drive',
+            query: filters
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to search documents');
+      
+      const data = await response.json();
+      return {
+        success: true,
+        results: data.results
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to search documents'
       };
     }
   }
