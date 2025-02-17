@@ -1,6 +1,6 @@
 import { gmail_createDraft, gmail_listMessages, gmail_sendMessage } from './gmail';
 import { googleCalendar_listEvents, googleCalendar_createEvent } from './google-calendar';
-import { notion_listDatabases, notion_listPages, notion_createPage, notion_readPage, notion_vectorSearch } from './notion';
+import { notion_listDatabases, notion_listPages, notion_createPage, notion_readPage, notion_vectorSearch, notion_searchPages } from './notion';
 import { openweather_getWeather } from './openweather';
 import { perplexity_ask } from './perplexity';
 import { googleDrive_listFiles, googleDrive_listFolders, googleDrive_getFile, googleDrive_moveFile, googleDrive_readFile, googleDrive_vectorSearch } from './google-drive';
@@ -23,6 +23,7 @@ export const tools = {
   googleDrive_readFile,
   notion_readPage,
   notion_vectorSearch,
+  notion_searchPages,
   googleDrive_vectorSearch
 };
 

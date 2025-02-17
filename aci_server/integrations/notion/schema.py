@@ -50,3 +50,4 @@ class PageFilters(BaseModel):
     search_query: Optional[str] = None
     filter_by: Optional[Dict[str, Any]] = None
     sort_by: Optional[Dict[str, Any]] = None
+    max_results: Optional[int] = 100

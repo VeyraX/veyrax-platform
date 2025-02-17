@@ -320,7 +320,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                           </div>
                                         </ToolWrapper>
                                       );
-
+                                    case 'notion_searchPages':
                                     case 'notion_listPages':
                                       return (
                                         <ToolWrapper toolName="notion">
@@ -385,7 +385,6 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                       );
 
                                     case 'openweather_getWeather':
-                                    case 'getWeatherForecastTool':
                                       return (
                                         <ToolWrapper toolName="openweather">
                                           <div className="max-w-3xl w-full">

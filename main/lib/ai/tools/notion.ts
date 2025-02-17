@@ -5,12 +5,14 @@ import { getAuthHeaders } from '@/lib/actions/actions';
 export const notion_listDatabases = tool({
   description: 'List available Notion databases',
   parameters: z.object({
-    startCursor: z.string().optional().describe('Cursor for pagination')
+    startCursor: z.string().optional().describe('Cursor for pagination'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 100)')
   }),
-  execute: async function({ startCursor }) {
+  execute: async function({ startCursor, maxResults }) {
     try {
       const params = new URLSearchParams();
       if (startCursor) params.append('start_cursor', startCursor);
+      if (maxResults) params.append('max_results', maxResults.toString());
 
       const headers = await getAuthHeaders();
       const response = await fetch(
@@ -44,17 +46,11 @@ export const notion_listPages = tool({
     startCursor: z.string().optional().describe('Cursor for pagination'),
     searchQuery: z.string().optional().describe('Search query for filtering pages'),
     filterBy: z.record(z.any()).optional().describe('Filter criteria'),
-    sortBy: z.record(z.any()).optional().describe('Sort criteria')
+    sortBy: z.record(z.any()).optional().describe('Sort criteria'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 100)')
   }),
-  execute: async function({ databaseId, startCursor, searchQuery, filterBy, sortBy }) {
+  execute: async function({ databaseId, startCursor, searchQuery, filterBy, sortBy, maxResults }) {
     try {
-      const filters = {
-        database_id: databaseId,
-        search_query: searchQuery,
-        filter_by: filterBy,
-        sort_by: sortBy
-      };
-
       const headers = await getAuthHeaders();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/databases/${databaseId}/pages`, {
         method: 'POST',
@@ -65,7 +61,13 @@ export const notion_listPages = tool({
         credentials: 'include',
         body: JSON.stringify({
           start_cursor: startCursor,
-          filters
+          filters: {
+            database_id: databaseId,
+            search_query: searchQuery,
+            filter_by: filterBy,
+            sort_by: sortBy,
+            max_results: maxResults
+          }
         })
       });
 
@@ -132,13 +134,18 @@ export const notion_searchPages = tool({
   description: 'Search for pages across all Notion databases',
   parameters: z.object({
     query: z.string().describe('Search query string'),
-    startCursor: z.string().optional().describe('Cursor for pagination')
+    startCursor: z.string().optional().describe('Cursor for pagination'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 100)'),
+    sortDirection: z.enum(['ascending', 'descending']).optional()
+      .describe('Sort direction for results based on last edited time')
   }),
-  execute: async function({ query, startCursor }) {
+  execute: async function({ query, startCursor, maxResults, sortDirection }) {
     try {
       const params = new URLSearchParams();
       params.append('query', query);
       if (startCursor) params.append('start_cursor', startCursor);
+      if (maxResults) params.append('page_size', maxResults.toString());
+      if (sortDirection) params.append('sort_direction', sortDirection);
 
       const headers = await getAuthHeaders();
       const response = await fetch(

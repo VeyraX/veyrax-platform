@@ -46,4 +46,5 @@ class MessageFilters(BaseModel):
     recipient: Optional[str] = None
     subject_keywords: Optional[str] = None
     after_date: Optional[str] = None  
-    before_date: Optional[str] = None 
+    before_date: Optional[str] = None
+    max_results: Optional[int] = 20

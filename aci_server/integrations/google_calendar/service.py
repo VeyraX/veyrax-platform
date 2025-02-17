@@ -10,7 +10,7 @@ class CalendarService:
     def list_events(self, pageToken: Optional[str] = None, 
                    filters: Optional[EventFilters] = None) -> EventList:
         params = {
-            'maxResults': 20,
+            'maxResults': filters.max_results if filters and filters.max_results else 20,
             'singleEvents': True,
             'orderBy': 'startTime',
             'pageToken': pageToken

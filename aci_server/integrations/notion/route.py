@@ -20,18 +20,22 @@ async def get_notion_service(request: FastAPIRequest):
 @router.get("/databases", response_model=DatabaseList)
 async def list_databases(
     start_cursor: Optional[str] = None,
+    max_results: Optional[int] = None,
     service: NotionService = Depends(get_notion_service)
 ):
-    return service.list_databases(start_cursor)
+    return service.list_databases(start_cursor, max_results)
 
 @router.post("/databases/{database_id}/pages", response_model=PageList)
 async def list_pages(
     database_id: str,
-    start_cursor: Optional[str] = None,
-    filters: Optional[PageFilters] = None,
+    request_body: dict,
     service: NotionService = Depends(get_notion_service)
 ):
-    return service.list_pages(database_id, start_cursor, filters)
+    return service.list_pages(
+        database_id,
+        request_body.get("start_cursor"),
+        PageFilters(**request_body.get("filters", {}))
+    )
 
 @router.get("/pages/{page_id}", response_model=Page)
 async def get_page(
@@ -66,6 +70,14 @@ async def archive_page(
 async def search_pages(
     query: str,
     start_cursor: Optional[str] = None,
+    max_results: Optional[int] = 100,
+    sort_direction: Optional[str] = "descending",
     service: NotionService = Depends(get_notion_service)
 ):
-    return service.search_pages(query, start_cursor)
+    result = service.search_pages(
+        query=query,
+        start_cursor=start_cursor,
+        page_size=max_results,
+        sort_direction=sort_direction
+    )
+    return result

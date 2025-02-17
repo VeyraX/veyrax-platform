@@ -30,7 +30,8 @@ class DriveService:
                 query_parts = ["mimeType = 'application/vnd.google-apps.folder'"]
 
         q = ' and '.join(query_parts)
-        response = self.client.list_files(pageToken=page_token, q=q, pageSize=20)
+        page_size = filters.max_results if filters and filters.max_results else 20
+        response = self.client.list_files(pageToken=page_token, q=q, pageSize=page_size)
         
         files_data = response.get('files', [])
         

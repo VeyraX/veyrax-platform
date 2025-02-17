@@ -53,6 +53,7 @@ class EventFilters(BaseModel):
     attendees: Optional[str] = None 
     after_date: Optional[str] = None
     before_date: Optional[str] = None
+    max_results: Optional[int] = 20
 
 class Calendar(BaseModel):
     id: str

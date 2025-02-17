@@ -28,7 +28,8 @@ class GmailService:
                 query_parts.append(f'before:{before_date}')
         
         q = ' '.join(query_parts) if query_parts else None
-        response = self.client.list_messages(pageToken=pageToken, q=q, maxResults=20)
+        max_results = filters.max_results if filters and filters.max_results else 20
+        response = self.client.list_messages(pageToken=pageToken, q=q, maxResults=max_results)
         messages = []
         
         for msg in response.get('messages', []):

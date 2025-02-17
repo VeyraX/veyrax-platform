@@ -61,9 +61,10 @@ export const googleCalendar_listEvents = tool({
     attendees: z.string().optional().describe('Filter by attendee email'),
     afterDate: z.string().optional().describe('Filter events after date (YYYY-MM-DD)'),
     beforeDate: z.string().optional().describe('Filter events before date (YYYY-MM-DD)'),
-    calendarId: z.string().optional().describe('ID of the calendar to search (defaults to primary)')
+    calendarId: z.string().optional().describe('ID of the calendar to search (defaults to primary)'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 20)')
   }),
-  execute: async function({ keywords, attendees, afterDate, beforeDate, calendarId }) {
+  execute: async function({ keywords, attendees, afterDate, beforeDate, calendarId, maxResults }) {
     try {
       const params = new URLSearchParams();
       if (keywords) params.append('keywords', keywords);
@@ -71,6 +72,7 @@ export const googleCalendar_listEvents = tool({
       if (afterDate) params.append('after_date', afterDate);
       if (beforeDate) params.append('before_date', beforeDate);
       if (calendarId) params.append('calendarId', calendarId);
+      if (maxResults) params.append('max_results', maxResults.toString());
 
       const headers = await getAuthHeaders();
       const response = await fetch(

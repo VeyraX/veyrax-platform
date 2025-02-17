@@ -12,8 +12,9 @@ export const googleDrive_listFiles = tool({
     createdAfter: z.string().optional().describe('Filter files created after date (YYYY-MM-DD)'),
     createdBefore: z.string().optional().describe('Filter files created before date (YYYY-MM-DD)'),
     pageToken: z.string().optional().describe('Page token for pagination'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 20)'),
   }),
-  execute: async function({ nameContains, mimeType, parentId, createdAfter, createdBefore, pageToken }) {
+  execute: async function({ nameContains, mimeType, parentId, createdAfter, createdBefore, pageToken, maxResults }) {
     try {
       const headers = await getAuthHeaders();
       const params = new URLSearchParams();
@@ -23,6 +24,7 @@ export const googleDrive_listFiles = tool({
       if (createdAfter) params.append('created_after', createdAfter);
       if (createdBefore) params.append('created_before', createdBefore);
       if (pageToken) params.append('page_token', pageToken);
+      if (maxResults) params.append('max_results', maxResults.toString());
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_drive/files?${params.toString()}`, {
         headers,

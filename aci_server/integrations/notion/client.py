@@ -52,14 +52,25 @@ class NotionClient:
         ).json()
 
     def search_pages(self, query="", **kwargs):
-        return requests.post(
+        payload = {
+            "query": query,
+            "filter": kwargs.get("filter", {"property": "object", "value": "page"}),
+            "sort": kwargs.get("sort", {
+                "direction": "descending",
+                "timestamp": "last_edited_time"
+            }),
+            "page_size": kwargs.get("max_results", 100)
+        }
+        
+        if kwargs.get("start_cursor"):
+            payload["start_cursor"] = kwargs["start_cursor"]
+            
+        response = requests.post(
             f"{self.base_url}/search",
             headers=self.headers,
-            json={
-                "query": query,
-                **kwargs
-            }
+            json=payload
         ).json()
+        return response
 
     def query_database(self, database_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
         return requests.post(

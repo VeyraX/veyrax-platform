@@ -50,8 +50,9 @@ export const gmail_listMessages = tool({
     subjectKeywords: z.string().optional().describe('Keywords to search in subject'),
     afterDate: z.string().optional().describe('Filter messages after date (YYYY-MM-DD)'),
     beforeDate: z.string().optional().describe('Filter messages before date (YYYY-MM-DD)'),
+    maxResults: z.number().optional().describe('Maximum number of results to return (default: 20)'),
   }),
-  execute: async function({ bodyKeywords, recipient, subjectKeywords, afterDate, beforeDate }): Promise<{ 
+  execute: async function({ bodyKeywords, recipient, subjectKeywords, afterDate, beforeDate, maxResults }): Promise<{ 
     success: boolean,
     messages?: MessageProps[],
     error?: string 
@@ -63,6 +64,7 @@ export const gmail_listMessages = tool({
       if (subjectKeywords) params.append('subject_keywords', subjectKeywords);
       if (afterDate) params.append('after_date', afterDate);
       if (beforeDate) params.append('before_date', beforeDate);
+      if (maxResults) params.append('max_results', maxResults.toString());
 
       const url = `http://localhost:8000/gmail/messages?${params.toString()}`;
       

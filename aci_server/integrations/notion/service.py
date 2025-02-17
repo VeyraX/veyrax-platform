@@ -19,13 +19,13 @@ class NotionService:
             raise HTTPException(status_code=status, detail=message)
         return response
 
-    def list_databases(self, start_cursor: Optional[str] = None) -> DatabaseList:
+    def list_databases(self, start_cursor: Optional[str] = None, max_results: Optional[int] = None) -> DatabaseList:
         params = {
             "filter": {
                 "property": "object",
                 "value": "database"
             },
-            "page_size": 100
+            "page_size": min(max_results, 100) if max_results else 100
         }
         
         if start_cursor:
@@ -53,8 +53,13 @@ class NotionService:
                   start_cursor: Optional[str] = None,
                   filters: Optional[PageFilters] = None) -> PageList:
         
+        max_results = 100
+        print("Received filters:", filters)
+        if filters and filters.max_results:
+            max_results = min(filters.max_results, 100)
+        
         params = {
-            "page_size": 100
+            "page_size": max_results
         }
         
         if start_cursor:
@@ -148,13 +153,42 @@ class NotionService:
         response = self.client.archive_page(page_id)
         return Page(**response)
 
-    def search_pages(self, query: str, 
-                    start_cursor: Optional[str] = None) -> PageList:
+    def search_pages(self, 
+                    query: str, 
+                    start_cursor: Optional[str] = None,
+                    page_size: Optional[int] = 100,
+                    sort_direction: Optional[str] = "descending") -> PageList:
+        
         response = self.client.search_pages(
             query=query,
-            start_cursor=start_cursor
+            start_cursor=start_cursor,
+            page_size=min(page_size, 100),
+            sort={"direction": sort_direction, "timestamp": "last_edited_time"},
+            filter={"property": "object", "value": "page"}
         )
-        return PageList(
-            items=response.get('results', []),
+        
+        pages = []
+        for page in response.get('results', []):
+            title = ""
+            properties = page.get('properties', {})
+            title_prop = properties.get('Name') or properties.get('Title')
+            if title_prop and title_prop.get('title'):
+                title = " ".join(
+                    text.get('plain_text', '')
+                    for text in title_prop['title']
+                )
+            
+            pages.append({
+                "id": page.get('id'),
+                "title": title,
+                "created_time": page.get('created_time'),
+                "last_edited_time": page.get('last_edited_time'),
+                "archived": page.get('archived', False),
+                "url": page.get('url')
+            })
+        
+        result = PageList(
+            items=pages,
             next_cursor=response.get('next_cursor')
         )
+        return result

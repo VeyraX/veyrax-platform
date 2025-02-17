@@ -37,3 +37,4 @@ class FileFilters(BaseModel):
     created_after: Optional[str] = None
     created_before: Optional[str] = None
     folders_only: Optional[bool] = False
+    max_results: Optional[int] = 20
