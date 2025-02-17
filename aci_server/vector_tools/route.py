@@ -11,7 +11,7 @@ from integrations.common.auth import TokenService
 from integrations.common.auth import GoogleTokenRefresher
 
 from integrations.common.auth import get_user_from_request
-from vector_tools.schema import SearchParams, SearchRequest, CreateIndexRequest
+from vector_tools.schema import SearchParams, SearchRequest
 from .service import VectorSearchService
 from google.oauth2.credentials import Credentials
 import os

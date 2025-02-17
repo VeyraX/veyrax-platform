@@ -65,9 +65,10 @@ export const Footer = () => {
             </Button>
           </div>
           <div className="text-center">
-            <p className="text-sm text-white/80">
-              © 2025 VeyraX. All rights reserved.
-            </p>
+            <div className="flex justify-center gap-4 mb-2">
+              <a href="/terms" className="text-sm text-white/80 hover:text-white">Terms of Service</a>
+              <a href="/privacy" className="text-sm text-white/80 hover:text-white">Privacy Policy</a>
+            </div>
           </div>
         </div>
       </div>
