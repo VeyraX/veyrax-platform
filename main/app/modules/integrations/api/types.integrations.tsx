@@ -17,6 +17,7 @@ export interface IntegrationCardProps extends Provider {
   hasIndex: boolean;
   indexStatus: 'synced' | 'syncing' | 'failed' | null;
   lastSyncDate?: string;
+  processedEntities?: number;
   onConnectionChange?: () => void;
   onShowSettings?: (provider: Provider) => void;
 }
@@ -33,6 +34,7 @@ export interface ManageDialogProps {
     hasIndex: boolean;
     indexStatus: 'synced' | 'syncing' | 'failed' | null;
     lastSyncDate?: string;
+    processedEntities?: number;
   };
   open: boolean;
   onClose: () => void;

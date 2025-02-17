@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, deleteProviderIndex, createProviderIndex } from "../api/api.integrantions";
+import { disconnectProvider, createProviderIndex, deleteIndexData } from "../api/api.integrantions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
 
@@ -21,7 +21,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   const handleRemoveIndex = async () => {
     try {
-      await deleteProviderIndex(provider.id);
+      await deleteIndexData(provider.provider_tag);
       onUpdate();
     } catch (error) {
       console.error('Failed to remove index:', error);
@@ -78,9 +78,14 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                     </Button>
                   </div>
                   {provider.lastSyncDate && (
-                    <span className="text-sm text-muted-foreground">
-                      Last synced: {new Date(provider.lastSyncDate).toLocaleString()}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">
+                        Last synced: {new Date(provider.lastSyncDate).toLocaleString()}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Documents indexed: {provider.processedEntities || 0}
+                      </span>
+                    </div>
                   )}
                 </div>
               ) : (

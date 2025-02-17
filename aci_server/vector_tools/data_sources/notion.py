@@ -4,9 +4,10 @@ from vector_tools.utils import split_document
 from integrations.notion.service import NotionService
 
 class NotionSource(BaseDataSource):
-    def __init__(self, notion_service: NotionService, user_id: str):
+    def __init__(self, notion_service: NotionService, user_id: str, doc_limit: int = 500):
         self.notion_service = notion_service
         self.user_id = user_id
+        self.doc_limit = doc_limit
     
     def get_source_name(self) -> str:
         return "notion"
@@ -16,13 +17,22 @@ class NotionSource(BaseDataSource):
             databases = self.notion_service.list_databases().items
             print(f"Found {len(databases)} databases")
             
+            processed_docs = 0
+            
             for db in databases:
+                if processed_docs >= self.doc_limit:
+                    print(f"Reached document limit of {self.doc_limit}")
+                    break
+                    
                 try:
                     print(f"Processing database: {db.id}")
                     pages = self.notion_service.list_pages(db.id).items
                     print(f"Found {len(pages)} pages in database {db.id}")
                     
                     for page in pages:
+                        if processed_docs >= self.doc_limit:
+                            break
+                            
                         try:
                             print(f"Processing page: {page.id}")
                             blocks = self.notion_service.client.get_block_children(page.id)
@@ -31,6 +41,7 @@ class NotionSource(BaseDataSource):
                             if not text_content:
                                 continue
                             
+                            processed_docs += 1
                             combined_content = f"{page.title}\n\n{text_content}"
                                 
                             base_metadata = {

@@ -3,9 +3,10 @@ from vector_tools.data_sources.base_source import BaseDataSource
 from vector_tools.utils import split_document
 
 class GoogleDriveSource(BaseDataSource):
-    def __init__(self, drive_client, user_id: str):
+    def __init__(self, drive_client, user_id: str, doc_limit: int = 500):
         self.drive_client = drive_client
         self.user_id = user_id
+        self.doc_limit = doc_limit
     
     def get_source_name(self) -> str:
         return "google_drive"
@@ -14,13 +15,19 @@ class GoogleDriveSource(BaseDataSource):
         try:
             params = {
                 'q': "mimeType='application/vnd.google-apps.document'",
+                'orderBy': 'modifiedTime desc',
+                'pageSize': self.doc_limit,
                 'pageToken': None
             }
             
-            while True:
+            document_count = 0
+            while True and document_count < self.doc_limit:
                 response = self.drive_client.list_files(**params)
                 
                 for file in response.get('files', []):
+                    if document_count >= self.doc_limit:
+                        break
+                        
                     try:
                         content = self.drive_client.download_file(
                             file['id'],
@@ -56,13 +63,15 @@ class GoogleDriveSource(BaseDataSource):
                                     'content': content_part,
                                     'metadata': part_metadata
                                 }
+                        document_count += 1
                     except Exception as e:
                         print(f"Error processing file {file['name']}: {e}")
                         continue
                 
-                params['pageToken'] = response.get('nextPageToken')
-                if not params['pageToken']:
+                if document_count >= self.doc_limit or not response.get('nextPageToken'):
                     break
+                
+                params['pageToken'] = response.get('nextPageToken')
                     
         except Exception as e:
             print(f"Error fetching documents: {str(e)}")

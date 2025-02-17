@@ -18,7 +18,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
 
   const { data: userIndexes } = await supabase
     .from('users_provider_indexes')
-    .select('provider_id, status, collection_name, last_sync_date')
+    .select('provider_id, status, collection_name, last_sync_date, processed_entities')
     .eq('user_id', user?.id)
 
   const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
@@ -28,6 +28,9 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   const lastSyncDateMap = new Map(
     userIndexes?.map(index => [index.provider_id, index.last_sync_date])
   )
+  const processedEntitiesMap = new Map(
+    userIndexes?.map(index => [index.provider_id, index.processed_entities])
+  )
 
   console.log(userIndexes)
 
@@ -36,7 +39,8 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     connected: connectedProviderIds.has(provider.id),
     hasIndex: indexStatusMap.has(provider.id),
     indexStatus: indexStatusMap.get(provider.id),
-    lastSyncDate: lastSyncDateMap.get(provider.id)
+    lastSyncDate: lastSyncDateMap.get(provider.id),
+    processedEntities: processedEntitiesMap.get(provider.id)
   })) || []
 }
 
@@ -70,19 +74,6 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
-    })
-}
-
-export const deleteProviderIndex = async (providerId: string): Promise<void> => {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  await supabase
-    .from('users_provider_indexes')
-    .delete()
-    .match({
-      user_id: user?.id,
-      provider_id: providerId
     })
 }
 
@@ -178,3 +169,19 @@ export const checkIndexStatus = async (providerId: string): Promise<string | nul
   
   return data?.status || null;
 };
+
+export const deleteIndexData = async (providerTag: string): Promise<void> => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/delete-index-data`, {
+    method: 'DELETE',
+    headers,
+    body: JSON.stringify({ 
+      collection_name: providerTag 
+    }),
+    credentials: 'include'
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete index data');
+  }
+}

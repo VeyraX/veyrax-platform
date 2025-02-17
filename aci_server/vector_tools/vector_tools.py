@@ -5,9 +5,9 @@ from qdrant_client.models import Distance, VectorParams
 from qdrant_client.models import PointStruct
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from openai import OpenAI
-
 from dotenv import load_dotenv
 from vector_tools.data_sources.base_source import BaseDataSource
+from db.supabase import get_supabase
 
 load_dotenv()
 
@@ -78,12 +78,41 @@ class VectorStoreActions:
             raise Exception(f"Error running similarity search query: {e}")
 
     def process_data_source(self, data_source: BaseDataSource):
+        processed_count = 0
         for document in data_source.get_documents():
             try:
                 self.convert_text_to_vector_and_add_to_collection(
                     text=document['content'],
                     payload=document['metadata']
                 )
+                processed_count += 1
             except Exception as e:
                 print(f"Error vectorizing document: {e}")
                 continue
+        return processed_count
+
+    def delete_user_vectors(self, user_id: str) -> int:
+        try:
+            supabase = get_supabase()
+            
+            result = supabase.table('users_provider_indexes')\
+                .delete()\
+                .eq('user_id', user_id)\
+                .eq('collection_name', self.collection_name)\
+                .execute()
+
+            qdrant_result = self.client.delete(
+                collection_name=self.collection_name,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="user_id",
+                            match=MatchValue(value=user_id)
+                        )
+                    ]
+                )
+            )
+            
+            return 1 if qdrant_result.status == 'completed' else 0
+        except Exception as e:
+            raise Exception(f"Error deleting vectors: {str(e)}")

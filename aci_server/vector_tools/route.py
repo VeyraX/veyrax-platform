@@ -18,6 +18,7 @@ import os
 from integrations.google_drive.client import DriveClient
 from fastapi import Request
 
+
 router = APIRouter(prefix="/vector-tools", tags=["vector-tools"])
 
 @router.post("/index-data")
@@ -93,11 +94,6 @@ async def search_documents(
     try:
         user_id = await get_user_from_request(request)
         
-        # Add debug logging
-        print(f"Search request: {search_request.dict()}")
-        print(f"Collection: {search_request.search_params.collection}")
-        print(f"Query type: {type(search_request.search_params.query)}")
-        
         search_service = VectorSearchService(user_id)
         
         results = search_service.search_documents(
@@ -123,5 +119,44 @@ async def search_documents(
         raise HTTPException(
             status_code=500,
             detail=error_msg
+        )
+
+@router.delete("/delete-index-data")
+async def delete_index_data(
+    request: Request,
+) -> Dict[str, Any]:
+    try:
+        body = await request.json()
+        collection_name = body.get('collection_name')
+        
+        if not collection_name:
+            raise HTTPException(
+                status_code=400,
+                detail="collection_name is required"
+            )
+            
+        user_id = await get_user_from_request(request)
+        
+        if not validate_user_index(user_id, collection_name):
+            raise HTTPException(
+                status_code=404,
+                detail=f"No index found for user {user_id} and collection {collection_name}"
+            )
+        
+        vector_store = VectorStoreActions(collection_name)
+        deleted_count = vector_store.delete_user_vectors(user_id)
+        
+        return {
+            "status": "success",
+            "message": f"Successfully deleted {deleted_count} vectors for user {user_id} from collection {collection_name}"
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error in delete_index_data: {str(e)}")  # Add logging
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error deleting vectors: {str(e)}"
         )
 

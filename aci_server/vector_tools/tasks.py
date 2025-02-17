@@ -12,7 +12,7 @@ from fastapi import HTTPException
 from datetime import datetime
 
 
-def update_index_status(user_id: str, collection_name: str, status: str) -> None:
+def update_index_status(user_id: str, collection_name: str, status: str, processed_entities: int = None) -> None:
     try:
         supabase = get_supabase()
         
@@ -26,9 +26,17 @@ def update_index_status(user_id: str, collection_name: str, status: str) -> None
             raise HTTPException(status_code=404, detail="Index record not found")
             
         current_time = datetime.now().isoformat()
+        
+        update_data = {
+            'status': status, 
+            'last_sync_date': current_time
+        }
+        
+        if processed_entities is not None:
+            update_data['processed_entities'] = processed_entities
             
         supabase.table('users_provider_indexes') \
-            .update({'status': status, 'last_sync_date': current_time}) \
+            .update(update_data) \
             .eq('user_id', user_id) \
             .eq('collection_name', collection_name) \
             .execute()
@@ -68,13 +76,13 @@ def process_google_drive_documents_task(drive_service_credentials: dict, user_id
         except Exception:
             vector_store.create_collection("google-drive")
         
-        vector_store.process_data_source(google_drive_source)
+        processed_count = vector_store.process_data_source(google_drive_source)
         
-        update_index_status(user_id, "google-drive", "synced")
+        update_index_status(user_id, "google-drive", "synced", processed_count)
         
         return {
             "status": "success",
-            "message": "Google Drive documents have been processed and vectorized"
+            "message": f"Google Drive documents have been processed and vectorized. Processed {processed_count} documents."
         }
     except Exception as e:
         update_index_status(user_id, "google-drive", "failed")
@@ -103,13 +111,13 @@ def process_notion_documents_task(auth_header: dict, user_id: str):
         except Exception:
             vector_store.create_collection("notion")
         
-        vector_store.process_data_source(notion_source)
+        processed_count = vector_store.process_data_source(notion_source)
         
-        update_index_status(user_id, "notion", "synced")
+        update_index_status(user_id, "notion", "synced", processed_count)
         
         return {
             "status": "success",
-            "message": "Notion documents have been processed and vectorized"
+            "message": f"Notion documents have been processed and vectorized. Processed {processed_count} documents."
         }
     except Exception as e:
         update_index_status(user_id, "notion", "failed")
