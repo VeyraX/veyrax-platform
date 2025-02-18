@@ -6,6 +6,7 @@ import {
     File,
     Calendar,
     NotebookText,
+    Mail,
     LucideIcon 
   } from "lucide-react"
   
@@ -42,6 +43,10 @@ import {
     'calendar/event': {
       icon: Calendar,
       color: 'text-blue-600'
+    },
+    'gmail/message': {
+      icon: Mail,
+      color: 'text-muted-foreground'
     }
   }
   

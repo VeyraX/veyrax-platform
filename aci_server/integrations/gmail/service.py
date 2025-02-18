@@ -10,6 +10,9 @@ class GmailService:
     def __init__(self, client: GmailClient):
         self.client = client
 
+    def _generate_html_link(self, message_id: str) -> str:
+        return f"https://mail.google.com/mail/u/0/#inbox/{message_id}"
+
     def get_messages(self, pageToken: Optional[str] = None, filters: Optional[MessageFilters] = None) -> MessageList:
         query_parts = []
         
@@ -42,7 +45,8 @@ class GmailService:
                 'body': self._get_body(message),
                 'recipient': self._get_header(message, 'To') or None,
                 'sender': self._get_header(message, 'From') or None,
-                'date': parser.parse(self._get_header(message, 'Date'))
+                'date': parser.parse(self._get_header(message, 'Date')),
+                'html_link': self._generate_html_link(message['id'])
             })
             
         return MessageList(
@@ -63,7 +67,7 @@ class GmailService:
             labels=message['labelIds']
         )
 
-    def send_message(self, message_id: str) -> str:
+    def send_message(self, message_id: str) -> Dict:
         draft = self.client.get_draft(message_id)
         message = draft['message']
         
@@ -75,12 +79,29 @@ class GmailService:
             'raw': base64.urlsafe_b64encode(new_message.as_bytes()).decode('utf-8')
         }
         
-        response = self.client.service.users().messages().send(
+        sent_message = self.client.service.users().messages().send(
             userId='me',
             body=raw_message
         ).execute()
         
-        return response['id']
+        message = self.client.service.users().messages().get(
+            userId='me',
+            id=sent_message['id'],
+            format='full'
+        ).execute()
+
+        return {
+            'id': message['id'],
+            'thread_id': message['threadId'],
+            'subject': self._get_header(message, 'Subject'),
+            'snippet': message['snippet'],
+            'body': self._get_body(message),
+            'sender': self._get_header(message, 'From'),
+            'recipient': self._get_header(message, 'To'),
+            'date': self._get_header(message, 'Date'),
+            'html_link': self._generate_html_link(message['id']),
+            'labels': message.get('labelIds', [])
+        }
 
     def delete_message(self, message_id: str) -> None:
         self.client.delete_message(message_id)

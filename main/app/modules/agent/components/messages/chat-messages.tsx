@@ -9,10 +9,10 @@ import { useChatScroll } from "@/hooks/use-chat-scroll"
 import { EditMessage } from "./chat-messages-edit-message"
 import { type Message } from 'ai/react'
 import { DraftMessageCard } from "../tools/gmail/draft-message-card.gmail"
-import { MessageCard } from "../tools/gmail/message-card.gmail"
+import { MessageList } from "../tools/gmail/message-list.gmail"
 import { DraftMessageCardSkeleton } from "../tools/gmail/draft-message-card.gmail"
-import { MessageCardSkeleton } from "../tools/gmail/message-card.gmail"
-import { SendingMessageCard } from "../tools/gmail/sending-message-card.gmail"
+import { MessageListSkeleton } from "../tools/gmail/message-list.gmail"
+import { MessageCard, MessageCardSkeleton } from "../tools/gmail/message-card.gmail"
 import { EventCard, EventCardSkeleton } from "../tools/google-calendar/event-card.google-calendar"
 import { Event } from "../tools/google-calendar/types.google-calendar"
 import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
@@ -219,13 +219,13 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                           <div className="max-w-3xl w-full space-y-4">
                                             {['partial-call', 'call'].includes(state) ? (
                                               <>
-                                                <MessageCardSkeleton />
-                                                <MessageCardSkeleton />
-                                                <MessageCardSkeleton />
+                                                <MessageListSkeleton />
+                                                <MessageListSkeleton />
+                                                <MessageListSkeleton />
                                               </>
                                             ) : (
                                               result?.messages?.map((message: any, idx: number) => (
-                                                <MessageCard
+                                                <MessageList
                                                   key={idx}
                                                   {...message}
                                                 />
@@ -239,10 +239,15 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                       return (
                                         <ToolWrapper toolName="gmail">
                                           <div className="max-w-3xl w-full">
-                                            <SendingMessageCard
-                                              state={['partial-call', 'call'].includes(state) ? 'sending' : 
-                                                     result?.success ? 'success' : 'error'}
-                                            />
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <MessageCardSkeleton />
+                                            ) : (
+                                              result?.success && result.message && (
+                                                <MessageCard
+                                                  message={result.message}
+                                                />
+                                              )
+                                            )}
                                           </div>
                                         </ToolWrapper>
                                       );

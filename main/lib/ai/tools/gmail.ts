@@ -98,7 +98,7 @@ export const gmail_sendMessage = tool({
   }),
   execute: async function({ messageId }: { messageId: string }): Promise<{ 
     success: boolean,
-    sentMessageId?: string,
+    message?: MessageProps,
     error?: string 
   }> {
     try {
@@ -116,12 +116,14 @@ export const gmail_sendMessage = tool({
         throw new Error(errorData.detail || 'Failed to send message');
       }
       
-      const data = await response.json();
+      const message = await response.json();
+      
       return {
         success: true,
-        sentMessageId: data.message_id
+        message
       };
     } catch (error) {
+      console.error('Error sending message:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to send message'

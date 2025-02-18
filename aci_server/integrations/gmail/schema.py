@@ -11,12 +11,14 @@ class MessageBase(BaseModel):
     recipient: Optional[str]
     sender: Optional[str]
     date: datetime
+    html_link: str
 
 class Message(MessageBase):
     body: str
     sender: Optional[str]
     recipient: Optional[str]
     labels: List[str]
+    html_link: str
 
 class DraftBase(BaseModel):
     draft_id: str

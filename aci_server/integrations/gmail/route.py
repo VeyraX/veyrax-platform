@@ -62,8 +62,8 @@ async def send_message(
     message_id: str,
     service: GmailService = Depends(get_gmail_service)
 ):
-    message_id = service.send_message(message_id)
-    return {"message_id": message_id}
+    sent_message = service.send_message(message_id)
+    return sent_message
 
 @router.get("/drafts", response_model=DraftList)
 async def get_drafts(

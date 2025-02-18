@@ -13,11 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function DraftMessageCard({ to, subject, body, onSendMessage }: DraftMessageProps & { 
   onSendMessage?: (message: string) => void 
 }) {
-  const [draftData, setDraftData] = useState({ to, subject, body })
-  const [showCc, setShowCc] = useState(false)
-  const [showBcc, setShowBcc] = useState(false)
-
-
   const handleSend = () => {
     if (onSendMessage) {
       onSendMessage("Perfect, send it!");
@@ -30,54 +25,19 @@ export function DraftMessageCard({ to, subject, body, onSendMessage }: DraftMess
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">New Message</h2>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
           </div>
           <div className="space-y-2">
-            <Input
-              placeholder="To"
-              value={draftData.to}
-              onChange={(e) => setDraftData({ ...draftData, to: e.target.value })}
-              className="border-0 border-b rounded-none px-0 focus-visible:ring-0"
-            />
-            {showCc && <Input placeholder="Cc" className="border-0 border-b rounded-none px-0 focus-visible:ring-0" />}
-            {showBcc && (
-              <Input placeholder="Bcc" className="border-0 border-b rounded-none px-0 focus-visible:ring-0" />
-            )}
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <button onClick={() => setShowCc(!showCc)}>Cc</button>
-              <button onClick={() => setShowBcc(!showBcc)}>Bcc</button>
-            </div>
+            <div className="border-b px-0 py-2">{to}</div>
           </div>
-          <Input
-            placeholder="Subject"
-            value={draftData.subject}
-            onChange={(e) => setDraftData({ ...draftData, subject: e.target.value })}
-            className="border-0 border-b rounded-none px-0 focus-visible:ring-0"
-          />
+          <div className="border-b px-0 py-2">{subject}</div>
           <Separator />
-          <Textarea
-            placeholder="Compose email"
-            value={draftData.body}
-            onChange={(e) => setDraftData({ ...draftData, body: e.target.value })}
-            rows={10}
-            className="border-0 resize-none focus-visible:ring-0"
-          />
+          <div className="min-h-[200px] py-2">{body}</div>
         </div>
       </CardContent>
-      <div className="px-4 py-3 bg-muted flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button onClick={handleSend}>
-            Send
-            <Send className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Paperclip className="h-4 w-4" />
-          </Button>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => console.log("Discard draft")}>
-          Discard
+      <div className="px-4 py-3 bg-muted flex items-center">
+        <Button onClick={handleSend}>
+          Send
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </Card>

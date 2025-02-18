@@ -1,13 +1,15 @@
-
 export interface MessageProps {
+    id: string
+    thread_id: string
     subject: string
     snippet: string
     body: string
     sender: string
     recipient: string
-    labels: string[]
     date: string
-  }
+    html_link: string
+    labels?: string[]
+}
 
 
 export interface DraftMessageProps {
