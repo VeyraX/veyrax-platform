@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
 import { disconnectProvider, createProviderIndex, deleteIndexData } from "../api/api.integrantions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, RefreshCw } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const handleDisconnect = async () => {
@@ -30,7 +31,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <img
@@ -42,82 +43,78 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-4">
-          {/* Connection Status */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium">Connection Status</h3>
-            <Badge variant="secondary" className="w-fit bg-green-100 text-green-800">
-              Connected
-            </Badge>
-          </div>
-
-          {/* Index Status */}
+        <div className="flex flex-col gap-6 py-4">
           {provider.has_index_capability && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-medium">Index Status</h3>
-              {provider.hasIndex ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <Badge
-                      variant="secondary"
-                      className={`
-                        ${provider.indexStatus === 'syncing' ? 'bg-blue-100 text-blue-800' : ''}
-                        ${provider.indexStatus === 'synced' ? 'bg-green-100 text-green-800' : ''}
-                        ${provider.indexStatus === 'failed' ? 'bg-red-100 text-red-800' : ''}
-                      `}
-                    >
-                      {provider.indexStatus}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={handleRemoveIndex}
-                    >
-                      Remove Index
-                    </Button>
-                  </div>
-                  {provider.lastSyncDate && (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm text-muted-foreground">
-                        Last synced: {new Date(provider.lastSyncDate).toLocaleString()}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        Documents indexed: {provider.processedEntities || 0}
-                      </span>
-                    </div>
+            <>
+              <div className="grid grid-cols-2 gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium leading-none">Index</h3>
+                  {provider.hasIndex && (provider.indexStatus === 'synced' || provider.indexStatus === 'failed') && (
+                    <RefreshCw 
+                      className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={async () => {
+                        try {
+                          await deleteIndexData(provider.provider_tag);
+                          await createProviderIndex(provider.id, provider.provider_tag);
+                          onUpdate();
+                        } catch (error) {
+                          console.error('Failed to resync index:', error);
+                        }
+                      }}
+                    />
                   )}
                 </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">No index created</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await createProviderIndex(provider.id, provider.provider_tag);
-                        onUpdate();
-                      } catch (error) {
-                        console.error('Failed to create index:', error);
+                {provider.hasIndex ? (
+                  <div className="flex flex-col gap-4 items-end">
+                    <Badge 
+                      variant="secondary"
+                      className={
+                        provider.indexStatus === 'synced' ? 'bg-green-100 text-green-800' :
+                        provider.indexStatus === 'syncing' ? 'bg-blue-100 text-blue-800' :
+                        provider.indexStatus === 'failed' ? 'bg-red-100 text-red-800' :
+                        provider.indexStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
                       }
-                    }}
-                  >
-                    Create Index
-                  </Button>
-                </div>
-              )}
-            </div>
+                    >
+                      {provider.indexStatus ? provider.indexStatus.charAt(0).toUpperCase() + provider.indexStatus.slice(1) : 'Unknown'}
+                    </Badge>
+                    {provider.indexStatus !== 'syncing' && (
+                      <Badge variant="secondary">
+                        {provider.processedEntities || 0} documents
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await createProviderIndex(provider.id, provider.provider_tag);
+                          onUpdate();
+                        } catch (error) {
+                          console.error('Failed to create index:', error);
+                        }
+                      }}
+                    >
+                      Create Index
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <Separator />
+            </>
           )}
 
           {/* OAuth Scopes */}
           {provider.auth_method === 'oauth' && provider.scopes && (
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-medium">Authorized Scopes</h3>
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
@@ -126,7 +123,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-end">
                 {provider.scopes.map((scope) => (
                   <Badge key={scope.scope} variant="secondary">
                     {scope.scope_name}
@@ -138,16 +135,23 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </div>
 
         <DialogFooter className="flex justify-between">
-          <Button
-            variant="ghost"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={handleDisconnect}
-          >
-            Disconnect
-          </Button>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <div className="flex gap-2">
+          {provider.hasIndex && provider.indexStatus !== 'syncing' && (
+              <Button
+                variant="ghost"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={handleRemoveIndex}
+              >
+                Remove Index
+              </Button>
+            )}
+            <Button
+              variant="destructive"
+              onClick={handleDisconnect}
+            >
+              Disconnect
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

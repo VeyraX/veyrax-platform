@@ -26,33 +26,46 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Configure Integration with {provider.name}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <img
+              src={provider.logo_url || '/default-logo.svg'}
+              alt={provider.name}
+              className="w-6 h-6 rounded"
+            />
+            Integration with {provider.name}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="flex flex-col gap-4 py-4">
-          {provider.scopes?.map((scope) => (
-            <div key={scope.scope} className="flex items-start space-x-2">
-              <Checkbox
-                id={scope.scope}
-                checked={selectedScopes.includes(scope.scope)}
-                onCheckedChange={(checked) => {
-                  setSelectedScopes(checked
-                    ? [...selectedScopes, scope.scope]
-                    : selectedScopes.filter(s => s !== scope.scope)
-                  );
-                }}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label htmlFor={scope.scope}>{scope.scope_name}</Label>
-              </div>
+        <div className="flex flex-col gap-6 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center">
+              <h3 className="text-sm font-medium">Choose Permissions</h3>
             </div>
-          ))}
+            <div className="flex flex-col gap-4 justify-end">
+              {provider.scopes?.map((scope) => (
+                <div key={scope.scope} className="flex items-center gap-2">
+                  <Checkbox
+                    id={scope.scope}
+                    checked={selectedScopes.includes(scope.scope)}
+                    onCheckedChange={(checked) => {
+                      setSelectedScopes(checked
+                        ? [...selectedScopes, scope.scope]
+                        : selectedScopes.filter(s => s !== scope.scope)
+                      );
+                    }}
+                  />
+                  <Label htmlFor={scope.scope} className="text-left">
+                    {scope.scope_name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleConfirm} disabled={selectedScopes.length === 0}>
             Continue
           </Button>

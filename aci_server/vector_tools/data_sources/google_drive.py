@@ -3,7 +3,7 @@ from vector_tools.data_sources.base_source import BaseDataSource
 from vector_tools.utils import split_document
 
 class GoogleDriveSource(BaseDataSource):
-    def __init__(self, drive_client, user_id: str, doc_limit: int = 500):
+    def __init__(self, drive_client, user_id: str, doc_limit: int = 10):
         self.drive_client = drive_client
         self.user_id = user_id
         self.doc_limit = doc_limit

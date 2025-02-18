@@ -9,7 +9,7 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, deleteProviderIndex, initiateOAuthFlow, enableApiKeyProvider, createProviderIndex, checkIndexStatus } from '../api/api.integrantions'
+import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../api/api.integrantions'
 import { ManageDialog } from './integration-manage'
 
 
@@ -75,15 +75,28 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
 
           <div className="flex items-center mt-3 pt-3 justify-end">
             {props.connected ? (
-              <Button
-                variant="ghost"
-                onClick={() => setShowManage(true)}
-              >
-                Manage
-              </Button>
+              props.auth_method === 'api_key' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => disconnectProvider(props.id).then(() => props.onConnectionChange?.())}
+                >
+                  Disable
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowManage(true)}
+                >
+                  Manage
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              )
             ) : (
               <Button 
                 variant="outline"
+                size="sm"
                 onClick={() => {
                   if (props.auth_method === 'api_key') {
                     handleApiKeyEnable();

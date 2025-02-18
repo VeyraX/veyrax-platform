@@ -21,6 +21,8 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     .select('provider_id, status, collection_name, last_sync_date, processed_entities')
     .eq('user_id', user?.id)
 
+  console.log('User indexes from DB:', userIndexes);
+
   const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
   const indexStatusMap = new Map(
     userIndexes?.map(index => [index.provider_id, index.status])
@@ -87,7 +89,7 @@ export const createProviderIndex = async (providerId: string, providerTag: strin
       user_id: user?.id,
       provider_id: providerId,
       collection_name: providerTag,
-      status: 'syncing'
+      status: 'pending'
     }, {
       onConflict: 'user_id,provider_id'
     })
