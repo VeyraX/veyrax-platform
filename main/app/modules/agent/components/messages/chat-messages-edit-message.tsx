@@ -12,15 +12,15 @@ export function EditMessage({ content, onSave, onCancel }: EditMessageProps) {
   const [editContent, setEditContent] = React.useState(content)
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 min-w-[600px]">
       <Textarea
         value={editContent}
         onChange={(e) => setEditContent(e.target.value)}
-        className="w-full p-2 border rounded-md"
+        className="w-full p-2 border rounded-md min-h-[100px]"
         rows={3}
         autoFocus
       />
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-end">
         <Button
           size="sm"
           variant="link"

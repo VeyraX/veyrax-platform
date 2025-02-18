@@ -66,7 +66,7 @@ export function MessageFormatter({ content }: { content: string }) {
           )
         },
         p({ node, children }) {
-          return <p className="mb-4 whitespace-pre-wrap">{children}</p>
+          return <p className="whitespace-pre-wrap">{children}</p>
         }
       }}
     >

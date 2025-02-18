@@ -9,7 +9,6 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
-import { DocsInput } from "./docs-input";
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -187,17 +186,6 @@ export function AIInputWithSearch({
                   onChange={handleFileChange}
                 />
               </Button>
-              {type === 'default' ? (
-                <DocsInput 
-                  onAddLink={onAddDocLink}
-                  onRemoveLink={onRemoveDocLink}
-                />
-              ) : (
-                <DocsInput 
-                  onAddLink={onAddDocLink}
-                  onRemoveLink={onRemoveDocLink}
-                />
-              )}
             </div>
             <div className="absolute right-3 bottom-3 flex items-center gap-2">
               <Button

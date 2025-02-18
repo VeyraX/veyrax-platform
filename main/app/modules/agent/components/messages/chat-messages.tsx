@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageFormatter } from "./message-formatter"
 import { Button } from "@/components/ui/button"
-import { ThumbsDown, ThumbsUp, Pencil } from "lucide-react"
+import { ThumbsDown, ThumbsUp, Pencil, Copy, Check } from "lucide-react"
 import React from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
@@ -15,13 +15,11 @@ import { MessageListSkeleton } from "../tools/gmail/message-list.gmail"
 import { MessageCard, MessageCardSkeleton } from "../tools/gmail/message-card.gmail"
 import { EventCard, EventCardSkeleton } from "../tools/google-calendar/event-card.google-calendar"
 import { Event } from "../tools/google-calendar/types.google-calendar"
-import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
 import Link from "next/link"
 import { FilterDisplay } from "../tools/google-calendar/event-card.google-calendar"
 import { ToolWrapper } from "../tools/common/tool-wrapper"
 import { NotionDatabaseList, NotionDatabaseListSkeleton } from "../tools/notion/card-view.notion"
 import Weather from "../tools/openweather/weather-widget.openweather"
-import { type PerplexityResponse } from "../tools/perplexity/types.perplexity"
 import { PerplexityResponseView, PerplexityResponseSkeleton } from "../tools/perplexity/response-view.perplexity"
 import { FileCard, FileCardSkeleton } from "../tools/google-drive/file-card.google-drive"
 import { FileList, FileListSkeleton } from "../tools/google-drive/file-list.google-drive"
@@ -83,6 +81,7 @@ function parseMessageContent(content: string) {
 export function ChatMessages({ messages, messageAttachments, isLoading, sandboxId, onEditMessage, onSendMessage }: ChatMessagesProps) {
   const [ratedMessageIds, setRatedMessageIds] = React.useState<Set<string>>(new Set());
   const [editingMessageId, setEditingMessageId] = React.useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = React.useState<string | null>(null);
   const { containerRef, lastMessageRef } = useChatScroll(messages, isLoading);
 
   const handleRate = (messageId: string) => {
@@ -102,6 +101,12 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
     setEditingMessageId(null);
   };
 
+  const handleCopy = async (messageId: string, content: string) => {
+    await navigator.clipboard.writeText(parseMessageContent(content));
+    setCopiedMessageId(messageId);
+    setTimeout(() => setCopiedMessageId(null), 2000); // Reset after 2 seconds
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -118,19 +123,15 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
           <div 
             key={message.id} 
             ref={isLastMessage ? lastMessageRef : undefined}
-            className="flex gap-4 group"
+            className={`flex gap-4 group ${message.role === 'user' ? 'justify-end' : ''}`}
           >
-            {showAvatar ? (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={message.role === 'user' ? '/placeholder.svg' : '/placeholder.svg'} />
-                <AvatarFallback>
-                  {message.role === 'user' ? 'U' : 'A'}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div className="w-8" />
-            )}
-            <div className="grid gap-1.5 w-full">
+            <div className={`grid gap-1.5 ${
+              editingMessageId === message.id 
+                ? 'w-full' 
+                : message.role === 'user' 
+                  ? 'max-w-[85%]' 
+                  : 'w-full'
+            }`}>
               {message.role === 'user' && currentAttachments && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {currentAttachments.files.map((file: File) => (
@@ -171,15 +172,17 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
               )}
               <div className="text-sm leading-relaxed relative">
                 {editingMessageId === message.id ? (
-                  <EditMessage
-                    content={parseMessageContent(message.content)}
-                    onSave={(content: string) => handleEditSave(message.id, content)}
-                    onCancel={handleEditCancel}
-                  />
+                  <div className="w-full">
+                    <EditMessage
+                      content={parseMessageContent(message.content)}
+                      onSave={(content: string) => handleEditSave(message.id, content)}
+                      onCancel={handleEditCancel}
+                    />
+                  </div>
                 ) : (
                   <>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className={`${message.role === 'user' ? 'bg-primary text-primary-foreground rounded-xl p-3' : ''} flex-1`}>
                         {message.parts?.map((part, partIndex) => {
                           if (part.type === 'text') {
                             return (
@@ -620,15 +623,31 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                           return null;
                         })}
                       </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {message.role === 'user' && (
-                        <Button
-                          variant="link"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-                          onClick={() => handleEditStart(message)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5"
+                            onClick={() => handleEditStart(message)}
+                          >
+                            <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5"
+                            onClick={() => handleCopy(message.id, message.content)}
+                          >
+                            {copiedMessageId === message.id ? (
+                              <Check className="h-2.5 w-2.5 text-muted-foreground" />
+                            ) : (
+                              <Copy className="h-2.5 w-2.5 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </>
                       )}
                     </div>
                   </>
@@ -662,10 +681,6 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
 
       {isLoading && messages[messages.length - 1]?.role === 'user' && (
         <div className="flex gap-4">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/agent_avatar.png" />
-            <AvatarFallback>A</AvatarFallback>
-          </Avatar>
           <div className="flex items-center">
             <span className="text-sm text-muted-foreground">is thinking...</span>
           </div>
