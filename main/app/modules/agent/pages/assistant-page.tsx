@@ -10,6 +10,8 @@ import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
 import { SuggestionInputs } from "../components/suggestions /suggestion-inputs"
 import { type Message } from 'ai/react'
+import { toast } from "sonner"
+import { X } from "lucide-react"
 
 export default function AssistantPage() {
   const { messages, append, isLoading, stop, setMessages } = useChat({
@@ -38,6 +40,8 @@ export default function AssistantPage() {
   } | null>(null);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
   const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
+
+  const allowedFileTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'];
 
   useEffect(() => {
     if (!uploadedFiles) return;
@@ -104,12 +108,26 @@ export default function AssistantPage() {
     const file = files[0];
     const fileType = file.name.split('.').pop()?.toLowerCase();
     const allowedImageTypes = ['png', 'jpg', 'jpeg'];
-    const allowedTableTypes = ['csv', 'xlsx', 'xls'];
     const allowedTextTypes = ['txt', 'doc', 'docx', 'rtf'];
     
+    if (fileType === 'csv' || fileType === 'xlsx' || fileType === 'xls' || fileType === 'sql') {
+      toast.error(`File type .${fileType} is not supported`, {
+        action: {
+          label: <X className="h-4 w-4" />,
+          onClick: () => console.log("OK clicked")
+        }
+      });
+      return;
+    }
+
     if (!allowedImageTypes.includes(fileType || '') && 
-        !allowedTableTypes.includes(fileType || '') && 
         !allowedTextTypes.includes(fileType || '')) {
+      toast.error(`File type .${fileType} is not supported`, {
+        action: {
+          label: <X className="h-4 w-4" />,
+          onClick: () => console.log("OK clicked")
+        }
+      });
       return;
     }
 
@@ -147,6 +165,11 @@ export default function AssistantPage() {
       content: messageContent,
       role: 'user'
     }, Object.keys(options).length ? options : undefined);
+
+    handleFileRemove();
+    setFileMetadata(null);
+    setTableContent(null);
+    setTextContent(null);
   };
 
   useEffect(() => {
@@ -264,6 +287,8 @@ export default function AssistantPage() {
                 onUploadSuccess={handleUploadSuccess}
                 uploadedFiles={uploadedFiles ? Array.from(uploadedFiles) : []}
                 sandboxId={sandboxId}
+                allowedTypes={allowedFileTypes}
+                maxSize={5 * 1024 * 1024}
               />
             )}
             

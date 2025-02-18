@@ -26,6 +26,8 @@ class Issue(BaseModel):
     labels: Optional[List[str]]
     project_id: Optional[str]
     team_id: str
+    identifier: str
+    team_key: str
 
 class IssueList(BaseModel):
     issues: List[Issue]
@@ -102,4 +104,18 @@ class Team(BaseModel):
 
 class TeamList(BaseModel):
     teams: List[Team]
+    cursor: Optional[str]
+
+class WorkflowState(BaseModel):
+    id: str
+    name: str
+    color: str
+    type: str
+    position: int
+    team_id: str
+    team_key: str
+    team_name: str
+
+class WorkflowStateList(BaseModel):
+    states: List[WorkflowState]
     cursor: Optional[str]

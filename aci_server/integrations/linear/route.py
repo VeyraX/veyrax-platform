@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request as FastAPIRequest
 from typing import Optional, List
 import pickle
 import os
@@ -6,37 +6,30 @@ import os
 from .schema import (
     IssueList, Issue, ProjectList, Project,
     IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse,
-    UserList, TeamList, Team
+    UserList, TeamList, Team, WorkflowStateList
 )
 from .service import LinearService
 from .client import LinearClient
+from ..common.auth import TokenService
 
 router = APIRouter(prefix="/linear", tags=["linear"])
 
-async def get_linear_service() -> LinearService:
-    """Dependency to get Linear service with authenticated client."""
+async def get_linear_service(request: FastAPIRequest) -> LinearService:
     try:
-        with open('credentials/linear_user_token.pickle', 'rb') as token_file:
-            creds = pickle.load(token_file)
-            token = creds.get('access_token')
-            if not token:
-                raise HTTPException(
-                    status_code=401,
-                    detail="No access token found in credentials"
-                )
-    except FileNotFoundError:
-        raise HTTPException(
-            status_code=404,
-            detail="Linear credentials file not found"
-        )
+        token_data = await TokenService.get_user_token(request, 'linear')
+        if not token_data or not token_data.get('access_token'):
+            raise HTTPException(
+                status_code=401,
+                detail="No Linear access token found"
+            )
+            
+        client = LinearClient(token_data['access_token'])
+        return LinearService(client)
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Error loading Linear credentials: {str(e)}"
+            status_code=401,
+            detail=f"Failed to initialize Linear service: {str(e)}"
         )
-
-    client = LinearClient(token)
-    return LinearService(client)
 
 @router.get(
     "/issues",
@@ -46,10 +39,11 @@ async def get_linear_service() -> LinearService:
 )
 async def list_issues(
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> IssueList:
     try:
-        return service.list_issues(cursor)
+        return service.list_issues(cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -62,10 +56,11 @@ async def list_issues(
 async def search_issues(
     query: str = Query(..., description="Search query string"),
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> IssueList:
     try:
-        return service.search_issues(query, cursor)
+        return service.search_issues(query, cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -78,10 +73,11 @@ async def search_issues(
 async def filter_issues(
     filters: IssueFilter,
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> IssueList:
     try:
-        return service.filter_issues(filters, cursor)
+        return service.filter_issues(filters, cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -112,10 +108,7 @@ async def update_issue(
     issue_update: IssueUpdate,
     service: LinearService = Depends(get_linear_service)
 ) -> Issue:
-    try:
-        return service.update_issue(issue_id, issue_update)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return service.update_issue(issue_id, issue_update)
 
 @router.post(
     "/issues/{issue_id}/comments",
@@ -141,10 +134,11 @@ async def comment_issue(
 )
 async def list_projects(
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> ProjectList:
     try:
-        return service.list_projects(cursor)
+        return service.list_projects(cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -156,10 +150,11 @@ async def list_projects(
 )
 async def list_users(
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> UserList:
     try:
-        return service.list_users(cursor)
+        return service.list_users(cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -171,9 +166,26 @@ async def list_users(
 )
 async def list_teams(
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
     service: LinearService = Depends(get_linear_service)
 ) -> TeamList:
     try:
-        return service.list_teams(cursor)
+        return service.list_teams(cursor, max_results)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get(
+    "/workflow-states",
+    response_model=WorkflowStateList,
+    summary="List workflow states",
+    description="Retrieve a paginated list of Linear workflow states (statuses)"
+)
+async def list_workflow_states(
+    cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    service: LinearService = Depends(get_linear_service)
+) -> WorkflowStateList:
+    try:
+        return service.list_workflow_states(cursor, max_results)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

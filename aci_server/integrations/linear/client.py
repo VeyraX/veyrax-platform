@@ -19,78 +19,103 @@ class LinearClient:
         response.raise_for_status()
         return response.json()
 
-    def list_issues(self, cursor: Optional[str] = None) -> dict:
+    def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query Issues($cursor: String) {
-            issues(first: 50, after: $cursor) {
+        query Issues($cursor: String, $first: Int!) {
+            issues(
+                first: $first, 
+                after: $cursor,
+                orderBy: createdAt
+            ) {
                 nodes {
-                    id title description 
+                    id 
+                    title 
+                    description 
+                    identifier
                     state { id name }
                     priority
                     assignee { id name email }
                     creator { id name email }
-                    createdAt updatedAt
+                    createdAt 
+                    updatedAt
                     labels { nodes { name } }
                     project { id }
-                    team { id }
+                    team { id key }
                 }
                 pageInfo { hasNextPage endCursor }
             }
         }
         """
-        return self.execute_query(query, {"cursor": cursor})
+        return self.execute_query(query, {"cursor": cursor, "first": max_results})
 
-    def search_issues(self, search_term: str, cursor: Optional[str] = None) -> dict:
+    def search_issues(self, search_term: str, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query SearchIssues($search: String!, $cursor: String) {
-            issueSearch(query: $search, first: 50, after: $cursor) {
+        query SearchIssues($search: String!, $cursor: String, $first: Int!) {
+            issueSearch(query: $search, first: $first, after: $cursor) {
                 nodes {
-                    id title description
+                    id 
+                    title 
+                    description
+                    identifier
                     state { id name }
                     priority
                     assignee { id name email }
                     creator { id name email }
-                    createdAt updatedAt
-                    team { id }
-                }
-                pageInfo { hasNextPage endCursor }
-            }
-        }
-        """
-        return self.execute_query(query, {"search": search_term, "cursor": cursor})
-
-    def filter_issues(self, graphql_filters: dict, cursor: Optional[str] = None) -> dict:
-        query = """
-        query FilterIssues($filter: IssueFilter, $cursor: String) {
-            issues(filter: $filter, first: 50, after: $cursor) {
-                nodes {
-                    id title description
-                    state { id name }
-                    priority
-                    assignee { id name email }
-                    creator { id name email }
-                    createdAt updatedAt
+                    createdAt 
+                    updatedAt
                     labels { nodes { name } }
                     project { id }
-                    team { id }
+                    team { id key }
                 }
                 pageInfo { hasNextPage endCursor }
             }
         }
         """
-        return self.execute_query(query, {"filter": graphql_filters, "cursor": cursor})
+        return self.execute_query(query, {"search": search_term, "cursor": cursor, "first": max_results})
+
+    def filter_issues(self, graphql_filters: dict, cursor: Optional[str] = None, max_results: int = 50) -> dict:
+        query = """
+        query FilterIssues($filter: IssueFilter, $cursor: String, $first: Int!) {
+            issues(filter: $filter, first: $first, after: $cursor) {
+                nodes {
+                    id 
+                    title 
+                    description
+                    identifier
+                    state { id name }
+                    priority
+                    assignee { id name email }
+                    creator { id name email }
+                    createdAt 
+                    updatedAt
+                    labels { nodes { name } }
+                    project { id }
+                    team { id key }
+                }
+                pageInfo { hasNextPage endCursor }
+            }
+        }
+        """
+        return self.execute_query(query, {"filter": graphql_filters, "cursor": cursor, "first": max_results})
 
     def create_issue(self, input_data: dict) -> dict:
         query = """
         mutation CreateIssue($input: IssueCreateInput!) {
             issueCreate(input: $input) {
                 issue {
-                    id title description
+                    id 
+                    title 
+                    description
+                    identifier
                     state { id name }
                     priority
                     assignee { id name email }
                     creator { id name email }
-                    createdAt updatedAt
+                    createdAt 
+                    updatedAt
+                    labels { nodes { name } }
+                    project { id }
+                    team { id key }
                 }
             }
         }
@@ -102,16 +127,24 @@ class LinearClient:
         mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
             issueUpdate(id: $id, input: $input) {
                 issue {
-                    id title description
+                    id 
+                    title 
+                    description
+                    identifier
                     state { id name }
                     priority
                     assignee { id name email }
                     creator { id name email }
-                    createdAt updatedAt
+                    createdAt 
+                    updatedAt
+                    labels { nodes { name } }
+                    project { id }
+                    team { id key }
                 }
             }
         }
         """
+        
         return self.execute_query(query, {"id": issue_id, "input": input_data})
 
     def create_comment(self, issue_id: str, body: str) -> dict:
@@ -135,10 +168,10 @@ class LinearClient:
             }
         })
 
-    def list_projects(self, cursor: Optional[str] = None) -> dict:
+    def list_projects(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query Projects($cursor: String) {
-            projects(first: 50, after: $cursor) {
+        query Projects($cursor: String, $first: Int!) {
+            projects(first: $first, after: $cursor) {
                 nodes {
                     id name description
                     state
@@ -149,7 +182,7 @@ class LinearClient:
             }
         }
         """
-        return self.execute_query(query, {"cursor": cursor})
+        return self.execute_query(query, {"cursor": cursor, "first": max_results})
 
     def get_project(self, project_id: str) -> dict:
         query = """
@@ -169,10 +202,10 @@ class LinearClient:
         """
         return self.execute_query(query, {"id": project_id})
 
-    def list_users(self, cursor: Optional[str] = None) -> dict:
+    def list_users(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query Users($cursor: String) {
-            users(first: 50, after: $cursor) {
+        query Users($cursor: String, $first: Int!) {
+            users(first: $first, after: $cursor) {
                 nodes {
                     id
                     name
@@ -182,12 +215,12 @@ class LinearClient:
             }
         }
         """
-        return self.execute_query(query, {"cursor": cursor})
+        return self.execute_query(query, {"cursor": cursor, "first": max_results})
 
-    def list_teams(self, cursor: Optional[str] = None) -> dict:
+    def list_teams(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query Teams($cursor: String) {
-            teams(first: 50, after: $cursor) {
+        query Teams($cursor: String, $first: Int!) {
+            teams(first: $first, after: $cursor) {
                 nodes {
                     id
                     name
@@ -198,7 +231,7 @@ class LinearClient:
             }
         }
         """
-        return self.execute_query(query, {"cursor": cursor})
+        return self.execute_query(query, {"cursor": cursor, "first": max_results})
 
     def get_team(self, team_id: str) -> dict:
         query = """
@@ -212,3 +245,21 @@ class LinearClient:
         }
         """
         return self.execute_query(query, {"id": team_id})
+
+    def list_workflow_states(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
+        query = """
+        query WorkflowStates($cursor: String, $first: Int!) {
+            workflowStates(first: $first, after: $cursor) {
+                nodes {
+                    id
+                    name
+                    color
+                    type
+                    position
+                    team { id key name }
+                }
+                pageInfo { hasNextPage endCursor }
+            }
+        }
+        """
+        return self.execute_query(query, {"cursor": cursor, "first": max_results})

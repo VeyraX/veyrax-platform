@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { convertTableFileToMarkdown } from "@/lib/utils/file-converter"
 import { convertTextFileToString } from "@/lib/utils/file-converter"
 import { toast } from "sonner"
+import { access } from "fs"
 
 interface FileUploadProps {
   onFileSelect?: (files: FileList) => void
@@ -15,6 +16,8 @@ interface FileUploadProps {
   className?: string
   onUploadSuccess?: (data: { sandboxId: string, fileName: string, path: string }) => void
   sandboxId?: string | null
+  allowedTypes?: string[]
+  maxSize?: number
 }
 
 export default function FileUpload({ 
@@ -26,6 +29,8 @@ export default function FileUpload({
   className = "",
   onUploadSuccess,
   sandboxId,
+  allowedTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'],
+  maxSize = 5 * 1024 * 1024,
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [previews, setPreviews] = useState<{[key: string]: string}>({})
@@ -72,6 +77,23 @@ export default function FileUpload({
     onFileRemove?.(fileName)
   }
 
+  const validateFile = (file: File) => {
+    const fileType = file.name.split('.').pop()?.toLowerCase() || '';
+    const isAllowedType = allowedTypes.includes(fileType);
+    const isWithinSize = file.size <= maxSize;
+
+    if (!isAllowedType) {
+      return false;
+    }
+
+    if (!isWithinSize) {
+      toast.error(`File size exceeds ${maxSize / 1024 / 1024}MB limit`);
+      return false;
+    }
+
+    return true;
+  };
+
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -79,52 +101,38 @@ export default function FileUpload({
     const files = e.dataTransfer.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
-    const fileType = file.name.split('.').pop()?.toLowerCase();
-    const allowedImageTypes = ['png', 'jpg', 'jpeg'];
-    const allowedTableTypes = ['csv', 'xlsx', 'xls'];
-    const allowedTextTypes = ['txt', 'doc', 'docx', 'rtf'];
-    
-    if (!allowedImageTypes.includes(fileType || '') && 
-        !allowedTableTypes.includes(fileType || '') && 
-        !allowedTextTypes.includes(fileType || '')) {
-      toast.error("File type not supported");
-      return;
-    }
+    const validFiles = Array.from(files).filter(validateFile);
+    if (validFiles.length === 0) return;
+
+    const dataTransfer = new DataTransfer();
+    validFiles.forEach(file => dataTransfer.items.add(file));
+    const validFileList = dataTransfer.files;
 
     try {
-      if (allowedTableTypes.includes(fileType || '')) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('path', `/workspace/${file.name}`);
-        if (sandboxId) {
-          formData.append('sandboxId', sandboxId);
+      for (const file of validFiles) {
+        const fileType = file.name.split('.').pop()?.toLowerCase();
+        if (fileType === 'txt' || fileType === 'doc' || fileType === 'docx' || fileType === 'rtf') {
+          const text = await convertTextFileToString(file);
+          onTextFileSelect?.(text, file.name);
         }
-
-        const response = await fetch('/api/sandbox/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Upload failed');
-        }
-
-        const result = await response.json();
-        onUploadSuccess?.(result);
-        
-        const markdown = await convertTableFileToMarkdown(file);
-        onTableFileSelect?.(markdown, file.name);
-      } else if (allowedTextTypes.includes(fileType || '')) {
-        const text = await convertTextFileToString(file);
-        onTextFileSelect?.(text, file.name);
       }
       
-      onFileSelect?.(files);
+      onFileSelect?.(validFileList);
     } catch (error) {
       console.error('Error processing file:', error);
       toast.error('Failed to upload file');
     }
+  };
+
+  const handleFileInput = (files: FileList | null) => {
+    if (!files) return;
+    
+    const validFiles = Array.from(files).filter(validateFile);
+    if (validFiles.length === 0) return;
+
+    const dataTransfer = new DataTransfer();
+    validFiles.forEach(file => dataTransfer.items.add(file));
+    onFileSelect?.(dataTransfer.files);
   };
 
   return (
@@ -192,6 +200,12 @@ export default function FileUpload({
           ))}
         </div>
       )}
+
+      <input 
+        type="file" 
+        hidden 
+        onChange={(e) => handleFileInput(e.target.files)}
+      />
     </div>
   )
 }

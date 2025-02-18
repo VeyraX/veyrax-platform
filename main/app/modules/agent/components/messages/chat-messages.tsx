@@ -29,6 +29,8 @@ import { NotionPageCard, NotionPageCardSkeleton } from "../tools/notion/card-vie
 import { Page } from "../tools/notion/types.notion"
 import { GoogleDriveResponseSkeleton, GoogleDriveResponseView } from "../tools/google-drive/vector-search-view.google-drive"
 import { NotionResponseSkeleton, NotionResponseView } from "../tools/notion/vector-search-view.notion"
+import { LinearIssueCard, LinearIssueCardSkeleton, LinearProjectList, LinearProjectListSkeleton, LinearTeamList, LinearTeamListSkeleton } from "../tools/linear/card-view.linear"
+import { LinearWorkflowStateList, LinearWorkflowStateListSkeleton } from "../tools/linear/card-view.linear"
 
 
 interface ChatMessagesProps {
@@ -518,6 +520,93 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                                                 <div className="flex flex-wrap gap-4">
                                                   <NotionResponseView response={result} />
                                                 </div>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'linear_listIssues':
+                                    case 'linear_searchIssues':
+                                      return (
+                                        <ToolWrapper toolName="linear">
+                                          <div className="max-w-3xl w-full space-y-4">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <>
+                                                <LinearIssueCardSkeleton />
+                                                <LinearIssueCardSkeleton />
+                                                <LinearIssueCardSkeleton />
+                                              </>
+                                            ) : (
+                                              result?.success && (
+                                                <div className="flex flex-wrap gap-4">
+                                                  {result.data?.issues.map((issue: any) => (
+                                                    <LinearIssueCard
+                                                      key={issue.id}
+                                                      {...issue}
+                                                    />
+                                                  ))}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+                                    case 'linear_updateIssue':
+                                    case 'linear_createIssue':
+                                      return (
+                                        <ToolWrapper toolName="linear">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <LinearIssueCardSkeleton />
+                                            ) : (
+                                              result?.success && result.issue && (
+                                                <LinearIssueCard {...result.issue} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'linear_listProjects':
+                                      return (
+                                        <ToolWrapper toolName="linear">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <LinearProjectListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <LinearProjectList projects={result.data?.projects || []} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'linear_listTeams':
+                                      return (
+                                        <ToolWrapper toolName="linear">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <LinearTeamListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <LinearTeamList teams={result.data?.teams || []} />
+                                              )
+                                            )}
+                                          </div>
+                                        </ToolWrapper>
+                                      );
+
+                                    case 'linear_listWorkflowStates':
+                                      return (
+                                        <ToolWrapper toolName="linear">
+                                          <div className="max-w-3xl w-full">
+                                            {['partial-call', 'call'].includes(state) ? (
+                                              <LinearWorkflowStateListSkeleton />
+                                            ) : (
+                                              result?.success && (
+                                                <LinearWorkflowStateList states={result.data?.states || []} />
                                               )
                                             )}
                                           </div>

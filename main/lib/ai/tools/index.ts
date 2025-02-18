@@ -4,6 +4,8 @@ import { notion_listDatabases, notion_listPages, notion_createPage, notion_readP
 import { openweather_getWeather } from './openweather';
 import { perplexity_ask } from './perplexity';
 import { googleDrive_listFiles, googleDrive_listFolders, googleDrive_getFile, googleDrive_moveFile, googleDrive_readFile, googleDrive_vectorSearch } from './google-drive';
+import { linear_listIssues, linear_searchIssues, linear_createIssue, linear_listProjects, linear_listTeams, linear_updateIssue, linear_listWorkflowStates } from './linear';
+
 
 export const tools = {
   gmail_createDraft,
@@ -24,7 +26,14 @@ export const tools = {
   notion_readPage,
   notion_vectorSearch,
   notion_searchPages,
-  googleDrive_vectorSearch
+  googleDrive_vectorSearch,
+  linear_listIssues,
+  linear_searchIssues,
+  linear_createIssue,
+  linear_listProjects,
+  linear_listTeams,
+  linear_updateIssue,
+  linear_listWorkflowStates
 };
 
 export type Tools = typeof tools;

@@ -37,6 +37,10 @@ const TOOL_CONFIGS = {
     logo: '/logos/drive-logo.svg',
     label: 'Google Drive',
   },
+  linear: {
+    logo: '/logos/linear-logo.svg',
+    label: 'Linear',
+  },
 }
 
 export function ToolWrapper({ toolName, children }: ToolWrapperProps) {
