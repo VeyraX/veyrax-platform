@@ -104,7 +104,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
   const handleCopy = async (messageId: string, content: string) => {
     await navigator.clipboard.writeText(parseMessageContent(content));
     setCopiedMessageId(messageId);
-    setTimeout(() => setCopiedMessageId(null), 2000); // Reset after 2 seconds
+    setTimeout(() => setCopiedMessageId(null), 2000);
   };
 
   return (

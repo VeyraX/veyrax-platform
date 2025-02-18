@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react'
-import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles } from "lucide-react"
+import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import {
@@ -36,7 +36,7 @@ const items = [
       },
       {
         title: "ACI Generation",
-        url: "/generate",
+        url: "/generate", 
       },
       {
         title: "Integrations",
@@ -51,6 +51,44 @@ const items = [
         url: "",
       },
     ],
+  },
+  {
+    title: "Recent Chats",
+    url: "/",
+    items: [
+      {
+        title: "Project Brainstorming",
+        url: "/chat/1",
+      },
+      {
+        title: "Marketing Strategy", 
+        url: "/chat/2",
+      },
+      {
+        title: "Product Research",
+        url: "/chat/3", 
+      },
+      {
+        title: "Customer Feedback Analysis",
+        url: "/chat/4",
+      },
+      {
+        title: "Team Planning",
+        url: "/chat/5",
+      },
+      {
+        title: "Feature Development", 
+        url: "/chat/6",
+      },
+      {
+        title: "User Experience Review",
+        url: "/chat/7",
+      },
+      {
+        title: "Content Strategy",
+        url: "/chat/8",
+      },
+    ],
   }
 ]
 
@@ -59,6 +97,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
   const { state } = useSidebar()
   const supabase = createClientComponentClient()
+  const [chats, setChats] = useState<any[]>([])
+  const [showAllChats, setShowAllChats] = useState(false)
+
+  useEffect(() => {
+    // Fetch chats from API/database
+    const fetchChats = async () => {
+      try {
+        const { data: chats } = await supabase
+          .from('chats')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(8)
+        
+        if (chats) {
+          items[1].items = chats.map(chat => ({
+            title: chat.title || `Chat ${chat.id}`,
+            url: `/chat/${chat.id}`
+          }))
+          setChats(chats)
+        }
+      } catch (error) {
+        console.error('Error fetching chats:', error)
+      }
+    }
+
+    fetchChats()
+  }, [])
 
   const handleLogoutClick = async () => {
     try {
@@ -80,12 +145,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarHeader>
         <SidebarContent>
 
-          {items.map((group) => (
+        {items.map((group) => (
             <SidebarGroup key={group.title}>
               <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {group.items.map((item) => (
+                  {group.items?.slice(0, group.title === "Recent Chats" ? (showAllChats ? undefined : 5) : undefined).map((item) => (
                     <SidebarMenuItem className='cursor-pointer' key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -98,6 +163,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+                  {group.title === "Recent Chats" && group.items && group.items.length > 5 && (
+                    <SidebarMenuItem>
+                      <Button
+                        variant="link"
+                        className="justify-start px-2 h-8"
+                        onClick={() => setShowAllChats(!showAllChats)}
+                      >
+                        {showAllChats ? 'Show Less' : 'View All'}
+                        {!showAllChats && <ArrowRight className="h-4 w-4" />}
+                      </Button>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -122,4 +199,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </>
   )
 }
-

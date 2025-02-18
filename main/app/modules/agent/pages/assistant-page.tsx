@@ -243,7 +243,7 @@ export default function AssistantPage() {
       onDrop={handleDrop}
     >
       <div className="flex-1 flex flex-col relative h-[100vh] w-full">
-        <Header />
+        <Header isShowChat={true} chatName="New Chat" />
         <ScrollArea className="flex-1">
           <ChatMessages 
             messages={messages as Message[]}
