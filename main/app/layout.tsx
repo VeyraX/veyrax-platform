@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     description: "VeyraX is Agenic Component Interface",
     images: ["/logo.svg"],
   },
+  verification: {
+    google: "google59b4c9691682b6a4",
+  },
 };
 
 export default function RootLayout({
