@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     images: ["/logo.svg"],
   },
   verification: {
-    google: "google59b4c9691682b6a4",
+    google: "M87s6BmvzBfZcTPzKC_IdrsZKCoMINTWwASkeDmDySM",
   },
 };
 
