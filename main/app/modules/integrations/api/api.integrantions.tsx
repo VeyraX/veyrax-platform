@@ -187,3 +187,25 @@ export const deleteIndexData = async (providerTag: string): Promise<void> => {
     throw new Error('Failed to delete index data');
   }
 }
+
+export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string }[]> => {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  type ProviderResponse = {
+    providers: {
+      provider_tag: string,
+      logo_url: string
+    }
+  }
+  
+  const { data: userProviders } = await supabase
+    .from('users_providers')
+    .select('providers(provider_tag, logo_url)')
+    .eq('user_id', user?.id) as { data: ProviderResponse[] | null }
+  
+  return userProviders?.map(up => ({
+    providerTag: up.providers.provider_tag,
+    logoUrl: up.providers.logo_url
+  })) || []
+}

@@ -13,6 +13,8 @@ import { type Message } from 'ai/react'
 import { toast } from "sonner"
 import { X } from "lucide-react"
 import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
+import { AssistantEmptyState } from "./assistant-empty-state";
+import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrantions"
 
 export default function AssistantPage() {
   const { messages, append, isLoading, stop, setMessages } = useChat({
@@ -42,6 +44,7 @@ export default function AssistantPage() {
   const [sandboxId, setSandboxId] = useState<string | null>(null);
   const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
   const [userTools, setUserTools] = useState<Record<string, any>>({});
+  const [connectedTools, setConnectedTools] = useState<{ providerTag: string, logoUrl: string }[]>([]);
 
   const allowedFileTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'];
 
@@ -241,9 +244,20 @@ export default function AssistantPage() {
   };
 
   useEffect(() => {
-    getUserToolsClient().then(tools => {
-      setUserTools(tools);
-    });
+    const fetchTools = async () => {
+      try {
+        const [tools, connected] = await Promise.all([
+          getUserToolsClient(),
+          getUserConnectedTools()
+        ]);
+        setUserTools(tools);
+        setConnectedTools(connected);
+      } catch (error) {
+        console.error('Error fetching tools:', error);
+      }
+    };
+
+    fetchTools();
   }, []);
 
   return (
@@ -255,66 +269,83 @@ export default function AssistantPage() {
       onDrop={handleDrop}
     >
       <div className="flex-1 flex flex-col relative h-[100vh] w-full">
-        <Header isShowChat={true} chatName="New Chat" />
-        <ScrollArea className="flex-1">
-          <ChatMessages 
-            messages={messages as Message[]}
-            messageAttachments={messageAttachments}
-            isLoading={isLoading}
-            sandboxId={sandboxId}
-            onEditMessage={handleEditMessage}
-            onSendMessage={async (message: string) => {
-              await append({
-                content: message,
-                role: 'user'
-              });
-            }}
-          />
-        </ScrollArea>
-
-        <div className="sticky bottom-0 bg-background">
-          <div className="flex flex-col gap-2 p-4 mx-auto w-full max-w-5xl">
-            <Suggestions
-              items={getCurrentSuggestions()}
-              onSelect={handleNewMessage}
-              visible={showSuggestions && messages.length === 0}
-            />
-            
-            <SuggestionInputs
-              suggestions={followUpSuggestions}
-              onSendMessage={handleNewMessage}
-              visible={messages.length > 0 && 
-                messages[messages.length - 1].role === 'assistant' && 
-                !isLoading}
-            />
-            
-            {(uploadedFiles || isDragging) && 
-             !isLoading && 
-             (!messages.length || messages[messages.length - 1].role === 'assistant') && (
-              <FileUpload
-                onFileSelect={handleFileSelect}
-                onFileRemove={handleFileRemove}
-                onTableFileSelect={handleTableFileSelect}
-                onTextFileSelect={handleTextFileSelect}
-                onUploadSuccess={handleUploadSuccess}
-                uploadedFiles={uploadedFiles ? Array.from(uploadedFiles) : []}
-                sandboxId={sandboxId}
-                allowedTypes={allowedFileTypes}
-                maxSize={5 * 1024 * 1024}
-              />
-            )}
-            
-            <AIInputWithSearch
-              placeholder={"Ask about anything..."}
+        {messages.length === 0 ? (
+          <>
+            <Header isShowChat={true} />
+            <AssistantEmptyState
               onSubmit={handleNewMessage}
-              className="max-w-none"
+              onShowSuggestions={handleShowSuggestions}
               isLoading={isLoading}
               onStop={stop}
-              onShowSuggestions={handleShowSuggestions}
               userTools={userTools}
+              connectedTools={connectedTools}
+              onToolClick={() => {}}
             />
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            <Header isShowChat={true} chatName="New Chat" />
+            <ScrollArea className="flex-1">
+              <ChatMessages 
+                messages={messages as Message[]}
+                messageAttachments={messageAttachments}
+                isLoading={isLoading}
+                sandboxId={sandboxId}
+                onEditMessage={handleEditMessage}
+                onSendMessage={async (message: string) => {
+                  await append({
+                    content: message,
+                    role: 'user'
+                  });
+                }}
+              />
+            </ScrollArea>
+
+            <div className="sticky bottom-0 bg-background">
+              <div className="flex flex-col gap-2 p-4 mx-auto w-full max-w-5xl">
+                <Suggestions
+                  items={getCurrentSuggestions()}
+                  onSelect={handleNewMessage}
+                  visible={showSuggestions && messages.length === 0}
+                />
+                
+                <SuggestionInputs
+                  suggestions={followUpSuggestions}
+                  onSendMessage={handleNewMessage}
+                  visible={messages.length > 0 && 
+                    messages[messages.length - 1].role === 'assistant' && 
+                    !isLoading}
+                />
+                
+                {(uploadedFiles || isDragging) && 
+                 !isLoading && 
+                 (!messages.length || messages[messages.length - 1].role === 'assistant') && (
+                  <FileUpload
+                    onFileSelect={handleFileSelect}
+                    onFileRemove={handleFileRemove}
+                    onTableFileSelect={handleTableFileSelect}
+                    onTextFileSelect={handleTextFileSelect}
+                    onUploadSuccess={handleUploadSuccess}
+                    uploadedFiles={uploadedFiles ? Array.from(uploadedFiles) : []}
+                    sandboxId={sandboxId}
+                    allowedTypes={allowedFileTypes}
+                    maxSize={5 * 1024 * 1024}
+                  />
+                )}
+                
+                <AIInputWithSearch
+                  placeholder={"Ask about anything..."}
+                  onSubmit={handleNewMessage}
+                  className="max-w-none"
+                  isLoading={isLoading}
+                  onStop={stop}
+                  onShowSuggestions={handleShowSuggestions}
+                  userTools={userTools}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -12,18 +12,25 @@ const IntegrationsPage: FC = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   const loadIntegrations = async () => {
-    setIsLoading(true)
     try {
       const integrationsData = await getIntegrationsData()
       setIntegrations(integrationsData)
+    } catch (error) {
+      console.error('Failed to load integrations:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    loadIntegrations()
-  }, [])
+    if (isLoading) {
+      loadIntegrations()
+    }
+  }, [isLoading])
+
+  const handleConnectionChange = () => {
+    setIsLoading(true)
+  }
 
   const IntegrationSkeleton = () => (
     <div className="p-6 border rounded-lg space-y-4">
@@ -44,7 +51,7 @@ const IntegrationsPage: FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {isLoading ? (
+          {isLoading && integrations.length === 0 ? (
             [...Array(8)].map((_, index) => (
               <IntegrationSkeleton key={index} />
             ))
@@ -53,7 +60,7 @@ const IntegrationsPage: FC = () => {
               <IntegrationCard 
                 key={integration.id} 
                 {...integration} 
-                onConnectionChange={loadIntegrations}
+                onConnectionChange={handleConnectionChange}
               />
             ))
           )}

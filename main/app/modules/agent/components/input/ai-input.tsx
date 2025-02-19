@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
 import { ToolSuggestionsCommand } from "../suggestions/tool-suggestions"
+import React from "react";
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -30,7 +31,7 @@ interface AIInputWithSearchProps {
   userTools: Record<string, any>;
 }
 
-export function AIInputWithSearch({
+export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWithSearchProps>(({
   id = "ai-input-with-search",
   minHeight = 64,
   maxHeight = 256,
@@ -42,7 +43,7 @@ export function AIInputWithSearch({
   onStop,
   onShowSuggestions,
   userTools,
-}: AIInputWithSearchProps) {
+}, ref) => {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight,
@@ -54,6 +55,8 @@ export function AIInputWithSearch({
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
   const [selectedTool, setSelectedTool] = useState<{ apiName: string, question: string } | null>(null);
+
+  React.useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
@@ -268,4 +271,6 @@ export function AIInputWithSearch({
       </div>
     </div>
   );
-}
+});
+
+AIInputWithSearch.displayName = "AIInputWithSearch";
