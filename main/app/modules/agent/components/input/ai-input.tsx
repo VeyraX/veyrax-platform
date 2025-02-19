@@ -9,6 +9,7 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
+import { ToolSuggestionsCommand } from "../suggestions/tool-suggestions"
 
 interface AIInputWithSearchProps {
   id?: string;
@@ -21,15 +22,16 @@ interface AIInputWithSearchProps {
   className?: string;
   isLoading?: boolean;
   onStop?: () => void;
-  onToolSelect?: (toolIds: string[]) => void;
+  onToolSelect?: (tool: { apiName: string, question: string }) => void;
   type?: 'default' | 'generate';
   onAddDocLink?: (link: string) => void;
   onRemoveDocLink?: (link: string) => void;
+  onShowSuggestions?: (show: boolean) => void;
+  userTools: Record<string, any>;
 }
 
 export function AIInputWithSearch({
   id = "ai-input-with-search",
-  placeholder = "Search the web...",
   minHeight = 64,
   maxHeight = 256,
   onSubmit,
@@ -38,10 +40,8 @@ export function AIInputWithSearch({
   className,
   isLoading,
   onStop,
-  onToolSelect,
-  type = 'default',
-  onAddDocLink,
-  onRemoveDocLink,
+  onShowSuggestions,
+  userTools,
 }: AIInputWithSearchProps) {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -52,10 +52,8 @@ export function AIInputWithSearch({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
-
-  const getPlaceholder = () => {
-    return placeholder;
-  };
+  const [showCommands, setShowCommands] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<{ apiName: string, question: string } | null>(null);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();
@@ -135,6 +133,42 @@ export function AIInputWithSearch({
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setValue(newValue);
+    
+    // Show command menu when slash is typed at the start
+    if (newValue.startsWith('/')) {
+      setShowCommands(true);
+      onShowSuggestions?.(false);
+    } else {
+      setShowCommands(false);
+      onShowSuggestions?.(true);
+    }
+    
+    adjustHeight();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showCommands && ['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    
+    if (e.key === 'Enter' && !e.shiftKey && !showCommands) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const handleToolSelect = (tool: { apiName: string, question: string }) => {
+    setValue(tool.question);
+    setShowCommands(false);
+    onShowSuggestions?.(true);
+    setSelectedTool(tool);
+    adjustHeight();
+  };
+
   return (
     <div className={cn("w-full", className)}>
       <div className="relative w-full">
@@ -153,19 +187,22 @@ export function AIInputWithSearch({
               <Textarea
                 id={id}
                 value={value}
-                placeholder={getPlaceholder()}
+                placeholder="Ask anything, press '/' to search actions..."
                 className="w-full rounded-xl rounded-b-none px-4 py-3 bg-black/5 dark:bg-white/5 border-none dark:text-white placeholder:text-black/70 dark:placeholder:text-white/70 resize-none focus-visible:ring-0 leading-[1.2]"
                 ref={textareaRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  adjustHeight();
-                }}
+                onKeyDown={handleKeyDown}
+                onChange={handleInputChange}
+              />
+            </div>
+          )}
+
+          {showCommands && (
+            <div className="absolute bottom-full mb-1 w-full z-10">
+              <ToolSuggestionsCommand 
+                onSelect={handleToolSelect}
+                isOpen={showCommands}
+                searchQuery={value}
+                userTools={userTools}
               />
             </div>
           )}

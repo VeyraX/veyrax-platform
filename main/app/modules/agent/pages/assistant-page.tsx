@@ -3,15 +3,16 @@ import React, { useState, useEffect} from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
-import { Suggestions } from "../components/suggestions /suggestions"
-import { SuggestionsDummyAgent } from "../components/suggestions /suggestions-dummy"
+import { Suggestions } from "../components/suggestions/suggestions"
+import { SuggestionsDummyAgent } from "../components/suggestions/suggestions-dummy"
 import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
-import { SuggestionInputs } from "../components/suggestions /suggestion-inputs"
+import { SuggestionInputs } from "../components/suggestions/suggestion-inputs"
 import { type Message } from 'ai/react'
 import { toast } from "sonner"
 import { X } from "lucide-react"
+import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 
 export default function AssistantPage() {
   const { messages, append, isLoading, stop, setMessages } = useChat({
@@ -40,6 +41,7 @@ export default function AssistantPage() {
   } | null>(null);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
   const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
+  const [userTools, setUserTools] = useState<Record<string, any>>({});
 
   const allowedFileTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'];
 
@@ -234,6 +236,16 @@ export default function AssistantPage() {
     return SuggestionsDummyAgent;
   };
 
+  const handleShowSuggestions = (show: boolean) => {
+    setShowSuggestions(show);
+  };
+
+  useEffect(() => {
+    getUserToolsClient().then(tools => {
+      setUserTools(tools);
+    });
+  }, []);
+
   return (
     <div 
       className="flex h-full"
@@ -261,7 +273,7 @@ export default function AssistantPage() {
         </ScrollArea>
 
         <div className="sticky bottom-0 bg-background">
-          <div className="flex flex-col gap-4 p-4 mx-auto w-full max-w-5xl">
+          <div className="flex flex-col gap-2 p-4 mx-auto w-full max-w-5xl">
             <Suggestions
               items={getCurrentSuggestions()}
               onSelect={handleNewMessage}
@@ -298,6 +310,8 @@ export default function AssistantPage() {
               className="max-w-none"
               isLoading={isLoading}
               onStop={stop}
+              onShowSuggestions={handleShowSuggestions}
+              userTools={userTools}
             />
           </div>
         </div>
