@@ -11,6 +11,7 @@ import { authApi } from '@/app/modules/auth/api/api.auth'
 export function RegisterForm() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isTwitterLoading, setIsTwitterLoading] = useState(false);
   const [error, setError] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +39,17 @@ export function RegisterForm() {
       setError([error.message]);
     }
     setIsGoogleLoading(false);
+  };
+
+  const handleTwitterSignUp = async () => {
+    setIsTwitterLoading(true);
+    setError([]);
+    
+    const { error } = await authApi.loginWithTwitter();
+    if (error) {
+      setError([error.message]);
+    }
+    setIsTwitterLoading(false);
   };
 
   return (
@@ -80,7 +92,7 @@ export function RegisterForm() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isEmailLoading || isGoogleLoading}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
             >
               {isEmailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign up"}
             </Button>
@@ -100,12 +112,25 @@ export function RegisterForm() {
               variant="outline"
               type="button"
               onClick={handleGoogleSignUp}
-              disabled={isEmailLoading || isGoogleLoading}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
             >
               {isGoogleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Sign up with Google"
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleTwitterSignUp}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
+            >
+              {isTwitterLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign up with Twitter"
               )}
             </Button>
           </form>

@@ -77,4 +77,20 @@ export const authApi = {
       return { error: { message: 'An error occurred while sending password reset email' } };
     }
   },
+
+  loginWithTwitter: async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'twitter',
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: { message: 'An error occurred during Twitter login' } };
+    }
+  },
 };

@@ -13,6 +13,7 @@ import { authApi } from '../api/api.auth'
 export function LoginForm() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isTwitterLoading, setIsTwitterLoading] = useState(false);
   const [error, setError] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,6 +42,17 @@ export function LoginForm() {
       setError([error.message]);
     }
     setIsGoogleLoading(false);
+  };
+
+  const handleTwitterLogin = async () => {
+    setIsTwitterLoading(true);
+    setError([]);
+    
+    const { error } = await authApi.loginWithTwitter();
+    if (error) {
+      setError([error.message]);
+    }
+    setIsTwitterLoading(false);
   };
 
   return (
@@ -92,7 +104,7 @@ export function LoginForm() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isEmailLoading || isGoogleLoading}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
             >
               {isEmailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
             </Button>
@@ -112,12 +124,25 @@ export function LoginForm() {
               variant="outline"
               type="button"
               onClick={handleGoogleLogin}
-              disabled={isEmailLoading || isGoogleLoading}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
             >
               {isGoogleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Sign in with Google"
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleTwitterLogin}
+              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
+            >
+              {isTwitterLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign in with Twitter"
               )}
             </Button>
           </form>

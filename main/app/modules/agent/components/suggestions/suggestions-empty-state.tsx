@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { getToolQuestions } from "./suggestions-empty-state-dummy-data"
 import { Skeleton } from "@/components/ui/skeleton"
+import Link from "next/link"
 
 interface SuggestionsEmptyStateProps {
   onToolClick: (tool: string) => void
@@ -28,6 +29,8 @@ export function SuggestionsEmptyState({
         setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
         setIsLoading(false)
       }, 1000)
+    } else {
+      setIsLoading(false)
     }
   }, [connectedTools])
 
@@ -69,6 +72,24 @@ export function SuggestionsEmptyState({
             />
           ))}
         </div>
+      </div>
+    )
+  }
+
+  if (!connectedTools || connectedTools.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full py-3">
+        <p className="text-sm text-muted-foreground mb-4">To get started, add actions to your Agent</p>
+        <Link href="/integrations">
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-full flex-shrink-0 flex items-center gap-2"
+          >
+            Add Actions
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Link>
       </div>
     )
   }
