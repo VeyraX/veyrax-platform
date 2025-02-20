@@ -19,7 +19,7 @@ export const gmail_createDraft = tool({
     try {
       const headers = await getAuthHeaders();
       
-      const response = await fetch('http://localhost:8000/gmail/drafts', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/gmail/drafts`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ to, subject, body }),
@@ -66,7 +66,7 @@ export const gmail_listMessages = tool({
       if (beforeDate) params.append('before_date', beforeDate);
       if (maxResults) params.append('max_results', maxResults.toString());
 
-      const url = `http://localhost:8000/gmail/messages?${params.toString()}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/gmail/messages?${params.toString()}`;
       
       const headers = await getAuthHeaders();
       const response = await fetch(url, 
@@ -102,7 +102,7 @@ export const gmail_sendMessage = tool({
     error?: string 
   }> {
     try {
-      const url = `http://localhost:8000/gmail/messages/${messageId}/send`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/gmail/messages/${messageId}/send`;
       
       const headers = await getAuthHeaders();
       const response = await fetch(url, {

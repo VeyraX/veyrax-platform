@@ -28,7 +28,7 @@ export const linear_listIssues = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/linear/issues?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/linear/issues?${params.toString()}`,
         {
           method: 'GET',
           headers,
@@ -81,7 +81,7 @@ export const linear_searchIssues = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/linear/issues/search?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/linear/issues/search?${params.toString()}`,
         {
           method: 'GET',
           headers,
@@ -139,7 +139,7 @@ export const linear_createIssue = tool({
         labels: issueData.labels
       };
       
-      const response = await fetch('http://localhost:8000/linear/issues', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/linear/issues`, {
         method: 'POST',
         headers: {
           ...headers,
@@ -189,7 +189,7 @@ export const linear_listProjects = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/linear/projects?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/linear/projects?${params.toString()}`,
         {
           method: 'GET',
           headers,
@@ -237,7 +237,7 @@ export const linear_listTeams = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/linear/teams?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/linear/teams?${params.toString()}`,
         {
           method: 'GET',
           headers,
@@ -293,7 +293,7 @@ export const linear_updateIssue = tool({
     try {
       const headers = await getAuthHeaders();
       
-      const response = await fetch(`http://localhost:8000/linear/issues/${issueId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/linear/issues/${issueId}`, {
         method: 'PATCH',
         headers: {
           ...headers,
@@ -343,7 +343,7 @@ export const linear_listWorkflowStates = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/linear/workflow-states?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/linear/workflow-states?${params.toString()}`,
         {
           method: 'GET',
           headers,

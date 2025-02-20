@@ -24,7 +24,7 @@ export const googleCalendar_createEvent = tool({
     try {
       const headers = await getAuthHeaders();
       
-      const response = await fetch('http://localhost:8000/google_calendar/events', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/google_calendar/events`, {
         method: 'POST',
         headers,
         credentials: 'include',
@@ -76,7 +76,7 @@ export const googleCalendar_listEvents = tool({
 
       const headers = await getAuthHeaders();
       const response = await fetch(
-        `http://localhost:8000/google_calendar/events?${params.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/google_calendar/events?${params.toString()}`,
         {
           headers,
           credentials: 'include'

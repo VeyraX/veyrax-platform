@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from integrations.gmail.route import router as gmail_router
@@ -11,6 +12,10 @@ from integrations.google_drive.route import router as google_drive_router
 from vector_tools.route import router as vector_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
+import os
+
+load_dotenv()
+
 
 app = FastAPI()
 
@@ -18,7 +23,7 @@ app.state.celery = celery_app
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=os.getenv("ALLOWED_ORIGINS").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
