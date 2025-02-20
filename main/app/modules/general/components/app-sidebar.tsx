@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
 import { getChats } from "@/app/modules/agent/components/api/api.agent"
+import { authApi } from '@/app/modules/auth/api/api.auth'
 
 const items = [
   {
@@ -91,11 +92,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const handleLogoutClick = async () => {
     try {
-      await supabase.auth.signOut()
-      router.refresh()
-      router.push('/login')
+      const { error } = await authApi.logout();
+      if (error) throw error;
+      router.refresh();
+      router.push('/login');
     } catch (error) {
-      console.error('Logout failed:', error)
+      console.error('Logout failed:', error);
     }
   }
 

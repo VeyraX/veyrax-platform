@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname === '/login' && session) {
+  if ((pathname === '/login' || pathname === '/register') && session) {
     return NextResponse.redirect(new URL('/agent/new', request.url))
   }
 
@@ -30,6 +30,7 @@ export const config = {
   matcher: [
     '/',
     '/login',
+    '/register',
     '/agent/:path*',
     '/components/:path*',
     '/web',

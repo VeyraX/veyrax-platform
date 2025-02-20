@@ -6,39 +6,41 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
 import { createClient } from '@/lib/utils/supabase/client'
+import { authApi } from '../api/api.auth'
 
 export function LoginForm() {
-  const [loading, setLoading] = useState(false);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
-  const supabase = createClient();
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsEmailLoading(true);
     setError([]);
     
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) throw error;
-      
-    } catch (error) {
-      setError(['Произошла ошибка при входе через Google']);
-    } finally {
-      setLoading(false);
+    const { error } = await authApi.login(email, password);
+    if (error) {
+      setError([error.message]);
+    } else {
+      window.location.href = '/agent/new';
     }
+    setIsEmailLoading(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    setError([]);
+    
+    const { error } = await authApi.loginWithGoogle();
+    if (error) {
+      setError([error.message]);
+    }
+    setIsGoogleLoading(false);
   };
 
   return (
@@ -56,7 +58,7 @@ export function LoginForm() {
               </Alert>
             }
           </div>
-          <div className="grid gap-4">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -69,7 +71,15 @@ export function LoginForm() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link 
+                  href="/password/reset" 
+                  className="text-sm text-muted-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input 
                 id="password" 
                 type="password" 
@@ -78,12 +88,13 @@ export function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)} 
               />
             </div>
+            
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading}
+              disabled={isEmailLoading || isGoogleLoading}
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
+              {isEmailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
             </Button>
 
             <div className="relative">
@@ -101,15 +112,15 @@ export function LoginForm() {
               variant="outline"
               type="button"
               onClick={handleGoogleLogin}
-              disabled={loading}
+              disabled={isEmailLoading || isGoogleLoading}
             >
-              {loading ? (
+              {isGoogleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Sign in with Google"
               )}
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

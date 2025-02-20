@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes"
+import { authApi } from '@/app/modules/auth/api/api.auth'
+import { useRouter } from 'next/navigation'
 
 interface UserDropdownProps {
   profile: UserProfile | null;
@@ -20,6 +22,18 @@ interface UserDropdownProps {
 
 export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await authApi.logout();
+      if (error) throw error;
+      router.refresh();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -90,7 +104,7 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="py-2">
+        <DropdownMenuItem onClick={handleLogout} className="py-2">
           <span className="text-sm">Log out</span>
           <LogOut className="ml-auto h-4 w-4" />
         </DropdownMenuItem>
