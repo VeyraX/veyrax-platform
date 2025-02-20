@@ -174,7 +174,7 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="relative w-full">
+      <div className="relative w-full border border-black/10 dark:border-white/10 rounded-xl shadow-sm">
         <div className="relative flex flex-col">
           {isRecording ? (
             <AudioWaveform 

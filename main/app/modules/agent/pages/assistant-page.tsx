@@ -3,12 +3,9 @@ import React, { useState, useEffect, useRef } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
-import { Suggestions } from "../components/suggestions/suggestions"
-import { SuggestionsDummyAgent } from "../components/suggestions/suggestions-dummy"
 import { Header } from "../../general/components/header"
 import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
-import { SuggestionInputs } from "../components/suggestions/suggestion-inputs"
 import { type Message } from 'ai/react'
 import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 import { AssistantEmptyState } from "./assistant-empty-state";
@@ -93,9 +90,11 @@ export default function AssistantPage({
     handlers
   } = useFileHandling(allowedFileTypes);
 
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(() => {
+    return !isNewChat;
+  });
 
-  const [chatName, setChatName] = useState<string>("Untitled Chat");
+  const [chatName, setChatName] = useState<string>("New Chat");
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -108,8 +107,10 @@ export default function AssistantPage({
           ]);
           console.log(getChatMessages(chatId))
           
-          if (chatData.name) {
+          if (chatData.name && chatData.name !== "undefined") {
             setChatName(chatData.name);
+          } else {
+            setChatName("New Chat");
           }
           
           const convertedMessages = existingMessages.map((msg) => {
@@ -264,10 +265,6 @@ export default function AssistantPage({
     }
   }, [messages, isLoading, isJustCreated]);
 
-  const getCurrentSuggestions = () => {
-    return SuggestionsDummyAgent;
-  };
-
   const handleShowSuggestions = (show: boolean) => {
     setShowSuggestions(show);
   };
@@ -292,29 +289,27 @@ export default function AssistantPage({
   return (
     <div className="flex h-full">
       <div className="flex-1 flex flex-col relative h-[100vh] w-full">
+        <Header 
+          isShowChat={!isNewChat && !isLoadingMessages} 
+          chatName={!isNewChat ? chatName : "New Chat"}
+        />
+        
         {isLoadingMessages && !isJustCreated ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="animate-spin" />
           </div>
         ) : isNewChat ? (
-          <>
-            <Header isShowChat={true} />
-            <AssistantEmptyState
-              onSubmit={handleNewMessage}
-              onShowSuggestions={handleShowSuggestions}
-              isLoading={isLoading || isCreatingChat}
-              onStop={stop}
-              userTools={userTools}
-              connectedTools={connectedTools}
-              onToolClick={() => {}}
-            />
-          </>
+          <AssistantEmptyState
+            onSubmit={handleNewMessage}
+            onShowSuggestions={handleShowSuggestions}
+            isLoading={false}
+            onStop={stop}
+            userTools={userTools}
+            connectedTools={connectedTools}
+            onToolClick={() => {}}
+          />
         ) : (
           <>
-            <Header 
-              isShowChat={true} 
-              chatName={chatName}
-            />
             <ScrollArea className="flex-1">
               <ChatMessages 
                 messages={messages as Message[]}
@@ -343,7 +338,7 @@ export default function AssistantPage({
             </ScrollArea>
 
             <div className="sticky bottom-0 bg-background">
-              <div className="flex flex-col gap-2 p-4 mx-auto w-full max-w-5xl">
+              <div className="flex flex-col p-4 mx-auto w-full max-w-5xl">
                 
                 {(uploadedFiles || isDragging) && 
                  !isLoading && 

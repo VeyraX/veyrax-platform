@@ -66,8 +66,22 @@ export function MessageFormatter({ content }: { content: string }) {
           )
         },
         p({ node, children }) {
-          return <p className="whitespace-pre-wrap">{children}</p>
-        }
+          return <p className="my-2 whitespace-pre-wrap">{children}</p>
+        },
+        ul: ({node, ...props}) => <ul className="pl-4 my-2 list-disc" {...props}/>,
+        ol: ({node, ...props}) => <ol className="pl-4 my-2 list-decimal" {...props}/>,
+        li: ({node, ...props}) => <li className="my-1" {...props}/>,
+        h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-4" {...props}/>,
+        h2: ({node, ...props}) => <h2 className="text-xl font-semibold my-3" {...props}/>,
+        h3: ({node, ...props}) => <h3 className="text-lg font-medium my-2" {...props}/>,
+        a: ({node, ...props}) => (
+          <a 
+            className="text-blue-500 hover:text-blue-600 hover:underline" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            {...props}
+          />
+        ),
       }}
     >
       {content}

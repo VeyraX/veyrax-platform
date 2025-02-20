@@ -2,10 +2,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MessageFormatter } from "./message-formatter"
 import { Button } from "@/components/ui/button"
 import { ThumbsDown, ThumbsUp, Pencil, Copy, Check } from "lucide-react"
-import React from "react"
+import React, { useRef, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
-import { useChatScroll } from "@/hooks/use-chat-scroll"
 import { EditMessage } from "./chat-messages-edit-message"
 import { type Message } from 'ai/react'
 import { DraftMessageCard } from "../tools/gmail/draft-message-card.gmail"
@@ -30,6 +29,7 @@ import { NotionResponseSkeleton, NotionResponseView } from "../tools/notion/vect
 import { LinearIssueCard, LinearIssueCardSkeleton, LinearProjectList, LinearProjectListSkeleton, LinearTeamList, LinearTeamListSkeleton } from "../tools/linear/card-view.linear"
 import { LinearWorkflowStateList, LinearWorkflowStateListSkeleton } from "../tools/linear/card-view.linear"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAutoScroll } from "@/hooks/use-chat-scroll"
 
 interface ExtendedMessage extends Message {
   image_url?: string;
@@ -87,7 +87,12 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
   const [ratedMessageIds, setRatedMessageIds] = React.useState<Set<string>>(new Set());
   const [editingMessageId, setEditingMessageId] = React.useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = React.useState<string | null>(null);
-  const { containerRef, lastMessageRef } = useChatScroll(messages, isLoading);
+  
+  const { scrollRef, scrollToBottom } = useAutoScroll({
+    offset: 20,
+    smooth: true,
+    content: messages.length
+  });
 
   const handleRate = (messageId: string) => {
     setRatedMessageIds(prev => new Set(prev).add(messageId));
@@ -143,7 +148,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
 
   return (
     <div 
-      ref={containerRef}
+      ref={scrollRef}
       className="flex flex-col gap-8 p-4 max-w-5xl mx-auto w-full overflow-y-auto"
     >
       {messages.map((message, index) => {
@@ -155,15 +160,14 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
         
         return (
           <div 
-            key={message.id} 
-            ref={isLastMessage ? lastMessageRef : undefined}
+            key={message.id}
             className={`flex gap-4 group ${message.role === 'user' ? 'justify-end' : ''}`}
           >
             <div className={`grid gap-1.5 ${
               editingMessageId === message.id 
                 ? 'w-full' 
                 : message.role === 'user' 
-                  ? 'max-w-[85%]' 
+                  ? 'max-w-[65%]'
                   : 'w-full'
             }`}>
               {message.role === 'user' && currentAttachments && (
@@ -216,7 +220,11 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                 ) : (
                   <>
                     <div className="flex justify-between items-start gap-2">
-                      <div className={`${message.role === 'user' ? 'bg-primary text-primary-foreground rounded-xl p-3' : ''} flex-1`}>
+                      <div className={`${
+                        message.role === 'user' 
+                          ? 'bg-primary text-primary-foreground rounded-3xl rounded-br-sm p-2 text-[15px]'
+                          : ''
+                      } flex-1`}>
                         {(message.parts?.length ?? 0) > 0 ? (
                           message.parts?.map((part, partIndex) => {
                             if (part.type === 'text') {
@@ -669,14 +677,6 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5"
-                            onClick={() => handleEditStart(message)}
-                          >
-                            <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
                             onClick={() => handleCopy(message.id, message.content)}
                           >
                             {copiedMessageId === message.id ? (
@@ -693,10 +693,10 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
               </div>
 
               {isLastAssistantMessage && !isLoading && !ratedMessageIds.has(message.id) && (
-                <div className="flex gap-1 -translate-y-1">
+                <div className="flex gap-1 -translate-y-4">
                   <Button 
                     variant="ghost" 
-                    size="sm" 
+                    size="icon" 
                     className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                     onClick={() => handleRate(message.id)}
                   >
@@ -704,7 +704,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   </Button>
                   <Button 
                     variant="ghost" 
-                    size="sm" 
+                    size="icon" 
                     className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                     onClick={() => handleRate(message.id)}
                   >

@@ -44,7 +44,7 @@ export function Header({
   }, [])
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText('https://veyrax.com/agent/');
+    navigator.clipboard.writeText(window.location.href);
     setShowCheck(true);
     setTimeout(() => setShowCheck(false), 2000); 
   }
@@ -58,7 +58,7 @@ export function Header({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.location.reload()}
+              onClick={() => router.push('/agent/new')}
             >
               <Plus className="h-5 w-5" />
               <span className="sr-only">New Chat</span>

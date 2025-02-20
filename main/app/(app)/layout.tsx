@@ -10,7 +10,7 @@ export default async function AppLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="app-layout">
+    <div className="app-layout bg-light-special-background">
       <SidebarProvider defaultOpen={true}>
         <AppSidebar collapsible="offcanvas" />
         <main className="flex-1 flex flex-col h-screen">
