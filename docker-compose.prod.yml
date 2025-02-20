@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+    depends_on:
+      - aci_server
+  aci_server:
+    build: ./aci_server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    depends_on:
+      - redis
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  celery_worker:
+    build: ./aci_server
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    depends_on:
+      - redis
+      - aci_server
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
+
+  celery_flower:
+    build: ./aci_server
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    depends_on:
+      - redis
+      - celery_worker
+    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0"]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email ${CERTBOT_EMAIL} -d veyraxapp.com -d www.veyraxapp.com --agree-tos --no-eff-email
+    depends_on:
+      - nginx
+
+volumes:
+  redis_data:
