@@ -1,8 +1,9 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { appendResponseMessages, streamText } from 'ai';
 import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
+import { createChatMessage } from '@/app/modules/agent/components/api/api.agent';
 
 export const maxDuration = 30;
 
@@ -16,7 +17,8 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { messages } = body;
+  const { messages, chatId } = body;
+  console.log(chatId);
 
   try {
     const userTools = await getUserTools(user.id);
@@ -28,6 +30,51 @@ export async function POST(req: Request) {
       tools: userTools,
       experimental_toolCallStreaming: true,
       maxSteps: 20,
+      async onFinish({ response }) {
+        const allMessages = appendResponseMessages({
+          messages,
+          responseMessages: response.messages,
+        });
+
+        const lastAiMessage = allMessages[allMessages.length - 1];
+        
+        const parts = [];
+        
+        if (lastAiMessage.toolInvocations) {
+          for (const invocation of lastAiMessage.toolInvocations) {{
+              parts.push({
+                type: 'tool-invocation',
+                toolInvocation: {
+                  toolCallId: invocation.toolCallId,
+                  toolName: invocation.toolName,
+                  args: invocation.args
+                }
+              });
+            }
+          }
+        }
+
+        if (lastAiMessage.content) {
+          parts.push({
+            type: 'text',
+            text: lastAiMessage.content
+          });
+        }
+
+        await supabase
+          .from('chats_messages')
+          .insert({
+            message_id: lastAiMessage.id,
+            chat_id: chatId,
+            sender: 'assistant',
+            message_text: lastAiMessage.content,
+            parts: parts,
+            metadata: {
+              toolInvocations: lastAiMessage.toolInvocations,
+              finishReason: null
+            }
+          });
+      }
     });
 
     return result.toDataStreamResponse({
@@ -35,6 +82,10 @@ export async function POST(req: Request) {
         if (error instanceof Error && error.message.includes('maximum context length')) {
           const truncatedMessages = messages.slice(0, -1);
           return "Token limit exceeded. Please try rephrasing your last question more concisely.";
+        }
+        
+        if (error instanceof Error && error.message.includes('ToolInvocation')) {
+          return "Error processing tool invocation. Please try again.";
         }
         
         return error instanceof Error ? error.message : 'An unknown error occurred';

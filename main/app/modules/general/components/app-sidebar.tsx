@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
+import { getChats } from "@/app/modules/agent/components/api/api.agent"
 
 const items = [
   {
@@ -55,40 +56,7 @@ const items = [
   {
     title: "Recent Chats",
     url: "/",
-    items: [
-      {
-        title: "Project Brainstorming",
-        url: "/chat/1",
-      },
-      {
-        title: "Marketing Strategy", 
-        url: "/chat/2",
-      },
-      {
-        title: "Product Research",
-        url: "/chat/3", 
-      },
-      {
-        title: "Customer Feedback Analysis",
-        url: "/chat/4",
-      },
-      {
-        title: "Team Planning",
-        url: "/chat/5",
-      },
-      {
-        title: "Feature Development", 
-        url: "/chat/6",
-      },
-      {
-        title: "User Experience Review",
-        url: "/chat/7",
-      },
-      {
-        title: "Content Strategy",
-        url: "/chat/8",
-      },
-    ],
+    items: [] // Initialize with empty array, will be populated by useEffect
   }
 ]
 
@@ -101,29 +69,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [showAllChats, setShowAllChats] = useState(false)
 
   useEffect(() => {
-    // Fetch chats from API/database
     const fetchChats = async () => {
       try {
-        const { data: chats } = await supabase
-          .from('chats')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(8)
-        
+        const chats = await getChats();
         if (chats) {
-          items[1].items = chats.map(chat => ({
-            title: chat.title || `Chat ${chat.id}`,
-            url: `/chat/${chat.id}`
-          }))
-          setChats(chats)
+          const chatItems = chats.map(chat => ({
+            title: chat.name || 'Untitled Chat',
+            url: `/agent/${chat.id}`
+          }));
+          
+          items[1].items = chatItems;
+          setChats(chats);
         }
       } catch (error) {
-        console.error('Error fetching chats:', error)
+        console.error('Error fetching chats:', error);
       }
-    }
+    };
 
-    fetchChats()
-  }, [])
+    fetchChats();
+  }, []);
 
   const handleLogoutClick = async () => {
     try {

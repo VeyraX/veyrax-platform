@@ -119,12 +119,12 @@ export const notion_createPage = tool({
       const data = await response.json();
       return {
         success: true,
-        page: data
+        result: data
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create page'
+        result: error instanceof Error ? error.message : 'Failed to create page'
       };
     }
   }

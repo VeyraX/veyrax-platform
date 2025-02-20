@@ -32,17 +32,22 @@ export function MessageList({ subject, snippet, body, sender, recipient, labels 
         </Button>
         
         <div className="flex-1 grid grid-cols-12 gap-4 items-center min-w-0">
-          <div className="col-span-9 truncate font-medium">{subject}</div>
-          <div className="col-span-3 text-right text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(date), { addSuffix: true })}
-          </div>
-          <div className="col-span-1">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => {
-              e.stopPropagation()
-              window.open(html_link, '_blank')
-            }}>
+          <div className="col-span-8 truncate font-medium flex items-center gap-2">
+            {subject}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0" 
+              onClick={(e) => {
+                e.stopPropagation()
+                window.open(html_link, '_blank')
+              }}
+            >
               <ExternalLink className="h-4 w-4" />
             </Button>
+          </div>
+          <div className="col-span-4 text-right text-sm text-muted-foreground">
+            {formatDistanceToNow(new Date(date), { addSuffix: true })}
           </div>
         </div>
       </div>

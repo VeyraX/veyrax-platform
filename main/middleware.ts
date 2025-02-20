@@ -9,6 +9,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/web', request.url))
   }
 
+  if (pathname === '/agent') {
+    return NextResponse.redirect(new URL('/agent/new', request.url))
+  }
+
   if (pathname.startsWith('/agent') || pathname.startsWith('/components/') || pathname.startsWith('/integrations')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -16,7 +20,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === '/login' && session) {
-    return NextResponse.redirect(new URL('/agent', request.url))
+    return NextResponse.redirect(new URL('/agent/new', request.url))
   }
 
   return response

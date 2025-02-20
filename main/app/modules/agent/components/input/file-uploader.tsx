@@ -18,6 +18,7 @@ interface FileUploadProps {
   sandboxId?: string | null
   allowedTypes?: string[]
   maxSize?: number
+  alwaysVisible?: boolean
 }
 
 export default function FileUpload({ 
@@ -31,6 +32,7 @@ export default function FileUpload({
   sandboxId,
   allowedTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'],
   maxSize = 5 * 1024 * 1024,
+  alwaysVisible = true,
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [previews, setPreviews] = useState<{[key: string]: string}>({})
@@ -145,18 +147,17 @@ export default function FileUpload({
         min-h-[64px] w-full rounded-lg
         border-2 border-dashed border-muted
         transition-colors duration-200
-        ${uploadedFiles.length === 0 && isDragging ? "border-primary bg-muted/5" : ""}
+        cursor-pointer
+        ${!alwaysVisible && uploadedFiles.length === 0 && isDragging ? "border-primary bg-muted/5" : ""}
         ${className}
       `}
     >
-      {uploadedFiles.length === 0 && (
+      {(!alwaysVisible && uploadedFiles.length === 0) ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Plus className="h-4 w-4" />
           Drop files here to add to your message.
         </div>
-      )}
-
-      {uploadedFiles.length > 0 && (
+      ) : (
         <div className="w-full flex flex-wrap gap-1.5 p-2">
           {uploadedFiles.map((file) => (
             <div 

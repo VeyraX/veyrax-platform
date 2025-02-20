@@ -25,6 +25,7 @@ const MistOverlay = () => {
 };
 
 const Weather: React.FC<WeatherProps> = ({ data }) => {
+
   const currentWeather = data.forecast[0];
   const isMisty = currentWeather.description.toLowerCase().includes('mist') || 
                   currentWeather.description.toLowerCase().includes('fog');
