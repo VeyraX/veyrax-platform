@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, Paperclip, Send, Mic, Square } from "lucide-react";
+import { Globe, Paperclip, ArrowUp, Mic, Square } from "lucide-react";
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from "framer-motion";
@@ -261,8 +261,26 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
                   variant="outline"
                   disabled={isRecording}
                   onClick={handleSubmit}
+                  className={cn(
+                    "rounded-full transition-all duration-200 ease-in-out border-0 relative overflow-hidden",
+                    value.trim() 
+                      ? "bg-transparent text-white dark:text-black" 
+                      : "border-0 hover:bg-black/5 dark:hover:bg-white/5 scale-100"
+                  )}
                 >
-                  <Send className="w-4 h-4" />
+                  <AnimatePresence>
+                    {value.trim() && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute inset-0 rounded-full bg-black dark:bg-white"
+                        style={{ originX: 0.5, originY: 0.5 }}
+                      />
+                    )}
+                  </AnimatePresence>
+                  <ArrowUp className="w-4 h-4 relative z-10" />
                 </Button>
               )}
             </div>

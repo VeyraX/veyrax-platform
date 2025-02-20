@@ -20,11 +20,13 @@ import {
   ThemeOption,
   LanguageOption
 } from "../api/types.settings"
+import { useTheme } from "next-themes"
 
 export default function AccountSettings() {
+  const { theme, setTheme } = useTheme()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [settings, setSettings] = useState<UserSettings>({
-    theme: 'system',
+    theme: theme as ThemeOption,
     language: 'en'
   })
   const [isSaving, setIsSaving] = useState(false)
@@ -41,12 +43,16 @@ export default function AccountSettings() {
   const handleSaveSettings = async () => {
     setIsSaving(true)
     try {
-      // TODO: Add your API call here to save settings
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Temporary simulation
+      setTheme(settings.theme)
+      await new Promise(resolve => setTimeout(resolve, 1000))
     } finally {
       setIsSaving(false)
     }
   }
+
+  useEffect(() => {
+    setSettings(prev => ({ ...prev, theme: theme as ThemeOption }))
+  }, [theme])
 
   return (
     <div className="space-y-6">

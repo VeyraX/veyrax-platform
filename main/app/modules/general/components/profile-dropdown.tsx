@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTheme } from "next-themes"
 
 interface UserDropdownProps {
   profile: UserProfile | null;
@@ -18,7 +19,7 @@ interface UserDropdownProps {
 }
 
 export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const { theme, setTheme } = useTheme()
 
   return (
     <DropdownMenu>
@@ -73,7 +74,7 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
         <div className="py-2">
           <div className="text-sm font-medium px-2 mb-2">Theme</div>
           <div className="px-2">
-            <Tabs value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}>
+            <Tabs value={theme} onValueChange={setTheme}>
               <TabsList className="w-full">
                 <TabsTrigger value="light" className="flex-1 px-0 py-1.5">
                   <Sun className="h-4 w-4" />

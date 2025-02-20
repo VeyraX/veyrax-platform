@@ -69,17 +69,19 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                     <Badge 
                       variant="secondary"
                       className={
-                        provider.indexStatus === 'synced' ? 'bg-green-100 text-green-800' :
-                        provider.indexStatus === 'syncing' ? 'bg-blue-100 text-blue-800' :
-                        provider.indexStatus === 'failed' ? 'bg-red-100 text-red-800' :
-                        provider.indexStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        `transition-colors ${
+                          provider.indexStatus === 'synced' ? 'bg-green-900/20 text-green-400 dark:bg-green-900/30 dark:text-green-300' :
+                          provider.indexStatus === 'syncing' ? 'bg-blue-900/20 text-blue-400 dark:bg-blue-900/30 dark:text-blue-300' :
+                          provider.indexStatus === 'failed' ? 'bg-red-900/20 text-red-400 dark:bg-red-900/30 dark:text-red-300' :
+                          provider.indexStatus === 'pending' ? 'bg-yellow-900/20 text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                          'bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300'
+                        }`
                       }
                     >
                       {provider.indexStatus ? provider.indexStatus.charAt(0).toUpperCase() + provider.indexStatus.slice(1) : 'Unknown'}
                     </Badge>
                     {provider.indexStatus !== 'syncing' && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300 transition-colors">
                         {provider.processedEntities || 0} documents
                       </Badge>
                     )}
@@ -125,7 +127,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
               <div className="flex flex-wrap gap-2 justify-end">
                 {provider.scopes.map((scope) => (
-                  <Badge key={scope.scope} variant="secondary">
+                  <Badge key={scope.scope} variant="secondary" className="bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300 transition-colors">
                     {scope.scope_name}
                   </Badge>
                 ))}

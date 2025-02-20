@@ -48,13 +48,13 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 210 3% 11%;      /* #1B1C1D */
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 210 3% 11%;            /* #1B1C1D */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 210 3% 11%;         /* #1B1C1D */
     --popover-foreground: 210 40% 98%;
-    --primary: 0 0% 100%;  /* Pure white in dark mode for contrast */
+    --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;

@@ -81,6 +81,9 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({ isRecording, isPau
     const gap = 1
     let frameCount = 0
 
+    // Получаем текущую тему из localStorage
+    const isDarkTheme = localStorage.getItem('theme') === 'dark'
+
     const draw = () => {
       if (!isPaused) {
         animationRef.current = requestAnimationFrame(draw)
@@ -95,7 +98,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({ isRecording, isPau
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         ctx.beginPath()
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.1)"
+        ctx.strokeStyle = isDarkTheme ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
         ctx.lineWidth = 2
         const baselineY = canvas.height / 2
         ctx.moveTo(0, baselineY)
@@ -109,7 +112,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({ isRecording, isPau
           const normalizedValue = (value / 128) * 1.5
           const barHeight = Math.max(3, normalizedValue * (canvas.height / 1.5))
 
-          ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
+          ctx.fillStyle = isDarkTheme ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)"
           ctx.fillRect(x, baselineY - barHeight / 2, barWidth, barHeight)
         })
 

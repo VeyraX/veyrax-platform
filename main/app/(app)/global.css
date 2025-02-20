@@ -1,6 +1,0 @@
-/* Стили только для App Layout */
-.app-layout {
-    background-color: hsl(var(--light-special-background)) !important;
-    min-height: 100vh;
-    width: 100%;
-}

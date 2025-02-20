@@ -167,7 +167,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
               editingMessageId === message.id 
                 ? 'w-full' 
                 : message.role === 'user' 
-                  ? 'max-w-[65%]'
+                  ? 'max-w-[75%]'
                   : 'w-full'
             }`}>
               {message.role === 'user' && currentAttachments && (
@@ -222,7 +222,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                     <div className="flex justify-between items-start gap-2">
                       <div className={`${
                         message.role === 'user' 
-                          ? 'bg-primary text-primary-foreground rounded-3xl rounded-br-sm p-2 text-[15px]'
+                          ? 'bg-[#2A2B2C] text-white rounded-3xl rounded-br-sm px-4 py-2 text-[15px] min-w-[60px] text-left'
                           : ''
                       } flex-1`}>
                         {(message.parts?.length ?? 0) > 0 ? (
@@ -676,13 +676,13 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5"
+                            className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 rounded-full hover:bg-muted"
                             onClick={() => handleCopy(message.id, message.content)}
                           >
                             {copiedMessageId === message.id ? (
-                              <Check className="h-2.5 w-2.5 text-muted-foreground" />
+                              <Check className="h-4 w-4 text-muted-foreground" />
                             ) : (
-                              <Copy className="h-2.5 w-2.5 text-muted-foreground" />
+                              <Copy className="h-4 w-4 text-muted-foreground" />
                             )}
                           </Button>
                         </>
@@ -697,7 +697,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                    className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 rounded-full hover:bg-muted"
                     onClick={() => handleRate(message.id)}
                   >
                     <ThumbsUp className="h-4 w-4" />
@@ -705,7 +705,7 @@ export function ChatMessages({ messages, messageAttachments, isLoading, sandboxI
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                    className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 rounded-full hover:bg-muted"
                     onClick={() => handleRate(message.id)}
                   >
                     <ThumbsDown className="h-4 w-4" />
