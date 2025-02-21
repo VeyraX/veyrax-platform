@@ -189,7 +189,7 @@ export const Hero = () => {
                     className="dark:hidden block"
                     animationStyle="from-center"
                     videoSrc="https://www.youtube.com/embed/i7bNafDInRA?si=4rb-zSdDkVK9qxxb"
-                    thumbnailSrc="/landing/hero_video.png"
+                    thumbnailSrc="/landing/hero_video_beta.png"
                     thumbnailAlt="Hero Video"
                   />
                   <HeroVideoDialog
