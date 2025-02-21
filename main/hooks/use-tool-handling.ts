@@ -1,5 +1,5 @@
 import { type Message } from 'ai/react';
-import { createChatMessage } from "@/app/modules/agent/components/api/api.agent";
+import { createChatMessage } from "@/app/modules/agent/api/api.agent";
 
 interface ExtendedMessage extends Message {
   toolCalls?: any[];
