@@ -4,7 +4,6 @@ import { SuggestionsEmptyState } from "../components/suggestions/suggestions-emp
 
 interface AssistantEmptyStateProps {
   onSubmit: (message: string) => Promise<void>
-  onShowSuggestions: (show: boolean) => void
   isLoading: boolean
   onStop: () => void
   userTools: Record<string, any>
@@ -14,7 +13,6 @@ interface AssistantEmptyStateProps {
 
 export function AssistantEmptyState({
   onSubmit,
-  onShowSuggestions,
   isLoading,
   onStop,
   userTools,
@@ -63,7 +61,6 @@ export function AssistantEmptyState({
           className="max-w-none text-lg"
           isLoading={isLoading}
           onStop={onStop}
-          onShowSuggestions={onShowSuggestions}
           userTools={userTools}
         />
 

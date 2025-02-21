@@ -25,8 +25,9 @@ import {
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
-import { getChats } from "@/app/modules/agent/components/api/api.agent"
+import { getChats } from "@/app/modules/agent/api/api.agent"
 import { authApi } from '@/app/modules/auth/api/api.auth'
+import { useGetChats } from "@/app/modules/agent/api/quries.agent"
 
 const items = [
   {
@@ -68,27 +69,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const supabase = createClientComponentClient()
   const [chats, setChats] = useState<any[]>([])
   const [showAllChats, setShowAllChats] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { data: chatData } = useGetChats()
 
   useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const chats = await getChats();
-        if (chats) {
-          const chatItems = chats.map(chat => ({
-            title: chat.name || 'Untitled Chat',
-            url: `/agent/${chat.id}`
-          }));
-          
-          items[1].items = chatItems;
-          setChats(chats);
-        }
-      } catch (error) {
-        console.error('Error fetching chats:', error);
-      }
-    };
+    setMounted(true)
+  }, [])
 
-    fetchChats();
-  }, []);
+  useEffect(() => {
+    if (mounted && chatData) {
+      const chatItems = chatData.map((chat: any) => ({
+        title: chat.name || 'Untitled Chat',
+        url: `/agent/${chat.id}`
+      }));
+      
+      items[1].items = chatItems;
+      setChats(chatData);
+    }
+  }, [mounted, chatData]);
 
   const handleLogoutClick = async () => {
     try {
@@ -100,6 +98,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       console.error('Logout failed:', error);
     }
   }
+
+  if (!mounted) return null;
 
   return (
     <>

@@ -2,9 +2,11 @@ import { createClient } from '@/lib/utils/supabase/client'
 import { IntegrationCardProps, Provider } from './types.integrations'
 import { getAuthHeaders } from '@/lib/actions/actions'
 
+const supabase = createClient()
+
+
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
-  const supabase = createClient()
-  
+  console.log('🔄 Начало запроса данных из Supabase', new Date().toISOString())
   const { data: { user } } = await supabase.auth.getUser()
   
   const { data: providers } = await supabase
@@ -34,9 +36,9 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     userIndexes?.map(index => [index.provider_id, index.processed_entities])
   )
 
-  console.log(userIndexes)
+  console.log(connectedProviderIds)
 
-  return providers?.map((provider: Provider) => ({
+  const result = providers?.map((provider: Provider) => ({
     ...provider,
     connected: connectedProviderIds.has(provider.id),
     hasIndex: indexStatusMap.has(provider.id),
@@ -44,10 +46,17 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     lastSyncDate: lastSyncDateMap.get(provider.id),
     processedEntities: processedEntitiesMap.get(provider.id)
   })) || []
+
+  console.log('✅ Данные получены', { 
+    providers: providers?.length,
+    userProviders: userProviders?.length,
+    userIndexes: userIndexes?.length
+  })
+  
+  return result
 }
 
 export const enableProvider = async (providerId: string): Promise<void> => {
-  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   await supabase
@@ -59,7 +68,6 @@ export const enableProvider = async (providerId: string): Promise<void> => {
 }
 
 export const disconnectProvider = async (providerId: string): Promise<void> => {
-  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   await supabase
@@ -80,7 +88,6 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
 }
 
 export const createProviderIndex = async (providerId: string, providerTag: string): Promise<void> => {
-  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   await supabase
@@ -141,7 +148,6 @@ export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): 
 }
 
 export const enableApiKeyProvider = async (providerId: string): Promise<void> => {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   const { error } = await supabase
@@ -157,7 +163,6 @@ export const enableApiKeyProvider = async (providerId: string): Promise<void> =>
 }
 
 export const checkIndexStatus = async (providerId: string): Promise<string | null> => {
-  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   const { data } = await supabase
@@ -189,7 +194,6 @@ export const deleteIndexData = async (providerTag: string): Promise<void> => {
 }
 
 export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string }[]> => {
-  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
   type ProviderResponse = {

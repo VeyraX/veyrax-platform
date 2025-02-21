@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, createProviderIndex, deleteIndexData } from "../api/api.integrantions";
+import { disconnectProvider, createProviderIndex, deleteIndexData } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw } from "lucide-react";
 import { Separator } from "@/components/ui/separator";

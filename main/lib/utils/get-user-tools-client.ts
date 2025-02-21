@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/utils/supabase/client';
 import { tools as allTools } from '@/lib/ai/tools';
+import { useQuery } from '@tanstack/react-query';
+
 
 export async function getUserToolsClient() {
   const supabase = createClient();
@@ -30,4 +32,11 @@ export async function getUserToolsClient() {
       .filter(tool => tool.tool_name in allTools)
       .map(tool => [tool.tool_name, allTools[tool.tool_name as keyof typeof allTools]])
   );
+}
+
+export const useGetUserTools = () => {
+  return useQuery({
+    queryKey: ['user-tools'],
+    queryFn: getUserToolsClient
+  })
 }

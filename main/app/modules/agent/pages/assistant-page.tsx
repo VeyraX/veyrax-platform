@@ -4,26 +4,25 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from 'ai/react'
 import { AIInputWithSearch } from "../components/input/ai-input"
 import { Header } from "../../general/components/header"
-import FileUpload from "../components/input/file-uploader"
 import { ChatMessages } from "../components/messages/chat-messages"
 import { type Message } from 'ai/react'
-import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 import { AssistantEmptyState } from "./assistant-empty-state";
-import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrantions"
-import { useFileHandling } from "../components/input/file-handler"
-import { createChat } from "../components/api/api.agent";
+import { createChat } from "../api/api.agent";
 import { useRouter } from "next/navigation";
-import { createChatMessage } from "../components/api/api.agent";
-import { getChatMessages } from "../components/api/api.agent";
+import { createChatMessage } from "../api/api.agent";
+import { getChatMessages } from "../api/api.agent";
 import { Loader2 } from "lucide-react"
-import { getChat } from "../components/api/api.agent";
-import { useToolHandling } from '@/hooks/use-tool-handling';
+import { getChat } from "../api/api.agent";
+import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
+import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrations";
+import { updateChatTitle } from "../api/api.agent";
 
 interface ExtendedMessage extends Message {
   toolCalls?: any[];
   toolResults?: any[];
   toolInvocations?: any[];
   finishReason?: string;
+  is_accurate?: boolean | null;
 }
 
 export default function AssistantPage({
@@ -36,7 +35,8 @@ export default function AssistantPage({
   const router = useRouter();
   
   const currentChatIdRef = useRef<string | null>(isNewChat ? null : chatId);
-  
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [isJustCreated, setIsJustCreated] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -61,14 +61,6 @@ export default function AssistantPage({
     },
   });
 
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [messageAttachments, setMessageAttachments] = useState<{
-    [messageId: string]: {
-      files: File[];
-      previews: { [filename: string]: string };
-    }
-  }>({});
-  const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
   const [userTools, setUserTools] = useState<Record<string, any>>({});
   const [connectedTools, setConnectedTools] = useState<{ providerTag: string, logoUrl: string }[]>([]);
   const [chatState, setChatState] = useState<{
@@ -77,18 +69,6 @@ export default function AssistantPage({
     id: null
   });
 
-  const allowedFileTypes = ['png', 'jpg', 'jpeg', 'txt', 'doc', 'docx', 'rtf'];
-  
-  const {
-    isDragging,
-    uploadedFiles,
-    previews,
-    fileMetadata,
-    sandboxId,
-    tableContent,
-    textContent,
-    handlers
-  } = useFileHandling(allowedFileTypes);
 
   const [isLoadingMessages, setIsLoadingMessages] = useState(() => {
     return !isNewChat;
@@ -98,7 +78,7 @@ export default function AssistantPage({
 
   useEffect(() => {
     const loadMessages = async () => {
-      if (!isNewChat && chatId) {
+      if (!isNewChat && chatId && !isJustCreated) {
         setIsLoadingMessages(true);
         try {
           const [existingMessages, chatData] = await Promise.all([
@@ -114,18 +94,14 @@ export default function AssistantPage({
           }
           
           const convertedMessages = existingMessages.map((msg) => {
-            console.log('Processing message:', msg);
-            console.log('Message parts:', msg.parts);
-            if (msg.metadata?.toolInvocations) {
-              console.log('Tool invocations:', msg.metadata.toolInvocations);
-            }
 
             if (msg.sender !== 'assistant') {
               return {
                 id: msg.message_id,
                 content: msg.message_text,
                 role: 'user',
-                parts: msg.parts
+                parts: msg.parts,
+                is_accurate: msg.is_accurate ?? null
               };
             }
 
@@ -151,7 +127,8 @@ export default function AssistantPage({
               id: msg.message_id,
               content: msg.message_text,
               role: 'assistant',
-              parts: updatedParts
+              parts: updatedParts,
+              is_accurate: msg.is_accurate ?? null
             };
           });
           setMessages(convertedMessages as Message[]);
@@ -165,21 +142,6 @@ export default function AssistantPage({
 
     loadMessages();
   }, [chatId, isNewChat, setMessages]);
-
-  useEffect(() => {
-    if (messages.length > 0 && uploadedFiles) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'user') {
-        setMessageAttachments(prev => ({
-          ...prev,
-          [lastMessage.id]: {
-            files: Array.from(uploadedFiles),
-            previews: { ...previews }
-          }
-        }));
-      }
-    }
-  }, [messages, uploadedFiles]);
 
   const handleNewMessage = async (value: string) => {
     try {
@@ -196,6 +158,7 @@ export default function AssistantPage({
         
         currentChatIdRef.current = chatId;
         router.replace(`/agent/${chatId}`);
+        setHasSubmitted(true);
 
         localStorage.setItem(`chat-${chatId}-just-created`, 'true');
         setIsJustCreated(true);
@@ -233,6 +196,7 @@ export default function AssistantPage({
       if (currentChatIdRef.current) {
         localStorage.removeItem(`chat-${currentChatIdRef.current}-just-created`);
         setIsJustCreated(false);
+        setIsLoadingMessages(false);
       }
     }
   }, [messages, isLoading]);
@@ -243,20 +207,16 @@ export default function AssistantPage({
         !isLoading) {
       const fetchTitleAndUpdate = async () => {
         if (isJustCreated && messages[0]?.role === 'user') {
-          const titleResponse = await fetch('/api/chat-title', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              chatId: currentChatIdRef.current,
-              firstMessage: messages[0].content 
-            }),
-          });
-
-          const titleData = await titleResponse.json();
-          if (titleData.title) {
-            setChatName(titleData.title);
+          try {
+            const titleData = await updateChatTitle(
+              currentChatIdRef.current!,
+              messages[0].content
+            );
+            if (titleData.title) {
+              setChatName(titleData.title);
+            }
+          } catch (error) {
+            console.error('Error updating chat title:', error);
           }
         }
       };
@@ -264,10 +224,6 @@ export default function AssistantPage({
       fetchTitleAndUpdate();
     }
   }, [messages, isLoading, isJustCreated]);
-
-  const handleShowSuggestions = (show: boolean) => {
-    setShowSuggestions(show);
-  };
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -294,14 +250,13 @@ export default function AssistantPage({
           chatName={!isNewChat ? chatName : "New Chat"}
         />
         
-        {isLoadingMessages && !isJustCreated ? (
+        {(isLoadingMessages && !isJustCreated && !isNewChat) ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="animate-spin" />
           </div>
-        ) : isNewChat ? (
+        ) : (isNewChat && !hasSubmitted) ? (
           <AssistantEmptyState
             onSubmit={handleNewMessage}
-            onShowSuggestions={handleShowSuggestions}
             isLoading={false}
             onStop={stop}
             userTools={userTools}
@@ -312,22 +267,9 @@ export default function AssistantPage({
           <>
             <ScrollArea className="flex-1">
               <ChatMessages 
+                chatId={chatId}
                 messages={messages as Message[]}
-                messageAttachments={messageAttachments}
                 isLoading={isLoading}
-                sandboxId={sandboxId}
-                onEditMessage={async (messageId: string, newContent: string) => {
-                  const messageIndex = messages.findIndex(m => m.id === messageId);
-                  if (messageIndex === -1) return;
-
-                  const newMessages = messages.slice(0, messageIndex);
-                  setMessages(newMessages);
-                  
-                  await append({
-                    content: newContent,
-                    role: 'user'
-                  });
-                }}
                 onSendMessage={async (message: string) => {
                   await append({
                     content: message,
@@ -340,29 +282,12 @@ export default function AssistantPage({
             <div className="sticky bottom-0 bg-background">
               <div className="flex flex-col p-4 mx-auto w-full max-w-5xl">
                 
-                {(uploadedFiles || isDragging) && 
-                 !isLoading && 
-                 (!messages.length || messages[messages.length - 1].role === 'assistant') && (
-                  <FileUpload
-                    onFileSelect={handlers.handleFileSelect}
-                    onFileRemove={handlers.handleFileRemove}
-                    onTableFileSelect={handlers.handleTableFileSelect}
-                    onTextFileSelect={handlers.handleTextFileSelect}
-                    onUploadSuccess={handlers.handleUploadSuccess}
-                    uploadedFiles={uploadedFiles ? Array.from(uploadedFiles) : []}
-                    sandboxId={sandboxId}
-                    allowedTypes={allowedFileTypes}
-                    maxSize={5 * 1024 * 1024}
-                  />
-                )}
-                
                 <AIInputWithSearch
                   placeholder={"Ask about anything..."}
                   onSubmit={handleNewMessage}
                   className="max-w-none"
                   isLoading={isLoading}
                   onStop={stop}
-                  onShowSuggestions={handleShowSuggestions}
                   userTools={userTools}
                 />
               </div>

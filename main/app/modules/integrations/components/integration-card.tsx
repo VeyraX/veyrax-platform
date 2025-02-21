@@ -9,14 +9,16 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../api/api.integrantions'
+import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../api/api.integrations'
 import { ManageDialog } from './integration-manage'
+import { useGetProviders } from '../api/quries.integrations'
 
 
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const router = useRouter()
   const [showSettings, setShowSettings] = useState(false);
   const [showManage, setShowManage] = useState(false);
+  const { isFetching, isStale } = useGetProviders()
 
   const handleShowSettings = (provider: Provider) => {
     setShowSettings(true);
@@ -44,6 +46,15 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
       console.error(`Failed to enable ${props.name}:`, error);
     }
   };
+
+  useEffect(() => {
+    if (props.connected) {
+      console.log(`Состояние интеграции ${props.name}:`, {
+        обновляется: isFetching,
+        устарела: isStale
+      })
+    }
+  }, [isFetching, isStale, props.name, props.connected])
 
   return (
     <>

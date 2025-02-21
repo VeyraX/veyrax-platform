@@ -1,23 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Menu, MoreHorizontal, Link, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SidebarToggle } from './toggle-sidebar';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { AccountSettingsDialog } from '@/app/modules/settings/pages/settings-page';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getUserProfile } from '@/app/modules/settings/api/api.settings';
-import { UserProfile } from '@/app/modules/settings/api/types.settings';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Settings, CreditCard, Moon, Sun, Laptop, LogOut } from 'lucide-react';
+import { useGetUserProfile } from '@/app/modules/settings/api/queries.settings';
 import { UserDropdown } from './profile-dropdown';
 
 export function Header({ 
@@ -32,16 +22,9 @@ export function Header({
   const router = useRouter();
   const [showCheck, setShowCheck] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-
-  useEffect(() => {
-    async function loadProfile() {
-      const data = await getUserProfile()
-      setProfile(data)
-    }
-    loadProfile()
-  }, [])
+  
+  const { data: profile } = useGetUserProfile();
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -93,7 +76,7 @@ export function Header({
             </>
           )}
           <UserDropdown 
-            profile={profile}
+            profile={profile || null}
             onOpenSettings={() => setShowSettings(true)}
           />
         </div>

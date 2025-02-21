@@ -25,11 +25,7 @@ export function SuggestionsEmptyState({
   React.useEffect(() => {
     if (connectedTools && connectedTools.length > 0) {
       setIsLoading(true)
-      setTimeout(() => {
-        setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
-        setIsLoading(false)
-      }, 1000)
-    } else {
+      setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
       setIsLoading(false)
     }
   }, [connectedTools])
@@ -38,6 +34,7 @@ export function SuggestionsEmptyState({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setSelectedTool(null)
+        setIsLoading(false)
       }
     }
 

@@ -1,36 +1,13 @@
 'use client'
 
-import { FC, useEffect, useState } from 'react'
+import { FC } from 'react'
 import { IntegrationCard } from '../components/integration-card'
 import { Header } from '@/app/modules/general/components/header'
-import { IntegrationCardProps } from '../api/types.integrations'
-import { getIntegrationsData } from '../api/api.integrantions'
 import { Skeleton } from "@/components/ui/skeleton"
+import { useGetProviders } from '../api/quries.integrations'
 
 const IntegrationsPage: FC = () => {
-  const [integrations, setIntegrations] = useState<IntegrationCardProps[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const loadIntegrations = async () => {
-    try {
-      const integrationsData = await getIntegrationsData()
-      setIntegrations(integrationsData)
-    } catch (error) {
-      console.error('Failed to load integrations:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (isLoading) {
-      loadIntegrations()
-    }
-  }, [isLoading])
-
-  const handleConnectionChange = () => {
-    setIsLoading(true)
-  }
+  const { data: integrations, isLoading, refetch } = useGetProviders()
 
   const IntegrationSkeleton = () => (
     <div className="p-6 border rounded-lg space-y-4">
@@ -51,16 +28,16 @@ const IntegrationsPage: FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {isLoading && integrations.length === 0 ? (
+          {isLoading ? (
             [...Array(8)].map((_, index) => (
               <IntegrationSkeleton key={index} />
             ))
           ) : (
-            integrations.map((integration) => (
+            integrations?.map((integration) => (
               <IntegrationCard 
                 key={integration.id} 
                 {...integration} 
-                onConnectionChange={handleConnectionChange}
+                onConnectionChange={refetch}
               />
             ))
           )}

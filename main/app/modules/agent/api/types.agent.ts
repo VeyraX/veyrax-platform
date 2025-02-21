@@ -18,6 +18,7 @@ export interface ChatMessage {
   message_text: string;
   image_url?: string;
   created_at: string;
+  is_accurate?: boolean;
   parts?: Array<{
     type: 'text' | 'tool-call' | 'tool-result';
     text?: string;

@@ -3,7 +3,6 @@ import { appendResponseMessages, streamText } from 'ai';
 import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
-import { createChatMessage } from '@/app/modules/agent/components/api/api.agent';
 
 export const maxDuration = 30;
 

@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/utils/supabase/client'
 import { Chat, CreateChatPayload, ChatMessage, CreateChatMessagePayload } from './types.agent'
 
+const supabase = createClient()
+
 export async function createChat(payload: CreateChatPayload): Promise<Chat> {
-  const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -27,8 +27,6 @@ export async function createChat(payload: CreateChatPayload): Promise<Chat> {
 }
 
 export async function createChatMessage(payload: CreateChatMessagePayload): Promise<ChatMessage> {
-  const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -55,8 +53,6 @@ export async function createChatMessage(payload: CreateChatMessagePayload): Prom
 }
 
 export async function getChatMessages(chatId: string): Promise<ChatMessage[]> {
-  const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -72,6 +68,8 @@ export async function getChatMessages(chatId: string): Promise<ChatMessage[]> {
   if (error) {
     throw error
   }
+  console.log('Supabase response - Data:', data)
+  console.log('Supabase response - Error:', error)
 
   return (data || []).map(msg => ({
     ...msg,
@@ -93,8 +91,6 @@ export async function getChatMessages(chatId: string): Promise<ChatMessage[]> {
 }
 
 export async function getChat(chatId: string): Promise<Chat> {
-  const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -115,8 +111,6 @@ export async function getChat(chatId: string): Promise<Chat> {
 }
 
 export async function getChats(): Promise<Chat[]> {
-  const supabase = createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -133,4 +127,47 @@ export async function getChats(): Promise<Chat[]> {
   }
 
   return data || [];
+}
+
+export async function updateMessageAccuracy(
+  messageId: string, 
+  chatId: string, 
+  isAccurate: boolean
+): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const { error } = await supabase
+    .from('chats_messages')
+    .update({ is_accurate: isAccurate })
+    .match({ 
+      message_id: messageId,
+      chat_id: chatId 
+    })
+
+  if (error) {
+    throw error
+  }
+}
+
+export async function updateChatTitle(chatId: string, firstMessage: string): Promise<{ title: string }> {
+  const response = await fetch('/api/chat-title', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      chatId,
+      firstMessage 
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update chat title');
+  }
+
+  return response.json();
 }
