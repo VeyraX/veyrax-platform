@@ -38,7 +38,7 @@ const items = [
         url: "/agent",
       },
       {
-        title: "TOCO Integration",
+        title: "Integration",
         url: "/integrations",
       },
     ],
