@@ -1,17 +1,20 @@
 import type React from "react"
-import type { Page, Database } from "./types.notion"
+import type { Page, Database, DatabaseWithProperties } from "./types.notion"
 import { ToolCard, ToolCardSkeleton } from "../common/tool-card"
 import { Table, TableHeader, TableBody, TableCell, TableRow, TableHead } from "@/components/ui/table"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDistanceToNow } from "date-fns"
 
-export function NotionPageCard({ title, last_edited_time, url }: Page) {
+export function NotionPageCard({ title, last_edited_time, url, id }: Page) {
   return (
     <ToolCard
       resourceType="notion/page"
-      title={title}
-      subtitle={`Edited ${formatDistanceToNow(new Date(last_edited_time), { addSuffix: true })}`}
+      title={title || "Untitled"}
+      subtitle={last_edited_time ? 
+        `Edited ${formatDistanceToNow(new Date(last_edited_time), { addSuffix: true })}` : 
+        "Just created"
+      }
       externalLink={url}
     />
   )
@@ -51,7 +54,31 @@ export function NotionDatabaseListSkeleton() {
     </Card>
   )
 }
+
 export function NotionPageCardSkeleton() {
   return <ToolCardSkeleton />
+}
+
+export function NotionDatabaseProperties({ database }: { database: DatabaseWithProperties }) {
+  return (
+    <div className="space-y-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Property Name</TableHead>
+            <TableHead>Type</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Object.entries(database.properties).map(([key, property]) => (
+            <TableRow key={property.id}>
+              <TableCell className="font-medium">{property.name}</TableCell>
+              <TableCell>{property.type}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 }
 

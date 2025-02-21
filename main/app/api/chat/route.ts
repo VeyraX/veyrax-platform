@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { messages, chatId } = body;
-  console.log(chatId);
 
   try {
     const userTools = await getUserTools(user.id);
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
       system: main_system_prompt,
       tools: userTools,
       experimental_toolCallStreaming: true,
-      maxSteps: 20,
+      maxSteps: 25,
       async onFinish({ response }) {
         const allMessages = appendResponseMessages({
           messages,

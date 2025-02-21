@@ -31,18 +31,40 @@ class NotionClient:
         ).json()
 
     def create_page(self, page_data: Dict[str, Any]) -> Dict[str, Any]:
-        return requests.post(
+        print("\n=== NOTION API REQUEST ===")
+        print("URL:", f"{self.base_url}/pages")
+        print("Headers:", self.headers)
+        print("Request Body:", page_data)
+        
+        response = requests.post(
             f"{self.base_url}/pages",
             headers=self.headers,
             json=page_data
-        ).json()
+        )
+        
+        print("\n=== NOTION API RESPONSE ===")
+        print("Status Code:", response.status_code)
+        print("Response:", response.json())
+        
+        return response.json()
 
     def update_page(self, page_id: str, page_data: Dict[str, Any]) -> Dict[str, Any]:
-        return requests.patch(
+        print("\n=== NOTION API REQUEST ===")
+        print("URL:", f"{self.base_url}/pages/{page_id}")
+        print("Headers:", self.headers)
+        print("Request Body:", page_data)
+        
+        response = requests.patch(
             f"{self.base_url}/pages/{page_id}",
             headers=self.headers,
             json=page_data
-        ).json()
+        )
+        
+        print("\n=== NOTION API RESPONSE ===")
+        print("Status Code:", response.status_code)
+        print("Response:", response.json())
+        
+        return response.json()
 
     def archive_page(self, page_id: str) -> Dict[str, Any]:
         return requests.patch(
@@ -85,4 +107,11 @@ class NotionClient:
             f"{self.base_url}/blocks/{block_id}/children",
             headers=self.headers,
             params=kwargs
+        ).json()
+
+    def get_database(self, database_id: str) -> Dict[str, Any]:
+        """Get database metadata including its property schema"""
+        return requests.get(
+            f"{self.base_url}/databases/{database_id}",
+            headers=self.headers
         ).json()

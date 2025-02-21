@@ -25,8 +25,18 @@ const MistOverlay = () => {
 };
 
 const Weather: React.FC<WeatherProps> = ({ data }) => {
+  console.log('Weather Widget Data:', data);
+
+  if (!data?.forecast || !Array.isArray(data.forecast) || data.forecast.length === 0) {
+    return <div>No weather data available</div>;
+  }
 
   const currentWeather = data.forecast[0];
+  
+  if (!currentWeather || typeof currentWeather.description === 'undefined') {
+    return <div>Invalid weather data format</div>;
+  }
+
   const isMisty = currentWeather.description.toLowerCase().includes('mist') || 
                   currentWeather.description.toLowerCase().includes('fog');
   const isSnowing = currentWeather.description.toLowerCase().includes('snow');

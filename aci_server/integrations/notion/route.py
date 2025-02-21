@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from typing import Optional, Dict, Any
 from .schema import (
     DatabaseList, Database, PageList, Page, 
-    PageCreate, PageUpdate, PageFilters
+    PageCreate, PageUpdate, PageFilters, DatabaseProperties
 )
 from .service import NotionService
 from .client import NotionClient
@@ -81,3 +81,20 @@ async def search_pages(
         sort_direction=sort_direction
     )
     return result
+
+@router.get("/databases/{database_id}", response_model=DatabaseProperties)
+async def get_database_properties(
+    database_id: str,
+    service: NotionService = Depends(get_notion_service)
+):
+    """Get database properties including its schema"""
+    return service.get_database_properties(database_id)
+
+@router.post("/databases/{database_id}/query", response_model=PageList)
+async def query_database(
+    database_id: str,
+    query_params: Dict[str, Any],
+    service: NotionService = Depends(get_notion_service)
+):
+    """Execute a complex query against a Notion database"""
+    return service.query_database(database_id, query_params)

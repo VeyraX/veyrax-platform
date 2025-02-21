@@ -29,6 +29,7 @@ import { NotionResponseSkeleton, NotionResponseView } from "../tools/notion/vect
 import { LinearIssueCard, LinearIssueCardSkeleton, LinearProjectList, LinearProjectListSkeleton, LinearTeamList, LinearTeamListSkeleton } from "../tools/linear/card-view.linear"
 import { LinearWorkflowStateList, LinearWorkflowStateListSkeleton } from "../tools/linear/card-view.linear"
 import { updateMessageAccuracy } from "../../api/api.agent"
+import { NotionDatabaseProperties } from "../tools/notion/card-view.notion"
 
 interface ExtendedMessage extends Message {
   image_url?: string;
@@ -308,32 +309,10 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                       <ToolWrapper toolName="notion">
                                         <div className="max-w-3xl w-full">
                                           {['partial-call', 'call'].includes(state) ? (
-                                            <Card className="w-full max-w-md animate-pulse">
-                                              <CardHeader>
-                                                <Skeleton className="h-4 w-3/4" />
-                                              </CardHeader>
-                                              <CardContent className="space-y-2">
-                                                <Skeleton className="h-4 w-1/2" />
-                                                <Skeleton className="h-4 w-2/3" />
-                                              </CardContent>
-                                            </Card>
+                                            <NotionPageCardSkeleton />
                                           ) : (
                                             result?.success && (
-                                              <Card>
-                                                <CardHeader>
-                                                  <h3 className="text-lg font-semibold">Page Created Successfully</h3>
-                                                </CardHeader>
-                                                <CardContent>
-                                                  <p>Title: {result.page.title}</p>
-                                                  <Link 
-                                                    href={result.page.url} 
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                    target="_blank"
-                                                  >
-                                                    View Page →
-                                                  </Link>
-                                                </CardContent>
-                                              </Card>
+                                              <NotionPageCard {...result.result} />
                                             )
                                           )}
                                         </div>
@@ -353,12 +332,8 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                             </Card>
                                           ) : (
                                             result?.success && (
-                                              console.log(result),
-                                              <Weather 
-                                                data={toolName === 'openweather_getWeather' 
-                                                  ? result.weather 
-                                                  : result.forecast} 
-                                              />
+                                              console.log('Weather data:', result),
+                                              <Weather data={result} />
                                             )
                                           )}
                                         </div>
@@ -556,6 +531,62 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           ) : (
                                             result?.success && (
                                               <LinearWorkflowStateList states={result.data?.states || []} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'notion_getDatabaseProperties':
+                                    return (
+                                      <ToolWrapper toolName="notion">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <NotionDatabaseListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <NotionDatabaseProperties database={result.database} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'notion_queryDatabase':
+                                    return (
+                                      <ToolWrapper toolName="notion">
+                                        <div className="max-w-3xl w-full space-y-4">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <>
+                                              <NotionPageCardSkeleton />
+                                              <NotionPageCardSkeleton />
+                                              <NotionPageCardSkeleton />
+                                            </>
+                                          ) : (
+                                            result?.success && (
+                                              <div className="flex flex-wrap gap-4">
+                                                {result.pages?.map((page: Page) => (
+                                                  <NotionPageCard
+                                                    key={page.url}
+                                                    {...page}
+                                                  />
+                                                ))}
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'notion_updatePage':
+                                    return (
+                                      <ToolWrapper toolName="notion">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <NotionPageCardSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <NotionPageCard {...result.result} />
                                             )
                                           )}
                                         </div>

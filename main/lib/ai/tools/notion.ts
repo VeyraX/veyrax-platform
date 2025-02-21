@@ -1,6 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { getAuthHeaders } from '@/lib/actions/actions';
+import { formatProperties, formatDatabaseFilter, formatSort } from '@/lib/utils/notion-formatter';
 
 export const notion_listDatabases = tool({
   description: 'List available Notion databases',
@@ -89,15 +90,51 @@ export const notion_listPages = tool({
 });
 
 export const notion_createPage = tool({
-  description: 'Create a new page in a Notion database',
+  description: 'Create a new page in a Notion database with simple properties',
   parameters: z.object({
-    parentId: z.string().describe('ID of the database'),
-    title: z.string().describe('Title of the page'),
-    properties: z.record(z.any()).describe('Page properties in Notion format'),
-    content: z.record(z.any()).optional().describe('Page content blocks')
+    databaseId: z.string().describe('ID of the database'),
+    title: z.string().describe('Page title'),
+    text: z.string().optional().describe('Text content'),
+    date: z.string().optional().describe('Date in YYYY-MM-DD format'),
+    status: z.string().optional().describe('Status value'),
+    number: z.number().optional().describe('Number value'),
+    checkbox: z.boolean().optional().describe('Checkbox value'),
+    properties: z.record(z.any()).optional().describe('Additional properties in Notion format'),
+    content: z.array(z.record(z.any())).optional().describe('Page content blocks')
   }),
-  execute: async function({ parentId, title, properties, content }) {
+  execute: async function({ 
+    databaseId, 
+    title, 
+    text, 
+    date, 
+    status, 
+    number, 
+    checkbox, 
+    properties = {}, 
+    content = [] 
+  }) {
     try {
+      const formattedProperties = formatProperties(
+        title,
+        text,
+        date,
+        status,
+        number,
+        checkbox,
+        properties
+      );
+
+      const requestBody = {
+        parent: { database_id: databaseId },
+        properties: formattedProperties,
+        ...(content.length > 0 && { children: content })
+      };
+
+      console.log('Notion Create Page Request:', {
+        databaseId,
+        requestBody
+      });
+
       const headers = await getAuthHeaders();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/pages`, {
         method: 'POST',
@@ -106,25 +143,24 @@ export const notion_createPage = tool({
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({
-          parent_id: parentId,
-          title,
-          properties,
-          content
-        })
+        body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) throw new Error('Failed to create page');
-      
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to create page');
+      }
+      
       return {
         success: true,
         result: data
       };
     } catch (error) {
+      console.error('Notion Create Page Error:', error);
       return {
         success: false,
-        result: error instanceof Error ? error.message : 'Failed to create page'
+        error: error instanceof Error ? error.message : 'Failed to create page'
       };
     }
   }
@@ -244,6 +280,207 @@ export const notion_vectorSearch = tool({
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to search documents'
+      };
+    }
+  }
+});
+
+export const notion_getDatabaseProperties = tool({
+  description: 'Get properties and schema of a specific Notion database',
+  parameters: z.object({
+    databaseId: z.string().describe('ID of the database to fetch properties for')
+  }),
+  execute: async function({ databaseId }) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/notion/databases/${databaseId}`,
+        {
+          headers,
+          credentials: 'include'
+        }
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch database properties');
+      
+      const data = await response.json();
+      return {
+        success: true,
+        database: {
+          id: data.id,
+          title: data.title,
+          properties: data.properties
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch database properties'
+      };
+    }
+  }
+});
+
+export const notion_updatePage = tool({
+  description: 'Update an existing page in Notion',
+  parameters: z.object({
+    pageId: z.string().describe('ID of the page to update'),
+    title: z.string().optional().describe('New title of the page'),
+    text: z.string().optional().describe('New text content'),
+    date: z.string().optional().describe('Date in YYYY-MM-DD format'),
+    status: z.string().optional().describe('Status value'),
+    number: z.number().optional().describe('Number value'),
+    checkbox: z.boolean().optional().describe('Checkbox value'),
+    properties: z.record(z.any()).optional().describe('Raw properties in Notion format')
+  }),
+  execute: async function({ pageId, title, text, date, status, number, checkbox, properties = {} }) {
+    try {
+      const formattedProperties = formatProperties(
+        title,
+        text,
+        date,
+        status,
+        number,
+        checkbox,
+        properties
+      );
+
+      const requestBody = {
+        properties: formattedProperties
+      };
+
+      console.log('Notion Update Page Request:', {
+        pageId,
+        requestBody
+      });
+
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/pages/${pageId}`, {
+        method: 'PATCH',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+      console.log('Notion Update Page Response:', data);
+
+      if (!response.ok) {
+        const error = data.detail || 'Failed to update page';
+        console.error('Notion API Error:', error);
+        throw new Error(error);
+      }
+      
+      return {
+        success: true,
+        result: data
+      };
+    } catch (error) {
+      console.error('Notion Update Page Error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update page'
+      };
+    }
+  }
+});
+
+export const notion_queryDatabase = tool({
+  description: 'Query a Notion database with simple filters and sorts',
+  parameters: z.object({
+    databaseId: z.string().describe('ID of the database to query'),
+    title: z.string().optional().describe('Filter by title containing text'),
+    date: z.string().optional().describe('Filter by exact date (YYYY-MM-DD)'),
+    dateAfter: z.string().optional().describe('Filter by date after (YYYY-MM-DD)'),
+    dateBefore: z.string().optional().describe('Filter by date before (YYYY-MM-DD)'),
+    status: z.string().optional().describe('Filter by status/select value'),
+    checkbox: z.boolean().optional().describe('Filter by checkbox value'),
+    number: z.number().optional().describe('Filter by exact number value'),
+    numberGreater: z.number().optional().describe('Filter by number greater than'),
+    numberLess: z.number().optional().describe('Filter by number less than'),
+    sortBy: z.string().optional().describe('Property to sort by'),
+    sortDirection: z.enum(['ascending', 'descending']).optional().describe('Sort direction'),
+    startCursor: z.string().optional().describe('Cursor for pagination'),
+    pageSize: z.number().optional().describe('Number of results per page (max: 100)'),
+    filter: z.record(z.any()).optional().describe('Raw filter in Notion format'),
+    sorts: z.array(z.record(z.any())).optional().describe('Raw sorts in Notion format')
+  }),
+  execute: async function({ 
+    databaseId, 
+    title, 
+    date, 
+    dateAfter,
+    dateBefore,
+    status,
+    checkbox,
+    number,
+    numberGreater,
+    numberLess,
+    sortBy,
+    sortDirection,
+    startCursor,
+    pageSize,
+    filter,
+    sorts 
+  }) {
+    try {
+      const compiledFilter = formatDatabaseFilter({
+        title,
+        date,
+        dateAfter,
+        dateBefore,
+        status,
+        checkbox,
+        number,
+        numberGreater,
+        numberLess,
+        filter
+      });
+
+      const compiledSorts = formatSort(sortBy, sortDirection, sorts);
+
+      const requestBody: any = {
+        filter: compiledFilter,
+        ...(compiledSorts && { sorts: compiledSorts }),
+        ...(startCursor && { start_cursor: startCursor }),
+        ...(pageSize && { page_size: pageSize })
+      };
+      
+      console.log('Notion Query Database Request:', {
+        databaseId,
+        requestBody
+      });
+
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/notion/databases/${databaseId}/query`,
+        {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to query database');
+      
+      const data = await response.json();
+      return {
+        success: true,
+        pages: data.items,
+        nextCursor: data.next_cursor
+      };
+    } catch (error) {
+      console.error('Notion Query Database Error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to query database'
       };
     }
   }

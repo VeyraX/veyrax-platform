@@ -7,11 +7,7 @@ export const openweather_getWeather = tool({
     city: z.string().describe('Name of the city'),
     country: z.string().describe('Country code (e.g., US, UK, FR)'),
   }),
-  execute: async function({ city, country }): Promise<{
-    success: boolean,
-    forecast?: any,
-    error?: string
-  }> {
+  execute: async function({ city, country }) {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/weather/forecast`, {
         method: 'POST',
@@ -22,11 +18,19 @@ export const openweather_getWeather = tool({
       if (!response.ok) throw new Error('Failed to fetch forecast data');
       
       const data = await response.json();
-      return {
+      console.log('Raw API Response:', data);
+      
+      const result = {
         success: true,
-        forecast: data
+        city_name: data.city_name,
+        country: data.country,
+        forecast: data.forecast
       };
+      
+      console.log('Processed Weather Data:', result);
+      return result;
     } catch (error) {
+      console.error('Weather API Error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch forecast data'

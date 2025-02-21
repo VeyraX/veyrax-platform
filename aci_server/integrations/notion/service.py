@@ -4,7 +4,7 @@ import requests
 from .client import NotionClient
 from .schema import (
     DatabaseList, Database, PageList, Page, 
-    PageCreate, PageUpdate, PageFilters
+    PageCreate, PageUpdate, PageFilters, DatabaseProperties
 )
 
 class NotionService:
@@ -129,25 +129,108 @@ class NotionService:
             raise HTTPException(status_code=500, detail=str(e))
 
     def create_page(self, page_data: PageCreate) -> Page:
-        payload = {
-            "parent": {"database_id": page_data.parent_id},
-            "properties": page_data.properties
-        }
-        if page_data.content:
-            payload["children"] = page_data.content
+        try:
+            print("\n=== CREATE PAGE REQUEST ===")
+            print("Received page_data:", page_data.dict())
+            
+            # Убираем Title из properties, оставляем только Name
+            properties = page_data.properties
+            if 'Title' in properties:
+                del properties['Title']
+            
+            payload = {
+                "parent": page_data.parent,
+                "properties": properties
+            }
+            if page_data.content:
+                payload["children"] = page_data.content
+            
+            print("\nPrepared Notion payload:", payload)
+            
+            response = self.client.create_page(payload)
+            print("\nNotion API Response:", response)
+            
+            if 'object' in response and response['object'] == 'error':
+                raise HTTPException(
+                    status_code=response.get('status', 500),
+                    detail=response.get('message', 'Failed to create page in Notion')
+                )
+            
+            # Преобразуем ответ от Notion API в формат нашей модели Page
+            page_response = {
+                "id": response.get("id"),
+                "title": self._extract_title(response.get("properties", {})),
+                "created_time": response.get("created_time"),
+                "last_edited_time": response.get("last_edited_time"),
+                "archived": response.get("archived", False),
+                "url": response.get("url"),
+                "content": response.get("content", [])
+            }
+            
+            print("\nTransformed to Page model:", page_response)
+            return Page(**page_response)
+        except HTTPException:
+            raise
+        except Exception as e:
+            print("\nERROR creating page:", str(e))
+            print("Error type:", type(e))
+            raise HTTPException(status_code=500, detail=str(e))
 
-        response = self.client.create_page(payload)
-        return Page(**response)
+    def _extract_title(self, properties: dict) -> str:
+        """Extract title from Notion properties"""
+        print("\nExtracting title from properties:", properties)
+        # Ищем сначала Name, потом Title
+        title_prop = properties.get("Name", properties.get("Title", {}))
+        if "title" in title_prop and len(title_prop["title"]) > 0:
+            title = title_prop["title"][0].get("text", {}).get("content", "")
+            print("Extracted title:", title)
+            return title
+        print("No title found in properties")
+        return ""
 
     def update_page(self, page_id: str, page_data: PageUpdate) -> Page:
-        payload = {}
-        if page_data.properties:
-            payload["properties"] = page_data.properties
-        if page_data.archived is not None:
-            payload["archived"] = page_data.archived
+        try:
+            print("\n=== UPDATE PAGE REQUEST ===")
+            print("Page ID:", page_id)
+            print("Update data:", page_data.dict())
 
-        response = self.client.update_page(page_id, payload)
-        return Page(**response)
+            # Формируем payload только из валидных полей
+            payload = {
+                "properties": page_data.properties
+            }
+            if page_data.content is not None:
+                payload["children"] = page_data.content
+            if page_data.archived is not None:
+                payload["archived"] = page_data.archived
+
+            print("\nPrepared Notion payload:", payload)
+            
+            response = self.client.update_page(page_id, payload)
+            print("\nNotion API Response:", response)
+            
+            if response.get('object') == 'error':
+                raise HTTPException(
+                    status_code=response.get('status', 500),
+                    detail=response.get('message', 'Failed to update page in Notion')
+                )
+
+            # Преобразуем ответ в формат Page
+            page_response = {
+                "id": response.get("id"),
+                "title": self._extract_title(response.get("properties", {})),
+                "created_time": response.get("created_time"),
+                "last_edited_time": response.get("last_edited_time"),
+                "archived": response.get("archived", False),
+                "url": response.get("url"),
+                "content": response.get("content", [])
+            }
+            
+            print("\nTransformed to Page model:", page_response)
+            return Page(**page_response)
+        except Exception as e:
+            print("\nERROR updating page:", str(e))
+            print("Error type:", type(e))
+            raise HTTPException(status_code=500, detail=str(e))
 
     def archive_page(self, page_id: str) -> Page:
         response = self.client.archive_page(page_id)
@@ -192,3 +275,49 @@ class NotionService:
             next_cursor=response.get('next_cursor')
         )
         return result
+
+    def get_database_properties(self, database_id: str) -> DatabaseProperties:
+        """Get database properties including its schema"""
+        response = self.client.get_database(database_id)
+        validated_response = self._handle_notion_response(response)
+        
+        title = " ".join(
+            text.get("plain_text", "")
+            for text in validated_response.get('title', [])
+        )
+        
+        return DatabaseProperties(
+            id=validated_response.get('id'),
+            title=title,
+            properties=validated_response.get('properties', {})
+        )
+
+    def query_database(self, database_id: str, query_params: Dict[str, Any]) -> PageList:
+        """Execute a complex query against a Notion database"""
+        response = self.client.query_database(database_id, query_params)
+        validated_response = self._handle_notion_response(response)
+        
+        pages = []
+        for page in validated_response.get('results', []):
+            title = ""
+            properties = page.get('properties', {})
+            title_prop = properties.get('Name') or properties.get('Title')
+            if title_prop and title_prop.get('title'):
+                title = " ".join(
+                    text.get('plain_text', '')
+                    for text in title_prop['title']
+                )
+            
+            pages.append({
+                "id": page.get('id'),
+                "title": title,
+                "created_time": page.get('created_time'),
+                "last_edited_time": page.get('last_edited_time'),
+                "archived": page.get('archived', False),
+                "url": page.get('url')
+            })
+        
+        return PageList(
+            items=pages,
+            next_cursor=validated_response.get('next_cursor')
+        )

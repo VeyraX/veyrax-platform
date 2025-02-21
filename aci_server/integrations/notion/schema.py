@@ -35,15 +35,15 @@ class PageList(BaseModel):
     next_cursor: Optional[str] = None
 
 class PageCreate(BaseModel):
-    parent_id: str
-    title: str
+    parent: Dict[str, Any] = Field(..., description="Parent database reference")
     properties: Dict[str, Any]
-    content: Optional[Dict[str, Any]]
+    content: Optional[List[Dict[str, Any]]] = None
+    title: Optional[str] = Field(None, description="Page title for fallback")
 
 class PageUpdate(BaseModel):
-    title: Optional[str]
-    properties: Optional[Dict[str, Any]]
-    archived: Optional[bool]
+    properties: Dict[str, Any] = Field(..., description="Page properties in Notion format")
+    content: Optional[List[Dict[str, Any]]] = None
+    archived: Optional[bool] = None
 
 class PageFilters(BaseModel):
     database_id: Optional[str] = None
@@ -51,3 +51,8 @@ class PageFilters(BaseModel):
     filter_by: Optional[Dict[str, Any]] = None
     sort_by: Optional[Dict[str, Any]] = None
     max_results: Optional[int] = 100
+
+class DatabaseProperties(BaseModel):
+    id: str
+    title: str
+    properties: Dict[str, Any]
