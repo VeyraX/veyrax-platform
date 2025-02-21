@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        console.log('Decoded state:', decodedState);
         const { provider_id, scopes } = JSON.parse(decodedState);
-        
-        console.log('Provider ID:', provider_id);
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -56,7 +53,6 @@ export async function GET(request: NextRequest) {
         });
 
         const tokens = await tokenResponse.json();
-        console.log('Token response:', tokens);
 
         if (tokens.error) {
             console.error('Token error:', tokens);

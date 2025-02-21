@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File
     const path = formData.get('path') as string
     const sandboxId = formData.get('sandboxId') as string
-    console.log(sandboxId)
 
     if (!file || !path) {
       return NextResponse.json(
@@ -39,8 +38,6 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     await sandbox.files.write(path, new Blob([arrayBuffer]))
-    console.log(sandbox.sandboxId)
-    console.log(path)
 
     return NextResponse.json({ 
       success: true, 

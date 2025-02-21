@@ -364,13 +364,6 @@ const CollapseButton = forwardRef<
     setExpandedItems?.([])
   }, [])
 
-  useEffect(() => {
-    console.log(expandAll)
-    if (expandAll) {
-      expendAllTree(elements)
-    }
-  }, [expandAll])
-
   return (
     <Button
       variant={"ghost"}

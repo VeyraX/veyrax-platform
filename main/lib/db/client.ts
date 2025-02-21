@@ -20,8 +20,6 @@ export async function executeQuery(query: string, params?: Record<string, any>) 
   
       const rows = await resultSet.json();
       
-      console.log(rows)
-      
       return {
         success: true,
         data: rows,

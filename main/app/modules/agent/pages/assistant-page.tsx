@@ -85,7 +85,6 @@ export default function AssistantPage({
             getChatMessages(chatId),
             getChat(chatId)
           ]);
-          console.log(getChatMessages(chatId))
           
           if (chatData.name && chatData.name !== "undefined") {
             setChatName(chatData.name);
@@ -145,7 +144,6 @@ export default function AssistantPage({
 
   const handleNewMessage = async (value: string) => {
     try {
-      console.log('Creating new user message:', value);
       let chatId = currentChatIdRef.current;
       
       if (!chatId && isNewChat) {
@@ -153,7 +151,6 @@ export default function AssistantPage({
         const newChat = await createChat({
           name: 'New Chat'
         });
-        console.log('Created new chat:', newChat);
         chatId = newChat.id;
         
         currentChatIdRef.current = chatId;
@@ -173,14 +170,12 @@ export default function AssistantPage({
         sender: 'user',
         message_text: value,
       });
-      console.log('Successfully saved user message to database');
 
       await append({
         id: messageId,
         content: value,
         role: 'user'
       });
-      console.log('Message appended to chat interface');
 
     } catch (error) {
       console.error('Error in handleNewMessage:', error);

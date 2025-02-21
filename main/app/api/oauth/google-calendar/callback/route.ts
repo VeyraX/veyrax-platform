@@ -21,11 +21,8 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        console.log('Decoded state:', decodedState);
         const { provider_id, scopes } = JSON.parse(decodedState);
         
-        console.log('Provider ID:', provider_id);
-
         const { data: provider, error: providerError } = await supabase
             .from('providers')
             .select('*')
@@ -52,7 +49,6 @@ export async function GET(request: NextRequest) {
         });
 
         const tokens = await tokenResponse.json();
-        console.log('Token response:', tokens);
 
         if (tokens.error) {
             console.error('Token error:', tokens);
@@ -69,7 +65,6 @@ export async function GET(request: NextRequest) {
             });
 
         if (providerUpsertError) {
-            console.error('Provider upsert error:', providerUpsertError);
             throw providerUpsertError;
         }
 
@@ -88,7 +83,6 @@ export async function GET(request: NextRequest) {
             });
 
         if (upsertError) {
-            console.error('Upsert error:', upsertError);
             throw upsertError;
         }
 

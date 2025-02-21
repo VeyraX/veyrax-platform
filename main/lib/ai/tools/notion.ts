@@ -130,11 +130,6 @@ export const notion_createPage = tool({
         ...(content.length > 0 && { children: content })
       };
 
-      console.log('Notion Create Page Request:', {
-        databaseId,
-        requestBody
-      });
-
       const headers = await getAuthHeaders();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/pages`, {
         method: 'POST',
@@ -349,11 +344,6 @@ export const notion_updatePage = tool({
         properties: formattedProperties
       };
 
-      console.log('Notion Update Page Request:', {
-        pageId,
-        requestBody
-      });
-
       const headers = await getAuthHeaders();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notion/pages/${pageId}`, {
         method: 'PATCH',
@@ -366,7 +356,6 @@ export const notion_updatePage = tool({
       });
 
       const data = await response.json();
-      console.log('Notion Update Page Response:', data);
 
       if (!response.ok) {
         const error = data.detail || 'Failed to update page';
@@ -448,11 +437,7 @@ export const notion_queryDatabase = tool({
         ...(startCursor && { start_cursor: startCursor }),
         ...(pageSize && { page_size: pageSize })
       };
-      
-      console.log('Notion Query Database Request:', {
-        databaseId,
-        requestBody
-      });
+    
 
       const headers = await getAuthHeaders();
       const response = await fetch(

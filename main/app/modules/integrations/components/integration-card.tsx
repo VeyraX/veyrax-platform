@@ -46,16 +46,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
       console.error(`Failed to enable ${props.name}:`, error);
     }
   };
-
-  useEffect(() => {
-    if (props.connected) {
-      console.log(`Состояние интеграции ${props.name}:`, {
-        обновляется: isFetching,
-        устарела: isStale
-      })
-    }
-  }, [isFetching, isStale, props.name, props.connected])
-
+  
   return (
     <>
       <Card className="w-full border shadow-none rounded-lg h-[204px]">

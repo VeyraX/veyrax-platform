@@ -25,7 +25,6 @@ const MistOverlay = () => {
 };
 
 const Weather: React.FC<WeatherProps> = ({ data }) => {
-  console.log('Weather Widget Data:', data);
 
   if (!data?.forecast || !Array.isArray(data.forecast) || data.forecast.length === 0) {
     return <div>No weather data available</div>;

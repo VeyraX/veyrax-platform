@@ -16,8 +16,6 @@ export async function getUserToolsClient() {
     .rpc('get_user_tools_secure', { user_id_param: user.id })
     .select();
 
-  console.log(availableTools);
-
   if (error) {
     console.error('Error fetching user tools:', error);
     return {};

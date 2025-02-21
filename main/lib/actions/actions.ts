@@ -20,7 +20,6 @@ export async function getAccessToken(): Promise<string> {
   try {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    console.log('session', session)
     
     if (!session?.access_token) {
       throw new Error('No active session');

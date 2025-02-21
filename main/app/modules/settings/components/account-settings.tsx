@@ -34,7 +34,6 @@ export default function AccountSettings() {
   useEffect(() => {
     async function loadProfile() {
       const data = await getUserProfile()
-      console.log('data', data)
       setProfile(data)
     }
     loadProfile()

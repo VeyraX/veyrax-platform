@@ -9,9 +9,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
-    console.log('user', user)
     if (error || !user) {
-      console.error('Error fetching user:', error)
       return null
     }
 

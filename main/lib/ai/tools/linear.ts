@@ -35,7 +35,6 @@ export const linear_listIssues = tool({
           credentials: 'include'
         }
       );
-      console.log(response);
 
       if (!response.ok) {
         const errorData = await response.json();

@@ -6,7 +6,6 @@ const supabase = createClient()
 
 
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
-  console.log('🔄 Начало запроса данных из Supabase', new Date().toISOString())
   const { data: { user } } = await supabase.auth.getUser()
   
   const { data: providers } = await supabase
@@ -23,8 +22,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     .select('provider_id, status, collection_name, last_sync_date, processed_entities')
     .eq('user_id', user?.id)
 
-  console.log('User indexes from DB:', userIndexes);
-
   const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
   const indexStatusMap = new Map(
     userIndexes?.map(index => [index.provider_id, index.status])
@@ -36,7 +33,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     userIndexes?.map(index => [index.provider_id, index.processed_entities])
   )
 
-  console.log(connectedProviderIds)
 
   const result = providers?.map((provider: Provider) => ({
     ...provider,
@@ -46,12 +42,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     lastSyncDate: lastSyncDateMap.get(provider.id),
     processedEntities: processedEntitiesMap.get(provider.id)
   })) || []
-
-  console.log('✅ Данные получены', { 
-    providers: providers?.length,
-    userProviders: userProviders?.length,
-    userIndexes: userIndexes?.length
-  })
   
   return result
 }
@@ -105,7 +95,6 @@ export const createProviderIndex = async (providerId: string, providerTag: strin
         console.error('Index creation error:', error);
         throw error;
       }
-      console.log('Index upsert result:', { data, error });
     });
 
   const headers = await getAuthHeaders();
@@ -131,7 +120,6 @@ export const createProviderIndex = async (providerId: string, providerTag: strin
     throw new Error('Failed to create index');
   }
 
-  console.log('Starting index creation for provider:', providerId);
 }
 
 export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {

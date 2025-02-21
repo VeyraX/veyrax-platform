@@ -42,9 +42,6 @@ export async function createChatMessage(payload: CreateChatMessagePayload): Prom
     .select('*')
     .single()
 
-  console.log('Supabase response - Data:', data)
-  console.log('Supabase response - Error:', error)
-
   if (error) {
     throw error
   }
@@ -68,8 +65,6 @@ export async function getChatMessages(chatId: string): Promise<ChatMessage[]> {
   if (error) {
     throw error
   }
-  console.log('Supabase response - Data:', data)
-  console.log('Supabase response - Error:', error)
 
   return (data || []).map(msg => ({
     ...msg,

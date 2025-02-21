@@ -117,7 +117,6 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
         const isLastAssistantMessage = message.role === 'assistant' && 
           (index === messages.length - 1 || messages[index + 1]?.role === 'user');
         const isLastMessage = index === messages.length - 1;
-        console.log(message)
         
         return (
           <div 
@@ -270,7 +269,6 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                       </ToolWrapper>
                                     );
                                   case 'notion_readPage':
-                                    console.log(result)
                                     return (
                                       <ToolWrapper toolName="notion">
                                         <div className="max-w-3xl w-full">
@@ -339,7 +337,6 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                             </Card>
                                           ) : (
                                             result?.success && (
-                                              console.log(result),
                                               <Weather 
                                                 data={toolName === 'openweather_getWeather' 
                                                   ? result.weather 

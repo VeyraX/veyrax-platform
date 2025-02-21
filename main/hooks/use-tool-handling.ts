@@ -17,11 +17,6 @@ export function useToolHandling(chatId: string | null) {
       }
 
       try {
-        console.log('Starting to process assistant message:', {
-          messageId: message.id,
-          chatId: chatId
-        });
-        
         const metadata = {
           toolInvocations: message.toolInvocations?.map(ti => ({
             toolCallId: ti.toolCallId,
@@ -32,12 +27,6 @@ export function useToolHandling(chatId: string | null) {
           })),
           finishReason: message.finishReason
         };
-        
-        console.log('Saving assistant message to database:', {
-          messageId: message.id,
-          chatId: chatId,
-          contentLength: message.content.length
-        });
 
         await createChatMessage({
           message_id: message.id,
@@ -69,10 +58,6 @@ export function useToolHandling(chatId: string | null) {
           }
         });
 
-        console.log('Successfully saved assistant message to database:', {
-          messageId: message.id,
-          chatId: chatId
-        });
       } catch (error) {
         console.error('Error saving assistant message:', {
           messageId: message.id,

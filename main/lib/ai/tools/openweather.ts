@@ -18,7 +18,6 @@ export const openweather_getWeather = tool({
       if (!response.ok) throw new Error('Failed to fetch forecast data');
       
       const data = await response.json();
-      console.log('Raw API Response:', data);
       
       const result = {
         success: true,
@@ -27,7 +26,6 @@ export const openweather_getWeather = tool({
         forecast: data.forecast
       };
       
-      console.log('Processed Weather Data:', result);
       return result;
     } catch (error) {
       console.error('Weather API Error:', error);
