@@ -26,14 +26,14 @@ export function NotionDatabaseList({ databases }: { databases: Database[] }) {
       <TableHeader>
         <TableRow>
           <TableHead>Database Name</TableHead>
-          <TableHead>Last Updated</TableHead>
+          <TableHead>ID</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {databases.map((db) => (
           <TableRow key={db.id}>
             <TableCell>{db.title}</TableCell>
-            <TableCell>{new Date(db.last_edited_time).toLocaleDateString()}</TableCell>
+            <TableCell className="font-mono text-sm">{db.id}</TableCell>
           </TableRow>
         ))}
       </TableBody>
