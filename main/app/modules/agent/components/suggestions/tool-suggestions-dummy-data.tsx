@@ -1,7 +1,7 @@
 export const toolSuggestionsDummyData = [
     {
       apiName: "gmail_listMessages",
-      question: "Show my recent emails from",
+      question: "Show last 3 emails",
       logo: "/logos/gmail-logo.svg"
     },
     {
