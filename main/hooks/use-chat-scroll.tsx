@@ -1,61 +1,75 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
-const SCROLL_THRESHOLD = 10;
-
-function useAutoScroll(active: boolean) {
-  const scrollContentRef = useRef(null);
-  const isDisabled = useRef(false);
-  const prevScrollTop = useRef<number | null>(null);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      const { scrollHeight, clientHeight, scrollTop } = document.documentElement;
-      if (!isDisabled.current && scrollHeight - clientHeight > scrollTop) {
-        document.documentElement.scrollTo({
-          top: scrollHeight - clientHeight,
-          behavior: 'smooth'
-        });
-      }
-    });
-
-    if (scrollContentRef.current) {
-      resizeObserver.observe(scrollContentRef.current);
-    }
-    
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!active) {
-      isDisabled.current = true;
-      return;
-    }
-
-    function onScroll() {
-      const { scrollHeight, clientHeight, scrollTop } = document.documentElement;
-      if (
-        !isDisabled.current &&
-        window.scrollY < (prevScrollTop.current ?? 0) &&
-        scrollHeight - clientHeight > scrollTop + SCROLL_THRESHOLD
-      ) {
-        isDisabled.current = true;
-      } else if (
-        isDisabled.current &&
-        scrollHeight - clientHeight <= scrollTop + SCROLL_THRESHOLD
-      ) {
-        isDisabled.current = false;
-      }
-      prevScrollTop.current = window.scrollY;
-    }
-    
-    isDisabled.current = false;
-    prevScrollTop.current = document.documentElement.scrollTop;
-    window.addEventListener('scroll', onScroll);
-
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [active]);
-
-  return scrollContentRef;
+interface UseAutoScrollProps {
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  isLoading: boolean;
+  messages: any[];
 }
 
-export default useAutoScroll;
+export function useAutoScroll({ messagesEndRef, isLoading, messages }: UseAutoScrollProps) {
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const prevScrollTop = useRef<number | null>(null);
+  const SCROLL_THRESHOLD = 50;
+  const isManualScroll = useRef(false);
+  const lastMessageContentRef = useRef<string>('');
+
+  const scrollToBottom = () => {
+    if (!shouldAutoScroll || isManualScroll.current) return;
+    
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end"
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    const messageContainer = messagesEndRef.current?.parentElement;
+    if (!messageContainer) return;
+
+    function onScroll() {
+      const currentScrollTop = messageContainer!.scrollTop;
+      
+      if (Math.abs(currentScrollTop - (prevScrollTop.current ?? 0)) > 1) {
+        isManualScroll.current = true;
+        setTimeout(() => {
+          isManualScroll.current = false;
+        }, 5000);
+      }
+
+      if (currentScrollTop < (prevScrollTop.current ?? 0) - 1) {
+        setShouldAutoScroll(false);
+      } else if (
+        messageContainer!.scrollHeight - messageContainer!.clientHeight <= currentScrollTop + SCROLL_THRESHOLD
+      ) {
+        setShouldAutoScroll(true);
+      }
+      
+      prevScrollTop.current = currentScrollTop;
+    }
+
+    messageContainer.addEventListener('scroll', onScroll);
+    return () => messageContainer.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      const currentContent = JSON.stringify(lastMessage);
+
+      if (currentContent !== lastMessageContentRef.current && shouldAutoScroll) {
+        lastMessageContentRef.current = currentContent;
+        scrollToBottom();
+      }
+    }
+  }, [messages, shouldAutoScroll]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading, shouldAutoScroll]);
+
+  return { shouldAutoScroll };
+}
