@@ -16,12 +16,12 @@ export const toolSuggestionsDummyData = [
     },
     {
       apiName: "googleCalendar_createEvent",
-      question: "Schedule a meeting",
+      question: "Schedule a meeting with",
       logo: "/logos/google-calendar-logo.svg"
     },
     {
       apiName: "googleCalendar_listEvents",
-      question: "Show my calendar events",
+      question: "Show my calendar events for",
       logo: "/logos/google-calendar-logo.svg"
     },
     {
@@ -46,7 +46,7 @@ export const toolSuggestionsDummyData = [
     },
     {
       apiName: "notion_createPage",
-      question: "Create a new page",
+      question: "Add a new page",
       logo: "/logos/notion-logo.svg"
     },
     {
@@ -61,27 +61,27 @@ export const toolSuggestionsDummyData = [
     },
     {
       apiName: "notion_vectorSearch",
-      question: "Find Notion content about",
+      question: "Search my tasks for today in Notion",
       logo: "/logos/notion-logo.svg"
     },
     {
       apiName: "linear_createIssue",
-      question: "Create a new ticket",
+      question: "Create a new issue",
       logo: "/logos/linear-logo.svg"
     },
     {
       apiName: "linear_listIssues",
-      question: "Show my tickets",
+      question: "Show my issues in Linear",
       logo: "/logos/linear-logo.svg"
     },
     {
       apiName: "linear_listProjects",
-      question: "Show active projects",
+      question: "Show active projects in Linear",
       logo: "/logos/linear-logo.svg"
     },
     {
       apiName: "linear_updateIssue",
-      question: "Update ticket status",
+      question: "Update issue status to",
       logo: "/logos/linear-logo.svg"
     },
     {
