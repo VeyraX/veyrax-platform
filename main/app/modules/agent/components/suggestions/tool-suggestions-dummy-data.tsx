@@ -1,7 +1,7 @@
 export const toolSuggestionsDummyData = [
     {
       apiName: "gmail_listMessages",
-      question: "Show my recent emails",
+      question: "Show my recent emails from",
       logo: "/logos/gmail-logo.svg"
     },
     {
@@ -21,7 +21,7 @@ export const toolSuggestionsDummyData = [
     },
     {
       apiName: "googleCalendar_listEvents",
-      question: "Show my calendar events for",
+      question: "Show my today's meetings",
       logo: "/logos/google-calendar-logo.svg"
     },
     {
