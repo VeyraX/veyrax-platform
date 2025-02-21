@@ -99,7 +99,6 @@ class DriveClient:
             return self.service.files().update(**params).execute()
 
         except Exception as e:
-            print(f"Move operation failed: {str(e)}")
             if "cannotAddParent" in str(e):
                 print("Domain policy prevents adding parents. Verify Google Workspace settings.")
             raise

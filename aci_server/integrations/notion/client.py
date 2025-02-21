@@ -31,10 +31,6 @@ class NotionClient:
         ).json()
 
     def create_page(self, page_data: Dict[str, Any]) -> Dict[str, Any]:
-        print("\n=== NOTION API REQUEST ===")
-        print("URL:", f"{self.base_url}/pages")
-        print("Headers:", self.headers)
-        print("Request Body:", page_data)
         
         response = requests.post(
             f"{self.base_url}/pages",
@@ -42,27 +38,15 @@ class NotionClient:
             json=page_data
         )
         
-        print("\n=== NOTION API RESPONSE ===")
-        print("Status Code:", response.status_code)
-        print("Response:", response.json())
-        
         return response.json()
 
     def update_page(self, page_id: str, page_data: Dict[str, Any]) -> Dict[str, Any]:
-        print("\n=== NOTION API REQUEST ===")
-        print("URL:", f"{self.base_url}/pages/{page_id}")
-        print("Headers:", self.headers)
-        print("Request Body:", page_data)
         
         response = requests.patch(
             f"{self.base_url}/pages/{page_id}",
             headers=self.headers,
             json=page_data
         )
-        
-        print("\n=== NOTION API RESPONSE ===")
-        print("Status Code:", response.status_code)
-        print("Response:", response.json())
         
         return response.json()
 

@@ -115,7 +115,6 @@ async def get_user_from_request(request: Request) -> str:
         return user_data['sub']
         
     except Exception as e:
-        print(f"[get_user_from_request] Error: {str(e)}")
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
     

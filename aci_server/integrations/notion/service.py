@@ -54,7 +54,6 @@ class NotionService:
                   filters: Optional[PageFilters] = None) -> PageList:
         
         max_results = 100
-        print("Received filters:", filters)
         if filters and filters.max_results:
             max_results = min(filters.max_results, 100)
         
@@ -130,10 +129,7 @@ class NotionService:
 
     def create_page(self, page_data: PageCreate) -> Page:
         try:
-            print("\n=== CREATE PAGE REQUEST ===")
-            print("Received page_data:", page_data.dict())
             
-            # Убираем Title из properties, оставляем только Name
             properties = page_data.properties
             if 'Title' in properties:
                 del properties['Title']
@@ -145,10 +141,7 @@ class NotionService:
             if page_data.content:
                 payload["children"] = page_data.content
             
-            print("\nPrepared Notion payload:", payload)
-            
             response = self.client.create_page(payload)
-            print("\nNotion API Response:", response)
             
             if 'object' in response and response['object'] == 'error':
                 raise HTTPException(
@@ -156,7 +149,6 @@ class NotionService:
                     detail=response.get('message', 'Failed to create page in Notion')
                 )
             
-            # Преобразуем ответ от Notion API в формат нашей модели Page
             page_response = {
                 "id": response.get("id"),
                 "title": self._extract_title(response.get("properties", {})),
@@ -167,34 +159,23 @@ class NotionService:
                 "content": response.get("content", [])
             }
             
-            print("\nTransformed to Page model:", page_response)
             return Page(**page_response)
         except HTTPException:
             raise
         except Exception as e:
-            print("\nERROR creating page:", str(e))
             print("Error type:", type(e))
             raise HTTPException(status_code=500, detail=str(e))
 
     def _extract_title(self, properties: dict) -> str:
-        """Extract title from Notion properties"""
-        print("\nExtracting title from properties:", properties)
-        # Ищем сначала Name, потом Title
         title_prop = properties.get("Name", properties.get("Title", {}))
         if "title" in title_prop and len(title_prop["title"]) > 0:
             title = title_prop["title"][0].get("text", {}).get("content", "")
-            print("Extracted title:", title)
             return title
-        print("No title found in properties")
         return ""
 
     def update_page(self, page_id: str, page_data: PageUpdate) -> Page:
         try:
-            print("\n=== UPDATE PAGE REQUEST ===")
-            print("Page ID:", page_id)
-            print("Update data:", page_data.dict())
 
-            # Формируем payload только из валидных полей
             payload = {
                 "properties": page_data.properties
             }
@@ -203,10 +184,7 @@ class NotionService:
             if page_data.archived is not None:
                 payload["archived"] = page_data.archived
 
-            print("\nPrepared Notion payload:", payload)
-            
             response = self.client.update_page(page_id, payload)
-            print("\nNotion API Response:", response)
             
             if response.get('object') == 'error':
                 raise HTTPException(
@@ -214,7 +192,6 @@ class NotionService:
                     detail=response.get('message', 'Failed to update page in Notion')
                 )
 
-            # Преобразуем ответ в формат Page
             page_response = {
                 "id": response.get("id"),
                 "title": self._extract_title(response.get("properties", {})),
@@ -225,10 +202,8 @@ class NotionService:
                 "content": response.get("content", [])
             }
             
-            print("\nTransformed to Page model:", page_response)
             return Page(**page_response)
         except Exception as e:
-            print("\nERROR updating page:", str(e))
             print("Error type:", type(e))
             raise HTTPException(status_code=500, detail=str(e))
 
