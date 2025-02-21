@@ -14,4 +14,20 @@ export class WaitlistService {
       error
     }
   }
+
+  static async addToBeta(email: string, socialUrl?: string): Promise<{ data: WaitlistUser | null; error: any }> {
+    const supabase = createClient()
+    
+    const { error } = await supabase
+      .from('users_beta')
+      .insert([{ 
+        email,
+        social_url: socialUrl || null 
+      }])
+    
+    return {
+      data: error ? null : { email, socialUrl } as WaitlistUser,
+      error
+    }
+  }
 }

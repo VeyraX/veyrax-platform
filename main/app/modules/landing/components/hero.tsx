@@ -10,7 +10,7 @@ import { BorderBeam } from "@/components/ui/border-beam";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { WaitlistService } from '../api/waitlist.service';
+import { WaitlistService } from '../api/api.service';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { validateEmail } from '@/lib/utils/email-validator';
 

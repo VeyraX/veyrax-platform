@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { WaitlistService } from '../api/waitlist.service';
+import { WaitlistService } from '../api/api.service';
 import { validateEmail } from '@/lib/utils/email-validator';
 
 interface WaitlistDialogProps {
@@ -46,12 +46,14 @@ export function WaitlistDialog({ trigger }: WaitlistDialogProps) {
     });
 
     if (result.data) {
-      setEmail('');
       setShowForm(false);
       setTimeout(() => {
         setOpen(false);
-        setMessage(null);
-        setShowForm(true);
+        setTimeout(() => {
+          setEmail('');
+          setMessage(null);
+          setShowForm(true);
+        }, 300);
       }, 2000);
     }
     

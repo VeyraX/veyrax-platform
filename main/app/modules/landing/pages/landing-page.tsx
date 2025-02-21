@@ -1,8 +1,8 @@
 'use client'
-import { Features } from "../components/features"
-import { Hero } from "../components/hero"
-import { CTA } from "../components/cta"
-import { TextBlock } from "../components/text"
+import { Features } from "../components/web/features"
+import { Hero } from "../components/web/hero"
+import { CTA } from "../components/web/cta"
+import { TextBlock } from "../components/web/text"
 import { useEffect } from "react"
 import { Footer } from "../components/footer"
 export default function LandingPage() {
