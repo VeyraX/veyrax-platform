@@ -23,11 +23,13 @@ export function SuggestionsEmptyState({
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
-    if (connectedTools && connectedTools.length > 0) {
-      setIsLoading(true)
-      setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
+    setIsLoading(true)
+    if (!connectedTools || connectedTools.length === 0) {
       setIsLoading(false)
+      return
     }
+    setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
+    setIsLoading(false)
   }, [connectedTools])
 
   React.useEffect(() => {

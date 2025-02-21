@@ -38,27 +38,15 @@ const items = [
         url: "/agent",
       },
       {
-        title: "ACI Generation",
-        url: "/generate", 
-      },
-      {
-        title: "Integrations",
+        title: "TOCO Integration",
         url: "/integrations",
-      },
-      {
-        title: "Analytics",
-        url: "",
-      },
-      {
-        title: "Settings",
-        url: "",
       },
     ],
   },
   {
     title: "Recent Chats",
     url: "/",
-    items: [] // Initialize with empty array, will be populated by useEffect
+    items: []
   }
 ]
 

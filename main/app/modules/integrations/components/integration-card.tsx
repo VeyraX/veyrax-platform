@@ -64,7 +64,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
                 }}
               />
               {props.connected && (
-                <Badge variant="secondary" className="bg-green-900/20 text-green-400 dark:bg-green-900/30 dark:text-green-300 transition-colors">
+                <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors">
                   Connected
                 </Badge>
               )}
