@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     url: "https://veyrax.com",
     images: [
       {
-        url: "/logo.svg",
+        url: "/landing/hero_video.png",
         width: 1200,
         height: 630,
         alt: "VeyraX",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VeyraX",
     description: "VeyraX is Agenic Component Interface",
-    images: ["/logo.svg"],
+    images: ["/landing/hero_video.png"],
   },
   verification: {
     google: "M87s6BmvzBfZcTPzKC_IdrsZKCoMINTWwASkeDmDySM",

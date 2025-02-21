@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { MoveRight, PhoneCall, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Particles from "@/components/ui/particles";
