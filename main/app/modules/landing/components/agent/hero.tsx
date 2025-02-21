@@ -187,15 +187,15 @@ export const Hero = () => {
                   <HeroVideoDialog
                     className="dark:hidden block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/i7bNafDInRA?si=4rb-zSdDkVK9qxxb"
+                    videoSrc="https://www.youtube.com/watch?v=MjuEsZ650y8"
                     thumbnailSrc="/landing/hero_video_beta.png"
                     thumbnailAlt="Hero Video"
                   />
                   <HeroVideoDialog
                     className="hidden dark:block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/i7bNafDInRA?si=4rb-zSdDkVK9qxxb"
-                    thumbnailSrc="/landing/hero_video.png"
+                    videoSrc="https://www.youtube.com/watch?v=MjuEsZ650y8"
+                    thumbnailSrc="/landing/hero_video_beta.png"
                     thumbnailAlt="Hero Video"
                   />
                 </div>
