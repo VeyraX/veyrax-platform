@@ -38,7 +38,7 @@ const items = [
         url: "/agent",
       },
       {
-        title: "Integration",
+        title: "Integrations",
         url: "/integrations",
       },
     ],

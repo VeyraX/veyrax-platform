@@ -13,7 +13,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/agent/new', request.url))
   }
 
-  if (pathname.startsWith('/agent') || pathname.startsWith('/components/') || pathname.startsWith('/integrations')) {
+  if (
+    pathname.startsWith('/agent/') || 
+    pathname.startsWith('/components/') || 
+    pathname.startsWith('/integrations')
+  ) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
