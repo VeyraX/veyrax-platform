@@ -37,7 +37,6 @@ export const authApi = {
 
   loginWithGoogle: async () => {
     try {
-      console.log('Starting Google OAuth login...');
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -54,7 +53,6 @@ export const authApi = {
         throw error;
       }
       
-      console.log('Google OAuth success:', data);
       return { data, error: null };
     } catch (error) {
       console.error('Google OAuth exception:', error);

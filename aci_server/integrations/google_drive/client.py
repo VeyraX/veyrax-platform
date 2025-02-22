@@ -100,7 +100,7 @@ class DriveClient:
 
         except Exception as e:
             if "cannotAddParent" in str(e):
-                print("Domain policy prevents adding parents. Verify Google Workspace settings.")
+                raise Exception("Domain policy prevents adding parents. Verify Google Workspace settings.")
             raise
 
     def read_file(self, file_id: str) -> tuple[bytes, str]:

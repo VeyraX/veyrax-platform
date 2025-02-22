@@ -7,7 +7,6 @@ interface PageCardProps {
 }
 
 export function PageCard({ page }: PageCardProps) {
-  console.log('PageCard received page:', page);
 
   const isSpace = 'key' in page && !('space' in page);
 

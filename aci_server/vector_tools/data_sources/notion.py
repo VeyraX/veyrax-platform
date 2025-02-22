@@ -4,7 +4,7 @@ from vector_tools.utils import split_document
 from integrations.notion.service import NotionService
 
 class NotionSource(BaseDataSource):
-    def __init__(self, notion_service: NotionService, user_id: str, doc_limit: int = 10):
+    def __init__(self, notion_service: NotionService, user_id: str, doc_limit: int = 1000):
         self.notion_service = notion_service
         self.user_id = user_id
         self.doc_limit = doc_limit

@@ -50,7 +50,7 @@ class VectorStoreActions:
         vector = self.generate_vector(text)
         self.add_vector_to_collection(vector, payload)
         
-    def run_vector_search_query_with_vector(self, query_vector: list[float], limit: int = 10, filters: models.Filter = None):
+    def run_vector_search_query_with_vector(self, query_vector: list[float], limit: int = 1000, filters: models.Filter = None):
         try:
             search_params = {
                 "collection_name": self.collection_name,

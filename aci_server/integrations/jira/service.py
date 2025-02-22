@@ -250,18 +250,13 @@ class JiraService:
         ]
 
     def get_users(self, query: Optional[str] = None) -> List[JiraUser]:
-        print("Getting accessible resources...")
         resources = self.client.get_accessible_resources()
-        print(f"Resources received: {resources}")
         
         if not resources:
             raise Exception("No Jira resources available")
         
         cloud_id = resources[0]['id']
-        print(f"Using cloud_id: {cloud_id}")
-        
         base_url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
-        print(f"Base URL: {base_url}")
         
         users = self.client.get_users(query, base_url)
         

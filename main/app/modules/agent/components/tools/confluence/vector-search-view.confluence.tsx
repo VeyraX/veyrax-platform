@@ -7,19 +7,14 @@ interface Props {
 }
 
 export const ConfluenceResponseView: React.FC<Props> = ({ response }) => {
-  console.log('Confluence Vector Search Response:', response);
   
   if (!response.success || !response.results?.length) {
     return null;
   }
 
-  const baseUrl = "https://korzhovwork2019.atlassian.net/wiki";
-
   return (
     <>
       {response.results.map((result, index) => {
-        console.log('Result item:', result);
-        console.log('Result payload:', result.payload);
         return (
           <ToolCard
             key={index}

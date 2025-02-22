@@ -43,17 +43,10 @@ class JiraClient:
         
         try:
             response = self.session.request(method, url, **kwargs)
-            print(f"Request to {url}")
-            print(f"Response status: {response.status_code}")
-            print(f"Response body: {response.text}")
             
             response.raise_for_status()
             return response.json() if response.content else None
         except requests.exceptions.RequestException as e:
-            print(f"Error making request to Jira: {str(e)}")
-            if hasattr(e, 'response'):
-                print(f"Response status: {e.response.status_code}")
-                print(f"Response body: {e.response.text}")
             raise
 
     def get_issue(self, issue_id: str) -> Dict[str, Any]:
