@@ -18,8 +18,16 @@ class SearchQueryNotion(BaseModel):
     url: Optional[str] = None
     last_edited_time: Optional[str] = Field(None, alias='lastEditedTime')
 
+class SearchQueryConfluence(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    doc_id: Optional[str] = Field(None, alias='docId')
+    title: Optional[str] = None
+    space_id: Optional[str] = Field(None, alias='spaceId')
+    space_name: Optional[str] = None
+    version: Optional[int] = None
+
 class SearchParams(BaseModel):
-    query: Union[SearchQueryGoogleDrive, SearchQueryNotion]
+    query: Union[SearchQueryGoogleDrive, SearchQueryNotion, SearchQueryConfluence]
     collection: str = Field(..., description="Required collection name")
     limit: Optional[int] = 5
 
@@ -31,6 +39,9 @@ class SearchParams(BaseModel):
         elif self.collection == "google-drive":
             if not isinstance(self.query, SearchQueryGoogleDrive):
                 self.query = SearchQueryGoogleDrive(**self.query.model_dump(by_alias=True))
+        elif self.collection == "confluence":
+            if not isinstance(self.query, SearchQueryConfluence):
+                self.query = SearchQueryConfluence(**self.query.model_dump(by_alias=True))
         return self
 
 class SearchRequest(BaseModel):

@@ -10,6 +10,9 @@ from integrations.notion.service import NotionService
 from integrations.notion.client import NotionClient
 from fastapi import HTTPException
 from datetime import datetime
+from integrations.confluence.service import ConfluenceService
+from integrations.confluence.client import ConfluenceClient
+from vector_tools.data_sources.confluence import ConfluenceSource
 
 
 def update_index_status(user_id: str, collection_name: str, status: str, processed_entities: int = None) -> None:
@@ -121,6 +124,40 @@ def process_notion_documents_task(auth_header: dict, user_id: str):
         }
     except Exception as e:
         update_index_status(user_id, "notion", "failed")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+@celery_app.task(name="process_confluence_documents")
+def process_confluence_documents_task(auth_token: str, user_id: str):
+    try:
+        update_index_status(user_id, "confluence", "syncing")
+        
+        if not auth_token.get('access_token'):
+            raise ValueError("No access token provided")
+        
+        confluence_client = ConfluenceClient(auth_token['access_token'])
+        confluence_service = ConfluenceService(confluence_client)
+        confluence_source = ConfluenceSource(confluence_service, user_id)
+        
+        vector_store = VectorStoreActions("confluence")
+        
+        try:
+            vector_store.get_collections("confluence")
+        except Exception:
+            vector_store.create_collection("confluence")
+        
+        processed_count = vector_store.process_data_source(confluence_source)
+        
+        update_index_status(user_id, "confluence", "synced", processed_count)
+        
+        return {
+            "status": "success",
+            "message": f"Confluence documents have been processed and vectorized. Processed {processed_count} documents."
+        }
+    except Exception as e:
+        update_index_status(user_id, "confluence", "failed")
         return {
             "status": "error",
             "message": str(e)

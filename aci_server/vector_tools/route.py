@@ -5,7 +5,7 @@ from integrations.google_drive.service import DriveService
 from integrations.google_drive.route import get_drive_service
 from vector_tools.vector_tools import VectorStoreActions
 from vector_tools.data_sources.google_drive import GoogleDriveSource
-from vector_tools.tasks import process_google_drive_documents_task, process_notion_documents_task
+from vector_tools.tasks import process_google_drive_documents_task, process_notion_documents_task, process_confluence_documents_task
 from integrations.notion.service import NotionService
 from integrations.notion.route import get_notion_service
 from integrations.common.auth import TokenService
@@ -53,6 +53,10 @@ async def process_documents(
         elif collection_name == 'notion':
             auth_token = await TokenService.get_user_token(request, 'notion')
             task = process_notion_documents_task.delay(auth_token, user_id)
+            
+        elif collection_name == 'confluence':
+            auth_token = await TokenService.get_user_token(request, 'confluence')
+            task = process_confluence_documents_task.delay(auth_token, user_id)
             
         else:
             raise HTTPException(

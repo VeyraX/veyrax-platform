@@ -1,7 +1,7 @@
 from typing import Dict, Any, Union
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from .vector_tools import VectorStoreActions
-from .schema import SearchParams, SearchQueryGoogleDrive, SearchQueryNotion
+from .schema import SearchParams, SearchQueryGoogleDrive, SearchQueryNotion, SearchQueryConfluence
 
 class VectorSearchService:
     def __init__(self, user_id: str):
@@ -55,6 +55,30 @@ class VectorSearchService:
 
         return Filter(must=must_conditions)
 
+    def _build_confluence_filter(self, query: SearchQueryConfluence) -> Filter:
+        must_conditions = [
+            FieldCondition(
+                key="user_id",
+                match=MatchValue(value=self.user_id)
+            )
+        ]
+
+        field_mappings = {
+            "doc_id": query.doc_id,
+            "title": query.title,
+            "space_id": query.space_id,
+            "space_name": query.space_name,
+            "version": query.version
+        }
+
+        for field, value in field_mappings.items():
+            if value is not None:
+                must_conditions.append(
+                    FieldCondition(key=field, match=MatchValue(value=value))
+                )
+
+        return Filter(must=must_conditions)
+
     def search_documents(self, search_params: SearchParams, query_text: str) -> list[Dict[str, Any]]:
         if not search_params.collection:
             raise ValueError("Collection name is required")
@@ -69,6 +93,8 @@ class VectorSearchService:
             search_filter = self._build_google_drive_filter(search_params.query)
         elif search_params.collection == "notion":
             search_filter = self._build_notion_filter(search_params.query)
+        elif search_params.collection == "confluence":
+            search_filter = self._build_confluence_filter(search_params.query)
         else:
             raise ValueError(f"Unsupported collection: {search_params.collection}")
 
