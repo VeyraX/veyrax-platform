@@ -55,6 +55,22 @@ export const getToolQuestions = (connectedTools: string[]) => {
         "Check the weather forecast for my location",
         "Find out the weather conditions in another country"
       ]
+    },
+    {
+      toolName: "jira",
+      questions: [
+        "Find issues assigned to me in a project",
+        "Create a new task with specific details",
+        "Update the status of an existing issue"
+      ]
+    },
+    {
+      toolName: "confluence",
+      questions: [
+        "Search for pages containing specific content",
+        "Find documentation in a specific space",
+        "Get details from a specific Confluence page"
+      ]
     }
   ]
 

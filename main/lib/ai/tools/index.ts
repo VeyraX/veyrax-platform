@@ -5,6 +5,27 @@ import { openweather_getWeather } from './openweather';
 import { perplexity_ask } from './perplexity';
 import { googleDrive_listFiles, googleDrive_listFolders, googleDrive_getFile, googleDrive_moveFile, googleDrive_readFile, googleDrive_vectorSearch } from './google-drive';
 import { linear_listIssues, linear_searchIssues, linear_createIssue, linear_listProjects, linear_listTeams, linear_updateIssue, linear_listWorkflowStates } from './linear';
+import { 
+  confluence_listSpaces,
+  confluence_listPages,
+  confluence_getPage,
+  confluence_searchContent,
+  confluence_vectorSearch 
+} from './confluence';
+import {
+  jira_listIssues,
+  jira_getIssue,
+  jira_createIssue,
+  jira_listProjects,
+  jira_updateIssue,
+  jira_deleteIssue,
+  jira_getProject,
+  jira_listStatuses,
+  jira_listPriorities,
+  jira_listIssueTypes,
+  jira_listFields,
+  jira_listUsers
+} from './jira';
 
 
 export const tools = {
@@ -36,7 +57,24 @@ export const tools = {
   linear_listWorkflowStates,
   notion_getDatabaseProperties,
   notion_queryDatabase,
-  notion_updatePage
+  notion_updatePage,
+  confluence_listSpaces,
+  confluence_listPages,
+  confluence_getPage,
+  confluence_searchContent,
+  confluence_vectorSearch,
+  jira_listIssues,
+  jira_getIssue,
+  jira_createIssue,
+  jira_listProjects,
+  jira_updateIssue,
+  jira_deleteIssue,
+  jira_getProject,
+  jira_listStatuses,
+  jira_listPriorities,
+  jira_listIssueTypes,
+  jira_listFields,
+  jira_listUsers
 };
 
 export type Tools = typeof tools;

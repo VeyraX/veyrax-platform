@@ -31,6 +31,17 @@ import { LinearWorkflowStateList, LinearWorkflowStateListSkeleton } from "../too
 import { updateMessageAccuracy } from "../../api/api.agent"
 import { NotionDatabaseProperties } from "../tools/notion/card-view.notion"
 import { useAutoScroll } from "@/hooks/use-chat-scroll"
+import { PageCard, PageCardSkeleton } from "../tools/confluence/page-card.confluence"
+import { ConfluenceResponseView, ConfluenceResponseSkeleton } from "../tools/confluence/vector-search-view.confluence"
+import { JiraIssueCard, JiraIssueCardSkeleton, JiraProjectList, JiraProjectListSkeleton, JiraStatusList, JiraStatusListSkeleton, JiraPriorityList, JiraPriorityListSkeleton, JiraIssueTypeList, JiraIssueTypeListSkeleton, JiraFieldList, JiraFieldListSkeleton, JiraUserList, JiraUserListSkeleton } from "../tools/jira/card-view.jira"
+import type { 
+  Issue, 
+  Project, 
+  Status, 
+  Priority, 
+  IssueType,
+  Field 
+} from "../tools/jira/types.jira";
 
 interface ExtendedMessage extends Message {
   image_url?: string;
@@ -595,6 +606,248 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           ) : (
                                             result?.success && (
                                               <NotionPageCard {...result.result} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'confluence_listSpaces':
+                                  case 'confluence_listPages':
+                                  case 'confluence_getPage':
+                                    return (
+                                      <ToolWrapper toolName="confluence">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex flex-wrap gap-4">
+                                              <PageCardSkeleton />
+                                              <PageCardSkeleton />
+                                              <PageCardSkeleton />
+                                            </div>
+                                          ) : (
+                                            result?.success && (
+                                              <div className="flex flex-wrap gap-4">
+                                                {result.spaces ? (
+                                                  result.spaces.map((space: any) => (
+                                                    <PageCard key={space.id} page={space} />
+                                                  ))
+                                                ) : result.pages ? (
+                                                  result.pages.map((page: any) => (
+                                                    <PageCard key={page.id} page={page} />
+                                                  ))
+                                                ) : result.page ? (
+                                                  <PageCard page={result.page} />
+                                                ) : null}
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'confluence_vectorSearch':
+                                    return (
+                                      <ToolWrapper toolName="confluence">
+                                        <div className="max-w-3xl w-full space-y-4">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <>
+                                              <ConfluenceResponseSkeleton />
+                                              <ConfluenceResponseSkeleton />
+                                              <ConfluenceResponseSkeleton />
+                                            </>
+                                          ) : (
+                                            result?.success && (
+                                              <div className="flex flex-wrap gap-4">
+                                                <ConfluenceResponseView response={result} />
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listIssues':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full space-y-4">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <>
+                                              <JiraIssueCardSkeleton />
+                                              <JiraIssueCardSkeleton />
+                                              <JiraIssueCardSkeleton />
+                                            </>
+                                          ) : (
+                                            result?.success && (
+                                              <div className="flex flex-col gap-4">
+                                                {Array.isArray(result.data?.issues) 
+                                                  ? result.data.issues.map((issue: Issue) => (
+                                                      <JiraIssueCard
+                                                        key={issue.id}
+                                                        {...(({ key, ...rest }) => rest)(issue)}
+                                                      />
+                                                    ))
+                                                  : Array.isArray(result.data)
+                                                    ? result.data.map((issue: Issue) => (
+                                                        <JiraIssueCard
+                                                          key={issue.id}
+                                                          {...(({ key, ...rest }) => rest)(issue)}
+                                                        />
+                                                      ))
+                                                    : result.data && (
+                                                        <JiraIssueCard {...result.data} />
+                                                      )
+                                                }
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_getIssue':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraIssueCardSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraIssueCard {...result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_createIssue':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraIssueCardSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraIssueCard {...result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listProjects':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraProjectListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraProjectList projects={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_getProject':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraProjectListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraProjectList projects={[result.data]} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listStatuses':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraStatusListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraStatusList statuses={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listPriorities':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraPriorityListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraPriorityList priorities={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listIssueTypes':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraIssueTypeListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraIssueTypeList issueTypes={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listFields':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraFieldListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraFieldList fields={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_listUsers':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraUserListSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraUserList users={result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'jira_updateIssue':
+                                    return (
+                                      <ToolWrapper toolName="jira">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <JiraIssueCardSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <JiraIssueCard {...result.data} />
                                             )
                                           )}
                                         </div>

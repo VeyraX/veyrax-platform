@@ -93,5 +93,35 @@ export const toolSuggestionsDummyData = [
       apiName: "perplexity_ask",
       question: "Research about",
       logo: "/logos/perplexity-logo.svg"
+    },
+    {
+      apiName: "jira_listIssues",
+      question: "Show my Jira issues",
+      logo: "/logos/jira-logo.svg"
+    },
+    {
+      apiName: "jira_createIssue",
+      question: "Create a Jira ticket",
+      logo: "/logos/jira-logo.svg"
+    },
+    {
+      apiName: "jira_updateIssue",
+      question: "Update Jira issue status",
+      logo: "/logos/jira-logo.svg"
+    },
+    {
+      apiName: "confluence_searchContent",
+      question: "Find Confluence pages about",
+      logo: "/logos/confluence-logo.svg"
+    },
+    {
+      apiName: "confluence_vectorSearch",
+      question: "Search documentation for",
+      logo: "/logos/confluence-logo.svg"
+    },
+    {
+      apiName: "confluence_listPages",
+      question: "Show pages in space",
+      logo: "/logos/confluence-logo.svg"
     }
   ];

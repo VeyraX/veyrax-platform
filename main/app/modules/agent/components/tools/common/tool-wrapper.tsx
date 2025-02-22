@@ -41,6 +41,14 @@ const TOOL_CONFIGS = {
     logo: '/logos/linear-logo.svg',
     label: 'Linear',
   },
+  confluence: {
+    logo: '/logos/confluence-logo.svg',
+    label: 'Confluence',
+  },
+  jira: {
+    logo: '/logos/jira-logo.svg',
+    label: 'Jira',
+  },
 }
 
 export function ToolWrapper({ toolName, children }: ToolWrapperProps) {
