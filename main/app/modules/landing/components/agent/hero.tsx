@@ -178,8 +178,7 @@ export const Hero = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-        
+              </div> 
 
               <div className="relative w-full max-w-7xl z-10">
                 <div className="relative w-full border border-border rounded-xl overflow-hidden">
