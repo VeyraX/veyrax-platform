@@ -49,6 +49,10 @@ const TOOL_CONFIGS = {
     logo: '/logos/jira-logo.svg',
     label: 'Jira',
   },
+  outlook: {
+    logo: '/logos/outlook-logo.svg',
+    label: 'Outlook',
+  },
 }
 
 export function ToolWrapper({ toolName, children }: ToolWrapperProps) {

@@ -42,6 +42,10 @@ import type {
   IssueType,
   Field 
 } from "../tools/jira/types.jira";
+import { DraftMessageCard as OutlookDraftMessageCard, DraftMessageCardSkeleton as OutlookDraftMessageCardSkeleton } from "../tools/outlook/draft-message-card.outlook"
+import { EmailView } from "../tools/outlook/email-view.outlook"
+import { MessageCard as OutlookMessageCard, MessageCardSkeleton as OutlookMessageCardSkeleton } from "../tools/outlook/message-card.outlook"
+import { EventCard as OutlookEventCard, EventCardSkeleton as OutlookEventCardSkeleton, FilterDisplay as OutlookFilterDisplay } from "../tools/outlook/event-card.outlook"
 
 interface ExtendedMessage extends Message {
   image_url?: string;
@@ -848,6 +852,117 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           ) : (
                                             result?.success && (
                                               <JiraIssueCard {...result.data} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_createDraft':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <OutlookDraftMessageCardSkeleton />
+                                          ) : (
+                                            <OutlookDraftMessageCard
+                                              to={args.to}
+                                              subject={args.subject}
+                                              body={args.body}
+                                              onSendMessage={onSendMessage}
+                                            />
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_listMessages':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full space-y-4">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <>
+                                              <OutlookMessageCardSkeleton />
+                                              <OutlookMessageCardSkeleton />
+                                              <OutlookMessageCardSkeleton />
+                                            </>
+                                          ) : (
+                                            result?.success && result.messages?.map((message: any) => (
+                                              <EmailView key={message.id} {...message} />
+                                            ))
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_sendMessage':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <OutlookMessageCardSkeleton />
+                                          ) : (
+                                            result?.success && result.message && (
+                                              <OutlookMessageCard message={result.message} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_listEvents':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full space-y-4">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <>
+                                              <OutlookEventCardSkeleton />
+                                              <OutlookEventCardSkeleton />
+                                              <OutlookEventCardSkeleton />
+                                            </>
+                                          ) : (
+                                            result?.success && (
+                                              <>
+                                                {args && <OutlookFilterDisplay filters={args} />}
+                                                <div className="flex flex-wrap gap-4">
+                                                  {result.events?.map((event: any) => (
+                                                    <OutlookEventCard key={event.id} {...event} />
+                                                  ))}
+                                                </div>
+                                              </>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_createEvent':
+                                  case 'outlook_updateEvent':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <OutlookEventCardSkeleton />
+                                          ) : (
+                                            result?.success && result.event && (
+                                              <OutlookEventCard {...result.event} />
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'outlook_deleteEvent':
+                                    return (
+                                      <ToolWrapper toolName="outlook">
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <OutlookEventCardSkeleton />
+                                          ) : (
+                                            result?.success && (
+                                              <div className="text-sm text-muted-foreground">
+                                                Event deleted successfully
+                                              </div>
                                             )
                                           )}
                                         </div>

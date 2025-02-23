@@ -26,7 +26,7 @@ import {
   jira_listFields,
   jira_listUsers
 } from './jira';
-
+import { outlook_listMessages, outlook_sendMessage, outlook_createDraft, outlook_listEvents, outlook_createEvent, outlook_updateEvent } from './outlook';
 
 export const tools = {
   gmail_createDraft,
@@ -74,7 +74,13 @@ export const tools = {
   jira_listPriorities,
   jira_listIssueTypes,
   jira_listFields,
-  jira_listUsers
+  jira_listUsers,
+  outlook_listMessages,
+  outlook_sendMessage,
+  outlook_createDraft,
+  outlook_listEvents,
+  outlook_createEvent,
+  outlook_updateEvent,
 };
 
 export type Tools = typeof tools;

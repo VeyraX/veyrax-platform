@@ -11,12 +11,18 @@ from .schema import (
     PageUpdateSchema,
     PaginatedResponseSchema
 )
-from ..common.auth import TokenService
+from ..common.auth import TokenService, ConfluenceTokenRefresher
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
 
 async def get_confluence_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'confluence')
+    
+    if TokenService.is_token_expired(token_data):
+        try:
+            token_data = await ConfluenceTokenRefresher.refresh(request, token_data)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="Failed to refresh token")
     
     client = ConfluenceClient(token_data['access_token'])
     return ConfluenceService(client)

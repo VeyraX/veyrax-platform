@@ -6,6 +6,7 @@ from google.auth.transport.requests import Request as GoogleRequest
 import os
 import base64
 import json
+import requests
 
 class TokenService:
     @staticmethod
@@ -69,7 +70,12 @@ class TokenService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to get token: {str(e)}")
 
-class GoogleTokenRefresher:
+class BaseTokenRefresher:
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        raise NotImplementedError("Refresh method must be implemented by subclass")
+
+class GoogleTokenRefresher(BaseTokenRefresher):
     @staticmethod
     async def refresh(request: Request, token_data: dict) -> dict:
         try:
@@ -97,7 +103,104 @@ class GoogleTokenRefresher:
             
             return await TokenService.update_token(request, token_data, new_token_data)
         except Exception as e:
-            raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+            raise HTTPException(status_code=401, detail=f"Failed to refresh Google token: {str(e)}")
+
+class ConfluenceTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            response = requests.post(
+                "https://auth.atlassian.com/oauth/token",
+                json={
+                    "grant_type": "refresh_token",
+                    "client_id": os.getenv('CONFLUENCE_CLIENT_ID'),
+                    "client_secret": os.getenv('CONFLUENCE_CLIENT_SECRET'),
+                    "refresh_token": token_data['refresh_token']
+                }
+            )
+            response.raise_for_status()
+            refresh_data = response.json()
+
+            new_token_data = {
+                'access_token': refresh_data['access_token'],
+                'refresh_token': refresh_data.get('refresh_token', token_data['refresh_token']),
+                'expires_at': int(datetime.now().timestamp() + refresh_data['expires_in']),
+                'raw_token_data': refresh_data
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Failed to refresh Confluence token: {str(e)}")
+
+class JiraTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            response = requests.post(
+                "https://auth.atlassian.com/oauth/token",
+                json={
+                    "grant_type": "refresh_token",
+                    "client_id": os.getenv('JIRA_CLIENT_ID'),
+                    "client_secret": os.getenv('JIRA_CLIENT_SECRET'),
+                    "refresh_token": token_data['refresh_token']
+                }
+            )
+            response.raise_for_status()
+            refresh_data = response.json()
+
+            new_token_data = {
+                'access_token': refresh_data['access_token'],
+                'refresh_token': refresh_data.get('refresh_token', token_data['refresh_token']),
+                'expires_at': int(datetime.now().timestamp() + refresh_data['expires_in']),
+                'raw_token_data': refresh_data
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Failed to refresh Jira token: {str(e)}")
+
+class OutlookTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            response = requests.post(
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                data={
+                    "grant_type": "refresh_token",
+                    "client_id": os.getenv('OUTLOOK_CLIENT_ID'),
+                    "client_secret": os.getenv('OUTLOOK_CLIENT_SECRET'),
+                    "refresh_token": token_data['refresh_token'],
+                    "scope": token_data['scopes']
+                }
+            )
+            response.raise_for_status()
+            refresh_data = response.json()
+
+            new_token_data = {
+                'access_token': refresh_data['access_token'],
+                'refresh_token': refresh_data.get('refresh_token', token_data['refresh_token']),
+                'expires_at': int(datetime.now().timestamp() + refresh_data['expires_in']),
+                'raw_token_data': refresh_data
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Failed to refresh Outlook token: {str(e)}")
+
+class TokenRefresherFactory:
+    _refreshers = {
+        'google': GoogleTokenRefresher,
+        'confluence': ConfluenceTokenRefresher,
+        'jira': JiraTokenRefresher,
+        'outlook': OutlookTokenRefresher
+    }
+
+    @classmethod
+    def get_refresher(cls, provider_tag: str) -> BaseTokenRefresher:
+        refresher = cls._refreshers.get(provider_tag)
+        if not refresher:
+            raise HTTPException(status_code=400, detail=f"Unsupported provider: {provider_tag}")
+        return refresher
 
 async def get_user_from_request(request: Request) -> str:
     try:

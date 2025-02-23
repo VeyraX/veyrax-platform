@@ -11,12 +11,19 @@ from .schema import (
     Project, Status, Priority, IssueType, Field,
     JiraUser
 )
-from ..common.auth import TokenService
+from ..common.auth import TokenService, JiraTokenRefresher
 
 router = APIRouter(prefix="/jira", tags=["jira"])
 
 async def get_jira_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'jira')
+    
+    if TokenService.is_token_expired(token_data):
+        try:
+            token_data = await JiraTokenRefresher.refresh(request, token_data)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="Failed to refresh token")
+    
     client = JiraClient(token_data['access_token'])
     return JiraService(client)
 

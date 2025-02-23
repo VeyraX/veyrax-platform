@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         `client_id=${process.env.CONFLUENCE_CLIENT_ID}&` +
         `response_type=code&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `scope=${encodeURIComponent(scopes.join(' '))}&` +
+        `scope=${encodeURIComponent([...scopes, 'offline_access'].join(' '))}&` +
         `prompt=consent&` +
         `state=${state}&` +
         `audience=api.atlassian.com`;

@@ -71,6 +71,15 @@ export const getToolQuestions = (connectedTools: string[]) => {
         "Find documentation in a specific space",
         "Get details from a specific Confluence page"
       ]
+    },
+    {
+      toolName: "outlook",
+      questions: [
+        "Find emails containing specific keywords in my Outlook inbox",
+        "Draft a new email with specific content in Outlook",
+        "Check my Outlook calendar for upcoming meetings",
+        "Schedule a new meeting with team members in Outlook"
+      ]
     }
   ]
 

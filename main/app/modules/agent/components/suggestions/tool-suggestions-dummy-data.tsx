@@ -123,5 +123,40 @@ export const toolSuggestionsDummyData = [
       apiName: "confluence_listPages",
       question: "Show pages in space",
       logo: "/logos/confluence-logo.svg"
+    },
+    {
+      apiName: "outlook_listMessages",
+      question: "Show my recent Outlook emails",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_createDraft",
+      question: "Create an Outlook draft email",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_sendMessage",
+      question: "Send this Outlook email",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_listEvents",
+      question: "Show my Outlook calendar events",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_createEvent",
+      question: "Schedule an Outlook meeting",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_updateEvent",
+      question: "Update Outlook event details",
+      logo: "/logos/outlook-logo.svg"
+    },
+    {
+      apiName: "outlook_deleteEvent",
+      question: "Cancel Outlook meeting",
+      logo: "/logos/outlook-logo.svg"
     }
   ];

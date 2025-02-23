@@ -12,6 +12,14 @@ interface SuggestionsEmptyStateProps {
   connectedTools: { providerTag: string, logoUrl: string }[]
 }
 
+function chunk<T>(array: T[], size: number): T[][] {
+  const chunked: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunked.push(array.slice(i, i + size));
+  }
+  return chunked;
+}
+
 export function SuggestionsEmptyState({
   onToolClick,
   onSelectSuggestion,
@@ -131,21 +139,28 @@ export function SuggestionsEmptyState({
   return (
     <div className="flex flex-col items-center justify-center w-full py-3">
       <p className="text-sm text-muted-foreground mb-4">Not sure what to ask?</p>
-      <div className="flex overflow-x-auto gap-4 w-full pb-4 px-4 no-scrollbar justify-center">
-        {toolQuestions.map((tool) => {
-          const connectedTool = connectedTools.find(ct => ct.providerTag === tool.toolName);
-          return (
-            <Button
-              key={tool.toolName}
-              variant="outline"
-              size="lg"
-              onClick={() => handleToolSelect(tool.toolName)}
-              className="rounded-full flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3"
-            >
-              <img src={connectedTool?.logoUrl || tool.logo} alt={`${tool.toolName} logo`} className="w-6 h-6" />
-            </Button>
-          );
-        })}
+      <div className="flex flex-col gap-1 w-full">
+        {chunk(toolQuestions, 7).map((toolGroup, groupIndex) => (
+          <div 
+            key={groupIndex} 
+            className="flex overflow-x-auto gap-4 w-full pb-4 px-4 no-scrollbar justify-center"
+          >
+            {toolGroup.map((tool) => {
+              const connectedTool = connectedTools.find(ct => ct.providerTag === tool.toolName);
+              return (
+                <Button
+                  key={tool.toolName}
+                  variant="outline"
+                  size="lg"
+                  onClick={() => handleToolSelect(tool.toolName)}
+                  className="rounded-full flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3"
+                >
+                  <img src={connectedTool?.logoUrl || tool.logo} alt={`${tool.toolName} logo`} className="w-6 h-6" />
+                </Button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )
