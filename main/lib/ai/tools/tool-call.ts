@@ -3,12 +3,13 @@ import { z } from 'zod';
 import { getAuthHeaders } from '@/lib/actions/actions';
 
 export const tool_call = tool({
-  description: 'Универсальный вызов инструмента с произвольными параметрами',
+  description: 'Unified tool call for all tools, based on annotation you must choose the correct tool and method',
   parameters: z.object({
-    method: z.string().describe('Название метода для вызова'),
-    params: z.record(z.any()).describe('Объект с произвольными параметрами')
+    tool: z.string().describe('Name of the tool/integration to use, example: "google_calendar"'),
+    method: z.string().describe('Name of the method to call, example: "get_event"'),
+    params: z.record(z.any()).describe('Object with arbitrary parameters, example: { "event_id": 123 }, follow the annotation of the tool to choose the correct parameters')
   }),
-  execute: async function({ method, params }) {
+  execute: async function({ tool, method, params }) {
     try {
       const headers = await getAuthHeaders();
       const queryParams = new URLSearchParams();
@@ -20,19 +21,26 @@ export const tool_call = tool({
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${method}?${queryParams.toString()}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/${tool}/${method}`,
         {
-          headers,
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(params),
           credentials: 'include'
         }
       );
-
-      if (!response.ok) throw new Error(`Failed to execute tool call: ${method}`);
       
       const data = await response.json();
+      
       return {
         success: true,
-        result: data
+        result: {
+          data: data.data,
+          component: data.component || null
+        }
       };
     } catch (error) {
       return {

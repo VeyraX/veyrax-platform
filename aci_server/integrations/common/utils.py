@@ -1,6 +1,8 @@
 import inspect
 from typing import List, Dict, Any
 from fastapi import routing
+import os
+import json
 
 def _get_json_type(type_):
     """Helper function to convert Python/Pydantic types to JSON schema types"""
@@ -109,3 +111,17 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         tools.append(tool)
 
     return tools
+
+def wrap_component_with_tool(component: Dict[str, Any], tool_name: str) -> Dict[str, Any]:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(current_dir, 'tool_wrapper.json'), 'r') as file:
+        tool_wrapper = json.load(file)
+    
+    return {
+        "name": "ToolWrapper",
+        "props": {
+            "toolName": tool_name,
+            "children": component
+        },
+        "jsx": tool_wrapper["component"]["jsx"]
+    }

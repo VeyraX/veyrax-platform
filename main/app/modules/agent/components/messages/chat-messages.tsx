@@ -46,6 +46,7 @@ import { DraftMessageCard as OutlookDraftMessageCard, DraftMessageCardSkeleton a
 import { EmailView } from "../tools/outlook/email-view.outlook"
 import { MessageCard as OutlookMessageCard, MessageCardSkeleton as OutlookMessageCardSkeleton } from "../tools/outlook/message-card.outlook"
 import { EventCard as OutlookEventCard, EventCardSkeleton as OutlookEventCardSkeleton, FilterDisplay as OutlookFilterDisplay } from "../tools/outlook/event-card.outlook"
+import DynamicComponentRender from "../tools/common/dymanic-component-render"
 
 interface ExtendedMessage extends Message {
   image_url?: string;
@@ -963,6 +964,21 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                               <div className="text-sm text-muted-foreground">
                                                 Event deleted successfully
                                               </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </ToolWrapper>
+                                    );
+
+                                  case 'tool_call':
+                                    return (
+                                      <ToolWrapper toolName={(args?.tool || toolName.split('_')[0])}>
+                                        <div className="max-w-3xl w-full">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <Skeleton className="h-32 w-full" />
+                                          ) : (
+                                            result?.success && result.result?.component && (
+                                              <DynamicComponentRender component={result.result.component} />
                                             )
                                           )}
                                         </div>

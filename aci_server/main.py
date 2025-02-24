@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from integrations.google_calendar.schema import EventFilters
+from integrations.google_calendar.route import get_calendar_service
 from integrations.gmail.route import router as gmail_router
 from integrations.google_calendar.route import router as google_calendar_router
 from integrations.notion.route import router as notion_router
@@ -17,6 +20,9 @@ from vector_tools.route import router as vector_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
 import os
+import importlib
+import json
+import inspect
 
 load_dotenv()
 
@@ -62,3 +68,62 @@ async def get_tools():
             tools[integration_name] = get_router_tools(router)
     
     return {"tools": tools}
+
+@app.post("/tool-call/{tool}/{method}")
+async def handle_tool_call(tool: str, method: str, request: Request):
+    # Получаем параметры из тела запроса
+    try:
+        params = await request.json()
+    except:
+        params = {}
+    
+    # Находим нужный роутер
+    integration_routers = {
+        "gmail": gmail_router,
+        "google_calendar": google_calendar_router,
+        "notion": notion_router,
+        "slack": slack_router,
+        "linear": linear_router,
+        "openweather": openweather_router,
+        "perplexity": perplexity_router,
+        "google_drive": google_drive_router,
+        "jira": jira_router,
+        "confluence": confluence_router,
+        "outlook": outlook_router,
+        "dropbox": dropbox_router
+    }
+    
+    if tool not in integration_routers:
+        raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
+    
+    router = integration_routers[tool]
+    
+    for route in router.routes:
+        if route.name == method:
+            # Используем inspect для получения информации о параметрах эндпоинта
+            signature = inspect.signature(route.endpoint)
+            
+            # Создаем словарь для аргументов, которые передадим в endpoint
+            endpoint_args = {}
+            
+            # Добавляем параметры из запроса
+            for name, param in signature.parameters.items():
+                if name in params:
+                    endpoint_args[name] = params[name]
+            
+            # Создаем зависимости
+            for name, param in signature.parameters.items():
+                if name not in endpoint_args:
+                    # Проверяем, есть ли у параметра значение по умолчанию и является ли оно Depends
+                    if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
+                        dep_func = param.default.dependency
+                        try:
+                            # Создаем зависимость и сохраняем её с именем параметра функции
+                            endpoint_args[name] = await dep_func(request)
+                        except Exception as e:
+                            print(f"Error resolving dependency {name}: {str(e)}")
+            
+            # Вызываем эндпоинт с нужными аргументами
+            return await route.endpoint(**endpoint_args)
+    
+    raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}'")

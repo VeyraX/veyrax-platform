@@ -1,8 +1,8 @@
 'use client'
-import { Features } from "../components/web/features"
+import { Features } from "../components/features"
 import { Hero } from "../components/agent/hero"
 import { CTA } from "../components/web/cta"
-import { TextBlock } from "../components/web/text"
+import { TextBlock } from "../components/text"
 import { useEffect } from "react"
 import { Footer } from "../components/footer"
 

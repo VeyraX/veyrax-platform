@@ -52,8 +52,13 @@ class DropboxService:
         return self._convert_to_dropbox_file(response)
 
     def download_file(self, path: str) -> Tuple[bytes, DropboxFile]:
-        content, metadata = self.client.download_file(path)
-        return content, self._convert_to_dropbox_file(metadata)
+        try:
+            content, metadata = self.client.download_file(path)
+            dropbox_file = self._convert_to_dropbox_file(metadata)
+            return content, dropbox_file
+        except Exception as e:
+            print(f"Download error in service: {str(e)}")
+            raise
 
     def delete_file(self, path: str) -> DropboxFile:
         response = self.client.delete_file(path)

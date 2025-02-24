@@ -3,6 +3,7 @@ import { appendResponseMessages, streamText } from 'ai';
 import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
+import { tools } from '@/lib/ai/tools';
 
 export const maxDuration = 30;
 
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
       model: openai('gpt-4o'),
       messages,
       system: main_system_prompt,
-      tools: userTools,
+      tools: tools,
       experimental_toolCallStreaming: true,
       maxSteps: 25,
       experimental_telemetry: { isEnabled: true },

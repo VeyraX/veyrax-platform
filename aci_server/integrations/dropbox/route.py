@@ -65,7 +65,7 @@ async def upload_file(
 class DownloadRequest(BaseModel):
     path: str
 
-@router.post("/files/download")
+@router.post("/download-file")
 async def download_file(
     download_req: DownloadRequest,
     service: DropboxService = Depends(get_service)
@@ -73,15 +73,19 @@ async def download_file(
     try:
         clean_path = '/' + '/'.join(filter(None, download_req.path.split('/')))
         content, metadata = service.download_file(clean_path)
+        
+        filename = metadata.name if hasattr(metadata, 'name') else "download"
+        mime_type = metadata.mime_type if hasattr(metadata, 'mime_type') else "application/octet-stream"
+        
         return Response(
             content=content,
-            media_type=metadata.mime_type or "application/octet-stream",
-            headers={"Content-Disposition": f'attachment; filename="{metadata.name}"'}
+            media_type=mime_type,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
         )
     except Exception as e:
-        if isinstance(e, requests.exceptions.HTTPError) and e.response.status_code == 400:
+        if isinstance(e, requests.exceptions.HTTPError) and hasattr(e, 'response') and e.response.status_code == 400:
             raise HTTPException(status_code=404, detail="File not found")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @router.delete("/files/{path:path}", response_model=DropboxFile)
 async def delete_file(
