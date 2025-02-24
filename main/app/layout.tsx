@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TopBarMenu } from "@/app/modules/general/components/topbar-menu";
 import "./globals.css"
+import { PostHogProvider } from "@/app/providers/posthog";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -53,9 +54,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable}`}
       >
+        <PostHogProvider>
           <main>  
             {children}
           </main>
+        </PostHogProvider>
       </body>
     </html>
   );
