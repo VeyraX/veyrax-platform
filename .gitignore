@@ -43,3 +43,9 @@ aci_server/credentials/
 
 
 **/__pycache__/
+
+# Maple project files from Jupyter notebooks
+*.maple
+
+# Jupyter notebooks
+*.ipynb

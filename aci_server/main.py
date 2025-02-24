@@ -12,6 +12,7 @@ from integrations.google_drive.route import router as google_drive_router
 from integrations.jira.route import router as jira_router
 from integrations.confluence.route import router as confluence_router
 from integrations.outlook.route import router as outlook_router
+from integrations.dropbox.route import router as dropbox_router
 from vector_tools.route import router as vector_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
@@ -44,6 +45,7 @@ app.include_router(vector_router)
 app.include_router(jira_router)
 app.include_router(confluence_router)
 app.include_router(outlook_router)
+app.include_router(dropbox_router)
 
 @app.get("/")
 async def root():
@@ -51,7 +53,7 @@ async def root():
 
 @app.get("/tools")
 async def get_tools():
-    routers = [gmail_router, google_calendar_router, notion_router, slack_router, linear_router, openweather_router, perplexity_router, google_drive_router, jira_router, confluence_router, outlook_router]
+    routers = [gmail_router, google_calendar_router, notion_router, slack_router, linear_router, openweather_router, perplexity_router, google_drive_router, jira_router, confluence_router, outlook_router, dropbox_router]
     
     tools = {}
     for router in routers:

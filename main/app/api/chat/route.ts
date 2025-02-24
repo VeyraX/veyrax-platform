@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       tools: userTools,
       experimental_toolCallStreaming: true,
       maxSteps: 25,
+      experimental_telemetry: { isEnabled: true },
       async onFinish({ response }) {
         const allMessages = appendResponseMessages({
           messages,
