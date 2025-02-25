@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request as FastAPIRequest
-from typing import Optional, List
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
+from typing import Optional, List, Dict, Any
 import pickle
 import os
 
 from .schema import (
     IssueList, Issue, ProjectList, Project,
     IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse,
-    UserList, TeamList, Team, WorkflowStateList
+    UserList, TeamList, Team, WorkflowStateList, ApiResponse
 )
 from .service import LinearService
 from .client import LinearClient
@@ -31,161 +31,197 @@ async def get_linear_service(request: FastAPIRequest) -> LinearService:
             detail=f"Failed to initialize Linear service: {str(e)}"
         )
 
-@router.get(
-    "/issues",
-    response_model=IssueList,
-    summary="List all issues",
-    description="Retrieve a paginated list of Linear issues"
-)
+@router.post("/list_issues", response_model=ApiResponse)
 async def list_issues(
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> IssueList:
+):
     try:
-        return service.list_issues(cursor, max_results)
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.list_issues(cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get(
-    "/issues/search",
-    response_model=IssueList,
-    summary="Search issues",
-    description="Search Linear issues using a text query"
-)
+@router.post("/search_issues", response_model=ApiResponse)
 async def search_issues(
-    query: str = Query(..., description="Search query string"),
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> IssueList:
+):
     try:
-        return service.search_issues(query, cursor, max_results)
+        query = params.get('query')
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.search_issues(query, cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post(
-    "/issues/filter",
-    response_model=IssueList,
-    summary="Filter issues",
-    description="Filter issues using various criteria"
-)
+@router.post("/filter_issues", response_model=ApiResponse)
 async def filter_issues(
-    filters: IssueFilter,
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> IssueList:
+):
     try:
-        return service.filter_issues(filters, cursor, max_results)
+        filters_data = params.get('filters', {})
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        filters = IssueFilter(**filters_data)
+        result = service.filter_issues(filters, cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post(
-    "/issues",
-    response_model=Issue,
-    status_code=201,
-    summary="Create issue",
-    description="Create a new Linear issue"
-)
+@router.post("/create_issue", response_model=ApiResponse)
 async def create_issue(
-    issue: IssueCreate,
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> Issue:
+):
     try:
-        return service.create_issue(issue)
+        issue_data = params.get('issue', params)
+        
+        issue = IssueCreate(**issue_data)
+        result = service.create_issue(issue)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.patch(
-    "/issues/{issue_id}",
-    response_model=Issue,
-    summary="Update issue",
-    description="Update an existing Linear issue"
-)
+@router.post("/update_issue", response_model=ApiResponse)
 async def update_issue(
-    issue_id: str,
-    issue_update: IssueUpdate,
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> Issue:
-    return service.update_issue(issue_id, issue_update)
+):
+    try:
+        issue_id = params.get('issue_id')
+        issue_data = params.get('issue_update', {})
+        
+        issue_update = IssueUpdate(**issue_data)
+        result = service.update_issue(issue_id, issue_update)
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post(
-    "/issues/{issue_id}/comments",
-    response_model=CommentResponse,
-    summary="Add comment",
-    description="Add a comment to an existing Linear issue"
-)
+@router.post("/comment_issue", response_model=ApiResponse)
 async def comment_issue(
-    issue_id: str,
-    comment: CommentCreate,
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> CommentResponse:
+):
     try:
-        return service.comment_issue(issue_id, comment)
+        issue_id = params.get('issue_id')
+        comment_data = params.get('comment', {})
+        
+        comment = CommentCreate(**comment_data)
+        result = service.comment_issue(issue_id, comment)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get(
-    "/projects",
-    response_model=ProjectList,
-    summary="List projects",
-    description="Retrieve a paginated list of Linear projects"
-)
+@router.post("/list_projects", response_model=ApiResponse)
 async def list_projects(
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> ProjectList:
+):
     try:
-        return service.list_projects(cursor, max_results)
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.list_projects(cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get(
-    "/users",
-    response_model=UserList,
-    summary="List users",
-    description="Retrieve a paginated list of Linear users"
-)
+@router.post("/get_project", response_model=ApiResponse)
+async def get_project(
+    params: Dict[str, Any] = Body(...),
+    service: LinearService = Depends(get_linear_service)
+):
+    try:
+        project_id = params.get('project_id')
+        
+        result = service.get_project(project_id)
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/list_users", response_model=ApiResponse)
 async def list_users(
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> UserList:
+):
     try:
-        return service.list_users(cursor, max_results)
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.list_users(cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get(
-    "/teams",
-    response_model=TeamList,
-    summary="List teams",
-    description="Retrieve a paginated list of Linear teams"
-)
+@router.post("/list_teams", response_model=ApiResponse)
 async def list_teams(
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> TeamList:
+):
     try:
-        return service.list_teams(cursor, max_results)
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.list_teams(cursor, max_results)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get(
-    "/workflow-states",
-    response_model=WorkflowStateList,
-    summary="List workflow states",
-    description="Retrieve a paginated list of Linear workflow states (statuses)"
-)
-async def list_workflow_states(
-    cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    max_results: int = Query(50, ge=1, le=100, description="Maximum number of results to return"),
+@router.post("/get_team", response_model=ApiResponse)
+async def get_team(
+    params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
-) -> WorkflowStateList:
+):
     try:
-        return service.list_workflow_states(cursor, max_results)
+        team_id = params.get('team_id')
+        
+        result = service.get_team(team_id)
+        return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/list_workflow_states", response_model=ApiResponse)
+async def list_workflow_states(
+    params: Dict[str, Any] = Body(...),
+    service: LinearService = Depends(get_linear_service)
+):
+    try:
+        cursor = params.get('cursor')
+        max_results = params.get('max_results', 50)
+        
+        result = service.list_workflow_states(cursor, max_results)
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

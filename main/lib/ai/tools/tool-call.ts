@@ -32,6 +32,8 @@ export const tool_call = tool({
           credentials: 'include'
         }
       );
+      console.log(params);
+      console.log(response);
       
       const data = await response.json();
       

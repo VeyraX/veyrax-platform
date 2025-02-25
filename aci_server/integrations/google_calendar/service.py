@@ -3,54 +3,20 @@ from .client import CalendarClient
 from .schema import EventList, Event, EventCreate, EventUpdate, Calendar, CalendarList, EventFilters, ApiResponse
 from datetime import datetime
 import os
-import json
-from ..common.utils import wrap_component_with_tool
+from ..common.component_handler import load_components, prepare_components_auto
 
 class CalendarService:
     def __init__(self, client: CalendarClient):
         self.client = client
-        self.component_data = self._load_component()
+        self.components_data = self._load_components()
 
-    def _load_component(self):
+    def _load_components(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(current_dir, 'component.json'), 'r') as file:
-            return json.load(file)
+        return load_components(current_dir)
         
-    def _create_component(self, data: Any) -> Dict[str, Any]:
-        if not data:
-            return None
-        
-        data_dict = data.dict()
-        
-        for key, value in data_dict.items():
-            if isinstance(value, datetime):
-                data_dict[key] = value.isoformat()
-        
-        component_name = self.component_data["name"]
-        jsx_code = self.component_data["component"]["jsx"]
-        
-        return {
-            "name": component_name,
-            "props": {"data": data_dict},
-            "jsx": jsx_code
-        }
-
-    def prepare_response(self, data: Union[Event, EventList, CalendarList]) -> ApiResponse:
-        components = None
-        
-        if isinstance(data, Event):
-            component = self._create_component(data)
-            components = wrap_component_with_tool(component, "google-calendar")
-        
-        elif isinstance(data, EventList):
-            event_components = []
-            for event in data.items:
-                component = self._create_component(event)
-                event_components.append(component)
-            
-            if event_components:
-                components = wrap_component_with_tool(event_components, "google-calendar")
-        
+    def prepare_response(self, data: Union[Event, EventList, CalendarList], component_name: str = None) -> ApiResponse:
+        tool_name = "google-calendar"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
     def list_events(self, pageToken: Optional[str] = None, 
@@ -98,7 +64,7 @@ class CalendarService:
             nextPageToken=response.get('nextPageToken')
         )
         
-        return self.prepare_response(events_list)
+        return self.prepare_response(events_list, "GoogleCalendarEventCard")
 
     def get_event(self, event_id: str, calendar_id: str = 'primary') -> ApiResponse:
         event = self.client.get_event(event_id, calendar_id)
@@ -106,7 +72,7 @@ class CalendarService:
         event_data['start'] = self._parse_datetime(event['start'])
         event_data['end'] = self._parse_datetime(event['end'])
         event_obj = Event(**event_data)
-        return self.prepare_response(event_obj)
+        return self.prepare_response(event_obj, "GoogleCalendarEventCard")
 
     def create_event(self, event_data: EventCreate, calendar_id: str = 'primary') -> ApiResponse:
         event_body = event_data.dict(exclude_unset=True)
@@ -154,4 +120,4 @@ class CalendarService:
             calendars.append(Calendar(**calendar))
             
         calendar_list = CalendarList(items=calendars)
-        return self.prepare_response(calendar_list)
+        return self.prepare_response(calendar_list, "GoogleCalendarEventCard")
