@@ -17,8 +17,12 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         # Skip the /tools endpoint
         if route.path.endswith("/tools"):
             continue
-        tool_schema = get_openai_function_schemas(route, strict=True)
+        tool_schema = get_openai_function_schemas(route, strict=False)
 
+        # validation_errors = validate_tool_schema(tool_schema)
+        # if len(validation_errors) > 0:
+        #     tools.append({'schema': tool_schema, 'errors': validation_errors})
+        # # else:
         tools.append(tool_schema)
 
     return tools

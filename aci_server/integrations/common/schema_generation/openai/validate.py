@@ -9,14 +9,19 @@ UNSUPPORTED_KEYWORDS = {
     "unevaluatedItems", "contains", "minContains", "maxContains", "minItems", "maxItems", "uniqueItems"
 }
 
-def validate_object_schema(schema: Dict[str, Any]) -> List[str]:
+def validate_object_schema(schema: Dict[str, Any], is_strict: bool) -> List[str]:
     errors = []
     # Ensure the type is "object"
     if schema.get("type") != "object":
         errors.append("Expected type 'object'.")
-    # Ensure additionalProperties is explicitly false
-    if schema.get("additionalProperties") is not False:
-        errors.append("'additionalProperties' must be set to false.")
+    # In strict mode, additionalProperties must be explicitly false;
+    # in non-strict mode, additionalProperties should not be set at all.
+    if is_strict:
+        if schema.get("additionalProperties") is not False:
+            errors.append("'additionalProperties' must be set to false.")
+    else:
+        if "additionalProperties" in schema:
+            errors.append("'additionalProperties' should not be set in non-strict mode.")
     # Check for unsupported keywords at this level
     for key in schema:
         if key in UNSUPPORTED_KEYWORDS:
@@ -24,32 +29,33 @@ def validate_object_schema(schema: Dict[str, Any]) -> List[str]:
     # Ensure every property is marked as required
     properties = schema.get("properties", {})
     required = schema.get("required", [])
-    for prop in properties:
-        if prop not in required:
-            errors.append(f"Property '{prop}' is not listed in 'required'.")
+    if is_strict:
+        for prop in properties:
+            if prop not in required:
+                errors.append(f"Property '{prop}' is not listed in 'required'.")
     # Recursively validate each property's schema
     for prop_schema in properties.values():
-        errors.extend(validate_schema(prop_schema))
+        errors.extend(validate_schema(prop_schema, is_strict))
     # Validate "items" field for arrays, if present
     if "items" in schema:
         items_field = schema["items"]
         if isinstance(items_field, dict):
-            errors.extend(validate_schema(items_field))
+            errors.extend(validate_schema(items_field, is_strict))
         elif isinstance(items_field, list):
             for item in items_field:
-                errors.extend(validate_schema(item))
+                errors.extend(validate_schema(item, is_strict))
     return errors
 
-def validate_union_schema(schema: Dict[str, Any]) -> List[str]:
+def validate_union_schema(schema: Dict[str, Any], is_strict: bool) -> List[str]:
     errors = []
     types = schema.get("type")
     if isinstance(types, list):
         for t in types:
             if isinstance(t, dict):
-                errors.extend(validate_schema(t))
+                errors.extend(validate_schema(t, is_strict))
     return errors
 
-def validate_schema(schema: Any) -> List[str]:
+def validate_schema(schema: Any, is_strict: bool) -> List[str]:
     errors = []
     if not isinstance(schema, dict):
         return errors
@@ -59,16 +65,16 @@ def validate_schema(schema: Any) -> List[str]:
             errors.append(f"Unsupported keyword '{key}' found.")
     # Handle union types (e.g. [ "null", "string" ])
     if "type" in schema and isinstance(schema["type"], list):
-        errors.extend(validate_union_schema(schema))
+        errors.extend(validate_union_schema(schema, is_strict))
     elif schema.get("type") == "object":
-        errors.extend(validate_object_schema(schema))
+        errors.extend(validate_object_schema(schema, is_strict))
     elif schema.get("type") == "array":
         if "items" in schema:
-            errors.extend(validate_schema(schema["items"]))
+            errors.extend(validate_schema(schema["items"], is_strict))
     # Validate anyOf options if present
     if "anyOf" in schema:
         for option in schema["anyOf"]:
-            errors.extend(validate_schema(option))
+            errors.extend(validate_schema(option, is_strict))
     return errors
 
 def validate_tool_schema(tool_schema: Dict[str, Any]) -> List[str]:
@@ -82,9 +88,12 @@ def validate_tool_schema(tool_schema: Dict[str, Any]) -> List[str]:
               "name": "...",
               "description": "...",
               "parameters": { ... },
-              "strict": true
+              "strict": true/false
           }
       }
+      
+    For strict mode, nested object schemas must have additionalProperties explicitly false.
+    For non-strict mode, the schema should not define additionalProperties.
     """
     errors = []
     if tool_schema.get("type") != "function":
@@ -97,14 +106,14 @@ def validate_tool_schema(tool_schema: Dict[str, Any]) -> List[str]:
     for key in ["name", "description", "parameters", "strict"]:
         if key not in func_obj:
             errors.append(f"Missing '{key}' in function definition.")
-    # Check that strict mode is enabled
-    if func_obj.get("strict") is not True:
-        errors.append("Function schema must have strict mode enabled ('strict': true).")
-    parameters = func_obj.get("parameters")
-    if not parameters:
-        errors.append("No parameters schema provided.")
+    # Check that strict mode is defined and pass its value to the parameter validation.
+    strict_value = func_obj.get("strict")
+    if strict_value is True:
+        errors.extend(validate_schema(func_obj.get("parameters"), is_strict=True))
+    elif strict_value is False:
+        errors.extend(validate_schema(func_obj.get("parameters"), is_strict=False))
     else:
-        errors.extend(validate_schema(parameters))
+        errors.append("Function schema 'strict' must be either true or false.")
     return errors
 
 # Example usage:
@@ -178,12 +187,12 @@ if __name__ == "__main__":
         print("Tool schema validation passed with no errors.")
 
 
-if __name__ == "__main__":
-    from aci_server.main import get_tools
-    tools = get_tools()
+# if __name__ == "__main__":
+#     from aci_server.main import get_tools
+#     tools = get_tools()
 
-    for tool in tools:
-        for service_name, tool_schema in tool.items():
-            errors = validate_tool_schema(tool_schema)
-            if len(errors) > 0:
-                print(tool, errors)
+#     for tool in tools:
+#         for service_name, tool_schema in tool.items():
+#             errors = validate_tool_schema(tool_schema)
+#             if len(errors) > 0:
+#                 print(tool, errors)
