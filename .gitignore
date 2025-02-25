@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+aci_server/__pycache__/main.cpython-311.pyc
+main/pnpm-lock.yaml
 # dependencies
 main/node_modules
 main/.pnp

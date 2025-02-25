@@ -3,9 +3,7 @@ from typing import Optional
 from .schema import MessageList, Message, DraftMessage, DraftResponse, DraftList, MessageFilters
 from .service import GmailService
 from .client import GmailClient
-import pickle
 import os
-from ..common.utils import get_router_tools
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
 from ..common.auth import TokenService, GoogleTokenRefresher
