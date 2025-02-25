@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request as FastAPIRequest
-from typing import Optional
-from .schema import FileList, DriveFile, FileFilters, FolderCreate, FileMove
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request as FastAPIRequest, Body
+from typing import Optional, Dict, Any
+from .schema import FileList, DriveFile, FileFilters, FolderCreate, FileMove, ApiResponse
 from .service import DriveService
 from .client import DriveClient
 import pickle
@@ -12,7 +12,7 @@ from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.file_reader import read_file_content
 
 
-router = APIRouter(prefix="/google_drive", tags=["google_drive"])
+router = APIRouter(prefix="/google-drive", tags=["google-drive"])
 
 async def get_drive_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'google-drive')
@@ -31,95 +31,160 @@ async def get_drive_service(request: FastAPIRequest):
     client = DriveClient(creds)
     return DriveService(client)
 
-@router.get("/files", response_model=FileList)
+@router.post("/list_files", response_model=ApiResponse)
 async def list_files(
-    page_token: Optional[str] = None,
-    filters: FileFilters = Depends(),
+    params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
 ):
-    return service.list_files(page_token, filters)
+    try:
+        filters_data = params.get('filters', {})
+        page_token = params.get('pageToken')
+        
+        filters = FileFilters(**filters_data)
+        return service.list_files(page_token, filters)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/files/{file_id}", response_model=DriveFile)
+@router.post("/get_file", response_model=ApiResponse)
 async def get_file(
-    file_id: str,
+    params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
 ):
-    return service.get_file(file_id)
+    try:
+        file_id = params.get('file_id')
+        if not file_id:
+            raise HTTPException(status_code=400, detail="file_id is required")
+            
+        return service.get_file_with_component(file_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/files", response_model=DriveFile)
+@router.post("/create_folder", response_model=ApiResponse)
+async def create_folder(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        folder_data = params.get('folder', params)
+        folder = FolderCreate(**folder_data)
+        return service.create_folder(folder.name, folder.parent_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/upload_file", response_model=ApiResponse)
 async def upload_file(
     file: UploadFile = File(...),
     parent_id: Optional[str] = None,
     service: DriveService = Depends(get_drive_service)
 ):
-    return service.upload_file(file.filename, file.file, file.content_type, parent_id)
+    try:
+        return service.upload_file(file.filename, file.file, file.content_type, parent_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/files/{file_id}/download")
+@router.post("/download_file")
 async def download_file(
-    file_id: str,
-    service: DriveService = Depends(get_drive_service)
-):
-    file_content, mime_type = service.download_file(file_id)
-    file_info = service.get_file(file_id)
-    
-    file_content.seek(0)
-    
-    extension = {
-        'application/pdf': '.pdf',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-    }.get(mime_type, '')
-    
-    filename = f"{file_info.name}{extension}"
-    
-    return StreamingResponse(
-        iter([file_content.read()]),
-        media_type=mime_type,
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
-
-@router.delete("/files/{file_id}")
-async def delete_file(
-    file_id: str,
-    service: DriveService = Depends(get_drive_service)
-):
-    service.delete_file(file_id)
-    return {"status": "success"}
-
-@router.post("/folders", response_model=DriveFile)
-async def create_folder(
-    folder: FolderCreate,
-    service: DriveService = Depends(get_drive_service)
-):
-    return service.create_folder(folder.name, folder.parent_id)
-
-@router.patch("/files/{file_id}/move", response_model=DriveFile)
-async def move_file(
-    file_id: str,
-    move: FileMove,
-    service: DriveService = Depends(get_drive_service)
-):
-    return service.move_file(file_id, move.new_parent_id)
-
-@router.get("/folders", response_model=FileList)
-async def list_folders(
-    page_token: Optional[str] = None,
-    name_contains: Optional[str] = None,
-    parent_id: Optional[str] = None,
-    service: DriveService = Depends(get_drive_service)
-):
-    filters = FileFilters(
-        name_contains=name_contains,
-        parent_id=parent_id,
-        folders_only=True
-    )
-    return service.list_files(page_token, filters)
-
-@router.get("/files/{file_id}/read")
-async def read_file(
-    file_id: str,
+    params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
 ):
     try:
+        file_id = params.get('file_id')
+        if not file_id:
+            raise HTTPException(status_code=400, detail="file_id is required")
+            
+        file_content, mime_type = service.download_file(file_id)
+        file_info = service.get_file(file_id)
+        
+        file_content.seek(0)
+        
+        extension = {
+            'application/pdf': '.pdf',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+        }.get(mime_type, '')
+        
+        filename = f"{file_info.name}{extension}"
+        
+        return {
+            "status": "success",
+            "file_content": file_content.read(),
+            "mime_type": mime_type,
+            "filename": filename
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/delete_file")
+async def delete_file(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        file_id = params.get('file_id')
+        if not file_id:
+            raise HTTPException(status_code=400, detail="file_id is required")
+            
+        service.delete_file(file_id)
+        return {"status": "success"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/move_file", response_model=ApiResponse)
+async def move_file(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        file_id = params.get('file_id')
+        new_parent_id = params.get('new_parent_id')
+        
+        if not file_id or not new_parent_id:
+            raise HTTPException(status_code=400, detail="file_id and new_parent_id are required")
+            
+        return service.move_file(file_id, new_parent_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/list_folders", response_model=ApiResponse)
+async def list_folders(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        filters_data = params.get('filters', {})
+        page_token = params.get('pageToken')
+        
+        filters_data['folders_only'] = True
+        filters = FileFilters(**filters_data)
+        return service.list_files(page_token, filters)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/read_file")
+async def read_file(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        file_id = params.get('file_id')
+        if not file_id:
+            raise HTTPException(status_code=400, detail="file_id is required")
+            
         file_content, mime_type = service.download_file(file_id)
         file_info = service.get_file(file_id)
         

@@ -1,17 +1,57 @@
-from typing import Optional, IO
+from typing import Optional, IO, Union, Dict, Any, List
 from .client import DriveClient
-from .schema import FileList, DriveFile, FileFilters
+from .schema import FileList, DriveFile, FileFilters, ApiResponse
 from datetime import datetime
 from dateutil import parser
+import os
+from ..common.component_handler import load_components, prepare_components_auto
 
 class DriveService:
     def __init__(self, client: DriveClient):
         self.client = client
+        self.components_data = self._load_components()
 
-    def list_files(self, page_token: Optional[str] = None, filters: Optional[FileFilters] = None) -> FileList:
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: Union[DriveFile, FileList], component_name: str = None) -> ApiResponse:
+        tool_name = "google-drive"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
+
+    def _prepare_file_data(self, file_data: Dict[str, Any]) -> Dict[str, Any]:
+        prepared_data = {
+            'id': file_data['id'],
+            'name': file_data['name'],
+            'mime_type': file_data['mimeType'],
+            'parent_ids': file_data.get('parents'),
+            'created_time': parser.parse(file_data['createdTime']),
+            'modified_time': parser.parse(file_data['modifiedTime']),
+            'size': file_data.get('size'),
+            'web_view_link': file_data.get('webViewLink'),
+            'web_content_link': file_data.get('webContentLink')
+        }
+        
+        if file_data.get('parents'):
+            parent_names = []
+            for parent_id in file_data['parents']:
+                try:
+                    parent = self.client.get_file(parent_id)
+                    parent_names.append(parent['name'])
+                except Exception:
+                    parent_names.append(None)
+            prepared_data['parent_names'] = parent_names
+        
+        return prepared_data
+
+    def list_files(self, page_token: Optional[str] = None, filters: Optional[FileFilters] = None) -> ApiResponse:
         query_parts = []
         
-        query_parts.append("mimeType != 'application/vnd.google-apps.folder'")
+        if filters and filters.folders_only:
+            query_parts.append("mimeType = 'application/vnd.google-apps.folder'")
+        else:
+            query_parts.append("mimeType != 'application/vnd.google-apps.folder'")
         
         if filters:
             if filters.name_contains:
@@ -26,8 +66,6 @@ class DriveService:
             if filters.created_before:
                 before_date = datetime.fromisoformat(filters.created_before).isoformat('T')
                 query_parts.append(f"createdTime < '{before_date}'")
-            if filters.folders_only:
-                query_parts = ["mimeType = 'application/vnd.google-apps.folder'"]
 
         q = ' and '.join(query_parts)
         page_size = filters.max_results if filters and filters.max_results else 20
@@ -49,60 +87,40 @@ class DriveService:
                 except Exception:
                     parent_names_map[parent_id] = None
         
-        files = [
-            DriveFile(
-                id=file['id'],
-                name=file['name'],
-                mime_type=file['mimeType'],
-                parent_ids=file.get('parents'),
-                parent_names=[parent_names_map.get(p) for p in file.get('parents', [])] if file.get('parents') else None,
-                created_time=parser.parse(file['createdTime']),
-                modified_time=parser.parse(file['modifiedTime']),
-                size=file.get('size'),
-                web_view_link=file.get('webViewLink'),
-                web_content_link=file.get('webContentLink')
-            )
-            for file in files_data
-        ]
+        files = []
+        for file_data in files_data:
+            prepared_data = self._prepare_file_data(file_data)
+            
+            if file_data.get('parents'):
+                prepared_data['parent_names'] = [parent_names_map.get(p) for p in file_data.get('parents', [])]
+            
+            files.append(DriveFile(**prepared_data))
         
-        return FileList(
+        files_list = FileList(
             files=files,
             page_token=response.get('nextPageToken')
         )
+        
+        return self.prepare_response(files_list, "GoogleDriveFileCard")
 
     def get_file(self, file_id: str) -> DriveFile:
-        file = self.client.get_file(file_id)
-        
-        parent_names = None
-        if file.get('parents'):
-            parent_names = []
-            for parent_id in file['parents']:
-                try:
-                    parent = self.client.get_file(parent_id)
-                    parent_names.append(parent['name'])
-                except Exception:
-                    parent_names.append(None)
-        
-        return DriveFile(
-            id=file['id'],
-            name=file['name'],
-            mime_type=file['mimeType'],
-            parent_ids=file.get('parents'),
-            parent_names=parent_names,
-            created_time=parser.parse(file['createdTime']),
-            modified_time=parser.parse(file['modifiedTime']),
-            size=file.get('size'),
-            web_view_link=file.get('webViewLink'),
-            web_content_link=file.get('webContentLink')
-        )
+        file_data = self.client.get_file(file_id)
+        prepared_data = self._prepare_file_data(file_data)
+        return DriveFile(**prepared_data)
 
-    def create_folder(self, name: str, parent_id: Optional[str] = None) -> DriveFile:
-        folder = self.client.create_folder(name, parent_id)
-        return self.get_file(folder['id'])
+    def get_file_with_component(self, file_id: str) -> ApiResponse:
+        file = self.get_file(file_id)
+        return self.prepare_response(file, "GoogleDriveFileCard")
 
-    def upload_file(self, name: str, file_content: IO, mime_type: str, parent_id: Optional[str] = None) -> DriveFile:
-        file = self.client.upload_file(name, file_content, mime_type, parent_id)
-        return self.get_file(file['id'])
+    def create_folder(self, name: str, parent_id: Optional[str] = None) -> ApiResponse:
+        folder_data = self.client.create_folder(name, parent_id)
+        folder_obj = self.get_file(folder_data['id'])
+        return self.prepare_response(folder_obj, "GoogleDriveFileCard")
+
+    def upload_file(self, name: str, file_content: IO, mime_type: str, parent_id: Optional[str] = None) -> ApiResponse:
+        file_data = self.client.upload_file(name, file_content, mime_type, parent_id)
+        file_obj = self.get_file(file_data['id'])
+        return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     def download_file(self, file_id: str) -> tuple[IO, str]:
         file = self.get_file(file_id)
@@ -119,9 +137,10 @@ class DriveService:
     def delete_file(self, file_id: str) -> None:
         self.client.delete_file(file_id)
 
-    def move_file(self, file_id: str, new_parent_id: str) -> DriveFile:
+    def move_file(self, file_id: str, new_parent_id: str) -> ApiResponse:
         self.client.move_file(file_id, new_parent_id)
-        return self.get_file(file_id)
+        file_obj = self.get_file(file_id)
+        return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     GOOGLE_MIME_TYPES = {
         'application/vnd.google-apps.document': 'application/pdf',

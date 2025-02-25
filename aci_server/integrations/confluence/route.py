@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request as FastAPIRequest
-from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Body, Request as FastAPIRequest
+from typing import Optional, Dict, Any
 import os
 import pickle
 from .service import ConfluenceService
@@ -9,7 +9,9 @@ from .schema import (
     PageSchema,
     PageCreateSchema,
     PageUpdateSchema,
-    PaginatedResponseSchema
+    PaginatedResponseSchema,
+    PageFilters,
+    ApiResponse
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
 
@@ -27,62 +29,105 @@ async def get_confluence_service(request: FastAPIRequest):
     client = ConfluenceClient(token_data['access_token'])
     return ConfluenceService(client)
 
-@router.get("/spaces", response_model=PaginatedResponseSchema)
+@router.post("/spaces", response_model=ApiResponse)
 async def get_spaces(
+    params: Dict[str, Any] = Body({}),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Get all available spaces"""
-    return service.get_spaces()
+    try:
+        return service.get_spaces()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/pages", response_model=PaginatedResponseSchema)
+@router.post("/pages", response_model=ApiResponse)
 async def get_pages(
-    space_id: Optional[str] = Query(None),
-    title: Optional[str] = Query(None),
-    limit: int = Query(50, le=100),
+    params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Get pages with optional filters"""
-    return service.get_pages(space_id=space_id, title=title, limit=limit)
+    try:
+        filters_data = params.get('filters', {})
+        filters = PageFilters(**filters_data)
+        return service.get_pages(filters=filters)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/pages/{page_id}", response_model=PageSchema)
+@router.post("/get_page", response_model=ApiResponse)
 async def get_page(
-    page_id: str,
+    params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Get specific page by ID"""
-    return service.get_page(page_id)
+    try:
+        page_id = params.get('page_id')
+        if not page_id:
+            raise HTTPException(status_code=400, detail="page_id is required")
+        return service.get_page(page_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/pages", response_model=PageSchema)
+@router.post("/create_page", response_model=ApiResponse)
 async def create_page(
-    page: PageCreateSchema,
+    params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Create new page"""
-    return service.create_page(page)
+    try:
+        page_data = params.get('page', params)
+        page = PageCreateSchema(**page_data)
+        return service.create_page(page)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/pages/{page_id}", response_model=PageSchema)
+@router.post("/update_page", response_model=ApiResponse)
 async def update_page(
-    page_id: str,
-    update: PageUpdateSchema,
+    params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Update existing page"""
-    return service.update_page(page_id, update)
+    try:
+        page_id = params.get('page_id')
+        if not page_id:
+            raise HTTPException(status_code=400, detail="page_id is required")
+        
+        update_data = params.get('update', {})
+        update = PageUpdateSchema(**update_data)
+        return service.update_page(page_id, update)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/content", response_model=PaginatedResponseSchema)
+@router.post("/search", response_model=ApiResponse)
 async def search_content(
-    cql: Optional[str] = Query(None),
-    space_key: Optional[str] = Query(None),
-    title: Optional[str] = Query(None),
-    type: str = Query('page'),
-    limit: int = Query(50, le=100),
+    params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
     """Search content using CQL or filters"""
-    return service.search_content(
-        cql=cql,
-        space_key=space_key,
-        title=title,
-        content_type=type,
-        limit=limit
-    )
+    try:
+        cql = params.get('cql')
+        space_key = params.get('space_key')
+        title = params.get('title')
+        content_type = params.get('type', 'page')
+        limit = params.get('limit', 50)
+        
+        return service.search_content(
+            cql=cql,
+            space_key=space_key,
+            title=title,
+            content_type=content_type,
+            limit=limit
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
