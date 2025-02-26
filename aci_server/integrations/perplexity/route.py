@@ -1,17 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from typing import Dict, Any
 from .schema import CompletionRequest, ApiResponse
 from .service import PerplexityService
 from .client import PerplexityClient
-import os
+from ..common.auth import validate_provider_api_key
 
 router = APIRouter(prefix="/perplexity", tags=["perplexity"])
 
-async def get_perplexity_service():
-    api_key = os.getenv('PERPLEXITY_API_KEY')
-    if not api_key:
-        raise HTTPException(status_code=500, detail="Perplexity API key not found")
-    
+async def get_perplexity_service(request: Request):
+    api_key = await validate_provider_api_key(request, "perplexity")
+    print(api_key)
     client = PerplexityClient(api_key)
     return PerplexityService(client)
 
@@ -21,8 +19,8 @@ async def create_completion(
     service: PerplexityService = Depends(get_perplexity_service)
 ):
     try:
-        request = CompletionRequest(**params)
-        return service.create_completion(request)
+        request_data = CompletionRequest(**params)
+        return service.create_completion(request_data)
     except Exception as e:
         import traceback
         traceback.print_exc()
