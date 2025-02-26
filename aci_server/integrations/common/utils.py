@@ -1,8 +1,9 @@
-from typing import List, Dict, Any, get_type_hints, Optional, get_origin, get_args, Union
+from typing import List, Dict, Any, get_type_hints, Optional, get_origin, get_args, Union, Type
 from fastapi import routing
 import os
 import json
 from pydantic.fields import PydanticUndefined
+from pydantic import BaseModel
 from .schema_generation.openai.schema import get_openai_function_schemas
 from .schema_generation.openai.validate import validate_tool_schema
 import warnings
@@ -19,12 +20,14 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         # Skip the /tools endpoint
         if route.path.endswith("/tools"):
             continue
+
+        
         tool_schema = get_openai_function_schemas(route, strict=False)
 
         # validation_errors = validate_tool_schema(tool_schema)
         # if len(validation_errors) > 0:
         #     tools.append({'schema': tool_schema, 'errors': validation_errors})
-        # # else:
+        # # # # else:
         tools.append(tool_schema)
 
     return tools

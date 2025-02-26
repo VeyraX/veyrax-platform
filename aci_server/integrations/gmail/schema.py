@@ -58,3 +58,30 @@ class MessageFilters(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[Message, MessageList, DraftList, DraftResponse]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+class GetMessagesParams(BaseModel):
+    pageToken: Optional[str] = None
+    filters: MessageFilters
+
+# New schema classes for other routes
+class GetMessageParams(BaseModel):
+    message_id: str
+
+class DeleteMessageParams(BaseModel):
+    message_id: str
+    
+class SendMessageParams(BaseModel):
+    message_id: str
+    
+class GetDraftsParams(BaseModel):
+    pageToken: Optional[str] = None
+    
+class CreateDraftParams(BaseModel):
+    draft_args: DraftMessage
+    
+class DeleteDraftParams(BaseModel):
+    draft_id: str
+    
+class ModifyDraftParams(BaseModel):
+    draft_id: str
+    update_args: Optional[DraftMessage] = None
