@@ -57,7 +57,7 @@ async def get_file(
         if not file_id:
             raise HTTPException(status_code=400, detail="file_id is required")
             
-        return service.get_file_with_component(file_id)
+        return service.get_file(file_id)
     except Exception as e:
         import traceback
         traceback.print_exc()

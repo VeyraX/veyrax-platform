@@ -103,10 +103,11 @@ class DriveService:
         
         return self.prepare_response(files_list, "GoogleDriveFileCard")
 
-    def get_file(self, file_id: str) -> DriveFile:
+    def get_file(self, file_id: str) -> ApiResponse:
         file_data = self.client.get_file(file_id)
         prepared_data = self._prepare_file_data(file_data)
-        return DriveFile(**prepared_data)
+        file = DriveFile(**prepared_data)
+        return self.prepare_response(file, "GoogleDriveFileCard")
 
     def get_file_with_component(self, file_id: str) -> ApiResponse:
         file = self.get_file(file_id)
