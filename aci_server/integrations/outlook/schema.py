@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 # Mail schemas
@@ -35,15 +35,14 @@ class MessageFilters(BaseModel):
     before_date: Optional[str] = None
     max_results: Optional[int] = 20
 
-# Calendar schemas
 class EventTime(BaseModel):
     dateTime: str
     timeZone: str
 
 class Location(BaseModel):
     displayName: Optional[str] = None
-    address: Optional[str] = None
-    coordinates: Optional[str] = None
+    address: Optional[Dict[str, Any]] = None
+    coordinates: Optional[Dict[str, Any]] = None
 
 class EmailAddress(BaseModel):
     name: Optional[str] = None
@@ -112,3 +111,7 @@ class Calendar(BaseModel):
 
 class CalendarList(BaseModel):
     calendars: List[Calendar]
+
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, EventList, CalendarList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

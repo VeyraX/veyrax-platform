@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 
 class Message(BaseModel):
     role: str
@@ -29,3 +29,8 @@ class CompletionResponse(BaseModel):
     citations: List[str]
     choices: List[Dict[str, Any]]
     usage: Dict[str, int]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+class ApiResponse(BaseModel):
+    data: CompletionResponse
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

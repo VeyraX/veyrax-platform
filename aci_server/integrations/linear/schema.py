@@ -1,50 +1,83 @@
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field, model_validator
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class User(BaseModel):
     id: str
     name: str
-    email: Optional[str]
+    email: Optional[str] = None
 
-class Comment(BaseModel):
+class State(BaseModel):
     id: str
-    body: str
-    user: User
-    created_at: datetime
+    name: str
+
+class Team(BaseModel):
+    id: str
+    name: Optional[str] = None
+    key: str
+    description: Optional[str] = None
+
+class Label(BaseModel):
+    name: str
+
+class LabelConnection(BaseModel):
+    nodes: List[Label]
 
 class Issue(BaseModel):
     id: str
     title: str
-    description: Optional[str]
-    state: str
-    priority: Optional[int]
-    assignee: Optional[User]
-    creator: User
-    created_at: datetime
-    updated_at: datetime
-    labels: Optional[List[str]]
-    project_id: Optional[str]
-    team_id: str
-    identifier: str
-    team_key: str
+    description: Optional[str] = None
+    state: Optional[Union[str, State]] = None
+    priority: Optional[int] = None
+    assignee: Optional[User] = None
+    creator: Optional[User] = None
+    createdAt: Optional[datetime] = Field(None, alias="created_at")
+    updatedAt: Optional[datetime] = Field(None, alias="updated_at")
+    labels: Optional[Union[List[str], LabelConnection]] = None
+    project: Optional[Dict[str, Any]] = None
+    team: Optional[Team] = None
+    identifier: Optional[str] = None
+    
+    @model_validator(mode='after')
+    def extract_nested_fields(self):
+        if isinstance(self.state, dict) and 'name' in self.state:
+            self.state = self.state['name']
+            
+        if isinstance(self.labels, dict) and 'nodes' in self.labels:
+            self.labels = [label['name'] for label in self.labels['nodes']]
+            
+        self.project_id = self.project['id'] if self.project and 'id' in self.project else None
+        
+        if self.team:
+            self.team_id = self.team.id
+            self.team_key = self.team.key
+        else:
+            self.team_id = ""
+            self.team_key = ""
+            
+        return self
+    
+    # Дополнительные поля для совместимости
+    project_id: Optional[str] = None
+    team_id: str = ""
+    team_key: str = ""
 
 class IssueList(BaseModel):
-    issues: List[Issue]
-    cursor: Optional[str]
+    items: List[Issue]
+    cursor: Optional[str] = None
 
 class Project(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
     state: str
-    created_at: datetime
-    updated_at: datetime
-    lead: Optional[User]
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
+    lead: Optional[User] = None
 
 class ProjectList(BaseModel):
-    projects: List[Project]
-    cursor: Optional[str]
+    items: List[Project]
+    cursor: Optional[str] = None
 
 class IssueCreate(BaseModel):
     title: str
@@ -90,21 +123,15 @@ class CommentResponse(BaseModel):
     id: str
     body: str
     created_at: datetime
-    user: Optional[User]
+    user: Optional[User] = None
 
 class UserList(BaseModel):
-    users: List[User]
-    cursor: Optional[str]
-
-class Team(BaseModel):
-    id: str
-    name: str
-    key: str
-    description: Optional[str]
+    items: List[User]
+    cursor: Optional[str] = None
 
 class TeamList(BaseModel):
-    teams: List[Team]
-    cursor: Optional[str]
+    items: List[Team]
+    cursor: Optional[str] = None
 
 class WorkflowState(BaseModel):
     id: str
@@ -112,10 +139,29 @@ class WorkflowState(BaseModel):
     color: str
     type: str
     position: int
-    team_id: str
-    team_key: str
-    team_name: str
+    team: Optional[Team] = None
+    
+    @model_validator(mode='after')
+    def extract_team_fields(self):
+        if self.team:
+            self.team_id = self.team.id
+            self.team_key = self.team.key
+            self.team_name = self.team.name or ""
+        else:
+            self.team_id = ""
+            self.team_key = ""
+            self.team_name = ""
+        return self
+    
+    # Дополнительные поля для совместимости
+    team_id: str = ""
+    team_key: str = ""
+    team_name: str = ""
 
 class WorkflowStateList(BaseModel):
-    states: List[WorkflowState]
-    cursor: Optional[str]
+    items: List[WorkflowState]
+    cursor: Optional[str] = None
+
+class ApiResponse(BaseModel):
+    data: Union[Issue, IssueList, Project, ProjectList, Team, TeamList, WorkflowState, WorkflowStateList, CommentResponse, UserList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

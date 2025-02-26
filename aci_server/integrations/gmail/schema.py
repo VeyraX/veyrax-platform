@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class MessageBase(BaseModel):
@@ -14,11 +14,15 @@ class MessageBase(BaseModel):
     html_link: str
 
 class Message(MessageBase):
-    body: str
-    sender: Optional[str]
-    recipient: Optional[str]
-    labels: List[str]
-    html_link: str
+    subject: Optional[str] = None
+    snippet: Optional[str] = None
+    body: Optional[str] = None
+    sender: Optional[str] = None
+    recipient: Optional[str] = None
+    date: Optional[datetime] = None
+    html_link: Optional[str] = None
+    labels: Optional[List[str]] = None
+    draft_id: Optional[str] = None 
 
 class DraftBase(BaseModel):
     draft_id: str
@@ -27,7 +31,7 @@ class DraftBase(BaseModel):
     snippet: str
 
 class DraftMessage(BaseModel):
-    to: str
+    recipient: str
     subject: str
     body: str
     
@@ -50,3 +54,7 @@ class MessageFilters(BaseModel):
     after_date: Optional[str] = None  
     before_date: Optional[str] = None
     max_results: Optional[int] = 20
+
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, DraftList, DraftResponse]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

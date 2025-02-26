@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class JiraServerInfo(BaseModel):
@@ -136,3 +136,7 @@ class JiraUser(BaseModel):
     email: Optional[str]
     display_name: str
     active: bool
+
+class ApiResponse(BaseModel):
+    data: Union[Issue, IssueList, Project, List[Project], List[Status], List[Priority], List[IssueType], List[Field], List[JiraUser]]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

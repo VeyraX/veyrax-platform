@@ -1,51 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Annotated
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from fastapi import Query
-
-class EventBase(BaseModel):
-    id: str
-    summary: str
-    description: Optional[str] = None
-    start: datetime
-    end: datetime
-    htmlLink: Optional[str] = None
-    location: Optional[str] = None
-    creator: Optional[dict] = None
-    attendees: Optional[List[dict]] = None
-    status: Optional[str] = None
-    filters: Optional[dict] = None
-
-class Event(EventBase):
-    pass
-
-class EventCreate(BaseModel):
-    summary: str
-    description: Optional[str] = None
-    location: Optional[str] = None
-    start: dict = Field(..., example={
-        "dateTime": "2024-03-20T09:00:00-07:00",
-        "timeZone": "America/Los_Angeles"
-    })
-    end: dict = Field(..., example={
-        "dateTime": "2024-03-20T10:00:00-07:00",
-        "timeZone": "America/Los_Angeles"
-    })
-    attendees: Optional[List[dict]] = Field(None, example=[
-        {"email": "attendee@example.com"}
-    ])
-
-class EventUpdate(BaseModel):
-    summary: Optional[str] = None
-    description: Optional[str] = None
-    location: Optional[str] = None
-    start: Optional[dict] = None
-    end: Optional[dict] = None
-    attendees: Optional[List[dict]] = None
-
-class EventList(BaseModel):
-    items: List[EventBase]
-    nextPageToken: Optional[str]
 
 class EventFilters(BaseModel):
     calendarId: Optional[str] = None
@@ -55,14 +11,46 @@ class EventFilters(BaseModel):
     before_date: Optional[str] = None
     max_results: Optional[int] = 20
 
+class EventBase(BaseModel):
+    summary: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    attendees: Optional[List[Dict[str, Any]]] = None
+
+class EventCreate(EventBase):
+    summary: str
+    start: Dict[str, str]
+    end: Dict[str, str]
+
+class EventUpdate(EventBase):
+    start: Optional[Dict[str, str]] = None
+    end: Optional[Dict[str, str]] = None
+
+class Event(EventBase):
+    id: str
+    start: datetime
+    end: datetime
+    htmlLink: Optional[str] = None
+    creator: Optional[Dict[str, Any]] = None
+    status: Optional[str] = None
+    component: Optional[Dict[str, Any]] = None
+
+class EventList(BaseModel):
+    items: List[Event]
+    nextPageToken: Optional[str] = None
+
 class Calendar(BaseModel):
     id: str
     summary: str
-    description: Optional[str]
+    description: Optional[str] = None
     primary: bool = False
-    timeZone: Optional[str]
-    backgroundColor: Optional[str]
-    foregroundColor: Optional[str]
+    timeZone: Optional[str] = None
+    backgroundColor: Optional[str] = None
+    foregroundColor: Optional[str] = None
 
 class CalendarList(BaseModel):
     items: List[Calendar]
+
+class ApiResponse(BaseModel):
+    data: Union[Event, EventList, CalendarList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

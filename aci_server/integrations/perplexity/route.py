@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from .schema import CompletionRequest, CompletionResponse
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
+from typing import Dict, Any
+from .schema import CompletionRequest, ApiResponse
 from .service import PerplexityService
 from .client import PerplexityClient
 import os
@@ -14,9 +15,15 @@ async def get_perplexity_service():
     client = PerplexityClient(api_key)
     return PerplexityService(client)
 
-@router.post("/completions", response_model=CompletionResponse)
+@router.post("/create_completion", response_model=ApiResponse)
 async def create_completion(
-    request: CompletionRequest,
+    params: Dict[str, Any] = Body(...),
     service: PerplexityService = Depends(get_perplexity_service)
 ):
-    return service.create_completion(request)
+    try:
+        request = CompletionRequest(**params)
+        return service.create_completion(request)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,19 +1,32 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from .client import GmailClient
-from .schema import MessageList, Message, DraftResponse, DraftList, MessageFilters, DraftMessage
+from .schema import MessageList, Message, DraftResponse, DraftList, MessageFilters, DraftMessage, ApiResponse
 import base64
 from datetime import datetime
 from email.mime.text import MIMEText
 from dateutil import parser
+import os
+from ..common.component_handler import load_components, prepare_components_auto
+import json
 
 class GmailService:
     def __init__(self, client: GmailClient):
         self.client = client
+        self.components_data = self._load_components()
+
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: Union[Message, MessageList, DraftList, DraftResponse], component_name: str = None) -> ApiResponse:
+        tool_name = "gmail"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
 
     def _generate_html_link(self, message_id: str) -> str:
         return f"https://mail.google.com/mail/u/0/#inbox/{message_id}"
 
-    def get_messages(self, pageToken: Optional[str] = None, filters: Optional[MessageFilters] = None) -> MessageList:
+    def get_messages(self, pageToken: Optional[str] = None, filters: Optional[MessageFilters] = None) -> ApiResponse:
         query_parts = []
         
         if filters:
@@ -49,25 +62,31 @@ class GmailService:
                 'html_link': self._generate_html_link(message['id'])
             })
             
-        return MessageList(
+        message_list = MessageList(
             messages=messages,
             pageToken=response.get('nextPageToken')
         )
+        
+        return self.prepare_response(message_list, "GmailMessageList")
 
-    def get_message(self, message_id: str) -> Message:
-        message = self.client.get_message(message_id)
-        return Message(
-            id=message['id'],
-            thread_id=message['threadId'],
-            subject=self._get_header(message, 'Subject'),
-            snippet=message['snippet'],
-            body=self._get_body(message),
-            sender=self._get_header(message, 'From'),
-            recipient=self._get_header(message, 'To'),
-            labels=message['labelIds']
+    def get_message(self, message_id: str) -> ApiResponse:
+        message_data = self.client.get_message(message_id)
+        message = Message(
+            id=message_data['id'],
+            thread_id=message_data['threadId'],
+            subject=self._get_header(message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(message_data),
+            sender=self._get_header(message_data, 'From'),
+            recipient=self._get_header(message_data, 'To'),
+            date=parser.parse(self._get_header(message_data, 'Date')),
+            labels=message_data['labelIds'],
+            html_link=self._generate_html_link(message_data['id'])
         )
+        
+        return self.prepare_response(message, "GmailMessageCard")
 
-    def send_message(self, message_id: str) -> Dict:
+    def send_message(self, message_id: str) -> ApiResponse:
         draft = self.client.get_draft(message_id)
         message = draft['message']
         
@@ -84,24 +103,26 @@ class GmailService:
             body=raw_message
         ).execute()
         
-        message = self.client.service.users().messages().get(
+        message_data = self.client.service.users().messages().get(
             userId='me',
             id=sent_message['id'],
             format='full'
         ).execute()
 
-        return {
-            'id': message['id'],
-            'thread_id': message['threadId'],
-            'subject': self._get_header(message, 'Subject'),
-            'snippet': message['snippet'],
-            'body': self._get_body(message),
-            'sender': self._get_header(message, 'From'),
-            'recipient': self._get_header(message, 'To'),
-            'date': self._get_header(message, 'Date'),
-            'html_link': self._generate_html_link(message['id']),
-            'labels': message.get('labelIds', [])
-        }
+        message_obj = Message(
+            id=message_data['id'],
+            thread_id=message_data['threadId'],
+            subject=self._get_header(message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(message_data),
+            sender=self._get_header(message_data, 'From'),
+            recipient=self._get_header(message_data, 'To'),
+            date=parser.parse(self._get_header(message_data, 'Date')),
+            html_link=self._generate_html_link(message_data['id']),
+            labels=message_data.get('labelIds', [])
+        )
+        
+        return self.prepare_response(message_obj, "GmailMessageCard")
 
     def delete_message(self, message_id: str) -> None:
         self.client.delete_message(message_id)
@@ -115,47 +136,95 @@ class GmailService:
             'raw': base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
         }
 
-    def create_draft(self, draft_args: DraftMessage) -> DraftResponse:
-        message = self._create_mime_message(draft_args.to, draft_args.subject, draft_args.body)
+    def create_draft(self, draft_args: DraftMessage) -> ApiResponse:
+        message = self._create_mime_message(draft_args.recipient, draft_args.subject, draft_args.body)
         draft = self.client.create_draft(message)
-        return DraftResponse(
-            draft_id=draft['id'],
-            message_id=draft['message']['id']
+        
+        print(f"Draft API response: {json.dumps(draft, indent=2)}")
+        
+        draft_id = draft['id']
+        message_id = draft['message']['id']
+        
+        message_data = self.client.get_message(message_id)
+        
+        message_obj = Message(
+            id=message_id,
+            thread_id=message_data['threadId'],
+            subject=self._get_header(message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(message_data),
+            sender=self._get_header(message_data, 'From'),
+            recipient=self._get_header(message_data, 'To'),
+            date=parser.parse(self._get_header(message_data, 'Date')),
+            html_link=self._generate_html_link(message_id),
+            labels=message_data.get('labelIds', []),
+            draft_id=draft_id
         )
+        
+        return self.prepare_response(message_obj, "GmailMessageCard")
 
     def delete_draft(self, draft_id: str) -> None:
         self.client.delete_draft(draft_id)
 
-    def get_drafts(self, pageToken: Optional[str] = None) -> DraftList:
+    def get_drafts(self, pageToken: Optional[str] = None) -> ApiResponse:
         response = self.client.list_drafts(pageToken=pageToken, maxResults=20)
-        drafts = []
+        messages = []
         
         for draft in response.get('drafts', []):
             draft_full = self.client.get_draft(draft['id'])
-            message = draft_full['message']
-            drafts.append({
-                'draft_id': draft_full['id'],
-                'message_id': message['id'],
-                'snippet': message['snippet'],
-                'subject': self._get_header(message, 'Subject')
+            message_data = draft_full['message']
+            
+            try:
+                date = parser.parse(self._get_header(message_data, 'Date')) if self._get_header(message_data, 'Date') else datetime.now()
+            except:
+                date = datetime.now()
+                
+            messages.append({
+                'id': message_data['id'],
+                'thread_id': message_data['threadId'],
+                'snippet': message_data['snippet'],
+                'subject': self._get_header(message_data, 'Subject'),
+                'body': self._get_body(message_data),
+                'recipient': self._get_header(message_data, 'To') or None,
+                'sender': self._get_header(message_data, 'From') or None,
+                'date': date,
+                'html_link': self._generate_html_link(message_data['id'])
             })
             
-        return DraftList(
-            drafts=drafts,
+        message_list = MessageList(
+            messages=messages,
             pageToken=response.get('nextPageToken')
         )
+        
+        return self.prepare_response(message_list, "GmailMessageList")
 
-    def modify_draft(self, draft_id: str, draft_args: DraftMessage) -> Message:
+    def modify_draft(self, draft_id: str, update_args: DraftMessage) -> ApiResponse:
         current_draft = self.client.get_draft(draft_id)
         current_message = current_draft['message']
         
-        new_to = draft_args.to or self._get_header(current_message, 'To')
-        new_subject = draft_args.subject or self._get_header(current_message, 'Subject')
-        new_body = draft_args.body or self._get_body(current_message)
+        new_to = update_args.recipient or self._get_header(current_message, 'To')
+        new_subject = update_args.subject or self._get_header(current_message, 'Subject')
+        new_body = update_args.body or self._get_body(current_message)
         
         message = self._create_mime_message(new_to, new_subject, new_body)
         draft = self.client.update_draft(draft_id, message)
-        return self.get_message(draft['message']['id'])
+        
+        # Get the updated message
+        message_data = self.client.get_message(draft['message']['id'])
+        message_obj = Message(
+            id=message_data['id'],
+            thread_id=message_data['threadId'],
+            subject=self._get_header(message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(message_data),
+            sender=self._get_header(message_data, 'From'),
+            recipient=self._get_header(message_data, 'To'),
+            date=parser.parse(self._get_header(message_data, 'Date')),
+            html_link=self._generate_html_link(message_data['id']),
+            labels=message_data.get('labelIds', [])
+        )
+        
+        return self.prepare_response(message_obj, "GmailMessageCard")
 
     def _get_header(self, message: dict, name: str) -> Optional[str]:
         headers = message['payload']['headers']

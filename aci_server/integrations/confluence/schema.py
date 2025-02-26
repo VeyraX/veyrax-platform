@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 class SpaceSchema(BaseModel):
     id: str
@@ -17,6 +17,7 @@ class PageSchema(BaseModel):
     body: Optional[Dict[str, Any]] = None
     status: Optional[str] = None
     _links: Optional[Dict[str, Any]] = None
+    html_link: Optional[str] = None 
 
 class PageCreateSchema(BaseModel):
     title: str
@@ -28,6 +29,14 @@ class PageUpdateSchema(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     version: Optional[int] = None
+
+class PageList(BaseModel):
+    pages: List[PageSchema]
+    next_page: Optional[int] = None
+
+class SpaceList(BaseModel):
+    spaces: List[SpaceSchema]
+    next_page: Optional[int] = None
 
 class PaginatedResponseSchema(BaseModel):
     results: List[Any]
@@ -41,3 +50,12 @@ class ContentSearchSchema(BaseModel):
     title: Optional[str] = None
     type: Optional[str] = 'page'
     limit: Optional[int] = 50
+
+class PageFilters(BaseModel):
+    space_id: Optional[str] = None
+    title: Optional[str] = None
+    limit: int = 50
+
+class ApiResponse(BaseModel):
+    data: Union[PageSchema, PageList, SpaceList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

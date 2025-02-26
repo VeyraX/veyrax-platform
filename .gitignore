@@ -23,6 +23,8 @@ main/build
 # misc
 main/.DS_Store
 main/*.pem
+.DS_Store
+aci_server/.DS_Store
 
 # debug
 main/npm-debug.log*

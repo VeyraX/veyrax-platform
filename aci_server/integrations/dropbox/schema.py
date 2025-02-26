@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class DropboxFile(BaseModel):
@@ -13,6 +13,7 @@ class DropboxFile(BaseModel):
     created_time: datetime
     modified_time: datetime
     shared_link: Optional[str] = None
+    component: Optional[Dict[str, Any]] = None
 
 class FileList(BaseModel):
     files: List[DropboxFile]
@@ -42,3 +43,7 @@ class FileFilters(BaseModel):
     path: Optional[str] = ""
     recursive: Optional[bool] = False
     limit: Optional[int] = 20
+
+class ApiResponse(BaseModel):
+    data: Union[DropboxFile, FileList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

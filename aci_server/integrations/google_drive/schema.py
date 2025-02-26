@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class DriveFile(BaseModel):
@@ -7,12 +7,13 @@ class DriveFile(BaseModel):
     name: str
     mime_type: str
     parent_ids: Optional[List[str]]
-    parent_names: Optional[List[str]]
+    parent_names: Optional[List[str]] = None
     created_time: datetime
     modified_time: datetime
     size: Optional[int]
     web_view_link: Optional[str] = None
     web_content_link: Optional[str] = None
+    component: Optional[Dict[str, Any]] = None
 
 class FileList(BaseModel):
     files: List[DriveFile]
@@ -38,3 +39,7 @@ class FileFilters(BaseModel):
     created_before: Optional[str] = None
     folders_only: Optional[bool] = False
     max_results: Optional[int] = 20
+
+class ApiResponse(BaseModel):
+    data: Union[DriveFile, FileList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

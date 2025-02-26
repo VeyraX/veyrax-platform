@@ -27,7 +27,7 @@ class ConfluenceClient:
             
             self.cloud_id = resources[0]['id']
             self.base_url = f"https://api.atlassian.com/ex/confluence/{self.cloud_id}/rest/api"
-            self.web_url = f"{resources[0]['url']}"
+            self.web_url = f"{resources[0]['url']}/wiki"
             
             self.session.headers.update({
                 'Authorization': f'Bearer {self.token}',

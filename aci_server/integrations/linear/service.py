@@ -1,16 +1,28 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any, Union
 from .client import LinearClient
 from .schema import (
     IssueList, Issue, ProjectList, Project,
-    IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse, UserList, TeamList, Team,
-    WorkflowState, WorkflowStateList
+    IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse, UserList, User, TeamList, Team,
+    WorkflowState, WorkflowStateList, ApiResponse
 )
+import os
+from ..common.component_handler import load_components, prepare_components_auto
 
 class LinearService:
     def __init__(self, client: LinearClient):
         self.client = client
+        self.components_data = self._load_components()
 
-    def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> IssueList:
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+        tool_name = "linear"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
+
+    def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         try:
             response = self.client.list_issues(cursor, max_results)
             
@@ -21,22 +33,29 @@ class LinearService:
             if not data or 'nodes' not in data or 'pageInfo' not in data:
                 raise ValueError("Missing required fields in Linear API response")
             
-            return IssueList(
-                issues=[self._parse_issue(issue) for issue in data['nodes']],
+            issues = [Issue(**issue) for issue in data['nodes']]
+            issues_list = IssueList(
+                items=issues,
                 cursor=data['pageInfo'].get('endCursor')
             )
+            
+            return self.prepare_response(issues_list, "LinearIssueCard")
         except Exception as e:
             raise
 
-    def search_issues(self, query: str, cursor: Optional[str] = None, max_results: int = 50) -> IssueList:
+    def search_issues(self, query: str, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.search_issues(query, cursor, max_results)
         data = response['data']['issueSearch']
-        return IssueList(
-            issues=[self._parse_issue(issue) for issue in data['nodes']],
+        
+        issues = [Issue(**issue) for issue in data['nodes']]
+        issues_list = IssueList(
+            items=issues,
             cursor=data['pageInfo']['endCursor']
         )
+        
+        return self.prepare_response(issues_list, "LinearIssueCard")
 
-    def filter_issues(self, filters: IssueFilter, cursor: Optional[str] = None, max_results: int = 50) -> IssueList:
+    def filter_issues(self, filters: IssueFilter, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         # Convert filters to Linear's GraphQL format
         graphql_filters = {}
         
@@ -63,14 +82,18 @@ class LinearService:
                 raise ValueError(f"GraphQL Error: {response['errors']}")
             
             data = response['data']['issues']
-            return IssueList(
-                issues=[self._parse_issue(issue) for issue in data['nodes']],
+            
+            issues = [Issue(**issue) for issue in data['nodes']]
+            issues_list = IssueList(
+                items=issues,
                 cursor=data['pageInfo']['endCursor']
             )
+            
+            return self.prepare_response(issues_list, "LinearIssueCard")
         except Exception as e:
             raise ValueError(f"Error filtering issues: {str(e)}")
 
-    def create_issue(self, issue_create: IssueCreate) -> Issue:
+    def create_issue(self, issue_create: IssueCreate) -> ApiResponse:
         try:
             issue_data = issue_create.dict(exclude_none=True)
             
@@ -87,11 +110,12 @@ class LinearService:
             if 'errors' in response:
                 raise ValueError(f"GraphQL Error: {response['errors']}")
                 
-            return self._parse_issue(response['data']['issueCreate']['issue'])
+            issue = Issue(**response['data']['issueCreate']['issue'])
+            return self.prepare_response(issue, "LinearIssueCard")
         except Exception as e:
             raise
 
-    def update_issue(self, issue_id: str, issue_update: IssueUpdate) -> Issue:
+    def update_issue(self, issue_id: str, issue_update: IssueUpdate) -> ApiResponse:
         try:
             update_data = issue_update.dict(exclude_none=True)
             
@@ -111,13 +135,13 @@ class LinearService:
             if 'errors' in response:
                 raise ValueError(f"GraphQL Error: {response['errors']}")
             
-            parsed_issue = self._parse_issue(response['data']['issueUpdate']['issue'])
-            return parsed_issue
+            issue = Issue(**response['data']['issueUpdate']['issue'])
+            return self.prepare_response(issue, "LinearIssueCard")
         
         except Exception as e:
             raise
 
-    def comment_issue(self, issue_id: str, comment: CommentCreate) -> CommentResponse:
+    def comment_issue(self, issue_id: str, comment: CommentCreate) -> ApiResponse:
         response = self.client.create_comment(issue_id, comment.body)
         if 'errors' in response:
             raise ValueError(f"GraphQL Error: {response['errors']}")
@@ -126,149 +150,75 @@ class LinearService:
         if not data['success']:
             raise ValueError("Failed to create comment")
         
-        comment_data = data['comment']
-        return CommentResponse(
-            id=comment_data['id'],
-            body=comment_data['body'],
-            created_at=comment_data['createdAt'],
-            user=self._parse_user(comment_data.get('user'))
-        )
+        comment_response = CommentResponse(**data['comment'])
+        return self.prepare_response(comment_response, None)
 
-    def get_activity_feed(self) -> List[dict]:
-        try:
-            response = self.client.get_activity_feed()
-            if 'errors' in response:
-                raise ValueError(f"GraphQL Error: {response['errors']}")
-            
-            return response['data']['organizationActivity']['nodes']
-        except Exception as e:
-            raise ValueError(f"Error getting activity feed: {str(e)}")
-
-    def list_projects(self, cursor: Optional[str] = None, max_results: int = 50) -> ProjectList:
+    def list_projects(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.list_projects(cursor, max_results)
         data = response['data']['projects']
-        return ProjectList(
-            projects=[self._parse_project(project) for project in data['nodes']],
+        
+        projects = [Project(**project) for project in data['nodes']]
+        projects_list = ProjectList(
+            items=projects,
             cursor=data['pageInfo']['endCursor']
         )
+        
+        return self.prepare_response(projects_list, "LinearProjectList")
 
-    def get_project(self, project_id: str) -> Project:
+    def get_project(self, project_id: str) -> ApiResponse:
         response = self.client.get_project(project_id)
-        return self._parse_project(response['data']['project'])
+        project = Project(**response['data']['project'])
+        return self.prepare_response(project, None)
 
-    def list_users(self, cursor: Optional[str] = None, max_results: int = 50) -> UserList:
+    def list_users(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.list_users(cursor, max_results)
         if 'errors' in response:
             raise ValueError(f"GraphQL Error: {response['errors']}")
             
         data = response['data']['users']
-        return UserList(
-            users=[self._parse_user(user) for user in data['nodes']],
+        
+        users = [User(**user) for user in data['nodes']]
+        users_list = UserList(
+            items=users,
             cursor=data['pageInfo']['endCursor']
         )
+        
+        return self.prepare_response(users_list, None)
 
-    def list_teams(self, cursor: Optional[str] = None, max_results: int = 50) -> TeamList:
+    def list_teams(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.list_teams(cursor, max_results)
         if 'errors' in response:
             raise ValueError(f"GraphQL Error: {response['errors']}")
             
         data = response['data']['teams']
-        return TeamList(
-            teams=[self._parse_team(team) for team in data['nodes']],
+        
+        teams = [Team(**team) for team in data['nodes']]
+        teams_list = TeamList(
+            items=teams,
             cursor=data['pageInfo']['endCursor']
         )
+        
+        return self.prepare_response(teams_list, "LinearTeamList")
 
-    def get_team(self, team_id: str) -> Team:
+    def get_team(self, team_id: str) -> ApiResponse:
         response = self.client.get_team(team_id)
         if 'errors' in response:
             raise ValueError(f"GraphQL Error: {response['errors']}")
-        return self._parse_team(response['data']['team'])
+            
+        team = Team(**response['data']['team'])
+        return self.prepare_response(team, None)
 
-    def list_workflow_states(self, cursor: Optional[str] = None, max_results: int = 50) -> WorkflowStateList:
+    def list_workflow_states(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.list_workflow_states(cursor, max_results)
         if 'errors' in response:
             raise ValueError(f"GraphQL Error: {response['errors']}")
             
         data = response['data']['workflowStates']
-        return WorkflowStateList(
-            states=[self._parse_workflow_state(state) for state in data['nodes']],
+        
+        states = [WorkflowState(**state) for state in data['nodes']]
+        states_list = WorkflowStateList(
+            items=states,
             cursor=data['pageInfo']['endCursor']
         )
-
-    def _parse_issue(self, issue: dict) -> Issue:
-        if not issue:
-            raise ValueError("Cannot parse empty issue")
-            
-        state = issue.get('state', {})
-        if not isinstance(state, dict):
-            state = {}
-            
-        team = issue.get('team', {})
-        team_id = team.get('id', '') if isinstance(team, dict) else ''
         
-        return Issue(
-            id=issue.get('id', ''),
-            title=issue.get('title', ''),
-            description=issue.get('description'),
-            state=state.get('name', 'unknown'),
-            priority=issue.get('priority'),
-            assignee=self._parse_user(issue.get('assignee')) if issue.get('assignee') else None,
-            creator=self._parse_user(issue.get('creator', {})),
-            created_at=issue.get('createdAt'),
-            updated_at=issue.get('updatedAt'),
-            labels=[label['name'] for label in issue.get('labels', {}).get('nodes', [])] if issue.get('labels') else None,
-            project_id=issue.get('project', {}).get('id') if issue.get('project') else None,
-            team_id=team_id,
-            identifier=issue.get('identifier', ''),
-            team_key=team.get('key', '') if isinstance(team, dict) else ''
-        )
-
-    def _parse_user(self, user: dict) -> dict:
-        if not user:
-            return {'id': '', 'name': 'Unknown', 'email': None}
-        return {
-            'id': user.get('id', ''),
-            'name': user.get('name', 'Unknown'),
-            'email': user.get('email')
-        }
-
-    def _parse_project(self, project: dict) -> Project:
-        return Project(
-            id=project['id'],
-            name=project['name'],
-            description=project.get('description'),
-            state=project['state'],
-            created_at=project['createdAt'],
-            updated_at=project['updatedAt'],
-            lead=self._parse_user(project['lead']) if project.get('lead') else None
-        )
-
-    def _parse_activity(self, activity: dict) -> dict:
-        return {
-            'id': activity['id'],
-            'type': activity['type'],
-            'created_at': activity['createdAt'],
-            'user': self._parse_user(activity['user']),
-            'target': activity.get('issue', {})
-        }
-
-    def _parse_team(self, team: dict) -> Team:
-        return Team(
-            id=team['id'],
-            name=team['name'],
-            key=team['key'],
-            description=team.get('description')
-        )
-
-    def _parse_workflow_state(self, state: dict) -> WorkflowState:
-        team = state.get('team', {})
-        return WorkflowState(
-            id=state['id'],
-            name=state['name'],
-            color=state['color'],
-            type=state['type'],
-            position=state['position'],
-            team_id=team.get('id', ''),
-            team_key=team.get('key', ''),
-            team_name=team.get('name', '')
-        )
+        return self.prepare_response(states_list, "LinearWorkflowStateList")

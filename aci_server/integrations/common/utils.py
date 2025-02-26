@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, get_type_hints, Optional, get_origin, get_args, Union
 from fastapi import routing
+import os
+import json
 from pydantic.fields import PydanticUndefined
 from .schema_generation.openai.schema import get_openai_function_schemas
 from .schema_generation.openai.validate import validate_tool_schema

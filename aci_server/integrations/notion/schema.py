@@ -1,15 +1,65 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Literal
+from typing import List, Optional, Dict, Any, Literal, Union
 from datetime import datetime
+
+class DatabaseFilters(BaseModel):
+    search_query: Optional[str] = None
+    filter_by: Optional[Dict[str, Any]] = None
+    sort_by: Optional[Dict[str, Any]] = None
+    max_results: Optional[int] = 100
+
+class PageFilters(BaseModel):
+    query: Optional[str] = None
+    sort_direction: Optional[str] = None
+    max_results: Optional[int] = 100
+
+class DatabaseProperty(BaseModel):
+    id: str
+    name: str
+    type: str
+    options: Optional[List[Dict[str, Any]]] = None
 
 class Database(BaseModel):
     id: str
-    title: str
+    title: Optional[str] = None
+    properties: Optional[Dict[str, Any]] = None
+    url: Optional[str] = None
+    created_time: Optional[str] = None
+    last_edited_time: Optional[str] = None
+
+class Page(BaseModel):
+    id: str
+    title: Optional[str] = None
+    properties: Optional[Dict[str, Any]] = None
+    url: Optional[str] = None
+    created_time: Optional[str] = None
+    last_edited_time: Optional[str] = None
+    parent: Optional[Dict[str, Any]] = None
+    component: Optional[Dict[str, Any]] = None
+
+class PageCreate(BaseModel):
+    parent: Dict[str, str]
+    properties: Dict[str, Any]
+    children: Optional[List[Dict[str, Any]]] = None
+
+class PageUpdate(BaseModel):
+    properties: Dict[str, Any]
 
 class DatabaseList(BaseModel):
     items: List[Database]
     next_cursor: Optional[str] = None
-    has_more: bool
+
+class PageList(BaseModel):
+    items: List[Page]
+    next_cursor: Optional[str] = None
+
+class SearchResult(BaseModel):
+    items: List[Union[Page, Database]]
+    next_cursor: Optional[str] = None
+
+class ApiResponse(BaseModel):
+    data: Union[Page, PageList, Database, DatabaseList, SearchResult]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 class PropertyType(BaseModel):
     id: str
@@ -22,45 +72,6 @@ class PropertyType(BaseModel):
     ]
     name: str
     
-class Page(BaseModel):
-    id: str
-    created_time: datetime
-    last_edited_time: datetime
-    archived: bool
-    url: str
-    properties: Dict[str, Any]
-    parent: Dict[str, Any]
-
-class PageList(BaseModel):
-    items: List[Page]
-    next_cursor: Optional[str] = None
-    has_more: bool
-
-class PageCreate(BaseModel):
-    parent: Dict[str, str] = Field(
-        ..., 
-        description="Parent database reference in format {'database_id': 'xxx'}"
-    )
-    properties: Dict[str, Any] = Field(
-        ..., 
-        description="Page properties matching the database schema"
-    )
-    children: Optional[List[Dict[str, Any]]] = Field(
-        None, 
-        description="Page content blocks"
-    )
-
-class PageUpdate(BaseModel):
-    properties: Optional[Dict[str, Any]] = Field(
-        None, 
-        description="Page properties in Notion format"
-    )
-    archived: Optional[bool] = None
-    children: Optional[List[Dict[str, Any]]] = Field(
-        None,
-        description="Page content blocks"
-    )
-
 class PageFilters(BaseModel):
     filter: Optional[Dict[str, Any]] = Field(
         None,
