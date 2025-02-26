@@ -112,6 +112,9 @@ class Calendar(BaseModel):
 class CalendarList(BaseModel):
     calendars: List[Calendar]
 
+class CalendarDeleteEvent(BaseModel):
+    event_id: str
+
 class ApiResponse(BaseModel):
-    data: Union[Message, MessageList, EventList, CalendarList]
+    data: Union[Message, MessageList, EventList, CalendarList, CalendarDeleteEvent]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

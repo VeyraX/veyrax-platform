@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 from .schema import (
     MessageList, Message, DraftMessage, EventList, Event, 
     EventCreate, EventUpdate, EventFilters, MessageFilters,
-    CalendarList, ApiResponse
+    CalendarList, ApiResponse, CalendarDeleteEvent
 )
 from .service import OutlookService
 from .client import OutlookClient
@@ -159,6 +159,7 @@ async def create_event(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/update_event", response_model=ApiResponse)
 async def update_event(

@@ -23,14 +23,21 @@ export const authApi = {
 
   register: async (email: string, password: string) => {
     try {
+      console.log('Начало регистрации:', { email });
       const { data, error } = await supabase.auth.signUp({
         email,
         password
       });
 
-      if (error) throw error;
+      console.log('Ответ от supabase:', { data, error });
+
+      if (error) {
+        console.error('Ошибка регистрации:', error);
+        throw error;
+      }
       return { data, error: null };
     } catch (error) {
+      console.error('Исключение при регистрации:', error);
       return { data: null, error: { message: 'An error occurred during registration' } };
     }
   },
