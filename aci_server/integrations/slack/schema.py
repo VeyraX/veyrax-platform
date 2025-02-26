@@ -40,3 +40,39 @@ class DirectMessage(BaseModel):
 
 class ThreadMessage(BaseModel):
     text: str
+
+# New parameter classes for routes
+class ListChannelsParams(BaseModel):
+    cursor: Optional[str] = None
+
+class ListChannelMembersParams(BaseModel):
+    channel_id: str
+    cursor: Optional[str] = None
+
+class ListDirectMessagesParams(BaseModel):
+    cursor: Optional[str] = None
+
+class PostMessageParams(BaseModel):
+    channel_id: str
+    message: ThreadMessage
+
+class SendDmParams(BaseModel):
+    message: DirectMessage
+
+class ReplyInThreadParams(BaseModel):
+    channel_id: str
+    thread_ts: str
+    message: ThreadMessage
+
+class ListThreadMessagesParams(BaseModel):
+    channel_id: str
+    thread_ts: str
+    cursor: Optional[str] = None
+
+class ListChannelMessagesParams(BaseModel):
+    channel_id: str
+    cursor: Optional[str] = None
+
+class ListDirectMessagesWithUserParams(BaseModel):
+    user_id: str
+    cursor: Optional[str] = None

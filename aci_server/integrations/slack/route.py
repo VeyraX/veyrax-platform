@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Body
+from typing import Optional, Dict, Any
 from .schema import (
     ChannelList, ChannelMemberList, MessageList, 
-    Message, DirectMessage, ThreadMessage
+    Message, DirectMessage, ThreadMessage,
+    ListChannelsParams, ListChannelMembersParams, ListDirectMessagesParams,
+    PostMessageParams, SendDmParams, ReplyInThreadParams, ListThreadMessagesParams,
+    ListChannelMessagesParams, ListDirectMessagesWithUserParams
 )
 from .service import SlackService
 from .client import SlackClient
+from ..common.input_schema_decorator import input_schema
 import os
 import pickle
 
@@ -25,6 +29,7 @@ async def get_slack_service():
     return SlackService(client)
 
 @router.get("/channels", response_model=ChannelList)
+@input_schema(schema_class=ListChannelsParams)
 async def list_channels(
     cursor: Optional[str] = None,
     service: SlackService = Depends(get_slack_service)
@@ -32,6 +37,7 @@ async def list_channels(
     return service.list_channels(cursor)
 
 @router.get("/channels/{channel_id}/members", response_model=ChannelMemberList)
+@input_schema(schema_class=ListChannelMembersParams)
 async def list_channel_members(
     channel_id: str,
     cursor: Optional[str] = None,
@@ -40,6 +46,7 @@ async def list_channel_members(
     return service.list_channel_members(channel_id, cursor)
 
 @router.get("/direct-messages", response_model=MessageList)
+@input_schema(schema_class=ListDirectMessagesParams)
 async def list_direct_messages(
     cursor: Optional[str] = None,
     service: SlackService = Depends(get_slack_service)
@@ -47,6 +54,7 @@ async def list_direct_messages(
     return service.list_direct_messages(cursor)
 
 @router.post("/channels/{channel_id}/messages", response_model=Message)
+@input_schema(schema_class=PostMessageParams)
 async def post_message(
     channel_id: str,
     message: ThreadMessage,
@@ -55,6 +63,7 @@ async def post_message(
     return service.post_message(channel_id, message.text)
 
 @router.post("/dm", response_model=Message)
+@input_schema(schema_class=SendDmParams)
 async def send_dm(
     message: DirectMessage,
     service: SlackService = Depends(get_slack_service)
@@ -62,6 +71,7 @@ async def send_dm(
     return service.send_dm(message.user_id, message.text)
 
 @router.post("/channels/{channel_id}/threads/{thread_ts}/replies", response_model=Message)
+@input_schema(schema_class=ReplyInThreadParams)
 async def reply_in_thread(
     channel_id: str,
     thread_ts: str,
@@ -71,6 +81,7 @@ async def reply_in_thread(
     return service.reply_in_thread(channel_id, thread_ts, message.text)
 
 @router.get("/channels/{channel_id}/threads/{thread_ts}/messages", response_model=MessageList)
+@input_schema(schema_class=ListThreadMessagesParams)
 async def list_thread_messages(
     channel_id: str,
     thread_ts: str,
@@ -80,6 +91,7 @@ async def list_thread_messages(
     return service.list_thread_messages(channel_id, thread_ts, cursor)
 
 @router.get("/channels/{channel_id}/messages", response_model=MessageList)
+@input_schema(schema_class=ListChannelMessagesParams)
 async def list_channel_messages(
     channel_id: str,
     cursor: Optional[str] = None,
@@ -88,6 +100,7 @@ async def list_channel_messages(
     return service.list_channel_messages(channel_id, cursor)
 
 @router.get("/direct-messages/{user_id}", response_model=MessageList)
+@input_schema(schema_class=ListDirectMessagesWithUserParams)
 async def list_direct_messages_with_user(
     user_id: str,
     cursor: Optional[str] = None,

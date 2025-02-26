@@ -98,8 +98,7 @@ def format_schema_for_strict(schema: Any) -> None:
 
 
 def get_openai_function_schemas(
-    route: routing.APIRouter, 
-    strict: bool = False
+    route: routing.APIRouter
 ) -> Dict[str, Any]:
     """
     Generate OpenAI function schema from FastAPI route and optional schema class.

@@ -165,3 +165,51 @@ class WorkflowStateList(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[Issue, IssueList, Project, ProjectList, Team, TeamList, WorkflowState, WorkflowStateList, CommentResponse, UserList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter classes for routes
+class ListIssuesParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class SearchIssuesParams(BaseModel):
+    query: str
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class FilterIssuesParams(BaseModel):
+    filters: IssueFilter
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class CreateIssueParams(BaseModel):
+    issue: IssueCreate
+
+class UpdateIssueParams(BaseModel):
+    issue_id: str
+    issue_update: IssueUpdate
+
+class CommentIssueParams(BaseModel):
+    issue_id: str
+    comment: CommentCreate
+
+class ListProjectsParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class GetProjectParams(BaseModel):
+    project_id: str
+
+class ListUsersParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class ListTeamsParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+class GetTeamParams(BaseModel):
+    team_id: str
+
+class ListWorkflowStatesParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50

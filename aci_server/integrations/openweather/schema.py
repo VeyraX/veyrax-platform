@@ -34,3 +34,7 @@ class WeatherRequest(BaseModel):
 class ApiResponse(BaseModel):
     data: ForecastData
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+class GetWeatherForecastParams(BaseModel):
+    city: str
+    country: str

@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import Dict, Any
-from .schema import WeatherData, ForecastData, WeatherRequest, ApiResponse
+from .schema import (
+    WeatherData, ForecastData, WeatherRequest, ApiResponse,
+    GetWeatherForecastParams
+)
 from .service import WeatherService
 from .client import WeatherClient
 import os
 from dotenv import load_dotenv
+from ..common.input_schema_decorator import input_schema
 
 load_dotenv()
 
@@ -19,6 +23,7 @@ async def get_weather_service():
     return WeatherService(client)
 
 @router.post("/forecast", response_model=ApiResponse)
+@input_schema(schema_class=GetWeatherForecastParams)
 async def get_weather_forecast(
     params: Dict[str, Any] = Body(...),
     service: WeatherService = Depends(get_weather_service)

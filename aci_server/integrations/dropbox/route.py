@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, HTTPException, Body, Request as FastAPIRequest
 from typing import Optional, Dict, Any
 from .service import DropboxService
-from .schema import FileList, FileFilters, FolderCreate, FileMove, DropboxFile, ApiResponse
+from .schema import (
+    FileList, FileFilters, FolderCreate, FileMove, DropboxFile, ApiResponse,
+    ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams,
+    DownloadFileParams, DeleteFileParams, MoveFileParams, ReadFileParams
+)
+from ..common.input_schema_decorator import input_schema
 import os
 import pickle
 import requests
@@ -24,6 +29,7 @@ async def get_service(request: FastAPIRequest) -> DropboxService:
     return DropboxService(token_str)
 
 @router.post("/list_files", response_model=ApiResponse)
+@input_schema(schema_class=ListFilesParams)
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -38,6 +44,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
+@input_schema(schema_class=GetFileParams)
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -54,6 +61,7 @@ async def get_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
+@input_schema(schema_class=CreateFolderParams)
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -68,6 +76,7 @@ async def create_folder(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
+@input_schema(schema_class=UploadFileParams)
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -88,6 +97,7 @@ async def upload_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/download_file")
+@input_schema(schema_class=DownloadFileParams)
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -120,6 +130,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @router.post("/delete_file", response_model=ApiResponse)
+@input_schema(schema_class=DeleteFileParams)
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -136,6 +147,7 @@ async def delete_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
+@input_schema(schema_class=MoveFileParams)
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)
@@ -157,6 +169,7 @@ async def move_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/read_file")
+@input_schema(schema_class=ReadFileParams)
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_service)

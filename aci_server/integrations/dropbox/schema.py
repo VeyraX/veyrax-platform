@@ -47,3 +47,31 @@ class FileFilters(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[DropboxFile, FileList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter classes for routes
+class ListFilesParams(BaseModel):
+    filters: Optional[FileFilters] = FileFilters()
+
+class GetFileParams(BaseModel):
+    path: str
+
+class CreateFolderParams(BaseModel):
+    folder: FolderCreate
+
+class UploadFileParams(BaseModel):
+    path: str
+    file_content: str  # base64 encoded
+    mode: Optional[str] = "add"
+
+class DownloadFileParams(BaseModel):
+    path: str
+
+class DeleteFileParams(BaseModel):
+    path: str
+
+class MoveFileParams(BaseModel):
+    from_path: str
+    to_path: str
+
+class ReadFileParams(BaseModel):
+    path: str

@@ -140,3 +140,42 @@ class JiraUser(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[Issue, IssueList, Project, List[Project], List[Status], List[Priority], List[IssueType], List[Field], List[JiraUser]]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter schemas
+class GetIssuesParams(BaseModel):
+    filters: Optional[IssueFilters] = None
+
+class GetIssueParams(BaseModel):
+    issue_id: str
+
+class CreateIssueParams(BaseModel):
+    issue_args: IssueCreate
+
+class UpdateIssueParams(BaseModel):
+    issue_id: str
+    update_args: IssueUpdate
+
+class DeleteIssueParams(BaseModel):
+    issue_id: str
+
+class GetProjectParams(BaseModel):
+    project_id: str
+
+class GetUsersParams(BaseModel):
+    query: Optional[str] = None
+
+# Empty params classes for endpoints that don't require parameters
+class GetProjectsParams(BaseModel):
+    pass
+
+class GetStatusesParams(BaseModel):
+    pass
+
+class GetPrioritiesParams(BaseModel):
+    pass
+
+class GetIssueTypesParams(BaseModel):
+    pass
+
+class GetFieldsParams(BaseModel):
+    pass

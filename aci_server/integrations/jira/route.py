@@ -9,9 +9,14 @@ from .schema import (
     IssueList, Issue, IssueCreate, IssueUpdate, 
     IssueFilters, JiraServerInfo, JiraCredentials,
     Project, Status, Priority, IssueType, Field,
-    JiraUser, ApiResponse
+    JiraUser, ApiResponse,
+    GetIssuesParams, GetIssueParams, CreateIssueParams,
+    UpdateIssueParams, DeleteIssueParams, GetProjectParams,
+    GetProjectsParams, GetStatusesParams, GetPrioritiesParams,
+    GetIssueTypesParams, GetFieldsParams, GetUsersParams
 )
 from ..common.auth import TokenService, JiraTokenRefresher
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/jira", tags=["jira"])
 
@@ -28,6 +33,7 @@ async def get_jira_service(request: FastAPIRequest):
     return JiraService(client)
 
 @router.post("/get_issues", response_model=ApiResponse)
+@input_schema(schema_class=GetIssuesParams)
 async def get_issues(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -42,6 +48,7 @@ async def get_issues(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_issue", response_model=ApiResponse)
+@input_schema(schema_class=GetIssueParams)
 async def get_issue(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -57,6 +64,7 @@ async def get_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_issue", response_model=ApiResponse)
+@input_schema(schema_class=CreateIssueParams)
 async def create_issue(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -71,6 +79,7 @@ async def create_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_issue", response_model=ApiResponse)
+@input_schema(schema_class=UpdateIssueParams)
 async def update_issue(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -90,6 +99,7 @@ async def update_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_issue")
+@input_schema(schema_class=DeleteIssueParams)
 async def delete_issue(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -106,6 +116,7 @@ async def delete_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_projects", response_model=ApiResponse)
+@input_schema(schema_class=GetProjectsParams)
 async def get_projects(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -118,6 +129,7 @@ async def get_projects(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_project", response_model=ApiResponse)
+@input_schema(schema_class=GetProjectParams)
 async def get_project(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -133,6 +145,7 @@ async def get_project(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_statuses", response_model=ApiResponse)
+@input_schema(schema_class=GetStatusesParams)
 async def get_statuses(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -145,6 +158,7 @@ async def get_statuses(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_priorities", response_model=ApiResponse)
+@input_schema(schema_class=GetPrioritiesParams)
 async def get_priorities(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -157,6 +171,7 @@ async def get_priorities(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_issue_types", response_model=ApiResponse)
+@input_schema(schema_class=GetIssueTypesParams)
 async def get_issue_types(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -169,6 +184,7 @@ async def get_issue_types(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_fields", response_model=ApiResponse)
+@input_schema(schema_class=GetFieldsParams)
 async def get_fields(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)
@@ -183,6 +199,7 @@ async def get_fields(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_users", response_model=ApiResponse)
+@input_schema(schema_class=GetUsersParams)
 async def get_users(
     params: Dict[str, Any] = Body(...),
     service: JiraService = Depends(get_jira_service)

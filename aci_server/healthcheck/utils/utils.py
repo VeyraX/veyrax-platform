@@ -1,70 +1,82 @@
 import os
 import requests
-from typing import Dict, Any, Tuple
-
+from typing import Dict, Any, Tuple, Optional
 from supabase import create_client, Client
 
 
 def login_to_supabase() -> Tuple[str, str]:
     """
-    Log in to Supabase using email and password to get an access token.
+    Logs in to Supabase using service account credentials and returns the access and refresh tokens.
     
     Returns:
         Tuple[str, str]: A tuple containing (access_token, refresh_token)
+    
+    Raises:
+        ValueError: If required environment variables are missing.
     """
     supabase_url = os.getenv('SUPABASE_URL')
     supabase_anon_key = os.getenv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-    
     if not supabase_url or not supabase_anon_key:
-        raise ValueError("Missing Supabase configuration")
-    
+        raise ValueError("Missing Supabase configuration (SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY)")
+
     email = os.getenv('SERVICE_ACCOUNT_EMAIL')
     password = os.getenv('SERVICE_ACCOUNT_SECRET')
-    
     if not email or not password:
-        raise ValueError("Missing service account credentials")
-    
-    # Create Supabase client with anonymous key
-    supabase = create_client(supabase_url, supabase_anon_key)
-    
-    # Log in with email and password
+        raise ValueError("Missing service account credentials (SERVICE_ACCOUNT_EMAIL or SERVICE_ACCOUNT_SECRET)")
+
+    # Create Supabase client using the anonymous key
+    supabase: Client = create_client(supabase_url, supabase_anon_key)
+
+    # Authenticate with email and password
     auth_response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    
-    # Extract tokens
     access_token = auth_response.session.access_token
     refresh_token = auth_response.session.refresh_token
-    
+
     return access_token, refresh_token
 
 
-def check_tools_endpoint() -> Dict[str, Any]:
+def _make_healthcheck_request(
+    endpoint: str, 
+    method: str = "GET", 
+    data: Optional[dict] = None
+) -> Dict[str, Any]:
     """
-    Performs a healthcheck by calling the tools endpoint.
+    Helper function to make an authenticated HTTP request to a given endpoint.
+    
+    Args:
+        endpoint (str): The endpoint path (e.g., "/tools" or "/google_calendar/events")
+        method (str): The HTTP method to use ("GET", "POST", etc.). Defaults to "GET".
+        data (Optional[dict]): The payload to send in case of POST/PUT requests.
     
     Returns:
-        Dict[str, Any]: The response from the tools endpoint or error information
+        Dict[str, Any]: The healthcheck result, including status and data or error message.
     """
     try:
-        # Get token from Supabase
         access_token, _ = login_to_supabase()
-        
-        # Get API URL
+
         api_url = os.getenv('NEXT_PUBLIC_API_URL')
         if not api_url:
             return {"status": "error", "message": "NEXT_PUBLIC_API_URL not configured"}
-        
-        # Build full URL
-        tools_url = f"{api_url}/tools"
-        
-        # Make request with token
+
+        full_url = f"{api_url}{endpoint}"
         headers = {
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         }
-        
-        response = requests.get(tools_url, headers=headers)
-        
-        # Check response
+
+        # Choose the right request method
+        method = method.upper()
+        if method == "GET":
+            response = requests.get(full_url, headers=headers)
+        elif method == "POST":
+            response = requests.post(full_url, headers=headers, json=data)
+        elif method == "PUT":
+            response = requests.put(full_url, headers=headers, json=data)
+        elif method == "DELETE":
+            response = requests.delete(full_url, headers=headers)
+        else:
+            return {"status": "error", "message": f"HTTP method {method} not supported."}
+
         if response.status_code == 200:
             return {
                 "status": "healthy",
@@ -75,9 +87,8 @@ def check_tools_endpoint() -> Dict[str, Any]:
             return {
                 "status": "unhealthy",
                 "statusCode": response.status_code,
-                "message": f"Failed to call tools endpoint: {response.text}"
+                "message": f"Failed to call endpoint: {response.text}"
             }
-            
     except Exception as e:
         return {
             "status": "error",
@@ -85,64 +96,36 @@ def check_tools_endpoint() -> Dict[str, Any]:
         }
 
 
-def check_calendar_endpoint() -> Dict[str, Any]:
+def check_tools_endpoint() -> Dict[str, Any]:
     """
-    Performs a healthcheck by calling the Google Calendar endpoint.
+    Performs a healthcheck by calling the /tools endpoint.
     
     Returns:
-        Dict[str, Any]: The response from the calendar endpoint or error information
+        Dict[str, Any]: The response from the tools endpoint or error information.
     """
-    try:
-        # Get token from Supabase
-        access_token, _ = login_to_supabase()
-        
-        # Get API URL
-        api_url = os.getenv('NEXT_PUBLIC_API_URL')
-        if not api_url:
-            return {"status": "error", "message": "NEXT_PUBLIC_API_URL not configured"}
-        
-        # Build full URL for calendar endpoint
-        calendar_url = f"{api_url}/google_calendar/events"
-        
-        # Make request with token
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
-        
-        response = requests.get(calendar_url, headers=headers)
-        
-        # Check response
-        if response.status_code == 200:
-            return {
-                "status": "healthy",
-                "statusCode": response.status_code,
-                "data": response.json()
-            }
-        else:
-            return {
-                "status": "unhealthy",
-                "statusCode": response.status_code,
-                "message": f"Failed to call calendar endpoint: {response.text}"
-            }
-            
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Exception during calendar healthcheck: {str(e)}"
-        }
+    return _make_healthcheck_request("/tools")
+
+
+def check_calendar_endpoint() -> Dict[str, Any]:
+    """
+    Performs a healthcheck by calling the /google_calendar/events endpoint.
+    
+    Returns:
+        Dict[str, Any]: The response from the calendar endpoint or error information.
+    """
+    return _make_healthcheck_request("/google_calendar/list_events", method="POST")
+
 
 if __name__ == "__main__":
     # Load environment variables from .env file in project root
     from dotenv import load_dotenv
     from pathlib import Path
-    
-    # Get project root directory by going up from current file
+
+    # Assume the project root is three directories up from this file
     root_dir = Path(__file__).resolve().parents[3]
-    print(root_dir)
+    print(f"Loading environment variables from: {root_dir / '.env'}")
     load_dotenv(root_dir / '.env')
 
-    
-    # When run directly, execute the healthcheck and print results
+    # Execute the calendar endpoint healthcheck and print the results
     result = check_calendar_endpoint()
     print(result)

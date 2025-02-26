@@ -22,7 +22,7 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
             continue
 
         
-        tool_schema = get_openai_function_schemas(route, strict=False)
+        tool_schema = get_openai_function_schemas(route)
 
         # validation_errors = validate_tool_schema(tool_schema)
         # if len(validation_errors) > 0:

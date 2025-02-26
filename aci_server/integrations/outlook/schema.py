@@ -115,3 +115,40 @@ class CalendarList(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[Message, MessageList, EventList, CalendarList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter schema classes
+class GetMessagesParams(BaseModel):
+    filters: Optional[MessageFilters] = None
+    next_link: Optional[str] = None
+
+class GetMessageParams(BaseModel):
+    message_id: str
+
+class CreateDraftParams(BaseModel):
+    draft_args: DraftMessage
+
+class SendMessageParams(BaseModel):
+    message_id: str
+
+class DeleteMessageParams(BaseModel):
+    message_id: str
+
+class ListCalendarsParams(BaseModel):
+    pass  # No parameters needed but keeping class for consistency
+
+class ListEventsParams(BaseModel):
+    filters: Optional[EventFilters] = None
+    next_link: Optional[str] = None
+
+class GetEventParams(BaseModel):
+    event_id: str
+
+class CreateEventParams(BaseModel):
+    event: EventCreate
+
+class UpdateEventParams(BaseModel):
+    event_id: str
+    event_update: EventUpdate
+
+class DeleteEventParams(BaseModel):
+    event_id: str

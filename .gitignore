@@ -48,6 +48,7 @@ aci_server/credentials/
 .env
 
 
+**/.pytest_cache
 **/__pycache__/
 
 # Maple project files from Jupyter notebooks
@@ -55,3 +56,4 @@ aci_server/credentials/
 
 # Jupyter notebooks
 *.ipynb
+venv/

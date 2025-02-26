@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any, List, Union
-from .schema import EventList, Event, EventCreate, EventUpdate, EventFilters, CalendarList, ApiResponse
+from .schema import (
+    EventList, Event, EventCreate, EventUpdate, EventFilters, CalendarList, ApiResponse,
+    ListEventsParams, GetEventParams, CreateEventParams, UpdateEventParams, 
+    DeleteEventParams, ListCalendarsParams
+)
 from .service import CalendarService
 from .client import CalendarClient
 import os
 from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
 
@@ -26,6 +31,7 @@ async def get_calendar_service(request: FastAPIRequest):
     return CalendarService(client)
 
 @router.post("/list_events", response_model=ApiResponse)
+@input_schema(schema_class=ListEventsParams)
 async def list_events(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)
@@ -42,6 +48,7 @@ async def list_events(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_event", response_model=ApiResponse)
+@input_schema(schema_class=GetEventParams)
 async def get_event(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)
@@ -57,6 +64,7 @@ async def get_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_event", response_model=ApiResponse)
+@input_schema(schema_class=CreateEventParams)
 async def create_event(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)
@@ -73,6 +81,7 @@ async def create_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_event", response_model=ApiResponse)
+@input_schema(schema_class=UpdateEventParams)
 async def update_event(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)
@@ -90,6 +99,7 @@ async def update_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_event")
+@input_schema(schema_class=DeleteEventParams)
 async def delete_event(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)
@@ -106,6 +116,7 @@ async def delete_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_calendars", response_model=ApiResponse)
+@input_schema(schema_class=ListCalendarsParams)
 async def list_calendars(
     params: Dict[str, Any] = Body(...),
     service: CalendarService = Depends(get_calendar_service)

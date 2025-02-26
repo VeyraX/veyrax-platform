@@ -3,11 +3,15 @@ from typing import Optional, Dict, Any
 from .schema import (
     MessageList, Message, DraftMessage, EventList, Event, 
     EventCreate, EventUpdate, EventFilters, MessageFilters,
-    CalendarList, ApiResponse
+    CalendarList, ApiResponse, GetMessagesParams, GetMessageParams,
+    CreateDraftParams, SendMessageParams, DeleteMessageParams,
+    ListCalendarsParams, ListEventsParams, GetEventParams,
+    CreateEventParams, UpdateEventParams, DeleteEventParams
 )
 from .service import OutlookService
 from .client import OutlookClient
 from ..common.auth import TokenService, OutlookTokenRefresher
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/outlook", tags=["outlook"])
 
@@ -24,6 +28,7 @@ async def get_outlook_service(request: FastAPIRequest):
     return OutlookService(client)
 
 @router.post("/get_messages", response_model=ApiResponse)
+@input_schema(schema_class=GetMessagesParams)
 async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -40,6 +45,7 @@ async def get_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_message", response_model=ApiResponse)
+@input_schema(schema_class=GetMessageParams)
 async def get_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -56,6 +62,7 @@ async def get_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_draft", response_model=ApiResponse)
+@input_schema(schema_class=CreateDraftParams)
 async def create_draft(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -70,6 +77,7 @@ async def create_draft(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_message", response_model=ApiResponse)
+@input_schema(schema_class=SendMessageParams)
 async def send_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -86,6 +94,7 @@ async def send_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_message")
+@input_schema(schema_class=DeleteMessageParams)
 async def delete_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -103,6 +112,7 @@ async def delete_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_calendars", response_model=ApiResponse)
+@input_schema(schema_class=ListCalendarsParams)
 async def list_calendars(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -115,6 +125,7 @@ async def list_calendars(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_events", response_model=ApiResponse)
+@input_schema(schema_class=ListEventsParams)
 async def list_events(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -131,6 +142,7 @@ async def list_events(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_event", response_model=ApiResponse)
+@input_schema(schema_class=GetEventParams)
 async def get_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -147,6 +159,7 @@ async def get_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_event", response_model=ApiResponse)
+@input_schema(schema_class=CreateEventParams)
 async def create_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -161,6 +174,7 @@ async def create_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_event", response_model=ApiResponse)
+@input_schema(schema_class=UpdateEventParams)
 async def update_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
@@ -180,6 +194,7 @@ async def update_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_event")
+@input_schema(schema_class=DeleteEventParams)
 async def delete_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
