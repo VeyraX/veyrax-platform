@@ -1,0 +1,3 @@
+pypdf>=3.0.0
+# Remove or comment out PyPDF2
+# PyPDF2==x.x.x 

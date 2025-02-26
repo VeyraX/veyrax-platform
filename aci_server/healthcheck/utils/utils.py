@@ -51,6 +51,10 @@ def _make_healthcheck_request(
     Returns:
         Dict[str, Any]: The healthcheck result, including status and data or error message.
     """
+
+    if data is None:
+        data = {}
+
     try:
         access_token, _ = login_to_supabase()
 
@@ -113,7 +117,7 @@ def check_calendar_endpoint() -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: The response from the calendar endpoint or error information.
     """
-    return _make_healthcheck_request("/google_calendar/list_events", method="POST")
+    return _make_healthcheck_request("/google_calendar/list_events", method="POST", data={})
 
 
 if __name__ == "__main__":

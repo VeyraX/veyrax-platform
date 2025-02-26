@@ -118,7 +118,7 @@ async def delete_event(
 @router.post("/list_calendars", response_model=ApiResponse)
 @input_schema(schema_class=ListCalendarsParams)
 async def list_calendars(
-    params: Dict[str, Any] = Body(...),
+    params: Optional[Dict[str, Any]],
     service: CalendarService = Depends(get_calendar_service)
 ):
     try:

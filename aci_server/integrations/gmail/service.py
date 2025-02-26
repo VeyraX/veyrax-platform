@@ -85,9 +85,10 @@ class GmailService:
         )
         
         return self.prepare_response(message, "GmailMessageCard")
+    
 
     def send_message(self, message_id: str) -> ApiResponse:
-        draft = self.client.get_draft(message_id)
+        draft = self.client.get_message(message_id)
         message = draft['message']
         
         new_message = MIMEText(self._get_body(message))
@@ -139,8 +140,6 @@ class GmailService:
     def create_draft(self, draft_args: DraftMessage) -> ApiResponse:
         message = self._create_mime_message(draft_args.recipient, draft_args.subject, draft_args.body)
         draft = self.client.create_draft(message)
-        
-        print(f"Draft API response: {json.dumps(draft, indent=2)}")
         
         draft_id = draft['id']
         message_id = draft['message']['id']
