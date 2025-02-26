@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from typing import Optional, Dict, Any
 from .schema import (
     DatabaseList, Database, PageList, Page, 
-    PageCreate, PageUpdate, PageFilters, DatabaseProperties
+    PageCreate, PageUpdate, PageFilters, DatabaseProperties, ListPagesRequest
 )
 from .service import NotionService
 from .client import NotionClient
@@ -28,13 +28,18 @@ async def list_databases(
 @router.post("/databases/{database_id}/pages", response_model=PageList)
 async def list_pages(
     database_id: str,
-    request_body: dict,
+    request_body: ListPagesRequest,
     service: NotionService = Depends(get_notion_service)
 ):
+    filters = PageFilters(
+        filter=request_body.filter,
+        sorts=request_body.sorts,
+        page_size=request_body.page_size
+    )
     return service.list_pages(
         database_id,
-        request_body.get("start_cursor"),
-        PageFilters(**request_body.get("filters", {}))
+        request_body.start_cursor,
+        filters
     )
 
 @router.get("/pages/{page_id}", response_model=Page)
@@ -93,7 +98,7 @@ async def get_database_properties(
 @router.post("/databases/{database_id}/query", response_model=PageList)
 async def query_database(
     database_id: str,
-    query_params: Dict[str, Any],
+    query_params: PageFilters,
     service: NotionService = Depends(get_notion_service)
 ):
     """Execute a complex query against a Notion database"""
