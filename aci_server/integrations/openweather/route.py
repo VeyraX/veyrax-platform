@@ -14,7 +14,6 @@ async def get_weather_service(request: Request):
 
 @router.post("/forecast", response_model=ApiResponse)
 async def get_weather_forecast(
-    request: Request,
     params: Dict[str, Any] = Body(...),
     service: WeatherService = Depends(get_weather_service)
 ):
