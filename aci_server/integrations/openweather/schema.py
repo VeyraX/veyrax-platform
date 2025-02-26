@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class WeatherData(BaseModel):
@@ -25,7 +25,12 @@ class ForecastData(BaseModel):
     city_name: str
     country: str
     forecast: List[ForecastItem]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 class WeatherRequest(BaseModel):
     city: str
     country: str
+
+class ApiResponse(BaseModel):
+    data: ForecastData
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

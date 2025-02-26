@@ -11,7 +11,6 @@ class OutlookClient:
             "Content-Type": "application/json"
         })
 
-    # Mail methods
     def list_messages(self, **kwargs) -> Dict[str, Any]:
         params = {k: v for k, v in kwargs.items() if v is not None}
         response = self.session.get(f"{self.BASE_URL}/me/messages", params=params)
@@ -48,7 +47,6 @@ class OutlookClient:
         response.raise_for_status()
         return response.json()
 
-    # Calendar methods
     def list_calendars(self) -> Dict[str, Any]:
         response = self.session.get(f"{self.BASE_URL}/me/calendars")
         response.raise_for_status()

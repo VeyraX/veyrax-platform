@@ -1,10 +1,22 @@
 from datetime import datetime
 from .client import WeatherClient
-from .schema import WeatherData, ForecastData, ForecastItem
+from .schema import WeatherData, ForecastData, ForecastItem, ApiResponse
+import os
+from ..common.component_handler import load_components, prepare_components_auto
 
 class WeatherService:
     def __init__(self, client: WeatherClient):
         self.client = client
+        self.components_data = self._load_components()
+        
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: ForecastData, component_name: str = None) -> ApiResponse:
+        tool_name = "openweather"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
 
     def get_weather(self, city: str, country: str) -> WeatherData:
         response = self.client.get_weather_by_city(city, country)
@@ -20,7 +32,7 @@ class WeatherService:
             country=response['sys']['country']
         )
 
-    def get_forecast(self, city: str, country: str) -> ForecastData:
+    def get_forecast(self, city: str, country: str) -> ApiResponse:
         current_weather = self.client.get_weather_by_city(city, country)
         forecast_response = self.client.get_forecast_by_city(city, country)
         
@@ -55,8 +67,10 @@ class WeatherService:
                     )
                 )
 
-        return ForecastData(
+        forecast_data = ForecastData(
             city_name=forecast_response['city']['name'],
             country=forecast_response['city']['country'],
             forecast=forecast_items
         )
+        
+        return self.prepare_response(forecast_data, "WeatherForecastView")

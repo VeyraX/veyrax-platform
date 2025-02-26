@@ -40,18 +40,14 @@ class Issue(BaseModel):
     
     @model_validator(mode='after')
     def extract_nested_fields(self):
-        # Обработка state
         if isinstance(self.state, dict) and 'name' in self.state:
             self.state = self.state['name']
             
-        # Обработка labels
         if isinstance(self.labels, dict) and 'nodes' in self.labels:
             self.labels = [label['name'] for label in self.labels['nodes']]
             
-        # Добавление project_id
         self.project_id = self.project['id'] if self.project and 'id' in self.project else None
         
-        # Добавление team_id и team_key
         if self.team:
             self.team_id = self.team.id
             self.team_key = self.team.key

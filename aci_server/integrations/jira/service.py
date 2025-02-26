@@ -79,7 +79,7 @@ class JiraService:
         issues = [
             Issue(
                 **self._format_issue_base(issue),
-                comments=[],  # Comments are loaded separately if needed
+                comments=[],
                 labels=issue['fields'].get('labels', []),
                 components=[c['name'] for c in issue['fields'].get('components', [])]
             )

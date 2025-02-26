@@ -17,7 +17,7 @@ class PageSchema(BaseModel):
     body: Optional[Dict[str, Any]] = None
     status: Optional[str] = None
     _links: Optional[Dict[str, Any]] = None
-    html_link: Optional[str] = None  # Web URL to the page
+    html_link: Optional[str] = None 
 
 class PageCreateSchema(BaseModel):
     title: str

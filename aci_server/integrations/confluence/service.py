@@ -57,7 +57,6 @@ class ConfluenceService:
         pages = []
         
         for page in response.get('results', []):
-            # Add web URL to the page
             if '_links' in page and 'webui' in page.get('_links', {}):
                 page['html_link'] = f"{self.base_url}{page['_links']['webui']}"
             pages.append(PageSchema(**page))
@@ -72,7 +71,6 @@ class ConfluenceService:
     def get_page(self, page_id: str) -> ApiResponse:
         response = self.client.get_page(page_id)
         
-        # Add web URL to the page
         if '_links' in response and 'webui' in response.get('_links', {}):
             response['html_link'] = f"{self.base_url}{response['_links']['webui']}"
             
@@ -96,7 +94,6 @@ class ConfluenceService:
             
         response = self.client.create_page(data)
         
-        # Add web URL to the page
         if '_links' in response and 'webui' in response.get('_links', {}):
             response['html_link'] = f"{self.base_url}{response['_links']['webui']}"
             
@@ -120,7 +117,6 @@ class ConfluenceService:
         
         response = self.client.update_page(page_id, data)
         
-        # Add web URL to the page
         if '_links' in response and 'webui' in response.get('_links', {}):
             response['html_link'] = f"{self.base_url}{response['_links']['webui']}"
             

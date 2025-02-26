@@ -1,11 +1,23 @@
 from datetime import datetime
-from typing import Optional, List, Tuple, BinaryIO
+from typing import Optional, List, Tuple, BinaryIO, Union, Dict, Any
 from .client import DropboxClient
-from .schema import DropboxFile, FileList, FileFilters
+from .schema import DropboxFile, FileList, FileFilters, ApiResponse
+import os
+from ..common.component_handler import load_components, prepare_components_auto
 
 class DropboxService:
     def __init__(self, access_token: str):
         self.client = DropboxClient(access_token)
+        self.components_data = self._load_components()
+
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: Union[DropboxFile, FileList], component_name: str = None) -> ApiResponse:
+        tool_name = "dropbox"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
 
     def _convert_to_dropbox_file(self, file_data: dict) -> DropboxFile:
         return DropboxFile(
@@ -18,10 +30,10 @@ class DropboxService:
             is_folder=file_data.get(".tag") == "folder",
             created_time=datetime.fromisoformat(file_data.get("client_modified", "1970-01-01T00:00:00Z").replace("Z", "+00:00")),
             modified_time=datetime.fromisoformat(file_data.get("server_modified", "1970-01-01T00:00:00Z").replace("Z", "+00:00")),
-            shared_link=None  # Требуется отдельный запрос для получения shared_link
+            shared_link=None 
         )
 
-    def list_files(self, filters: FileFilters) -> FileList:
+    def list_files(self, filters: FileFilters) -> ApiResponse:
         response = self.client.list_files(
             path=filters.path,
             recursive=filters.recursive,
@@ -33,23 +45,28 @@ class DropboxService:
             for entry in response.get("entries", [])
         ]
         
-        return FileList(
+        file_list = FileList(
             files=files,
             cursor=response.get("cursor"),
             has_more=response.get("has_more", False)
         )
+        
+        return self.prepare_response(file_list, "DropboxFileCard")
 
-    def get_file(self, path: str) -> DropboxFile:
+    def get_file(self, path: str) -> ApiResponse:
         file_data = self.client.get_file_metadata(path)
-        return self._convert_to_dropbox_file(file_data)
+        file = self._convert_to_dropbox_file(file_data)
+        return self.prepare_response(file, "DropboxFileCard")
 
-    def create_folder(self, path: str) -> DropboxFile:
+    def create_folder(self, path: str) -> ApiResponse:
         response = self.client.create_folder(path)
-        return self._convert_to_dropbox_file(response["metadata"])
+        file = self._convert_to_dropbox_file(response["metadata"])
+        return self.prepare_response(file, "DropboxFileCard")
 
-    def upload_file(self, path: str, file: BinaryIO, mode: str = "add") -> DropboxFile:
+    def upload_file(self, path: str, file: BinaryIO, mode: str = "add") -> ApiResponse:
         response = self.client.upload_file(path, file, mode)
-        return self._convert_to_dropbox_file(response)
+        file = self._convert_to_dropbox_file(response)
+        return self.prepare_response(file, "DropboxFileCard")
 
     def download_file(self, path: str) -> Tuple[bytes, DropboxFile]:
         try:
@@ -60,17 +77,20 @@ class DropboxService:
             print(f"Download error in service: {str(e)}")
             raise
 
-    def delete_file(self, path: str) -> DropboxFile:
+    def delete_file(self, path: str) -> ApiResponse:
         response = self.client.delete_file(path)
-        return self._convert_to_dropbox_file(response["metadata"])
+        file = self._convert_to_dropbox_file(response["metadata"])
+        return self.prepare_response(file, "DropboxFileCard")
 
-    def move_file(self, from_path: str, to_path: str) -> DropboxFile:
+    def move_file(self, from_path: str, to_path: str) -> ApiResponse:
         try:
             response = self.client.move_file(from_path, to_path)
             if "metadata" not in response:
                 print(f"Unexpected response structure: {response}")
-                return self._convert_to_dropbox_file(response)
-            return self._convert_to_dropbox_file(response["metadata"])
+                file = self._convert_to_dropbox_file(response)
+            else:
+                file = self._convert_to_dropbox_file(response["metadata"])
+            return self.prepare_response(file, "DropboxFileCard")
         except Exception as e:
             print(f"Move file error: {str(e)}")
             raise

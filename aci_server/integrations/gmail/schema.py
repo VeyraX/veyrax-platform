@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class MessageBase(BaseModel):
-    id: str  # Это основной идентификатор сообщения
+    id: str
     thread_id: str
     subject: Optional[str]
     snippet: str
@@ -14,9 +14,6 @@ class MessageBase(BaseModel):
     html_link: str
 
 class Message(MessageBase):
-    # Убираем дублирование полей из MessageBase
-    # id и thread_id уже определены в родительском классе
-    message_id: Optional[str] = None  # Опциональное поле для совместимости
     subject: Optional[str] = None
     snippet: Optional[str] = None
     body: Optional[str] = None
@@ -25,7 +22,7 @@ class Message(MessageBase):
     date: Optional[datetime] = None
     html_link: Optional[str] = None
     labels: Optional[List[str]] = None
-    draft_id: Optional[str] = None  # ID черновика, если сообщение является черновиком
+    draft_id: Optional[str] = None 
 
 class DraftBase(BaseModel):
     draft_id: str

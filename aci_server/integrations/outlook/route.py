@@ -23,13 +23,11 @@ async def get_outlook_service(request: FastAPIRequest):
     client = OutlookClient(token_data['access_token'])
     return OutlookService(client)
 
-# Mail routes
 @router.post("/get_messages", response_model=ApiResponse)
 async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Get messages with optional filtering"""
     try:
         filters_data = params.get('filters', {})
         next_link = params.get('next_link')
@@ -46,7 +44,6 @@ async def get_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Get a specific message by ID"""
     try:
         message_id = params.get('message_id')
         if not message_id:
@@ -63,7 +60,6 @@ async def create_draft(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Create a draft message"""
     try:
         draft_data = params.get('draft_args', params)
         draft = DraftMessage(**draft_data)
@@ -78,7 +74,6 @@ async def send_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Send an existing draft message"""
     try:
         message_id = params.get('message_id')
         if not message_id:
@@ -95,7 +90,6 @@ async def delete_message(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Delete a message"""
     try:
         message_id = params.get('message_id')
         if not message_id:
@@ -108,13 +102,11 @@ async def delete_message(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# Calendar routes
 @router.post("/list_calendars", response_model=ApiResponse)
 async def list_calendars(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Get list of calendars"""
     try:
         return service.list_calendars()
     except Exception as e:
@@ -127,7 +119,6 @@ async def list_events(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Get events with optional filtering"""
     try:
         filters_data = params.get('filters', {})
         next_link = params.get('next_link')
@@ -144,7 +135,6 @@ async def get_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Get a specific event by ID"""
     try:
         event_id = params.get('event_id')
         if not event_id:
@@ -161,7 +151,6 @@ async def create_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Create a new event"""
     try:
         event_data = params.get('event', params)
         event = EventCreate(**event_data)
@@ -176,7 +165,6 @@ async def update_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Update an existing event"""
     try:
         event_id = params.get('event_id')
         event_data = params.get('event_update', {})
@@ -196,7 +184,6 @@ async def delete_event(
     params: Dict[str, Any] = Body(...),
     service: OutlookService = Depends(get_outlook_service)
 ):
-    """Delete an event"""
     try:
         event_id = params.get('event_id')
         if not event_id:
