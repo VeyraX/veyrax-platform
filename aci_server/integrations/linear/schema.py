@@ -122,8 +122,11 @@ class IssueFilter(BaseModel):
 class CommentResponse(BaseModel):
     id: str
     body: str
-    created_at: datetime
+    created_at: datetime = Field(alias="createdAt")
     user: Optional[User] = None
+
+    class Config:
+        allow_population_by_field_name = True
 
 class UserList(BaseModel):
     items: List[User]
@@ -213,3 +216,17 @@ class GetTeamParams(BaseModel):
 class ListWorkflowStatesParams(BaseModel):
     cursor: Optional[str] = None
     max_results: Optional[int] = 50
+
+class ProjectCreate(BaseModel):
+    name: str
+    team_id: str = Field(..., alias="teamId")
+    description: Optional[str] = None
+    state: Optional[str] = None
+    lead_id: Optional[str] = Field(None, alias="leadId")
+    start_date: Optional[datetime] = Field(None, alias="startDate")
+    target_date: Optional[datetime] = Field(None, alias="targetDate")
+
+    class Config:
+        populate_by_name = True
+        alias_generator = lambda x: ''.join(word.capitalize() if i else word for i, word in enumerate(x.split('_')))
+        extra = "forbid"

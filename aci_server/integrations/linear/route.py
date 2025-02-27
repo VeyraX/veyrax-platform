@@ -1,13 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
-from typing import Optional, List, Dict, Any
-from .schema import (
-    IssueList, Issue, ProjectList, Project,
-    IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse,
-    UserList, TeamList, Team, WorkflowStateList, ApiResponse,
+from typing import Dict, Any
+from .schema import ( ApiResponse,
     ListIssuesParams, SearchIssuesParams, FilterIssuesParams,
     CreateIssueParams, UpdateIssueParams, CommentIssueParams,
     ListProjectsParams, GetProjectParams, ListUsersParams,
-    ListTeamsParams, GetTeamParams, ListWorkflowStatesParams
+    ListTeamsParams, GetTeamParams, ListWorkflowStatesParams,
 )
 from .service import LinearService
 from .client import LinearClient
@@ -254,3 +251,4 @@ async def list_workflow_states(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+

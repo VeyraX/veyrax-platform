@@ -3,7 +3,7 @@ from .client import LinearClient
 from .schema import (
     IssueList, Issue, ProjectList, Project,
     IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse, UserList, User, TeamList, Team,
-    WorkflowState, WorkflowStateList, ApiResponse
+    WorkflowState, WorkflowStateList, ApiResponse, ProjectCreate
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -150,7 +150,7 @@ class LinearService:
         if not data['success']:
             raise ValueError("Failed to create comment")
         
-        comment_response = CommentResponse(**data['comment'])
+        comment_response = CommentResponse.parse_obj(data['comment'])
         return self.prepare_response(comment_response, None)
 
     def list_projects(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
