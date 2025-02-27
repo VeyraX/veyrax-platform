@@ -13,7 +13,7 @@ from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
-router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
+router = APIRouter(prefix="/google-calendar", tags=["google-calendar"])
 
 async def get_calendar_service(request: FastAPIRequest):
     try:

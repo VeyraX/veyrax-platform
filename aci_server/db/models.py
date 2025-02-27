@@ -1,37 +1,21 @@
 from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, List, Dict, Any
+from uuid import UUID
+
+class ScopeItem(BaseModel):
+    scope: str
+    scope_name: str
 
 class Provider(BaseModel):
-    id: int
-    provider_tag: str
+    id: UUID
     name: str
     description: str
-    logo: str
-    created_at: datetime
-
-    class Config:
-        table_name = "providers"
-
-class UserOAuthToken(BaseModel):
-    user_id: str
-    provider_id: int
-    access_token: str
-    refresh_token: Optional[str]
-    expires_at: Optional[datetime]
-    scopes: str
-    raw_token_data: Dict[str, Any]
-    created_at: datetime
-
-    class Config:
-        table_name = "users_oauth_tokens"
-
-class UserProviderIndex(BaseModel):
-    user_id: str
-    collection_name: str
-    status: str
-    last_sync_date: Optional[datetime]
-    created_at: datetime
-
-    class Config:
-        table_name = "users_provider_indexes"
+    logo_url: str
+    created_at: int
+    provider_tag: str
+    auth_method: str
+    has_index_capability: bool
+    scopes: Optional[List[ScopeItem]] = None
+    is_enabled: bool
+    ui_component: Optional[str] = None
+    input_schema: Optional[Dict[str, Any]] = None
