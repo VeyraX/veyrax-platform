@@ -4,6 +4,8 @@ from .client import DropboxClient
 from .schema import DropboxFile, FileList, FileFilters, ApiResponse
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import base64
+from ..common.file_reader import read_file_content
 
 class DropboxService:
     def __init__(self, access_token: str):
@@ -94,3 +96,50 @@ class DropboxService:
         except Exception as e:
             print(f"Move file error: {str(e)}")
             raise
+
+    def upload_file_b64(self, path: str, file_content_b64: str, mode: str = "add") -> ApiResponse:
+        file_content = base64.b64decode(file_content_b64)
+        return self.upload_file(path, file_content, mode)
+
+    def download_file_b64(self, path: str):
+        clean_path = '/' + '/'.join(filter(None, path.split('/')))
+        content, metadata = self.download_file(clean_path)
+        
+        filename = metadata.name if hasattr(metadata, 'name') else "download"
+        mime_type = metadata.mime_type if hasattr(metadata, 'mime_type') else "application/octet-stream"
+        
+        content_b64 = base64.b64encode(content).decode('utf-8')
+        
+        return {
+            "status": "success",
+            "data": {
+                "file_content": content_b64,
+                "mime_type": mime_type,
+                "filename": filename,
+                "file_info": metadata.dict()
+            }
+        }
+
+    def read_file_content(self, path: str):
+        content, file_info = self.download_file(path)
+        mime_type = file_info.mime_type
+        
+        if any(x in (mime_type or "") for x in ['spreadsheet', 'excel', 'csv']):
+            return {
+                "success": False,
+                "error": "Spreadsheet files are not supported for text reading",
+                "data": {
+                    "file": file_info.dict()
+                }
+            }
+    
+        text_content, success = read_file_content(content, mime_type)
+        
+        return {
+            "success": success,
+            "data": {
+                "content": text_content,
+                "file": file_info.dict(),
+                "mime_type": mime_type
+            }
+        }

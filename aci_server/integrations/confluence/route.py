@@ -21,6 +21,7 @@ from .schema import (
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
 
@@ -42,9 +43,11 @@ async def get_spaces(
     params: Dict[str, Any] = Body({}),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Get all available spaces"""
     try:
+        validated_params = GetSpacesParams(**params)
         return service.get_spaces()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -56,11 +59,12 @@ async def get_pages(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Get pages with optional filters"""
     try:
-        filters_data = params.get('filters', {})
-        filters = PageFilters(**filters_data)
+        validated_params = GetPagesParams(**params)
+        filters = PageFilters(**(validated_params.filters or {}))
         return service.get_pages(filters=filters)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -72,12 +76,11 @@ async def get_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Get specific page by ID"""
     try:
-        page_id = params.get('page_id')
-        if not page_id:
-            raise HTTPException(status_code=400, detail="page_id is required")
-        return service.get_page(page_id)
+        validated_params = GetPageParams(**params)
+        return service.get_page(validated_params.page_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -89,11 +92,11 @@ async def create_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Create new page"""
     try:
-        page_data = params.get('page', params)
-        page = PageCreateSchema(**page_data)
-        return service.create_page(page)
+        validated_params = CreatePageParams(**params)
+        return service.create_page(validated_params.page)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -105,15 +108,11 @@ async def update_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Update existing page"""
     try:
-        page_id = params.get('page_id')
-        if not page_id:
-            raise HTTPException(status_code=400, detail="page_id is required")
-        
-        update_data = params.get('update', {})
-        update = PageUpdateSchema(**update_data)
-        return service.update_page(page_id, update)
+        validated_params = UpdatePageParams(**params)
+        return service.update_page(validated_params.page_id, validated_params.update)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -125,21 +124,17 @@ async def search_content(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
 ):
-    """Search content using CQL or filters"""
     try:
-        cql = params.get('cql')
-        space_key = params.get('space_key')
-        title = params.get('title')
-        content_type = params.get('type', 'page')
-        limit = params.get('limit', 50)
-        
+        validated_params = SearchContentParams(**params)
         return service.search_content(
-            cql=cql,
-            space_key=space_key,
-            title=title,
-            content_type=content_type,
-            limit=limit
+            cql=validated_params.cql,
+            space_key=validated_params.space_key,
+            title=validated_params.title,
+            content_type=validated_params.type,
+            limit=validated_params.limit
         )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

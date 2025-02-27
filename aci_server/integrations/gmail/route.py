@@ -15,6 +15,7 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
@@ -40,7 +41,6 @@ async def get_gmail_service(request: FastAPIRequest):
     return GmailService(client)
 
 
-
 @router.post("/get_messages", response_model=ApiResponse)
 @input_schema(schema_class=GetMessagesParams)
 async def get_messages(
@@ -48,11 +48,11 @@ async def get_messages(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        filters_data = params.get('filters', {})
-        page_token = params.get('pageToken')
-        
-        filters = MessageFilters(**filters_data)
-        return service.get_messages(page_token, filters)
+        validated_params = GetMessagesParams(**params)
+        filters = validated_params.filters
+        return service.get_messages(validated_params.pageToken, filters)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -65,8 +65,10 @@ async def get_message(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        message_id = params.get('message_id')
-        return service.get_message(message_id)
+        validated_params = GetMessageParams(**params)
+        return service.get_message(validated_params.message_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -79,10 +81,11 @@ async def delete_message(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        message_id = params.get('message_id')
-
-        service.delete_message(message_id)
+        validated_params = DeleteMessageParams(**params)
+        service.delete_message(validated_params.message_id)
         return {"status": "success"}
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -95,8 +98,10 @@ async def send_message(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        message_id = params.get('message_id')
-        return service.send_message(message_id)
+        validated_params = SendMessageParams(**params)
+        return service.send_message(validated_params.message_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -109,8 +114,10 @@ async def get_drafts(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        page_token = params.get('pageToken')
-        return service.get_drafts(page_token)
+        validated_params = GetDraftsParams(**params)
+        return service.get_drafts(validated_params.pageToken)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -123,9 +130,10 @@ async def create_draft(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        draft_data = params.get('draft_args', params)
-        draft_args = DraftMessage(**draft_data)
-        return service.create_draft(draft_args)
+        validated_params = CreateDraftParams(**params)
+        return service.create_draft(validated_params.draft_args)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -138,10 +146,11 @@ async def delete_draft(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        draft_id = params.get('draft_id')
-        
-        service.delete_draft(draft_id)
+        validated_params = DeleteDraftParams(**params)
+        service.delete_draft(validated_params.draft_id)
         return {"status": "success"}
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -154,11 +163,10 @@ async def modify_draft(
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
-        draft_id = params.get('draft_id')
-        update_data = params.get('update_args', {})
-        
-        update_args = DraftMessage(**update_data)
-        return service.modify_draft(draft_id, update_args)
+        validated_params = ModifyDraftParams(**params)
+        return service.modify_draft(validated_params.draft_id, validated_params.update_args)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

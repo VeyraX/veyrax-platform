@@ -143,6 +143,48 @@ class DriveService:
         file_obj = self.get_file(file_id)
         return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
+    def download_file_with_metadata(self, file_id: str):
+        file_content, mime_type = self.download_file(file_id)
+        file_info = self.get_file(file_id).data
+        
+        file_content.seek(0)
+        
+        extension = {
+            'application/pdf': '.pdf',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+        }.get(mime_type, '')
+        
+        filename = f"{file_info.name}{extension}"
+        
+        return {
+            "status": "success",
+            "file_content": file_content.read(),
+            "mime_type": mime_type,
+            "filename": filename
+        }
+
+    def read_file_content(self, file_id: str):
+        from ..common.file_reader import read_file_content
+        
+        file_content, mime_type = self.download_file(file_id)
+        file_info = self.get_file(file_id).data
+        
+        if any(x in mime_type for x in ['spreadsheet', 'excel', 'csv']):
+            return {
+                "success": False,
+                "error": "Spreadsheet files are not supported for text reading",
+                "file": file_info.dict()
+            }
+        
+        text_content, success = read_file_content(file_content, mime_type)
+        
+        return {
+            "success": success,
+            "content": text_content,
+            "file": file_info.dict(),
+            "mime_type": mime_type
+        }
+
     GOOGLE_MIME_TYPES = {
         'application/vnd.google-apps.document': 'application/pdf',
         'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

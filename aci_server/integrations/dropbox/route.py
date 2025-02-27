@@ -1,43 +1,44 @@
-from fastapi import APIRouter, Depends, UploadFile, HTTPException, Body, Request as FastAPIRequest
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
-from .service import DropboxService
 from .schema import (
     FileList, FileFilters, FolderCreate, FileMove, DropboxFile, ApiResponse,
     ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams,
     DownloadFileParams, DeleteFileParams, MoveFileParams, ReadFileParams
 )
-from ..common.input_schema_decorator import input_schema
+from .service import DropboxService
 import os
 import pickle
-import requests
-from fastapi.responses import Response
-from pydantic import BaseModel
-import base64
+from pydantic import ValidationError
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
 
-async def get_service(request: FastAPIRequest) -> DropboxService:
-    if os.path.exists('credentials/dropbox_token.pickle'):
-        with open('credentials/dropbox_token.pickle', 'rb') as token_file:
-            creds = pickle.load(token_file)
-            token_str = creds.get('access_token')
-            if not token_str:
-                raise HTTPException(status_code=401, detail="Access token not found in credentials")
-    else:
-        raise HTTPException(status_code=404, detail="Credentials file not found")
-    
-    return DropboxService(token_str)
+async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
+    try:
+        if os.path.exists('credentials/dropbox_token.pickle'):
+            with open('credentials/dropbox_token.pickle', 'rb') as token_file:
+                creds = pickle.load(token_file)
+                token_str = creds.get('access_token')
+                if not token_str:
+                    raise HTTPException(status_code=401, detail="Access token not found in credentials")
+        else:
+            raise HTTPException(status_code=404, detail="Credentials file not found")
+        
+        return DropboxService(token_str)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Dropbox service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
 @input_schema(schema_class=ListFilesParams)
 async def list_files(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        filters_data = params.get('filters', {})
-        filters = FileFilters(**filters_data)
-        return service.list_files(filters)
+        validated_params = ListFilesParams(**params)
+        return service.list_files(validated_params.filters)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -47,14 +48,13 @@ async def list_files(
 @input_schema(schema_class=GetFileParams)
 async def get_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        path = params.get('path')
-        if not path:
-            raise HTTPException(status_code=400, detail="path is required")
-            
-        return service.get_file(path)
+        validated_params = GetFileParams(**params)
+        return service.get_file(validated_params.path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -64,12 +64,13 @@ async def get_file(
 @input_schema(schema_class=CreateFolderParams)
 async def create_folder(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        folder_data = params.get('folder', params)
-        folder = FolderCreate(**folder_data)
-        return service.create_folder(folder.path)
+        validated_params = CreateFolderParams(**params)
+        return service.create_folder(validated_params.folder.path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -79,18 +80,17 @@ async def create_folder(
 @input_schema(schema_class=UploadFileParams)
 async def upload_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        path = params.get('path')
-        file_content_b64 = params.get('file_content')
-        mode = params.get('mode', 'add')
-        
-        if not path or not file_content_b64:
-            raise HTTPException(status_code=400, detail="path and file_content are required")
-        
-        file_content = base64.b64decode(file_content_b64)
-        return service.upload_file(path, file_content, mode)
+        validated_params = UploadFileParams(**params)
+        return service.upload_file_b64(
+            validated_params.path, 
+            validated_params.file_content, 
+            validated_params.mode
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -100,32 +100,17 @@ async def upload_file(
 @input_schema(schema_class=DownloadFileParams)
 async def download_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
+    service: DropboxService = Depends(get_dropbox_service)
 ):
     try:
-        path = params.get('path')
-        if not path:
-            raise HTTPException(status_code=400, detail="path is required")
-            
-        clean_path = '/' + '/'.join(filter(None, path.split('/')))
-        content, metadata = service.download_file(clean_path)
-        
-        filename = metadata.name if hasattr(metadata, 'name') else "download"
-        mime_type = metadata.mime_type if hasattr(metadata, 'mime_type') else "application/octet-stream"
-        
-        content_b64 = base64.b64encode(content).decode('utf-8')
-        
-        return {
-            "status": "success",
-            "data": {
-                "file_content": content_b64,
-                "mime_type": mime_type,
-                "filename": filename,
-                "file_info": metadata.dict()
-            }
-        }
+        validated_params = DownloadFileParams(**params)
+        return service.download_file_b64(validated_params.path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        if isinstance(e, requests.exceptions.HTTPError) and hasattr(e, 'response') and e.response.status_code == 400:
+        import traceback
+        traceback.print_exc()
+        if hasattr(e, 'response') and e.response.status_code == 400:
             raise HTTPException(status_code=404, detail="File not found")
         raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
@@ -133,14 +118,13 @@ async def download_file(
 @input_schema(schema_class=DeleteFileParams)
 async def delete_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        path = params.get('path')
-        if not path:
-            raise HTTPException(status_code=400, detail="path is required")
-            
-        return service.delete_file(path)
+        validated_params = DeleteFileParams(**params)
+        return service.delete_file(validated_params.path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -150,19 +134,13 @@ async def delete_file(
 @input_schema(schema_class=MoveFileParams)
 async def move_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
-) -> ApiResponse:
+    service: DropboxService = Depends(get_dropbox_service)
+):
     try:
-        from_path = params.get('from_path')
-        to_path = params.get('to_path')
-        
-        if not from_path or not to_path:
-            raise HTTPException(status_code=400, detail="from_path and to_path are required")
-            
-        from_path = from_path if from_path.startswith('/') else f"/{from_path}"
-        to_path = to_path if to_path.startswith('/') else f"/{to_path}"
-        
-        return service.move_file(from_path, to_path)
+        validated_params = MoveFileParams(**params)
+        return service.move_file(validated_params.from_path, validated_params.to_path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -172,38 +150,16 @@ async def move_file(
 @input_schema(schema_class=ReadFileParams)
 async def read_file(
     params: Dict[str, Any] = Body(...),
-    service: DropboxService = Depends(get_service)
+    service: DropboxService = Depends(get_dropbox_service)
 ):
     try:
-        path = params.get('path')
-        if not path:
-            raise HTTPException(status_code=400, detail="path is required")
-            
-        content, file_info = service.download_file(path)
-        mime_type = file_info.mime_type
-        
-        if any(x in (mime_type or "") for x in ['spreadsheet', 'excel', 'csv']):
-            return {
-                "success": False,
-                "error": "Spreadsheet files are not supported for text reading",
-                "data": {
-                    "file": file_info.dict()
-                }
-            }
-            
-        from ..common.file_reader import read_file_content
-        text_content, success = read_file_content(content, mime_type)
-        
-        return {
-            "success": success,
-            "data": {
-                "content": text_content,
-                "file": file_info.dict(),
-                "mime_type": mime_type
-            }
-        }
-        
+        validated_params = ReadFileParams(**params)
+        return service.read_file_content(validated_params.path)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "error": str(e)

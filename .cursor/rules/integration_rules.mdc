@@ -1,0 +1,270 @@
+---
+description: Writing new integrations for tools.
+globs: 
+alwaysApply: false
+---
+# Integration Guide: Key Concepts and Best Practices
+
+## Architectural Principles
+
+The integration layer follows a clear three-tier architecture:
+
+1. **Route** - handling HTTP requests, input validation
+2. **Service** - business logic, data transformation
+3. **Client** - low-level API interaction
+
+### Example Integration Structure
+integrations/
+└── example_service/
+├── client.py # Low-level API calls
+├── service.py # Business logic and data transformation
+├── route.py # FastAPI routes
+├── schema.py # Pydantic models
+└── component.json # React components for display
+
+
+## Key Concepts
+
+### 1. Input Validation
+
+Always use Pydantic models for input validation and handle validation errors separately.
+
+```python
+# schema.py
+class GetMessagesParams(BaseModel):
+    filters: Optional[MessageFilters] = None
+    next_link: Optional[str] = None
+
+# route.py
+@router.post("/get_messages", response_model=ApiResponse)
+@input_schema(schema_class=GetMessagesParams)
+async def get_messages(
+    params: Dict[str, Any] = Body(...),
+    service: ExampleService = Depends(get_example_service)
+):
+    try:
+        validated_params = GetMessagesParams(**params)
+        return service.get_messages(
+            validated_params.next_link, 
+            validated_params.filters
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+```
+
+### 2. Consistent Error Handling
+
+Always separate validation errors from other exceptions:
+
+```python
+try:
+    # Code that might raise an error
+except ValidationError as e:
+    # Validation errors - 400 Bad Request
+    raise HTTPException(status_code=400, detail=str(e))
+except Exception as e:
+    # Other errors - 500 Internal Server Error
+    import traceback
+    traceback.print_exc()
+    raise HTTPException(status_code=500, detail=str(e))
+```
+
+### 3. Service Initialization with Error Handling
+
+```python
+async def get_example_service(request: FastAPIRequest):
+    try:
+        token_data = await TokenService.get_user_token(request, 'example')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await ExampleTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail="Failed to refresh token")
+        
+        client = ExampleClient(token_data['access_token'])
+        return ExampleService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
+```
+
+### 4. Standardized Response Format
+
+Use a unified response format for all integrations:
+
+```python
+# schema.py
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, Event, EventList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# service.py
+def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+    tool_name = "example"
+    components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+    return ApiResponse(data=data, component=components)
+```
+
+### 5. Separation of Business Logic and Routing
+
+All business logic should be in the service layer, not in the routes:
+
+```python
+# Bad - logic in route
+@router.post("/download_file")
+async def download_file(params: Dict[str, Any], service: Service):
+    file_id = params.get('file_id')
+    file_content, mime_type = service.download_file(file_id)
+    # File processing logic here...
+    return {...}
+
+# Good - logic in service
+@router.post("/download_file")
+async def download_file(params: Dict[str, Any], service: Service):
+    validated_params = DownloadFileParams(**params)
+    return service.download_file_with_metadata(validated_params.file_id)
+```
+
+### 6. DRY Principle (Don't Repeat Yourself)
+
+Avoid rewriting parameters and use direct model validation with unpacking:
+
+```python
+# Bad - manually mapping each parameter
+@router.post("/weather")
+async def get_weather(params: Dict[str, Any]):
+    validated_params = WeatherParams(
+        city=params.get('city'),
+        country=params.get('country'),
+        units=params.get('units', 'metric'),
+        include_forecast=params.get('include_forecast', False)
+    )
+    return service.get_weather(validated_params)
+
+# Good - using dictionary unpacking
+@router.post("/weather")
+async def get_weather(params: Dict[str, Any]):
+    try:
+        validated_params = WeatherParams(**params)  # Unpacking all parameters at once
+        return service.get_weather(validated_params)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
+
+The `**params` syntax unpacks the dictionary and passes all key-value pairs as keyword arguments to the model constructor. This approach:
+
+1. Is much more concise
+2. Automatically handles all validation
+3. Allows the model to set default values
+4. Reduces the chance of errors when adding new parameters
+5. Makes the code more maintainable
+
+Similarly, when working with API responses:
+
+```python
+# Bad - manually extracting each field
+def _convert_to_message(self, response):
+    message = Message(
+        id=response.get('id', ''),
+        subject=response.get('subject', ''),
+        body=response.get('body', {}).get('content', ''),
+        sender=response.get('from', {}).get('emailAddress', {}).get('address', '')
+        # Many more fields...
+    )
+    return message
+
+# Good - using dictionary unpacking with preprocessing
+def _convert_to_message(self, response):
+    # Preprocess only the fields that need special handling
+    processed_data = {
+        'id': response.get('id', ''),
+        'body': response.get('body', {}).get('content', ''),
+        'sender': response.get('from', {}).get('emailAddress', {}).get('address', ''),
+        # Only handle complex nested fields
+    }
+    
+    # Copy all other fields directly
+    for key, value in response.items():
+        if key not in processed_data and key in Message.__annotations__:
+            processed_data[key] = value
+            
+    return Message(**processed_data)
+```
+
+This approach significantly reduces code verbosity and makes it more maintainable, especially when dealing with models that have many fields.
+
+## Common Issues and Solutions
+
+### 1. Inconsistent Error Handling
+
+**Problem**: Different integrations handle errors differently.
+
+**Solution**: Standardize error handling:
+
+```python
+try:
+    # Code
+except ValidationError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    raise HTTPException(status_code=500, detail=str(e))
+```
+
+### 2. Lack of Input Validation
+
+**Problem**: Direct access to parameters without validation.
+
+**Solution**: Always use Pydantic models:
+
+```python
+# Bad
+city = params.get('city')
+if not city:
+    raise HTTPException(status_code=400, detail="city is required")
+
+# Good
+validated_params = WeatherParams(**params)
+city = validated_params.city
+```
+
+### 3. Mixing Abstraction Levels
+
+**Problem**: Mixing low-level API calls with business logic.
+
+**Solution**: Clear separation into client, service, and routes:
+
+```python
+# client.py - low-level API calls
+def get_messages(self, **params):
+    return requests.get(f"{self.BASE_URL}/messages", params=params).json()
+
+# service.py - business logic
+def get_messages(self, next_link, filters):
+    params = self._build_params(filters)
+    response = self.client.get_messages(**params)
+    return self._process_messages(response)
+
+# route.py - only routing and validation
+@router.post("/get_messages")
+async def get_messages(params: Dict[str, Any], service: Service):
+    validated_params = GetMessagesParams(**params)
+    return service.get_messages(validated_params.next_link, validated_params.filters)
+```
+
+## Conclusion
+
+By following these principles, you'll create integrations that are:
+
+1. Easy to maintain and extend
+2. Have consistent error handling
+3. Clearly separate responsibilities between layers
+4. Provide robust input validation
+5. Return standardized responses
+
+This significantly simplifies working with the code and reduces the number of potential errors.

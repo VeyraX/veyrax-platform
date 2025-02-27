@@ -8,6 +8,7 @@ from .service import WeatherService
 from .client import WeatherClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 import os
 from dotenv import load_dotenv
 
@@ -16,9 +17,12 @@ load_dotenv()
 router = APIRouter(prefix="/weather", tags=["weather"])
 
 async def get_weather_service(request: Request):
-    api_key = await validate_provider_api_key(request, "openweather")
-    client = WeatherClient(api_key)
-    return WeatherService(client)
+    try:
+        api_key = await validate_provider_api_key(request, "openweather")
+        client = WeatherClient(api_key)
+        return WeatherService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Weather service: {str(e)}")
 
 @router.post("/forecast", response_model=ApiResponse)
 @input_schema(schema_class=GetWeatherForecastParams)
@@ -27,8 +31,13 @@ async def get_weather_forecast(
     service: WeatherService = Depends(get_weather_service)
 ):
     try:
-        request_data = WeatherRequest(**params)
-        return service.get_forecast(city=request_data.city, country=request_data.country)
+        validated_params = GetWeatherForecastParams(**params)
+        return service.get_forecast(
+            city=validated_params.city, 
+            country=validated_params.country
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

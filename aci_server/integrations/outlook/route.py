@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
 from .schema import (
     MessageList, Message, DraftMessage, EventList, Event, 
@@ -13,20 +13,24 @@ from .service import OutlookService
 from .client import OutlookClient
 from ..common.auth import TokenService, OutlookTokenRefresher
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/outlook", tags=["outlook"])
 
 async def get_outlook_service(request: FastAPIRequest):
-    token_data = await TokenService.get_user_token(request, 'outlook')
-    
-    if TokenService.is_token_expired(token_data):
-        try:
-            token_data = await OutlookTokenRefresher.refresh(request, token_data)
-        except Exception as e:
-            raise HTTPException(status_code=401, detail="Failed to refresh token")
-    
-    client = OutlookClient(token_data['access_token'])
-    return OutlookService(client)
+    try:
+        token_data = await TokenService.get_user_token(request, 'outlook')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await OutlookTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail="Failed to refresh token")
+        
+        client = OutlookClient(token_data['access_token'])
+        return OutlookService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Outlook service: {str(e)}")
 
 @router.post("/get_messages", response_model=ApiResponse)
 @input_schema(schema_class=GetMessagesParams)
@@ -35,11 +39,13 @@ async def get_messages(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        filters_data = params.get('filters', {})
-        next_link = params.get('next_link')
-        
-        filters = MessageFilters(**filters_data)
-        return service.get_messages(next_link, filters)
+        validated_params = GetMessagesParams(**params)
+        return service.get_messages(
+            validated_params.next_link, 
+            validated_params.filters
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -52,11 +58,10 @@ async def get_message(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
-        return service.get_message(message_id)
+        validated_params = GetMessageParams(**params)
+        return service.get_message(validated_params.message_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -69,9 +74,10 @@ async def create_draft(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        draft_data = params.get('draft_args', params)
-        draft = DraftMessage(**draft_data)
-        return service.create_draft(draft)
+        validated_params = CreateDraftParams(**params)
+        return service.create_draft(validated_params.draft_args)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -84,11 +90,10 @@ async def send_message(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
-        return service.send_message(message_id)
+        validated_params = SendMessageParams(**params)
+        return service.send_message(validated_params.message_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -101,12 +106,11 @@ async def delete_message(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
-        service.delete_message(message_id)
+        validated_params = DeleteMessageParams(**params)
+        service.delete_message(validated_params.message_id)
         return {"status": "success"}
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -119,7 +123,10 @@ async def list_calendars(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
+        validated_params = ListCalendarsParams(**params)
         return service.list_calendars()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -132,11 +139,13 @@ async def list_events(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        filters_data = params.get('filters', {})
-        next_link = params.get('next_link')
-        
-        filters = EventFilters(**filters_data)
-        return service.list_events(next_link, filters)
+        validated_params = ListEventsParams(**params)
+        return service.list_events(
+            validated_params.next_link, 
+            validated_params.filters
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -149,11 +158,10 @@ async def get_event(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        event_id = params.get('event_id')
-        if not event_id:
-            raise HTTPException(status_code=400, detail="event_id is required")
-            
-        return service.get_event(event_id)
+        validated_params = GetEventParams(**params)
+        return service.get_event(validated_params.event_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -166,14 +174,14 @@ async def create_event(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        event_data = params.get('event', params)
-        event = EventCreate(**event_data)
-        return service.create_event(event)
+        validated_params = CreateEventParams(**params)
+        return service.create_event(validated_params.event)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/update_event", response_model=ApiResponse)
 @input_schema(schema_class=UpdateEventParams)
@@ -182,14 +190,13 @@ async def update_event(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        event_id = params.get('event_id')
-        event_data = params.get('event_update', {})
-        
-        if not event_id:
-            raise HTTPException(status_code=400, detail="event_id is required")
-            
-        event = EventUpdate(**event_data)
-        return service.update_event(event_id, event)
+        validated_params = UpdateEventParams(**params)
+        return service.update_event(
+            validated_params.event_id, 
+            validated_params.event_update
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -202,12 +209,11 @@ async def delete_event(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
-        event_id = params.get('event_id')
-        if not event_id:
-            raise HTTPException(status_code=400, detail="event_id is required")
-            
-        service.delete_event(event_id)
+        validated_params = DeleteEventParams(**params)
+        service.delete_event(validated_params.event_id)
         return {"status": "success"}
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

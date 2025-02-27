@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, List, Dict, Any
 import os
-import pickle
-from datetime import datetime
 from .service import JiraService
 from .client import JiraClient
 from .schema import (
@@ -17,20 +15,24 @@ from .schema import (
 )
 from ..common.auth import TokenService, JiraTokenRefresher
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/jira", tags=["jira"])
 
 async def get_jira_service(request: FastAPIRequest):
-    token_data = await TokenService.get_user_token(request, 'jira')
-    
-    if TokenService.is_token_expired(token_data):
-        try:
-            token_data = await JiraTokenRefresher.refresh(request, token_data)
-        except Exception as e:
-            raise HTTPException(status_code=401, detail="Failed to refresh token")
-    
-    client = JiraClient(token_data['access_token'])
-    return JiraService(client)
+    try:
+        token_data = await TokenService.get_user_token(request, 'jira')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await JiraTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail="Failed to refresh token")
+        
+        client = JiraClient(token_data['access_token'])
+        return JiraService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Jira service: {str(e)}")
 
 @router.post("/get_issues", response_model=ApiResponse)
 @input_schema(schema_class=GetIssuesParams)
@@ -39,9 +41,10 @@ async def get_issues(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        filters_data = params.get('filters', {})
-        filters = IssueFilters(**filters_data)
-        return service.get_issues(filters)
+        validated_params = GetIssuesParams(**params)
+        return service.get_issues(validated_params.filters)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -54,10 +57,10 @@ async def get_issue(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        issue_id = params.get('issue_id')
-        if not issue_id:
-            raise HTTPException(status_code=400, detail="issue_id is required")
-        return service.get_issue(issue_id)
+        validated_params = GetIssueParams(**params)
+        return service.get_issue(validated_params.issue_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -70,9 +73,10 @@ async def create_issue(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        issue_data = params.get('issue_args', params)
-        issue_args = IssueCreate(**issue_data)
-        return service.create_issue(issue_args)
+        validated_params = CreateIssueParams(**params)
+        return service.create_issue(validated_params.issue_args)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -85,14 +89,13 @@ async def update_issue(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        issue_id = params.get('issue_id')
-        update_data = params.get('update_args', {})
-        
-        if not issue_id:
-            raise HTTPException(status_code=400, detail="issue_id is required")
-            
-        update_args = IssueUpdate(**update_data)
-        return service.update_issue(issue_id, update_args)
+        validated_params = UpdateIssueParams(**params)
+        return service.update_issue(
+            validated_params.issue_id, 
+            validated_params.update_args
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -105,11 +108,10 @@ async def delete_issue(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        issue_id = params.get('issue_id')
-        if not issue_id:
-            raise HTTPException(status_code=400, detail="issue_id is required")
-            
-        return service.delete_issue(issue_id)
+        validated_params = DeleteIssueParams(**params)
+        return service.delete_issue(validated_params.issue_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -122,7 +124,10 @@ async def get_projects(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
+        validated_params = GetProjectsParams(**params)
         return service.get_all_projects()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -135,10 +140,10 @@ async def get_project(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        project_id = params.get('project_id')
-        if not project_id:
-            raise HTTPException(status_code=400, detail="project_id is required")
-        return service.get_project_details(project_id)
+        validated_params = GetProjectParams(**params)
+        return service.get_project_details(validated_params.project_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -151,7 +156,10 @@ async def get_statuses(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
+        validated_params = GetStatusesParams(**params)
         return service.get_all_statuses()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -164,7 +172,10 @@ async def get_priorities(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
+        validated_params = GetPrioritiesParams(**params)
         return service.get_all_priorities()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -177,7 +188,10 @@ async def get_issue_types(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
+        validated_params = GetIssueTypesParams(**params)
         return service.get_all_issue_types()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -190,7 +204,10 @@ async def get_fields(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
+        validated_params = GetFieldsParams(**params)
         return service.get_all_fields()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
@@ -205,8 +222,10 @@ async def get_users(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        query = params.get('query')
-        return service.get_users(query)
+        validated_params = GetUsersParams(**params)
+        return service.get_users(validated_params.query)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
