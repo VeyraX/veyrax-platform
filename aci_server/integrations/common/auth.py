@@ -204,20 +204,63 @@ class TokenRefresherFactory:
 
 async def get_user_from_request(request: Request) -> str:
     try:
+        api_key = request.headers.get("VEYRAX_API_KEY")
+        if api_key:
+            supabase = get_supabase()
+            result = supabase.table('users_api_keys') \
+                .select('user_id') \
+                .eq('api_key', api_key) \
+                .execute()
+                
+            if not result.data:
+                raise HTTPException(status_code=401, detail="Invalid API key")
+                
+            return result.data[0]['user_id']
         
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Missing authorization header")
             
-        access_token = auth_header.split("Bearer ")[1]
-        
-        payload = access_token.split('.')[1]
-        decoded = base64.urlsafe_b64decode(payload + '==').decode('utf-8')
-        user_data = json.loads(decoded)
-        
-        return user_data['sub']
-        
+        if auth_header.startswith("Bearer "):
+            access_token = auth_header.split("Bearer ")[1]
+            payload = access_token.split('.')[1]
+            decoded = base64.urlsafe_b64decode(payload + '==').decode('utf-8')
+            user_data = json.loads(decoded)
+            return user_data['sub']
+        else:
+            raise HTTPException(status_code=401, detail="Invalid authorization format. Use 'Bearer <token>' or provide 'VEYRAX_API_KEY' header")
+            
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+
+async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        provider_res = supabase.table('providers') \
+            .select('id') \
+            .eq('provider_tag', provider_tag) \
+            .execute()
+        
+        if not provider_res.data:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        provider_id = provider_res.data[0]['id']
+        
+        api_key_res = supabase.table('users_provider_api_keys') \
+            .select('api_key') \
+            .eq('user_id', user_id) \
+            .eq('provider_id', provider_id) \
+            .execute()
+        
+        if not api_key_res.data:
+            raise HTTPException(status_code=404, detail=f"API key for provider {provider_tag} not found")
+            
+        return api_key_res.data[0]['api_key']
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to validate provider API key: {str(e)}")
     
     

@@ -25,5 +25,5 @@ redis==5.2.1
 flower==2.0.1
 PyPDF2==3.0.1
 docx==0.2.4
-openpyxl==3.1.2
+openpyxl==3.1.2 
 pytest==8.3.4

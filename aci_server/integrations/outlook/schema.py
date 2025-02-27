@@ -112,8 +112,11 @@ class Calendar(BaseModel):
 class CalendarList(BaseModel):
     calendars: List[Calendar]
 
+class CalendarDeleteEvent(BaseModel):
+    event_id: str
+
 class ApiResponse(BaseModel):
-    data: Union[Message, MessageList, EventList, CalendarList]
+    data: Union[Message, MessageList, EventList, CalendarList, CalendarDeleteEvent]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 # New parameter schema classes
@@ -134,7 +137,7 @@ class DeleteMessageParams(BaseModel):
     message_id: str
 
 class ListCalendarsParams(BaseModel):
-    pass  # No parameters needed but keeping class for consistency
+    pass  
 
 class ListEventsParams(BaseModel):
     filters: Optional[EventFilters] = None

@@ -60,9 +60,8 @@ class ApiResponse(BaseModel):
     data: Union[PageSchema, PageList, SpaceList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
-# New schema classes for route parameters
 class GetSpacesParams(BaseModel):
-    pass  # No required parameters for get_spaces
+    pass 
 
 class GetPagesParams(BaseModel):
     filters: Optional[PageFilters] = None

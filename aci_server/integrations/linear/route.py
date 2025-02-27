@@ -1,8 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, List, Dict, Any
-import pickle
-import os
-
 from .schema import (
     IssueList, Issue, ProjectList, Project,
     IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse,
@@ -16,6 +13,7 @@ from .service import LinearService
 from .client import LinearClient
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/linear", tags=["linear"])
 
@@ -43,11 +41,13 @@ async def list_issues(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.list_issues(cursor, max_results)
-        return result
+        validated_params = ListIssuesParams(**params)
+        return service.list_issues(
+            validated_params.cursor, 
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -60,12 +60,14 @@ async def search_issues(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        query = params.get('query')
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.search_issues(query, cursor, max_results)
-        return result
+        validated_params = SearchIssuesParams(**params)
+        return service.search_issues(
+            validated_params.query,
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -78,13 +80,14 @@ async def filter_issues(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        filters_data = params.get('filters', {})
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        filters = IssueFilter(**filters_data)
-        result = service.filter_issues(filters, cursor, max_results)
-        return result
+        validated_params = FilterIssuesParams(**params)
+        return service.filter_issues(
+            validated_params.filters,
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -97,11 +100,10 @@ async def create_issue(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        issue_data = params.get('issue', params)
-        
-        issue = IssueCreate(**issue_data)
-        result = service.create_issue(issue)
-        return result
+        validated_params = CreateIssueParams(**params)
+        return service.create_issue(validated_params.issue)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -114,12 +116,13 @@ async def update_issue(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        issue_id = params.get('issue_id')
-        issue_data = params.get('issue_update', {})
-        
-        issue_update = IssueUpdate(**issue_data)
-        result = service.update_issue(issue_id, issue_update)
-        return result
+        validated_params = UpdateIssueParams(**params)
+        return service.update_issue(
+            validated_params.issue_id,
+            validated_params.issue_update
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -132,12 +135,13 @@ async def comment_issue(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        issue_id = params.get('issue_id')
-        comment_data = params.get('comment', {})
-        
-        comment = CommentCreate(**comment_data)
-        result = service.comment_issue(issue_id, comment)
-        return result
+        validated_params = CommentIssueParams(**params)
+        return service.comment_issue(
+            validated_params.issue_id,
+            validated_params.comment
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -150,11 +154,13 @@ async def list_projects(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.list_projects(cursor, max_results)
-        return result
+        validated_params = ListProjectsParams(**params)
+        return service.list_projects(
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -167,10 +173,10 @@ async def get_project(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        project_id = params.get('project_id')
-        
-        result = service.get_project(project_id)
-        return result
+        validated_params = GetProjectParams(**params)
+        return service.get_project(validated_params.project_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -183,11 +189,13 @@ async def list_users(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.list_users(cursor, max_results)
-        return result
+        validated_params = ListUsersParams(**params)
+        return service.list_users(
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -200,11 +208,13 @@ async def list_teams(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.list_teams(cursor, max_results)
-        return result
+        validated_params = ListTeamsParams(**params)
+        return service.list_teams(
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -217,10 +227,10 @@ async def get_team(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        team_id = params.get('team_id')
-        
-        result = service.get_team(team_id)
-        return result
+        validated_params = GetTeamParams(**params)
+        return service.get_team(validated_params.team_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -233,11 +243,13 @@ async def list_workflow_states(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
-        cursor = params.get('cursor')
-        max_results = params.get('max_results', 50)
-        
-        result = service.list_workflow_states(cursor, max_results)
-        return result
+        validated_params = ListWorkflowStatesParams(**params)
+        return service.list_workflow_states(
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -12,20 +12,24 @@ from .client import NotionClient
 import os
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import input_schema
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/notion", tags=["notion"])
 
 async def get_notion_service(request: FastAPIRequest):
-    token_data = await TokenService.get_user_token(request, 'notion')
-    
-    if TokenService.is_token_expired(token_data):
-        try:
-            token_data = await TokenService.refresh_token(request, token_data)
-        except Exception as e:
-            raise HTTPException(status_code=401, detail="Failed to refresh token")
-    
-    client = NotionClient(token_data['access_token'])
-    return NotionService(client)
+    try:
+        token_data = await TokenService.get_user_token(request, 'notion')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await TokenService.refresh_token(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail="Failed to refresh token")
+        
+        client = NotionClient(token_data['access_token'])
+        return NotionService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Notion service: {str(e)}")
 
 @router.post("/list_databases", response_model=ApiResponse)
 @input_schema(schema_class=ListDatabasesParams)
@@ -34,10 +38,13 @@ async def list_databases(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        start_cursor = params.get('start_cursor')
-        max_results = params.get('max_results', 100)
-        
-        return service.list_databases(start_cursor=start_cursor, max_results=max_results)
+        validated_params = ListDatabasesParams(**params)
+        return service.list_databases(
+            start_cursor=validated_params.start_cursor, 
+            max_results=validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -50,11 +57,10 @@ async def get_database(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        database_id = params.get('database_id')
-        if not database_id:
-            raise HTTPException(status_code=400, detail="database_id is required")
-            
-        return service.get_database(database_id)
+        validated_params = GetDatabaseParams(**params)
+        return service.get_database(validated_params.database_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -67,15 +73,14 @@ async def list_database_pages(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        database_id = params.get('database_id')
-        if not database_id:
-            raise HTTPException(status_code=400, detail="database_id is required")
-            
-        filters_data = params.get('filters', {})
-        start_cursor = params.get('start_cursor')
-        
-        filters = DatabaseFilters(**filters_data)
-        return service.list_pages(database_id, start_cursor=start_cursor, filters=filters)
+        validated_params = ListDatabasePagesParams(**params)
+        return service.list_pages(
+            validated_params.database_id, 
+            start_cursor=validated_params.start_cursor, 
+            filters=validated_params.filters
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -88,22 +93,16 @@ async def query_database(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        database_id = params.get('database_id')
-        if not database_id:
-            raise HTTPException(status_code=400, detail="database_id is required")
-            
-        filter_data = params.get('filter', {})
-        sorts = params.get('sorts', [])
-        start_cursor = params.get('start_cursor')
-        page_size = params.get('page_size', 100)
-        
+        validated_params = QueryDatabaseParams(**params)
         return service.query_database(
-            database_id, 
-            filter_data=filter_data, 
-            sorts=sorts, 
-            start_cursor=start_cursor, 
-            page_size=page_size
+            validated_params.database_id, 
+            filter_data=validated_params.filter, 
+            sorts=validated_params.sorts, 
+            start_cursor=validated_params.start_cursor, 
+            page_size=validated_params.page_size
         )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -116,9 +115,10 @@ async def create_page(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        page_data = params.get('page', params)
-        page = PageCreate(**page_data)
-        return service.create_page(page)
+        validated_params = CreatePageParams(**params)
+        return service.create_page(validated_params.page)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -131,11 +131,10 @@ async def get_page(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        page_id = params.get('page_id')
-        if not page_id:
-            raise HTTPException(status_code=400, detail="page_id is required")
-            
-        return service.get_page(page_id)
+        validated_params = GetPageParams(**params)
+        return service.get_page(validated_params.page_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -148,13 +147,13 @@ async def update_page(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        page_id = params.get('page_id')
-        if not page_id:
-            raise HTTPException(status_code=400, detail="page_id is required")
-            
-        page_data = params.get('page_update', {})
-        page_update = PageUpdate(**page_data)
-        return service.update_page(page_id, page_update)
+        validated_params = UpdatePageParams(**params)
+        return service.update_page(
+            validated_params.page_id, 
+            validated_params.page_update
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -167,18 +166,20 @@ async def search(
     service: NotionService = Depends(get_notion_service)
 ):
     try:
-        query = params.get('query', '')
-        start_cursor = params.get('start_cursor')
-        page_size = params.get('page_size', 100)
-        sort_direction = params.get('sort_direction')
+        validated_params = SearchParams(**params)
         
         filters = PageFilters(
-            query=query,
-            sort_direction=sort_direction,
-            max_results=page_size
+            query=validated_params.query,
+            sort_direction=validated_params.sort_direction,
+            max_results=validated_params.page_size
         )
         
-        return service.search(filters=filters, start_cursor=start_cursor)
+        return service.search(
+            filters=filters, 
+            start_cursor=validated_params.start_cursor
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

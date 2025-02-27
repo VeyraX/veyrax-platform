@@ -29,7 +29,6 @@ class ConfluenceService:
         return ApiResponse(data=data, component=components)
 
     def get_spaces(self) -> ApiResponse:
-        """Get list of spaces"""
         response = self.client.list_spaces(limit=100)
         spaces = []
         
