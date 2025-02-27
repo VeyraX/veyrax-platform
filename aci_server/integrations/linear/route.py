@@ -14,6 +14,7 @@ from .client import LinearClient
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
 
 router = APIRouter(prefix="/linear", tags=["linear"])
 
@@ -47,7 +48,7 @@ async def list_issues(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListIssuesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -67,7 +68,7 @@ async def search_issues(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchIssuesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -87,7 +88,7 @@ async def filter_issues(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'FilterIssuesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -103,7 +104,7 @@ async def create_issue(
         validated_params = CreateIssueParams(**params)
         return service.create_issue(validated_params.issue)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -122,7 +123,7 @@ async def update_issue(
             validated_params.issue_update
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdateIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -141,7 +142,7 @@ async def comment_issue(
             validated_params.comment
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CommentIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -160,7 +161,7 @@ async def list_projects(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListProjectsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -176,7 +177,7 @@ async def get_project(
         validated_params = GetProjectParams(**params)
         return service.get_project(validated_params.project_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetProjectParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -195,7 +196,7 @@ async def list_users(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListUsersParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -214,7 +215,7 @@ async def list_teams(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListTeamsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -230,7 +231,7 @@ async def get_team(
         validated_params = GetTeamParams(**params)
         return service.get_team(validated_params.team_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetTeamParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -249,7 +250,7 @@ async def list_workflow_states(
             validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListWorkflowStatesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

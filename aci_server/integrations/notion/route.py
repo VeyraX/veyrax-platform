@@ -13,6 +13,9 @@ import os
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
+
+
 
 router = APIRouter(prefix="/notion", tags=["notion"])
 
@@ -44,7 +47,7 @@ async def list_databases(
             max_results=validated_params.max_results
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListDatabasesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -60,7 +63,7 @@ async def get_database(
         validated_params = GetDatabaseParams(**params)
         return service.get_database(validated_params.database_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetDatabaseParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -80,7 +83,7 @@ async def list_database_pages(
             filters=validated_params.filters
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListDatabasePagesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -102,7 +105,7 @@ async def query_database(
             page_size=validated_params.page_size
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'QueryDatabaseParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -118,7 +121,7 @@ async def create_page(
         validated_params = CreatePageParams(**params)
         return service.create_page(validated_params.page)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -134,7 +137,7 @@ async def get_page(
         validated_params = GetPageParams(**params)
         return service.get_page(validated_params.page_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -153,7 +156,7 @@ async def update_page(
             validated_params.page_update
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdatePageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -179,7 +182,7 @@ async def search(
             start_cursor=validated_params.start_cursor
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -10,6 +10,7 @@ import os
 import pickle
 from pydantic import ValidationError
 from ..common.input_schema_decorator import input_schema
+from ..common.utils import format_validation_error
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
 
@@ -38,7 +39,7 @@ async def list_files(
         validated_params = ListFilesParams(**params)
         return service.list_files(validated_params.filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListFilesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -54,7 +55,7 @@ async def get_file(
         validated_params = GetFileParams(**params)
         return service.get_file(validated_params.path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -70,7 +71,7 @@ async def create_folder(
         validated_params = CreateFolderParams(**params)
         return service.create_folder(validated_params.folder.path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFolderParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -90,7 +91,7 @@ async def upload_file(
             validated_params.mode
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UploadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -106,7 +107,7 @@ async def download_file(
         validated_params = DownloadFileParams(**params)
         return service.download_file_b64(validated_params.path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DownloadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -124,7 +125,7 @@ async def delete_file(
         validated_params = DeleteFileParams(**params)
         return service.delete_file(validated_params.path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -140,7 +141,7 @@ async def move_file(
         validated_params = MoveFileParams(**params)
         return service.move_file(validated_params.from_path, validated_params.to_path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MoveFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -156,7 +157,7 @@ async def read_file(
         validated_params = ReadFileParams(**params)
         return service.read_file_content(validated_params.path)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ReadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

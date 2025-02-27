@@ -8,6 +8,7 @@ from .service import WeatherService
 from .client import WeatherClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import input_schema
+from ..common.utils import format_validation_error
 from pydantic import ValidationError
 import os
 from dotenv import load_dotenv
@@ -37,7 +38,7 @@ async def get_weather_forecast(
             country=validated_params.country
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetWeatherForecastParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

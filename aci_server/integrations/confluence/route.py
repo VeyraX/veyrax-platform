@@ -22,6 +22,7 @@ from .schema import (
 from ..common.auth import TokenService, ConfluenceTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
 
@@ -47,7 +48,7 @@ async def get_spaces(
         validated_params = GetSpacesParams(**params)
         return service.get_spaces()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetSpacesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -64,7 +65,7 @@ async def get_pages(
         filters = PageFilters(**(validated_params.filters or {}))
         return service.get_pages(filters=filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPagesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -80,7 +81,7 @@ async def get_page(
         validated_params = GetPageParams(**params)
         return service.get_page(validated_params.page_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -96,7 +97,7 @@ async def create_page(
         validated_params = CreatePageParams(**params)
         return service.create_page(validated_params.page)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -112,7 +113,7 @@ async def update_page(
         validated_params = UpdatePageParams(**params)
         return service.update_page(validated_params.page_id, validated_params.update)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdatePageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -134,7 +135,7 @@ async def search_content(
             limit=validated_params.limit
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchContentParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

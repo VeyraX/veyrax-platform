@@ -13,7 +13,7 @@ from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
-
+from ..common.utils import format_validation_error
 router = APIRouter(prefix="/google-drive", tags=["google-drive"])
 
 async def get_drive_service(request: FastAPIRequest):
@@ -50,7 +50,7 @@ async def list_files(
         validated_params = ListFilesParams(**params)
         return service.list_files(validated_params.pageToken, validated_params.filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListFilesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -66,7 +66,7 @@ async def get_file(
         validated_params = GetFileParams(**params)
         return service.get_file(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -85,7 +85,7 @@ async def create_folder(
             validated_params.folder.parent_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFolderParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -101,7 +101,7 @@ async def upload_file(
     try:
         return service.upload_file(file.filename, file.file, file.content_type, parent_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UploadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -117,7 +117,7 @@ async def download_file(
         validated_params = DownloadFileParams(**params)
         return service.download_file_with_metadata(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DownloadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -134,7 +134,7 @@ async def delete_file(
         service.delete_file(validated_params.file_id)
         return {"status": "success"}
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -153,7 +153,7 @@ async def move_file(
             validated_params.new_parent_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MoveFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -174,7 +174,7 @@ async def list_folders(
         modified_filters = FileFilters(**filters_dict)
         return service.list_files(validated_params.pageToken, modified_filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListFoldersParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -190,7 +190,7 @@ async def read_file(
         validated_params = ReadFileParams(**params)
         return service.read_file_content(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ReadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -16,7 +16,7 @@ from .schema import (
 from ..common.auth import TokenService, JiraTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
-
+from ..common.utils import format_validation_error
 router = APIRouter(prefix="/jira", tags=["jira"])
 
 async def get_jira_service(request: FastAPIRequest):
@@ -44,7 +44,7 @@ async def get_issues(
         validated_params = GetIssuesParams(**params)
         return service.get_issues(validated_params.filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetIssuesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -60,7 +60,7 @@ async def get_issue(
         validated_params = GetIssueParams(**params)
         return service.get_issue(validated_params.issue_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -76,7 +76,7 @@ async def create_issue(
         validated_params = CreateIssueParams(**params)
         return service.create_issue(validated_params.issue_args)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -95,7 +95,7 @@ async def update_issue(
             validated_params.update_args
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdateIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -111,7 +111,7 @@ async def delete_issue(
         validated_params = DeleteIssueParams(**params)
         return service.delete_issue(validated_params.issue_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteIssueParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -127,7 +127,7 @@ async def get_projects(
         validated_params = GetProjectsParams(**params)
         return service.get_all_projects()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetProjectsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -143,7 +143,7 @@ async def get_project(
         validated_params = GetProjectParams(**params)
         return service.get_project_details(validated_params.project_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetProjectParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -159,7 +159,7 @@ async def get_statuses(
         validated_params = GetStatusesParams(**params)
         return service.get_all_statuses()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetStatusesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -175,7 +175,7 @@ async def get_priorities(
         validated_params = GetPrioritiesParams(**params)
         return service.get_all_priorities()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPrioritiesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -191,7 +191,7 @@ async def get_issue_types(
         validated_params = GetIssueTypesParams(**params)
         return service.get_all_issue_types()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetIssueTypesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -207,7 +207,7 @@ async def get_fields(
         validated_params = GetFieldsParams(**params)
         return service.get_all_fields()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetFieldsParams'))
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
@@ -225,7 +225,7 @@ async def get_users(
         validated_params = GetUsersParams(**params)
         return service.get_users(validated_params.query)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetUsersParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

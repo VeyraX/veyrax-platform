@@ -12,7 +12,7 @@ from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
-
+from ..common.utils import format_validation_error
 router = APIRouter(prefix="/google_calendar", tags=["google_calendar"])
 
 async def get_calendar_service(request: FastAPIRequest):
@@ -52,11 +52,12 @@ async def list_events(
             filters=validated_params.filters
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListEventsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    
 
 @router.post("/get_event", response_model=ApiResponse)
 @input_schema(schema_class=GetEventParams)
@@ -71,7 +72,7 @@ async def get_event(
             validated_params.calendar_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetEventParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -90,7 +91,7 @@ async def create_event(
             validated_params.calendar_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateEventParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -110,7 +111,7 @@ async def update_event(
             validated_params.calendar_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdateEventParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -130,7 +131,7 @@ async def delete_event(
         )
         return {"status": "success"}
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteEventParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -146,7 +147,7 @@ async def list_calendars(
         validated_params = ListCalendarsParams(**params)
         return service.list_calendars()
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListCalendarsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

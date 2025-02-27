@@ -6,6 +6,7 @@ from .client import PerplexityClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
 import os
 
 router = APIRouter(prefix="/perplexity", tags=["perplexity"])
@@ -28,7 +29,7 @@ async def create_completion(
         validated_params = CompletionRequest(**params)
         return service.create_completion(validated_params)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CompletionRequest'))
     except Exception as e:
         import traceback
         traceback.print_exc()

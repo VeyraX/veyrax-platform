@@ -16,6 +16,7 @@ from google.auth.transport.requests import Request as GoogleRequest
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import input_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
@@ -52,7 +53,7 @@ async def get_messages(
         filters = validated_params.filters
         return service.get_messages(validated_params.pageToken, filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, GetMessagesParams))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -68,7 +69,7 @@ async def get_message(
         validated_params = GetMessageParams(**params)
         return service.get_message(validated_params.message_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetMessageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -85,7 +86,7 @@ async def delete_message(
         service.delete_message(validated_params.message_id)
         return {"status": "success"}
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteMessageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -101,7 +102,7 @@ async def send_message(
         validated_params = SendMessageParams(**params)
         return service.send_message(validated_params.message_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SendMessageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -117,7 +118,7 @@ async def get_drafts(
         validated_params = GetDraftsParams(**params)
         return service.get_drafts(validated_params.pageToken)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetDraftsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -133,7 +134,7 @@ async def create_draft(
         validated_params = CreateDraftParams(**params)
         return service.create_draft(validated_params.draft_args)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateDraftParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -150,7 +151,7 @@ async def delete_draft(
         service.delete_draft(validated_params.draft_id)
         return {"status": "success"}
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteDraftParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -166,7 +167,7 @@ async def modify_draft(
         validated_params = ModifyDraftParams(**params)
         return service.modify_draft(validated_params.draft_id, validated_params.update_args)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ModifyDraftParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
