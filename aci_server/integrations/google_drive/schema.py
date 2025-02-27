@@ -3,6 +3,21 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from fastapi import UploadFile, File
 from ..common.schema_generation.classes import FileReference
+from enum import Enum
+from pydantic import root_validator, model_validator
+
+# Add enum classes at the top of the file
+class PermissionRole(str, Enum):
+    READER = "reader"
+    WRITER = "writer"
+    COMMENTER = "commenter"
+    OWNER = "owner"
+
+class PermissionType(str, Enum):
+    USER = "user"
+    GROUP = "group"
+    DOMAIN = "domain"
+    ANYONE = "anyone"
 
 class DriveFile(BaseModel):
     id: str
@@ -28,7 +43,7 @@ class FileUpload(BaseModel):
 
 class FolderCreate(BaseModel):
     name: str
-    parent_id: Optional[str]
+    parent_id: Optional[str] = None
 
 class FileMove(BaseModel):
     new_parent_id: str
@@ -42,8 +57,14 @@ class FileFilters(BaseModel):
     folders_only: Optional[bool] = False
     max_results: Optional[int] = 20
 
+class PermissionResponse(BaseModel):
+    id: str
+    role: PermissionRole
+    type: PermissionType
+    email_address: Optional[str] = None
+
 class ApiResponse(BaseModel):
-    data: Union[DriveFile, FileList]
+    data: Union[DriveFile, FileList, PermissionResponse, List[PermissionResponse]]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 # New parameter classes for routes
@@ -77,3 +98,55 @@ class ListFoldersParams(BaseModel):
 
 class ReadFileParams(BaseModel):
     file_id: str
+
+# Add these new classes
+class PermissionRequest(BaseModel):
+    role: PermissionRole
+    type: PermissionType
+    email: Optional[str] = None
+    domain: Optional[str] = None
+    email_message: Optional[str] = None
+
+    @model_validator(mode='after')
+    def validate_permission_fields(self):
+        perm_type = self.type
+        email = self.email
+        domain = self.domain
+        
+        if perm_type in [PermissionType.USER, PermissionType.GROUP]:
+            if not email:
+                raise ValueError("Email is required for user/group permissions")
+            if domain:
+                raise ValueError("Domain should not be provided for user/group permissions")
+                
+        elif perm_type == PermissionType.DOMAIN:
+            if not domain:
+                raise ValueError("Domain is required for domain permissions")
+            if email:
+                raise ValueError("Email should not be provided for domain permissions")
+                
+        elif perm_type == PermissionType.ANYONE:
+            if email or domain:
+                raise ValueError("Email/domain should not be provided for 'anyone' permission")
+                
+        return self
+
+
+
+# Add to existing parameter classes
+class SetPermissionParams(BaseModel):
+    file_id: str
+    permission: PermissionRequest
+
+class ListPermissionsParams(BaseModel):
+    file_id: str
+
+class DeletePermissionParams(BaseModel):
+    file_id: str
+    permission_id: str
+
+# Add new class for copy operation
+class CopyFileParams(BaseModel):
+    file_id: str
+    name: Optional[str] = None  # New name for the copy (optional)
+    parent_id: Optional[str] = None  # Parent folder ID (optional)

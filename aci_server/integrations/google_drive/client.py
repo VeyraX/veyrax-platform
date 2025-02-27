@@ -1,7 +1,7 @@
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload, MediaIoBaseUpload
-from typing import Optional, Dict, Any, IO
+from typing import Optional, Dict, Any, IO, List
 import io
 
 class DriveClient:
@@ -69,7 +69,10 @@ class DriveClient:
         return file_content
 
     def delete_file(self, file_id: str) -> None:
-        self.service.files().delete(fileId=file_id).execute()
+        self.service.files().delete(
+            fileId=file_id,
+            supportsAllDrives=True
+        ).execute()
 
     def move_file(self, file_id: str, new_parent_id: str) -> Dict[str, Any]:
         try:
@@ -111,3 +114,59 @@ class DriveClient:
         file_content = request.execute()
         
         return file_content, mime_type
+
+    def create_permission(self, file_id: str, permission: Dict[str, Any]) -> Dict[str, Any]:
+        # Extract notification parameters only if they exist
+        email_message = permission.pop('emailMessage', None)
+        
+        # Prepare optional parameters
+        optional_params = {}
+        # if send_notification is not None:
+        #     optional_params['sendEmailNotification'] = send_notification
+        if email_message is not None:
+            optional_params['emailMessage'] = email_message
+        
+        return self.service.permissions().create(
+            fileId=file_id,
+            body=permission,
+            fields='id,role,type,emailAddress',
+            **optional_params
+        ).execute()
+
+    def list_permissions(self, file_id: str) -> List[Dict[str, Any]]:
+        response = self.service.permissions().list(
+            fileId=file_id,
+            fields='permissions(id,role,type,emailAddress)'
+        ).execute()
+        return response.get('permissions', [])
+
+    def delete_permission(self, file_id: str, permission_id: str) -> None:
+        self.service.permissions().delete(
+            fileId=file_id,
+            permissionId=permission_id
+        ).execute()
+
+    def copy_file(self, file_id: str, name: Optional[str] = None, parent_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Create a copy of a file.
+        
+        Args:
+            file_id: The ID of the file to copy
+            name: Optional new name for the copy
+            parent_id: Optional ID of the parent folder for the copy
+            
+        Returns:
+            Dict containing the copied file's metadata
+        """
+        body = {}
+        if name:
+            body['name'] = name
+        if parent_id:
+            body['parents'] = [parent_id]
+        
+        return self.service.files().copy(
+            fileId=file_id,
+            body=body,
+            fields='id, name, mimeType, parents, createdTime, modifiedTime, size, webViewLink, webContentLink',
+            supportsAllDrives=True
+        ).execute()
