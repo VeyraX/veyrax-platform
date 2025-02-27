@@ -5,11 +5,14 @@ from pydantic_core import core_schema
 from pydantic.json_schema import JsonSchemaValue
 
 
+class FileContent(BaseModel):
+    file_url: Optional[HttpUrl] = None  # File storage URL
+    file_base64: Optional[str] = None  # Base64 content (optional for small files)
+
 class FileReference(BaseModel):
     """Common file representation for OpenAI schemas"""
     file_name: str  # Original filename
-    file_url: Optional[HttpUrl] = None  # File storage URL
-    file_base64: Optional[str] = None  # Base64 content (optional for small files)
+    file_content: FileContent = Field(..., description="File content: exact one of file_url or file_base64 should be provided")  # File content
     content_type: str  # MIME type (e.g., "image/png", "application/pdf")
     size_bytes: Optional[int] = None  # File size in bytes
 
@@ -68,3 +71,6 @@ class DateStr(Generic[T]):
 
 # res = openai.pydantic_function_tool(MyModel)
 # print(res)
+
+
+# print(openai.pydantic_function_tool(UploadFile))
