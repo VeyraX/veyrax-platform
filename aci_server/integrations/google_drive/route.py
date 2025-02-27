@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
-from .schema import FileList, DriveFile, FileFilters, FolderCreate, FileMove, ApiResponse
+from .schema import FileList, DriveFile, FileFilters, FolderCreate, FileMove, ApiResponse, ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams, DownloadFileParams, DeleteFileParams, MoveFileParams, ListFoldersParams, ReadFileParams
 from .service import DriveService
 from .client import DriveClient
 import pickle
@@ -10,6 +10,7 @@ from google.auth.transport.requests import Request
 from fastapi.responses import StreamingResponse
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.file_reader import read_file_content
+from ..common.input_schema_decorator import input_schema
 
 
 router = APIRouter(prefix="/google-drive", tags=["google-drive"])
@@ -32,6 +33,7 @@ async def get_drive_service(request: FastAPIRequest):
     return DriveService(client)
 
 @router.post("/list_files", response_model=ApiResponse)
+@input_schema(schema_class=ListFilesParams)
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -48,6 +50,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
+@input_schema(schema_class=GetFileParams)
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -64,6 +67,7 @@ async def get_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
+@input_schema(schema_class=CreateFolderParams)
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -78,6 +82,7 @@ async def create_folder(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
+@input_schema(schema_class=UploadFileParams)
 async def upload_file(
     file: UploadFile = File(...),
     parent_id: Optional[str] = None,
@@ -91,6 +96,7 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/download_file")
+@input_schema(schema_class=DownloadFileParams)
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -124,6 +130,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_file")
+@input_schema(schema_class=DeleteFileParams)
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -141,6 +148,7 @@ async def delete_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
+@input_schema(schema_class=MoveFileParams)
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -159,6 +167,7 @@ async def move_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_folders", response_model=ApiResponse)
+@input_schema(schema_class=ListFoldersParams)
 async def list_folders(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -176,6 +185,7 @@ async def list_folders(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/read_file")
+@input_schema(schema_class=ReadFileParams)
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)

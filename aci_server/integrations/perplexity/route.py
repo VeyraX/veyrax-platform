@@ -4,6 +4,8 @@ from .schema import CompletionRequest, ApiResponse
 from .service import PerplexityService
 from .client import PerplexityClient
 from ..common.auth import validate_provider_api_key
+from ..common.input_schema_decorator import input_schema
+import os
 
 router = APIRouter(prefix="/perplexity", tags=["perplexity"])
 
@@ -14,6 +16,7 @@ async def get_perplexity_service(request: Request):
     return PerplexityService(client)
 
 @router.post("/create_completion", response_model=ApiResponse)
+@input_schema(schema_class=CompletionRequest)
 async def create_completion(
     params: Dict[str, Any] = Body(...),
     service: PerplexityService = Depends(get_perplexity_service)

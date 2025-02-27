@@ -43,3 +43,34 @@ class FileFilters(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[DriveFile, FileList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter classes for routes
+class ListFilesParams(BaseModel):
+    pageToken: Optional[str] = None
+    filters: Optional[FileFilters] = None
+
+class GetFileParams(BaseModel):
+    file_id: str
+
+class CreateFolderParams(BaseModel):
+    folder: FolderCreate
+
+class UploadFileParams(BaseModel):
+    parent_id: Optional[str] = None
+
+class DownloadFileParams(BaseModel):
+    file_id: str
+
+class DeleteFileParams(BaseModel):
+    file_id: str
+
+class MoveFileParams(BaseModel):
+    file_id: str
+    new_parent_id: str
+
+class ListFoldersParams(BaseModel):
+    pageToken: Optional[str] = None
+    filters: Optional[FileFilters] = None
+
+class ReadFileParams(BaseModel):
+    file_id: str

@@ -1,7 +1,12 @@
 import inspect
-from typing import List, Dict, Any, get_type_hints, Optional, get_origin, get_args, Union
+from typing import List, Dict, Any, TypeVar, get_type_hints, Optional, get_origin, get_args, Union, Type, Tuple, Union, Set, Callable
 from fastapi import routing
-from pydantic.fields import PydanticUndefined
+from pydantic import BaseModel
+from openai.types.chat import ChatCompletionToolParam
+from openai.types.shared_params import FunctionDefinition
+from pydantic import create_model
+import openai
+
 
 def _get_json_type(type_):
     """Helper function to convert Python/Pydantic types to JSON schema types"""
@@ -20,156 +25,175 @@ def _get_json_type(type_):
 
 
 def _process_pydantic_model(model_type, strict: bool):
+    schema = model_type.schema()
+    format_schema_for_strict(schema)
+    return schema
+
+
+def get_route_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
     """
-    Process a Pydantic model. A field is required (non-optional) if:
-    1. It has no default value (default is PydanticUndefined) and no default_factory
-    2. Its type is not Optional[...]
-    """
-    properties = {}
-    required_fields = []
-
-    if not hasattr(model_type, '__fields__'):
-        return properties, required_fields
-
-    for field_name, field in model_type.__fields__.items():
-        field_type = field.annotation
-        origin = get_origin(field_type) or field_type
-        args = get_args(field_type)
-
-        # A field is optional if either:
-        # 1. It has a default value or default_factory
-        has_default = field.default is not PydanticUndefined
-        has_factory = field.default_factory is not None
-        # 2. Its type is Optional[...] or Union[..., None]
-        is_optional_type = (
-            origin is Union and type(None) in args
-        )
-
-        is_optional = has_default or has_factory or is_optional_type
-
-        # Basic field info
-        field_info = {
-            "description": field.description or f"Field: {field_name}"
-            # "description": f"{field.default, has_default, has_factory, is_optional_type, is_optional}"
-        }
-
-        # Handle nested Pydantic models
-        if hasattr(field_type, '__fields__'):
-            nested_props, rf = _process_pydantic_model(field_type, strict)
-            field_info.update({
-                "type": "object",
-                "properties": nested_props,
-                "required": rf,
-            })
-            if strict:
-                field_info["additionalProperties"] = False
-        elif get_origin(field_type) in (list, List):
-            args = get_args(field_type)
-            if args and hasattr(args[0], '__fields__'):
-                item_props, rf = _process_pydantic_model(args[0], strict)
-                item_schema = {
-                    "type": "object",
-                    "properties": item_props,
-                    "required": rf,
-                }
-                if strict:
-                    item_schema["additionalProperties"] = False
-                field_info.update({
-                    "type": "array",
-                    "items": item_schema
-                })
-            else:
-                subtype = _get_json_type(args[0]) if args else "string"
-                field_info.update({
-                    "type": "array",
-                    "items": {"type": subtype}
-                })
-        else:
-            base_type = _get_json_type(field_type)
-            if (is_optional and strict):
-                field_info["type"] = ["null", base_type]
-            else:
-                field_info["type"] = base_type
-
-            if base_type == "object" and strict:
-                field_info["additionalProperties"] = False
-
-        if strict:  # in strict mode we add all fields
-            required_fields.append(field_name)
-        if not strict and not is_optional:  # in non-strict mode we only add required fields
-            required_fields.append(field_name)
+    Extract the schema class from a route's endpoint function that
+    has been decorated with input_schema.
+    
+    Args:
+        route: A FastAPI route object
         
-        properties[field_name] = field_info
-
-    return properties, required_fields
-
-def get_openai_function_schemas(route: routing.APIRouter, strict: bool = False) -> List[Dict[str, Any]]:
+    Returns:
+        The schema class if the route function is decorated with input_schema,
+        otherwise None.
     """
-    Generate a list of OpenAI function schemas from FastAPI routes.
+    if hasattr(route.endpoint, "__schema_class__"):
+        return route.endpoint.__schema_class__
+    return None
+
+K = TypeVar("K")
+
+
+def remove_if_exists(k: K, d: dict[K, Any]) -> None:
+    """Removes key `k` from `d` if present."""
+    if k in d:
+        d.pop(k)
+
+def format_schema_for_strict(schema: Any) -> None:
+    """
+    Recursively set additionalProperties to False and replace
+    oneOf and allOf with anyOf, required for OpenAI structured outputs.
+    Additionally, remove all defaults and set all fields to required.
+    This may not be equivalent to the original schema.
+    """
+    if isinstance(schema, dict):
+        if "type" in schema and schema["type"] == "object":
+            schema["additionalProperties"] = False
+
+            if "properties" in schema:
+                properties = schema["properties"]
+                all_properties = list(properties.keys())
+                for k, v in properties.items():
+                    if "default" in v:
+                        if k == "request":
+                            v["enum"] = [v["default"]]
+
+                        v.pop("default")
+                schema["required"] = all_properties
+            else:
+                schema["properties"] = {}
+                schema["required"] = []
+
+        anyOf = (
+            schema.get("oneOf", []) + schema.get("allOf", []) + schema.get("anyOf", [])
+        )
+        if "allOf" in schema or "oneOf" in schema or "anyOf" in schema:
+            schema["anyOf"] = anyOf
+
+        remove_if_exists("allOf", schema)
+        remove_if_exists("oneOf", schema)
+
+        for v in schema.values():
+            format_schema_for_strict(v)
+    elif isinstance(schema, list):
+        for v in schema:
+            format_schema_for_strict(v)
+
+
+
+
+def get_openai_function_schemas(
+    route: routing.APIRouter
+) -> Dict[str, Any]:
+    """
+    Generate OpenAI function schema from FastAPI route and optional schema class.
+    
+    Args:
+        route: The FastAPI route
+        strict: Whether to enforce strict schema validation
+        
+    Returns:
+        Dict containing the OpenAI function schema
     """
     endpoint_func = route.endpoint
-    signature = inspect.signature(endpoint_func)
-    type_hints = get_type_hints(endpoint_func)
+    schema_class = get_route_schema_class(route)
 
-    properties = {}
-    param_names = []
-    required_fields = []
+    
+    # Get route metadata for schema
+    route_name = f"{route.path}" # route.name or route.path.split("/")[-1]
+    route_description = (endpoint_func.__doc__ or f"Handle {list(route.methods)[0]} {route.path}").strip()
+    
+    # If schema_class is provided, use it instead of extracting from function signature
+    if schema_class:
+        schema = openai.pydantic_function_tool(schema_class)
+        schema['function']['name'] = route_name
+        schema['function']['description'] = route_description
 
-    for name, param in signature.parameters.items():
-        if name == 'service':
-            continue
+        return schema
+        
+    else:
+        # Original logic for extracting schema from function signature
+        signature = inspect.signature(endpoint_func)
+        model_fields = {}
 
-        param_type = type_hints.get(name, param.annotation)
-        origin = get_origin(param_type) or param_type
-        args = get_args(param_type)
-
-        # Updated is_optional check
-        has_default = (param.default is not inspect.Parameter.empty)
-        includes_none = (origin is Union and type(None) in args)
-
-        is_optional = has_default or includes_none
-
-        # If it's a Pydantic model
-        if hasattr(param_type, '__fields__'):
-            model_props, rf = _process_pydantic_model(param_type, strict)
-            properties[name] = {
-                "type": ["null", "object"] if (is_optional and strict) else "object",
-                "description": f"Parameter: {name}",
-                "properties": model_props,
-                "required": rf,
-            }
-            if strict:
-                properties[name]["additionalProperties"] = False
-        else:
-            json_type = _get_json_type(param_type)
-            if (strict and is_optional):
-                properties[name] = {"type": ["null", json_type], "description": f"Parameter: {name}"}
+        for param_name, param in signature.parameters.items():
+            if param_name == 'service':
+                continue
+            
+            # Get the type hint
+            param_type = (
+                param.annotation if param.annotation != inspect.Parameter.empty else Any
+            )
+            # Check if the parameter has a default value
+            if param.default != inspect.Parameter.empty:
+                model_fields[param_name] = (param_type, param.default)
             else:
-                properties[name] = {"type": json_type, "description": f"Parameter: {name}"}
+                model_fields[param_name] = (param_type, ...)
 
-        param_names.append(name)
+            model_name = (
+                    "".join(word.capitalize() for word in endpoint_func.__name__.split("_")) + "Model"
+                )
+            model = create_model(model_name, **model_fields)
+            parameters = model.schema()
 
-        if strict:
-            required_fields.append(name)
-        if not strict and not is_optional:
-            required_fields.append(name)
+            
+    
+        
+    # Construct the tool schema
+    schema = ChatCompletionToolParam(
+        function=FunctionDefinition(
+            name=route_name,
+            description=route_description,
+            parameters=parameters,
+        ),
+        type="function",
+    )
+
+    
+    return schema
+
+    
 
 
-    parameters_schema = {
-        "type": "object",
-        "properties": properties,
-        "required": required_fields,
-    }
-    if strict:
-        parameters_schema["additionalProperties"] = False
+if __name__ == "__main__":
 
-    tool_schema = {
-        "type": "function",
-        "function": {
-            "name": route.name or route.path.split("/")[-1],
-            "description": (endpoint_func.__doc__ or f"Handle {list(route.methods)[0]} {route.path}").strip(),
-            "parameters": parameters_schema,
-            "strict": strict
-        }
-    }
-    return tool_schema
+    ## Debugging
+
+    class Basic(BaseModel):
+        A: str  # Required string
+        B: Optional[int] = None  # Optional integer
+        C: float  # Required float
+        D: bool  # Required boolean
+        E: Optional[bytes] = None  # Optional bytes
+        F: List[int]  # Required list of integers
+        G: Optional[List[str]] = None  # Optional list of strings
+        H: Dict[str, float]  # Required dictionary with string keys and float values
+        I: Optional[Dict[int, str]] = None  # Optional dictionary with integer keys and string values
+        J: Set[str]  # Required set of strings
+        K: Optional[Set[int]] = None  # Optional set of integers
+        L: Tuple[int, str, float]  # Required tuple with specific types
+        M: Optional[Tuple[bool, ...]] = None  # Optional tuple with variable-length booleans
+        N: Union[int, str]  # Required union (int or str)
+        O: Optional[Union[float, bool]] = None  # Optional union (float or bool)
+
+    def f(a: Basic):
+        pass
+
+    # parameters = _process_pydantic_model(Basic, strict=True)        
+    # print(parameters)
+

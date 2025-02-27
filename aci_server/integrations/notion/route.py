@@ -2,12 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest
 from typing import Optional, Dict, Any, List, Union
 from .schema import (
     DatabaseList, PageList, Page, Database, PageCreate, PageUpdate, 
-    DatabaseFilters, PageFilters, SearchResult, ApiResponse
+    DatabaseFilters, PageFilters, SearchResult, ApiResponse,
+    ListDatabasesParams, GetDatabaseParams, ListDatabasePagesParams,
+    QueryDatabaseParams, CreatePageParams, GetPageParams,
+    UpdatePageParams, SearchParams
 )
 from .service import NotionService
 from .client import NotionClient
 import os
 from ..common.auth import TokenService
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/notion", tags=["notion"])
 
@@ -24,6 +28,7 @@ async def get_notion_service(request: FastAPIRequest):
     return NotionService(client)
 
 @router.post("/list_databases", response_model=ApiResponse)
+@input_schema(schema_class=ListDatabasesParams)
 async def list_databases(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -39,6 +44,7 @@ async def list_databases(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_database", response_model=ApiResponse)
+@input_schema(schema_class=GetDatabaseParams)
 async def get_database(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -55,6 +61,7 @@ async def get_database(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_database_pages", response_model=ApiResponse)
+@input_schema(schema_class=ListDatabasePagesParams)
 async def list_database_pages(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -75,6 +82,7 @@ async def list_database_pages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/query_database", response_model=ApiResponse)
+@input_schema(schema_class=QueryDatabaseParams)
 async def query_database(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -102,6 +110,7 @@ async def query_database(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_page", response_model=ApiResponse)
+@input_schema(schema_class=CreatePageParams)
 async def create_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -116,6 +125,7 @@ async def create_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_page", response_model=ApiResponse)
+@input_schema(schema_class=GetPageParams)
 async def get_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -132,6 +142,7 @@ async def get_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_page", response_model=ApiResponse)
+@input_schema(schema_class=UpdatePageParams)
 async def update_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -150,6 +161,7 @@ async def update_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=ApiResponse)
+@input_schema(schema_class=SearchParams)
 async def search(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)

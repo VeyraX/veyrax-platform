@@ -101,3 +101,39 @@ class ListPagesRequest(BaseModel):
         le=100,
         description="Maximum number of results per page"
     )
+
+# New parameter classes for routes
+class ListDatabasesParams(BaseModel):
+    start_cursor: Optional[str] = None
+    max_results: Optional[int] = Field(default=100, le=100)
+
+class GetDatabaseParams(BaseModel):
+    database_id: str
+
+class ListDatabasePagesParams(BaseModel):
+    database_id: str
+    filters: Optional[DatabaseFilters] = None
+    start_cursor: Optional[str] = None
+
+class QueryDatabaseParams(BaseModel):
+    database_id: str
+    filter: Optional[Dict[str, Any]] = None
+    sorts: Optional[List[Dict[str, Any]]] = None
+    start_cursor: Optional[str] = None
+    page_size: Optional[int] = Field(default=100, le=100)
+
+class CreatePageParams(BaseModel):
+    page: PageCreate
+
+class GetPageParams(BaseModel):
+    page_id: str
+
+class UpdatePageParams(BaseModel):
+    page_id: str
+    page_update: PageUpdate
+
+class SearchParams(BaseModel):
+    query: Optional[str] = ''
+    start_cursor: Optional[str] = None
+    page_size: Optional[int] = Field(default=100, le=100)
+    sort_direction: Optional[str] = None

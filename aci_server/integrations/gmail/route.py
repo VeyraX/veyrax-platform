@@ -1,6 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
-from .schema import MessageList, Message, DraftMessage, DraftResponse, DraftList, MessageFilters, ApiResponse
+from .schema import (
+    MessageList, Message, DraftMessage, DraftResponse, DraftList, 
+    MessageFilters, ApiResponse, GetMessagesParams, GetMessageParams,
+    DeleteMessageParams, SendMessageParams, GetDraftsParams, 
+    CreateDraftParams, DeleteDraftParams, ModifyDraftParams
+)
 from .service import GmailService
 from .client import GmailClient
 import pickle
@@ -9,7 +14,7 @@ from ..common.utils import get_router_tools
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
 from ..common.auth import TokenService, GoogleTokenRefresher
-
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
@@ -34,7 +39,10 @@ async def get_gmail_service(request: FastAPIRequest):
     client = GmailClient(creds)
     return GmailService(client)
 
+
+
 @router.post("/get_messages", response_model=ApiResponse)
+@input_schema(schema_class=GetMessagesParams)
 async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -51,15 +59,13 @@ async def get_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_message", response_model=ApiResponse)
+@input_schema(schema_class=GetMessageParams)
 async def get_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
         message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
         return service.get_message(message_id)
     except Exception as e:
         import traceback
@@ -67,15 +73,14 @@ async def get_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_message")
+@input_schema(schema_class=DeleteMessageParams)
 async def delete_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
         message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
+
         service.delete_message(message_id)
         return {"status": "success"}
     except Exception as e:
@@ -84,15 +89,13 @@ async def delete_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_message", response_model=ApiResponse)
+@input_schema(schema_class=SendMessageParams)
 async def send_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
         message_id = params.get('message_id')
-        if not message_id:
-            raise HTTPException(status_code=400, detail="message_id is required")
-            
         return service.send_message(message_id)
     except Exception as e:
         import traceback
@@ -100,6 +103,7 @@ async def send_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_drafts", response_model=ApiResponse)
+@input_schema(schema_class=GetDraftsParams)
 async def get_drafts(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -113,6 +117,7 @@ async def get_drafts(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_draft", response_model=ApiResponse)
+@input_schema(schema_class=CreateDraftParams)
 async def create_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -127,15 +132,14 @@ async def create_draft(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_draft")
+@input_schema(schema_class=DeleteDraftParams)
 async def delete_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
 ):
     try:
         draft_id = params.get('draft_id')
-        if not draft_id:
-            raise HTTPException(status_code=400, detail="draft_id is required")
-            
+        
         service.delete_draft(draft_id)
         return {"status": "success"}
     except Exception as e:
@@ -144,6 +148,7 @@ async def delete_draft(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/modify_draft", response_model=ApiResponse)
+@input_schema(schema_class=ModifyDraftParams)
 async def modify_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -152,9 +157,6 @@ async def modify_draft(
         draft_id = params.get('draft_id')
         update_data = params.get('update_args', {})
         
-        if not draft_id:
-            raise HTTPException(status_code=400, detail="draft_id is required")
-            
         update_args = DraftMessage(**update_data)
         return service.modify_draft(draft_id, update_args)
     except Exception as e:

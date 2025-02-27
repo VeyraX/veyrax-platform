@@ -59,3 +59,27 @@ class PageFilters(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[PageSchema, PageList, SpaceList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New schema classes for route parameters
+class GetSpacesParams(BaseModel):
+    pass  # No required parameters for get_spaces
+
+class GetPagesParams(BaseModel):
+    filters: Optional[PageFilters] = None
+
+class GetPageParams(BaseModel):
+    page_id: str
+
+class CreatePageParams(BaseModel):
+    page: PageCreateSchema
+
+class UpdatePageParams(BaseModel):
+    page_id: str
+    update: PageUpdateSchema
+
+class SearchContentParams(BaseModel):
+    cql: Optional[str] = None
+    space_key: Optional[str] = None
+    title: Optional[str] = None
+    type: Optional[str] = "page"
+    limit: Optional[int] = 50

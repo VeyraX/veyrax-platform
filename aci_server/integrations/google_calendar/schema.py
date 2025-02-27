@@ -54,3 +54,28 @@ class CalendarList(BaseModel):
 class ApiResponse(BaseModel):
     data: Union[Event, EventList, CalendarList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# New parameter schema classes
+class ListEventsParams(BaseModel):
+    pageToken: Optional[str] = None
+    filters: Optional[EventFilters] = None
+
+class GetEventParams(BaseModel):
+    event_id: str
+    calendar_id: Optional[str] = 'primary'
+
+class CreateEventParams(BaseModel):
+    event: EventCreate
+    calendar_id: Optional[str] = 'primary'
+
+class UpdateEventParams(BaseModel):
+    event_id: str
+    event_update: EventUpdate
+    calendar_id: Optional[str] = 'primary'
+
+class DeleteEventParams(BaseModel):
+    event_id: str
+    calendar_id: Optional[str] = 'primary'
+
+class ListCalendarsParams(BaseModel):
+    pass  # No parameters needed but keeping class for consistency

@@ -19,6 +19,7 @@ from integrations.dropbox.route import router as dropbox_router
 from vector_tools.route import router as vector_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
+
 import os
 import importlib
 import json
@@ -59,6 +60,7 @@ async def root():
 
 @app.get("/tools")
 async def get_tools():
+    # routers = [google_calendar_router]
     routers = [gmail_router, google_calendar_router, notion_router, slack_router, linear_router, openweather_router, perplexity_router, google_drive_router, jira_router, confluence_router, outlook_router, dropbox_router]
     
     tools = {}

@@ -11,9 +11,16 @@ from .schema import (
     PageUpdateSchema,
     PaginatedResponseSchema,
     PageFilters,
-    ApiResponse
+    ApiResponse,
+    GetSpacesParams,
+    GetPagesParams,
+    GetPageParams,
+    CreatePageParams,
+    UpdatePageParams,
+    SearchContentParams
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
+from ..common.input_schema_decorator import input_schema
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
 
@@ -30,6 +37,7 @@ async def get_confluence_service(request: FastAPIRequest):
     return ConfluenceService(client)
 
 @router.post("/spaces", response_model=ApiResponse)
+@input_schema(schema_class=GetSpacesParams)
 async def get_spaces(
     params: Dict[str, Any] = Body({}),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -43,6 +51,7 @@ async def get_spaces(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/pages", response_model=ApiResponse)
+@input_schema(schema_class=GetPagesParams)
 async def get_pages(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -58,6 +67,7 @@ async def get_pages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_page", response_model=ApiResponse)
+@input_schema(schema_class=GetPageParams)
 async def get_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -74,6 +84,7 @@ async def get_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_page", response_model=ApiResponse)
+@input_schema(schema_class=CreatePageParams)
 async def create_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -89,6 +100,7 @@ async def create_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_page", response_model=ApiResponse)
+@input_schema(schema_class=UpdatePageParams)
 async def update_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -108,6 +120,7 @@ async def update_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=ApiResponse)
+@input_schema(schema_class=SearchContentParams)
 async def search_content(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
