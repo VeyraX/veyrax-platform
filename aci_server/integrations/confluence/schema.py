@@ -57,14 +57,18 @@ class PageFilters(BaseModel):
     limit: int = 50
 
 class ApiResponse(BaseModel):
-    data: Union[PageSchema, PageList, SpaceList]
+    data: Optional[Union[PageSchema, PageList, SpaceList]] = None
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+    message: Optional[str] = None
 
 class GetSpacesParams(BaseModel):
     pass 
 
 class GetPagesParams(BaseModel):
     filters: Optional[PageFilters] = None
+
+    class Config:
+        arbitrary_types_allowed = True
 
 class GetPageParams(BaseModel):
     page_id: str
@@ -82,3 +86,6 @@ class SearchContentParams(BaseModel):
     title: Optional[str] = None
     type: Optional[str] = "page"
     limit: Optional[int] = 50
+
+class DeletePageParams(BaseModel):
+    page_id: str

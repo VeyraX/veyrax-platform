@@ -17,7 +17,8 @@ from .schema import (
     GetPageParams,
     CreatePageParams,
     UpdatePageParams,
-    SearchContentParams
+    SearchContentParams,
+    DeletePageParams,
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
 from ..common.input_schema_decorator import input_schema
@@ -54,6 +55,7 @@ async def get_spaces(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/pages", response_model=ApiResponse)
 @input_schema(schema_class=GetPagesParams)
 async def get_pages(
@@ -62,7 +64,7 @@ async def get_pages(
 ):
     try:
         validated_params = GetPagesParams(**params)
-        filters = PageFilters(**(validated_params.filters or {}))
+        filters = PageFilters(**validated_params.filters.dict() if validated_params.filters else {})
         return service.get_pages(filters=filters)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPagesParams'))
@@ -136,6 +138,22 @@ async def search_content(
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchContentParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/delete_page", response_model=ApiResponse)
+@input_schema(schema_class=DeletePageParams)
+async def delete_page(
+    params: Dict[str, Any] = Body(...),
+    service: ConfluenceService = Depends(get_confluence_service)
+):
+    try:
+        validated_params = DeletePageParams(**params)
+        return service.delete_page(validated_params.page_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()

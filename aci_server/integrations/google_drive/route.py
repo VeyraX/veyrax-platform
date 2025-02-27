@@ -96,12 +96,35 @@ async def create_folder(
 @router.post("/upload_file", response_model=ApiResponse)
 @input_schema(schema_class=UploadFileParams)
 async def upload_file(
-    file: UploadFile = File(...),
-    parent_id: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
 ):
     try:
-        return service.upload_file(file.filename, file.file, file.content_type, parent_id)
+        validated_params = UploadFileParams(**params)
+        
+        # Extract file reference and parent_id from validated params
+        file_ref = validated_params.file
+        parent_id = validated_params.parent_id
+        
+        # Handle file upload based on what's provided in the FileReference
+        if file_ref.file_content.file_url:
+            # Download from URL and upload to Drive
+            return await service.upload_file_from_url(
+                file_url=file_ref.file_content.file_url,
+                filename=file_ref.file_name,
+                parent_id=parent_id
+            )
+        elif file_ref.file_content.file_base64:
+            # Decode base64 and upload to Drive
+            return await service.upload_file_from_base64(
+                filename=file_ref.file_name,
+                file_base64=file_ref.file_content.file_base64,
+                content_type=file_ref.content_type,
+                parent_id=parent_id
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Either file_url or file_base64 must be provided")
+            
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'UploadFileParams'))
     except Exception as e:
