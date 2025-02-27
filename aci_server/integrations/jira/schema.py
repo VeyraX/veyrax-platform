@@ -34,6 +34,7 @@ class IssueBase(BaseModel):
     url: str
 
 class Issue(IssueBase):
+    id: str
     comments: List[Dict[str, Any]] = []
     labels: List[str] = []
     components: List[str] = []

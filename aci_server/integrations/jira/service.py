@@ -136,7 +136,10 @@ class JiraService:
                 json={'transition': {'id': issue_create.status_id}}
             )
         
-        return self.prepare_response(self.get_issue(response['id']), "JiraIssueCard")
+        # Get the issue data and return it properly
+        issue_data = self.get_issue(response['id'])
+        
+        return issue_data  # The get_issue method already calls prepare_response
 
     def _get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
         response = self._make_request('GET', f'issue/{issue_id}/transitions')
@@ -184,7 +187,7 @@ class JiraService:
                 json={'transition': {'id': update.status_id}}
             )
         
-        return self.prepare_response(self.get_issue(issue_id), "JiraIssueCard")
+        return self.get_issue(issue_id)
 
     def delete_issue(self, issue_id: str) -> Dict[str, Any]:
         self._make_request(
@@ -200,6 +203,7 @@ class JiraService:
         
         fields = issue.get('fields', {})
         return {
+            'id': issue.get('id', ''),
             'key': issue.get('key', ''),
             'summary': fields.get('summary', ''),
             'description': fields.get('description'),
