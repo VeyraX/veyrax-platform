@@ -30,11 +30,13 @@ class BaseIntegrationTest:
             headers=self.get_headers(),
             json=payload or {}
         )
-        assert response.status_code == expected_status, (
-            f"Route {route_suffix} failed. "
-            f"Expected {expected_status}, got {response.status_code}. "
-            f"Response: {response.text}"
-        )
+
+        if expected_status:
+            assert response.status_code == expected_status, (
+                f"Route {route_suffix} failed. "
+                f"Expected {expected_status}, got {response.status_code}. "
+                f"Response: {response.text}"
+            )
         return response
 
     def post(self, route_suffix, payload=None, expected_status=200):

@@ -61,7 +61,7 @@ class ApiResponse(BaseModel):
 
 class GetMessagesParams(BaseModel):
     pageToken: Optional[str] = None
-    filters: MessageFilters
+    filters: Optional[MessageFilters] = None
 
 # New schema classes for other routes
 class GetMessageParams(BaseModel):

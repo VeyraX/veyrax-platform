@@ -57,8 +57,9 @@ class PageFilters(BaseModel):
     limit: int = 50
 
 class ApiResponse(BaseModel):
-    data: Union[PageSchema, PageList, SpaceList]
+    data: Optional[Union[PageSchema, PageList, SpaceList]] = None
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+    message: Optional[str] = None
 
 class GetSpacesParams(BaseModel):
     pass 

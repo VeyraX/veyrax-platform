@@ -54,6 +54,7 @@ async def get_spaces(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/pages", response_model=ApiResponse)
 @input_schema(schema_class=GetPagesParams)
 async def get_pages(

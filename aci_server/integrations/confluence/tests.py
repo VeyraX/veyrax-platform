@@ -188,6 +188,10 @@ def test_delete_page(base_setup, created_page):
     
     # Verify the response structure
     delete_json = delete_response.json()
-    assert "data" in delete_json, "Response missing 'data' field"
-    data = delete_json["data"]
-    assert data["id"] == created_page, "Deleted page ID doesn't match"
+    assert "message" in delete_json, "Response missing 'message' field"
+    assert created_page in delete_json["message"], "Response message should contain page ID"
+    
+    # Verify the page is actually deleted by trying to fetch it
+    get_payload = {"page_id": created_page}
+    get_response = base_setup.post("/confluence/get_page", payload=get_payload, expected_status=None)
+    assert get_response.status_code != 200, "Page still exists after deletion"

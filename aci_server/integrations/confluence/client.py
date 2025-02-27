@@ -86,4 +86,9 @@ class ConfluenceClient:
         url = f"{self.base_url}{endpoint}"
         response = self.session.request(method, url, params=params, json=data)
         response.raise_for_status()
+        
+        # For DELETE requests or empty responses, don't try to parse JSON
+        if method == 'DELETE' or not response.content:
+            return {}  # Return empty dict instead of None
+        
         return response.json()
