@@ -162,3 +162,16 @@ class ConfluenceService:
         )
         
         return self.prepare_response(page_list, "ConfluencePageCard")
+
+    def delete_page(self, page_id: str) -> ApiResponse:
+        self.client.delete_page(page_id)
+        return ApiResponse(
+            data=PageSchema(
+                id=page_id,
+                title="",
+                type="page",
+                space={},
+                version={"number": 0}
+            ),
+            component=None
+        )

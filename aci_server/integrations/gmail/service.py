@@ -85,11 +85,9 @@ class GmailService:
         )
         
         return self.prepare_response(message, "GmailMessageCard")
-    
 
     def send_message(self, message_id: str) -> ApiResponse:
-        draft = self.client.get_message(message_id)
-        message = draft['message']
+        message = self.client.get_message(message_id)
         
         new_message = MIMEText(self._get_body(message))
         new_message['to'] = self._get_header(message, 'To')

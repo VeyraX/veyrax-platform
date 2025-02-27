@@ -66,6 +66,9 @@ class GetSpacesParams(BaseModel):
 class GetPagesParams(BaseModel):
     filters: Optional[PageFilters] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+
 class GetPageParams(BaseModel):
     page_id: str
 
@@ -82,3 +85,6 @@ class SearchContentParams(BaseModel):
     title: Optional[str] = None
     type: Optional[str] = "page"
     limit: Optional[int] = 50
+
+class DeletePageParams(BaseModel):
+    page_id: str

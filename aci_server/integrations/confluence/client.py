@@ -67,6 +67,21 @@ class ConfluenceClient:
     def search_content(self, **kwargs) -> Dict[str, Any]:
         return self._make_request('GET', '/content', params=kwargs)
 
+    def delete_page(self, page_id: str) -> None:
+        """
+        Deletes a Confluence page by its ID.
+        
+        Args:
+            page_id (str): The ID of the page to delete
+            
+        Returns:
+            None: The API doesn't return content for deletions
+            
+        Raises:
+            HTTPException: If the deletion fails
+        """
+        return self._make_request('DELETE', f'/content/{page_id}')
+
     def _make_request(self, method, endpoint, params=None, data=None):
         url = f"{self.base_url}{endpoint}"
         response = self.session.request(method, url, params=params, json=data)
