@@ -1,6 +1,6 @@
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload, MediaIoBaseUpload
 from typing import Optional, Dict, Any, IO
 import io
 
@@ -39,7 +39,7 @@ class DriveClient:
         if parent_id:
             file_metadata['parents'] = [parent_id]
 
-        media = MediaFileUpload(
+        media = MediaIoBaseUpload(
             file_content,
             mimetype=mime_type,
             resumable=True

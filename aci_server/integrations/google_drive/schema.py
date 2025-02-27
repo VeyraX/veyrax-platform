@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
+from fastapi import UploadFile, File
+from ..common.schema_generation.classes import FileReference
 
 class DriveFile(BaseModel):
     id: str
@@ -57,6 +59,7 @@ class CreateFolderParams(BaseModel):
 
 class UploadFileParams(BaseModel):
     parent_id: Optional[str] = None
+    file: FileReference
 
 class DownloadFileParams(BaseModel):
     file_id: str

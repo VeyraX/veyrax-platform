@@ -5,6 +5,12 @@ from datetime import datetime
 from dateutil import parser
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import base64
+import aiohttp
+from io import BytesIO
+from fastapi import HTTPException
+import tempfile
+import requests
 
 class DriveService:
     def __init__(self, client: DriveClient):
@@ -184,6 +190,79 @@ class DriveService:
             "file": file_info.dict(),
             "mime_type": mime_type
         }
+
+    async def upload_file_from_url(self, file_url, filename, parent_id=None):
+        """Download file from URL and upload to Google Drive"""
+        try:
+            # Download file from URL
+            response = requests.get(file_url, stream=True)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            
+            # Get content type from response headers
+            content_type = response.headers.get('Content-Type', 'application/octet-stream')
+            
+            # Create a BytesIO object from the response content
+            file_obj = BytesIO(response.content)
+            
+            # Make sure we're at the beginning of the file
+            file_obj.seek(0)
+            
+            # Upload the file and get its data
+            file_data = self.client.upload_file(
+                name=filename,
+                file_content=file_obj,
+                mime_type=content_type,
+                parent_id=parent_id
+            )
+            
+            # Get the complete file object and prepare a proper response
+            file_obj = self.get_file(file_data['id']).data
+            
+            # Return a properly formatted response
+            return self.prepare_response(file_obj, "GoogleDriveFileCard")
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=400, detail=f"Failed to upload file from URL: {str(e)}")
+
+    async def upload_file_from_base64(self, filename, file_base64, content_type, parent_id=None):
+        """Decode base64 file and upload to Google Drive"""
+        try:
+            # Remove data URL prefix if present
+            if ',' in file_base64:
+                file_base64 = file_base64.split(',', 1)[1]
+            
+            # Clean any whitespace that might be present in the base64 string
+            file_base64 = file_base64.strip()
+            
+            # Decode base64 to binary
+            file_content = base64.b64decode(file_base64)
+            
+            # Create a BytesIO object
+            file_obj = BytesIO(file_content)
+            
+            # Make sure we're at the beginning of the file
+            file_obj.seek(0)
+            
+            # Upload the file and get its data
+            file_data = self.client.upload_file(
+                name=filename,
+                file_content=file_obj,
+                mime_type=content_type,
+                parent_id=parent_id
+            )
+            
+            # Get the complete file object and prepare a proper response
+            file_obj = self.get_file(file_data['id']).data
+            
+            # Return a properly formatted response
+            return self.prepare_response(file_obj, "GoogleDriveFileCard")
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=400, detail=f"Failed to decode base64 file: {str(e)}")
 
     GOOGLE_MIME_TYPES = {
         'application/vnd.google-apps.document': 'application/pdf',
