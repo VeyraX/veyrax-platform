@@ -8,6 +8,7 @@ import base64
 import json
 import requests
 import aiohttp
+import time
 
 class TokenService:
     @staticmethod
@@ -221,6 +222,59 @@ class DropboxTokenRefresher(BaseTokenRefresher):
                     
                 return await TokenService.update_token(request, token_data, new_token_data)
 
+class SlackTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        if not token_data.get('refresh_token'):
+            raise ValueError("No refresh token available for Slack")
+            
+        try:
+            client_id = os.environ.get('SLACK_CLIENT_ID')
+            client_secret = os.environ.get('SLACK_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                raise ValueError("Missing Slack client credentials in environment")
+                
+            refresh_token = token_data.get('refresh_token')
+            
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            
+            data = {
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    'https://slack.com/api/oauth.v2.access',
+                    headers=headers,
+                    data=data
+                ) as response:
+                    result = await response.json()
+                    
+                    if not result.get('ok', False):
+                        raise ValueError(f"Slack token refresh failed: {result.get('error', 'Unknown error')}")
+                    
+                    new_token_data = {
+                        'access_token': result.get('access_token'),
+                        'refresh_token': result.get('refresh_token', token_data.get('refresh_token')),
+                        'expires_at': result.get('expires_in') 
+                            and (int(time.time()) + result.get('expires_in')),
+                        'scopes': token_data.get('scopes'),
+                        'raw_token_data': result
+                    }
+                    
+                    await TokenService.update_token(request, token_data, new_token_data)
+                    
+                    return new_token_data
+                    
+        except Exception as e:
+            raise ValueError(f"Failed to refresh Slack token: {str(e)}")
+
 class TokenRefresherFactory:
     _refreshers = {
         "gmail": GoogleTokenRefresher,
@@ -229,7 +283,8 @@ class TokenRefresherFactory:
         "confluence": ConfluenceTokenRefresher,
         "jira": JiraTokenRefresher,
         "outlook": OutlookTokenRefresher,
-        "dropbox": DropboxTokenRefresher,  # Add Dropbox refresher
+        "dropbox": DropboxTokenRefresher,
+        "slack": SlackTokenRefresher,
     }
 
     @classmethod
