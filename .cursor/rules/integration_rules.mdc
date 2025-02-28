@@ -1,7 +1,6 @@
 ---
 description: Writing new integrations for tools.
 globs: 
-alwaysApply: false
 ---
 # Integration Guide: Key Concepts and Best Practices
 
@@ -21,6 +20,8 @@ integrations/
 ├── route.py # FastAPI routes
 ├── schema.py # Pydantic models
 └── component.json # React components for display
+└── tests.py # Integration Tests
+
 
 
 ## Key Concepts

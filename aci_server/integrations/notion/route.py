@@ -160,6 +160,8 @@ async def update_page(
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdatePageParams'))
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -190,3 +192,4 @@ async def search(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+

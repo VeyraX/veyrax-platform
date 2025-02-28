@@ -27,6 +27,42 @@ class Database(BaseModel):
     created_time: Optional[str] = None
     last_edited_time: Optional[str] = None
 
+# Updated Parent type definitions with Field descriptions
+class DatabaseParent(BaseModel):
+    type: str = Field(
+        "database_id",
+        description="Must be 'database_id' for database parent type",
+        example="database_id"
+    )
+    database_id: str = Field(..., description="UUID of the parent database")
+
+class PageParent(BaseModel):
+    type: str = Field(
+        "page_id",
+        description="Must be 'page_id' for page parent type",
+        example="page_id"
+    )
+    page_id: str = Field(..., description="UUID of the parent page")
+
+class WorkspaceParent(BaseModel):
+    type: str = Field(
+        "workspace", 
+        description="Must be 'workspace' for workspace parent type",
+        example="workspace"
+    )
+    workspace: bool = Field(True, description="Always true for workspace parent")
+
+class BlockParent(BaseModel):
+    type: str = Field(
+        "block_id",
+        description="Must be 'block_id' for block parent type", 
+        example="block_id"
+    )
+    block_id: str = Field(..., description="UUID of the parent block")
+
+Parent = Union[DatabaseParent, PageParent, WorkspaceParent, BlockParent]
+
+# Updated Page model
 class Page(BaseModel):
     id: str
     title: Optional[str] = None
@@ -34,11 +70,12 @@ class Page(BaseModel):
     url: Optional[str] = None
     created_time: Optional[str] = None
     last_edited_time: Optional[str] = None
-    parent: Optional[Dict[str, Any]] = None
+    parent: Optional[Parent] = None  # Changed from Dict
     component: Optional[Dict[str, Any]] = None
 
+# Updated PageCreate model to use proper parent types
 class PageCreate(BaseModel):
-    parent: Dict[str, str]
+    parent: Union[DatabaseParent, PageParent]
     properties: Dict[str, Any]
     children: Optional[List[Dict[str, Any]]] = None
 
@@ -72,20 +109,6 @@ class PropertyType(BaseModel):
     ]
     name: str
     
-class PageFilters(BaseModel):
-    filter: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Notion filter object"
-    )
-    sorts: Optional[List[Dict[str, Any]]] = Field(
-        None,
-        description="List of sort objects"
-    )
-    page_size: Optional[int] = Field(
-        100,
-        description="Number of results per page",
-        le=100
-    )
 
 class DatabaseProperties(BaseModel):
     id: str
@@ -170,3 +193,5 @@ class UpdatePageResponse(BaseModel):
 class SearchResponse(BaseModel):
     data: SearchResult
     message: Optional[str] = None
+
+
