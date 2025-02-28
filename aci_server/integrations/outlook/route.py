@@ -178,8 +178,13 @@ async def create_event(
     service: OutlookService = Depends(get_outlook_service)
 ):
     try:
+        print("[route] create_event params", params)
         validated_params = CreateEventParams(**params)
-        return service.create_event(validated_params.event)
+        print("[route] validated params",  validated_params)
+        return service.create_event(
+            event=validated_params.event,
+            calendar_id=validated_params.calendar_id
+        )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

@@ -116,7 +116,7 @@ class CalendarDeleteEvent(BaseModel):
     event_id: str
 
 class ApiResponse(BaseModel):
-    data: Union[Message, MessageList, EventList, CalendarList, CalendarDeleteEvent]
+    data: Union[Message, MessageList, Event, EventList, CalendarList, CalendarDeleteEvent]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 # New parameter schema classes
@@ -148,6 +148,7 @@ class GetEventParams(BaseModel):
 
 class CreateEventParams(BaseModel):
     event: EventCreate
+    calendar_id: Optional[str] = Field(default=None, description="Optional calendar ID, uses default calendar if not provided")
 
 class UpdateEventParams(BaseModel):
     event_id: str

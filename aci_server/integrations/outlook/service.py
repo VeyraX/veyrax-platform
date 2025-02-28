@@ -158,6 +158,7 @@ class OutlookService:
         return self.prepare_response(event, "OutlookEventCard")
 
     def create_event(self, event: EventCreate, calendar_id: Optional[str] = None) -> ApiResponse:
+        # Convert Pydantic model to dict for the client
         event_data = event.dict(exclude_none=True)
         response = self.client.create_event(event_data, calendar_id)
         created_event = self._convert_to_event(response)
