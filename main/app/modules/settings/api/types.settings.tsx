@@ -29,3 +29,10 @@ export const AVAILABLE_THEMES: { value: ThemeOption; label: string }[] = [
   { value: 'dark', label: 'Dark' },
   { value: 'system', label: 'System' },
 ]
+
+export interface UserApiKey {
+  id: string;
+  created_at: string;
+  api_key: string;
+  user_id: string;
+}

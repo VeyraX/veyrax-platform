@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 
 class Channel(BaseModel):
     id: str
@@ -76,3 +76,45 @@ class ListChannelMessagesParams(BaseModel):
 class ListDirectMessagesWithUserParams(BaseModel):
     user_id: str
     cursor: Optional[str] = None
+
+# API Response class
+class ApiResponse(BaseModel):
+    data: Union[Channel, ChannelList, ChannelMember, ChannelMemberList, Message, MessageList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# Response schema classes
+class ListChannelsResponse(BaseModel):
+    data: ChannelList
+    message: Optional[str] = None
+
+class ListChannelMembersResponse(BaseModel):
+    data: ChannelMemberList
+    message: Optional[str] = None
+
+class ListDirectMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class PostMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class SendDmResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class ReplyInThreadResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class ListThreadMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class ListChannelMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class ListDirectMessagesWithUserResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None

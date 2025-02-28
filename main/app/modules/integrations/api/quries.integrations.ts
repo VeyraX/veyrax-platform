@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getIntegrationsData, getUserConnectedTools, checkIndexStatus } from './api.integrations'
+import { getIntegrationsData, getUserConnectedTools } from './api.integrations'
 
 
 export const useGetProviders = () => {
@@ -13,12 +13,5 @@ export const useGetUserConnectionTools = () => {
   return useQuery({
     queryKey: ['user-connected-tools'],
     queryFn: getUserConnectedTools,
-  })
-}
-
-export const useCheckIndexStatus = (providerId: string) => {
-  return useQuery({
-    queryKey: ['index-status', providerId],
-    queryFn: () => checkIndexStatus(providerId)
   })
 }

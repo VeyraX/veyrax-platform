@@ -12,28 +12,6 @@ import { IntegrationDetailSummaryProps } from "../../api/types.integrations"
 export default function IntegrationDetailSummary({ providerDetails }: IntegrationDetailSummaryProps) {
   const { provider, totalEndpoints, totalParameters, totalComponents, endpointsList } = providerDetails
 
-  // Форматирование даты создания
-  const formatCreatedDate = () => {
-    if (!provider.created_at) return "N/A"
-    
-    try {
-      // Если это timestamp в секундах
-      const timestamp = typeof provider.created_at === 'string' 
-        ? parseInt(provider.created_at) 
-        : provider.created_at
-        
-      const date = new Date(timestamp * 1000)
-      return date.toLocaleDateString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: 'numeric'
-      })
-    } catch (e) {
-      console.error('Error formatting date:', e)
-      return "N/A"
-    }
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 container mx-auto px-4 py-8">

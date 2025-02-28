@@ -9,7 +9,6 @@ export interface Provider {
     scope: string;
     scope_name: string;
   }[];
-  has_index_capability?: boolean;
   input_schema?: string | object;
   output_schema?: string | object;
   created_at?: string | number;
@@ -19,10 +18,10 @@ export interface Provider {
 
 export interface IntegrationCardProps extends Provider {
   connected: boolean;
-  hasIndex: boolean;
-  indexStatus: 'synced' | 'syncing' | 'failed' | 'pending' | null;
-  lastSyncDate?: string;
-  processedEntities?: number;
+  hasIndex: false;
+  indexStatus: null;
+  lastSyncDate?: null;
+  processedEntities?: null;
   onConnectionChange?: () => void;
   onShowSettings?: (provider: Provider) => void;
 }
@@ -32,14 +31,22 @@ export interface UserProvider {
   user_id: string;
   provider_id: string;
 }
+
+export interface UserProviderApiKey {
+  id: string;
+  created_at: string;
+  api_key: string;
+  user_id: string;
+  provider_id: string;
+}
   
 export interface ManageDialogProps {
   provider: Provider & {
     connected: boolean;
-    hasIndex: boolean;
-    indexStatus: 'synced' | 'syncing' | 'failed' | 'pending' | null;
-    lastSyncDate?: string;
-    processedEntities?: number;
+    hasIndex: false;
+    indexStatus: null;
+    lastSyncDate?: null;
+    processedEntities?: null;
   };
   open: boolean;
   onClose: () => void;

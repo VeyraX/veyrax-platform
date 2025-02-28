@@ -1,17 +1,30 @@
+'use client';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { X, MoreHorizontal, Bot, UserCircle2, Plus } from "lucide-react"
+import { X, MoreHorizontal, UserCircle2, Key } from "lucide-react"
 import Link from "next/link"
 import AccountSettings from "../components/account-settings"
-import AgentSettings from "../components/agent-settings"
-import { useState } from "react"
+import ApiKeySettings from "../components/api-key-settings"
+import { useState, useEffect } from "react"
 
 interface AccountSettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialTab?: 'account' | 'api-key'
 }
 
-export function AccountSettingsDialog({ open, onOpenChange }: AccountSettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'agent'>('account')
+export function AccountSettingsDialog({ 
+  open, 
+  onOpenChange, 
+  initialTab = 'account' 
+}: AccountSettingsDialogProps) {
+  const [activeTab, setActiveTab] = useState<'account' | 'api-key'>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,21 +51,21 @@ export function AccountSettingsDialog({ open, onOpenChange }: AccountSettingsDia
               </Link>
               <Link
                 href="#"
-                onClick={() => setActiveTab('agent')}
+                onClick={() => setActiveTab('api-key')}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
-                  activeTab === 'agent' 
+                  activeTab === 'api-key' 
                     ? 'bg-secondary text-secondary-foreground' 
                     : 'text-muted-foreground hover:bg-secondary'
                 }`}
               >
-                <Bot className="h-3.5 w-3.5" />
-                <span>Agent</span>
+                <Key className="h-3.5 w-3.5" />
+                <span>API Key</span>
               </Link>
             </nav>
           </div>
 
           <div className="flex-1 p-6 overflow-y-auto">
-            {activeTab === 'account' ? <AccountSettings /> : <AgentSettings />}
+            {activeTab === 'account' ? <AccountSettings /> : <ApiKeySettings />}
           </div>
         </div>
       </DialogContent>

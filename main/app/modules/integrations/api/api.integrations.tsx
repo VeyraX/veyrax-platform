@@ -17,33 +17,37 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     .select('provider_id')
     .eq('user_id', user?.id)
 
-  const { data: userIndexes } = await supabase
-    .from('users_provider_indexes')
-    .select('provider_id, status, collection_name, last_sync_date, processed_entities')
+  const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
+
+  const { data: userApiKeys } = await supabase
+    .from('users_provider_api_keys')
+    .select('provider_id, api_key')
     .eq('user_id', user?.id)
 
-  const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
-  const indexStatusMap = new Map(
-    userIndexes?.map(index => [index.provider_id, index.status])
-  )
-  const lastSyncDateMap = new Map(
-    userIndexes?.map(index => [index.provider_id, index.last_sync_date])
-  )
-  const processedEntitiesMap = new Map(
-    userIndexes?.map(index => [index.provider_id, index.processed_entities])
+  const providersWithApiKeys = new Set(
+    userApiKeys
+      ?.filter(k => k.api_key && k.api_key.trim() !== '')
+      .map(k => k.provider_id)
   )
 
+  const result = providers?.map((provider: Provider) => {
+    const isConnected = connectedProviderIds.has(provider.id);
+    
+    const isReallyConnected = provider.auth_method === 'api_key' 
+      ? providersWithApiKeys.has(provider.id) 
+      : isConnected;
 
-  const result = providers?.map((provider: Provider) => ({
-    ...provider,
-    connected: connectedProviderIds.has(provider.id),
-    hasIndex: indexStatusMap.has(provider.id),
-    indexStatus: indexStatusMap.get(provider.id),
-    lastSyncDate: lastSyncDateMap.get(provider.id),
-    processedEntities: processedEntitiesMap.get(provider.id)
-  })) || []
+    return {
+      ...provider,
+      connected: isReallyConnected,
+      hasIndex: false,
+      indexStatus: null,
+      lastSyncDate: null,
+      processedEntities: null
+    };
+  }) || []
   
-  return result
+  return result as IntegrationCardProps[]
 }
 
 export const enableProvider = async (providerId: string): Promise<void> => {
@@ -59,6 +63,14 @@ export const enableProvider = async (providerId: string): Promise<void> => {
 
 export const disconnectProvider = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser()
+
+  await supabase
+    .from('users_provider_api_keys')
+    .delete()
+    .match({ 
+      user_id: user?.id,
+      provider_id: providerId 
+    });
 
   await supabase
     .from('users_providers')
@@ -77,51 +89,6 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     })
 }
 
-export const createProviderIndex = async (providerId: string, providerTag: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser()
-
-  await supabase
-    .from('users_provider_indexes')
-    .upsert({
-      user_id: user?.id,
-      provider_id: providerId,
-      collection_name: providerTag,
-      status: 'pending'
-    }, {
-      onConflict: 'user_id,provider_id'
-    })
-    .then(({ data, error }) => {
-      if (error) {
-        console.error('Index creation error:', error);
-        throw error;
-      }
-    });
-
-  const headers = await getAuthHeaders();
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/index-data`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ 
-      collection_name: providerTag 
-    }),
-    credentials: 'include'
-  });
-
-  if (!response.ok) {
-    await supabase
-      .from('users_provider_indexes')
-      .upsert({
-        user_id: user?.id,
-        provider_id: providerId,
-        status: 'failed'
-      }, {
-        onConflict: 'user_id,provider_id'
-      });
-    throw new Error('Failed to create index');
-  }
-
-}
-
 export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {
   const response = await fetch(`/api/oauth/${providerTag}`, {
     method: 'POST',
@@ -135,10 +102,11 @@ export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): 
   return url;
 }
 
-export const enableApiKeyProvider = async (providerId: string): Promise<void> => {
+export const enableApiKeyProvider = async (providerId: string, apiKey: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
-  const { error } = await supabase
+  // Сначала обновляем связь пользователя с провайдером
+  const { error: providerError } = await supabase
     .from('users_providers')
     .upsert({
       user_id: user?.id,
@@ -147,38 +115,65 @@ export const enableApiKeyProvider = async (providerId: string): Promise<void> =>
       onConflict: 'provider_id,user_id'
     });
 
-  if (error) throw error;
-}
-
-export const checkIndexStatus = async (providerId: string): Promise<string | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  if (providerError) throw providerError;
   
-  const { data } = await supabase
-    .from('users_provider_indexes')
-    .select('status')
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    })
+  // Если API ключ пустой, удаляем существующий ключ
+  if (!apiKey) {
+    const { error: deleteError } = await supabase
+      .from('users_provider_api_keys')
+      .delete()
+      .match({
+        user_id: user?.id,
+        provider_id: providerId
+      });
+      
+    if (deleteError) throw deleteError;
+    return;
+  }
+  
+  const { data: existingKey } = await supabase
+    .from('users_provider_api_keys')
+    .select('id')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
     .single();
   
-  return data?.status || null;
-};
-
-export const deleteIndexData = async (providerTag: string): Promise<void> => {
-  const headers = await getAuthHeaders();
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vector-tools/delete-index-data`, {
-    method: 'DELETE',
-    headers,
-    body: JSON.stringify({ 
-      collection_name: providerTag 
-    }),
-    credentials: 'include'
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete index data');
+  let apiKeyError;
+  
+  if (existingKey) {
+    const { error } = await supabase
+      .from('users_provider_api_keys')
+      .update({ api_key: apiKey })
+      .eq('id', existingKey.id);
+    
+    apiKeyError = error;
+  } else {
+    const { error } = await supabase
+      .from('users_provider_api_keys')
+      .insert({
+        user_id: user?.id,
+        provider_id: providerId,
+        api_key: apiKey
+      });
+    
+    apiKeyError = error;
   }
+
+  if (apiKeyError) throw apiKeyError;
+}
+
+export const getUserApiKey = async (providerId: string): Promise<string | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data, error } = await supabase
+    .from('users_provider_api_keys')
+    .select('api_key')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
+    .single();
+  
+  if (error || !data) return null;
+  return data.api_key;
 }
 
 export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string }[]> => {
