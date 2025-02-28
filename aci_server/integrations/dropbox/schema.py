@@ -75,3 +75,35 @@ class MoveFileParams(BaseModel):
 
 class ReadFileParams(BaseModel):
     path: str
+
+class ListFilesResponse(BaseModel):
+    data: FileList
+    message: Optional[str] = None
+
+class GetFileResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+class CreateFolderResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+class UploadFileResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+class DownloadFileResponse(BaseModel):
+    data: Dict[str, Any]
+    message: Optional[str] = None
+
+class DeleteFileResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+class MoveFileResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+class ReadFileResponse(BaseModel):
+    data: Dict[str, Any]
+    message: Optional[str] = None

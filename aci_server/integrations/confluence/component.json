@@ -3,8 +3,75 @@
       "name": "ConfluencePageCard",
       "version": "1.0.0",
       "description": "A React component for displaying Confluence pages (single or list)",
+      "related_endpoints": ["get_page", "get_pages", "create_page", "update_page", "search_content"],
       "component": {
         "jsx": "function ConfluencePage(props) {\n  const data = props.data;\n  \n  // Handle both single page and page list\n  const isPageList = data && data.pages && Array.isArray(data.pages);\n  const isSinglePage = data && !isPageList;\n  \n  if ((!isPageList || data.pages.length === 0) && !isSinglePage) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n\n  const getContent = (page) => {\n    if (!page.body || !page.body.storage || !page.body.storage.value) return '';\n    \n    // Create temporary element to parse HTML\n    const tempDiv = document.createElement('div');\n    tempDiv.innerHTML = page.body.storage.value;\n    \n    // Extract text content\n    const textContent = tempDiv.textContent || tempDiv.innerText;\n    return textContent.length > 200 ? textContent.substring(0, 200) + '...' : textContent;\n  };\n\n  const styles = {\n    container: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      justifyContent: 'flex-start',\n      width: '100%'\n    },\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: isSinglePage ? '350px' : '300px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: isSinglePage ? '16px' : '8px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    meta: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    content: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginTop: '12px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis'\n    }\n  };\n\n  // Render a single page card\n  const renderPageCard = (page) => {\n    return React.createElement('div', { key: page.id, style: styles.card },\n      React.createElement('div', { style: styles.header },\n        React.createElement('div', { style: styles.iconContainer },\n          React.createElement('span', { style: styles.iconText }, '📄')\n        ),\n        React.createElement('div', { style: styles.titleContainer },\n          React.createElement('div', { style: styles.title }, page.title),\n          React.createElement('div', { style: styles.meta }, `Version: ${page.version.number}`),\n          page.space && React.createElement('div', { style: styles.meta }, `Space: ${page.space.name}`)\n        ),\n        page.html_link && React.createElement('a', {\n          href: page.html_link,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: styles.externalLink\n        }, React.createElement('span', { style: styles.linkText }, '🔗'))\n      ),\n      // Only show content in single page view\n      isSinglePage && page.body && React.createElement('div', { style: styles.content }, getContent(page))\n    );\n  };\n\n  // If it's a single page\n  if (isSinglePage) {\n    return renderPageCard(data);\n  }\n\n  // If it's a list of pages\n  return React.createElement('div', { style: styles.container },\n    data.pages.map(page => renderPageCard(page))\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "pages": [
+            {
+              "id": "123456",
+              "title": "Project Documentation",
+              "type": "page",
+              "space": {
+                "id": "SPACE123",
+                "name": "Engineering",
+                "key": "ENG"
+              },
+              "version": {
+                "number": 5,
+                "when": "2023-06-15T14:30:00Z",
+                "by": {
+                  "displayName": "John Doe"
+                }
+              },
+              "body": {
+                "storage": {
+                  "value": "<p>This is the documentation for our project. It includes important information about setup, configuration, and usage.</p><h2>Getting Started</h2><p>Follow these steps to get started with the project...</p>",
+                  "representation": "storage"
+                }
+              },
+              "html_link": "https://yourcompany.atlassian.net/wiki/spaces/ENG/pages/123456/Project+Documentation"
+            },
+            {
+              "id": "789012",
+              "title": "Meeting Notes",
+              "type": "page",
+              "space": {
+                "id": "SPACE123",
+                "name": "Engineering",
+                "key": "ENG"
+              },
+              "version": {
+                "number": 2,
+                "when": "2023-06-10T09:15:00Z",
+                "by": {
+                  "displayName": "Jane Smith"
+                }
+              },
+              "html_link": "https://yourcompany.atlassian.net/wiki/spaces/ENG/pages/789012/Meeting+Notes"
+            },
+            {
+              "id": "345678",
+              "title": "Product Roadmap",
+              "type": "page",
+              "space": {
+                "id": "SPACE456",
+                "name": "Product",
+                "key": "PROD"
+              },
+              "version": {
+                "number": 8,
+                "when": "2023-06-12T11:45:00Z",
+                "by": {
+                  "displayName": "Alex Johnson"
+                }
+              },
+              "html_link": "https://yourcompany.atlassian.net/wiki/spaces/PROD/pages/345678/Product+Roadmap"
+            }
+          ]
+        }
       },
       "schemaRef": ["schema.PageSchema", "schema.PageList"]
     },
@@ -12,8 +79,45 @@
       "name": "ConfluenceSpaceList",
       "version": "1.0.0",
       "description": "A React component for displaying lists of Confluence spaces",
+      "related_endpoints": ["get_spaces"],
       "component": {
         "jsx": "function ConfluenceSpaceList(props) {\n  const data = props.data;\n  if (!data || !data.spaces || data.spaces.length === 0) return null;\n\n  const styles = {\n    container: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      justifyContent: 'flex-start',\n      width: '100%'\n    },\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '250px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: '8px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    meta: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    description: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginTop: '8px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    data.spaces.map(space => {\n      const getDescription = () => {\n        if (!space.description) return null;\n        if (space.description.plain && space.description.plain.value) {\n          return space.description.plain.value;\n        }\n        if (space.description.view && space.description.view.value) {\n          const tempDiv = document.createElement('div');\n          tempDiv.innerHTML = space.description.view.value;\n          return tempDiv.textContent || tempDiv.innerText;\n        }\n        return null;\n      };\n      \n      const description = getDescription();\n      \n      return React.createElement('div', { key: space.id, style: styles.card },\n        React.createElement('div', { style: styles.header },\n          React.createElement('div', { style: styles.iconContainer },\n            React.createElement('span', { style: styles.iconText }, '📚')\n          ),\n          React.createElement('div', { style: styles.titleContainer },\n            React.createElement('div', { style: styles.title }, space.name),\n            React.createElement('div', { style: styles.meta }, `Type: ${space.type}`)\n          )\n        ),\n        description && React.createElement('div', { style: styles.description },\n          description.length > 100 ? description.substring(0, 100) + '...' : description\n        )\n      );\n    })\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "spaces": [
+            {
+              "id": "SPACE123",
+              "name": "Engineering",
+              "type": "global",
+              "description": {
+                "plain": {
+                  "value": "Space for engineering team documentation, project specs, and technical guides."
+                }
+              }
+            },
+            {
+              "id": "SPACE456",
+              "name": "Product",
+              "type": "global",
+              "description": {
+                "plain": {
+                  "value": "Product roadmaps, feature specifications, and market research."
+                }
+              }
+            },
+            {
+              "id": "SPACE789",
+              "name": "Marketing",
+              "type": "global",
+              "description": {
+                "plain": {
+                  "value": "Marketing campaigns, content calendars, and brand guidelines."
+                }
+              }
+            }
+          ]
+        }
       },
       "schemaRef": "schema.SpaceList"
     }

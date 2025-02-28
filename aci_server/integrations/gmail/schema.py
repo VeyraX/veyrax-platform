@@ -85,3 +85,36 @@ class DeleteDraftParams(BaseModel):
 class ModifyDraftParams(BaseModel):
     draft_id: str
     update_args: Optional[DraftMessage] = None
+
+# Response schema classes
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class DeleteMessageResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class SendMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class GetDraftsResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class CreateDraftResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class DeleteDraftResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class ModifyDraftResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None

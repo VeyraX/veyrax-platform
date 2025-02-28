@@ -25,19 +25,25 @@ integrations/
 
 ## Key Concepts
 
-### 1. Input Validation
+### 1. Input and Output Validation
 
-Always use Pydantic models for input validation and handle validation errors separately.
+Always use Pydantic models for both input and output validation and handle validation errors separately.
 
 ```python
 # schema.py
+# Input schema
 class GetMessagesParams(BaseModel):
     filters: Optional[MessageFilters] = None
     next_link: Optional[str] = None
 
+# Output schema
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
 # route.py
 @router.post("/get_messages", response_model=ApiResponse)
-@input_schema(schema_class=GetMessagesParams)
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
 async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: ExampleService = Depends(get_example_service)
@@ -49,7 +55,7 @@ async def get_messages(
             validated_params.filters
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetMessagesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -65,7 +71,7 @@ try:
     # Code that might raise an error
 except ValidationError as e:
     # Validation errors - 400 Bad Request
-    raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(status_code=400, detail=format_validation_error(e, 'SchemaClassName'))
 except Exception as e:
     # Other errors - 500 Internal Server Error
     import traceback
@@ -102,6 +108,15 @@ class ApiResponse(BaseModel):
     data: Union[Message, MessageList, Event, EventList]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
+# Output schema for specific endpoints
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
 # service.py
 def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
     tool_name = "example"
@@ -109,7 +124,31 @@ def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse
     return ApiResponse(data=data, component=components)
 ```
 
-### 5. Separation of Business Logic and Routing
+### 5. Using Schema Decorator for Input and Output Validation
+
+Always use the `@schema` decorator to specify both input and output schemas:
+
+```python
+# Old approach - only input schema
+@router.post("/get_messages", response_model=ApiResponse)
+@input_schema(schema_class=GetMessagesParams)
+async def get_messages(params: Dict[str, Any], service: Service):
+    # ...
+
+# New approach - both input and output schemas
+@router.post("/get_messages", response_model=ApiResponse)
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
+async def get_messages(params: Dict[str, Any], service: Service):
+    # ...
+```
+
+This approach:
+1. Documents the expected input and output formats
+2. Enables automatic schema extraction for API documentation
+3. Provides consistent validation across all endpoints
+4. Makes it easier to understand the data flow
+
+### 6. Separation of Business Logic and Routing
 
 All business logic should be in the service layer, not in the routes:
 
@@ -124,12 +163,13 @@ async def download_file(params: Dict[str, Any], service: Service):
 
 # Good - logic in service
 @router.post("/download_file")
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
 async def download_file(params: Dict[str, Any], service: Service):
     validated_params = DownloadFileParams(**params)
     return service.download_file_with_metadata(validated_params.file_id)
 ```
 
-### 6. DRY Principle (Don't Repeat Yourself)
+### 7. DRY Principle (Don't Repeat Yourself)
 
 Avoid rewriting parameters and use direct model validation with unpacking:
 
@@ -147,12 +187,13 @@ async def get_weather(params: Dict[str, Any]):
 
 # Good - using dictionary unpacking
 @router.post("/weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
 async def get_weather(params: Dict[str, Any]):
     try:
         validated_params = WeatherParams(**params)  # Unpacking all parameters at once
         return service.get_weather(validated_params)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'WeatherParams'))
 ```
 
 The `**params` syntax unpacks the dictionary and passes all key-value pairs as keyword arguments to the model constructor. This approach:
@@ -209,18 +250,18 @@ This approach significantly reduces code verbosity and makes it more maintainabl
 try:
     # Code
 except ValidationError as e:
-    raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(status_code=400, detail=format_validation_error(e, 'SchemaClassName'))
 except Exception as e:
     import traceback
     traceback.print_exc()
     raise HTTPException(status_code=500, detail=str(e))
 ```
 
-### 2. Lack of Input Validation
+### 2. Lack of Input or Output Validation
 
-**Problem**: Direct access to parameters without validation.
+**Problem**: Direct access to parameters without validation or inconsistent response formats.
 
-**Solution**: Always use Pydantic models:
+**Solution**: Always use Pydantic models for both input and output:
 
 ```python
 # Bad
@@ -231,9 +272,34 @@ if not city:
 # Good
 validated_params = WeatherParams(**params)
 city = validated_params.city
+
+# Bad - inconsistent response format
+return {"data": {"temperature": 25, "humidity": 60}}
+
+# Good - using output schema
+return WeatherResponse(data=WeatherData(temperature=25, humidity=60))
 ```
 
-### 3. Mixing Abstraction Levels
+### 3. Missing Schema Decorator
+
+**Problem**: Endpoints without proper schema decorators.
+
+**Solution**: Always use the `@schema` decorator with both input and output schemas:
+
+```python
+# Missing decorator
+@router.post("/get_weather")
+async def get_weather(params: Dict[str, Any], service: Service):
+    # ...
+
+# Correct usage
+@router.post("/get_weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
+async def get_weather(params: Dict[str, Any], service: Service):
+    # ...
+```
+
+### 4. Mixing Abstraction Levels
 
 **Problem**: Mixing low-level API calls with business logic.
 
@@ -252,6 +318,7 @@ def get_messages(self, next_link, filters):
 
 # route.py - only routing and validation
 @router.post("/get_messages")
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
 async def get_messages(params: Dict[str, Any], service: Service):
     validated_params = GetMessagesParams(**params)
     return service.get_messages(validated_params.next_link, validated_params.filters)
@@ -264,7 +331,8 @@ By following these principles, you'll create integrations that are:
 1. Easy to maintain and extend
 2. Have consistent error handling
 3. Clearly separate responsibilities between layers
-4. Provide robust input validation
+4. Provide robust input and output validation
 5. Return standardized responses
+6. Enable automatic schema extraction for documentation
 
 This significantly simplifies working with the code and reduces the number of potential errors.

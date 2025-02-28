@@ -34,3 +34,8 @@ class CompletionResponse(BaseModel):
 class ApiResponse(BaseModel):
     data: CompletionResponse
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# Response schema class
+class CompletionResponseSchema(BaseModel):
+    data: CompletionResponse
+    message: Optional[str] = None

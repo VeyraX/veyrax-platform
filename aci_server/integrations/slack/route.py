@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
 from .schema import (
     ChannelList, ChannelMemberList, MessageList, 
@@ -9,101 +9,169 @@ from .schema import (
 )
 from .service import SlackService
 from .client import SlackClient
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.auth import TokenService, SlackTokenRefresher
+from pydantic import ValidationError
+from ..common.utils import format_validation_error
 import os
-import pickle
 
 router = APIRouter(prefix="/slack", tags=["slack"])
 
-async def get_slack_service():
-    if os.path.exists('credentials/slack_user_token.pickle'):
-        with open('credentials/slack_user_token.pickle', 'rb') as token_file:
-            creds = pickle.load(token_file)
-            token_str = creds.get('access_token')
-            if not token_str:
-                raise HTTPException(status_code=401, detail="Access token not found in credentials")
-    else:
-        raise HTTPException(status_code=404, detail="Credentials file not found")
-    
-    client = SlackClient(token_str)
-    return SlackService(client)
+async def get_slack_service(request: FastAPIRequest):
+    try:
+        token_data = await TokenService.get_user_token(request, 'slack')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await SlackTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+        
+        client = SlackClient(token_data['access_token'])
+        return SlackService(client)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize Slack service: {str(e)}")
 
-@router.get("/channels", response_model=ChannelList)
-@input_schema(schema_class=ListChannelsParams)
+@router.post("/list_channels", response_model=Dict[str, Any])
+@schema(input_schema_class=ListChannelsParams)
 async def list_channels(
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_channels(cursor)
+    try:
+        validated_params = ListChannelsParams(**params)
+        return service.list_channels(validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListChannelsParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/channels/{channel_id}/members", response_model=ChannelMemberList)
-@input_schema(schema_class=ListChannelMembersParams)
+@router.post("/list_channel_members", response_model=Dict[str, Any])
+@schema(input_schema_class=ListChannelMembersParams)
 async def list_channel_members(
-    channel_id: str,
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_channel_members(channel_id, cursor)
+    try:
+        validated_params = ListChannelMembersParams(**params)
+        return service.list_channel_members(validated_params.channel_id, validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListChannelMembersParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/direct-messages", response_model=MessageList)
-@input_schema(schema_class=ListDirectMessagesParams)
+@router.post("/list_direct_messages", response_model=Dict[str, Any])
+@schema(input_schema_class=ListDirectMessagesParams)
 async def list_direct_messages(
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_direct_messages(cursor)
+    try:
+        validated_params = ListDirectMessagesParams(**params)
+        return service.list_direct_messages(validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListDirectMessagesParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/channels/{channel_id}/messages", response_model=Message)
-@input_schema(schema_class=PostMessageParams)
+@router.post("/post_message", response_model=Dict[str, Any])
+@schema(input_schema_class=PostMessageParams)
 async def post_message(
-    channel_id: str,
-    message: ThreadMessage,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.post_message(channel_id, message.text)
+    try:
+        validated_params = PostMessageParams(**params)
+        return service.post_message(validated_params.channel_id, validated_params.message.text)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'PostMessageParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/dm", response_model=Message)
-@input_schema(schema_class=SendDmParams)
+@router.post("/send_dm", response_model=Dict[str, Any])
+@schema(input_schema_class=SendDmParams)
 async def send_dm(
-    message: DirectMessage,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
-) -> Message:
-    return service.send_dm(message.user_id, message.text)
+):
+    try:
+        validated_params = SendDmParams(**params)
+        return service.send_dm(validated_params.message.user_id, validated_params.message.text)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SendDmParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/channels/{channel_id}/threads/{thread_ts}/replies", response_model=Message)
-@input_schema(schema_class=ReplyInThreadParams)
+@router.post("/reply_in_thread", response_model=Dict[str, Any])
+@schema(input_schema_class=ReplyInThreadParams)
 async def reply_in_thread(
-    channel_id: str,
-    thread_ts: str,
-    message: ThreadMessage,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.reply_in_thread(channel_id, thread_ts, message.text)
+    try:
+        validated_params = ReplyInThreadParams(**params)
+        return service.reply_in_thread(validated_params.channel_id, validated_params.thread_ts, validated_params.message.text)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ReplyInThreadParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/channels/{channel_id}/threads/{thread_ts}/messages", response_model=MessageList)
-@input_schema(schema_class=ListThreadMessagesParams)
+@router.post("/list_thread_messages", response_model=Dict[str, Any])
+@schema(input_schema_class=ListThreadMessagesParams)
 async def list_thread_messages(
-    channel_id: str,
-    thread_ts: str,
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_thread_messages(channel_id, thread_ts, cursor)
+    try:
+        validated_params = ListThreadMessagesParams(**params)
+        return service.list_thread_messages(validated_params.channel_id, validated_params.thread_ts, validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListThreadMessagesParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/channels/{channel_id}/messages", response_model=MessageList)
-@input_schema(schema_class=ListChannelMessagesParams)
+@router.post("/list_channel_messages", response_model=Dict[str, Any])
+@schema(input_schema_class=ListChannelMessagesParams)
 async def list_channel_messages(
-    channel_id: str,
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_channel_messages(channel_id, cursor)
+    try:
+        validated_params = ListChannelMessagesParams(**params)
+        return service.list_channel_messages(validated_params.channel_id, validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListChannelMessagesParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/direct-messages/{user_id}", response_model=MessageList)
-@input_schema(schema_class=ListDirectMessagesWithUserParams)
+@router.post("/list_direct_messages_with_user", response_model=Dict[str, Any])
+@schema(input_schema_class=ListDirectMessagesWithUserParams)
 async def list_direct_messages_with_user(
-    user_id: str,
-    cursor: Optional[str] = None,
+    params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
 ):
-    return service.list_direct_messages_with_user(user_id, cursor)
+    try:
+        validated_params = ListDirectMessagesWithUserParams(**params)
+        return service.list_direct_messages_with_user(validated_params.user_id, validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListDirectMessagesWithUserParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

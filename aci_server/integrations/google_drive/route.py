@@ -5,15 +5,20 @@ from .schema import (
     ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams, 
     DownloadFileParams, DeleteFileParams, MoveFileParams, ListFoldersParams, 
     ReadFileParams, SetPermissionParams, ListPermissionsParams, DeletePermissionParams,
-    CopyFileParams
+    CopyFileParams, ListFilesResponse, GetFileResponse, CreateFolderResponse,
+    UploadFileResponse, DownloadFileResponse, DeleteFileResponse, MoveFileResponse,
+    ListFoldersResponse, ReadFileResponse
 )
+
 from .service import DriveService
 from .client import DriveClient
 import os
 from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
+from ..common.utils import format_validation_error
+
 
 router = APIRouter(prefix="/google-drive", tags=["google-drive"])
 
@@ -42,7 +47,7 @@ async def get_drive_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Drive service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
-@input_schema(schema_class=ListFilesParams)
+@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse)
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -51,14 +56,14 @@ async def list_files(
         validated_params = ListFilesParams(**params)
         return service.list_files(validated_params.pageToken, validated_params.filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListFilesParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
-@input_schema(schema_class=GetFileParams)
+@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse)
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -67,14 +72,14 @@ async def get_file(
         validated_params = GetFileParams(**params)
         return service.get_file(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
-@input_schema(schema_class=CreateFolderParams)
+@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse)
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -87,14 +92,14 @@ async def create_folder(
             validated_params.folder.parent_id  # Will be None if not provided
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFolderParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
-@input_schema(schema_class=UploadFileParams)
+@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse)
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -126,14 +131,14 @@ async def upload_file(
             raise HTTPException(status_code=400, detail="Either file_url or file_base64 must be provided")
             
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UploadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/download_file")
-@input_schema(schema_class=DownloadFileParams)
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -142,14 +147,14 @@ async def download_file(
         validated_params = DownloadFileParams(**params)
         return service.download_file_with_metadata(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DownloadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_file")
-@input_schema(schema_class=DeleteFileParams)
+@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse)
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -159,14 +164,14 @@ async def delete_file(
         service.delete_file(validated_params.file_id)
         return {"status": "success"}
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
-@input_schema(schema_class=MoveFileParams)
+@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse)
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -178,14 +183,14 @@ async def move_file(
             validated_params.new_parent_id
         )
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MoveFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_folders", response_model=ApiResponse)
-@input_schema(schema_class=ListFoldersParams)
+@schema(input_schema_class=ListFoldersParams, output_schema_class=ListFoldersResponse)
 async def list_folders(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -199,14 +204,14 @@ async def list_folders(
         modified_filters = FileFilters(**filters_dict)
         return service.list_files(validated_params.pageToken, modified_filters)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListFoldersParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/read_file")
-@input_schema(schema_class=ReadFileParams)
+@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse)
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -215,7 +220,7 @@ async def read_file(
         validated_params = ReadFileParams(**params)
         return service.read_file_content(validated_params.file_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ReadFileParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

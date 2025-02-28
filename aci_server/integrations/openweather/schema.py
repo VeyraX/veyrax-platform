@@ -38,3 +38,8 @@ class ApiResponse(BaseModel):
 class GetWeatherForecastParams(BaseModel):
     city: str
     country: str
+
+# Response schema classes
+class GetWeatherForecastResponse(BaseModel):
+    data: ForecastData
+    message: Optional[str] = None

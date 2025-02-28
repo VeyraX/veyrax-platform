@@ -79,3 +79,28 @@ class DeleteEventParams(BaseModel):
 
 class ListCalendarsParams(BaseModel):
     pass  # No parameters needed but keeping class for consistency
+
+# Response schema classes
+class ListEventsResponse(BaseModel):
+    data: EventList
+    message: Optional[str] = None
+
+class GetEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class CreateEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class UpdateEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class DeleteEventResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class ListCalendarsResponse(BaseModel):
+    data: CalendarList
+    message: Optional[str] = None

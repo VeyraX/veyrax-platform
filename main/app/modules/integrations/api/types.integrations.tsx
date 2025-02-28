@@ -10,6 +10,11 @@ export interface Provider {
     scope_name: string;
   }[];
   has_index_capability?: boolean;
+  input_schema?: string | object;
+  output_schema?: string | object;
+  created_at?: string | number;
+  is_enabled?: boolean;
+  ui_component?: string | object;
 }
 
 export interface IntegrationCardProps extends Provider {
@@ -39,4 +44,62 @@ export interface ManageDialogProps {
   open: boolean;
   onClose: () => void;
   onUpdate: () => void;
+}
+
+export interface ProviderEndpoint {
+  name: string;
+  functionId: string;
+  description: string;
+  paramCount: number;
+}
+
+export interface ProviderDetails {
+  provider: Provider;
+  totalEndpoints: number;
+  totalParameters: number;
+  totalComponents: number;
+  endpointsList: ProviderEndpoint[];
+}
+
+export interface IntegrationDetailSummaryProps {
+  providerDetails: ProviderDetails;
+}
+
+export interface ComponentData {
+  name: string;
+  jsx?: string;
+  component?: {
+    jsx: string;
+  };
+  exampleProps?: {
+    data: any;
+  };
+  description?: string;
+  related_endpoints?: string[];
+  version?: string;
+}
+
+export interface SchemaProperty {
+  type?: string;
+  title?: string;
+  description?: string;
+  default?: any;
+  $ref?: string;
+  anyOf?: Array<{type?: string | null}>;
+  properties?: Record<string, SchemaProperty>;
+  items?: {
+    type?: string;
+    properties?: Record<string, SchemaProperty>;
+  };
+}
+
+export interface ParameterObject {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+  isRef: boolean;
+  refName: string | null;
+  default?: string;
+  nestedParams?: ParameterObject[];
 }

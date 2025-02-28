@@ -3,7 +3,7 @@
 import { FC, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpRight, Plus } from 'lucide-react'
+import { ArrowUpRight, Plus, Files } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
@@ -75,7 +75,16 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
             </div>
           </div>
 
-          <div className="flex items-center mt-3 pt-3 justify-end">
+          <div className="flex items-center mt-3 pt-3 justify-between gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/integrations/${props.provider_tag}`)}
+            >
+              Docs
+              <Files className="h-4 w-4" />
+            </Button>
+            
             {props.connected ? (
               props.auth_method === 'api_key' ? (
                 <Button

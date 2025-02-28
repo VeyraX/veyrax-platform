@@ -4,6 +4,9 @@ interface ComponentData {
   name: string;
   jsx: string;
   props: any;
+  component?: {
+    jsx: string;
+  };
 }
 
 interface DynamicComponentProps {
@@ -27,11 +30,20 @@ const SingleComponent: React.FC<{ component: ComponentData }> = ({ component }) 
     return <div>No component data provided</div>;
   }
 
+  // Handle both direct jsx string and nested component structure
+  const jsxContent = typeof component.jsx === 'string' 
+    ? component.jsx 
+    : component.component?.jsx;
+    
+  if (!jsxContent) {
+    return <div>No JSX content found in component</div>;
+  }
+
   try {
     const ComponentFunction = new Function(
       'React', 
       'props', 
-      `const Comp = ${component.jsx}; return Comp(props);`
+      `const Comp = ${jsxContent}; return Comp(props);`
     );
     
     return ComponentFunction(React, component.props);

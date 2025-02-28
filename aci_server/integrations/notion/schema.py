@@ -137,3 +137,36 @@ class SearchParams(BaseModel):
     start_cursor: Optional[str] = None
     page_size: Optional[int] = Field(default=100, le=100)
     sort_direction: Optional[str] = None
+
+# Response schema classes
+class ListDatabasesResponse(BaseModel):
+    data: DatabaseList
+    message: Optional[str] = None
+
+class GetDatabaseResponse(BaseModel):
+    data: Database
+    message: Optional[str] = None
+
+class ListDatabasePagesResponse(BaseModel):
+    data: PageList
+    message: Optional[str] = None
+
+class QueryDatabaseResponse(BaseModel):
+    data: PageList
+    message: Optional[str] = None
+
+class CreatePageResponse(BaseModel):
+    data: Page
+    message: Optional[str] = None
+
+class GetPageResponse(BaseModel):
+    data: Page
+    message: Optional[str] = None
+
+class UpdatePageResponse(BaseModel):
+    data: Page
+    message: Optional[str] = None
+
+class SearchResponse(BaseModel):
+    data: SearchResult
+    message: Optional[str] = None
