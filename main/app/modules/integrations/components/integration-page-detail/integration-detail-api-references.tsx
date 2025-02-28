@@ -231,7 +231,7 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
 
   return (
     <div className="mt-12">
-      <h2 className="text-2xl font-bold mb-8 border-b pb-2">API Reference</h2>
+      <h2 className="text-2xl font-bold mb-8 border-b border-border pb-2 text-foreground">API Reference</h2>
       
       <div className="space-y-16">
         {endpointsList.map(endpoint => {
@@ -242,63 +242,63 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
             <div key={endpoint.name} id={endpoint.name} className="scroll-mt-20">
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-2xl font-bold">{endpoint.name}</h3>
-                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-none">
+                  <h3 className="text-2xl font-bold text-foreground">{endpoint.name}</h3>
+                  <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-none">
                     {parameters.length} params
                   </Badge>
                 </div>
-                <p className="text-gray-600">{endpoint.description}</p>
+                <p className="text-muted-foreground">{endpoint.description}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-5">
-                  <h4 className="text-lg font-semibold mb-4 text-gray-800">Parameters</h4>
+                  <h4 className="text-lg font-semibold mb-4 text-foreground">Parameters</h4>
 
                   <div className="space-y-6">
                     {parameters.map(param => (
-                      <div key={param.name} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                      <div key={param.name} className="bg-card rounded-lg p-4 shadow-sm border border-border">
                         <div className="flex items-center gap-2 mb-2">
-                          <h5 className="font-mono text-sm font-semibold text-gray-900">{param.name}</h5>
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">{param.type}</span>
+                          <h5 className="font-mono text-sm font-semibold text-foreground">{param.name}</h5>
+                          <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{param.type}</span>
                           {param.required ? (
-                            <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-xs">
+                            <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10 border-none text-xs">
                               required
                             </Badge>
                           ) : (
-                            <Badge className="bg-gray-50 text-gray-500 hover:bg-gray-50 border-none text-xs">
+                            <Badge className="bg-muted text-muted-foreground hover:bg-muted border-none text-xs">
                               optional
                             </Badge>
                           )}
                         </div>
-                        <p className="text-gray-700 text-sm">{param.description}</p>
+                        <p className="text-muted-foreground text-sm">{param.description}</p>
                         {param.default && (
-                          <p className="text-xs text-gray-500 mt-1">Default: {param.default}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Default: {param.default}</p>
                         )}
 
                         {param.nestedParams && param.nestedParams.length > 0 && (
-                          <div className="mt-4 ml-4 border-l-2 border-gray-100 pl-4">
-                            <h6 className="text-xs font-medium text-gray-600 mb-2">
+                          <div className="mt-4 ml-4 border-l-2 border-border pl-4">
+                            <h6 className="text-xs font-medium text-muted-foreground mb-2">
                               {param.name} properties:
                             </h6>
                             <div className="space-y-3">
                               {param.nestedParams.map(nestedParam => (
-                                <div key={nestedParam.name} className="bg-gray-50 p-3 rounded-md">
+                                <div key={nestedParam.name} className="bg-muted p-3 rounded-md">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h6 className="font-mono text-xs font-semibold text-gray-800">{nestedParam.name}</h6>
-                                    <span className="text-xs px-1.5 py-0.5 bg-gray-100 rounded-full text-gray-600">{nestedParam.type}</span>
+                                    <h6 className="font-mono text-xs font-semibold text-foreground">{nestedParam.name}</h6>
+                                    <span className="text-xs px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground">{nestedParam.type}</span>
                                     {nestedParam.required ? (
-                                      <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-xs">
+                                      <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10 border-none text-xs">
                                         required
                                       </Badge>
                                     ) : (
-                                      <Badge className="bg-gray-50 text-gray-500 hover:bg-gray-50 border-none text-xs">
+                                      <Badge className="bg-muted text-muted-foreground hover:bg-muted border-none text-xs">
                                         optional
                                       </Badge>
                                     )}
                                   </div>
-                                  <p className="text-xs text-gray-700">{nestedParam.description}</p>
+                                  <p className="text-xs text-muted-foreground">{nestedParam.description}</p>
                                   {nestedParam.default && (
-                                    <p className="text-xs text-gray-500 mt-1">Default: {nestedParam.default}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Default: {nestedParam.default}</p>
                                   )}
                                 </div>
                               ))}
@@ -309,8 +309,8 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
                     ))}
 
                     {parameters.length === 0 && (
-                      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                        <p className="text-gray-500 italic">No parameters required for this endpoint.</p>
+                      <div className="bg-card rounded-lg p-4 shadow-sm border border-border">
+                        <p className="text-muted-foreground italic">No parameters required for this endpoint.</p>
                       </div>
                     )}
                   </div>
@@ -318,29 +318,29 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
 
                 <div className="lg:col-span-7">
                   <Tabs defaultValue="request" className="w-full">
-                    <TabsList className="w-full bg-white border border-gray-200 rounded-t-lg p-0 h-12">
+                    <TabsList className="w-full bg-card border border-border rounded-t-lg p-0 h-12">
                       <TabsTrigger
                         value="request"
-                        className="flex-1 rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                        className="flex-1 rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                       >
                         Request
                       </TabsTrigger>
                       <TabsTrigger
                         value="response"
-                        className="flex-1 rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                        className="flex-1 rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                       >
                         Response
                       </TabsTrigger>
                       <TabsTrigger
                         value="preview"
-                        className="flex-1 rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-white"
+                        className="flex-1 rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                       >
                         Live Preview
                       </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="request" className="mt-0">
-                      <div className="bg-gray-900 text-gray-100 p-4 rounded-b-lg font-mono text-sm overflow-x-auto shadow-md">
+                      <div className="bg-code text-code-foreground p-4 rounded-b-lg font-mono text-sm overflow-x-auto shadow-md">
                         <pre>{`POST ${currentEndpoint.functionId}
 
 ${generateRequestExample(endpoint.name)}`}</pre>
@@ -348,7 +348,7 @@ ${generateRequestExample(endpoint.name)}`}</pre>
                     </TabsContent>
 
                     <TabsContent value="response" className="mt-0">
-                      <div className="bg-gray-900 text-gray-100 p-4 rounded-b-lg font-mono text-sm overflow-x-auto shadow-md">
+                      <div className="bg-code text-code-foreground p-4 rounded-b-lg font-mono text-sm overflow-x-auto shadow-md">
                         <pre>{generateResponseExample(endpoint.name)}</pre>
                       </div>
                     </TabsContent>

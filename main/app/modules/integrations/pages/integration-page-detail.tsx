@@ -45,12 +45,12 @@ export default function IntegrationPageDetail({ providerTag }: IntegrationPageDe
       <div className="flex-1 px-8 py-6 overflow-auto">
         {loading ? (
           <div className="flex justify-center items-center min-h-[80vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : error || !providerDetails ? (
           <div className="flex justify-center items-center min-h-[80vh] flex-col">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Error</h2>
-            <p className="text-gray-600">{error || "Failed to load integration details"}</p>
+            <h2 className="text-2xl font-bold text-primary mb-4">Error</h2>
+            <p className="text-muted-foreground">{error || "Failed to load integration details"}</p>
           </div>
         ) : (
           <div className="max-w-6xl mx-auto">
