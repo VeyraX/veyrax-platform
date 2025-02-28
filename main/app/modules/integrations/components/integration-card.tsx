@@ -13,7 +13,6 @@ import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../
 import { ManageDialog } from './integration-manage'
 import { useGetProviders } from '../api/quries.integrations'
 
-
 export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
   const router = useRouter()
   const [showSettings, setShowSettings] = useState(false);
@@ -28,7 +27,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
     setShowSettings(false);
   };
 
-  const handleSettingsConfirm = async (scopes: string[], enableIndex: boolean) => {
+  const handleSettingsConfirm = async (scopes: string[]) => {
     setShowSettings(false);
     try {
       const url = await initiateOAuthFlow(props.provider_tag, scopes);
@@ -38,12 +37,11 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
     }
   };
 
-  const handleApiKeyEnable = async () => {
-    try {
-      await enableApiKeyProvider(props.id);
-      props.onConnectionChange?.();
-    } catch (error) {
-      console.error(`Failed to enable ${props.name}:`, error);
+  const handleConnect = () => {
+    if (props.auth_method === 'api_key') {
+      setShowManage(true);
+    } else {
+      handleShowSettings(props as Provider);
     }
   };
   
@@ -86,44 +84,38 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
             </Button>
             
             {props.connected ? (
-              props.auth_method === 'api_key' ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => disconnectProvider(props.id).then(() => props.onConnectionChange?.())}
-                >
-                  Disable
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowManage(true)}
-                >
-                  Manage
-                  <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              )
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowManage(true)}
+              >
+                {props.auth_method === 'api_key' ? 'Manage' : 'Manage'}
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
             ) : (
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (props.auth_method === 'api_key') {
-                    handleApiKeyEnable();
-                  } else {
-                    handleShowSettings(props as Provider);
-                  }
-                }}
+                onClick={handleConnect}
               >
-                {props.auth_method === 'api_key' ? 'Enable' : 'Connect'}
+                Connect
+                <Plus className="h-4 w-4" />
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {props.connected && (
+      {props.auth_method === 'api_key' && (
+        <ManageDialog
+          provider={props}
+          open={showManage}
+          onClose={() => setShowManage(false)}
+          onUpdate={props.onConnectionChange || (() => {})}
+        />
+      )}
+      
+      {props.auth_method === 'oauth' && props.connected && (
         <ManageDialog
           provider={props}
           open={showManage}
@@ -142,7 +134,6 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
             provider_tag: props.provider_tag,
             auth_method: props.auth_method as 'oauth' | 'api_key',
             scopes: props.scopes,
-            has_index_capability: props.has_index_capability
           }}
           open={showSettings}
           onClose={handleSettingsClose}

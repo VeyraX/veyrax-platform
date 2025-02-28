@@ -22,6 +22,7 @@ export function Header({
   const router = useRouter();
   const [showCheck, setShowCheck] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'account' | 'api-key'>('account');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   
   const { data: profile } = useGetUserProfile();
@@ -30,6 +31,11 @@ export function Header({
     navigator.clipboard.writeText(window.location.href);
     setShowCheck(true);
     setTimeout(() => setShowCheck(false), 2000); 
+  }
+
+  const openSettings = (tab: 'account' | 'api-key') => {
+    setSettingsTab(tab);
+    setShowSettings(true);
   }
   
   return (
@@ -58,7 +64,7 @@ export function Header({
         )}
         
         <div className="flex items-center gap-2">
-          {isShowChat && (
+          {isShowChat ? (
             <>
               <Button variant="ghost" size="icon" onClick={handleCopyLink}>
                 {showCheck ? (
@@ -74,10 +80,24 @@ export function Header({
               </Button>
               <div className="h-6 w-[1px] bg-border" />
             </>
+          ) : (
+            <>
+              <Button variant="link" size="sm">
+                Docs
+              </Button>
+              <Button 
+                variant="link" 
+                size="sm"
+                onClick={() => openSettings('api-key')}
+              >
+                API Key
+              </Button>
+              <div className="h-6 w-[1px] bg-border" />
+            </>
           )}
           <UserDropdown 
             profile={profile || null}
-            onOpenSettings={() => setShowSettings(true)}
+            onOpenSettings={() => openSettings('account')}
           />
         </div>
       </header>
@@ -85,6 +105,7 @@ export function Header({
       <AccountSettingsDialog 
         open={showSettings} 
         onOpenChange={setShowSettings}
+        initialTab={settingsTab}
       />
     </>
   );

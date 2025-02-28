@@ -9,34 +9,12 @@ import openai
 
 
 def get_route_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
-    """
-    Extract the schema class from a route's endpoint function that
-    has been decorated with input_schema.
-    
-    Args:
-        route: A FastAPI route object
-        
-    Returns:
-        The schema class if the route function is decorated with input_schema,
-        otherwise None.
-    """
     if hasattr(route.endpoint, "__schema_class__"):
         return route.endpoint.__schema_class__
     return None
 
 
 def get_route_output_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
-    """
-    Extract the output schema class from a route's endpoint function that
-    has been decorated with output_schema.
-    
-    Args:
-        route: A FastAPI route object
-        
-    Returns:
-        The output schema class if the route function is decorated with output_schema,
-        otherwise None.
-    """
     if hasattr(route.endpoint, "__output_schema_class__"):
         return route.endpoint.__output_schema_class__
     return None
@@ -85,16 +63,6 @@ def format_schema_for_strict(schema: Any) -> None:
 
 
 def create_simplified_output_schema(schema_class: Type[BaseModel]) -> Dict[str, Any]:
-    """
-    Creates a simplified schema for output data, focusing on the structure
-    rather than validation details.
-    
-    Args:
-        schema_class: The Pydantic model class to convert
-        
-    Returns:
-        A simplified schema dictionary
-    """
     schema = schema_class.schema()
     
     simplified = {
@@ -144,6 +112,7 @@ def create_simplified_output_schema(schema_class: Type[BaseModel]) -> Dict[str, 
 def get_openai_function_schemas(
     route: routing.APIRouter
 ) -> Dict[str, Any]:
+    parameters = {}
     endpoint_func = route.endpoint
     input_schema_class = get_route_schema_class(route)
     output_schema_class = get_route_output_schema_class(route)
@@ -184,29 +153,25 @@ def get_openai_function_schemas(
             model = create_model(model_name, **model_fields)
             parameters = model.schema()
 
-        schema = ChatCompletionToolParam(
-            function=FunctionDefinition(
-                name=route_name,
-                description=route_description,
-                parameters=parameters,
-            ),
-            type="function",
-        )
+        schema_dict = {
+            "type": "function",
+            "function": {
+                "name": route_name,
+                "description": route_description,
+                "parameters": parameters,
+            }
+        }
         
         if output_schema_class:
             output_schema = create_simplified_output_schema(output_schema_class)
-            schema.function.__dict__['output_schema'] = output_schema
-            if hasattr(schema.function, 'returns'):
-                delattr(schema.function, 'returns')
+            schema_dict["function"]["output_schema"] = output_schema
         
-        return schema
+        return schema_dict
 
     
 
 
 if __name__ == "__main__":
-
-    ## Debugging
 
     class Basic(BaseModel):
         A: str  # Required string

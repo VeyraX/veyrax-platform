@@ -4,12 +4,53 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, createProviderIndex, deleteIndexData } from "../api/api.integrations";
+import { disconnectProvider, getUserApiKey, enableApiKeyProvider } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, RefreshCw } from "lucide-react";
+import { HelpCircle, RefreshCw, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
+  const [apiKey, setApiKey] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (open && provider.auth_method === 'api_key') {
+      fetchApiKey();
+    }
+  }, [open, provider.id]);
+
+  const fetchApiKey = async () => {
+    if (provider.auth_method !== 'api_key') return;
+    
+    setIsLoading(true);
+    try {
+      const key = await getUserApiKey(provider.id);
+      setApiKey(key || "");
+    } catch (error) {
+      console.error('Failed to fetch API key:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveApiKey = async () => {
+    setIsSaving(true);
+    try {
+      await enableApiKeyProvider(provider.id, apiKey.trim());
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error('Failed to save API key:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDisconnect = async () => {
     try {
       await disconnectProvider(provider.id);
@@ -17,15 +58,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       onClose();
     } catch (error) {
       console.error('Failed to disconnect provider:', error);
-    }
-  };
-
-  const handleRemoveIndex = async () => {
-    try {
-      await deleteIndexData(provider.provider_tag);
-      onUpdate();
-    } catch (error) {
-      console.error('Failed to remove index:', error);
     }
   };
 
@@ -44,71 +76,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
-          {provider.has_index_capability && (
-            <>
-              <div className="grid grid-cols-2 gap-4 items-center">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium leading-none">Index</h3>
-                  {provider.hasIndex && (provider.indexStatus === 'synced' || provider.indexStatus === 'failed') && (
-                    <RefreshCw 
-                      className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={async () => {
-                        try {
-                          await deleteIndexData(provider.provider_tag);
-                          await createProviderIndex(provider.id, provider.provider_tag);
-                          onUpdate();
-                        } catch (error) {
-                          console.error('Failed to resync index:', error);
-                        }
-                      }}
-                    />
-                  )}
-                </div>
-                {provider.hasIndex ? (
-                  <div className="flex flex-col gap-4 items-end">
-                    <Badge 
-                      variant="secondary"
-                      className={
-                        `transition-colors ${
-                          provider.indexStatus === 'synced' ? 'bg-green-900/20 text-green-400 dark:bg-green-900/30 dark:text-green-300' :
-                          provider.indexStatus === 'syncing' ? 'bg-blue-900/20 text-blue-400 dark:bg-blue-900/30 dark:text-blue-300' :
-                          provider.indexStatus === 'failed' ? 'bg-red-900/20 text-red-400 dark:bg-red-900/30 dark:text-red-300' :
-                          provider.indexStatus === 'pending' ? 'bg-yellow-900/20 text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                          'bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300'
-                        }`
-                      }
-                    >
-                      {provider.indexStatus ? provider.indexStatus.charAt(0).toUpperCase() + provider.indexStatus.slice(1) : 'Unknown'}
-                    </Badge>
-                    {provider.indexStatus !== 'syncing' && (
-                      <Badge variant="secondary" className="bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300 transition-colors">
-                        {provider.processedEntities || 0} documents
-                      </Badge>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await createProviderIndex(provider.id, provider.provider_tag);
-                          onUpdate();
-                        } catch (error) {
-                          console.error('Failed to create index:', error);
-                        }
-                      }}
-                    >
-                      Create Index
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <Separator />
-            </>
-          )}
-
           {/* OAuth Scopes */}
           {provider.auth_method === 'oauth' && provider.scopes && (
             <div className="grid grid-cols-2 gap-4">
@@ -134,26 +101,60 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
             </div>
           )}
+
+          {/* API Key Input */}
+          {provider.auth_method === 'api_key' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="apiKey" className="text-sm font-medium">API Key</Label>
+                </div>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="apiKey"
+                      type={showApiKey ? "text" : "password"}
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="Enter your API key"
+                      className="pr-10"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <Button 
+                    onClick={handleSaveApiKey} 
+                    disabled={isLoading || isSaving}
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex justify-between">
-          <div className="flex gap-2">
-          {provider.hasIndex && provider.indexStatus !== 'syncing' && (
+          {provider.auth_method === 'oauth' && (
+            <div className="flex gap-2">
               <Button
-                variant="ghost"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={handleRemoveIndex}
+                variant="destructive"
+                onClick={handleDisconnect}
               >
-                Remove Index
+                Disconnect
               </Button>
-            )}
-            <Button
-              variant="destructive"
-              onClick={handleDisconnect}
-            >
-              Disconnect
-            </Button>
-          </div>
+            </div>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

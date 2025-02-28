@@ -16,9 +16,10 @@ from integrations.jira.route import router as jira_router
 from integrations.confluence.route import router as confluence_router
 from integrations.outlook.route import router as outlook_router
 from integrations.dropbox.route import router as dropbox_router
-from vector_tools.route import router as vector_router
+from integrations.resend.route import router as resend_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
+
 
 import os
 import importlib
@@ -39,7 +40,8 @@ INTEGRATION_ROUTERS = {
     "jira": jira_router,
     "confluence": confluence_router,
     "outlook": outlook_router,
-    "dropbox": dropbox_router
+    "dropbox": dropbox_router,
+    "resend": resend_router
 }
 
 app = FastAPI()

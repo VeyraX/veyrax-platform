@@ -11,17 +11,16 @@ interface ScopeDialogProps {
   provider: Provider;
   open: boolean;
   onClose: () => void;
-  onConfirm: (scopes: string[], enableIndex: boolean) => void;
+  onConfirm: (scopes: string[]) => void;
 }
 
 export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogProps) {
   const [selectedScopes, setSelectedScopes] = useState<string[]>(
     provider.scopes?.map(scope => scope.scope) || []
   );
-  const [enableIndex, setEnableIndex] = useState(false);
 
   const handleConfirm = () => {
-    onConfirm(selectedScopes, enableIndex);
+    onConfirm(selectedScopes);
   };
 
   return (
