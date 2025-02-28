@@ -41,5 +41,17 @@ services:
     volumes:
       - redis_data:/data
 
+  test:
+    build:
+      context: ./aci_server  # Build from aci_server directory
+      dockerfile: Dockerfile.test  # Use the test-specific Dockerfile
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    entrypoint: ["/app/run_tests.sh"]  # Run the test script inside container
+    depends_on:
+      - aci_server
+      - redis
+
 volumes:
   redis_data:

@@ -1,7 +1,7 @@
 import pytest
 import base64
 import datetime
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 
 # NEW: define timestamp-based variables here
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d%H%M%S")

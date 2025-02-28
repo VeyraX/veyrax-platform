@@ -1,4 +1,4 @@
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 import pytest
 
 #########################################

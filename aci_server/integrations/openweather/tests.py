@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 
 def test_forecast_valid_params(base_setup):
     """

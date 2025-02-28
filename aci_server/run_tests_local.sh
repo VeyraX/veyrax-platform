@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-
+PYTHONPATH=$(pwd);
 
 set -e  # Exit on error
 
 # Check if .env file exists
-if [ ! -f .env ]; then
+if [ ! -f ../.env ]; then
     echo "Error: .env file not found"
     exit 1
 fi
@@ -19,13 +19,13 @@ find . -type f -name "*.pyc" -delete
 
 # Load .env variables
 set -a 
-source .env 2>/dev/null || { echo "Error loading .env file"; exit 1; }
+source ../.env 2>/dev/null || { echo "Error loading .env file"; exit 1; }
 set +a
 
 # Set search path based on optional folder argument
-SEARCH_PATH="aci_server/integrations"
+SEARCH_PATH="integrations"
 if [ ! -z "$1" ]; then
-    SEARCH_PATH="aci_server/integrations/$1"
+    SEARCH_PATH="integrations/$1"
     echo "Running tests for integration: $1"
 fi
 
@@ -33,7 +33,7 @@ fi
 find $SEARCH_PATH -name "tests.py" | while read -r test_file; do
     echo "Running tests in: $test_file"
     echo "----------------------------------------"
-    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$PYTHONPATH:./aci_server pytest "$test_file" -v -s -W ignore::DeprecationWarning -W ignore::UserWarning
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$PYTHONPATH:./aci_server:./ pytest "$test_file" -v -s -W ignore::DeprecationWarning -W ignore::UserWarning
     echo "----------------------------------------"
     echo
 done

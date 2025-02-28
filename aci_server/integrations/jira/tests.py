@@ -1,5 +1,5 @@
 import pytest
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 
 # ------------------------------------------------------------------------------
 # New helper fixtures for picking a valid project key and issue type
