@@ -15,7 +15,7 @@ from .client import DriveClient
 import os
 from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 
@@ -230,7 +230,7 @@ async def read_file(
         }
 
 @router.post("/set_permission", response_model=ApiResponse)
-@input_schema(schema_class=SetPermissionParams)
+@schema(input_schema_class=SetPermissionParams)
 async def set_permission(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -245,7 +245,7 @@ async def set_permission(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/list_permissions", response_model=ApiResponse)
-@input_schema(schema_class=ListPermissionsParams)
+@schema(input_schema_class=ListPermissionsParams)
 async def list_permissions(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -257,7 +257,7 @@ async def list_permissions(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/delete_permission")
-@input_schema(schema_class=DeletePermissionParams)
+@schema(input_schema_class=DeletePermissionParams)
 async def delete_permission(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -273,7 +273,7 @@ async def delete_permission(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/copy_file", response_model=ApiResponse)
-@input_schema(schema_class=CopyFileParams)
+@schema(input_schema_class=CopyFileParams)
 async def copy_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
