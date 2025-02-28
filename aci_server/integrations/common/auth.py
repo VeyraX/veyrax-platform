@@ -7,6 +7,7 @@ import os
 import base64
 import json
 import requests
+import aiohttp
 
 class TokenService:
     @staticmethod
@@ -187,12 +188,48 @@ class OutlookTokenRefresher(BaseTokenRefresher):
         except Exception as e:
             raise HTTPException(status_code=401, detail=f"Failed to refresh Outlook token: {str(e)}")
 
+class DropboxTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        """Refresh Dropbox OAuth token"""
+        client_id = os.getenv("DROPBOX_CLIENT_ID")
+        client_secret = os.getenv("DROPBOX_CLIENT_SECRET")
+        
+        if not client_id or not client_secret:
+            raise ValueError("Missing Dropbox client credentials in environment")
+            
+        refresh_token = token_data.get("refresh_token")
+        if not refresh_token:
+            raise ValueError("No refresh token available")
+            
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://api.dropboxapi.com/oauth2/token", data=data) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    raise ValueError(f"Failed to refresh token: {error_text}")
+                    
+                new_token_data = await response.json()
+                if "refresh_token" not in new_token_data:
+                    new_token_data["refresh_token"] = refresh_token
+                    
+                return await TokenService.update_token(request, token_data, new_token_data)
+
 class TokenRefresherFactory:
     _refreshers = {
-        'google': GoogleTokenRefresher,
-        'confluence': ConfluenceTokenRefresher,
-        'jira': JiraTokenRefresher,
-        'outlook': OutlookTokenRefresher
+        "gmail": GoogleTokenRefresher,
+        "google_calendar": GoogleTokenRefresher,
+        "google_drive": GoogleTokenRefresher,
+        "confluence": ConfluenceTokenRefresher,
+        "jira": JiraTokenRefresher,
+        "outlook": OutlookTokenRefresher,
+        "dropbox": DropboxTokenRefresher,  # Add Dropbox refresher
     }
 
     @classmethod

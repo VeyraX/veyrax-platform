@@ -5,13 +5,16 @@ from .schema import (
     DatabaseFilters, PageFilters, SearchResult, ApiResponse,
     ListDatabasesParams, GetDatabaseParams, ListDatabasePagesParams,
     QueryDatabaseParams, CreatePageParams, GetPageParams,
-    UpdatePageParams, SearchParams
+    UpdatePageParams, SearchParams,
+    ListDatabasesResponse, GetDatabaseResponse, ListDatabasePagesResponse,
+    QueryDatabaseResponse, CreatePageResponse, GetPageResponse,
+    UpdatePageResponse, SearchResponse
 )
 from .service import NotionService
 from .client import NotionClient
 import os
 from ..common.auth import TokenService
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 
@@ -35,7 +38,7 @@ async def get_notion_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Notion service: {str(e)}")
 
 @router.post("/list_databases", response_model=ApiResponse)
-@input_schema(schema_class=ListDatabasesParams)
+@schema(input_schema_class=ListDatabasesParams, output_schema_class=ListDatabasesResponse)
 async def list_databases(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -54,7 +57,7 @@ async def list_databases(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_database", response_model=ApiResponse)
-@input_schema(schema_class=GetDatabaseParams)
+@schema(input_schema_class=GetDatabaseParams, output_schema_class=GetDatabaseResponse)
 async def get_database(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -70,7 +73,7 @@ async def get_database(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_database_pages", response_model=ApiResponse)
-@input_schema(schema_class=ListDatabasePagesParams)
+@schema(input_schema_class=ListDatabasePagesParams, output_schema_class=ListDatabasePagesResponse)
 async def list_database_pages(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -90,7 +93,7 @@ async def list_database_pages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/query_database", response_model=ApiResponse)
-@input_schema(schema_class=QueryDatabaseParams)
+@schema(input_schema_class=QueryDatabaseParams, output_schema_class=QueryDatabaseResponse)
 async def query_database(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -112,7 +115,7 @@ async def query_database(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_page", response_model=ApiResponse)
-@input_schema(schema_class=CreatePageParams)
+@schema(input_schema_class=CreatePageParams, output_schema_class=CreatePageResponse)
 async def create_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -128,7 +131,7 @@ async def create_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_page", response_model=ApiResponse)
-@input_schema(schema_class=GetPageParams)
+@schema(input_schema_class=GetPageParams, output_schema_class=GetPageResponse)
 async def get_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -144,7 +147,7 @@ async def get_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_page", response_model=ApiResponse)
-@input_schema(schema_class=UpdatePageParams)
+@schema(input_schema_class=UpdatePageParams, output_schema_class=UpdatePageResponse)
 async def update_page(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -163,7 +166,7 @@ async def update_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=ApiResponse)
-@input_schema(schema_class=SearchParams)
+@schema(input_schema_class=SearchParams, output_schema_class=SearchResponse)
 async def search(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)

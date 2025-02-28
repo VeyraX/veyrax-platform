@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { IntegrationCardProps, Provider } from './types.integrations'
+import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint } from './types.integrations'
 import { getAuthHeaders } from '@/lib/actions/actions'
 
 const supabase = createClient()
@@ -201,3 +201,139 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
     logoUrl: up.providers.logo_url
   })) || []
 }
+
+export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
+  const { data: provider, error } = await supabase
+    .from('providers')
+    .select('*')
+    .eq('provider_tag', providerTag)
+    .single();
+
+  if (error) {
+    console.error('Error fetching provider details:', error);
+    throw error;
+  }
+
+  let inputSchema = {};
+  let uiComponents = [];
+  
+  try {
+    inputSchema = typeof provider.input_schema === 'string' 
+      ? JSON.parse(provider.input_schema) 
+      : provider.input_schema || {};
+  } catch (e) {
+    console.error('Error parsing input schema:', e);
+  }
+  
+  try {
+    uiComponents = typeof provider.ui_component === 'string' 
+      ? JSON.parse(provider.ui_component) 
+      : provider.ui_component || [];
+    
+    if (!Array.isArray(uiComponents)) {
+      uiComponents = [uiComponents].filter(Boolean);
+    }
+  } catch (e) {
+    console.error('Error parsing UI components:', e);
+    uiComponents = [];
+  }
+
+  const totalEndpoints = Object.keys(inputSchema).length;
+
+  let totalParameters = 0;
+  Object.values(inputSchema).forEach((endpoint: any) => {
+    if (endpoint?.function?.parameters?.properties) {
+      const topLevelParams = Object.keys(endpoint.function.parameters.properties).length;
+      
+      let nestedParams = 0;
+      Object.entries(endpoint.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
+        if (propValue.$ref && endpoint.function.parameters.$defs) {
+          const defName = propValue.$ref.split('/').pop();
+          const definition = endpoint.function.parameters.$defs[defName];
+          
+          if (definition?.properties) {
+            nestedParams += Object.keys(definition.properties).length;
+          }
+        }
+      });
+      
+      totalParameters += topLevelParams + nestedParams;
+    }
+  });
+
+  const totalComponents = uiComponents.length;
+
+  const endpointsList: ProviderEndpoint[] = Object.entries(inputSchema).map(([key, value]: [string, any]) => {
+    const functionName = value?.function?.name || key;
+    const description = value?.function?.description || '';
+    
+    let paramCount = 0;
+    if (value?.function?.parameters?.properties) {
+      paramCount = Object.keys(value.function.parameters.properties).length;
+      
+      Object.entries(value.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
+        if (propValue.$ref && value.function.parameters.$defs) {
+          const defName = propValue.$ref.split('/').pop();
+          const definition = value.function.parameters.$defs[defName];
+          
+          if (definition?.properties) {
+            paramCount += Object.keys(definition.properties).length;
+          }
+        }
+      });
+    }
+    
+    return {
+      name: key,
+      functionId: functionName,
+      description,
+      paramCount
+    };
+  });
+
+  return {
+    provider,
+    totalEndpoints,
+    totalParameters,
+    totalComponents,
+    endpointsList
+  };
+};
+
+export const findComponentForEndpoint = async (providerTag: string, endpointName: string): Promise<any> => {
+  const { data: provider, error } = await supabase
+    .from('providers')
+    .select('ui_component')
+    .eq('provider_tag', providerTag)
+    .single();
+
+  if (error) {
+    console.error('Error fetching provider components:', error);
+    throw error;
+  }
+
+  let uiComponents = [];
+  try {
+    uiComponents = typeof provider.ui_component === 'string' 
+      ? JSON.parse(provider.ui_component) 
+      : provider.ui_component || [];
+    
+    if (!Array.isArray(uiComponents)) {
+      uiComponents = [uiComponents].filter(Boolean);
+    }
+  } catch (e) {
+    console.error('Error parsing UI components:', e);
+    return null;
+  }
+
+  const componentWithRelatedEndpoint = uiComponents.find(component => 
+    component.related_endpoints && 
+    component.related_endpoints.includes(endpointName)
+  );
+  
+  if (componentWithRelatedEndpoint) {
+    return componentWithRelatedEndpoint;
+  }
+  
+  return uiComponents.length > 0 ? uiComponents[0] : null;
+};

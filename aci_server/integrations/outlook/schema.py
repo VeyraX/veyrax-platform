@@ -155,3 +155,48 @@ class UpdateEventParams(BaseModel):
 
 class DeleteEventParams(BaseModel):
     event_id: str
+
+# Response schema classes
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class CreateDraftResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class SendMessageResponse(BaseModel):
+    data: Dict[str, str]
+    message: Optional[str] = None
+
+class DeleteMessageResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class ListCalendarsResponse(BaseModel):
+    data: CalendarList
+    message: Optional[str] = None
+
+class ListEventsResponse(BaseModel):
+    data: EventList
+    message: Optional[str] = None
+
+class GetEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class CreateEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class UpdateEventResponse(BaseModel):
+    data: Event
+    message: Optional[str] = None
+
+class DeleteEventResponse(BaseModel):
+    status: str
+    message: Optional[str] = None

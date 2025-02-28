@@ -213,3 +213,52 @@ class GetTeamParams(BaseModel):
 class ListWorkflowStatesParams(BaseModel):
     cursor: Optional[str] = None
     max_results: Optional[int] = 50
+
+# Response schema classes
+class ListIssuesResponse(BaseModel):
+    data: IssueList
+    message: Optional[str] = None
+
+class SearchIssuesResponse(BaseModel):
+    data: IssueList
+    message: Optional[str] = None
+
+class FilterIssuesResponse(BaseModel):
+    data: IssueList
+    message: Optional[str] = None
+
+class CreateIssueResponse(BaseModel):
+    data: Issue
+    message: Optional[str] = None
+
+class UpdateIssueResponse(BaseModel):
+    data: Issue
+    message: Optional[str] = None
+
+class CommentIssueResponse(BaseModel):
+    data: CommentResponse
+    message: Optional[str] = None
+
+class ListProjectsResponse(BaseModel):
+    data: ProjectList
+    message: Optional[str] = None
+
+class GetProjectResponse(BaseModel):
+    data: Project
+    message: Optional[str] = None
+
+class ListUsersResponse(BaseModel):
+    data: UserList
+    message: Optional[str] = None
+
+class ListTeamsResponse(BaseModel):
+    data: TeamList
+    message: Optional[str] = None
+
+class GetTeamResponse(BaseModel):
+    data: Team
+    message: Optional[str] = None
+
+class ListWorkflowStatesResponse(BaseModel):
+    data: WorkflowStateList
+    message: Optional[str] = None

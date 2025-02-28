@@ -3,17 +3,144 @@
       "name": "NotionPageCard",
       "version": "1.0.0",
       "description": "A React component for displaying Notion pages",
+      "related_endpoints": ["get_page", "create_page", "update_page", "list_database_pages", "query_database", "search"],
       "component": {
         "jsx": "function NotionPageCard(props) {\n  const page = props.data;\n  if (!page) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return 'N/A';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return 'N/A';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n\n  const formatTime = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleTimeString('en-US', {\n      hour: 'numeric',\n      minute: '2-digit',\n      hour12: true\n    });\n  };\n\n  const lastEdited = formatDate(page.last_edited_time) + ' at ' + formatTime(page.last_edited_time);\n  const created = formatDate(page.created_time);\n\n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: '16px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#f3f4f6',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#4b5563'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    meta: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    detailRow: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '8px',\n      color: '#64748b'\n    },\n    emoji: {\n      marginRight: '8px',\n      fontSize: '14px'\n    },\n    detailText: {\n      fontSize: '14px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap'\n    },\n    properties: {\n      marginTop: '12px',\n      borderTop: '1px solid #e2e8f0',\n      paddingTop: '12px'\n    },\n    property: {\n      marginBottom: '8px'\n    },\n    propertyName: {\n      fontSize: '13px',\n      color: '#94a3b8',\n      marginBottom: '2px'\n    },\n    propertyValue: {\n      fontSize: '14px',\n      color: '#334155'\n    }\n  };\n  \n  // Extract a few key properties to display\n  const displayProperties = [];\n  if (page.properties) {\n    const propertyKeys = Object.keys(page.properties).slice(0, 3); // Show first 3 properties\n    for (const key of propertyKeys) {\n      if (key !== 'Title' && key !== 'Name') { // Skip title as it's already shown\n        const prop = page.properties[key];\n        let value = 'N/A';\n        \n        // Try to extract a displayable value based on property type\n        if (prop.type === 'rich_text' && prop.rich_text && prop.rich_text.length > 0) {\n          value = prop.rich_text.map(t => t.plain_text).join('');\n        } else if (prop.type === 'select' && prop.select) {\n          value = prop.select.name;\n        } else if (prop.type === 'multi_select' && prop.multi_select) {\n          value = prop.multi_select.map(s => s.name).join(', ');\n        } else if (prop.type === 'date' && prop.date) {\n          value = formatDate(prop.date.start);\n        } else if (prop.type === 'checkbox') {\n          value = prop.checkbox ? '✅ Yes' : '❌ No';\n        } else if (prop.type === 'number') {\n          value = prop.number !== null ? prop.number.toString() : 'N/A';\n        }\n        \n        displayProperties.push({ name: key, value });\n      }\n    }\n  }\n  \n  return React.createElement('div', { style: styles.card },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.iconContainer },\n        React.createElement('span', { style: styles.iconText }, '📄')\n      ),\n      React.createElement('div', { style: styles.titleContainer },\n        React.createElement('div', { style: styles.title }, page.title || 'Untitled'),\n        React.createElement('div', { style: styles.meta }, 'Last edited: ' + lastEdited),\n        React.createElement('div', { style: styles.meta }, 'Created: ' + created)\n      ),\n      page.url && React.createElement('a', { \n        href: page.url, \n        target: '_blank', \n        rel: 'noopener noreferrer',\n        style: styles.externalLink\n      }, React.createElement('span', { style: styles.linkText }, '🔗'))\n    ),\n    \n    displayProperties.length > 0 && React.createElement('div', { style: styles.properties },\n      displayProperties.map((prop, index) => \n        React.createElement('div', { key: index, style: styles.property },\n          React.createElement('div', { style: styles.propertyName }, prop.name),\n          React.createElement('div', { style: styles.propertyValue }, prop.value)\n        )\n      )\n    )\n  );\n}"
       },
-      "schemaRef": "schema.Page"
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "page_id_1",
+              "title": "Project Roadmap",
+              "url": "https://www.notion.so/Project-Roadmap-123456",
+              "created_time": "2023-06-10T09:00:00.000Z",
+              "last_edited_time": "2023-06-15T14:30:00.000Z",
+              "properties": {
+                "Status": {
+                  "type": "select",
+                  "select": {
+                    "name": "In Progress",
+                    "color": "blue"
+                  }
+                },
+                "Priority": {
+                  "type": "select",
+                  "select": {
+                    "name": "High",
+                    "color": "red"
+                  }
+                },
+                "Due Date": {
+                  "type": "date",
+                  "date": {
+                    "start": "2023-07-15"
+                  }
+                }
+              }
+            },
+            {
+              "id": "page_id_2",
+              "title": "Meeting Notes",
+              "url": "https://www.notion.so/Meeting-Notes-789012",
+              "created_time": "2023-06-12T11:45:00.000Z",
+              "last_edited_time": "2023-06-12T13:20:00.000Z",
+              "properties": {
+                "Date": {
+                  "type": "date",
+                  "date": {
+                    "start": "2023-06-12"
+                  }
+                },
+                "Attendees": {
+                  "type": "multi_select",
+                  "multi_select": [
+                    { "name": "John Doe", "color": "blue" },
+                    { "name": "Jane Smith", "color": "green" }
+                  ]
+                },
+                "Follow-up Required": {
+                  "type": "checkbox",
+                  "checkbox": true
+                }
+              }
+            },
+            {
+              "id": "page_id_3",
+              "title": "Product Requirements",
+              "url": "https://www.notion.so/Product-Requirements-345678",
+              "created_time": "2023-06-05T08:30:00.000Z",
+              "last_edited_time": "2023-06-14T16:20:00.000Z",
+              "properties": {
+                "Status": {
+                  "type": "select",
+                  "select": {
+                    "name": "Completed",
+                    "color": "green"
+                  }
+                },
+                "Assigned To": {
+                  "type": "rich_text",
+                  "rich_text": [
+                    { "plain_text": "Product Team", "type": "text" }
+                  ]
+                },
+                "Version": {
+                  "type": "number",
+                  "number": 2.1
+                }
+              }
+            }
+          ],
+          "next_cursor": "cursor_xyz123",
+          "has_more": true
+        }
+      },
+      "schemaRef": ["schema.Page", "schema.PageList"]
     },
     {
       "name": "NotionDatabaseTable",
       "version": "1.0.0",
       "description": "A React component for displaying Notion databases as a table",
+      "related_endpoints": ["list_databases", "get_database"],
       "component": {
         "jsx": "function NotionDatabaseTable(props) {\n  const databases = props.data?.items || [];\n  if (!databases || databases.length === 0) return React.createElement('div', null, 'No databases found');\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      maxWidth: '100%',\n      overflowX: 'auto'\n    },\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontSize: '14px',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      borderRadius: '8px',\n      overflow: 'hidden'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    tr: {\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      color: '#334155',\n      verticalAlign: 'middle'\n    },\n    iconCell: {\n      width: '40px',\n      textAlign: 'center'\n    },\n    icon: {\n      fontSize: '20px',\n      display: 'inline-block'\n    },\n    link: {\n      color: '#3b82f6',\n      textDecoration: 'none',\n      fontWeight: '500'\n    },\n    linkIcon: {\n      fontSize: '14px',\n      marginLeft: '4px'\n    },\n    actionButton: {\n      backgroundColor: '#f1f5f9',\n      border: 'none',\n      borderRadius: '4px',\n      padding: '6px 10px',\n      fontSize: '13px',\n      color: '#475569',\n      cursor: 'pointer',\n      display: 'inline-flex',\n      alignItems: 'center',\n      marginRight: '8px'\n    },\n    buttonIcon: {\n      marginRight: '4px',\n      fontSize: '14px'\n    },\n    pagination: {\n      display: 'flex',\n      justifyContent: 'flex-end',\n      padding: '12px 0',\n      alignItems: 'center'\n    },\n    pageInfo: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginRight: '16px'\n    },\n    pageButton: {\n      backgroundColor: '#f8fafc',\n      border: '1px solid #e2e8f0',\n      borderRadius: '4px',\n      padding: '6px 12px',\n      fontSize: '14px',\n      color: '#475569',\n      cursor: 'pointer',\n      marginLeft: '8px'\n    },\n    disabledButton: {\n      opacity: 0.5,\n      cursor: 'not-allowed'\n    }\n  };\n  \n  return React.createElement('div', { style: styles.container },\n    React.createElement('table', { style: styles.table },\n      React.createElement('thead', { style: styles.thead },\n        React.createElement('tr', null,\n          React.createElement('th', { style: {...styles.th, ...styles.iconCell} }, ''),\n          React.createElement('th', { style: styles.th }, 'Database Name'),\n          React.createElement('th', { style: styles.th }, 'Actions')\n        )\n      ),\n      React.createElement('tbody', null,\n        databases.map((db, index) => \n          React.createElement('tr', { key: index, style: styles.tr },\n            React.createElement('td', { style: {...styles.td, ...styles.iconCell} },\n              React.createElement('span', { style: styles.icon }, '🗃️')\n            ),\n            React.createElement('td', { style: styles.td },\n              db.url \n                ? React.createElement('a', { \n                    href: db.url, \n                    target: '_blank', \n                    rel: 'noopener noreferrer',\n                    style: styles.link\n                  }, \n                  db.title || 'Untitled Database',\n                  React.createElement('span', { style: styles.linkIcon }, '↗️')\n                )\n                : (db.title || 'Untitled Database')\n            ),\n            React.createElement('td', { style: styles.td },\n              React.createElement('button', { \n                style: styles.actionButton,\n                onClick: () => console.log('View pages in', db.id)\n              },\n                React.createElement('span', { style: styles.buttonIcon }, '📄'),\n                'View Pages'\n              ),\n              React.createElement('button', { \n                style: styles.actionButton,\n                onClick: () => console.log('View schema of', db.id)\n              },\n                React.createElement('span', { style: styles.buttonIcon }, '🔍'),\n                'View Schema'\n              )\n            )\n          )\n        )\n      )\n    ),\n    props.data.has_more && React.createElement('div', { style: styles.pagination },\n      React.createElement('div', { style: styles.pageInfo },\n        'Showing ' + databases.length + ' databases'\n      ),\n      React.createElement('button', { \n        style: styles.pageButton,\n        onClick: () => console.log('Load more databases', props.data.next_cursor)\n      }, 'Load More')\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "database_id_1",
+              "title": "Project Tracker",
+              "url": "https://www.notion.so/Project-Tracker-123456",
+              "created_time": "2023-05-15T10:00:00.000Z",
+              "last_edited_time": "2023-06-10T14:30:00.000Z"
+            },
+            {
+              "id": "database_id_2",
+              "title": "Content Calendar",
+              "url": "https://www.notion.so/Content-Calendar-789012",
+              "created_time": "2023-06-01T09:15:00.000Z",
+              "last_edited_time": "2023-06-14T11:45:00.000Z"
+            },
+            {
+              "id": "database_id_3",
+              "title": "Customer Feedback",
+              "url": "https://www.notion.so/Customer-Feedback-345678",
+              "created_time": "2023-05-20T13:30:00.000Z",
+              "last_edited_time": "2023-06-12T16:20:00.000Z"
+            },
+            {
+              "id": "database_id_4",
+              "title": "Team Directory",
+              "url": "https://www.notion.so/Team-Directory-901234",
+              "created_time": "2023-04-10T08:45:00.000Z",
+              "last_edited_time": "2023-06-05T10:15:00.000Z"
+            }
+          ],
+          "next_cursor": "cursor_abc789",
+          "has_more": true
+        }
       },
       "schemaRef": "schema.DatabaseList"
     }

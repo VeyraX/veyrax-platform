@@ -3,34 +3,36 @@ from typing import Optional, Dict, Any
 from .schema import (
     FileList, FileFilters, FolderCreate, FileMove, DropboxFile, ApiResponse,
     ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams,
-    DownloadFileParams, DeleteFileParams, MoveFileParams, ReadFileParams
+    DownloadFileParams, DeleteFileParams, MoveFileParams, ReadFileParams,
+    ListFilesResponse, GetFileResponse, CreateFolderResponse, UploadFileResponse,
+    DownloadFileResponse, DeleteFileResponse, MoveFileResponse, ReadFileResponse
 )
 from .service import DropboxService
+from .client import DropboxClient
 import os
-import pickle
 from pydantic import ValidationError
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.utils import format_validation_error
+from ..common.auth import TokenService, DropboxTokenRefresher
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
 
 async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
     try:
-        if os.path.exists('credentials/dropbox_token.pickle'):
-            with open('credentials/dropbox_token.pickle', 'rb') as token_file:
-                creds = pickle.load(token_file)
-                token_str = creds.get('access_token')
-                if not token_str:
-                    raise HTTPException(status_code=401, detail="Access token not found in credentials")
-        else:
-            raise HTTPException(status_code=404, detail="Credentials file not found")
+        token_data = await TokenService.get_user_token(request, 'dropbox')
         
-        return DropboxService(token_str)
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await DropboxTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+        
+        return DropboxService(token_data['access_token'])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to initialize Dropbox service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
-@input_schema(schema_class=ListFilesParams)
+@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse)
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -46,7 +48,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
-@input_schema(schema_class=GetFileParams)
+@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse)
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -62,7 +64,7 @@ async def get_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
-@input_schema(schema_class=CreateFolderParams)
+@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse)
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -78,7 +80,7 @@ async def create_folder(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
-@input_schema(schema_class=UploadFileParams)
+@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse)
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -98,7 +100,7 @@ async def upload_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/download_file")
-@input_schema(schema_class=DownloadFileParams)
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -116,7 +118,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @router.post("/delete_file", response_model=ApiResponse)
-@input_schema(schema_class=DeleteFileParams)
+@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse)
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -132,7 +134,7 @@ async def delete_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
-@input_schema(schema_class=MoveFileParams)
+@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse)
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -148,7 +150,7 @@ async def move_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/read_file")
-@input_schema(schema_class=ReadFileParams)
+@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse)
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)

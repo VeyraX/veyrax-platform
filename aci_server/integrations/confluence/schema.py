@@ -61,6 +61,9 @@ class ApiResponse(BaseModel):
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
     message: Optional[str] = None
 
+class DeletePageResponse(BaseModel):
+    message: str
+
 class GetSpacesParams(BaseModel):
     pass 
 
@@ -89,3 +92,31 @@ class SearchContentParams(BaseModel):
 
 class DeletePageParams(BaseModel):
     page_id: str
+
+class SpacesResponse(BaseModel):
+    data: SpaceList
+    message: Optional[str] = None
+
+class PagesResponse(BaseModel):
+    data: PageList
+    message: Optional[str] = None
+
+class PageResponse(BaseModel):
+    data: PageSchema
+    message: Optional[str] = None
+
+class CreatePageResponse(BaseModel):
+    data: PageSchema
+    message: Optional[str] = None
+
+class UpdatePageResponse(BaseModel):
+    data: PageSchema
+    message: Optional[str] = None
+
+class SearchContentResponse(BaseModel):
+    data: PageList
+    message: Optional[str] = None
+
+class DeletePageResponse(BaseModel):
+    message: str
+    data: Optional[Any] = None

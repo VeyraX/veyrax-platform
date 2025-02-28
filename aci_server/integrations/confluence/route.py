@@ -19,9 +19,18 @@ from .schema import (
     UpdatePageParams,
     SearchContentParams,
     DeletePageParams,
+    SpaceList,
+    PageList,
+    SpacesResponse,
+    PagesResponse,
+    PageResponse,
+    CreatePageResponse,
+    UpdatePageResponse,
+    SearchContentResponse,
+    DeletePageResponse
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 
@@ -40,7 +49,7 @@ async def get_confluence_service(request: FastAPIRequest):
     return ConfluenceService(client)
 
 @router.post("/spaces", response_model=ApiResponse)
-@input_schema(schema_class=GetSpacesParams)
+@schema(input_schema_class=GetSpacesParams, output_schema_class=SpacesResponse)
 async def get_spaces(
     params: Dict[str, Any] = Body({}),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -55,9 +64,8 @@ async def get_spaces(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.post("/pages", response_model=ApiResponse)
-@input_schema(schema_class=GetPagesParams)
+@schema(input_schema_class=GetPagesParams, output_schema_class=PagesResponse)
 async def get_pages(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -74,7 +82,7 @@ async def get_pages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_page", response_model=ApiResponse)
-@input_schema(schema_class=GetPageParams)
+@schema(input_schema_class=GetPageParams, output_schema_class=PageResponse)
 async def get_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -90,7 +98,7 @@ async def get_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_page", response_model=ApiResponse)
-@input_schema(schema_class=CreatePageParams)
+@schema(input_schema_class=CreatePageParams, output_schema_class=CreatePageResponse)
 async def create_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -106,7 +114,7 @@ async def create_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_page", response_model=ApiResponse)
-@input_schema(schema_class=UpdatePageParams)
+@schema(input_schema_class=UpdatePageParams, output_schema_class=UpdatePageResponse)
 async def update_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -122,7 +130,7 @@ async def update_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=ApiResponse)
-@input_schema(schema_class=SearchContentParams)
+@schema(input_schema_class=SearchContentParams, output_schema_class=SearchContentResponse)
 async def search_content(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -144,7 +152,7 @@ async def search_content(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_page", response_model=ApiResponse)
-@input_schema(schema_class=DeletePageParams)
+@schema(input_schema_class=DeletePageParams, output_schema_class=DeletePageResponse)
 async def delete_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -153,7 +161,7 @@ async def delete_page(
         validated_params = DeletePageParams(**params)
         return service.delete_page(validated_params.page_id)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeletePageParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

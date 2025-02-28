@@ -8,28 +8,6 @@ from pydantic import create_model
 import openai
 
 
-def _get_json_type(type_):
-    """Helper function to convert Python/Pydantic types to JSON schema types"""
-    type_str = str(type_).lower()
-    if "int" in type_str:
-        return "integer"
-    elif "float" in type_str or "decimal" in type_str:
-        return "number"
-    elif "bool" in type_str:
-        return "boolean"
-    elif "dict" in type_str or "mapping" in type_str:
-        return "object"
-    elif "list" in type_str or "sequence" in type_str:
-        return "array"
-    return "string"
-
-
-def _process_pydantic_model(model_type, strict: bool):
-    schema = model_type.schema()
-    format_schema_for_strict(schema)
-    return schema
-
-
 def get_route_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
     """
     Extract the schema class from a route's endpoint function that
@@ -46,6 +24,23 @@ def get_route_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]
         return route.endpoint.__schema_class__
     return None
 
+
+def get_route_output_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
+    """
+    Extract the output schema class from a route's endpoint function that
+    has been decorated with output_schema.
+    
+    Args:
+        route: A FastAPI route object
+        
+    Returns:
+        The output schema class if the route function is decorated with output_schema,
+        otherwise None.
+    """
+    if hasattr(route.endpoint, "__output_schema_class__"):
+        return route.endpoint.__output_schema_class__
+    return None
+
 K = TypeVar("K")
 
 
@@ -55,12 +50,6 @@ def remove_if_exists(k: K, d: dict[K, Any]) -> None:
         d.pop(k)
 
 def format_schema_for_strict(schema: Any) -> None:
-    """
-    Recursively set additionalProperties to False and replace
-    oneOf and allOf with anyOf, required for OpenAI structured outputs.
-    Additionally, remove all defaults and set all fields to required.
-    This may not be equivalent to the original schema.
-    """
     if isinstance(schema, dict):
         if "type" in schema and schema["type"] == "object":
             schema["additionalProperties"] = False
@@ -95,39 +84,85 @@ def format_schema_for_strict(schema: Any) -> None:
             format_schema_for_strict(v)
 
 
+def create_simplified_output_schema(schema_class: Type[BaseModel]) -> Dict[str, Any]:
+    """
+    Creates a simplified schema for output data, focusing on the structure
+    rather than validation details.
+    
+    Args:
+        schema_class: The Pydantic model class to convert
+        
+    Returns:
+        A simplified schema dictionary
+    """
+    schema = schema_class.schema()
+    
+    simplified = {
+        "type": "object",
+        "properties": {}
+    }
+    
+    def simplify_schema(schema_part):
+        if not isinstance(schema_part, dict):
+            return schema_part
+            
+        result = {}
+        
+        if "type" in schema_part:
+            result["type"] = schema_part["type"]
+            
+            if schema_part["type"] == "object" and "properties" in schema_part:
+                result["properties"] = {}
+                for prop_name, prop_schema in schema_part["properties"].items():
+                    result["properties"][prop_name] = simplify_schema(prop_schema)
+            
+            elif schema_part["type"] == "array" and "items" in schema_part:
+                result["items"] = simplify_schema(schema_part["items"])
+        
+        elif any(key in schema_part for key in ["anyOf", "oneOf", "allOf"]):
+            for key in ["anyOf", "oneOf", "allOf"]:
+                if key in schema_part:
+                    if schema_part[key] and len(schema_part[key]) > 0:
+                        return simplify_schema(schema_part[key][0])
+        
+        elif "$ref" in schema_part:
+            ref = schema_part["$ref"]
+            if ref.startswith("#/$defs/"):
+                ref_name = ref.split("/")[-1]
+                if "$defs" in schema and ref_name in schema["$defs"]:
+                    return simplify_schema(schema["$defs"][ref_name])
+        
+        return result or schema_part
+    
+    if "properties" in schema:
+        for prop_name, prop_schema in schema["properties"].items():
+            simplified["properties"][prop_name] = simplify_schema(prop_schema)
+    
+    return simplified
 
 
 def get_openai_function_schemas(
     route: routing.APIRouter
 ) -> Dict[str, Any]:
-    """
-    Generate OpenAI function schema from FastAPI route and optional schema class.
-    
-    Args:
-        route: The FastAPI route
-        strict: Whether to enforce strict schema validation
-        
-    Returns:
-        Dict containing the OpenAI function schema
-    """
     endpoint_func = route.endpoint
-    schema_class = get_route_schema_class(route)
-
+    input_schema_class = get_route_schema_class(route)
+    output_schema_class = get_route_output_schema_class(route)
     
-    # Get route metadata for schema
     route_name = f"{route.path}" # route.name or route.path.split("/")[-1]
     route_description = (endpoint_func.__doc__ or f"Handle {list(route.methods)[0]} {route.path}").strip()
     
-    # If schema_class is provided, use it instead of extracting from function signature
-    if schema_class:
-        schema = openai.pydantic_function_tool(schema_class)
+    if input_schema_class:
+        schema = openai.pydantic_function_tool(input_schema_class)
         schema['function']['name'] = route_name
         schema['function']['description'] = route_description
-
-        return schema
         
+        if output_schema_class:
+            output_schema = create_simplified_output_schema(output_schema_class)
+            schema['function']['output_schema'] = output_schema
+        
+        return schema
+    
     else:
-        # Original logic for extracting schema from function signature
         signature = inspect.signature(endpoint_func)
         model_fields = {}
 
@@ -135,11 +170,9 @@ def get_openai_function_schemas(
             if param_name == 'service':
                 continue
             
-            # Get the type hint
             param_type = (
                 param.annotation if param.annotation != inspect.Parameter.empty else Any
             )
-            # Check if the parameter has a default value
             if param.default != inspect.Parameter.empty:
                 model_fields[param_name] = (param_type, param.default)
             else:
@@ -151,21 +184,22 @@ def get_openai_function_schemas(
             model = create_model(model_name, **model_fields)
             parameters = model.schema()
 
-            
-    
+        schema = ChatCompletionToolParam(
+            function=FunctionDefinition(
+                name=route_name,
+                description=route_description,
+                parameters=parameters,
+            ),
+            type="function",
+        )
         
-    # Construct the tool schema
-    schema = ChatCompletionToolParam(
-        function=FunctionDefinition(
-            name=route_name,
-            description=route_description,
-            parameters=parameters,
-        ),
-        type="function",
-    )
-
-    
-    return schema
+        if output_schema_class:
+            output_schema = create_simplified_output_schema(output_schema_class)
+            schema.function.__dict__['output_schema'] = output_schema
+            if hasattr(schema.function, 'returns'):
+                delattr(schema.function, 'returns')
+        
+        return schema
 
     
 

@@ -7,12 +7,16 @@ from .schema import (
     ListIssuesParams, SearchIssuesParams, FilterIssuesParams,
     CreateIssueParams, UpdateIssueParams, CommentIssueParams,
     ListProjectsParams, GetProjectParams, ListUsersParams,
-    ListTeamsParams, GetTeamParams, ListWorkflowStatesParams
+    ListTeamsParams, GetTeamParams, ListWorkflowStatesParams,
+    ListIssuesResponse, SearchIssuesResponse, FilterIssuesResponse,
+    CreateIssueResponse, UpdateIssueResponse, CommentIssueResponse,
+    ListProjectsResponse, GetProjectResponse, ListUsersResponse,
+    ListTeamsResponse, GetTeamResponse, ListWorkflowStatesResponse
 )
 from .service import LinearService
 from .client import LinearClient
 from ..common.auth import TokenService
-from ..common.input_schema_decorator import input_schema
+from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 
@@ -36,7 +40,7 @@ async def get_linear_service(request: FastAPIRequest) -> LinearService:
         )
 
 @router.post("/list_issues", response_model=ApiResponse)
-@input_schema(schema_class=ListIssuesParams)
+@schema(input_schema_class=ListIssuesParams, output_schema_class=ListIssuesResponse)
 async def list_issues(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -55,7 +59,7 @@ async def list_issues(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search_issues", response_model=ApiResponse)
-@input_schema(schema_class=SearchIssuesParams)
+@schema(input_schema_class=SearchIssuesParams, output_schema_class=SearchIssuesResponse)
 async def search_issues(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -75,7 +79,7 @@ async def search_issues(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/filter_issues", response_model=ApiResponse)
-@input_schema(schema_class=FilterIssuesParams)
+@schema(input_schema_class=FilterIssuesParams, output_schema_class=FilterIssuesResponse)
 async def filter_issues(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -95,7 +99,7 @@ async def filter_issues(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_issue", response_model=ApiResponse)
-@input_schema(schema_class=CreateIssueParams)
+@schema(input_schema_class=CreateIssueParams, output_schema_class=CreateIssueResponse)
 async def create_issue(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -111,7 +115,7 @@ async def create_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_issue", response_model=ApiResponse)
-@input_schema(schema_class=UpdateIssueParams)
+@schema(input_schema_class=UpdateIssueParams, output_schema_class=UpdateIssueResponse)
 async def update_issue(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -130,7 +134,7 @@ async def update_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/comment_issue", response_model=ApiResponse)
-@input_schema(schema_class=CommentIssueParams)
+@schema(input_schema_class=CommentIssueParams, output_schema_class=CommentIssueResponse)
 async def comment_issue(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -149,7 +153,7 @@ async def comment_issue(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_projects", response_model=ApiResponse)
-@input_schema(schema_class=ListProjectsParams)
+@schema(input_schema_class=ListProjectsParams, output_schema_class=ListProjectsResponse)
 async def list_projects(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -168,7 +172,7 @@ async def list_projects(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_project", response_model=ApiResponse)
-@input_schema(schema_class=GetProjectParams)
+@schema(input_schema_class=GetProjectParams, output_schema_class=GetProjectResponse)
 async def get_project(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -184,7 +188,7 @@ async def get_project(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_users", response_model=ApiResponse)
-@input_schema(schema_class=ListUsersParams)
+@schema(input_schema_class=ListUsersParams, output_schema_class=ListUsersResponse)
 async def list_users(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -203,7 +207,7 @@ async def list_users(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_teams", response_model=ApiResponse)
-@input_schema(schema_class=ListTeamsParams)
+@schema(input_schema_class=ListTeamsParams, output_schema_class=ListTeamsResponse)
 async def list_teams(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -222,7 +226,7 @@ async def list_teams(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_team", response_model=ApiResponse)
-@input_schema(schema_class=GetTeamParams)
+@schema(input_schema_class=GetTeamParams, output_schema_class=GetTeamResponse)
 async def get_team(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)
@@ -238,7 +242,7 @@ async def get_team(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_workflow_states", response_model=ApiResponse)
-@input_schema(schema_class=ListWorkflowStatesParams)
+@schema(input_schema_class=ListWorkflowStatesParams, output_schema_class=ListWorkflowStatesResponse)
 async def list_workflow_states(
     params: Dict[str, Any] = Body(...),
     service: LinearService = Depends(get_linear_service)

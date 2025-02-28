@@ -179,3 +179,52 @@ class GetIssueTypesParams(BaseModel):
 
 class GetFieldsParams(BaseModel):
     pass
+
+# Response schema classes
+class GetIssuesResponse(BaseModel):
+    data: IssueList
+    message: Optional[str] = None
+
+class GetIssueResponse(BaseModel):
+    data: Issue
+    message: Optional[str] = None
+
+class CreateIssueResponse(BaseModel):
+    data: Issue
+    message: Optional[str] = None
+
+class UpdateIssueResponse(BaseModel):
+    data: Issue
+    message: Optional[str] = None
+
+class DeleteIssueResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class GetProjectsResponse(BaseModel):
+    data: List[Project]
+    message: Optional[str] = None
+
+class GetProjectResponse(BaseModel):
+    data: Project
+    message: Optional[str] = None
+
+class GetStatusesResponse(BaseModel):
+    data: List[Status]
+    message: Optional[str] = None
+
+class GetPrioritiesResponse(BaseModel):
+    data: List[Priority]
+    message: Optional[str] = None
+
+class GetIssueTypesResponse(BaseModel):
+    data: List[IssueType]
+    message: Optional[str] = None
+
+class GetFieldsResponse(BaseModel):
+    data: List[Field]
+    message: Optional[str] = None
+
+class GetUsersResponse(BaseModel):
+    data: List[JiraUser]
+    message: Optional[str] = None

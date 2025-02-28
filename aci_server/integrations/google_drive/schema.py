@@ -77,3 +77,47 @@ class ListFoldersParams(BaseModel):
 
 class ReadFileParams(BaseModel):
     file_id: str
+
+# Response schema classes
+class ListFilesResponse(BaseModel):
+    data: FileList
+    message: Optional[str] = None
+
+class GetFileResponse(BaseModel):
+    data: DriveFile
+    message: Optional[str] = None
+
+class CreateFolderResponse(BaseModel):
+    data: DriveFile
+    message: Optional[str] = None
+
+class UploadFileResponse(BaseModel):
+    data: DriveFile
+    message: Optional[str] = None
+
+class DownloadFileResponse(BaseModel):
+    status: str
+    file_content: bytes
+    mime_type: str
+    filename: str
+    message: Optional[str] = None
+
+class DeleteFileResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+class MoveFileResponse(BaseModel):
+    data: DriveFile
+    message: Optional[str] = None
+
+class ListFoldersResponse(BaseModel):
+    data: FileList
+    message: Optional[str] = None
+
+class ReadFileResponse(BaseModel):
+    success: bool
+    content: Optional[str] = None
+    file: Optional[Dict[str, Any]] = None
+    mime_type: Optional[str] = None
+    error: Optional[str] = None
+    message: Optional[str] = None

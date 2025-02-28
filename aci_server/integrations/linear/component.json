@@ -2,18 +2,134 @@
     {
       "name": "LinearIssueCard",
       "version": "1.0.0",
-      "description": "A React component for displaying Linear issues",
+      "description": "A React component for displaying Linear issues (single or list)",
+      "related_endpoints": ["list_issues", "search_issues", "filter_issues", "create_issue", "update_issue", "comment_issue"],
       "component": {
-        "jsx": "function LinearIssueCard(props) {\n  const issue = props.data;\n  if (!issue) return null;\n\n  const priorityText = issue.priority ? `P${issue.priority}` : 'No priority';\n  \n  const subtitle = [\n    issue.state,\n    priorityText,\n    issue.assignee ? `${issue.assignee.name}` : 'Unassigned',\n  ].join(' • ');\n\n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: '16px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#f0f4f9',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#5E6AD2'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    subtitle: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    identifier: {\n      fontSize: '14px',\n      color: '#64748b'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    }\n  };\n  \n  return React.createElement('div', { style: styles.card },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.iconContainer },\n        React.createElement('span', { style: styles.iconText }, '🔄')\n      ),\n      React.createElement('div', { style: styles.titleContainer },\n        React.createElement('div', { style: styles.title }, issue.title),\n        React.createElement('div', { style: styles.subtitle }, subtitle),\n        React.createElement('div', { style: styles.identifier }, issue.identifier)\n      ),\n      issue.teamKey && issue.identifier && React.createElement('a', { \n        href: `https://linear.app/${issue.teamKey}/issue/${issue.identifier}`, \n        target: '_blank', \n        rel: 'noopener noreferrer',\n        style: styles.externalLink\n      }, React.createElement('span', { style: styles.linkText }, '🔗'))\n    )\n  );\n}"
+        "jsx": "function LinearIssueCard(props) {\n  const data = props.data;\n  \n  // Handle both single issue and issue list\n  const isIssueList = data && data.items && Array.isArray(data.items);\n  const isSingleIssue = data && !isIssueList;\n  \n  if ((!isIssueList || data.items.length === 0) && !isSingleIssue) return null;\n\n  const renderIssueCard = (issue) => {\n    const priorityText = issue.priority ? `P${issue.priority}` : 'No priority';\n    \n    const subtitle = [\n      issue.state,\n      priorityText,\n      issue.assignee ? `${issue.assignee.name}` : 'Unassigned',\n    ].join(' • ');\n\n    const styles = {\n      card: {\n        border: '1px solid #e2e8f0',\n        borderRadius: '8px',\n        padding: '16px',\n        backgroundColor: '#ffffff',\n        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n        width: '350px',\n        maxWidth: '100%',\n        fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n        marginBottom: '16px',\n        flex: '0 0 auto',\n        display: 'flex',\n        flexDirection: 'column'\n      },\n      header: {\n        display: 'flex',\n        alignItems: 'flex-start',\n        marginBottom: '12px'\n      },\n      iconContainer: {\n        marginRight: '12px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#f0f4f9',\n        borderRadius: '6px',\n        padding: '8px',\n        color: '#5E6AD2'\n      },\n      iconText: {\n        fontSize: '16px'\n      },\n      titleContainer: {\n        flex: 1,\n        minWidth: 0\n      },\n      title: {\n        fontWeight: '600',\n        fontSize: '16px',\n        color: '#1e293b',\n        marginBottom: '4px',\n        wordBreak: 'break-word'\n      },\n      subtitle: {\n        fontSize: '14px',\n        color: '#64748b',\n        marginBottom: '2px'\n      },\n      identifier: {\n        fontSize: '14px',\n        color: '#64748b'\n      },\n      externalLink: {\n        color: '#64748b',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        marginLeft: '8px',\n        textDecoration: 'none'\n      },\n      linkText: {\n        fontSize: '16px'\n      },\n      container: {\n        display: 'flex',\n        flexWrap: 'wrap',\n        gap: '16px',\n        justifyContent: 'flex-start',\n        width: '100%'\n      }\n    };\n    \n    return React.createElement('div', { key: issue.id, style: styles.card },\n      React.createElement('div', { style: styles.header },\n        React.createElement('div', { style: styles.iconContainer },\n          React.createElement('span', { style: styles.iconText }, '🔄')\n        ),\n        React.createElement('div', { style: styles.titleContainer },\n          React.createElement('div', { style: styles.title }, issue.title),\n          React.createElement('div', { style: styles.subtitle }, subtitle),\n          React.createElement('div', { style: styles.identifier }, issue.identifier)\n        ),\n        issue.team_key && issue.identifier && React.createElement('a', { \n          href: `https://linear.app/${issue.team_key}/issue/${issue.identifier}`, \n          target: '_blank', \n          rel: 'noopener noreferrer',\n          style: styles.externalLink\n        }, React.createElement('span', { style: styles.linkText }, '🔗'))\n      )\n    );\n  };\n  \n  // If it's a single issue\n  if (isSingleIssue) {\n    return renderIssueCard(data);\n  }\n  \n  // If it's a list of issues\n  const styles = {\n    container: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      justifyContent: 'flex-start',\n      width: '100%'\n    }\n  };\n  \n  return React.createElement('div', { style: styles.container },\n    data.items.map(issue => renderIssueCard(issue))\n  );\n}"
       },
-      "schemaRef": "schema.Issue"
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "issue_1",
+              "title": "Implement new authentication flow",
+              "description": "We need to implement OAuth2 authentication for better security",
+              "state": "In Progress",
+              "priority": 2,
+              "assignee": {
+                "id": "user_1",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "creator": {
+                "id": "user_2",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              },
+              "created_at": "2023-06-15T14:30:00Z",
+              "updated_at": "2023-06-16T09:45:00Z",
+              "labels": ["authentication", "security"],
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "identifier": "ENG-123"
+            },
+            {
+              "id": "issue_2",
+              "title": "Fix pagination bug in dashboard",
+              "description": "Users are experiencing issues with pagination in the dashboard",
+              "state": "Todo",
+              "priority": 3,
+              "assignee": null,
+              "creator": {
+                "id": "user_2",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              },
+              "created_at": "2023-06-14T10:15:00Z",
+              "updated_at": "2023-06-14T10:15:00Z",
+              "labels": ["bug", "frontend"],
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "identifier": "ENG-124"
+            },
+            {
+              "id": "issue_3",
+              "title": "Add export to CSV functionality",
+              "description": "Users need to be able to export data to CSV format",
+              "state": "Done",
+              "priority": 4,
+              "assignee": {
+                "id": "user_3",
+                "name": "Alex Johnson",
+                "email": "alex@example.com"
+              },
+              "creator": {
+                "id": "user_1",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "created_at": "2023-06-10T09:00:00Z",
+              "updated_at": "2023-06-13T16:45:00Z",
+              "labels": ["feature", "export"],
+              "team_id": "team_2",
+              "team_key": "PROD",
+              "identifier": "PROD-45"
+            }
+          ],
+          "cursor": "cursor_abc123"
+        }
+      },
+      "schemaRef": ["schema.Issue", "schema.IssueList"]
     },
     {
       "name": "LinearProjectList",
       "version": "1.0.0",
       "description": "A React component for displaying Linear projects in a table",
+      "related_endpoints": ["list_projects", "get_project"],
       "component": {
         "jsx": "function LinearProjectList(props) {\n  const projects = props.data;\n  if (!projects || !Array.isArray(projects) || projects.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Project Name'),\n        React.createElement('th', { style: styles.th }, 'State'),\n        React.createElement('th', { style: styles.th }, 'Lead')\n      )\n    ),\n    React.createElement('tbody', {},\n      projects.map(project => {\n        return React.createElement('tr', { key: project.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, project.name),\n          React.createElement('td', { style: styles.td }, project.state.charAt(0).toUpperCase() + project.state.slice(1)),\n          React.createElement('td', { style: styles.td }, project.lead?.name || 'No lead')\n        );\n      })\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "project_1",
+              "name": "Website Redesign",
+              "description": "Complete overhaul of the company website",
+              "state": "started",
+              "created_at": "2023-05-10T08:15:00Z",
+              "updated_at": "2023-06-14T16:30:00Z",
+              "lead": {
+                "id": "user_1",
+                "name": "John Doe",
+                "email": "john@example.com"
+              }
+            },
+            {
+              "id": "project_2",
+              "name": "Mobile App Development",
+              "description": "Create iOS and Android applications",
+              "state": "planned",
+              "created_at": "2023-06-01T11:20:00Z",
+              "updated_at": "2023-06-02T14:15:00Z",
+              "lead": {
+                "id": "user_2",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              }
+            },
+            {
+              "id": "project_3",
+              "name": "API Integration",
+              "description": "Integrate with third-party services",
+              "state": "completed",
+              "created_at": "2023-04-15T09:30:00Z",
+              "updated_at": "2023-05-20T15:45:00Z",
+              "lead": null
+            }
+          ],
+          "cursor": "project_cursor_xyz"
+        }
       },
       "schemaRef": "schema.ProjectList"
     },
@@ -21,8 +137,40 @@
       "name": "LinearTeamList",
       "version": "1.0.0",
       "description": "A React component for displaying Linear teams in a table",
+      "related_endpoints": ["list_teams", "get_team"],
       "component": {
         "jsx": "function LinearTeamList(props) {\n  const teams = props.data;\n  if (!teams || !Array.isArray(teams) || teams.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Team Name'),\n        React.createElement('th', { style: styles.th }, 'Key'),\n        React.createElement('th', { style: styles.th }, 'Description')\n      )\n    ),\n    React.createElement('tbody', {},\n      teams.map(team => {\n        return React.createElement('tr', { key: team.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, team.name),\n          React.createElement('td', { style: styles.td }, team.key),\n          React.createElement('td', { style: styles.td }, team.description || 'No description')\n        );\n      })\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "team_1",
+              "name": "Engineering",
+              "key": "ENG",
+              "description": "Core engineering team responsible for product development"
+            },
+            {
+              "id": "team_2",
+              "name": "Product",
+              "key": "PROD",
+              "description": "Product management team"
+            },
+            {
+              "id": "team_3",
+              "name": "Design",
+              "key": "DES",
+              "description": "UI/UX design team"
+            },
+            {
+              "id": "team_4",
+              "name": "Marketing",
+              "key": "MKT",
+              "description": null
+            }
+          ],
+          "cursor": "team_cursor_abc"
+        }
       },
       "schemaRef": "schema.TeamList"
     },
@@ -30,8 +178,66 @@
       "name": "LinearWorkflowStateList",
       "version": "1.0.0",
       "description": "A React component for displaying Linear workflow states in a table",
+      "related_endpoints": ["list_workflow_states"],
       "component": {
         "jsx": "function LinearWorkflowStateList(props) {\n  const states = props.data;\n  if (!states || !Array.isArray(states) || states.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    },\n    colorDot: {\n      display: 'inline-block',\n      width: '12px',\n      height: '12px',\n      borderRadius: '50%',\n      marginRight: '8px'\n    },\n    nameWithColor: {\n      display: 'flex',\n      alignItems: 'center'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Name'),\n        React.createElement('th', { style: styles.th }, 'Type'),\n        React.createElement('th', { style: styles.th }, 'Team')\n      )\n    ),\n    React.createElement('tbody', {},\n      states.map(state => {\n        return React.createElement('tr', { key: state.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, \n            React.createElement('div', { style: styles.nameWithColor },\n              React.createElement('div', { \n                style: {\n                  ...styles.colorDot,\n                  backgroundColor: state.color\n                } \n              }),\n              state.name\n            )\n          ),\n          React.createElement('td', { style: styles.td }, state.type.charAt(0).toUpperCase() + state.type.slice(1)),\n          React.createElement('td', { style: styles.td }, state.team_name || 'No team')\n        );\n      })\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "state_1",
+              "name": "Todo",
+              "color": "#e2e2e2",
+              "type": "unstarted",
+              "position": 0,
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "team_name": "Engineering"
+            },
+            {
+              "id": "state_2",
+              "name": "In Progress",
+              "color": "#0052CC",
+              "type": "started",
+              "position": 1,
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "team_name": "Engineering"
+            },
+            {
+              "id": "state_3",
+              "name": "Review",
+              "color": "#8777D9",
+              "type": "started",
+              "position": 2,
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "team_name": "Engineering"
+            },
+            {
+              "id": "state_4",
+              "name": "Done",
+              "color": "#00875A",
+              "type": "completed",
+              "position": 3,
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "team_name": "Engineering"
+            },
+            {
+              "id": "state_5",
+              "name": "Canceled",
+              "color": "#FF5630",
+              "type": "canceled",
+              "position": 4,
+              "team_id": "team_1",
+              "team_key": "ENG",
+              "team_name": "Engineering"
+            }
+          ],
+          "cursor": "state_cursor_def"
+        }
       },
       "schemaRef": "schema.WorkflowStateList"
     }
