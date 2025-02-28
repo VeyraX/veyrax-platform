@@ -44,7 +44,23 @@ class JiraClient:
         try:
             response = self.session.request(method, url, **kwargs)
             
-            response.raise_for_status()
+            if not response.ok:
+                error_detail = response.text
+                try:
+                    error_json = response.json()
+                    if isinstance(error_json, dict):
+                        error_detail = error_json.get('errorMessages', [])
+                        if not error_detail and 'errors' in error_json:
+                            error_detail = error_json['errors']
+                except:
+                    pass
+                
+                error_msg = f"{response.status_code} {response.reason} for url: {url}"
+                if error_detail:
+                    error_msg += f" - Details: {error_detail}"
+                
+                raise requests.exceptions.HTTPError(error_msg, response=response)
+            
             return response.json() if response.content else None
         except requests.exceptions.RequestException as e:
             raise

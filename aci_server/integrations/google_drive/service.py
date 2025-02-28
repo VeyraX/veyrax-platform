@@ -1,6 +1,6 @@
 from typing import Optional, IO, Union, Dict, Any, List
 from .client import DriveClient
-from .schema import FileList, DriveFile, FileFilters, ApiResponse
+from .schema import FileList, DriveFile, FileFilters, ApiResponse, PermissionType, PermissionRole, PermissionResponse
 from datetime import datetime
 from dateutil import parser
 import os
@@ -121,16 +121,16 @@ class DriveService:
 
     def create_folder(self, name: str, parent_id: Optional[str] = None) -> ApiResponse:
         folder_data = self.client.create_folder(name, parent_id)
-        folder_obj = self.get_file(folder_data['id'])
+        folder_obj = self.get_file(folder_data['id']).data
         return self.prepare_response(folder_obj, "GoogleDriveFileCard")
 
     def upload_file(self, name: str, file_content: IO, mime_type: str, parent_id: Optional[str] = None) -> ApiResponse:
         file_data = self.client.upload_file(name, file_content, mime_type, parent_id)
-        file_obj = self.get_file(file_data['id'])
+        file_obj = self.get_file(file_data['id']).data
         return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     def download_file(self, file_id: str) -> tuple[IO, str]:
-        file = self.get_file(file_id)
+        file = self.get_file(file_id).data
         mime_type = file.mime_type
         
         if mime_type in self.GOOGLE_MIME_TYPES:
@@ -146,7 +146,7 @@ class DriveService:
 
     def move_file(self, file_id: str, new_parent_id: str) -> ApiResponse:
         self.client.move_file(file_id, new_parent_id)
-        file_obj = self.get_file(file_id)
+        file_obj = self.get_file(file_id).data
         return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     def download_file_with_metadata(self, file_id: str):
@@ -154,17 +154,22 @@ class DriveService:
         file_info = self.get_file(file_id).data
         
         file_content.seek(0)
+        file_bytes = file_content.read()
         
-        extension = {
-            'application/pdf': '.pdf',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-        }.get(mime_type, '')
+        # Encode binary data for JSON response
+        base64_content = base64.b64encode(file_bytes).decode('utf-8')
+        
+        # Get extension from mapping or try to extract from original filename
+        extension = self.GOOGLE_MIME_TYPE_EXTENSIONS.get(
+            mime_type, 
+            os.path.splitext(file_info.name)[1]  # Fallback to original extension
+        )
         
         filename = f"{file_info.name}{extension}"
         
         return {
             "status": "success",
-            "file_content": file_content.read(),
+            "file_content": base64_content,  # Now a base64 string
             "mime_type": mime_type,
             "filename": filename
         }
@@ -264,9 +269,134 @@ class DriveService:
             traceback.print_exc()
             raise HTTPException(status_code=400, detail=f"Failed to decode base64 file: {str(e)}")
 
+    def set_permission(self, file_id: str, permission: Dict[str, Any]) -> ApiResponse:
+        try:
+            perm_type = PermissionType(permission['type'])
+            perm_role = PermissionRole(permission['role'])
+            
+            # Build base permission
+            permission_body = {
+                'type': perm_type.value,
+                'role': perm_role.value
+            }
+            
+            # Add type-specific fields
+            extra_params = {}
+            if perm_type in [PermissionType.USER, PermissionType.GROUP]:
+                permission_body['emailAddress'] = permission['email']
+                extra_params['emailMessage'] = permission.get('email_message')
+            elif perm_type == PermissionType.DOMAIN:
+                permission_body['domain'] = permission['domain']
+            
+            # Create the permission
+            created_perm = self.client.create_permission(
+                file_id=file_id,
+                permission={**permission_body, **extra_params}
+            )
+            
+            # Convert to PermissionResponse
+            perm_response = PermissionResponse(
+                id=created_perm['id'],
+                role=PermissionRole(created_perm['role']),
+                type=PermissionType(created_perm['type']),
+                email_address=created_perm.get('emailAddress')
+            )
+            
+            return self.prepare_response(perm_response, "GoogleDrivePermissionCard")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Permission setting failed: {str(e)}")
+
+    def list_permissions(self, file_id: str) -> ApiResponse:
+        try:
+            permissions = self.client.list_permissions(file_id)
+            perm_responses = [
+                PermissionResponse(
+                    id=p['id'],
+                    role=PermissionRole(p['role']),
+                    type=PermissionType(p['type']),
+                    email_address=p.get('emailAddress')
+                ) for p in permissions
+            ]
+            return self.prepare_response(perm_responses, "GoogleDrivePermissionList")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to list permissions: {str(e)}")
+
+    def delete_permission(self, file_id: str, permission_id: str) -> None:
+        try:
+            self.client.delete_permission(file_id, permission_id)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Permission deletion failed: {str(e)}")
+
+    def copy_file(self, file_id: str, name: Optional[str] = None, parent_id: Optional[str] = None) -> ApiResponse:
+        try:
+            file_data = self.client.copy_file(file_id, name, parent_id)
+            file_obj = DriveFile(
+                id=file_data['id'],
+                name=file_data['name'],
+                mime_type=file_data['mimeType'],
+                parent_ids=file_data.get('parents'),
+                created_time=parser.parse(file_data['createdTime']),
+                modified_time=parser.parse(file_data['modifiedTime']),
+                size=file_data.get('size'),
+                web_view_link=file_data.get('webViewLink'),
+                web_content_link=file_data.get('webContentLink')
+            )
+            return self.prepare_response(file_obj, "GoogleDriveFileCard")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to copy file: {str(e)}")
+
     GOOGLE_MIME_TYPES = {
         'application/vnd.google-apps.document': 'application/pdf',
         'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.google-apps.presentation': 'application/pdf',
         'application/vnd.google-apps.drawing': 'application/pdf',
+    }
+
+    # Add this class-level constant
+    GOOGLE_MIME_TYPE_EXTENSIONS = {
+        # Documents
+        'application/pdf': '.pdf',
+        'application/msword': '.doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+        'application/vnd.oasis.opendocument.text': '.odt',
+        'text/plain': '.txt',
+        
+        # Spreadsheets
+        'application/vnd.ms-excel': '.xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+        'application/vnd.oasis.opendocument.spreadsheet': '.ods',
+        'text/csv': '.csv',
+        
+        # Presentations
+        'application/vnd.ms-powerpoint': '.ppt',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+        'application/vnd.oasis.opendocument.presentation': '.odp',
+        
+        # Images
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/gif': '.gif',
+        'image/tiff': '.tiff',
+        'image/svg+xml': '.svg',
+        'image/webp': '.webp',
+        
+        # Audio/Video
+        'audio/mpeg': '.mp3',
+        'audio/wav': '.wav',
+        'video/mp4': '.mp4',
+        'video/quicktime': '.mov',
+        
+        # Archives
+        'application/zip': '.zip',
+        'application/x-tar': '.tar',
+        'application/x-gzip': '.gz',
+        
+        # Google Workspace
+        'application/vnd.google-apps.document': '.gdoc',
+        'application/vnd.google-apps.spreadsheet': '.gsheet',
+        'application/vnd.google-apps.presentation': '.gslides',
+        
+        # Other
+        'application/json': '.json',
+        'application/octet-stream': '.bin'
     }

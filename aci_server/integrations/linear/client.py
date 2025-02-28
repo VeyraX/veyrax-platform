@@ -263,3 +263,4 @@ class LinearClient:
         }
         """
         return self.execute_query(query, {"cursor": cursor, "first": max_results})
+

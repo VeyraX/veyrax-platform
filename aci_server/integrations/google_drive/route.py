@@ -4,10 +4,12 @@ from .schema import (
     FileList, DriveFile, FileFilters, FolderCreate, FileMove, ApiResponse,
     ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams, 
     DownloadFileParams, DeleteFileParams, MoveFileParams, ListFoldersParams, 
-    ReadFileParams, ListFilesResponse, GetFileResponse, CreateFolderResponse,
+    ReadFileParams, SetPermissionParams, ListPermissionsParams, DeletePermissionParams,
+    CopyFileParams, ListFilesResponse, GetFileResponse, CreateFolderResponse,
     UploadFileResponse, DownloadFileResponse, DeleteFileResponse, MoveFileResponse,
     ListFoldersResponse, ReadFileResponse
 )
+
 from .service import DriveService
 from .client import DriveClient
 import os
@@ -83,10 +85,11 @@ async def create_folder(
     service: DriveService = Depends(get_drive_service)
 ):
     try:
+        # Let Pydantic handle the full nested validation
         validated_params = CreateFolderParams(**params)
         return service.create_folder(
-            validated_params.folder.name, 
-            validated_params.folder.parent_id
+            validated_params.folder.name,
+            validated_params.folder.parent_id  # Will be None if not provided
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFolderParams'))
@@ -225,3 +228,62 @@ async def read_file(
             "success": False,
             "error": str(e)
         }
+
+@router.post("/set_permission", response_model=ApiResponse)
+@input_schema(schema_class=SetPermissionParams)
+async def set_permission(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        validated_params = SetPermissionParams(**params)
+        return service.set_permission(
+            validated_params.file_id,
+            validated_params.permission.dict()
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/list_permissions", response_model=ApiResponse)
+@input_schema(schema_class=ListPermissionsParams)
+async def list_permissions(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        validated_params = ListPermissionsParams(**params)
+        return service.list_permissions(validated_params.file_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/delete_permission")
+@input_schema(schema_class=DeletePermissionParams)
+async def delete_permission(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        validated_params = DeletePermissionParams(**params)
+        service.delete_permission(
+            validated_params.file_id,
+            validated_params.permission_id
+        )
+        return {"status": "success"}
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/copy_file", response_model=ApiResponse)
+@input_schema(schema_class=CopyFileParams)
+async def copy_file(
+    params: Dict[str, Any] = Body(...),
+    service: DriveService = Depends(get_drive_service)
+):
+    try:
+        validated_params = CopyFileParams(**params)
+        return service.copy_file(
+            validated_params.file_id,
+            validated_params.name,
+            validated_params.parent_id
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
