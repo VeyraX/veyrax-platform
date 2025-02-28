@@ -1,0 +1,187 @@
+from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
+from typing import Dict, Any, List
+from .schema import (
+    RunTaskParams, TaskIdParams, ApiResponse,
+    RunTaskResponse, StopTaskResponse, PauseTaskResponse, ResumeTaskResponse,
+    GetTaskResponse, GetTaskStatusResponse, GetTaskMediaResponse, ListTasksResponse,
+    CheckBalanceResponse, MeResponse, PingResponse
+)
+from .service import BrowserUseService
+from .client import BrowserUseClient
+import os
+from ..common.auth import validate_provider_api_key
+from ..common.input_schema_decorator import schema
+from pydantic import ValidationError
+from ..common.utils import format_validation_error
+
+router = APIRouter(prefix="/browser_use", tags=["browser_use"])
+
+async def get_browser_use_service(request: FastAPIRequest):
+    try:
+        api_key = await validate_provider_api_key(request, "browser_use")
+        client = BrowserUseClient(api_key)
+        return BrowserUseService(client)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
+
+@router.post("/run_task", response_model=ApiResponse)
+@schema(input_schema_class=RunTaskParams, output_schema_class=RunTaskResponse)
+async def run_task(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = RunTaskParams(**params)
+        return service.run_task(validated_params)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'RunTaskParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/stop_task", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=StopTaskResponse)
+async def stop_task(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.stop_task(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/pause_task", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=PauseTaskResponse)
+async def pause_task(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.pause_task(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/resume_task", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=ResumeTaskResponse)
+async def resume_task(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.resume_task(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_task", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskResponse)
+async def get_task(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.get_task(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_task_status", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskStatusResponse)
+async def get_task_status(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.get_task_status(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_task_media", response_model=ApiResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskMediaResponse)
+async def get_task_media(
+    params: Dict[str, Any] = Body(...),
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        validated_params = TaskIdParams(**params)
+        return service.get_task_media(validated_params.task_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'TaskIdParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/list_tasks", response_model=ApiResponse)
+@schema(input_schema_class=None, output_schema_class=ListTasksResponse)
+async def list_tasks(
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        return service.list_tasks()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/check_balance", response_model=ApiResponse)
+@schema(input_schema_class=None, output_schema_class=CheckBalanceResponse)
+async def check_balance(
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        return service.check_balance()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/me", response_model=ApiResponse)
+@schema(input_schema_class=None, output_schema_class=MeResponse)
+async def me(
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        return service.me()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/ping", response_model=ApiResponse)
+@schema(input_schema_class=None, output_schema_class=PingResponse)
+async def ping(
+    service: BrowserUseService = Depends(get_browser_use_service)
+):
+    try:
+        return service.ping()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

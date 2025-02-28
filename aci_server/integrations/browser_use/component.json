@@ -1,0 +1,42 @@
+[
+    {
+      "name": "BrowserUseTaskCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use task data"
+    },
+    {
+      "name": "BrowserUseTaskDetailCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying detailed Browser Use task information"
+    },
+    {
+      "name": "BrowserUseTaskStatusCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use task status"
+    },
+    {
+      "name": "BrowserUseTaskMediaCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use task media"
+    },
+    {
+      "name": "BrowserUseTaskListCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying a list of Browser Use tasks"
+    },
+    {
+      "name": "BrowserUseBalanceCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use balance information"
+    },
+    {
+      "name": "BrowserUseAuthCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use authentication status"
+    },
+    {
+      "name": "BrowserUsePingCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Browser Use ping response"
+    }
+  ]
