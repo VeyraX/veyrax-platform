@@ -3,233 +3,169 @@
     "name": "OutlookMessageCard",
     "version": "1.0.0",
     "description": "A simplified React component for displaying Outlook messages",
-    "related_endpoints": ["get_message", "create_draft", "send_message", "delete_message"],
+    "related_endpoints": ["get_message", "create_draft", "modify_draft", "send_message"],
     "component": {
-      "jsx": "function OutlookMessageCard(props) {\n  const message = props.data;\n  if (!message) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit'\n    });\n  };\n\n  // Проверяем, является ли data объектом MessageList или Message\n  const isMessageList = message.messages !== undefined;\n  const messageData = isMessageList ? message.messages : [message];\n  \n  const containerStyles = {\n    display: 'flex',\n    flexWrap: 'wrap',\n    gap: '16px',\n    justifyContent: 'flex-start',\n    width: '100%'\n  };\n  \n  // Создаем карточки для каждого сообщения в сетке\n  return React.createElement('div', { style: containerStyles },\n    messageData.map((messageItem, index) => {\n      const formattedDate = formatDate(messageItem.created_datetime);\n\n      const styles = {\n        card: {\n          border: '1px solid #e2e8f0',\n          borderRadius: '8px',\n          padding: '16px',\n          backgroundColor: '#ffffff',\n          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n          width: '300px',\n          maxWidth: '100%',\n          fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n          marginBottom: '8px',\n          flex: '0 0 auto',\n          display: 'flex',\n          flexDirection: 'column'\n        },\n        header: {\n          display: 'flex',\n          alignItems: 'flex-start',\n          marginBottom: '12px'\n        },\n        iconContainer: {\n          marginRight: '12px',\n          display: 'flex',\n          alignItems: 'center',\n          justifyContent: 'center',\n          backgroundColor: '#ebf5ff',\n          borderRadius: '6px',\n          padding: '8px',\n          color: '#3b82f6'\n        },\n        iconText: {\n          fontSize: '16px'\n        },\n        titleContainer: {\n          flex: 1,\n          minWidth: 0\n        },\n        title: {\n          fontWeight: '600',\n          fontSize: '16px',\n          color: '#1e293b',\n          marginBottom: '4px',\n          wordBreak: 'break-word'\n        },\n        meta: {\n          fontSize: '14px',\n          color: '#64748b',\n          marginBottom: '2px'\n        },\n        externalLink: {\n          color: '#64748b',\n          display: 'flex',\n          alignItems: 'center',\n          justifyContent: 'center',\n          marginLeft: '8px',\n          textDecoration: 'none'\n        },\n        linkText: {\n          fontSize: '16px'\n        },\n        detailRow: {\n          display: 'flex',\n          alignItems: 'center',\n          marginBottom: '8px',\n          color: '#64748b'\n        },\n        emoji: {\n          marginRight: '8px',\n          fontSize: '14px'\n        },\n        detailText: {\n          fontSize: '14px',\n          overflow: 'hidden',\n          textOverflow: 'ellipsis',\n          whiteSpace: 'nowrap'\n        },\n        snippet: {\n          fontSize: '14px',\n          color: '#64748b',\n          marginTop: '8px',\n          overflow: 'hidden',\n          textOverflow: 'ellipsis',\n          display: '-webkit-box',\n          WebkitLineClamp: 2,\n          WebkitBoxOrient: 'vertical'\n        }\n      };\n\n      return React.createElement('div', { key: messageItem.id, style: styles.card },\n        React.createElement('div', { style: styles.header },\n          React.createElement('div', { style: styles.iconContainer },\n            React.createElement('span', { style: styles.iconText }, '✉️')\n          ),\n          React.createElement('div', { style: styles.titleContainer },\n            React.createElement('div', { style: styles.title }, messageItem.subject || '(No Subject)'),\n            React.createElement('div', { style: styles.meta }, `From: ${messageItem.from_address || 'Unknown'}`),\n            React.createElement('div', { style: styles.meta }, `To: ${messageItem.to_recipients ? messageItem.to_recipients.join(', ') : 'Unknown'}`),\n            React.createElement('div', { style: styles.meta }, `Date: ${formattedDate}`)\n          ),\n          messageItem.web_link && React.createElement('a', {\n            href: messageItem.web_link,\n            target: '_blank',\n            rel: 'noopener noreferrer',\n            style: styles.externalLink\n          }, React.createElement('span', { style: styles.linkText }, '🔗'))\n        ),\n        React.createElement('div', { style: styles.snippet }, messageItem.body_preview)\n      );\n    })\n  );\n}"
+      "jsx": "function OutlookMessageCard(props) {\n  const message = props.data;\n  if (!message) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      month: 'short',\n      day: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit'\n    });\n  };\n\n  // Link icon SVG\n  function LinkIcon() {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  }\n\n  // Проверяем, является ли data объектом MessageList или Message\n  const isMessageList = message.messages !== undefined;\n  const messageData = isMessageList ? message.messages : [message];\n  \n  const containerStyles = {\n    display: 'flex',\n    flexWrap: 'wrap',\n    gap: '12px',\n    width: '100%'\n  };\n  \n  // Создаем карточки для каждого сообщения в сетке\n  return React.createElement('div', { style: containerStyles },\n    messageData.map((messageItem, index) => {\n      const formattedDate = formatDate(messageItem.date);\n\n      const cardStyle = {\n        position: 'relative',\n        borderRadius: '8px',\n        border: '1px solid #e2e8f0',\n        backgroundColor: '#ffffff',\n        padding: '8px 12px',\n        marginBottom: '8px',\n        width: 'calc(50% - 6px)',\n        minWidth: '250px',\n        boxSizing: 'border-box'\n      };\n      \n      const flexContainerStyle = {\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'space-between',\n        gap: '8px'\n      };\n      \n      const contentStyle = {\n        minWidth: 0,\n        flex: 1\n      };\n      \n      const titleContainerStyle = {\n        display: 'flex',\n        alignItems: 'center',\n        gap: '2px'\n      };\n      \n      const titleStyle = {\n        fontWeight: '500',\n        color: '#1e293b',\n        overflow: 'hidden',\n        textOverflow: 'ellipsis',\n        whiteSpace: 'nowrap',\n        fontSize: '14px',\n        margin: 0\n      };\n      \n      const infoStyle = {\n        fontSize: '12px',\n        color: '#64748b',\n        overflow: 'hidden',\n        textOverflow: 'ellipsis',\n        whiteSpace: 'nowrap',\n        marginTop: '4px',\n        margin: 0\n      };\n      \n      const linkStyle = {\n        color: '#64748b',\n        display: 'flex',\n        alignItems: 'center',\n        marginRight: '4px',\n        textDecoration: 'none',\n        flexShrink: 0\n      };\n      \n      const snippetStyle = {\n        fontSize: '12px',\n        color: '#64748b',\n        overflow: 'hidden',\n        textOverflow: 'ellipsis',\n        display: '-webkit-box',\n        WebkitLineClamp: 2,\n        WebkitBoxOrient: 'vertical',\n        marginTop: '8px'\n      };\n\n      return React.createElement('div', { key: messageItem.id, style: cardStyle },\n        React.createElement('div', { style: flexContainerStyle },\n          React.createElement('div', { style: contentStyle },\n            React.createElement('div', { style: titleContainerStyle },\n              messageItem.web_link && React.createElement('a', {\n                href: messageItem.web_link,\n                target: '_blank',\n                rel: 'noopener noreferrer',\n                style: linkStyle\n              }, React.createElement(LinkIcon)),\n              React.createElement('h3', { style: titleStyle }, messageItem.subject || '(No Subject)')\n            ),\n            React.createElement('p', { style: infoStyle },\n              `To: ${messageItem.recipient || 'Unknown'}, ${formattedDate}`\n            )\n          )\n        ),\n        React.createElement('div', { style: snippetStyle }, messageItem.body_preview)\n      );\n    })\n  );\n}"
     },
     "exampleProps": {
       "data": {
-        "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZIAAA=",
-        "subject": "Project Update: Q2 Roadmap",
-        "body_preview": "Hi team, I wanted to share the latest updates on our Q2 roadmap. We've made significant progress on the key initiatives we discussed last month...",
-        "body": "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body><p>Hi team,</p><p>I wanted to share the latest updates on our Q2 roadmap. We've made significant progress on the key initiatives we discussed last month.</p><p>Here are the highlights:</p><ul><li>Feature A is now 80% complete and on track for release next week</li><li>Feature B has been pushed back due to some technical challenges, new ETA is end of month</li><li>Feature C has been prioritized based on customer feedback</li></ul><p>Let me know if you have any questions or concerns.</p><p>Best regards,<br>Alex</p></body></html>",
-        "from_address": "alex.johnson@example.com",
-        "to_recipients": ["team@example.com", "managers@example.com"],
-        "created_datetime": "2023-06-15T09:32:45Z",
-        "web_link": "https://outlook.office.com/mail/inbox/id/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZIAAA=",
-        "importance": "normal",
-        "is_read": false,
-        "categories": ["Work", "Projects"]
+        "id": "msg_123456",
+        "subject": "Meeting Tomorrow",
+        "sender": "john.doe@example.com",
+        "recipient": "you@example.com",
+        "date": "2023-06-15T14:30:00Z",
+        "body_preview": "Hi there, I wanted to confirm our meeting tomorrow at 2pm. Please let me know if that still works for you. I've attached the agenda for our discussion.",
+        "web_link": "https://outlook.office.com/mail/inbox/id/msg_123456"
       }
     },
-    "schemaRef": ["schema.Message", "schema.MessageList"]
+    "schemaRef": "schema.Message"
   },
   {
     "name": "OutlookMessageList",
     "version": "1.0.0",
     "description": "A collapsible list view for Outlook messages",
-    "related_endpoints": ["get_messages"],
+    "related_endpoints": ["get_messages", "get_drafts"],
     "component": {
-      "jsx": "function OutlookMessageList(props) {\n  const [expanded, setExpanded] = React.useState({});\n  const messageList = props.data;\n  \n  if (!messageList || !messageList.messages) return null;\n  \n  const toggleExpand = (id) => {\n    setExpanded(prev => ({\n      ...prev,\n      [id]: !prev[id]\n    }));\n  };\n  \n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      width: '100%',\n      maxWidth: '800px',\n      margin: '0 auto'\n    },\n    messageItem: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      marginBottom: '8px',\n      backgroundColor: '#ffffff',\n      overflow: 'hidden'\n    },\n    header: {\n      padding: '12px 16px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      cursor: 'pointer',\n      backgroundColor: '#f8fafc'\n    },\n    headerLeft: {\n      display: 'flex',\n      alignItems: 'center',\n      flex: 1,\n      minWidth: 0\n    },\n    icon: {\n      marginRight: '12px',\n      fontSize: '18px'\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      whiteSpace: 'nowrap',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      flex: 1\n    },\n    sender: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginLeft: '12px',\n      whiteSpace: 'nowrap',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      maxWidth: '200px'\n    },\n    date: {\n      fontSize: '14px',\n      color: '#64748b',\n      whiteSpace: 'nowrap',\n      marginLeft: '12px'\n    },\n    expandIcon: {\n      fontSize: '18px',\n      marginLeft: '8px'\n    },\n    content: {\n      padding: '16px',\n      borderTop: '1px solid #e2e8f0'\n    },\n    snippet: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '12px'\n    },\n    meta: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '8px',\n      fontSize: '14px',\n      color: '#64748b'\n    },\n    metaItem: {\n      display: 'flex',\n      alignItems: 'center'\n    },\n    metaLabel: {\n      fontWeight: '600',\n      marginRight: '4px'\n    },\n    externalLink: {\n      display: 'inline-flex',\n      alignItems: 'center',\n      color: '#3b82f6',\n      textDecoration: 'none',\n      marginTop: '8px'\n    },\n    linkText: {\n      marginLeft: '4px'\n    }\n  };\n  \n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit'\n    });\n  };\n  \n  return React.createElement('div', { style: styles.container },\n    messageList.messages.map(message => {\n      const isExpanded = expanded[message.id] || false;\n      const formattedDate = formatDate(message.created_datetime);\n      \n      return React.createElement('div', { key: message.id, style: styles.messageItem },\n        React.createElement('div', \n          { \n            style: styles.header,\n            onClick: () => toggleExpand(message.id)\n          },\n          React.createElement('div', { style: styles.headerLeft },\n            React.createElement('span', { style: styles.icon }, '✉️'),\n            React.createElement('div', { style: styles.title }, message.subject || '(No Subject)'),\n            React.createElement('div', { style: styles.sender }, message.from_address || 'Unknown')\n          ),\n          React.createElement('div', { style: styles.date }, formattedDate),\n          React.createElement('span', { style: styles.expandIcon }, isExpanded ? '▼' : '▶')\n        ),\n        isExpanded && React.createElement('div', { style: styles.content },\n          React.createElement('div', { style: styles.snippet }, message.body_preview),\n          React.createElement('div', { style: styles.meta },\n            React.createElement('div', { style: styles.metaItem },\n              React.createElement('span', { style: styles.metaLabel }, 'From:'),\n              React.createElement('span', {}, message.from_address || 'Unknown')\n            ),\n            React.createElement('div', { style: styles.metaItem },\n              React.createElement('span', { style: styles.metaLabel }, 'To:'),\n              React.createElement('span', {}, message.to_recipients ? message.to_recipients.join(', ') : 'Unknown')\n            ),\n            React.createElement('div', { style: styles.metaItem },\n              React.createElement('span', { style: styles.metaLabel }, 'Date:'),\n              React.createElement('span', {}, formattedDate)\n            )\n          ),\n          message.web_link && React.createElement('a', {\n            href: message.web_link,\n            target: '_blank',\n            rel: 'noopener noreferrer',\n            style: styles.externalLink\n          }, '🔗', React.createElement('span', { style: styles.linkText }, 'Open in Outlook'))\n        )\n      );\n    })\n  );\n}"
+      "jsx": "function OutlookMessageList(props) {\n  const [expanded, setExpanded] = React.useState({});\n  const messageList = props.data;\n  \n  if (!messageList || !messageList.messages) return null;\n  \n  const toggleExpand = (id) => {\n    setExpanded(prev => ({\n      ...prev,\n      [id]: !prev[id]\n    }));\n  };\n  \n  // Link icon SVG\n  function LinkIcon() {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  }\n  \n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      month: 'short',\n      day: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit'\n    });\n  };\n  \n  const containerStyle = {\n    fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n    width: '100%',\n    maxWidth: '800px',\n    margin: '0 auto'\n  };\n  \n  return React.createElement('div', { style: containerStyle },\n    messageList.messages.map(message => {\n      const isExpanded = expanded[message.id] || false;\n      const formattedDate = formatDate(message.date);\n      \n      const messageItemStyle = {\n        border: '1px solid #e2e8f0',\n        borderRadius: '8px',\n        marginBottom: '8px',\n        backgroundColor: '#ffffff',\n        overflow: 'hidden'\n      };\n      \n      const headerStyle = {\n        padding: '12px 16px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'space-between',\n        cursor: 'pointer'\n      };\n      \n      const headerLeftStyle = {\n        display: 'flex',\n        alignItems: 'center',\n        flex: 1,\n        minWidth: 0\n      };\n      \n      const titleContainerStyle = {\n        display: 'flex',\n        alignItems: 'center',\n        gap: '2px',\n        flex: 1\n      };\n      \n      const titleStyle = {\n        fontWeight: '600',\n        fontSize: '16px',\n        color: '#1e293b',\n        whiteSpace: 'nowrap',\n        overflow: 'hidden',\n        textOverflow: 'ellipsis',\n        margin: 0\n      };\n      \n      const expandIconStyle = {\n        fontSize: '18px',\n        marginLeft: '8px'\n      };\n      \n      const contentStyle = {\n        padding: '16px',\n        borderTop: '1px solid #e2e8f0'\n      };\n      \n      const snippetStyle = {\n        fontSize: '14px',\n        color: '#64748b',\n        marginBottom: '12px'\n      };\n      \n      const metaStyle = {\n        display: 'flex',\n        flexWrap: 'wrap',\n        gap: '8px',\n        fontSize: '14px',\n        color: '#64748b',\n        marginBottom: '12px'\n      };\n      \n      const metaItemStyle = {\n        display: 'flex',\n        alignItems: 'center'\n      };\n      \n      const metaLabelStyle = {\n        fontWeight: '600',\n        marginRight: '4px'\n      };\n      \n      const metaValueStyle = {\n        overflow: 'hidden',\n        textOverflow: 'ellipsis',\n        whiteSpace: 'nowrap',\n        maxWidth: '300px'\n      };\n      \n      const linkStyle = {\n        color: '#64748b',\n        display: 'flex',\n        alignItems: 'center',\n        marginRight: '4px',\n        textDecoration: 'none',\n        flexShrink: 0\n      };\n      \n      return React.createElement('div', { key: message.id, style: messageItemStyle },\n        React.createElement('div', \n          { \n            style: headerStyle,\n            onClick: () => toggleExpand(message.id)\n          },\n          React.createElement('div', { style: headerLeftStyle },\n            React.createElement('div', { style: titleContainerStyle },\n              message.web_link && React.createElement('a', {\n                href: message.web_link,\n                target: '_blank',\n                rel: 'noopener noreferrer',\n                style: linkStyle\n              }, React.createElement(LinkIcon)),\n              React.createElement('h3', { style: titleStyle }, message.subject || '(No Subject)')\n            )\n          ),\n          React.createElement('span', { style: expandIconStyle }, isExpanded ? '▼' : '◄')\n        ),\n        isExpanded && React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: metaStyle },\n            React.createElement('div', { style: metaItemStyle },\n              React.createElement('span', { style: metaLabelStyle }, 'From:'),\n              React.createElement('span', { style: metaValueStyle }, message.sender || 'Unknown')\n            ),\n            React.createElement('div', { style: metaItemStyle },\n              React.createElement('span', { style: metaLabelStyle }, 'To:'),\n              React.createElement('span', { style: metaValueStyle }, message.recipient || 'Unknown')\n            ),\n            React.createElement('div', { style: metaItemStyle },\n              React.createElement('span', { style: metaLabelStyle }, 'Date:'),\n              React.createElement('span', {}, formattedDate)\n            )\n          ),\n          React.createElement('div', { style: snippetStyle }, message.body_preview)\n        )\n      );\n    })\n  );\n}"
     },
     "exampleProps": {
       "data": {
         "messages": [
           {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZIAAA=",
-            "subject": "Project Update: Q2 Roadmap",
-            "body_preview": "Hi team, I wanted to share the latest updates on our Q2 roadmap. We've made significant progress on the key initiatives we discussed last month...",
-            "from_address": "alex.johnson@example.com",
-            "to_recipients": ["team@example.com", "managers@example.com"],
-            "created_datetime": "2023-06-15T09:32:45Z",
-            "web_link": "https://outlook.office.com/mail/inbox/id/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZIAAA="
+            "id": "msg_123456",
+            "subject": "Meeting Tomorrow",
+            "sender": "john.doe@example.com",
+            "recipient": "you@example.com",
+            "date": "2023-06-15T14:30:00Z",
+            "body_preview": "Hi there, I wanted to confirm our meeting tomorrow at 2pm. Please let me know if that still works for you. I've attached the agenda for our discussion.",
+            "web_link": "https://outlook.office.com/mail/inbox/id/msg_123456"
           },
           {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZJAAA=",
-            "subject": "Meeting Invitation: Weekly Standup",
-            "body_preview": "You're invited to our weekly standup meeting. Please come prepared to discuss your progress and any blockers you're facing...",
-            "from_address": "sarah.miller@example.com",
-            "to_recipients": ["team@example.com"],
-            "created_datetime": "2023-06-14T16:45:22Z",
-            "web_link": "https://outlook.office.com/mail/inbox/id/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZJAAA="
+            "id": "msg_789012",
+            "subject": "Project Update",
+            "sender": "sarah.smith@example.com",
+            "recipient": "you@example.com",
+            "date": "2023-06-14T09:15:00Z",
+            "body_preview": "Here's the latest update on the project. We've completed phase 1 and are moving on to phase 2. Please review the attached documents and provide your feedback.",
+            "web_link": "https://outlook.office.com/mail/inbox/id/msg_789012"
           },
           {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZKAAA=",
-            "subject": "Quarterly Budget Review",
-            "body_preview": "Please find attached the quarterly budget report for your review. We'll be discussing this in detail during our next finance meeting...",
-            "from_address": "finance@example.com",
-            "to_recipients": ["managers@example.com", "directors@example.com"],
-            "created_datetime": "2023-06-13T11:20:15Z",
-            "web_link": "https://outlook.office.com/mail/inbox/id/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZKAAA="
-          },
-          {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZLAAA=",
-            "subject": "New Client Onboarding",
-            "body_preview": "We're excited to announce that we've signed a new client! Please review the attached onboarding documents and timeline...",
-            "from_address": "client.success@example.com",
-            "to_recipients": ["team@example.com", "sales@example.com"],
-            "created_datetime": "2023-06-12T14:10:33Z",
-            "web_link": "https://outlook.office.com/mail/inbox/id/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAEMAAAiIsqMbYjsT5e-T7KzowPTAAAYbvZLAAA="
+            "id": "msg_345678",
+            "subject": "Weekly Newsletter",
+            "sender": "newsletter@example.com",
+            "recipient": "you@example.com",
+            "date": "2023-06-13T08:00:00Z",
+            "body_preview": "This week's top stories: 1. Industry trends for 2023, 2. New product launches, 3. Upcoming events in your area. Click to read more!",
+            "web_link": "https://outlook.office.com/mail/inbox/id/msg_345678"
           }
-        ],
-        "next_link": "https://graph.microsoft.com/v1.0/me/messages?$skip=10"
+        ]
       }
     },
     "schemaRef": "schema.MessageList"
   },
   {
-    "name": "OutlookEventCard",
+    "name": "OutlookCalendarEventCard",
     "version": "1.0.0",
-    "description": "A simplified React component for displaying Outlook calendar events",
-    "related_endpoints": ["get_event", "create_event", "update_event", "delete_event", "list_events"],
+    "description": "A compact React component for displaying Outlook Calendar events with attendee avatars",
+    "related_endpoints": ["list_events", "get_event", "create_event", "update_event", "delete_event"],
     "component": {
-      "jsx": "function OutlookEventCard(props) {\n  const event = props.data;\n  if (!event) return null;\n\n  // Проверяем, является ли data объектом EventList или Event\n  const isEventList = event.events !== undefined;\n  const eventData = isEventList ? event.events : [event];\n  \n  const containerStyles = {\n    display: 'flex',\n    flexWrap: 'wrap',\n    gap: '16px',\n    justifyContent: 'flex-start',\n    width: '100%'\n  };\n\n  const formatTime = (dateTime) => {\n    if (!dateTime || !dateTime.dateTime) return 'TBD';\n    try {\n      const date = new Date(dateTime.dateTime);\n      if (date.toString() === 'Invalid Date') return 'TBD';\n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true\n      }).replace(/\\\\s/g, '');\n    } catch (e) {\n      return 'TBD';\n    }\n  };\n\n  // Format date for display\n  const formatDate = (dateTime) => {\n    if (!dateTime || !dateTime.dateTime) return '';\n    try {\n      const date = new Date(dateTime.dateTime);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        weekday: 'short',\n        month: 'short',\n        day: 'numeric'\n      });\n    } catch (e) {\n      return '';\n    }\n  };\n  \n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: '16px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    time: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    date: {\n      fontSize: '14px',\n      color: '#64748b'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    detailRow: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '8px',\n      color: '#64748b'\n    },\n    emoji: {\n      marginRight: '8px',\n      fontSize: '14px'\n    },\n    detailText: {\n      fontSize: '14px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap'\n    },\n    location: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginTop: '8px',\n      display: 'flex',\n      alignItems: 'center'\n    }\n  };\n  \n  // Создаем карточки для каждого события в сетке\n  return React.createElement('div', { style: containerStyles },\n    eventData.map((eventItem, index) => {\n      const startTime = formatTime(eventItem.start);\n      const endTime = formatTime(eventItem.end);\n      const eventDate = formatDate(eventItem.start);\n      \n      return React.createElement('div', { key: eventItem.id || index, style: styles.card },\n        React.createElement('div', { style: styles.header },\n          React.createElement('div', { style: styles.iconContainer },\n            React.createElement('span', { style: styles.iconText }, '📅')\n          ),\n          React.createElement('div', { style: styles.titleContainer },\n            React.createElement('div', { style: styles.title }, eventItem.subject || '(Без темы)'),\n            React.createElement('div', { style: styles.time }, startTime + ' - ' + endTime),\n            eventDate && React.createElement('div', { style: styles.date }, eventDate)\n          ),\n          eventItem.web_link && React.createElement('a', { \n            href: eventItem.web_link, \n            target: '_blank', \n            rel: 'noopener noreferrer',\n            style: styles.externalLink\n          }, React.createElement('span', { style: styles.linkText }, '🔗'))\n        ),\n        \n        eventItem.location && eventItem.location.displayName && React.createElement('div', { style: styles.location },\n          React.createElement('span', { style: styles.emoji }, '📍'),\n          React.createElement('span', { style: styles.detailText }, eventItem.location.displayName)\n        ),\n        \n        eventItem.organizer && eventItem.organizer.emailAddress && React.createElement('div', { style: styles.detailRow },\n          React.createElement('span', { style: styles.emoji }, '👤'),\n          React.createElement('span', { style: styles.detailText }, \n            eventItem.organizer.emailAddress.name || eventItem.organizer.emailAddress.address\n          )\n        ),\n        \n        eventItem.attendees && eventItem.attendees.length > 0 && React.createElement('div', { style: styles.detailRow },\n          React.createElement('span', { style: styles.emoji }, '👥'),\n          React.createElement('span', { style: styles.detailText },\n            eventItem.attendees.slice(0, 3).map(a => \n              a.emailAddress ? (a.emailAddress.name || a.emailAddress.address) : 'Unknown'\n            ).join(', ') +\n            (eventItem.attendees.length > 3 ? ` +${eventItem.attendees.length - 3} more` : '')\n          )\n        )\n      );\n    })\n  );\n}"
+      "jsx": "function(props) {\n  // Main component function\n  function OutlookCalendarEventCard(props) {\n    const event = props.data;\n    if (!event) return null;\n\n    // Function to generate color from string\n    function stringToColor(string) {\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n\n    // Format response status\n    function formatResponseStatus(status) {\n      if (!status) return '';\n      \n      switch(status.toLowerCase()) {\n        case 'accepted':\n          return 'Accepted';\n        case 'declined':\n          return 'Declined';\n        case 'tentative':\n          return 'Maybe';\n        case 'notresponded':\n          return 'Pending';\n        default:\n          return status;\n      }\n    }\n\n    // User avatar component with tooltip\n    function UserAvatar({ user, index }) {\n      const name = user.displayName || user.email || '';\n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      const status = formatResponseStatus(user.responseStatus);\n      \n      const avatarStyle = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '10px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        position: 'relative',\n        cursor: 'pointer',\n        border: '1px solid white',\n        zIndex: 5 - index // Higher index = lower z-index to stack properly\n      };\n      \n      const tooltipContainerStyle = {\n        position: 'relative',\n        zIndex: 0,\n        marginLeft: index > 0 ? '-8px' : '0' // Overlap avatars by 8px\n      };\n      \n      // Using onMouseOver/onMouseOut for tooltip functionality\n      return React.createElement('div', {\n        style: tooltipContainerStyle,\n        className: 'user-avatar-container',\n        onMouseOver: function(e) {\n          const tooltip = document.createElement('div');\n          tooltip.className = 'avatar-tooltip';\n          tooltip.style.position = 'absolute';\n          tooltip.style.bottom = '100%';\n          tooltip.style.left = '50%';\n          tooltip.style.transform = 'translateX(-50%)';\n          tooltip.style.marginBottom = '6px';\n          tooltip.style.padding = '4px 8px';\n          tooltip.style.backgroundColor = '#333';\n          tooltip.style.color = 'white';\n          tooltip.style.borderRadius = '4px';\n          tooltip.style.fontSize = '10px';\n          tooltip.style.whiteSpace = 'nowrap';\n          tooltip.style.zIndex = '10';\n          \n          const nameElement = document.createElement('div');\n          nameElement.style.fontWeight = '500';\n          nameElement.textContent = name;\n          tooltip.appendChild(nameElement);\n          \n          if (status) {\n            const statusElement = document.createElement('div');\n            statusElement.style.color = '#ccc';\n            statusElement.textContent = status;\n            tooltip.appendChild(statusElement);\n          }\n          \n          // Add arrow\n          const arrow = document.createElement('div');\n          arrow.style.position = 'absolute';\n          arrow.style.top = '100%';\n          arrow.style.left = '50%';\n          arrow.style.transform = 'translateX(-50%)';\n          arrow.style.borderWidth = '4px';\n          arrow.style.borderStyle = 'solid';\n          arrow.style.borderColor = '#333 transparent transparent transparent';\n          tooltip.appendChild(arrow);\n          \n          e.currentTarget.appendChild(tooltip);\n        },\n        onMouseOut: function(e) {\n          const tooltip = e.currentTarget.querySelector('.avatar-tooltip');\n          if (tooltip) {\n            tooltip.remove();\n          }\n        }\n      }, React.createElement('div', {\n        style: avatarStyle\n      }, initials));\n    }\n\n    // Component for additional attendees\n    function MoreAttendees({ count, index }) {\n      const style = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#e2e8f0',\n        color: '#64748b',\n        fontSize: '10px',\n        fontWeight: '500',\n        border: '1px solid white',\n        zIndex: 1\n      };\n      \n      return React.createElement('div', {\n        style: {\n          position: 'relative',\n          zIndex: 0,\n          marginLeft: '-8px' // Overlap with the last avatar\n        }\n      }, React.createElement('div', {\n        style: style\n      }, '+' + count));\n    }\n\n    const formatTime = (dateStr) => {\n      if (!dateStr) return 'TBD';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return 'TBD';\n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true,\n        timeZone: 'America/Los_Angeles'\n      }).replace(/\\s/g, '');\n    };\n\n    // Short date format (Feb 28)\n    const formatShortDate = (dateStr) => {\n      if (!dateStr) return '';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        month: 'short',\n        day: 'numeric'\n      });\n    };\n\n    const startTime = formatTime(event.start);\n    const endTime = formatTime(event.end);\n    const shortDate = formatShortDate(event.start);\n    \n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      gap: '8px'\n    };\n    \n    const contentStyle = {\n      minWidth: 0,\n      flex: 1\n    };\n    \n    const titleContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '2px'\n    };\n    \n    const titleStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      fontSize: '14px',\n      margin: 0\n    };\n    \n    const timeStyle = {\n      fontSize: '12px',\n      color: '#64748b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      marginTop: '4px',\n      margin: 0\n    };\n    \n    const attendeesStyle = {\n      display: 'flex',\n      alignItems: 'center'\n    };\n\n    const linkStyle = {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      marginRight: '4px',\n      textDecoration: 'none',\n      flexShrink: 0\n    };\n    \n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: titleContainerStyle },\n            event.web_link && React.createElement('a', {\n              href: event.web_link,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: linkStyle\n            }, React.createElement(LinkIcon)),\n            React.createElement('h3', { style: titleStyle }, event.subject)\n          ),\n          React.createElement('p', { style: timeStyle },\n            shortDate + ', ' + startTime + ' - ' + endTime\n          )\n        ),\n        React.createElement('div', { style: attendeesStyle },\n          event.attendees && event.attendees.slice(0, 3).map((attendee, index) =>\n            React.createElement(UserAvatar, { key: index, user: attendee, index: index })\n          ),\n          event.attendees && event.attendees.length > 3 &&\n            React.createElement(MoreAttendees, { count: event.attendees.length - 3, index: 3 })\n        )\n      )\n    );\n  }\n\n  // Render multiple events if provided\n  function renderEvents(props) {\n    const events = Array.isArray(props.data) ? props.data : [props.data];\n    \n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)', // Two cards per row with gap in between\n      minWidth: '250px',\n      boxSizing: 'border-box'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      events.map((event, index) => \n        React.createElement('div', { \n          key: event.id || index,\n          style: cardWrapperStyle\n        },\n          React.createElement(OutlookCalendarEventCard, { \n            data: event \n          })\n        )\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  return Array.isArray(props.data) ? renderEvents(props) : OutlookCalendarEventCard(props);\n}"
     },
     "exampleProps": {
-      "data": {
-        "events": [
-          {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGhAAA=",
-            "subject": "Weekly Team Standup",
-            "body": {
-              "contentType": "html",
-              "content": "<html><body><p>Let's discuss our progress and any blockers.</p></body></html>"
+      "data": [
+        {
+          "id": "event_123456",
+          "subject": "Team Weekly Meeting",
+          "description": "Weekly team sync to discuss project progress and blockers",
+          "location": "Conference Room A",
+          "start": "2023-06-15T10:00:00Z",
+          "end": "2023-06-15T11:00:00Z",
+          "web_link": "https://outlook.office.com/calendar/event?id=event_123456",
+          "attendees": [
+            {
+              "email": "john.doe@example.com",
+              "displayName": "John Doe",
+              "responseStatus": "accepted"
             },
-            "start": {
-              "dateTime": "2023-06-20T10:00:00.0000000",
-              "timeZone": "UTC"
+            {
+              "email": "jane.smith@example.com",
+              "displayName": "Jane Smith",
+              "responseStatus": "accepted"
             },
-            "end": {
-              "dateTime": "2023-06-20T10:30:00.0000000",
-              "timeZone": "UTC"
+            {
+              "email": "alex.johnson@example.com",
+              "displayName": "Alex Johnson",
+              "responseStatus": "tentative"
             },
-            "location": {
-              "displayName": "Conference Room A"
-            },
-            "web_link": "https://outlook.office.com/calendar/item/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGhAAA=",
-            "organizer": {
-              "emailAddress": {
-                "name": "Sarah Miller",
-                "address": "sarah.miller@example.com"
-              }
-            },
-            "attendees": [
-              {
-                "emailAddress": {
-                  "name": "Alex Johnson",
-                  "address": "alex.johnson@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "Michael Brown",
-                  "address": "michael.brown@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "Emily Davis",
-                  "address": "emily.davis@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "David Wilson",
-                  "address": "david.wilson@example.com"
-                }
-              }
-            ]
+            {
+              "email": "sarah.williams@example.com",
+              "displayName": "Sarah Williams",
+              "responseStatus": "notresponded"
+            }
+          ],
+          "organizer": {
+            "email": "john.doe@example.com",
+            "displayName": "John Doe"
           },
-          {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGiAAA=",
-            "subject": "Project Review Meeting",
-            "body": {
-              "contentType": "html",
-              "content": "<html><body><p>Quarterly review of all active projects.</p></body></html>"
+          "status": "confirmed",
+          "isRecurring": false
+        },
+        {
+          "id": "event_789012",
+          "subject": "Product Demo",
+          "description": "Demonstration of new features to the client",
+          "location": "Virtual Meeting",
+          "start": "2023-06-16T14:00:00Z",
+          "end": "2023-06-16T15:30:00Z",
+          "web_link": "https://outlook.office.com/calendar/event?id=event_789012",
+          "attendees": [
+            {
+              "email": "john.doe@example.com",
+              "displayName": "John Doe",
+              "responseStatus": "accepted"
             },
-            "start": {
-              "dateTime": "2023-06-21T14:00:00.0000000",
-              "timeZone": "UTC"
-            },
-            "end": {
-              "dateTime": "2023-06-21T15:30:00.0000000",
-              "timeZone": "UTC"
-            },
-            "location": {
-              "displayName": "Main Conference Room"
-            },
-            "web_link": "https://outlook.office.com/calendar/item/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGiAAA=",
-            "organizer": {
-              "emailAddress": {
-                "name": "John Smith",
-                "address": "john.smith@example.com"
-              }
-            },
-            "attendees": [
-              {
-                "emailAddress": {
-                  "name": "Project Team",
-                  "address": "project.team@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "Management",
-                  "address": "management@example.com"
-                }
-              }
-            ]
+            {
+              "email": "client@example.com",
+              "displayName": "Important Client",
+              "responseStatus": "accepted"
+            }
+          ],
+          "organizer": {
+            "email": "john.doe@example.com",
+            "displayName": "John Doe"
           },
-          {
-            "id": "AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGjAAA=",
-            "subject": "Client Presentation",
-            "body": {
-              "contentType": "html",
-              "content": "<html><body><p>Final presentation for the new product launch.</p></body></html>"
+          "status": "confirmed",
+          "isRecurring": false
+        },
+        {
+          "id": "event_345678",
+          "subject": "One-on-One with Manager",
+          "description": "Weekly check-in",
+          "location": "Manager's Office",
+          "start": "2023-06-17T09:30:00Z",
+          "end": "2023-06-17T10:00:00Z",
+          "web_link": "https://outlook.office.com/calendar/event?id=event_345678",
+          "attendees": [
+            {
+              "email": "john.doe@example.com",
+              "displayName": "John Doe",
+              "responseStatus": "accepted"
             },
-            "start": {
-              "dateTime": "2023-06-22T11:00:00.0000000",
-              "timeZone": "UTC"
-            },
-            "end": {
-              "dateTime": "2023-06-22T12:00:00.0000000",
-              "timeZone": "UTC"
-            },
-            "location": {
-              "displayName": "Virtual Meeting"
-            },
-            "web_link": "https://outlook.office.com/calendar/item/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e-T7KzowPTAAAAAAENAAAiIsqMbYjsT5e-T7KzowPTAAASFGGjAAA=",
-            "organizer": {
-              "emailAddress": {
-                "name": "Sales Team",
-                "address": "sales@example.com"
-              }
-            },
-            "attendees": [
-              {
-                "emailAddress": {
-                  "name": "Client A",
-                  "address": "client.a@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "Marketing Team",
-                  "address": "marketing@example.com"
-                }
-              },
-              {
-                "emailAddress": {
-                  "name": "Product Team",
-                  "address": "product@example.com"
-                }
-              }
-            ]
-          }
-        ],
-        "next_link": "https://graph.microsoft.com/v1.0/me/events?$skip=10"
-      }
+            {
+              "email": "manager@example.com",
+              "displayName": "Team Manager",
+              "responseStatus": "accepted"
+            }
+          ],
+          "organizer": {
+            "email": "manager@example.com",
+            "displayName": "Team Manager"
+          },
+          "status": "confirmed",
+          "isRecurring": true
+        }
+      ]
     },
-    "schemaRef": ["schema.Event", "schema.EventList"]
+    "schemaRef": "schema.Event"
   }
 ]

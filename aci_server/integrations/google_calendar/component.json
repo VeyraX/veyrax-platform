@@ -1,14 +1,14 @@
-[
 {
-    "name": "GoogleCalendarEventCard",
-    "version": "1.0.0",
-    "description": "A simplified React component for displaying Google Calendar events",
-    "related_endpoints": ["list_events", "get_event", "create_event", "update_event", "delete_event", "list_calendars"],
-    "component": {
-      "jsx": "function GoogleCalendarEventCard(props) {\n  const event = props.data;\n  if (!event) return null;\n\n  const formatTime = (dateStr) => {\n    if (!dateStr) return 'TBD';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return 'TBD';\n    return date.toLocaleTimeString('en-US', {\n      hour: 'numeric',\n      minute: '2-digit',\n      hour12: true\n    }).replace(/\\\\s/g, '');\n  };\n\n  const startTime = formatTime(event.start);\n  const endTime = formatTime(event.end);\n  \n  // Format date for display\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      weekday: 'short',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n  \n  const eventDate = formatDate(event.start);\n  \n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: '16px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    time: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    date: {\n      fontSize: '14px',\n      color: '#64748b'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    detailRow: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '8px',\n      color: '#64748b'\n    },\n    emoji: {\n      marginRight: '8px',\n      fontSize: '14px'\n    },\n    detailText: {\n      fontSize: '14px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap'\n    }\n  };\n  \n  return React.createElement('div', { style: styles.card },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.iconContainer },\n        React.createElement('span', { style: styles.iconText }, '📅')\n      ),\n      React.createElement('div', { style: styles.titleContainer },\n        React.createElement('div', { style: styles.title }, event.summary),\n        React.createElement('div', { style: styles.time }, startTime + ' - ' + endTime),\n        eventDate && React.createElement('div', { style: styles.date }, eventDate)\n      ),\n      event.htmlLink && React.createElement('a', { \n        href: event.htmlLink, \n        target: '_blank', \n        rel: 'noopener noreferrer',\n        style: styles.externalLink\n      }, React.createElement('span', { style: styles.linkText }, '🔗'))\n    ),\n    \n    event.attendees && event.attendees.length > 0 && React.createElement('div', { style: styles.detailRow },\n      React.createElement('span', { style: styles.emoji }, '👥'),\n      React.createElement('span', { style: styles.detailText },\n        event.attendees.slice(0, 3).map(a => a.email || a.displayName).join(', ') +\n        (event.attendees.length > 3 ? ` +${event.attendees.length - 3} more` : '')\n      )\n    )\n  );\n}"
-    },
-    "exampleProps": {
-      "data": {
+  "name": "GoogleCalendarEventCard",
+  "version": "1.0.0",
+  "description": "A compact React component for displaying Google Calendar events with attendee avatars",
+  "related_endpoints": ["list_events", "get_event", "create_event", "update_event", "delete_event"],
+  "component": {
+    "jsx": "function(props) {\n  // Main component function\n  function GoogleCalendarEventCard(props) {\n    const event = props.data;\n    if (!event) return null;\n\n    // Function to generate color from string\n    function stringToColor(string) {\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n\n    // Format response status\n    function formatResponseStatus(status) {\n      if (!status) return '';\n      \n      switch(status.toLowerCase()) {\n        case 'accepted':\n          return 'Accepted';\n        case 'declined':\n          return 'Declined';\n        case 'tentative':\n          return 'Maybe';\n        case 'needsaction':\n          return 'Pending';\n        default:\n          return status;\n      }\n    }\n\n    // User avatar component with tooltip\n    function UserAvatar({ user, index }) {\n      const name = user.displayName || user.email || '';\n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      const status = formatResponseStatus(user.responseStatus);\n      \n      const avatarStyle = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '10px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        position: 'relative',\n        cursor: 'pointer',\n        border: '1px solid white',\n        zIndex: 5 - index // Higher index = lower z-index to stack properly\n      };\n      \n      const tooltipContainerStyle = {\n        position: 'relative',\n        zIndex: 0,\n        marginLeft: index > 0 ? '-8px' : '0' // Overlap avatars by 8px\n      };\n      \n      // Using onMouseOver/onMouseOut for tooltip functionality\n      return React.createElement('div', {\n        style: tooltipContainerStyle,\n        className: 'user-avatar-container',\n        onMouseOver: function(e) {\n          const tooltip = document.createElement('div');\n          tooltip.className = 'avatar-tooltip';\n          tooltip.style.position = 'absolute';\n          tooltip.style.bottom = '100%';\n          tooltip.style.left = '50%';\n          tooltip.style.transform = 'translateX(-50%)';\n          tooltip.style.marginBottom = '6px';\n          tooltip.style.padding = '4px 8px';\n          tooltip.style.backgroundColor = '#333';\n          tooltip.style.color = 'white';\n          tooltip.style.borderRadius = '4px';\n          tooltip.style.fontSize = '10px';\n          tooltip.style.whiteSpace = 'nowrap';\n          tooltip.style.zIndex = '10';\n          \n          const nameElement = document.createElement('div');\n          nameElement.style.fontWeight = '500';\n          nameElement.textContent = name;\n          tooltip.appendChild(nameElement);\n          \n          if (status) {\n            const statusElement = document.createElement('div');\n            statusElement.style.color = '#ccc';\n            statusElement.textContent = status;\n            tooltip.appendChild(statusElement);\n          }\n          \n          // Add arrow\n          const arrow = document.createElement('div');\n          arrow.style.position = 'absolute';\n          arrow.style.top = '100%';\n          arrow.style.left = '50%';\n          arrow.style.transform = 'translateX(-50%)';\n          arrow.style.borderWidth = '4px';\n          arrow.style.borderStyle = 'solid';\n          arrow.style.borderColor = '#333 transparent transparent transparent';\n          tooltip.appendChild(arrow);\n          \n          e.currentTarget.appendChild(tooltip);\n        },\n        onMouseOut: function(e) {\n          const tooltip = e.currentTarget.querySelector('.avatar-tooltip');\n          if (tooltip) {\n            tooltip.remove();\n          }\n        }\n      }, React.createElement('div', {\n        style: avatarStyle\n      }, initials));\n    }\n\n    // Component for additional attendees\n    function MoreAttendees({ count, index }) {\n      const style = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#e2e8f0',\n        color: '#64748b',\n        fontSize: '10px',\n        fontWeight: '500',\n        border: '1px solid white',\n        zIndex: 1\n      };\n      \n      return React.createElement('div', {\n        style: {\n          position: 'relative',\n          zIndex: 0,\n          marginLeft: '-8px' // Overlap with the last avatar\n        }\n      }, React.createElement('div', {\n        style: style\n      }, '+' + count));\n    }\n\n    const formatTime = (dateStr) => {\n      if (!dateStr) return 'TBD';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return 'TBD';\n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true,\n        timeZone: 'America/Los_Angeles'\n      }).replace(/\\s/g, '');\n    };\n\n    // Short date format (Feb 28)\n    const formatShortDate = (dateStr) => {\n      if (!dateStr) return '';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        month: 'short',\n        day: 'numeric'\n      });\n    };\n\n    const startTime = formatTime(event.start);\n    const endTime = formatTime(event.end);\n    const shortDate = formatShortDate(event.start);\n    \n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      gap: '8px'\n    };\n    \n    const contentStyle = {\n      minWidth: 0,\n      flex: 1\n    };\n    \n    const titleContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '2px'\n    };\n    \n    const titleStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      fontSize: '14px',\n      margin: 0\n    };\n    \n    const timeStyle = {\n      fontSize: '12px',\n      color: '#64748b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      marginTop: '4px',\n      margin: 0\n    };\n    \n    const attendeesStyle = {\n      display: 'flex',\n      alignItems: 'center'\n    };\n\n    const linkStyle = {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      marginRight: '4px',\n      textDecoration: 'none',\n      flexShrink: 0\n    };\n    \n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: titleContainerStyle },\n            event.htmlLink && React.createElement('a', {\n              href: event.htmlLink,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: linkStyle\n            }, React.createElement(LinkIcon)),\n            React.createElement('h3', { style: titleStyle }, event.summary)\n          ),\n          React.createElement('p', { style: timeStyle },\n            shortDate + ', ' + startTime + ' - ' + endTime\n          )\n        ),\n        React.createElement('div', { style: attendeesStyle },\n          event.attendees && event.attendees.slice(0, 3).map((attendee, index) =>\n            React.createElement(UserAvatar, { key: index, user: attendee, index: index })\n          ),\n          event.attendees && event.attendees.length > 3 &&\n            React.createElement(MoreAttendees, { count: event.attendees.length - 3, index: 3 })\n        )\n      )\n    );\n  }\n\n  // Render multiple events if provided\n  function renderEvents(props) {\n    const events = Array.isArray(props.data) ? props.data : [props.data];\n    \n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)', // Two cards per row with gap in between\n      minWidth: '250px',\n      boxSizing: 'border-box'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      events.map((event, index) => \n        React.createElement('div', { \n          key: event.id || index,\n          style: cardWrapperStyle\n        },\n          React.createElement(GoogleCalendarEventCard, { \n            data: event \n          })\n        )\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  return Array.isArray(props.data) ? renderEvents(props) : GoogleCalendarEventCard(props);\n}"
+  },
+  "exampleProps": {
+    "data": [
+      {
         "id": "event_123456",
         "summary": "Team Weekly Meeting",
         "description": "Weekly team sync to discuss project progress and blockers",
@@ -45,8 +45,64 @@
         "status": "confirmed",
         "recurringEventId": null,
         "isRecurring": false
+      },
+      {
+        "id": "event_789012",
+        "summary": "Product Demo",
+        "description": "Demonstration of new features to the client",
+        "location": "Virtual Meeting",
+        "start": "2023-06-16T14:00:00Z",
+        "end": "2023-06-16T15:30:00Z",
+        "htmlLink": "https://calendar.google.com/calendar/event?eid=def456",
+        "attendees": [
+          {
+            "email": "john.doe@example.com",
+            "displayName": "John Doe",
+            "responseStatus": "accepted"
+          },
+          {
+            "email": "client@example.com",
+            "displayName": "Important Client",
+            "responseStatus": "accepted"
+          }
+        ],
+        "organizer": {
+          "email": "john.doe@example.com",
+          "displayName": "John Doe"
+        },
+        "status": "confirmed",
+        "recurringEventId": null,
+        "isRecurring": false
+      },
+      {
+        "id": "event_345678",
+        "summary": "One-on-One with Manager",
+        "description": "Weekly check-in",
+        "location": "Manager's Office",
+        "start": "2023-06-17T09:30:00Z",
+        "end": "2023-06-17T10:00:00Z",
+        "htmlLink": "https://calendar.google.com/calendar/event?eid=ghi789",
+        "attendees": [
+          {
+            "email": "john.doe@example.com",
+            "displayName": "John Doe",
+            "responseStatus": "accepted"
+          },
+          {
+            "email": "manager@example.com",
+            "displayName": "Team Manager",
+            "responseStatus": "accepted"
+          }
+        ],
+        "organizer": {
+          "email": "manager@example.com",
+          "displayName": "Team Manager"
+        },
+        "status": "confirmed",
+        "recurringEventId": "weekly_one_on_one",
+        "isRecurring": true
       }
-    },
-    "schemaRef": "schema.Event"
-  }
-]
+    ]
+  },
+  "schemaRef": "schema.Event"
+}

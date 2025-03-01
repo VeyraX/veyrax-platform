@@ -48,7 +48,7 @@ async def get_confluence_service(request: FastAPIRequest):
     client = ConfluenceClient(token_data['access_token'])
     return ConfluenceService(client)
 
-@router.post("/spaces", response_model=ApiResponse)
+@router.post("/get_spaces", response_model=ApiResponse)
 @schema(input_schema_class=GetSpacesParams, output_schema_class=SpacesResponse)
 async def get_spaces(
     params: Dict[str, Any] = Body({}),
@@ -64,7 +64,7 @@ async def get_spaces(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/pages", response_model=ApiResponse)
+@router.post("/get_pages", response_model=ApiResponse)
 @schema(input_schema_class=GetPagesParams, output_schema_class=PagesResponse)
 async def get_pages(
     params: Dict[str, Any] = Body(...),
@@ -129,7 +129,7 @@ async def update_page(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/search", response_model=ApiResponse)
+@router.post("/search_content", response_model=ApiResponse)
 @schema(input_schema_class=SearchContentParams, output_schema_class=SearchContentResponse)
 async def search_content(
     params: Dict[str, Any] = Body(...),

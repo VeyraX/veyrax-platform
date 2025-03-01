@@ -1,186 +1,131 @@
 [
-    {
-      "name": "LinearIssueCard",
-      "version": "1.0.0",
-      "description": "A React component for displaying Linear issues (single or list)",
-      "related_endpoints": ["list_issues", "search_issues", "filter_issues", "create_issue", "update_issue", "comment_issue"],
-      "component": {
-        "jsx": "function LinearIssueCard(props) {\n  const data = props.data;\n  \n  // Handle both single issue and issue list\n  const isIssueList = data && data.items && Array.isArray(data.items);\n  const isSingleIssue = data && !isIssueList;\n  \n  if ((!isIssueList || data.items.length === 0) && !isSingleIssue) return null;\n\n  const renderIssueCard = (issue) => {\n    const priorityText = issue.priority ? `P${issue.priority}` : 'No priority';\n    \n    const subtitle = [\n      issue.state,\n      priorityText,\n      issue.assignee ? `${issue.assignee.name}` : 'Unassigned',\n    ].join(' • ');\n\n    const styles = {\n      card: {\n        border: '1px solid #e2e8f0',\n        borderRadius: '8px',\n        padding: '16px',\n        backgroundColor: '#ffffff',\n        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n        width: '350px',\n        maxWidth: '100%',\n        fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n        marginBottom: '16px',\n        flex: '0 0 auto',\n        display: 'flex',\n        flexDirection: 'column'\n      },\n      header: {\n        display: 'flex',\n        alignItems: 'flex-start',\n        marginBottom: '12px'\n      },\n      iconContainer: {\n        marginRight: '12px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#f0f4f9',\n        borderRadius: '6px',\n        padding: '8px',\n        color: '#5E6AD2'\n      },\n      iconText: {\n        fontSize: '16px'\n      },\n      titleContainer: {\n        flex: 1,\n        minWidth: 0\n      },\n      title: {\n        fontWeight: '600',\n        fontSize: '16px',\n        color: '#1e293b',\n        marginBottom: '4px',\n        wordBreak: 'break-word'\n      },\n      subtitle: {\n        fontSize: '14px',\n        color: '#64748b',\n        marginBottom: '2px'\n      },\n      identifier: {\n        fontSize: '14px',\n        color: '#64748b'\n      },\n      externalLink: {\n        color: '#64748b',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        marginLeft: '8px',\n        textDecoration: 'none'\n      },\n      linkText: {\n        fontSize: '16px'\n      },\n      container: {\n        display: 'flex',\n        flexWrap: 'wrap',\n        gap: '16px',\n        justifyContent: 'flex-start',\n        width: '100%'\n      }\n    };\n    \n    return React.createElement('div', { key: issue.id, style: styles.card },\n      React.createElement('div', { style: styles.header },\n        React.createElement('div', { style: styles.iconContainer },\n          React.createElement('span', { style: styles.iconText }, '🔄')\n        ),\n        React.createElement('div', { style: styles.titleContainer },\n          React.createElement('div', { style: styles.title }, issue.title),\n          React.createElement('div', { style: styles.subtitle }, subtitle),\n          React.createElement('div', { style: styles.identifier }, issue.identifier)\n        ),\n        issue.team_key && issue.identifier && React.createElement('a', { \n          href: `https://linear.app/${issue.team_key}/issue/${issue.identifier}`, \n          target: '_blank', \n          rel: 'noopener noreferrer',\n          style: styles.externalLink\n        }, React.createElement('span', { style: styles.linkText }, '🔗'))\n      )\n    );\n  };\n  \n  // If it's a single issue\n  if (isSingleIssue) {\n    return renderIssueCard(data);\n  }\n  \n  // If it's a list of issues\n  const styles = {\n    container: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      justifyContent: 'flex-start',\n      width: '100%'\n    }\n  };\n  \n  return React.createElement('div', { style: styles.container },\n    data.items.map(issue => renderIssueCard(issue))\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "items": [
-            {
-              "id": "issue_1",
-              "title": "Implement new authentication flow",
-              "description": "We need to implement OAuth2 authentication for better security",
-              "state": "In Progress",
-              "priority": 2,
-              "assignee": {
-                "id": "user_1",
-                "name": "John Doe",
-                "email": "john@example.com"
-              },
-              "creator": {
-                "id": "user_2",
-                "name": "Jane Smith",
-                "email": "jane@example.com"
-              },
-              "created_at": "2023-06-15T14:30:00Z",
-              "updated_at": "2023-06-16T09:45:00Z",
-              "labels": ["authentication", "security"],
-              "team_id": "team_1",
-              "team_key": "ENG",
-              "identifier": "ENG-123"
-            },
-            {
-              "id": "issue_2",
-              "title": "Fix pagination bug in dashboard",
-              "description": "Users are experiencing issues with pagination in the dashboard",
-              "state": "Todo",
-              "priority": 3,
-              "assignee": null,
-              "creator": {
-                "id": "user_2",
-                "name": "Jane Smith",
-                "email": "jane@example.com"
-              },
-              "created_at": "2023-06-14T10:15:00Z",
-              "updated_at": "2023-06-14T10:15:00Z",
-              "labels": ["bug", "frontend"],
-              "team_id": "team_1",
-              "team_key": "ENG",
-              "identifier": "ENG-124"
-            },
-            {
-              "id": "issue_3",
-              "title": "Add export to CSV functionality",
-              "description": "Users need to be able to export data to CSV format",
-              "state": "Done",
-              "priority": 4,
-              "assignee": {
-                "id": "user_3",
-                "name": "Alex Johnson",
-                "email": "alex@example.com"
-              },
-              "creator": {
-                "id": "user_1",
-                "name": "John Doe",
-                "email": "john@example.com"
-              },
-              "created_at": "2023-06-10T09:00:00Z",
-              "updated_at": "2023-06-13T16:45:00Z",
-              "labels": ["feature", "export"],
-              "team_id": "team_2",
-              "team_key": "PROD",
-              "identifier": "PROD-45"
-            }
-          ],
-          "cursor": "cursor_abc123"
-        }
-      },
-      "schemaRef": ["schema.Issue", "schema.IssueList"]
+  {
+    "name": "LinearIssueCard",
+    "version": "1.0.0",
+    "description": "A React component for displaying Linear issues (single or list)",
+    "related_endpoints": ["list_issues", "search_issues", "filter_issues", "create_issue", "update_issue", "comment_issue"],
+    "component": {
+      "jsx": "function(props) { function LinearIssueCard(props) { const data = props.data; const isIssueList = data && data.items && Array.isArray(data.items); const isSingleIssue = data && !isIssueList; if ((!isIssueList || data.items.length === 0) && !isSingleIssue) return null; function getStatusColor(status) { if (!status) return '#6B778C'; const statusColorMap = { 'Todo': '#42526E', 'In Progress': '#0052CC', 'Done': '#00875A', 'Canceled': '#FF5630' }; return statusColorMap[status] || '#6B778C'; } function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } function MiniTag({ label }) { if (!label) return null; const initials = label.substring(0, 2).toUpperCase(); const tagStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F5F9', color: '#475569', width: '22px', height: '22px', borderRadius: '4px', fontSize: '10px', fontWeight: '500', marginRight: '4px', cursor: 'pointer', position: 'relative' }; const tooltipContainerStyle = { position: 'relative' }; return React.createElement('div', { style: tooltipContainerStyle, onMouseOver: function(e) { const tooltip = document.createElement('div'); tooltip.className = 'tag-tooltip'; tooltip.style.position = 'absolute'; tooltip.style.bottom = '100%'; tooltip.style.left = '50%'; tooltip.style.transform = 'translateX(-50%)'; tooltip.style.marginBottom = '6px'; tooltip.style.padding = '4px 8px'; tooltip.style.backgroundColor = '#333'; tooltip.style.color = 'white'; tooltip.style.borderRadius = '4px'; tooltip.style.fontSize = '10px'; tooltip.style.whiteSpace = 'nowrap'; tooltip.style.zIndex = '10'; tooltip.textContent = label; const arrow = document.createElement('div'); arrow.style.position = 'absolute'; arrow.style.top = '100%'; arrow.style.left = '50%'; arrow.style.transform = 'translateX(-50%)'; arrow.style.borderWidth = '4px'; arrow.style.borderStyle = 'solid'; arrow.style.borderColor = '#333 transparent transparent transparent'; tooltip.appendChild(arrow); e.currentTarget.appendChild(tooltip); }, onMouseOut: function(e) { const tooltip = e.currentTarget.querySelector('.tag-tooltip'); if (tooltip) { tooltip.remove(); } } }, React.createElement('div', { style: tagStyle }, initials)); } const styles = { container: { display: 'flex', flexWrap: 'wrap', gap: '12px', width: '100%' }, cardWrapper: { width: 'calc(50% - 6px)', minWidth: '250px', boxSizing: 'border-box' }, card: { position: 'relative', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', padding: '8px 12px', marginBottom: '8px', width: '100%', fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif', boxSizing: 'border-box' }, flexContainer: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }, content: { minWidth: 0, flex: 1 }, titleContainer: { display: 'flex', alignItems: 'center', gap: '2px', width: '100%' }, title: { fontWeight: '500', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '14px', margin: 0, flex: 1 }, subtitle: { fontSize: '12px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px', margin: 0 }, externalLink: { color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '4px', textDecoration: 'none', flexShrink: 0 }, tagsContainer: { display: 'flex', marginTop: '8px', flexWrap: 'wrap', gap: '4px' } }; const renderIssueCard = (issue) => { const assigneeName = issue.assignee ? issue.assignee.name : 'Unassigned'; const statusName = issue.state || ''; const priorityText = issue.priority ? `P${issue.priority}` : ''; let subtitle = ''; if (assigneeName) subtitle += `${assigneeName}`; if (statusName) subtitle += subtitle ? ` · ${statusName}` : statusName; if (priorityText) subtitle += subtitle ? ` · ${priorityText}` : priorityText; return React.createElement('div', { key: issue.id, style: styles.card }, React.createElement('div', { style: styles.flexContainer }, React.createElement('div', { style: styles.content }, React.createElement('div', { style: styles.titleContainer }, issue.team_key && issue.identifier && React.createElement('a', { href: `https://linear.app/${issue.team_key}/issue/${issue.identifier}`, target: '_blank', rel: 'noopener noreferrer', style: styles.externalLink }, React.createElement(LinkIcon)), React.createElement('h3', { style: styles.title }, issue.title)), subtitle && React.createElement('p', { style: styles.subtitle }, subtitle)), issue.labels && issue.labels.length > 0 && React.createElement('div', { style: { display: 'flex' } }, issue.labels.slice(0, 3).map((label, index) => React.createElement(MiniTag, { key: index, label: label })))), issue.labels && issue.labels.length > 3 && React.createElement('div', { style: styles.tagsContainer }, issue.labels.slice(3).map((label, index) => React.createElement(MiniTag, { key: index + 3, label: label })))); }; if (isSingleIssue) { return renderIssueCard(data); } return React.createElement('div', { style: styles.container }, data.items.map(issue => React.createElement('div', { key: issue.id, style: styles.cardWrapper }, renderIssueCard(issue)))); } return LinearIssueCard(props); }"
     },
-    {
-      "name": "LinearProjectList",
-      "version": "1.0.0",
-      "description": "A React component for displaying Linear projects in a table",
-      "related_endpoints": ["list_projects", "get_project"],
-      "component": {
-        "jsx": "function LinearProjectList(props) {\n  const projects = props.data;\n  if (!projects || !Array.isArray(projects) || projects.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Project Name'),\n        React.createElement('th', { style: styles.th }, 'State'),\n        React.createElement('th', { style: styles.th }, 'Lead')\n      )\n    ),\n    React.createElement('tbody', {},\n      projects.map(project => {\n        return React.createElement('tr', { key: project.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, project.name),\n          React.createElement('td', { style: styles.td }, project.state.charAt(0).toUpperCase() + project.state.slice(1)),\n          React.createElement('td', { style: styles.td }, project.lead?.name || 'No lead')\n        );\n      })\n    )\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "items": [
-            {
-              "id": "project_1",
-              "name": "Website Redesign",
-              "description": "Complete overhaul of the company website",
-              "state": "started",
-              "created_at": "2023-05-10T08:15:00Z",
-              "updated_at": "2023-06-14T16:30:00Z",
-              "lead": {
-                "id": "user_1",
-                "name": "John Doe",
-                "email": "john@example.com"
-              }
+    "exampleProps": {
+      "data": {
+        "items": [
+          {
+            "id": "issue_1",
+            "title": "Implement new authentication flow",
+            "description": "We need to implement OAuth2 authentication for better security",
+            "state": "In Progress",
+            "priority": 2,
+            "assignee": {
+              "id": "user_1",
+              "name": "John Doe",
+              "email": "john@example.com"
             },
-            {
-              "id": "project_2",
-              "name": "Mobile App Development",
-              "description": "Create iOS and Android applications",
-              "state": "planned",
-              "created_at": "2023-06-01T11:20:00Z",
-              "updated_at": "2023-06-02T14:15:00Z",
-              "lead": {
-                "id": "user_2",
-                "name": "Jane Smith",
-                "email": "jane@example.com"
-              }
+            "creator": {
+              "id": "user_2",
+              "name": "Jane Smith",
+              "email": "jane@example.com"
             },
-            {
-              "id": "project_3",
-              "name": "API Integration",
-              "description": "Integrate with third-party services",
-              "state": "completed",
-              "created_at": "2023-04-15T09:30:00Z",
-              "updated_at": "2023-05-20T15:45:00Z",
-              "lead": null
-            }
-          ],
-          "cursor": "project_cursor_xyz"
-        }
-      },
-      "schemaRef": "schema.ProjectList"
+            "updated_at": "2023-06-16T09:45:00Z",
+            "labels": ["authentication", "security"],
+            "team_id": "team_1",
+            "team_key": "ENG",
+            "identifier": "ENG-123"
+          },
+          {
+            "id": "issue_2",
+            "title": "Fix pagination bug in dashboard",
+            "description": "Users are experiencing issues with pagination in the dashboard",
+            "state": "Todo",
+            "priority": 3,
+            "assignee": null,
+            "creator": {
+              "id": "user_2",
+              "name": "Jane Smith",
+              "email": "jane@example.com"
+            },
+            "updated_at": "2023-06-14T10:15:00Z",
+            "labels": ["bug", "frontend"],
+            "team_id": "team_1",
+            "team_key": "ENG",
+            "identifier": "ENG-124"
+          },
+          {
+            "id": "issue_3",
+            "title": "Add export to CSV functionality",
+            "description": "Users need to be able to export data to CSV format",
+            "state": "Done",
+            "priority": 4,
+            "assignee": {
+              "id": "user_3",
+              "name": "Alex Johnson",
+              "email": "alex@example.com"
+            },
+            "creator": {
+              "id": "user_1",
+              "name": "John Doe",
+              "email": "john@example.com"
+            },
+            "updated_at": "2023-06-13T16:45:00Z",
+            "labels": ["feature", "export"],
+            "team_id": "team_2",
+            "team_key": "PROD",
+            "identifier": "PROD-45"
+          }
+        ],
+        "cursor": "cursor_abc123"
+      }
     },
-    {
-      "name": "LinearTeamList",
-      "version": "1.0.0",
-      "description": "A React component for displaying Linear teams in a table",
-      "related_endpoints": ["list_teams", "get_team"],
-      "component": {
-        "jsx": "function LinearTeamList(props) {\n  const teams = props.data;\n  if (!teams || !Array.isArray(teams) || teams.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Team Name'),\n        React.createElement('th', { style: styles.th }, 'Key'),\n        React.createElement('th', { style: styles.th }, 'Description')\n      )\n    ),\n    React.createElement('tbody', {},\n      teams.map(team => {\n        return React.createElement('tr', { key: team.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, team.name),\n          React.createElement('td', { style: styles.td }, team.key),\n          React.createElement('td', { style: styles.td }, team.description || 'No description')\n        );\n      })\n    )\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "items": [
-            {
-              "id": "team_1",
-              "name": "Engineering",
-              "key": "ENG",
-              "description": "Core engineering team responsible for product development"
-            },
-            {
-              "id": "team_2",
-              "name": "Product",
-              "key": "PROD",
-              "description": "Product management team"
-            },
-            {
-              "id": "team_3",
-              "name": "Design",
-              "key": "DES",
-              "description": "UI/UX design team"
-            },
-            {
-              "id": "team_4",
-              "name": "Marketing",
-              "key": "MKT",
-              "description": null
-            }
-          ],
-          "cursor": "team_cursor_abc"
-        }
-      },
-      "schemaRef": "schema.TeamList"
+    "schemaRef": ["schema.Issue", "schema.IssueList"]
+  },
+  {
+    "name": "LinearTeamList",
+    "version": "1.0.0",
+    "description": "A React component for displaying Linear teams in a table",
+    "related_endpoints": ["list_teams", "get_team"],
+    "component": {
+      "jsx": "function(props) { function LinearTeamList(props) { const teams = props.data && props.data.items ? props.data.items : []; if (!teams || !Array.isArray(teams) || teams.length === 0) return null; const styles = { container: { width: '100%', overflowX: 'auto' }, table: { width: '100%', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', borderRadius: '8px', overflow: 'hidden', borderCollapse: 'collapse' }, thead: { backgroundColor: '#f8fafc' }, th: { padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#475569', borderBottom: '1px solid #e2e8f0' }, tr: { borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }, td: { padding: '12px 16px', fontSize: '14px', color: '#1e293b' }, nameCell: { display: 'flex', alignItems: 'center', gap: '2px' }, description: { color: '#64748b', fontSize: '13px' }, externalLink: { color: '#64748b', display: 'flex', alignItems: 'center', marginRight: '4px', textDecoration: 'none' } }; function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } return React.createElement('div', { style: styles.container }, React.createElement('table', { style: styles.table }, React.createElement('thead', { style: styles.thead }, React.createElement('tr', {}, React.createElement('th', { style: styles.th }, 'Team Name'), React.createElement('th', { style: styles.th }, 'Description') ) ), React.createElement('tbody', {}, teams.map((team, index) => { return React.createElement('tr', { key: team.id, style: styles.tr, onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; }, onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; } }, React.createElement('td', { style: styles.td }, React.createElement('div', { style: styles.nameCell }, team.key && React.createElement('a', { href: `https://linear.app/team/${team.key}`, target: '_blank', rel: 'noopener noreferrer', style: styles.externalLink }, React.createElement(LinkIcon)), team.name ) ), React.createElement('td', { style: styles.td }, team.description ? team.description : React.createElement('span', { style: styles.description }, 'No description') ) ); }) ) )); } return LinearTeamList(props); }"
     },
+    "exampleProps": {
+      "data": {
+        "items": [
+          {
+            "id": "team_1",
+            "name": "Engineering",
+            "key": "ENG",
+            "description": "Core engineering team responsible for product development"
+          },
+          {
+            "id": "team_2",
+            "name": "Product",
+            "key": "PROD",
+            "description": "Product management team"
+          },
+          {
+            "id": "team_3",
+            "name": "Design",
+            "key": "DES",
+            "description": "UI/UX design team"
+          },
+          {
+            "id": "team_4",
+            "name": "Marketing",
+            "key": "MKT",
+            "description": null
+          }
+        ],
+        "cursor": "team_cursor_abc"
+      }
+    },
+    "schemaRef": "schema.TeamList"
+  },
     {
       "name": "LinearWorkflowStateList",
       "version": "1.0.0",
       "description": "A React component for displaying Linear workflow states in a table",
       "related_endpoints": ["list_workflow_states"],
       "component": {
-        "jsx": "function LinearWorkflowStateList(props) {\n  const states = props.data;\n  if (!states || !Array.isArray(states) || states.length === 0) return null;\n\n  const styles = {\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    },\n    colorDot: {\n      display: 'inline-block',\n      width: '12px',\n      height: '12px',\n      borderRadius: '50%',\n      marginRight: '8px'\n    },\n    nameWithColor: {\n      display: 'flex',\n      alignItems: 'center'\n    }\n  };\n\n  return React.createElement('table', { style: styles.table },\n    React.createElement('thead', { style: styles.thead },\n      React.createElement('tr', {},\n        React.createElement('th', { style: styles.th }, 'Name'),\n        React.createElement('th', { style: styles.th }, 'Type'),\n        React.createElement('th', { style: styles.th }, 'Team')\n      )\n    ),\n    React.createElement('tbody', {},\n      states.map(state => {\n        return React.createElement('tr', { key: state.id, style: styles.row },\n          React.createElement('td', { style: styles.td }, \n            React.createElement('div', { style: styles.nameWithColor },\n              React.createElement('div', { \n                style: {\n                  ...styles.colorDot,\n                  backgroundColor: state.color\n                } \n              }),\n              state.name\n            )\n          ),\n          React.createElement('td', { style: styles.td }, state.type.charAt(0).toUpperCase() + state.type.slice(1)),\n          React.createElement('td', { style: styles.td }, state.team_name || 'No team')\n        );\n      })\n    )\n  );\n}"
+        "jsx": "function(props) { function LinearWorkflowStateList(props) { const states = props.data && props.data.items ? props.data.items : []; if (!states || !Array.isArray(states) || states.length === 0) return null; const styles = { container: { width: '100%', overflowX: 'auto' }, table: { width: '100%', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', borderRadius: '8px', overflow: 'hidden', borderCollapse: 'collapse' }, thead: { backgroundColor: '#f8fafc' }, th: { padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#475569', borderBottom: '1px solid #e2e8f0' }, tr: { borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }, td: { padding: '12px 16px', fontSize: '14px', color: '#1e293b' }, nameCell: { display: 'flex', alignItems: 'center' }, description: { color: '#64748b', fontSize: '13px' }, colorDot: { display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', marginRight: '8px' } }; return React.createElement('div', { style: styles.container }, React.createElement('table', { style: styles.table }, React.createElement('thead', { style: styles.thead }, React.createElement('tr', {}, React.createElement('th', { style: styles.th }, 'Name'), React.createElement('th', { style: styles.th }, 'Type'), React.createElement('th', { style: styles.th }, 'Team') ) ), React.createElement('tbody', {}, states.map((state, index) => { return React.createElement('tr', { key: state.id, style: styles.tr, onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; }, onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; } }, React.createElement('td', { style: styles.td }, React.createElement('div', { style: styles.nameCell }, React.createElement('div', { style: { ...styles.colorDot, backgroundColor: state.color } }), state.name ) ), React.createElement('td', { style: styles.td }, state.type ? state.type.charAt(0).toUpperCase() + state.type.slice(1) : '-'), React.createElement('td', { style: styles.td }, state.team_name || '-') ); }) ) )); } return LinearWorkflowStateList(props); }"
       },
       "exampleProps": {
         "data": {
@@ -240,5 +185,89 @@
         }
       },
       "schemaRef": "schema.WorkflowStateList"
+    },
+    {
+      "name": "LinearProjectsTable",
+      "version": "1.0.0",
+      "description": "A React component for displaying Linear projects in a table format",
+      "related_endpoints": ["list_projects"],
+      "component": {
+        "jsx": "function(props) { function LinearProjectsTable(props) { const projects = props.data && props.data.items ? props.data.items : []; if (!projects || !Array.isArray(projects) || projects.length === 0) return null; function stringToColor(string) { if (!string) return '#6B778C'; let hash = 0; for (let i = 0; i < string.length; i++) { hash = string.charCodeAt(i) + ((hash << 5) - hash); } let color = '#'; for (let i = 0; i < 3; i++) { const value = (hash >> (i * 8)) & 0xFF; color += ('00' + value.toString(16)).substr(-2); } return color; } function UserAvatar({ name }) { if (!name) return null; const initials = name.split(' ').map((part) => part.charAt(0)).join('').substring(0, 2).toUpperCase(); const backgroundColor = stringToColor(name); const styles = { container: { position: 'relative', display: 'inline-block' }, avatar: { width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '500', backgroundColor: backgroundColor, cursor: 'pointer' }, tooltip: { position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '6px', backgroundColor: '#333', color: 'white', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10, display: 'none' }, arrow: { position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', borderWidth: '4px', borderStyle: 'solid', borderColor: '#333 transparent transparent transparent' } }; return React.createElement('div', { style: styles.container, onMouseEnter: (e) => { const tooltip = e.currentTarget.querySelector('.tooltip'); if (tooltip) tooltip.style.display = 'block'; }, onMouseLeave: (e) => { const tooltip = e.currentTarget.querySelector('.tooltip'); if (tooltip) tooltip.style.display = 'none'; } }, [ React.createElement('div', { key: 'avatar', style: styles.avatar }, initials), React.createElement('div', { key: 'tooltip', className: 'tooltip', style: styles.tooltip }, [ name, React.createElement('div', { key: 'arrow', style: styles.arrow }) ]) ]); } function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } const styles = { container: { width: '100%', overflowX: 'auto' }, table: { width: '100%', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', borderRadius: '8px', overflow: 'hidden' }, header: { padding: '12px 16px', backgroundColor: '#f8fafc', textAlign: 'left', display: 'flex', borderBottom: '1px solid #e2e8f0' }, headerCol: { fontSize: '14px', fontWeight: '600', color: '#475569' }, projectCol: { width: '60%' }, stateCol: { width: '20%' }, leadCol: { width: '20%', display: 'flex', justifyContent: 'center' }, rowsContainer: { borderTop: 'none' }, row: { padding: '12px 16px', display: 'flex', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }, rowHover: { backgroundColor: '#f8fafc' }, projectInfo: { display: 'flex', alignItems: 'center', gap: '2px' }, projectName: { fontSize: '14px', fontWeight: '500', color: '#1e293b' }, projectLink: { color: '#64748b', display: 'flex', alignItems: 'center', marginRight: '4px', textDecoration: 'none' }, stateTag: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '500' }, leadContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }; function getStateColor(state) { const stateColorMap = { 'started': '#0052CC', 'completed': '#00875A', 'canceled': '#FF5630', 'paused': '#E97F33' }; return stateColorMap[state] || '#6B778C'; } return React.createElement('div', { style: styles.container }, React.createElement('div', { style: styles.table }, React.createElement('div', { style: styles.header }, React.createElement('div', { style: {...styles.headerCol, ...styles.projectCol} }, 'Project'), React.createElement('div', { style: {...styles.headerCol, ...styles.stateCol} }, 'State'), React.createElement('div', { style: {...styles.headerCol, ...styles.leadCol} }, 'Lead') ), React.createElement('div', { style: styles.rowsContainer }, projects.map((project) => { return React.createElement('div', { key: project.id, style: styles.row, onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; }, onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; } }, React.createElement('div', { style: styles.projectCol }, React.createElement('div', { style: styles.projectInfo }, project.url && React.createElement('a', { href: project.url, target: '_blank', rel: 'noopener noreferrer', style: styles.projectLink }, React.createElement(LinkIcon)), React.createElement('span', { style: styles.projectName }, project.name) ) ), React.createElement('div', { style: styles.stateCol }, React.createElement('div', { style: { ...styles.stateTag, backgroundColor: getStateColor(project.state), color: 'white' } }, project.state.charAt(0).toUpperCase() + project.state.slice(1)) ), React.createElement('div', { style: styles.leadCol }, React.createElement('div', { style: styles.leadContainer }, project.lead ? React.createElement(UserAvatar, { name: project.lead.name }) : React.createElement('span', { style: { fontSize: '14px', color: '#475569' } }, '-') ) ) ); }) ) )); } return LinearProjectsTable(props); }"
+      },
+      "exampleProps": {
+        "data": {
+          "items": [
+            {
+              "id": "project_1",
+              "name": "Website Redesign",
+              "description": "Complete overhaul of the company website",
+              "state": "started",
+              "updated_at": "2023-06-15T14:30:00Z",
+              "lead": {
+                "id": "user_1",
+                "name": "John Doe",
+                "email": "john@example.com"
+              }
+            },
+            {
+              "id": "project_2",
+              "name": "Mobile App Development",
+              "description": "Native mobile application for iOS and Android",
+              "state": "started",
+              "updated_at": "2023-06-14T10:15:00Z",
+              "lead": {
+                "id": "user_2",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              }
+            },
+            {
+              "id": "project_3",
+              "name": "API Integration",
+              "description": "Integrate with third-party payment services",
+              "state": "completed",
+              "updated_at": "2023-05-13T16:45:00Z",
+              "lead": {
+                "id": "user_3",
+                "name": "Alex Johnson",
+                "email": "alex@example.com"
+              }
+            },
+            {
+              "id": "project_4",
+              "name": "User Research",
+              "description": "Conduct user interviews and usability testing",
+              "state": "paused",
+              "updated_at": "2023-06-10T09:15:00Z",
+              "lead": null
+            }
+          ],
+          "cursor": "project_cursor_xyz"
+        }
+      },
+      "schemaRef": "schema.ProjectList"
+    },
+    {
+      "name": "LinearProjectCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Linear projects in a card format",
+      "related_endpoints": ["get_project"],
+      "component": {
+        "jsx": "function(props) { function LinearProjectCard(props) { const project = props.data; if (!project) return null; function stringToColor(string) { if (!string) return '#6B778C'; let hash = 0; for (let i = 0; i < string.length; i++) { hash = string.charCodeAt(i) + ((hash << 5) - hash); } let color = '#'; for (let i = 0; i < 3; i++) { const value = (hash >> (i * 8)) & 0xFF; color += ('00' + value.toString(16)).substr(-2); } return color; } function UserAvatar({ name }) { if (!name) return null; const initials = name.split(' ').map((part) => part.charAt(0)).join('').substring(0, 2).toUpperCase(); const backgroundColor = stringToColor(name); const avatarStyle = { width: '24px', height: '24px', borderRadius: '50%', backgroundColor: backgroundColor, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }; const tooltipContainerStyle = { position: 'relative' }; return React.createElement('div', { style: tooltipContainerStyle, onMouseOver: function(e) { const tooltip = document.createElement('div'); tooltip.className = 'avatar-tooltip'; tooltip.style.position = 'absolute'; tooltip.style.bottom = '100%'; tooltip.style.left = '50%'; tooltip.style.transform = 'translateX(-50%)'; tooltip.style.marginBottom = '6px'; tooltip.style.padding = '4px 8px'; tooltip.style.backgroundColor = '#333'; tooltip.style.color = 'white'; tooltip.style.borderRadius = '4px'; tooltip.style.fontSize = '10px'; tooltip.style.whiteSpace = 'nowrap'; tooltip.style.zIndex = '10'; tooltip.textContent = name; const arrow = document.createElement('div'); arrow.style.position = 'absolute'; arrow.style.top = '100%'; arrow.style.left = '50%'; arrow.style.transform = 'translateX(-50%)'; arrow.style.borderWidth = '4px'; arrow.style.borderStyle = 'solid'; arrow.style.borderColor = '#333 transparent transparent transparent'; tooltip.appendChild(arrow); e.currentTarget.appendChild(tooltip); }, onMouseOut: function(e) { const tooltip = e.currentTarget.querySelector('.avatar-tooltip'); if (tooltip) { tooltip.remove(); } } }, React.createElement('div', { style: avatarStyle }, initials)); } function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } const styles = { card: { position: 'relative', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', padding: '8px 12px', marginBottom: '8px', width: '100%', fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif', boxSizing: 'border-box' }, flexContainer: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }, content: { minWidth: 0, flex: 1 }, titleContainer: { display: 'flex', alignItems: 'center', gap: '2px' }, title: { fontWeight: '500', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '14px', margin: 0 }, description: { fontSize: '12px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px', margin: 0 }, externalLink: { color: '#64748b', display: 'flex', alignItems: 'center', marginRight: '4px', textDecoration: 'none', flexShrink: 0 } }; return React.createElement('div', { style: styles.card }, React.createElement('div', { style: styles.flexContainer }, React.createElement('div', { style: styles.content }, React.createElement('div', { style: styles.titleContainer }, project.url && React.createElement('a', { href: project.url, target: '_blank', rel: 'noopener noreferrer', style: styles.externalLink }, React.createElement(LinkIcon)), React.createElement('h3', { style: styles.title }, project.name)), project.description && React.createElement('p', { style: styles.description }, project.description)), project.lead && React.createElement(UserAvatar, { name: project.lead.name }))); } return LinearProjectCard(props); }"
+      },
+      "exampleProps": {
+        "data": {
+          "id": "project_1",
+          "name": "Website Redesign",
+          "description": "Complete overhaul of the company website with focus on improved user experience and modern design principles.",
+          "lead": {
+            "id": "user_1",
+            "name": "John Doe",
+            "email": "john@example.com"
+          },
+          "url": "https://linear.app/company/project/website-redesign"
+        }
+      },
+      "schemaRef": "schema.Project"
     }
   ]

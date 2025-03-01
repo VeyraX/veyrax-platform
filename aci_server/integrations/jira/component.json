@@ -5,7 +5,7 @@
       "description": "A React component for displaying Jira issues (single or list)",
       "related_endpoints": ["get_issues", "get_issue", "create_issue", "update_issue", "delete_issue"],
       "component": {
-        "jsx": "function JiraIssueCard(props) {\n  const data = props.data;\n  \n  // Handle both single issue and issue list\n  const isIssueList = data && data.issues && Array.isArray(data.issues);\n  const isSingleIssue = data && !isIssueList;\n  \n  if ((!isIssueList || data.issues.length === 0) && !isSingleIssue) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n\n  const getPriorityIcon = (priority) => {\n    if (!priority) return '⚪';\n    const priorityMap = {\n      'Highest': '🔴',\n      'High': '🟠',\n      'Medium': '🟡',\n      'Low': '🟢',\n      'Lowest': '🔵'\n    };\n    return priorityMap[priority.name] || '⚪';\n  };\n\n  const getStatusColor = (status) => {\n    if (!status || !status.statusCategory) return '#6B778C';\n    const categoryColorMap = {\n      'new': '#42526E',       // blue-gray\n      'indeterminate': '#0052CC', // blue\n      'done': '#00875A',     // green\n      'to-do': '#42526E'     // blue-gray\n    };\n    return categoryColorMap[status.statusCategory.key] || '#6B778C';\n  };\n\n  const styles = {\n    container: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      justifyContent: 'flex-start',\n      width: '100%'\n    },\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: isSingleIssue ? '400px' : '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      marginBottom: isSingleIssue ? '16px' : '8px',\n      flex: '0 0 auto',\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '12px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    issueKey: {\n      fontSize: '13px',\n      fontWeight: '500',\n      color: '#0052CC',\n      marginBottom: '4px'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '16px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    meta: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px',\n      display: 'flex',\n      alignItems: 'center'\n    },\n    statusChip: {\n      display: 'inline-block',\n      padding: '2px 8px',\n      borderRadius: '3px',\n      fontSize: '12px',\n      fontWeight: '500',\n      color: 'white',\n      marginRight: '8px'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    content: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginTop: '12px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis'\n    },\n    commentsContainer: {\n      marginTop: '16px',\n      borderTop: '1px solid #e2e8f0',\n      paddingTop: '12px'\n    },\n    commentItem: {\n      marginBottom: '8px',\n      fontSize: '14px'\n    },\n    commentAuthor: {\n      fontWeight: '500',\n      marginRight: '8px'\n    },\n    badgeContainer: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '6px',\n      marginTop: '8px'\n    },\n    badge: {\n      backgroundColor: '#F1F5F9',\n      color: '#475569',\n      padding: '2px 8px',\n      borderRadius: '12px',\n      fontSize: '12px',\n      fontWeight: '500'\n    }\n  };\n\n  // Render a single issue card\n  const renderIssueCard = (issue) => {\n    return React.createElement('div', { key: issue.key, style: styles.card },\n      React.createElement('div', { style: styles.header },\n        React.createElement('div', { style: styles.iconContainer },\n          React.createElement('span', { style: styles.iconText }, issue.priority ? getPriorityIcon(issue.priority) : '🎫')\n        ),\n        React.createElement('div', { style: styles.titleContainer },\n          React.createElement('div', { style: styles.issueKey }, issue.key),\n          React.createElement('div', { style: styles.title }, issue.summary),\n          React.createElement('div', { style: styles.meta },\n            issue.status && React.createElement('span', { \n              style: {\n                ...styles.statusChip,\n                backgroundColor: getStatusColor(issue.status)\n              } \n            }, issue.status.name),\n            React.createElement('span', {}, `Updated: ${formatDate(issue.updated)}`)\n          ),\n          React.createElement('div', { style: styles.meta },\n            `Assignee: ${issue.assignee ? issue.assignee.displayName : 'Unassigned'}`\n          )\n        ),\n        issue.url && React.createElement('a', {\n          href: issue.url,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: styles.externalLink\n        }, React.createElement('span', { style: styles.linkText }, '🔗'))\n      ),\n      \n      // Only show description in single issue view\n      isSingleIssue && issue.description && React.createElement('div', { style: styles.content },\n        issue.description\n      ),\n      \n      // Show labels and components as badges if they exist\n      (issue.labels && issue.labels.length > 0 || issue.components && issue.components.length > 0) && \n        React.createElement('div', { style: styles.badgeContainer },\n          issue.labels && issue.labels.map(label => \n            React.createElement('span', { key: `label-${label}`, style: styles.badge }, label)\n          ),\n          issue.components && issue.components.map(component => \n            React.createElement('span', { key: `component-${component}`, style: styles.badge }, `🧩 ${component}`)\n          )\n        ),\n      \n      // Show comments in single issue view\n      isSingleIssue && issue.comments && issue.comments.length > 0 && React.createElement('div', { style: styles.commentsContainer },\n        issue.comments.slice(0, 3).map((comment, index) => \n          React.createElement('div', { key: index, style: styles.commentItem },\n            React.createElement('span', { style: styles.commentAuthor }, comment.author ? comment.author.displayName : 'User'),\n            comment.body\n          )\n        ),\n        issue.comments.length > 3 && React.createElement('div', { style: {fontSize: '13px', color: '#64748b'} },\n          `+ ${issue.comments.length - 3} more comments`\n        )\n      )\n    );\n  };\n\n  // If it's a single issue\n  if (isSingleIssue) {\n    return renderIssueCard(data);\n  }\n\n  // If it's a list of issues\n  return React.createElement('div', { style: styles.container },\n    data.issues.map(issue => renderIssueCard(issue))\n  );\n}"
+        "jsx": "function(props) { function JiraIssueCard(props) { const data = props.data; const isIssueList = data && data.issues && Array.isArray(data.issues); const isSingleIssue = data && !isIssueList; if ((!isIssueList || data.issues.length === 0) && !isSingleIssue) return null; const formatDate = (dateStr) => { if (!dateStr) return ''; const date = new Date(dateStr); if (date.toString() === 'Invalid Date') return ''; return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }; function getPriorityColor(priority) { if (!priority) return '#6B778C'; const priorityColorMap = { 'Highest': '#CD1316', 'High': '#E94949', 'Medium': '#E97F33', 'Low': '#2A8735', 'Lowest': '#55A557' }; return priorityColorMap[priority.name] || '#6B778C'; } function getStatusColor(status) { if (!status || !status.statusCategory) return '#6B778C'; const categoryColorMap = { 'new': '#42526E', 'indeterminate': '#0052CC', 'done': '#00875A', 'to-do': '#42526E' }; return categoryColorMap[status.statusCategory.key] || '#6B778C'; } function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } function MiniTag({ label }) { if (!label) return null; const initials = label.substring(0, 2).toUpperCase(); const tagStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F5F9', color: '#475569', width: '22px', height: '22px', borderRadius: '4px', fontSize: '10px', fontWeight: '500', marginRight: '4px', cursor: 'pointer', position: 'relative' }; const tooltipContainerStyle = { position: 'relative' }; return React.createElement('div', { style: tooltipContainerStyle, onMouseOver: function(e) { const tooltip = document.createElement('div'); tooltip.className = 'tag-tooltip'; tooltip.style.position = 'absolute'; tooltip.style.bottom = '100%'; tooltip.style.left = '50%'; tooltip.style.transform = 'translateX(-50%)'; tooltip.style.marginBottom = '6px'; tooltip.style.padding = '4px 8px'; tooltip.style.backgroundColor = '#333'; tooltip.style.color = 'white'; tooltip.style.borderRadius = '4px'; tooltip.style.fontSize = '10px'; tooltip.style.whiteSpace = 'nowrap'; tooltip.style.zIndex = '10'; tooltip.textContent = label; const arrow = document.createElement('div'); arrow.style.position = 'absolute'; arrow.style.top = '100%'; arrow.style.left = '50%'; arrow.style.transform = 'translateX(-50%)'; arrow.style.borderWidth = '4px'; arrow.style.borderStyle = 'solid'; arrow.style.borderColor = '#333 transparent transparent transparent'; tooltip.appendChild(arrow); e.currentTarget.appendChild(tooltip); }, onMouseOut: function(e) { const tooltip = e.currentTarget.querySelector('.tag-tooltip'); if (tooltip) { tooltip.remove(); } } }, React.createElement('div', { style: tagStyle }, initials)); } const styles = { container: { display: 'flex', flexWrap: 'wrap', gap: '12px', width: '100%' }, cardWrapper: { width: 'calc(50% - 6px)', minWidth: '250px', boxSizing: 'border-box' }, card: { position: 'relative', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', padding: '8px 12px', marginBottom: '8px', width: '100%', fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif', boxSizing: 'border-box' }, flexContainer: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }, content: { minWidth: 0, flex: 1 }, titleContainer: { display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }, title: { fontWeight: '500', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '14px', margin: 0, flex: 1 }, subtitle: { fontSize: '12px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px', margin: 0 }, externalLink: { color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px', textDecoration: 'none', flexShrink: 0 }, tagsContainer: { display: 'flex', marginTop: '8px', flexWrap: 'wrap', gap: '4px' } }; const renderIssueCard = (issue) => { const assigneeName = issue.assignee ? issue.assignee.displayName : 'Unassigned'; const statusName = issue.status ? issue.status.name : ''; const priorityName = issue.priority ? issue.priority.name : ''; let subtitle = ''; if (assigneeName) subtitle += `${assigneeName}`; if (statusName) subtitle += subtitle ? ` · ${statusName}` : statusName; if (priorityName) subtitle += subtitle ? ` · ${priorityName}` : priorityName; return React.createElement('div', { key: issue.id, style: styles.card }, React.createElement('div', { style: styles.flexContainer }, React.createElement('div', { style: styles.content }, React.createElement('div', { style: styles.titleContainer }, React.createElement('h3', { style: styles.title }, issue.summary), issue.url && React.createElement('a', { href: issue.url, target: '_blank', rel: 'noopener noreferrer', style: styles.externalLink }, React.createElement(LinkIcon))), subtitle && React.createElement('p', { style: styles.subtitle }, subtitle)), issue.labels && issue.labels.length > 0 && React.createElement('div', { style: { display: 'flex' } }, issue.labels.slice(0, 3).map((label, index) => React.createElement(MiniTag, { key: index, label: label }))))); }; if (isSingleIssue) { return renderIssueCard(data); } return React.createElement('div', { style: styles.container }, data.issues.map(issue => React.createElement('div', { key: issue.id, style: styles.cardWrapper }, renderIssueCard(issue)))); } return JiraIssueCard(props); }"
       },
       "exampleProps": {
         "data": {
@@ -93,13 +93,14 @@
     {
       "name": "JiraProjectCard",
       "version": "1.0.0",
-      "description": "A React component for displaying Jira project information",
-      "related_endpoints": ["get_projects", "get_project"],
+      "description": "A React component for displaying Jira projects in a card format",
+      "related_endpoints": ["get_project"],
       "component": {
-        "jsx": "function JiraProjectCard(props) {\n  const project = props.data;\n  if (!project) return null;\n\n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      width: '350px',\n      maxWidth: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'flex-start',\n      marginBottom: '16px'\n    },\n    iconContainer: {\n      marginRight: '12px',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      backgroundColor: '#ebf5ff',\n      borderRadius: '6px',\n      padding: '8px',\n      color: '#3b82f6'\n    },\n    iconText: {\n      fontSize: '16px'\n    },\n    titleContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    projectKey: {\n      fontSize: '13px',\n      fontWeight: '500',\n      color: '#0052CC',\n      marginBottom: '2px'\n    },\n    title: {\n      fontWeight: '600',\n      fontSize: '18px',\n      color: '#1e293b',\n      marginBottom: '4px',\n      wordBreak: 'break-word'\n    },\n    meta: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none'\n    },\n    linkText: {\n      fontSize: '16px'\n    },\n    description: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '16px',\n      lineHeight: '1.5'\n    },\n    sectionTitle: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#1e293b',\n      marginTop: '16px',\n      marginBottom: '8px',\n      borderBottom: '1px solid #e2e8f0',\n      paddingBottom: '4px'\n    },\n    componentList: {\n      margin: '0',\n      padding: '0 0 0 20px'\n    },\n    componentItem: {\n      fontSize: '14px',\n      color: '#64748b',\n      marginBottom: '4px'\n    },\n    versionItem: {\n      padding: '4px 8px',\n      marginBottom: '6px',\n      backgroundColor: '#f1f5f9',\n      borderRadius: '4px',\n      fontSize: '14px',\n      display: 'inline-block',\n      marginRight: '6px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.card },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.iconContainer },\n        React.createElement('span', { style: styles.iconText }, '📋')\n      ),\n      React.createElement('div', { style: styles.titleContainer },\n        React.createElement('div', { style: styles.projectKey }, project.key),\n        React.createElement('div', { style: styles.title }, project.name),\n        project.lead && React.createElement('div', { style: styles.meta }, `Lead: ${project.lead}`)\n      ),\n      project.url && React.createElement('a', {\n        href: project.url,\n        target: '_blank',\n        rel: 'noopener noreferrer', \n        style: styles.externalLink\n      }, React.createElement('span', { style: styles.linkText }, '🔗'))\n    ),\n    \n    project.description && React.createElement('div', { style: styles.description }, project.description),\n    \n    project.components && project.components.length > 0 && [\n      React.createElement('div', { key: 'comp-title', style: styles.sectionTitle }, 'Components'),\n      React.createElement('ul', { key: 'comp-list', style: styles.componentList },\n        project.components.map((component, index) => \n          React.createElement('li', { key: index, style: styles.componentItem }, component.name)\n        )\n      )\n    ],\n    \n    project.versions && project.versions.length > 0 && [\n      React.createElement('div', { key: 'ver-title', style: styles.sectionTitle }, 'Versions'),\n      React.createElement('div', { key: 'ver-list', style: { display: 'flex', flexWrap: 'wrap', gap: '4px' } },\n        project.versions.map((version, index) => \n          React.createElement('div', { key: index, style: styles.versionItem },\n            `${version.name} ${version.released ? '(Released)' : '(Unreleased)'}`\n          )\n        )\n      )\n    ]\n  );\n}"
+        "jsx": "function JiraProjectCard(props) {\n  const project = props.data;\n  if (!project) return null;\n\n  // Function to generate color from string (for avatars)\n  function stringToColor(string) {\n    if (!string) return '#6B778C';\n    let hash = 0;\n    for (let i = 0; i < string.length; i++) {\n      hash = string.charCodeAt(i) + ((hash << 5) - hash);\n    }\n    let color = '#';\n    for (let i = 0; i < 3; i++) {\n      const value = (hash >> (i * 8)) & 0xFF;\n      color += ('00' + value.toString(16)).substr(-2);\n    }\n    return color;\n  }\n\n  // User avatar component with tooltip\n  function UserAvatar({ name }) {\n    if (!name) return null;\n    \n    const initials = name.split(' ')\n      .map((part) => part.charAt(0))\n      .join('')\n      .substring(0, 2)\n      .toUpperCase();\n    \n    const backgroundColor = stringToColor(name);\n    \n    const styles = {\n      container: {\n        position: 'relative',\n        display: 'inline-block'\n      },\n      avatar: {\n        width: '28px',\n        height: '28px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '12px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        cursor: 'pointer'\n      },\n      tooltip: {\n        position: 'absolute',\n        bottom: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        marginBottom: '6px',\n        backgroundColor: '#333',\n        color: 'white',\n        fontSize: '12px',\n        padding: '4px 8px',\n        borderRadius: '4px',\n        whiteSpace: 'nowrap',\n        zIndex: 10,\n        display: 'none'\n      },\n      arrow: {\n        position: 'absolute',\n        top: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        borderWidth: '4px',\n        borderStyle: 'solid',\n        borderColor: '#333 transparent transparent transparent'\n      }\n    };\n    \n    return React.createElement('div', {\n      style: styles.container,\n      onMouseEnter: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'block';\n      },\n      onMouseLeave: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'none';\n      }\n    }, [\n      React.createElement('div', { key: 'avatar', style: styles.avatar }, initials),\n      React.createElement('div', { key: 'tooltip', className: 'tooltip', style: styles.tooltip }, [\n        name,\n        React.createElement('div', { key: 'arrow', style: styles.arrow })\n      ])\n    ]);\n  }\n\n  // SVG Link Icon component\n  function LinkIcon() {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  }\n\n  // Styles for the card\n  const styles = {\n    card: {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      boxSizing: 'border-box'\n    },\n    flexContainer: {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      gap: '8px'\n    },\n    content: {\n      minWidth: 0,\n      flex: 1\n    },\n    titleContainer: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px',\n      width: '100%'\n    },\n    title: {\n      fontWeight: '500',\n      color: '#1e293b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      fontSize: '14px',\n      margin: 0,\n      flex: 1\n    },\n    subtitle: {\n      fontSize: '12px',\n      color: '#64748b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      marginTop: '4px',\n      margin: 0\n    },\n    externalLink: {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginLeft: '8px',\n      textDecoration: 'none',\n      flexShrink: 0\n    },\n    projectKey: {\n      color: '#0052CC',\n      fontWeight: '500',\n      marginRight: '4px'\n    }\n  };\n\n  // Function to render a single project card\n  const renderProjectCard = (project) => {\n    return React.createElement('div', { key: project.id, style: styles.card },\n      React.createElement('div', { style: styles.flexContainer },\n        React.createElement('div', { style: styles.content },\n          React.createElement('div', { style: styles.titleContainer },\n            React.createElement('span', { style: styles.projectKey }, project.key),\n            React.createElement('h3', { style: styles.title }, project.name),\n            project.url && React.createElement('a', {\n              href: project.url,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: styles.externalLink\n            }, React.createElement(LinkIcon))\n          ),\n          project.description && React.createElement('p', { style: styles.subtitle }, project.description)\n        ),\n        project.lead && React.createElement(UserAvatar, { name: project.lead })\n      )\n    );\n  };\n\n  // Handle both single project and array of projects\n  if (Array.isArray(project)) {\n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)',\n      minWidth: '250px',\n      boxSizing: 'border-box'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      project.map(proj => \n        React.createElement('div', { key: proj.id, style: cardWrapperStyle },\n          renderProjectCard(proj)\n        )\n      )\n    );\n  }\n  \n  return renderProjectCard(project);\n}"
       },
       "exampleProps": {
-        "data": {
+        "data": [
+          {
           "id": "10000",
           "key": "PROJ",
           "name": "Sample Project",
@@ -107,40 +108,201 @@
           "lead": "John Doe",
           "url": "https://yourcompany.atlassian.net/browse/PROJ",
           "components": [
+              { "id": "10001", "name": "Frontend" },
+              { "id": "10002", "name": "Backend" },
+              { "id": "10003", "name": "API" }
+            ],
+            "versions": [
+              { "id": "10001", "name": "v1.0.0", "released": true, "releaseDate": "2023-05-15" },
+              { "id": "10002", "name": "v1.1.0", "released": false },
+              { "id": "10003", "name": "v2.0.0", "released": false }
+            ]
+          },
             {
               "id": "10001",
-              "name": "Frontend"
-            },
-            {
-              "id": "10002",
-              "name": "Backend"
-            },
-            {
-              "id": "10003",
-              "name": "API"
-            }
+            "key": "MOBILE",
+            "name": "Mobile Application",
+            "description": "Native mobile application for iOS and Android platforms.",
+            "lead": "Jane Smith",
+            "url": "https://yourcompany.atlassian.net/browse/MOBILE",
+            "components": [
+              { "id": "20001", "name": "iOS" },
+              { "id": "20002", "name": "Android" },
+              { "id": "20003", "name": "Shared" }
+            ],
+            "versions": [
+              { "id": "20001", "name": "v2.5.0", "released": true, "releaseDate": "2023-04-10" },
+              { "id": "20002", "name": "v2.6.0", "released": true, "releaseDate": "2023-06-01" },
+              { "id": "20003", "name": "v3.0.0", "released": false }
+            ]
+          }
+        ]
+      },
+      "schemaRef": ["schema.Project"]
+    },
+{
+  "name": "JiraProjectsTable",
+  "version": "1.0.0",
+  "description": "A React component for displaying Jira projects in a table format",
+  "related_endpoints": ["get_projects"],
+  "component": {
+    "jsx": "function JiraProjectsTable(props) {\n  const projects = props.data;\n  if (!projects || !projects.length) return null;\n\n  // Function to generate color from string (for avatars)\n  function stringToColor(string) {\n    if (!string) return '#6B778C';\n    let hash = 0;\n    for (let i = 0; i < string.length; i++) {\n      hash = string.charCodeAt(i) + ((hash << 5) - hash);\n    }\n    let color = '#';\n    for (let i = 0; i < 3; i++) {\n      const value = (hash >> (i * 8)) & 0xFF;\n      color += ('00' + value.toString(16)).substr(-2);\n    }\n    return color;\n  }\n\n  // User avatar component with tooltip\n  function UserAvatar({ name }) {\n    if (!name) return null;\n    \n    const initials = name.split(' ')\n      .map((part) => part.charAt(0))\n      .join('')\n      .substring(0, 2)\n      .toUpperCase();\n    \n    const backgroundColor = stringToColor(name);\n    \n    const styles = {\n      container: {\n        position: 'relative',\n        display: 'inline-block'\n      },\n      avatar: {\n        width: '28px',\n        height: '28px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '12px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        cursor: 'pointer'\n      },\n      tooltip: {\n        position: 'absolute',\n        bottom: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        marginBottom: '6px',\n        backgroundColor: '#333',\n        color: 'white',\n        fontSize: '12px',\n        padding: '4px 8px',\n        borderRadius: '4px',\n        whiteSpace: 'nowrap',\n        zIndex: 10,\n        display: 'none'\n      },\n      arrow: {\n        position: 'absolute',\n        top: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        borderWidth: '4px',\n        borderStyle: 'solid',\n        borderColor: '#333 transparent transparent transparent'\n      }\n    };\n    \n    return React.createElement('div', {\n      style: styles.container,\n      onMouseEnter: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'block';\n      },\n      onMouseLeave: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'none';\n      }\n    }, [\n      React.createElement('div', { key: 'avatar', style: styles.avatar }, initials),\n      React.createElement('div', { key: 'tooltip', className: 'tooltip', style: styles.tooltip }, [\n        name,\n        React.createElement('div', { key: 'arrow', style: styles.arrow })\n      ])\n    ]);\n  }\n\n  // SVG Link Icon component\n  const LinkIcon = () => {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  };\n\n  // Component for tag with initials\n  const ComponentTag = ({ name }) => {\n    const initials = name.substring(0, 2).toUpperCase();\n    \n    const styles = {\n      container: {\n        position: 'relative',\n        display: 'inline-block'\n      },\n      tag: {\n        display: 'inline-flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#ebf5ff',\n        color: '#0052CC',\n        fontSize: '12px',\n        padding: '2px 8px',\n        borderRadius: '4px'\n      },\n      tooltip: {\n        position: 'absolute',\n        bottom: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        marginBottom: '4px',\n        backgroundColor: '#333',\n        color: 'white',\n        fontSize: '12px',\n        padding: '4px 8px',\n        borderRadius: '4px',\n        whiteSpace: 'nowrap',\n        zIndex: 10,\n        display: 'none'\n      },\n      arrow: {\n        position: 'absolute',\n        top: '100%',\n        left: '50%',\n        transform: 'translateX(-50%)',\n        borderWidth: '4px',\n        borderStyle: 'solid',\n        borderColor: '#333 transparent transparent transparent'\n      }\n    };\n    \n    return React.createElement('div', {\n      style: styles.container,\n      onMouseEnter: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'block';\n      },\n      onMouseLeave: (e) => {\n        const tooltip = e.currentTarget.querySelector('.tooltip');\n        if (tooltip) tooltip.style.display = 'none';\n      }\n    }, [\n      React.createElement('div', { key: 'tag', style: styles.tag }, initials),\n      React.createElement('div', { key: 'tooltip', className: 'tooltip', style: styles.tooltip }, [\n        name,\n        React.createElement('div', { key: 'arrow', style: styles.arrow })\n      ])\n    ]);\n  };\n\n  const styles = {\n    container: {\n      width: '100%',\n      overflowX: 'auto'\n    },\n    table: {\n      width: '100%',\n      backgroundColor: 'white',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      borderRadius: '8px',\n      overflow: 'hidden'\n    },\n    header: {\n      padding: '12px 16px',\n      backgroundColor: '#f8fafc',\n      textAlign: 'left',\n      display: 'flex',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    headerCol: {\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#475569'\n    },\n    projectCol: {\n      width: '45%'\n    },\n    componentsCol: {\n      width: '40%'\n    },\n    leadCol: {\n      width: '15%',\n      display: 'flex',\n      justifyContent: 'center'\n    },\n    rowsContainer: {\n      borderTop: 'none'\n    },\n    row: {\n      padding: '12px 16px',\n      display: 'flex',\n      alignItems: 'flex-start',\n      borderBottom: '1px solid #f1f5f9',\n      transition: 'background-color 0.2s'\n    },\n    rowHover: {\n      backgroundColor: '#f8fafc'\n    },\n    projectInfo: {\n      display: 'flex',\n      alignItems: 'center'\n    },\n    projectKey: {\n      fontSize: '14px',\n      fontWeight: '500',\n      color: '#0052CC',\n      marginRight: '8px'\n    },\n    projectName: {\n      fontSize: '14px',\n      fontWeight: '500',\n      color: '#1e293b',\n      marginRight: '8px'\n    },\n    componentsContainer: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '4px'\n    },\n    leadContainer: {\n      display: 'flex',\n      justifyContent: 'center',\n      alignItems: 'center'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.table },\n      React.createElement('div', { style: styles.header },\n        React.createElement('div', { style: {...styles.headerCol, ...styles.projectCol} }, 'Project'),\n        React.createElement('div', { style: {...styles.headerCol, ...styles.componentsCol} }, 'Components'),\n        React.createElement('div', { style: {...styles.headerCol, ...styles.leadCol} }, 'Lead')\n      ),\n      React.createElement('div', { style: styles.rowsContainer },\n        projects.map((project) => {\n          return React.createElement('div', {\n            key: project.id,\n            style: styles.row,\n            onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n            onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n          },\n            React.createElement('div', { style: styles.projectCol },\n              React.createElement('div', { style: styles.projectInfo },\n                React.createElement('span', { style: styles.projectKey }, project.key),\n                React.createElement('span', { style: styles.projectName }, project.name),\n                project.url && React.createElement('a', {\n                  href: project.url,\n                  target: '_blank',\n                  rel: 'noopener noreferrer',\n                  style: { color: '#64748b', display: 'flex', alignItems: 'center' }\n                }, React.createElement(LinkIcon))\n              )\n            ),\n            React.createElement('div', { style: styles.componentsCol },\n              React.createElement('div', { style: styles.componentsContainer },\n                project.components && project.components.map((component) =>\n                  React.createElement(ComponentTag, { key: component.id, name: component.name })\n                )\n              )\n            ),\n            React.createElement('div', { style: styles.leadCol },\n              React.createElement('div', { style: styles.leadContainer },\n                project.lead ? React.createElement(UserAvatar, { name: project.lead }) : React.createElement('span', { style: { fontSize: '14px', color: '#475569' } }, '-')\n              )\n            )\n          );\n        })\n      )\n    )\n  );\n}"
+  },
+  "exampleProps": {
+    "data": [
+      {
+        "id": "10000",
+        "key": "PROJ",
+        "name": "Sample Project",
+        "description": "This is a sample project for demonstration purposes.",
+        "lead": "John Doe",
+        "url": "https://yourcompany.atlassian.net/browse/PROJ",
+        "components": [
+          { "id": "10001", "name": "Frontend" },
+          { "id": "10002", "name": "Backend" },
+          { "id": "10003", "name": "API" }
           ],
           "versions": [
+          { "id": "10001", "name": "v1.0.0", "released": true, "releaseDate": "2023-05-15" },
+          { "id": "10002", "name": "v1.1.0", "released": false },
+          { "id": "10003", "name": "v2.0.0", "released": false }
+        ]
+      },
             {
               "id": "10001",
-              "name": "v1.0.0",
-              "released": true,
-              "releaseDate": "2023-05-15"
+        "key": "MOBILE",
+        "name": "Mobile Application",
+        "description": "Native mobile application for iOS and Android platforms.",
+        "lead": "Jane Smith",
+        "url": "https://yourcompany.atlassian.net/browse/MOBILE",
+        "components": [
+          { "id": "20001", "name": "iOS" },
+          { "id": "20002", "name": "Android" },
+          { "id": "20003", "name": "Shared" }
+        ],
+        "versions": [
+          { "id": "20001", "name": "v2.5.0", "released": true, "releaseDate": "2023-04-10" },
+          { "id": "20002", "name": "v2.6.0", "released": true, "releaseDate": "2023-06-01" },
+          { "id": "20003", "name": "v3.0.0", "released": false }
+        ]
             },
             {
               "id": "10002",
-              "name": "v1.1.0",
-              "released": false
-            },
-            {
-              "id": "10003",
-              "name": "v2.0.0",
-              "released": false
-            }
-          ]
-        }
+        "key": "INFRA",
+        "name": "Infrastructure",
+        "description": "Cloud infrastructure and DevOps automation.",
+        "lead": "Mike Johnson",
+        "url": "https://yourcompany.atlassian.net/browse/INFRA",
+        "components": [
+          { "id": "30001", "name": "AWS" },
+          { "id": "30002", "name": "CI/CD" },
+          { "id": "30003", "name": "Monitoring" }
+        ],
+        "versions": [
+          { "id": "30001", "name": "Q2-2023", "released": true, "releaseDate": "2023-06-30" },
+          { "id": "30002", "name": "Q3-2023", "released": false }
+        ]
+      }
+    ]
+  },
+  "schemaRef": "schema.ProjectList"
+},
+{
+  "name": "JiraStatusesTable",
+  "version": "1.0.0",
+  "description": "A React component for displaying Jira statuses in a table format",
+  "related_endpoints": ["get_statuses"],
+  "component": {
+    "jsx": "function JiraStatusesTable(props) {\n  const statuses = props.data;\n  if (!statuses || !Array.isArray(statuses) || statuses.length === 0) return null;\n\n  const styles = {\n    container: {\n      width: '100%',\n      overflowX: 'auto'\n    },\n    table: {\n      width: '100%',\n      backgroundColor: 'white',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      borderRadius: '8px',\n      overflow: 'hidden',\n      borderCollapse: 'collapse'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    tr: {\n      borderBottom: '1px solid #f1f5f9',\n      transition: 'background-color 0.2s'\n    },\n    td: {\n      padding: '12px 16px',\n      fontSize: '14px',\n      color: '#1e293b'\n    },\n    nameCell: {\n      display: 'flex',\n      alignItems: 'center'\n    },\n    description: {\n      color: '#64748b',\n      fontSize: '13px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('table', { style: styles.table },\n      React.createElement('thead', { style: styles.thead },\n        React.createElement('tr', {},\n          React.createElement('th', { style: styles.th }, 'Name'),\n          React.createElement('th', { style: styles.th }, 'Description')\n        )\n      ),\n      React.createElement('tbody', {},\n        statuses.map((status, index) => {\n          return React.createElement('tr', {\n            key: index,\n            style: styles.tr,\n            onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n            onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n          },\n            React.createElement('td', { style: styles.td },\n              React.createElement('div', { style: styles.nameCell }, status.name)\n            ),\n            React.createElement('td', { style: styles.td },\n              status.description ? status.description : React.createElement('span', { style: styles.description }, 'No description')\n            )\n          );\n        })\n      )\n    )\n  );\n}"
+  },
+  "exampleProps": {
+    "data": [
+      {
+        "id": "10000",
+        "name": "To Do",
+        "description": "Issues that are ready to be worked on"
       },
-      "schemaRef": "schema.Project"
-    }
+      {
+        "id": "10001",
+        "name": "In Progress",
+        "description": "Issues currently being worked on"
+      },
+      {
+        "id": "10002",
+        "name": "Done",
+        "description": "Issues that have been completed"
+      }
+    ]
+  },
+  "schemaRef": ["schema.Status"]
+},
+{
+  "name": "JiraIssueTypesTable",
+  "version": "1.0.0",
+  "description": "A React component for displaying Jira issue types in a table format",
+  "related_endpoints": ["get_issue_types"],
+  "component": {
+    "jsx": "function JiraIssueTypesTable(props) {\n  const issueTypes = props.data;\n  if (!issueTypes || !Array.isArray(issueTypes) || issueTypes.length === 0) return null;\n\n  const styles = {\n    container: {\n      width: '100%',\n      overflowX: 'auto'\n    },\n    table: {\n      width: '100%',\n      backgroundColor: 'white',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      borderRadius: '8px',\n      overflow: 'hidden',\n      borderCollapse: 'collapse'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    tr: {\n      borderBottom: '1px solid #f1f5f9',\n      transition: 'background-color 0.2s'\n    },\n    td: {\n      padding: '12px 16px',\n      fontSize: '14px',\n      color: '#1e293b'\n    },\n    nameCell: {\n      display: 'flex',\n      alignItems: 'center'\n    },\n    description: {\n      color: '#64748b',\n      fontSize: '13px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('table', { style: styles.table },\n      React.createElement('thead', { style: styles.thead },\n        React.createElement('tr', {},\n          React.createElement('th', { style: styles.th }, 'Name'),\n          React.createElement('th', { style: styles.th }, 'Description')\n        )\n      ),\n      React.createElement('tbody', {},\n        issueTypes.map((issueType, index) => {\n          return React.createElement('tr', {\n            key: index,\n            style: styles.tr,\n            onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n            onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n          },\n            React.createElement('td', { style: styles.td },\n              React.createElement('div', { style: styles.nameCell },\n                issueType.name\n              )\n            ),\n            React.createElement('td', { style: styles.td },\n              issueType.description ? issueType.description : React.createElement('span', { style: styles.description }, 'No description')\n            )\n          );\n        })\n      )\n    )\n  );\n}"
+  },
+  "exampleProps": {
+    "data": [
+      {
+        "id": "10000",
+        "name": "Bug",
+        "description": "A problem which impairs or prevents the functions of the product"
+      },
+      {
+        "id": "10001",
+        "name": "Story",
+        "description": "A user story"
+      },
+      {
+        "id": "10002",
+        "name": "Task",
+        "description": "A task that needs to be done"
+      }
+    ]
+  },
+  "schemaRef": ["schema.IssueType"]
+},
+{
+  "name": "JiraPrioritiesTable",
+  "version": "1.0.0",
+  "description": "A React component for displaying Jira priorities in a table format",
+  "related_endpoints": ["get_priorities"],
+  "component": {
+    "jsx": "function JiraPrioritiesTable(props) {\n  const priorities = props.data;\n  if (!priorities || !Array.isArray(priorities) || priorities.length === 0) return null;\n\n  const styles = {\n    container: {\n      width: '100%',\n      overflowX: 'auto'\n    },\n    table: {\n      width: '100%',\n      backgroundColor: 'white',\n      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n      borderRadius: '8px',\n      overflow: 'hidden',\n      borderCollapse: 'collapse'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    tr: {\n      borderBottom: '1px solid #f1f5f9',\n      transition: 'background-color 0.2s'\n    },\n    td: {\n      padding: '12px 16px',\n      fontSize: '14px',\n      color: '#1e293b'\n    },\n    nameCell: {\n      display: 'flex',\n      alignItems: 'center'\n    },\n    description: {\n      color: '#64748b',\n      fontSize: '13px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('table', { style: styles.table },\n      React.createElement('thead', { style: styles.thead },\n        React.createElement('tr', {},\n          React.createElement('th', { style: styles.th }, 'Name'),\n          React.createElement('th', { style: styles.th }, 'Description')\n        )\n      ),\n      React.createElement('tbody', {},\n        priorities.map((priority, index) => {\n          return React.createElement('tr', {\n            key: index,\n            style: styles.tr,\n            onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n            onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n          },\n            React.createElement('td', { style: styles.td },\n              React.createElement('div', { style: styles.nameCell },\n                priority.name\n              )\n            ),\n            React.createElement('td', { style: styles.td },\n              priority.description ? priority.description : React.createElement('span', { style: styles.description }, 'No description')\n            )\n          );\n        })\n      )\n    )\n  );\n}"
+  },
+  "exampleProps": {
+    "data": [
+      {
+        "id": "1",
+        "name": "Highest",
+        "description": "This problem will block progress"
+      },
+      {
+        "id": "2",
+        "name": "High",
+        "description": "Serious problem that could block progress"
+      },
+      {
+        "id": "3",
+        "name": "Medium",
+        "description": "Has the potential to affect progress"
+      },
+      {
+        "id": "4",
+        "name": "Low",
+        "description": "Minor problem or easily worked around"
+      },
+      {
+        "id": "5",
+        "name": "Lowest",
+        "description": "Trivial problem with little or no impact on progress"
+      }
+    ]
+  },
+  "schemaRef": ["schema.Priority"]
+}
 ]
       
