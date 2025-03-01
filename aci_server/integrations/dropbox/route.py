@@ -5,7 +5,9 @@ from .schema import (
     ListFilesParams, GetFileParams, CreateFolderParams, UploadFileParams,
     DownloadFileParams, DeleteFileParams, MoveFileParams, ReadFileParams,
     ListFilesResponse, GetFileResponse, CreateFolderResponse, UploadFileResponse,
-    DownloadFileResponse, DeleteFileResponse, MoveFileResponse, ReadFileResponse
+    DownloadFileResponse, DeleteFileResponse, MoveFileResponse, ReadFileResponse,
+    CreateSharedLinkParams, CreateSharedLinkResponse,
+    SearchParams, SearchContinueParams, SearchResponse, SearchContinueResponse
 )
 from .service import DropboxService
 from .client import DropboxClient
@@ -14,8 +16,11 @@ from pydantic import ValidationError
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.utils import format_validation_error
 from ..common.auth import TokenService, DropboxTokenRefresher
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/dropbox directory
 
 async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
     try:
@@ -32,7 +37,7 @@ async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
         raise HTTPException(status_code=500, detail=f"Failed to initialize Dropbox service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
-@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse)
+@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse, examples=examples["/dropbox/list_files"])
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -48,7 +53,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
-@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse)
+@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse, examples=examples["/dropbox/get_file"])
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -64,23 +69,26 @@ async def get_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
-@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse)
+@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse, examples=examples["/dropbox/create_folder"])
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
 ):
     try:
         validated_params = CreateFolderParams(**params)
-        return service.create_folder(validated_params.folder.path)
+        return service.create_folder(validated_params.folder.path, validated_params.autorename)
     except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFolderParams'))
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
         traceback.print_exc()
+        # Check if this is a 409 Conflict error
+        if "409 Client Error: Conflict for url" in str(e):
+            raise HTTPException(status_code=409, detail="Folder with this name already exists")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
-@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse)
+@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse, examples=examples["/dropbox/upload_file"])
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -100,7 +108,7 @@ async def upload_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/download_file")
-@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse, examples=examples["/dropbox/download_file"])
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -118,7 +126,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @router.post("/delete_file", response_model=ApiResponse)
-@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse)
+@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse, examples=examples["/dropbox/delete_file"])
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -134,7 +142,7 @@ async def delete_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
-@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse)
+@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse, examples=examples["/dropbox/move_file"])
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -150,7 +158,7 @@ async def move_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/read_file")
-@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse)
+@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse, examples=examples["/dropbox/read_file"])
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -167,3 +175,67 @@ async def read_file(
             "success": False,
             "error": str(e)
         }
+
+@router.post("/create_shared_link", response_model=ApiResponse)
+@schema(input_schema_class=CreateSharedLinkParams, output_schema_class=CreateSharedLinkResponse, examples=examples["/dropbox/create_shared_link"])
+async def create_shared_link(
+    params: Dict[str, Any] = Body(...),
+    service: DropboxService = Depends(get_dropbox_service)
+):
+    try:
+        validated_params = CreateSharedLinkParams(**params)
+        
+        # Convert the settings to a dict and ensure enum values are converted to strings
+        settings_dict = None
+        if validated_params.settings:
+            settings_dict = validated_params.settings.dict()
+            # The dict() method will automatically convert enum values to their string values
+        
+        return service.create_shared_link(validated_params.path, settings_dict)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateSharedLinkParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        if "shared_link_already_exists" in str(e):
+            # This is handled in the service layer
+            pass
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/search", response_model=ApiResponse)
+@schema(input_schema_class=SearchParams, output_schema_class=SearchResponse, examples=examples["/dropbox/search"])
+async def search_files(
+    params: Dict[str, Any] = Body(...),
+    service: DropboxService = Depends(get_dropbox_service)
+):
+    try:
+        validated_params = SearchParams(**params)
+        return service.search_files(
+            query=validated_params.query,
+            path=validated_params.path,
+            max_results=validated_params.max_results,
+            filename_only=validated_params.filename_only,
+            file_status=validated_params.file_status
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/search_continue", response_model=ApiResponse)
+@schema(input_schema_class=SearchContinueParams, output_schema_class=SearchContinueResponse, examples=examples["/dropbox/search_continue"])
+async def search_continue(
+    params: Dict[str, Any] = Body(...),
+    service: DropboxService = Depends(get_dropbox_service)
+):
+    try:
+        validated_params = SearchContinueParams(**params)
+        return service.search_continue(validated_params.cursor)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'SearchContinueParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

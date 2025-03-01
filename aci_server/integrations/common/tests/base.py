@@ -1,8 +1,8 @@
 import os
 import pytest
 from fastapi.testclient import TestClient
-from aci_server.healthcheck.utils.utils import login_to_supabase
-from aci_server.main import app
+from healthcheck.utils.utils import login_to_supabase
+from main import app
 from pydantic import ConfigDict
 
 class BaseIntegrationTest:

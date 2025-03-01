@@ -1,223 +1,175 @@
-# TODO: dropbox tests can't be added because no integration token is available
- 
-# from aci_server.integrations.common.tests.base import base_setup
-# import pytest
-# import base64
-# import os
-# from datetime import datetime
+import pytest
+import base64
+import datetime
+from integrations.common.tests.base import base_setup
 
-# ###########################################
-# # Utility functions
-# ###########################################
+# NEW: define timestamp-based variables here
+TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+TEST_FOLDER = f"/test_folder_{TIMESTAMP}"
+TEST_FILE_NAME = f"test_file_{TIMESTAMP}.txt"
+TEST_FILE_PATH = f"{TEST_FOLDER}/{TEST_FILE_NAME}"
 
-# def get_timestamped_name(base_name: str) -> str:
-#     """Add timestamp to a name to make it unique"""
-#     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-#     return f"{base_name}_{timestamp}"
+# Example fixture that creates and eventually cleans up a test file in Dropbox.
+@pytest.fixture(scope="function")
+def dropbox_test_file(base_setup):
+    """
+    Fixture that uploads a small text file into Dropbox, 
+    then deletes it after the test finishes.
+    """
+    # Base64-encoded content representing "Hello, dropbox!"
+    text_b64 = base64.b64encode(b"Hello, dropbox!").decode("utf-8")
+    upload_payload = {
+        "path": TEST_FILE_PATH,
+        "file_content": text_b64,
+        "mode": "add"
+    }
+    upload_response = base_setup.post("/dropbox/upload_file", payload=upload_payload)
+    assert upload_response.status_code == 200, "Dropbox test file upload failed"
+    resp_data = upload_response.json()
+    file_data = resp_data.get("data", {})
+    file_id = file_data.get("id")
+    file_name = file_data.get("name")
+    assert file_id and file_name, "Upload did not return expected file info."
 
-# def encode_file_content(content: str) -> str:
-#     """Convert string content to base64 for file uploads"""
-#     return base64.b64encode(content.encode('utf-8')).decode('utf-8')
+    yield file_data  # Provide the file data to the test
 
-# ###########################################
-# # Fixtures
-# ###########################################
+    # Cleanup: attempt to delete the file
+    delete_payload = {"path": f"{TEST_FOLDER}/{file_name}"}
+    delete_response = base_setup.post("/dropbox/delete_file", payload=delete_payload)
+    assert delete_response.status_code == 200, "Failed to delete test file from Dropbox"
 
-# @pytest.fixture(scope="module")
-# def test_names():
-#     """Create unique names for test resources"""
-#     return {
-#         "folder": get_timestamped_name("test_folder"),
-#         "file": get_timestamped_name("test_file.txt"),
-#         "moved_file": get_timestamped_name("moved_file.txt")
-#     }
+def test_list_files(base_setup, dropbox_test_file):
+    """
+    Test listing files with filters. 
+    At minimum, we can check if the test file can be found in its folder.
+    """
+    list_payload = {
+        "filters": {
+            "path": TEST_FOLDER,
+            "recursive": False,
+            "limit": 20
+        }
+    }
+    response = base_setup.post("/dropbox/list_files", payload=list_payload)
+    assert response.status_code == 200, "Listing files failed"
+    data = response.json().get("data", {})
+    files = data.get("files", [])
+    assert any(f["name"] == dropbox_test_file["name"] for f in files), \
+        "Uploaded test file not found in list_files response"
 
-# @pytest.fixture(scope="module")
-# def test_folder(base_setup, test_names, request):
-#     """
-#     Creates a test folder in Dropbox root.
-#     Yields the folder path.
-#     Cleans up after tests if auto_cleanup marker is present.
-#     """
-#     folder_path = f"/{test_names['folder']}"
-#     payload = {
-#         "folder": {
-#             "path": folder_path
-#         }
-#     }
-    
-#     response = base_setup.post("/dropbox/create_folder", payload=payload)
-#     assert response.status_code == 200, f"Failed to create folder: {response.text}"
-    
-#     yield folder_path
-    
-#     # Clean up if auto_cleanup marker is present
-#     if request.node.get_closest_marker('auto_cleanup'):
-#         try:
-#             # Check if folder exists first
-#             get_response = base_setup.post("/dropbox/get_file", payload={"path": folder_path}, expected_status=None)
-#             if get_response.status_code == 200:
-#                 # Delete folder if it exists
-#                 base_setup.post("/dropbox/delete_file", payload={"path": folder_path})
-#         except Exception as e:
-#             print(f"Error during cleanup: {e}")
+def test_get_file(base_setup, dropbox_test_file):
+    """
+    Test retrieving file metadata via /dropbox/get_file
+    """
+    file_name = dropbox_test_file["name"]
+    get_payload = {"path": f"{TEST_FOLDER}/{file_name}"}
+    response = base_setup.post("/dropbox/get_file", payload=get_payload)
+    assert response.status_code == 200, "Retrieving file metadata failed"
+    data = response.json().get("data", {})
+    assert data["name"] == file_name, "Fetched file name does not match"
 
-# @pytest.fixture(scope="module")
-# def test_file(base_setup, test_folder, test_names, request):
-#     """
-#     Creates a test file in the test folder.
-#     Yields the file path.
-#     """
-#     file_path = f"{test_folder}/{test_names['file']}"
-#     file_content = f"This is a test file content for {test_names['file']}"
-    
-#     payload = {
-#         "path": file_path,
-#         "file_content": encode_file_content(file_content),
-#         "mode": "add"
-#     }
-    
-#     response = base_setup.post("/dropbox/upload_file", payload=payload)
-#     assert response.status_code == 200, f"Failed to upload file: {response.text}"
-    
-#     yield file_path
-    
-#     # No cleanup here as the folder cleanup will handle it
+def test_create_and_delete_folder(base_setup):
+    """
+    Test creating and deleting a folder in Dropbox
+    """
+    folder_path = f"/test_folder_for_deletion_{TIMESTAMP}"
+    create_payload = {
+        "folder": {"path": folder_path}
+    }
+    create_response = base_setup.post("/dropbox/create_folder", payload=create_payload)
+    assert create_response.status_code == 200, "Failed to create folder in Dropbox"
+    folder_data = create_response.json().get("data", {})
+    assert folder_data.get("is_folder") is True, "Created item is not recognized as a folder"
 
-# @pytest.fixture(scope="module")
-# def moved_file_path(test_folder, test_names):
-#     """Returns the destination path for the moved file tests"""
-#     return f"{test_folder}/{test_names['moved_file']}"
+    # Now delete the folder
+    delete_payload = {"path": folder_path}
+    delete_response = base_setup.post("/dropbox/delete_file", payload=delete_payload)
+    assert delete_response.status_code == 200, "Failed to delete folder in Dropbox"
 
-# ###########################################
-# # Tests
-# ###########################################
+def test_download_file(base_setup, dropbox_test_file):
+    """
+    Test downloading a file from Dropbox
+    """
+    file_name = dropbox_test_file["name"]
+    payload = {"path": f"{TEST_FOLDER}/{file_name}"}
+    download_response = base_setup.post("/dropbox/download_file", payload=payload)
+    assert download_response.status_code == 200, "Failed to download file"
+    data = download_response.json()
+    # We expect something like {"status": "success", "data": {...}}
+    assert "data" in data, "No file data in download response"
+    file_content = data["data"].get("file_content")
+    assert file_content, "No file_content found in download response"
+    # Optionally decode and check
+    decoded_content = base64.b64decode(file_content).decode("utf-8")
+    assert "Hello, dropbox!" in decoded_content, "Downloaded content is incorrect"
 
-# def test_list_files_root(base_setup):
-#     """Test listing files in the root directory"""
-#     payload = {
-#         "filters": {
-#             "path": "",
-#             "recursive": False,
-#             "limit": 20
-#         }
-#     }
-    
-#     response = base_setup.post("/dropbox/list_files", payload=payload)
-#     assert response.status_code == 200, "Failed to list files in root"
-    
-#     data = response.json().get("data", {})
-#     assert "files" in data, "Response data missing 'files' key"
-#     assert isinstance(data["files"], list), "'files' should be a list"
+def test_move_file(base_setup, dropbox_test_file):
+    """
+    Test moving a file to a new path in Dropbox
+    """
+    file_path = f"{TEST_FOLDER}/{dropbox_test_file['name']}"
+    new_folder_path = f"/test_folder_move_{TIMESTAMP}"
+    # Create the target folder first
+    create_folder_payload = {"folder": {"path": new_folder_path}}
+    create_folder_resp = base_setup.post("/dropbox/create_folder", payload=create_folder_payload)
+    assert create_folder_resp.status_code == 200, "Failed to create move target folder"
 
-# def test_create_folder(test_folder):
-#     """Test folder creation (indirectly tested via fixture)"""
-#     assert test_folder, "Folder path should be returned from fixture"
+    move_payload = {
+        "from_path": file_path,
+        "to_path": f"{new_folder_path}/{dropbox_test_file['name']}"
+    }
+    move_response = base_setup.post("/dropbox/move_file", payload=move_payload)
+    assert move_response.status_code == 200, "Failed to move file in Dropbox"
 
-# def test_upload_file(test_file):
-#     """Test file upload (indirectly tested via fixture)"""
-#     assert test_file, "File path should be returned from fixture"
+    #moving file back to original path
+    move_payload = {
+        "from_path": f"{new_folder_path}/{dropbox_test_file['name']}",
+        "to_path": file_path
+    }
+    move_response = base_setup.post("/dropbox/move_file", payload=move_payload)
+    assert move_response.status_code == 200, "Failed to move file in Dropbox"
 
-# def test_get_file(base_setup, test_file):
-#     """Test retrieving file metadata"""
-#     payload = {"path": test_file}
-    
-#     response = base_setup.post("/dropbox/get_file", payload=payload)
-#     assert response.status_code == 200, "Failed to get file metadata"
-    
-#     data = response.json().get("data", {})
-#     assert data.get("path_display", "").lower() == test_file.lower(), "File path doesn't match expected value"
-#     assert not data.get("is_folder", True), "File should not be identified as a folder"
+    # Delete the folder, too
+    delete_folder_resp = base_setup.post("/dropbox/delete_file", payload={"path": new_folder_path})
+    assert delete_folder_resp.status_code == 200, "Failed to delete the new folder"
 
-# def test_list_files_folder(base_setup, test_folder, test_file):
-#     """Test listing files in the test folder, confirming test file is included"""
-#     payload = {
-#         "filters": {
-#             "path": test_folder,
-#             "recursive": False,
-#             "limit": 20
-#         }
-#     }
-    
-#     response = base_setup.post("/dropbox/list_files", payload=payload)
-#     assert response.status_code == 200, "Failed to list files in test folder"
-    
-#     data = response.json().get("data", {})
-#     files = data.get("files", [])
-    
-#     # Find our test file in the list
-#     file_names = [file.get("name") for file in files]
-#     file_name = os.path.basename(test_file)
-#     assert file_name in file_names, f"Test file {file_name} not found in folder listing"
+def test_read_file_content(base_setup, dropbox_test_file):
+    """
+    Test reading textual file content from Dropbox
+    """
+    file_path = f"{TEST_FOLDER}/{dropbox_test_file['name']}"
+    payload = {"path": file_path}
+    response = base_setup.post("/dropbox/read_file", payload=payload)
+    assert response.status_code == 200, "Failed to read file content"
+    data = response.json()
+    assert data["success"] is True, f"Reading file content failed: {data.get('error', 'Unknown error')}"
+    content = data["data"].get("content", "")
+    assert "Hello, dropbox!" in content, "File content does not match expected text"
 
-# def test_download_file(base_setup, test_file):
-#     """Test downloading file content"""
-#     payload = {"path": test_file}
-    
-#     response = base_setup.post("/dropbox/download_file", payload=payload)
-#     assert response.status_code == 200, "Failed to download file"
-    
-#     data = response.json().get("data", {})
-#     assert "file_content" in data, "Response missing file_content field"
-#     assert "mime_type" in data, "Response missing mime_type field"
-#     assert "filename" in data, "Response missing filename field"
-    
-#     # Decode and check content
-#     decoded_content = base64.b64decode(data["file_content"]).decode('utf-8')
-#     assert "This is a test file content" in decoded_content, "File content doesn't match expected value"
+def test_create_shared_link(base_setup, dropbox_test_file):
+    """
+    Test creating a shared link for a file in Dropbox
+    """
+    file_path = f"{TEST_FOLDER}/{dropbox_test_file['name']}"
+    payload = {"path": file_path}
+    response = base_setup.post("/dropbox/create_shared_link", payload=payload)
+    assert response.status_code == 200, "Failed to create shared link"
 
-# def test_read_file(base_setup, test_file):
-#     """Test reading file as text"""
-#     payload = {"path": test_file}
+def test_search_files(base_setup, dropbox_test_file):
+    """
+    Test searching for files in Dropbox
+    """
+    # Search for the test file by name
+    file_name = dropbox_test_file["name"]
+    search_payload = {
+        "query": file_name,
+        "filename_only": True  # Only search in filenames
+    }
     
-#     response = base_setup.post("/dropbox/read_file", payload=payload)
-#     assert response.status_code == 200, "Failed to read file"
+    response = base_setup.post("/dropbox/search", payload=search_payload)
+    assert response.status_code == 200, "Search request failed"
     
-#     result = response.json()
-#     assert result.get("success", False), f"Read file operation failed: {result.get('error', 'Unknown error')}"
-    
-#     data = result.get("data", {})
-#     assert "content" in data, "Response missing content field"
-#     assert "This is a test file content" in data["content"], "File content doesn't match expected value"
-
-# def test_move_file(base_setup, test_file, moved_file_path):
-#     """Test moving a file to a new location"""
-#     payload = {
-#         "from_path": test_file,
-#         "to_path": moved_file_path
-#     }
-    
-#     response = base_setup.post("/dropbox/move_file", payload=payload)
-#     assert response.status_code == 200, f"Failed to move file: {response.text}"
-    
-#     # Verify the file exists at the new location
-#     get_payload = {"path": moved_file_path}
-#     get_response = base_setup.post("/dropbox/get_file", payload=get_payload)
-#     assert get_response.status_code == 200, "Failed to get moved file"
-    
-#     # Verify the file no longer exists at the old location
-#     old_get_response = base_setup.post("/dropbox/get_file", payload={"path": test_file}, expected_status=None)
-#     assert old_get_response.status_code != 200, "File still exists at original location after move"
-
-# def test_delete_file(base_setup, moved_file_path):
-#     """Test deleting a file"""
-#     payload = {"path": moved_file_path}
-    
-#     response = base_setup.post("/dropbox/delete_file", payload=payload)
-#     assert response.status_code == 200, "Failed to delete file"
-    
-#     # Verify the file no longer exists
-#     get_response = base_setup.post("/dropbox/get_file", payload=payload, expected_status=None)
-#     assert get_response.status_code != 200, "File still exists after deletion"
-
-# @pytest.mark.auto_cleanup
-# def test_delete_folder(base_setup, test_folder):
-#     """Test deleting the test folder"""
-#     payload = {"path": test_folder}
-    
-#     response = base_setup.post("/dropbox/delete_file", payload=payload)
-#     assert response.status_code == 200, "Failed to delete folder"
-    
-#     # Verify the folder no longer exists
-#     get_response = base_setup.post("/dropbox/get_file", payload=payload, expected_status=None)
-#     assert get_response.status_code != 200, "Folder still exists after deletion" 
+    # Verify we get a valid response structure
+    data = response.json()
+    assert "data" in data, "No data in search response"
+    assert "files" in data["data"], "No files in search response" 

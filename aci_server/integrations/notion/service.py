@@ -151,7 +151,7 @@ class NotionService:
     def create_page(self, page_data: PageCreate) -> ApiResponse:
         try:
             payload = {
-                "parent": page_data.parent,
+                "parent": page_data.parent.dict(),
                 "properties": page_data.properties
             }
             if page_data.children:
@@ -225,8 +225,9 @@ class NotionService:
             )
             
             return self.prepare_response(page, "NotionPageCard")
+        except HTTPException:
+            raise
         except Exception as e:
-            print("Error type:", type(e))
             raise HTTPException(status_code=500, detail=str(e))
 
     def get_database(self, database_id: str) -> ApiResponse:
@@ -318,7 +319,7 @@ class NotionService:
             params["start_cursor"] = start_cursor
             
         response = self.client.search_pages(**params)
-        validated_response = self._handle_notion_response(response, "NotionPageCard")
+        validated_response = self._handle_notion_response(response)
         
         results = []
         for item in validated_response.get('results', []):
@@ -362,3 +363,4 @@ class NotionService:
         )
         
         return self.prepare_response(search_result, "NotionPageCard")
+

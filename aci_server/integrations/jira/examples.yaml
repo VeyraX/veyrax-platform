@@ -1,0 +1,692 @@
+routes:
+  - endpoint: /jira/get_issues
+    examples:
+      - scenario: "List Jira Issues with Filters"
+        description: "Retrieves a list of issues with optional filtering parameters"
+        input_json: |
+          {
+            "filters": {
+              "project_id": "10000",
+              "status_id": null,
+              "assignee": null,
+              "created_after": "2023-01-01T00:00:00Z",
+              "created_before": null,
+              "priority_id": null,
+              "max_results": 20
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "issues": [
+                {
+                  "key": "PROJ-123",
+                  "summary": "Implement new feature",
+                  "description": "We need to implement this new feature according to the design specs",
+                  "status": {
+                    "name": "In Progress",
+                    "statusCategory": {
+                      "name": "In Progress",
+                      "colorName": "yellow"
+                    }
+                  },
+                  "created": "2023-05-15T09:45:23Z",
+                  "updated": "2023-05-16T14:32:17Z",
+                  "assignee": {
+                    "display_name": "John Smith",
+                    "account_id": "5e12345678abcdef09876543"
+                  },
+                  "reporter": "Jane Doe",
+                  "priority": {
+                    "name": "Medium",
+                    "id": "3",
+                    "iconUrl": "https://company.atlassian.net/images/icons/priorities/medium.svg"
+                  },
+                  "url": "https://company.atlassian.net/browse/PROJ-123"
+                },
+                {
+                  "key": "PROJ-124",
+                  "summary": "Fix critical bug in login",
+                  "description": "Users are experiencing intermittent login failures",
+                  "status": {
+                    "name": "To Do",
+                    "statusCategory": {
+                      "name": "To Do",
+                      "colorName": "blue"
+                    }
+                  },
+                  "created": "2023-05-17T11:23:45Z",
+                  "updated": "2023-05-17T11:23:45Z",
+                  "assignee": null,
+                  "reporter": "Jane Doe",
+                  "priority": {
+                    "name": "High",
+                    "id": "2",
+                    "iconUrl": "https://company.atlassian.net/images/icons/priorities/high.svg"
+                  },
+                  "url": "https://company.atlassian.net/browse/PROJ-124"
+                }
+              ],
+              "total": 2,
+              "start_at": 0
+            },
+            "message": null
+          }
+
+  - endpoint: /jira/get_issue
+    examples:
+      - scenario: "Get Specific Issue Details"
+        description: "Retrieves detailed information about a specific issue by ID or key"
+        input_json: |
+          {
+            "issue_id": "PROJ-123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "10023",
+              "key": "PROJ-123",
+              "summary": "Implement new feature",
+              "description": "We need to implement this new feature according to the design specs",
+              "status": {
+                "name": "In Progress",
+                "statusCategory": {
+                  "name": "In Progress",
+                  "colorName": "yellow"
+                }
+              },
+              "created": "2023-05-15T09:45:23Z",
+              "updated": "2023-05-16T14:32:17Z",
+              "assignee": {
+                "display_name": "John Smith",
+                "account_id": "5e12345678abcdef09876543",
+                "email": "john.smith@example.com"
+              },
+              "reporter": "Jane Doe",
+              "priority": {
+                "name": "Medium",
+                "id": "3",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/medium.svg"
+              },
+              "url": "https://company.atlassian.net/browse/PROJ-123",
+              "comments": [
+                {
+                  "id": "10001",
+                  "body": "I've started working on this feature",
+                  "author": {
+                    "display_name": "John Smith",
+                    "account_id": "5e12345678abcdef09876543"
+                  },
+                  "created": "2023-05-15T10:15:23Z",
+                  "updated": "2023-05-15T10:15:23Z"
+                }
+              ],
+              "labels": ["feature", "ui"],
+              "components": ["frontend"]
+            },
+            "message": null
+          }
+
+  - endpoint: /jira/create_issue
+    examples:
+      - scenario: "Create a New Issue"
+        description: "Creates a new issue with specified attributes"
+        input_json: |
+          {
+            "issue_args": {
+              "project_id": "10000",
+              "summary": "Implement authentication service",
+              "issue_type_id": "10002",
+              "description": "Create a new authentication service with OAuth2 support",
+              "assignee_id": "5e12345678abcdef09876543",
+              "priority_id": "3",
+              "labels": ["backend", "security"],
+              "components": ["auth-service"]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "10024",
+              "key": "PROJ-125",
+              "summary": "Implement authentication service",
+              "description": "Create a new authentication service with OAuth2 support",
+              "status": {
+                "name": "To Do",
+                "statusCategory": {
+                  "name": "To Do",
+                  "colorName": "blue"
+                }
+              },
+              "created": "2023-05-20T15:32:47Z",
+              "updated": "2023-05-20T15:32:47Z",
+              "assignee": {
+                "display_name": "John Smith",
+                "account_id": "5e12345678abcdef09876543"
+              },
+              "reporter": "Jane Doe",
+              "priority": {
+                "name": "Medium",
+                "id": "3",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/medium.svg"
+              },
+              "url": "https://company.atlassian.net/browse/PROJ-125",
+              "comments": [],
+              "labels": ["backend", "security"],
+              "components": ["auth-service"]
+            },
+            "message": "Issue successfully created"
+          }
+
+      - scenario: "Create a Subtask"
+        description: "Creates a subtask for an existing parent issue"
+        input_json: |
+          {
+            "issue_args": {
+              "project_id": "10000",
+              "summary": "Implement token refresh mechanism",
+              "issue_type_id": "10003",
+              "description": "Add token refresh capability to the authentication service",
+              "parent_issue_key": "PROJ-125",
+              "assignee_id": "5e12345678abcdef09876543",
+              "priority_id": "3"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "10025",
+              "key": "PROJ-126",
+              "summary": "Implement token refresh mechanism",
+              "description": "Add token refresh capability to the authentication service",
+              "status": {
+                "name": "To Do",
+                "statusCategory": {
+                  "name": "To Do",
+                  "colorName": "blue"
+                }
+              },
+              "created": "2023-05-20T15:45:22Z",
+              "updated": "2023-05-20T15:45:22Z",
+              "assignee": {
+                "display_name": "John Smith",
+                "account_id": "5e12345678abcdef09876543"
+              },
+              "reporter": "Jane Doe",
+              "priority": {
+                "name": "Medium",
+                "id": "3",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/medium.svg"
+              },
+              "url": "https://company.atlassian.net/browse/PROJ-126",
+              "comments": [],
+              "labels": [],
+              "components": []
+            },
+            "message": "Subtask successfully created"
+          }
+
+  - endpoint: /jira/update_issue
+    examples:
+      - scenario: "Update an Existing Issue"
+        description: "Updates the specified fields of an existing issue"
+        input_json: |
+          {
+            "issue_id": "PROJ-123",
+            "update_args": {
+              "summary": "Updated Test Issue Summary",
+              "description": "This is an updated description with additional details.",
+              "assignee_id": "5e98765432abcdef12345678",
+              "priority_id": "2",
+              "labels": ["feature", "ui", "updated"]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "10023",
+              "key": "PROJ-123",
+              "summary": "Updated Test Issue Summary",
+              "description": "This is an updated description with additional details.",
+              "status": {
+                "name": "In Progress",
+                "statusCategory": {
+                  "name": "In Progress",
+                  "colorName": "yellow"
+                }
+              },
+              "created": "2023-05-15T09:45:23Z",
+              "updated": "2023-05-21T10:12:33Z",
+              "assignee": {
+                "display_name": "Sarah Johnson",
+                "account_id": "5e98765432abcdef12345678"
+              },
+              "reporter": "Jane Doe",
+              "priority": {
+                "name": "High",
+                "id": "2",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/high.svg"
+              },
+              "url": "https://company.atlassian.net/browse/PROJ-123",
+              "comments": [
+                {
+                  "id": "10001",
+                  "body": "I've started working on this feature",
+                  "author": {
+                    "display_name": "John Smith",
+                    "account_id": "5e12345678abcdef09876543"
+                  },
+                  "created": "2023-05-15T10:15:23Z",
+                  "updated": "2023-05-15T10:15:23Z"
+                }
+              ],
+              "labels": ["feature", "ui", "updated"],
+              "components": ["frontend"]
+            },
+            "message": "Issue successfully updated"
+          }
+
+  - endpoint: /jira/delete_issue
+    examples:
+      - scenario: "Delete an Issue"
+        description: "Permanently removes the specified issue"
+        input_json: |
+          {
+            "issue_id": "PROJ-126"
+          }
+        output_json: |
+          {
+            "status": "success",
+            "message": "Issue PROJ-126 successfully deleted"
+          }
+
+  - endpoint: /jira/get_projects
+    examples:
+      - scenario: "List All Projects"
+        description: "Retrieves a list of all accessible Jira projects"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "10000",
+                "key": "PROJ",
+                "name": "Sample Project",
+                "description": "This is a sample project for development teams",
+                "lead": "Jane Doe",
+                "url": "https://company.atlassian.net/browse/PROJ",
+                "components": [
+                  {
+                    "id": "10001",
+                    "name": "frontend",
+                    "description": "Frontend components"
+                  },
+                  {
+                    "id": "10002",
+                    "name": "backend",
+                    "description": "Backend services"
+                  },
+                  {
+                    "id": "10003",
+                    "name": "auth-service",
+                    "description": "Authentication service"
+                  }
+                ],
+                "versions": [
+                  {
+                    "id": "10001",
+                    "name": "v1.0",
+                    "released": true,
+                    "releaseDate": "2023-01-15"
+                  },
+                  {
+                    "id": "10002",
+                    "name": "v1.1",
+                    "released": false,
+                    "releaseDate": null
+                  }
+                ]
+              },
+              {
+                "id": "10001",
+                "key": "OPS",
+                "name": "Operations",
+                "description": "Operations and infrastructure related issues",
+                "lead": "Mark Wilson",
+                "url": "https://company.atlassian.net/browse/OPS",
+                "components": [
+                  {
+                    "id": "10004",
+                    "name": "infrastructure",
+                    "description": "Infrastructure components"
+                  },
+                  {
+                    "id": "10005",
+                    "name": "monitoring",
+                    "description": "Monitoring systems"
+                  }
+                ],
+                "versions": []
+              }
+            ],
+            "message": null
+          }
+
+  - endpoint: /jira/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieves detailed information about a specific project"
+        input_json: |
+          {
+            "project_id": "10000"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "10000",
+              "key": "PROJ",
+              "name": "Sample Project",
+              "description": "This is a sample project for development teams",
+              "lead": "Jane Doe",
+              "url": "https://company.atlassian.net/browse/PROJ",
+              "components": [
+                {
+                  "id": "10001",
+                  "name": "frontend",
+                  "description": "Frontend components"
+                },
+                {
+                  "id": "10002",
+                  "name": "backend",
+                  "description": "Backend services"
+                },
+                {
+                  "id": "10003",
+                  "name": "auth-service",
+                  "description": "Authentication service"
+                }
+              ],
+              "versions": [
+                {
+                  "id": "10001",
+                  "name": "v1.0",
+                  "released": true,
+                  "releaseDate": "2023-01-15"
+                },
+                {
+                  "id": "10002",
+                  "name": "v1.1",
+                  "released": false,
+                  "releaseDate": null
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /jira/get_statuses
+    examples:
+      - scenario: "List All Statuses"
+        description: "Retrieves all available issue statuses"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "1",
+                "name": "To Do",
+                "description": "Issues that are ready to be worked on",
+                "category": {
+                  "id": 2,
+                  "key": "new",
+                  "name": "To Do",
+                  "colorName": "blue"
+                }
+              },
+              {
+                "id": "2",
+                "name": "In Progress",
+                "description": "Issues currently being worked on",
+                "category": {
+                  "id": 4,
+                  "key": "indeterminate",
+                  "name": "In Progress",
+                  "colorName": "yellow"
+                }
+              },
+              {
+                "id": "3",
+                "name": "Done",
+                "description": "Issues that have been completed",
+                "category": {
+                  "id": 3,
+                  "key": "done",
+                  "name": "Done",
+                  "colorName": "green"
+                }
+              }
+            ],
+            "message": null
+          }
+
+  - endpoint: /jira/get_priorities
+    examples:
+      - scenario: "List All Priorities"
+        description: "Retrieves all available issue priorities"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "1",
+                "name": "Highest",
+                "description": "This problem will block progress",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/highest.svg"
+              },
+              {
+                "id": "2",
+                "name": "High",
+                "description": "Serious problem that could block progress",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/high.svg"
+              },
+              {
+                "id": "3",
+                "name": "Medium",
+                "description": "Has the potential to affect progress",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/medium.svg"
+              },
+              {
+                "id": "4",
+                "name": "Low",
+                "description": "Minor problem or easily worked around",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/low.svg"
+              },
+              {
+                "id": "5",
+                "name": "Lowest",
+                "description": "Trivial problem with little or no impact",
+                "iconUrl": "https://company.atlassian.net/images/icons/priorities/lowest.svg"
+              }
+            ],
+            "message": null
+          }
+
+  - endpoint: /jira/get_issue_types
+    examples:
+      - scenario: "List All Issue Types"
+        description: "Retrieves all available issue types"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "10000",
+                "name": "Epic",
+                "description": "A big user story that needs to be broken down",
+                "iconUrl": "https://company.atlassian.net/images/icons/issuetypes/epic.svg",
+                "subtask": false
+              },
+              {
+                "id": "10001",
+                "name": "Story",
+                "description": "A user story",
+                "iconUrl": "https://company.atlassian.net/images/icons/issuetypes/story.svg",
+                "subtask": false
+              },
+              {
+                "id": "10002",
+                "name": "Task",
+                "description": "A task that needs to be done",
+                "iconUrl": "https://company.atlassian.net/images/icons/issuetypes/task.svg",
+                "subtask": false
+              },
+              {
+                "id": "10003",
+                "name": "Sub-task",
+                "description": "A sub-task of a story or task",
+                "iconUrl": "https://company.atlassian.net/images/icons/issuetypes/subtask.svg",
+                "subtask": true
+              },
+              {
+                "id": "10004",
+                "name": "Bug",
+                "description": "A problem that impairs product functionality",
+                "iconUrl": "https://company.atlassian.net/images/icons/issuetypes/bug.svg",
+                "subtask": false
+              }
+            ],
+            "message": null
+          }
+
+  - endpoint: /jira/get_fields
+    examples:
+      - scenario: "List All Issue Fields"
+        description: "Retrieves all available issue fields with their schemas"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "summary",
+                "name": "Summary",
+                "custom": false,
+                "orderable": true,
+                "navigable": true,
+                "searchable": true,
+                "clauseNames": ["summary"],
+                "schema": {
+                  "type": "string",
+                  "system": "summary"
+                }
+              },
+              {
+                "id": "description",
+                "name": "Description",
+                "custom": false,
+                "orderable": true,
+                "navigable": true,
+                "searchable": true,
+                "clauseNames": ["description"],
+                "schema": {
+                  "type": "string",
+                  "system": "description"
+                }
+              },
+              {
+                "id": "assignee",
+                "name": "Assignee",
+                "custom": false,
+                "orderable": true,
+                "navigable": true,
+                "searchable": true,
+                "clauseNames": ["assignee"],
+                "schema": {
+                  "type": "user",
+                  "system": "assignee"
+                }
+              },
+              {
+                "id": "customfield_10001",
+                "name": "Story Points",
+                "custom": true,
+                "orderable": true,
+                "navigable": true,
+                "searchable": true,
+                "clauseNames": ["cf[10001]", "Story Points"],
+                "schema": {
+                  "type": "number",
+                  "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float"
+                }
+              }
+            ],
+            "message": null
+          }
+
+  - endpoint: /jira/get_users
+    examples:
+      - scenario: "Search for Users"
+        description: "Searches for Jira users based on a query string"
+        input_json: |
+          {
+            "query": "john"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "account_id": "5e12345678abcdef09876543",
+                "email": "john.smith@example.com",
+                "display_name": "John Smith",
+                "active": true
+              },
+              {
+                "account_id": "5e45678901abcdef23456789",
+                "email": "john.doe@example.com",
+                "display_name": "John Doe",
+                "active": true
+              }
+            ],
+            "message": null
+          }
+      
+      - scenario: "List All Users"
+        description: "Retrieves a list of all users (with pagination)"
+        input_json: |
+          {
+            "query": ""
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "account_id": "5e12345678abcdef09876543",
+                "email": "john.smith@example.com",
+                "display_name": "John Smith",
+                "active": true
+              },
+              {
+                "account_id": "5e45678901abcdef23456789",
+                "email": "john.doe@example.com",
+                "display_name": "John Doe",
+                "active": true
+              },
+              {
+                "account_id": "5e98765432abcdef12345678",
+                "email": "sarah.johnson@example.com",
+                "display_name": "Sarah Johnson",
+                "active": true
+              },
+              {
+                "account_id": "5e32165498abcdef76548932",
+                "email": "jane.doe@example.com",
+                "display_name": "Jane Doe",
+                "active": true
+              }
+            ],
+            "message": null
+          } 

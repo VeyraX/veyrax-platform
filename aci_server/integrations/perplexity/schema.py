@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
 
 class Message(BaseModel):
@@ -11,7 +11,7 @@ class CompletionRequest(BaseModel):
     max_tokens: Optional[int] = 1024
     temperature: float = 0.4
     top_p: float = 0.9
-    search_domain_filter: Optional[str] = None
+    search_domain_filter: Optional[str] = Field(default=None, description="Only available in certain tiers")
     return_images: bool = False
     return_related_questions: bool = False
     search_recency_filter: Optional[str] = None

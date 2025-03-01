@@ -95,7 +95,10 @@ class NotionClient:
 
     def get_database(self, database_id: str) -> Dict[str, Any]:
         """Get database metadata including its property schema"""
-        return requests.get(
+        response = requests.get(
             f"{self.base_url}/databases/{database_id}",
             headers=self.headers
-        ).json()
+        )
+        return response.json()
+
+    

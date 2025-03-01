@@ -28,7 +28,7 @@ class SendEmailParams(BaseModel):
     headers: Optional[Dict[str, str]] = None
     attachments: Optional[List[EmailAttachment]] = None
     tags: Optional[List[EmailTag]] = None
-    scheduled_at: Optional[str] = None
+    scheduled_at: Optional[str] = Field(None, description="Up to 72 hours in advance, ISO 8601 formatted date and time, i.e. 2024-08-05T11:52:01.858Z)")
 
 class SendBatchEmailsParams(BaseModel):
     emails: List[SendEmailParams]

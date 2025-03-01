@@ -33,8 +33,11 @@ from ..common.auth import TokenService, ConfluenceTokenRefresher
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/confluence directory
 
 async def get_confluence_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'confluence')
@@ -48,8 +51,9 @@ async def get_confluence_service(request: FastAPIRequest):
     client = ConfluenceClient(token_data['access_token'])
     return ConfluenceService(client)
 
+
 @router.post("/get_spaces", response_model=ApiResponse)
-@schema(input_schema_class=GetSpacesParams, output_schema_class=SpacesResponse)
+@schema(input_schema_class=GetSpacesParams, output_schema_class=SpacesResponse, examples=examples["/confluence/spaces"])
 async def get_spaces(
     params: Dict[str, Any] = Body({}),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -63,9 +67,10 @@ async def get_spaces(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    
 
 @router.post("/get_pages", response_model=ApiResponse)
-@schema(input_schema_class=GetPagesParams, output_schema_class=PagesResponse)
+@schema(input_schema_class=GetPagesParams, output_schema_class=PagesResponse, examples=examples["/confluence/pages"])
 async def get_pages(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -82,7 +87,7 @@ async def get_pages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_page", response_model=ApiResponse)
-@schema(input_schema_class=GetPageParams, output_schema_class=PageResponse)
+@schema(input_schema_class=GetPageParams, output_schema_class=PageResponse, examples=examples["/confluence/get_page"])
 async def get_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -98,7 +103,7 @@ async def get_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_page", response_model=ApiResponse)
-@schema(input_schema_class=CreatePageParams, output_schema_class=CreatePageResponse)
+@schema(input_schema_class=CreatePageParams, output_schema_class=CreatePageResponse, examples=examples["/confluence/create_page"])
 async def create_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -114,7 +119,7 @@ async def create_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_page", response_model=ApiResponse)
-@schema(input_schema_class=UpdatePageParams, output_schema_class=UpdatePageResponse)
+@schema(input_schema_class=UpdatePageParams, output_schema_class=UpdatePageResponse, examples=examples["/confluence/update_page"])
 async def update_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -130,7 +135,7 @@ async def update_page(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search_content", response_model=ApiResponse)
-@schema(input_schema_class=SearchContentParams, output_schema_class=SearchContentResponse)
+@schema(input_schema_class=SearchContentParams, output_schema_class=SearchContentResponse, examples=examples["/confluence/search"])
 async def search_content(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)
@@ -152,7 +157,7 @@ async def search_content(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_page", response_model=ApiResponse)
-@schema(input_schema_class=DeletePageParams, output_schema_class=DeletePageResponse)
+@schema(input_schema_class=DeletePageParams, output_schema_class=DeletePageResponse, examples=examples["/confluence/delete_page"])
 async def delete_page(
     params: Dict[str, Any] = Body(...),
     service: ConfluenceService = Depends(get_confluence_service)

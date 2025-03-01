@@ -1,9 +1,9 @@
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 import pytest
 
 # This will automatically assert for 200 status code
 def test_google_calendar_list_calendars_health(base_setup):
-    base_setup.post('/google_calendar/list_calendars')
+    base_setup.post('/google-calendar/list_calendars')
 
 # Fixture that provides a payload for event creation
 @pytest.fixture(scope="module")
@@ -24,7 +24,7 @@ def event_payload():
 @pytest.fixture(scope="module")
 def created_event(base_setup, event_payload):
     # Create the event.
-    response = base_setup.post("/google_calendar/create_event", payload=event_payload)
+    response = base_setup.post("/google-calendar/create_event", payload=event_payload)
     event_id = response.json()["data"]["id"]
     assert event_id, "Event creation failed: no event ID returned."
     
@@ -47,7 +47,7 @@ def test_get_event(base_setup, created_event):
         "event_id": created_event,
         "calendar_id": "primary"
     }
-    response = base_setup.post("/google_calendar/get_event", payload=payload)
+    response = base_setup.post("/google-calendar/get_event", payload=payload)
     data = response.json()["data"]
     assert data["id"] == created_event, "Returned event does not match the created event."
 
@@ -63,7 +63,7 @@ def test_update_event(base_setup, created_event):
         },
         "calendar_id": "primary"
     }
-    base_setup.post("/google_calendar/update_event", payload=payload)
+    base_setup.post("/google-calendar/update_event", payload=payload)
 
 def test_list_events(base_setup, created_event):
     # List events and verify the updated event is included.
@@ -74,7 +74,7 @@ def test_list_events(base_setup, created_event):
             "calendarId": "primary"
         }
     }
-    response = base_setup.post("/google_calendar/list_events", payload=payload)
+    response = base_setup.post("/google-calendar/list_events", payload=payload)
     events = response.json()["data"].get("items", [])
     assert any(item["id"] == created_event for item in events), "Updated event not found in event list."
 
@@ -84,9 +84,9 @@ def test_delete_event(base_setup, created_event):
         "event_id": created_event,
         "calendar_id": "primary"
     }
-    base_setup.post("/google_calendar/delete_event", payload=payload)
+    base_setup.post("/google-calendar/delete_event", payload=payload)
 
 
 def test_list_calendars(base_setup):
     # Call the list_calendars endpoint (no payload needed).
-    base_setup.post("/google_calendar/list_calendars")
+    base_setup.post("/google-calendar/list_calendars")

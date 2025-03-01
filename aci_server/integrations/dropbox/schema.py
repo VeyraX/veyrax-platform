@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
+from enum import Enum
 
 class DropboxFile(BaseModel):
     id: str
@@ -44,8 +45,13 @@ class FileFilters(BaseModel):
     recursive: Optional[bool] = False
     limit: Optional[int] = 20
 
+class SearchResult(BaseModel):
+    files: List[DropboxFile]
+    cursor: Optional[str] = None
+    has_more: bool
+
 class ApiResponse(BaseModel):
-    data: Union[DropboxFile, FileList]
+    data: Union[DropboxFile, FileList, SearchResult]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 # New parameter classes for routes
@@ -57,6 +63,7 @@ class GetFileParams(BaseModel):
 
 class CreateFolderParams(BaseModel):
     folder: FolderCreate
+    autorename: Optional[bool] = False
 
 class UploadFileParams(BaseModel):
     path: str
@@ -106,4 +113,56 @@ class MoveFileResponse(BaseModel):
 
 class ReadFileResponse(BaseModel):
     data: Dict[str, Any]
+    message: Optional[str] = None
+
+class RequestedVisibility(str, Enum):
+    PUBLIC = "public"
+    TEAM_ONLY = "team_only"
+    PASSWORD = "password"
+    TEAM_AND_PASSWORD = "team_and_password"
+    SHARED_FOLDER_ONLY = "shared_folder_only"
+
+class Audience(str, Enum):
+    PUBLIC = "public"
+    TEAM = "team"
+    NO_ONE = "no_one"
+
+class Access(str, Enum):
+    VIEWER = "viewer"
+    EDITOR = "editor"
+    MAX = "max"
+
+class SharedLinkSettings(BaseModel):
+    requested_visibility: Optional[RequestedVisibility] = RequestedVisibility.PUBLIC
+    audience: Optional[Audience] = Audience.PUBLIC
+    access: Optional[Access] = Access.VIEWER
+    allow_download: Optional[bool] = True
+
+class CreateSharedLinkParams(BaseModel):
+    path: str
+    settings: Optional[SharedLinkSettings] = None
+
+class CreateSharedLinkResponse(BaseModel):
+    data: DropboxFile
+    message: Optional[str] = None
+
+# New classes for search functionality
+class SearchParams(BaseModel):
+    query: str
+    path: Optional[str] = ""
+    max_results: Optional[int] = 20
+    filename_only: Optional[bool] = False
+    file_status: Optional[str] = "active"
+
+class SearchContinueParams(BaseModel):
+    cursor: str
+
+
+
+class SearchResponse(BaseModel):
+    data: SearchResult
+    message: Optional[str] = None
+
+class SearchContinueResponse(BaseModel):
+    data: SearchResult
     message: Optional[str] = None

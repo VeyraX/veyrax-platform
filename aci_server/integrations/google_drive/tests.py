@@ -1,6 +1,6 @@
-from aci_server.integrations.common.tests.base import base_setup
+from integrations.common.tests.base import base_setup
 import pytest
-from aci_server.integrations.google_drive.schema import PermissionRequest
+from integrations.google_drive.schema import PermissionRequest
 
 @pytest.fixture(scope="function")
 def uploaded_url_file(base_setup):
@@ -14,6 +14,7 @@ def uploaded_url_file(base_setup):
             "content_type": "image/webp"
         }
     }
+    
     response = base_setup.post("/google-drive/upload_file", payload=payload)
     assert response.status_code == 200, "URL upload failed"
     resp_json = response.json()

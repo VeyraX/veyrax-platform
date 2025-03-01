@@ -1,0 +1,531 @@
+routes:
+  - endpoint: /notion/list_databases
+    examples:
+      - scenario: "List Available Databases"
+        description: "Retrieves a list of all accessible Notion databases"
+        input_json: |
+          {
+            "start_cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "db123456",
+                  "title": "Project Database",
+                  "url": "https://www.notion.so/myworkspace/db123456",
+                  "created_time": "2023-01-15T08:30:00.000Z",
+                  "last_edited_time": "2023-05-20T14:22:31.000Z"
+                },
+                {
+                  "id": "db789012",
+                  "title": "Task Tracker",
+                  "url": "https://www.notion.so/myworkspace/db789012",
+                  "created_time": "2023-03-10T11:15:45.000Z",
+                  "last_edited_time": "2023-05-18T09:45:12.000Z"
+                }
+              ],
+              "next_cursor": "cursor_value_for_next_page"
+            },
+            "message": null,
+            "component": "NotionDatabaseTable"
+          }
+
+  - endpoint: /notion/get_database
+    examples:
+      - scenario: "Get Database Details"
+        description: "Retrieves detailed information about a specific database"
+        input_json: |
+          {
+            "database_id": "db123456"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "db123456",
+              "title": "Project Database",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "name": "Name",
+                  "type": "title"
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "name": "Status",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      },
+                      {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "3",
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                },
+                "Deadline": {
+                  "id": "cVRO",
+                  "name": "Deadline",
+                  "type": "date"
+                }
+              },
+              "url": "https://www.notion.so/myworkspace/db123456",
+              "created_time": "2023-01-15T08:30:00.000Z",
+              "last_edited_time": "2023-05-20T14:22:31.000Z"
+            },
+            "message": null,
+            "component": "NotionDatabaseTable"
+          }
+
+  - endpoint: /notion/list_database_pages
+    examples:
+      - scenario: "List Pages in Database"
+        description: "Retrieves a list of pages from a specified database with optional filtering"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "start_cursor": null,
+            "filters": {
+              "filter_by": {
+                "property": "Status",
+                "select": {
+                  "equals": "In Progress"
+                }
+              },
+              "max_results": 5
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "page123",
+                  "title": "Website Redesign",
+                  "properties": {
+                    "Name": {
+                      "id": "title",
+                      "type": "title",
+                      "title": [
+                        {
+                          "type": "text",
+                          "text": {
+                            "content": "Website Redesign"
+                          },
+                          "plain_text": "Website Redesign"
+                        }
+                      ]
+                    },
+                    "Status": {
+                      "id": "KL%5EB",
+                      "type": "select",
+                      "select": {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      }
+                    }
+                  },
+                  "created_time": "2023-03-15T09:12:34.000Z",
+                  "last_edited_time": "2023-05-18T16:30:22.000Z",
+                  "url": "https://www.notion.so/myworkspace/page123",
+                  "parent": {
+                    "type": "database_id",
+                    "database_id": "db123456"
+                  }
+                },
+                {
+                  "id": "page456",
+                  "title": "Mobile App Development",
+                  "properties": {
+                    "Name": {
+                      "id": "title",
+                      "type": "title",
+                      "title": [
+                        {
+                          "type": "text",
+                          "text": {
+                            "content": "Mobile App Development"
+                          },
+                          "plain_text": "Mobile App Development"
+                        }
+                      ]
+                    },
+                    "Status": {
+                      "id": "KL%5EB",
+                      "type": "select",
+                      "select": {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      }
+                    }
+                  },
+                  "created_time": "2023-04-02T14:25:11.000Z",
+                  "last_edited_time": "2023-05-19T11:45:33.000Z",
+                  "url": "https://www.notion.so/myworkspace/page456",
+                  "parent": {
+                    "type": "database_id",
+                    "database_id": "db123456"
+                  }
+                }
+              ],
+              "next_cursor": "cursor_value_for_next_page"
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          }
+
+  - endpoint: /notion/query_database
+    examples:
+      - scenario: "Query Database with Filters"
+        description: "Queries a database with specific filters and sorting options"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "filter": {
+              "property": "Status",
+              "select": {
+                "equals": "To Do"
+              }
+            },
+            "sorts": [
+              {
+                "property": "Deadline",
+                "direction": "ascending"
+              }
+            ],
+            "start_cursor": null,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "page789",
+                  "title": "Content Migration",
+                  "properties": {
+                    "Name": {
+                      "id": "title",
+                      "type": "title",
+                      "title": [
+                        {
+                          "type": "text",
+                          "text": {
+                            "content": "Content Migration"
+                          },
+                          "plain_text": "Content Migration"
+                        }
+                      ]
+                    },
+                    "Status": {
+                      "id": "KL%5EB",
+                      "type": "select",
+                      "select": {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      }
+                    },
+                    "Deadline": {
+                      "id": "cVRO",
+                      "type": "date",
+                      "date": {
+                        "start": "2023-06-10"
+                      }
+                    }
+                  },
+                  "created_time": "2023-05-01T10:22:45.000Z",
+                  "last_edited_time": "2023-05-18T08:15:13.000Z",
+                  "url": "https://www.notion.so/myworkspace/page789",
+                  "parent": {
+                    "type": "database_id",
+                    "database_id": "db123456"
+                  }
+                }
+              ],
+              "next_cursor": null
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          }
+
+  - endpoint: /notion/create_page
+    examples:
+      - scenario: "Create a New Page"
+        description: "Creates a new page with specified properties"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              },
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "New Project Proposal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "object": "block",
+                  "type": "paragraph",
+                  "paragraph": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "This is a new project proposal with important details."
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "new_page_456",
+              "title": "New Project Proposal",
+              "properties": {
+                "title": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "New Project Proposal"
+                      },
+                      "plain_text": "New Project Proposal"
+                    }
+                  ]
+                }
+              },
+              "created_time": "2023-05-22T15:30:45.000Z",
+              "last_edited_time": "2023-05-22T15:30:45.000Z",
+              "url": "https://www.notion.so/myworkspace/new_page_456",
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              }
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          }
+
+  - endpoint: /notion/get_page
+    examples:
+      - scenario: "Get Page Details"
+        description: "Retrieves detailed information about a specific page"
+        input_json: |
+          {
+            "page_id": "page123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Website Redesign",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Website Redesign"
+                      },
+                      "plain_text": "Website Redesign"
+                    }
+                  ]
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "type": "select",
+                  "select": {
+                    "id": "2",
+                    "name": "In Progress",
+                    "color": "yellow"
+                  }
+                },
+                "Deadline": {
+                  "id": "cVRO",
+                  "type": "date",
+                  "date": {
+                    "start": "2023-07-15"
+                  }
+                }
+              },
+              "created_time": "2023-03-15T09:12:34.000Z",
+              "last_edited_time": "2023-05-18T16:30:22.000Z",
+              "url": "https://www.notion.so/myworkspace/page123",
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              }
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          }
+
+  - endpoint: /notion/update_page
+    examples:
+      - scenario: "Update an Existing Page"
+        description: "Updates properties of an existing page"
+        input_json: |
+          {
+            "page_id": "page123",
+            "page_update": {
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Updated Website Redesign"
+                      }
+                    }
+                  ]
+                },
+                "Status": {
+                  "select": {
+                    "name": "Completed"
+                  }
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Website Redesign",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Updated Website Redesign"
+                      },
+                      "plain_text": "Updated Website Redesign"
+                    }
+                  ]
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "type": "select",
+                  "select": {
+                    "id": "3",
+                    "name": "Completed",
+                    "color": "green"
+                  }
+                }
+              },
+              "created_time": "2023-03-15T09:12:34.000Z",
+              "last_edited_time": "2023-05-22T17:45:11.000Z",
+              "url": "https://www.notion.so/myworkspace/page123",
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              }
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          }
+
+  - endpoint: /notion/search
+    examples:
+      - scenario: "Search Notion Content"
+        description: "Searches for pages and databases matching specific criteria"
+        input_json: |
+          {
+            "query": "project",
+            "sort_direction": "descending",
+            "page_size": 5,
+            "start_cursor": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "page123",
+                  "title": "Website Redesign Project",
+                  "properties": {
+                    "Name": {
+                      "id": "title",
+                      "type": "title",
+                      "title": [
+                        {
+                          "type": "text",
+                          "text": {
+                            "content": "Website Redesign Project"
+                          },
+                          "plain_text": "Website Redesign Project"
+                        }
+                      ]
+                    }
+                  },
+                  "created_time": "2023-03-15T09:12:34.000Z",
+                  "last_edited_time": "2023-05-21T13:22:45.000Z",
+                  "url": "https://www.notion.so/myworkspace/page123",
+                  "parent": {
+                    "type": "database_id",
+                    "database_id": "db123456"
+                  }
+                },
+                {
+                  "id": "db123456",
+                  "title": "Project Database",
+                  "properties": {
+                    "Name": {
+                      "id": "title",
+                      "name": "Name",
+                      "type": "title"
+                    }
+                  },
+                  "url": "https://www.notion.so/myworkspace/db123456",
+                  "created_time": "2023-01-15T08:30:00.000Z",
+                  "last_edited_time": "2023-05-20T14:22:31.000Z"
+                }
+              ],
+              "next_cursor": null
+            },
+            "message": null,
+            "component": "NotionPageCard"
+          } 

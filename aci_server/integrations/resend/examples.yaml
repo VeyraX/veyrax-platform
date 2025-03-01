@@ -1,0 +1,740 @@
+routes:
+  # Email Endpoints
+  - endpoint: /resend/send_email
+    examples:
+      - scenario: "Send Basic Email"
+        description: "Send a simple email with basic fields"
+        input_json: |
+          {
+            "from": "onboarding@resend.dev",
+            "to": "recipient@example.com",
+            "subject": "Hello from Resend",
+            "text": "This is a test email from Resend"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "email_12345abcde",
+              "from": "onboarding@resend.dev",
+              "to": ["recipient@example.com"],
+              "subject": "Hello from Resend",
+              "created_at": "2023-09-15T16:03:45.457Z",
+              "last_event": "delivered",
+              "object": "email"
+            },
+            "message": "Email sent successfully"
+          }
+      
+      - scenario: "Send Email with Advanced Options"
+        description: "Send an email with HTML content, CC, BCC, and scheduling"
+        input_json: |
+          {
+            "from": "onboarding@resend.dev",
+            "to": ["primary@example.com", "secondary@example.com"],
+            "subject": "Scheduled Newsletter",
+            "html": "<h1>Welcome!</h1><p>This is our <strong>monthly newsletter</strong>.</p>",
+            "cc": "cc@example.com",
+            "bcc": ["bcc1@example.com", "bcc2@example.com"],
+            "reply_to": "support@resend.dev",
+            "tags": [
+              {
+                "name": "category",
+                "value": "newsletter"
+              }
+            ],
+            "headers": {
+              "X-Campaign-ID": "campaign_123"
+            },
+            "scheduled_at": "2023-09-20T10:00:00.000Z"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "email_67890fghij",
+              "from": "onboarding@resend.dev",
+              "to": ["primary@example.com", "secondary@example.com"],
+              "subject": "Scheduled Newsletter",
+              "html": "<h1>Welcome!</h1><p>This is our <strong>monthly newsletter</strong>.</p>",
+              "cc": ["cc@example.com"],
+              "bcc": ["bcc1@example.com", "bcc2@example.com"],
+              "reply_to": ["support@resend.dev"],
+              "created_at": "2023-09-15T16:04:45.457Z",
+              "last_event": "scheduled",
+              "object": "email"
+            },
+            "message": "Email scheduled successfully"
+          }
+
+  - endpoint: /resend/send_batch_emails
+    examples:
+      - scenario: "Send Multiple Emails in a Batch"
+        description: "Send multiple emails in a single API call"
+        input_json: |
+          {
+            "emails": [
+              {
+                "from": "onboarding@resend.dev",
+                "to": "recipient1@example.com",
+                "subject": "Email 1",
+                "text": "This is the first test email"
+              },
+              {
+                "from": "onboarding@resend.dev",
+                "to": "recipient2@example.com",
+                "subject": "Email 2",
+                "text": "This is the second test email"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "data": [
+                {
+                  "id": "email_batch1_123"
+                },
+                {
+                  "id": "email_batch2_456"
+                }
+              ]
+            },
+            "message": "Batch emails sent successfully"
+          }
+
+  - endpoint: /resend/get_email
+    examples:
+      - scenario: "Retrieve Email Details"
+        description: "Get details of a previously sent email"
+        input_json: |
+          {
+            "email_id": "email_12345abcde"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "email_12345abcde",
+              "object": "email",
+              "to": ["recipient@example.com"],
+              "from": "onboarding@resend.dev",
+              "subject": "Hello from Resend",
+              "html": null,
+              "text": "This is a test email from Resend",
+              "created_at": "2023-09-15T16:03:45.457Z",
+              "bcc": null,
+              "cc": null,
+              "reply_to": null,
+              "last_event": "delivered"
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/update_email
+    examples:
+      - scenario: "Update Scheduled Email"
+        description: "Change the scheduled delivery time of an email"
+        input_json: |
+          {
+            "email_id": "email_67890fghij",
+            "scheduled_at": "2023-09-21T15:00:00.000Z"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "email_67890fghij",
+              "object": "email",
+              "from": "onboarding@resend.dev",
+              "to": ["recipient@example.com"],
+              "subject": "Scheduled Newsletter",
+              "last_event": "scheduled",
+              "created_at": "2023-09-15T16:04:45.457Z"
+            },
+            "message": "Email schedule updated successfully"
+          }
+
+  - endpoint: /resend/cancel_email
+    examples:
+      - scenario: "Cancel Scheduled Email"
+        description: "Cancel a scheduled email that hasn't been sent yet"
+        input_json: |
+          {
+            "email_id": "email_67890fghij"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "email_67890fghij",
+              "object": "email",
+              "last_event": "canceled"
+            },
+            "message": "Email canceled successfully"
+          }
+
+  # Domain Endpoints
+  - endpoint: /resend/create_domain
+    examples:
+      - scenario: "Register a New Domain"
+        description: "Add a new domain to your Resend account"
+        input_json: |
+          {
+            "name": "example.com",
+            "region": "us-east-1"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "domain_123abc",
+              "name": "example.com",
+              "status": "not_started",
+              "created_at": "2023-09-15T16:06:45.457Z",
+              "region": "us-east-1",
+              "records": [
+                {
+                  "record": "resend-domain-verification.example.com",
+                  "name": "resend-domain-verification",
+                  "type": "TXT",
+                  "ttl": "3600",
+                  "status": "not_verified",
+                  "value": "resend-verification=0123456789abcdef"
+                },
+                {
+                  "record": "example.com",
+                  "name": "@",
+                  "type": "MX",
+                  "ttl": "3600",
+                  "status": "not_verified",
+                  "value": "feedback-smtp.us-east-1.resend.com",
+                  "priority": 10
+                }
+              ],
+              "object": "domain"
+            },
+            "message": "Domain created successfully"
+          }
+
+  - endpoint: /resend/get_domain
+    examples:
+      - scenario: "Get Domain Details"
+        description: "Retrieve details of a specific domain"
+        input_json: |
+          {
+            "domain_id": "domain_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "domain_123abc",
+              "name": "example.com",
+              "status": "not_started",
+              "created_at": "2023-09-15T16:06:45.457Z",
+              "region": "us-east-1",
+              "records": [
+                {
+                  "record": "resend-domain-verification.example.com",
+                  "name": "resend-domain-verification",
+                  "type": "TXT",
+                  "ttl": "3600",
+                  "status": "not_verified",
+                  "value": "resend-verification=0123456789abcdef"
+                },
+                {
+                  "record": "example.com",
+                  "name": "@",
+                  "type": "MX",
+                  "ttl": "3600",
+                  "status": "not_verified",
+                  "value": "feedback-smtp.us-east-1.resend.com",
+                  "priority": 10
+                }
+              ],
+              "object": "domain"
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/verify_domain
+    examples:
+      - scenario: "Verify Domain Records"
+        description: "Trigger verification of DNS records for a domain"
+        input_json: |
+          {
+            "domain_id": "domain_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Domain verification initiated"
+          }
+
+  - endpoint: /resend/update_domain
+    examples:
+      - scenario: "Update Domain Settings"
+        description: "Modify domain tracking and security settings"
+        input_json: |
+          {
+            "domain_id": "domain_123abc",
+            "click_tracking": true,
+            "open_tracking": true,
+            "tls": "required"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Domain settings updated successfully"
+          }
+
+  - endpoint: /resend/list_domains
+    examples:
+      - scenario: "List All Domains"
+        description: "Retrieve a list of all domains in your account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "data": [
+                {
+                  "id": "domain_123abc",
+                  "name": "example.com",
+                  "status": "verified",
+                  "created_at": "2023-09-15T16:06:45.457Z",
+                  "region": "us-east-1",
+                  "object": "domain"
+                },
+                {
+                  "id": "domain_456def",
+                  "name": "anotherdomain.com",
+                  "status": "not_started",
+                  "created_at": "2023-09-16T10:15:22.124Z",
+                  "region": "us-east-1",
+                  "object": "domain"
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/delete_domain
+    examples:
+      - scenario: "Remove a Domain"
+        description: "Delete a domain from your account"
+        input_json: |
+          {
+            "domain_id": "domain_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Domain deleted successfully"
+          }
+
+  # API Key Endpoints
+  - endpoint: /resend/create_api_key
+    examples:
+      - scenario: "Create New API Key"
+        description: "Generate a new API key for your account"
+        input_json: |
+          {
+            "name": "Production API Key",
+            "permission": "full_access"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "key_123abcdef",
+              "token": "re_123456789abcdefghijklmnopqrstuvwxyz"
+            },
+            "message": "API key created successfully. Copy your key now as it won't be displayed again."
+          }
+
+  - endpoint: /resend/list_api_keys
+    examples:
+      - scenario: "List API Keys"
+        description: "Get all API keys for your account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "data": [
+                {
+                  "id": "key_123abcdef",
+                  "name": "Production API Key",
+                  "created_at": "2023-09-15T16:08:45.457Z"
+                },
+                {
+                  "id": "key_789ghijkl",
+                  "name": "Development API Key",
+                  "created_at": "2023-09-14T12:34:56.789Z"
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/delete_api_key
+    examples:
+      - scenario: "Delete API Key"
+        description: "Remove an API key from your account"
+        input_json: |
+          {
+            "api_key_id": "key_123abcdef"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "API key deleted successfully"
+          }
+
+  # Broadcast Endpoints
+  - endpoint: /resend/create_broadcast
+    examples:
+      - scenario: "Create Email Broadcast"
+        description: "Create a new email broadcast campaign"
+        input_json: |
+          {
+            "audience_id": "aud_123abc",
+            "from": "newsletter@example.com",
+            "subject": "Monthly Newsletter",
+            "html": "<h1>Monthly Newsletter</h1><p>Here are our updates for this month...</p>",
+            "reply_to": "support@example.com",
+            "name": "September Newsletter"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "broadcast_123abc"
+            },
+            "message": "Broadcast created successfully"
+          }
+
+  - endpoint: /resend/get_broadcast
+    examples:
+      - scenario: "Get Broadcast Details"
+        description: "Retrieve information about a specific broadcast"
+        input_json: |
+          {
+            "broadcast_id": "broadcast_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "broadcast_123abc",
+              "audience_id": "aud_123abc",
+              "status": "draft",
+              "created_at": "2023-09-15T16:10:45.457Z",
+              "scheduled_at": null,
+              "sent_at": null,
+              "name": "September Newsletter",
+              "from": "newsletter@example.com",
+              "subject": "Monthly Newsletter",
+              "reply_to": "support@example.com",
+              "object": "broadcast"
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/send_broadcast
+    examples:
+      - scenario: "Send or Schedule a Broadcast"
+        description: "Send a broadcast immediately or schedule it for later"
+        input_json: |
+          {
+            "broadcast_id": "broadcast_123abc",
+            "scheduled_at": "2023-09-20T15:00:00.000Z"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "broadcast_123abc"
+            },
+            "message": "Broadcast scheduled successfully"
+          }
+
+  - endpoint: /resend/delete_broadcast
+    examples:
+      - scenario: "Delete a Broadcast"
+        description: "Remove a broadcast from your account"
+        input_json: |
+          {
+            "broadcast_id": "broadcast_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Broadcast deleted successfully"
+          }
+
+  - endpoint: /resend/list_broadcasts
+    examples:
+      - scenario: "List All Broadcasts"
+        description: "Retrieve all broadcasts in your account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "object": "list",
+              "data": [
+                {
+                  "id": "broadcast_123abc",
+                  "audience_id": "aud_123abc",
+                  "status": "scheduled",
+                  "created_at": "2023-09-15T16:10:45.457Z",
+                  "scheduled_at": "2023-09-20T15:00:00.000Z",
+                  "sent_at": null,
+                  "name": "September Newsletter",
+                  "object": "broadcast"
+                },
+                {
+                  "id": "broadcast_456def",
+                  "audience_id": "aud_123abc",
+                  "status": "sent",
+                  "created_at": "2023-09-10T12:34:56.789Z",
+                  "scheduled_at": null,
+                  "sent_at": "2023-09-10T12:35:00.123Z",
+                  "name": "Urgent Announcement",
+                  "object": "broadcast"
+                }
+              ]
+            },
+            "message": null
+          }
+
+  # Audience Endpoints
+  - endpoint: /resend/create_audience
+    examples:
+      - scenario: "Create a New Audience"
+        description: "Create a new audience for sending broadcasts"
+        input_json: |
+          {
+            "name": "Newsletter Subscribers"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "aud_123abc",
+              "name": "Newsletter Subscribers",
+              "created_at": "2023-09-15T16:12:45.457Z",
+              "object": "audience"
+            },
+            "message": "Audience created successfully"
+          }
+
+  - endpoint: /resend/get_audience
+    examples:
+      - scenario: "Get Audience Details"
+        description: "Retrieve information about a specific audience"
+        input_json: |
+          {
+            "audience_id": "aud_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "aud_123abc",
+              "name": "Newsletter Subscribers",
+              "created_at": "2023-09-15T16:12:45.457Z",
+              "object": "audience"
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/delete_audience
+    examples:
+      - scenario: "Delete an Audience"
+        description: "Remove an audience from your account"
+        input_json: |
+          {
+            "audience_id": "aud_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Audience deleted successfully"
+          }
+
+  - endpoint: /resend/list_audiences
+    examples:
+      - scenario: "List All Audiences"
+        description: "Retrieve all audiences in your account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "object": "list",
+              "data": [
+                {
+                  "id": "aud_123abc",
+                  "name": "Newsletter Subscribers",
+                  "created_at": "2023-09-15T16:12:45.457Z",
+                  "object": "audience"
+                },
+                {
+                  "id": "aud_456def",
+                  "name": "Product Updates",
+                  "created_at": "2023-09-14T10:11:12.131Z",
+                  "object": "audience"
+                }
+              ]
+            },
+            "message": null
+          }
+
+  # Contact Endpoints
+  - endpoint: /resend/create_contact
+    examples:
+      - scenario: "Add Contact to Audience"
+        description: "Add a new contact to a specific audience"
+        input_json: |
+          {
+            "audienceId": "aud_123abc",
+            "email": "contact@example.com",
+            "firstName": "John",
+            "lastName": "Doe",
+            "unsubscribed": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "contact_123abc"
+            },
+            "message": "Contact created successfully"
+          }
+
+  - endpoint: /resend/get_contact
+    examples:
+      - scenario: "Get Contact Details"
+        description: "Retrieve information about a specific contact"
+        input_json: |
+          {
+            "audienceId": "aud_123abc",
+            "id": "contact_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "contact_123abc",
+              "email": "contact@example.com",
+              "first_name": "John",
+              "last_name": "Doe",
+              "created_at": "2023-09-15T16:14:45.457Z",
+              "unsubscribed": false,
+              "object": "contact"
+            },
+            "message": null
+          }
+
+  - endpoint: /resend/update_contact
+    examples:
+      - scenario: "Update Contact Information"
+        description: "Modify an existing contact's details"
+        input_json: |
+          {
+            "audienceId": "aud_123abc",
+            "id": "contact_123abc",
+            "firstName": "Jonathan",
+            "lastName": "Doe",
+            "unsubscribed": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Contact updated successfully"
+          }
+
+  - endpoint: /resend/delete_contact
+    examples:
+      - scenario: "Remove Contact from Audience"
+        description: "Delete a contact from a specific audience"
+        input_json: |
+          {
+            "audienceId": "aud_123abc",
+            "id": "contact_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Contact deleted successfully"
+          }
+
+  - endpoint: /resend/list_contacts
+    examples:
+      - scenario: "List Audience Contacts"
+        description: "Retrieve all contacts in a specific audience"
+        input_json: |
+          {
+            "audienceId": "aud_123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "object": "list",
+              "data": [
+                {
+                  "id": "contact_123abc",
+                  "email": "contact@example.com",
+                  "first_name": "John",
+                  "last_name": "Doe",
+                  "created_at": "2023-09-15T16:14:45.457Z",
+                  "unsubscribed": false,
+                  "object": "contact"
+                },
+                {
+                  "id": "contact_456def",
+                  "email": "jane@example.com",
+                  "first_name": "Jane",
+                  "last_name": "Smith",
+                  "created_at": "2023-09-15T16:20:30.123Z",
+                  "unsubscribed": false,
+                  "object": "contact"
+                }
+              ]
+            },
+            "message": null
+          } 

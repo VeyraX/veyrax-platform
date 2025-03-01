@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
 
-from aci_server.utils.healthcheck import check_tools_endpoint
+from utils.healthcheck import check_tools_endpoint
 
 router = APIRouter()
 

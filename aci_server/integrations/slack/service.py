@@ -6,6 +6,7 @@ from .schema import (
     ChannelList, Channel, ChannelMemberList, 
     ChannelMember, MessageList, Message, ApiResponse
 )
+import logging
 
 class SlackService:
     def __init__(self, client: SlackClient):
@@ -51,7 +52,8 @@ class SlackService:
                 ChannelMember(
                     id=user_info["id"],
                     name=user_info["name"],
-                    real_name=user_info.get("real_name")
+                    real_name=user_info.get("real_name"),
+                    is_bot=user_info.get("is_bot", False)
                 )
             )
         member_list = ChannelMemberList(
@@ -83,6 +85,13 @@ class SlackService:
         return self.prepare_response(message_list, "SlackMessageList")
 
     def post_message(self, channel: str, text: str) -> ApiResponse:
+        # Try to join the channel first and handle any errors
+        join_result = self.client.join_channel(channel=channel)
+        
+        # Log the result for debugging
+        logging.info(f"Join result: {join_result}")
+        
+        # Then post the message
         response = self.client.post_message(channel=channel, text=text)
         user_info = self.client.users_info(response["message"]["user"])["user"]
         message = Message(

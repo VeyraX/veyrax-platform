@@ -10,12 +10,15 @@ from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.utils import format_validation_error
 from pydantic import ValidationError
+from ..common.examples_handler import ExamplesLoader
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 router = APIRouter(prefix="/weather", tags=["weather"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/openweather directory
 
 async def get_weather_service(request: Request):
     try:
@@ -26,7 +29,7 @@ async def get_weather_service(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Weather service: {str(e)}")
 
 @router.post("/forecast", response_model=ApiResponse)
-@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse)
+@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse, examples=examples["/weather/forecast"])
 async def get_weather_forecast(
     params: Dict[str, Any] = Body(...),
     service: WeatherService = Depends(get_weather_service)

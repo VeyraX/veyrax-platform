@@ -15,12 +15,15 @@ from .client import DriveClient
 import os
 from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema, output_schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 
 
 router = APIRouter(prefix="/google-drive", tags=["google-drive"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/google_drive directory
 
 async def get_drive_service(request: FastAPIRequest):
     try:
@@ -47,7 +50,7 @@ async def get_drive_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Drive service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
-@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse)
+@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse, examples=examples["/google-drive/list_files"])
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -63,7 +66,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
-@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse)
+@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse, examples=examples["/google-drive/get_file"])
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -79,7 +82,7 @@ async def get_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
-@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse)
+@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse, examples=examples["/google-drive/create_folder"])
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -99,7 +102,7 @@ async def create_folder(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
-@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse)
+@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse, examples=examples["/google-drive/upload_file"])
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -138,7 +141,7 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/download_file")
-@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse, examples=examples["/google-drive/download_file"])
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -154,7 +157,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_file")
-@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse)
+@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse, examples=examples["/google-drive/delete_file"])
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -171,7 +174,7 @@ async def delete_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
-@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse)
+@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse, examples=examples["/google-drive/move_file"])
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -190,7 +193,7 @@ async def move_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_folders", response_model=ApiResponse)
-@schema(input_schema_class=ListFoldersParams, output_schema_class=ListFoldersResponse)
+@schema(input_schema_class=ListFoldersParams, output_schema_class=ListFoldersResponse, examples=examples["/google-drive/list_folders"])
 async def list_folders(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -211,7 +214,7 @@ async def list_folders(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/read_file")
-@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse)
+@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse, examples=examples["/google-drive/read_file"])
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -230,7 +233,7 @@ async def read_file(
         }
 
 @router.post("/set_permission", response_model=ApiResponse)
-@input_schema(schema_class=SetPermissionParams)
+@schema(input_schema_class=SetPermissionParams, examples=examples["/google-drive/set_permission"])
 async def set_permission(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -245,7 +248,7 @@ async def set_permission(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/list_permissions", response_model=ApiResponse)
-@input_schema(schema_class=ListPermissionsParams)
+@schema(input_schema_class=ListPermissionsParams, examples=examples["/google-drive/list_permissions"])
 async def list_permissions(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -257,7 +260,7 @@ async def list_permissions(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/delete_permission")
-@input_schema(schema_class=DeletePermissionParams)
+@schema(input_schema_class=DeletePermissionParams, examples=examples["/google-drive/delete_permission"])
 async def delete_permission(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)
@@ -273,7 +276,7 @@ async def delete_permission(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/copy_file", response_model=ApiResponse)
-@input_schema(schema_class=CopyFileParams)
+@schema(input_schema_class=CopyFileParams, examples=examples["/google-drive/copy_file"])
 async def copy_file(
     params: Dict[str, Any] = Body(...),
     service: DriveService = Depends(get_drive_service)

@@ -1,0 +1,535 @@
+routes:
+  - endpoint: /google-drive/list_files
+    examples:
+      - scenario: "List Files with Filters"
+        description: "Retrieves a list of files with optional filtering parameters"
+        input_json: |
+          {
+            "pageToken": null,
+            "filters": {
+              "name_contains": "report",
+              "mime_type": "application/pdf",
+              "parent_id": null,
+              "created_after": "2023-01-01T00:00:00Z",
+              "created_before": "2023-12-31T23:59:59Z",
+              "folders_only": false,
+              "max_results": 20
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "files": [
+                {
+                  "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+                  "name": "Q4 Financial Report.pdf",
+                  "mime_type": "application/pdf",
+                  "parent_ids": ["0BwC9GQdkKMlkXYz"],
+                  "parent_names": ["Financial Documents"],
+                  "created_time": "2023-10-15T14:32:17Z",
+                  "modified_time": "2023-10-16T09:14:23Z",
+                  "size": 1258291,
+                  "web_view_link": "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view",
+                  "web_content_link": "https://drive.google.com/uc?id=1AbCdEfGhIjKlMnOpQrStUvWxYz&export=download"
+                },
+                {
+                  "id": "2BcDeFgHiJkLmNoPqRsTuVwXyZ",
+                  "name": "Monthly Status Report.pdf",
+                  "mime_type": "application/pdf",
+                  "parent_ids": ["0BwC9GQdkKMlkXYz"],
+                  "parent_names": ["Financial Documents"],
+                  "created_time": "2023-09-01T10:45:32Z",
+                  "modified_time": "2023-09-01T11:12:45Z",
+                  "size": 892340,
+                  "web_view_link": "https://drive.google.com/file/d/2BcDeFgHiJkLmNoPqRsTuVwXyZ/view",
+                  "web_content_link": "https://drive.google.com/uc?id=2BcDeFgHiJkLmNoPqRsTuVwXyZ&export=download"
+                }
+              ],
+              "page_token": null
+            },
+            "component": {
+              "type": "FileListComponent",
+              "properties": {
+                "files": [
+                  {
+                    "name": "Q4 Financial Report.pdf",
+                    "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+                    "mime_type": "application/pdf",
+                    "size": 1258291,
+                    "modified_date": "2023-10-16T09:14:23Z"
+                  },
+                  {
+                    "name": "Monthly Status Report.pdf",
+                    "id": "2BcDeFgHiJkLmNoPqRsTuVwXyZ",
+                    "mime_type": "application/pdf",
+                    "size": 892340,
+                    "modified_date": "2023-09-01T11:12:45Z"
+                  }
+                ]
+              }
+            }
+          }
+
+  - endpoint: /google-drive/get_file
+    examples:
+      - scenario: "Get File Details"
+        description: "Retrieves detailed information about a specific file"
+        input_json: |
+          {
+            "file_id": "1AbCdEfGhIjKlMnOpQrStUvWxYz"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+              "name": "Q4 Financial Report.pdf",
+              "mime_type": "application/pdf",
+              "parent_ids": ["0BwC9GQdkKMlkXYz"],
+              "parent_names": ["Financial Documents"],
+              "created_time": "2023-10-15T14:32:17Z",
+              "modified_time": "2023-10-16T09:14:23Z",
+              "size": 1258291,
+              "web_view_link": "https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view",
+              "web_content_link": "https://drive.google.com/uc?id=1AbCdEfGhIjKlMnOpQrStUvWxYz&export=download"
+            },
+            "component": {
+              "type": "FileDetailsComponent",
+              "properties": {
+                "name": "Q4 Financial Report.pdf",
+                "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+                "mime_type": "application/pdf",
+                "size": 1258291,
+                "created_time": "2023-10-15T14:32:17Z",
+                "modified_time": "2023-10-16T09:14:23Z",
+                "parent_folder": "Financial Documents"
+              }
+            }
+          }
+
+  - endpoint: /google-drive/create_folder
+    examples:
+      - scenario: "Create a New Folder"
+        description: "Creates a new folder in Google Drive, optionally inside another folder"
+        input_json: |
+          {
+            "folder": {
+              "name": "Project Documentation",
+              "parent_id": null
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
+              "name": "Project Documentation",
+              "mime_type": "application/vnd.google-apps.folder",
+              "parent_ids": ["root"],
+              "parent_names": ["My Drive"],
+              "created_time": "2023-11-20T15:42:23Z",
+              "modified_time": "2023-11-20T15:42:23Z",
+              "size": null,
+              "web_view_link": "https://drive.google.com/drive/folders/3CdEfGhIjKlMnOpQrStUvWxYz"
+            },
+            "component": {
+              "type": "FolderCreatedComponent",
+              "properties": {
+                "name": "Project Documentation",
+                "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
+                "created_time": "2023-11-20T15:42:23Z",
+                "parent_folder": "My Drive"
+              }
+            }
+          }
+
+  - endpoint: /google-drive/upload_file
+    examples:
+      - scenario: "Upload File from URL"
+        description: "Uploads a file to Google Drive from a specified URL"
+        input_json: |
+          {
+            "file": {
+              "file_name": "image.webp",
+              "file_content": {
+                "file_url": "https://example.com/images/sample.webp"
+              },
+              "content_type": "image/webp"
+            },
+            "parent_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+              "name": "image.webp",
+              "mime_type": "image/webp",
+              "parent_ids": ["root"],
+              "parent_names": ["My Drive"],
+              "created_time": "2023-11-21T09:32:45Z",
+              "modified_time": "2023-11-21T09:32:45Z",
+              "size": 245678,
+              "web_view_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view",
+              "web_content_link": "https://drive.google.com/uc?id=4DeFgHiJkLmNoPqRsTuVwXyZ&export=download"
+            },
+            "component": {
+              "type": "FileUploadedComponent",
+              "properties": {
+                "name": "image.webp",
+                "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+                "mime_type": "image/webp",
+                "size": 245678,
+                "web_view_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view"
+              }
+            }
+          }
+      
+      - scenario: "Upload File from Base64"
+        description: "Uploads a file to Google Drive from base64-encoded content"
+        input_json: |
+          {
+            "file": {
+              "file_name": "test.txt",
+              "file_content": {
+                "file_base64": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IGZpbGUh"
+              },
+              "content_type": "text/plain"
+            },
+            "parent_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "5EfGhIjKlMnOpQrStUvWxYz",
+              "name": "test.txt",
+              "mime_type": "text/plain",
+              "parent_ids": ["root"],
+              "parent_names": ["My Drive"],
+              "created_time": "2023-11-21T10:15:32Z",
+              "modified_time": "2023-11-21T10:15:32Z",
+              "size": 28,
+              "web_view_link": "https://drive.google.com/file/d/5EfGhIjKlMnOpQrStUvWxYz/view",
+              "web_content_link": "https://drive.google.com/uc?id=5EfGhIjKlMnOpQrStUvWxYz&export=download"
+            },
+            "component": {
+              "type": "FileUploadedComponent",
+              "properties": {
+                "name": "test.txt",
+                "id": "5EfGhIjKlMnOpQrStUvWxYz",
+                "mime_type": "text/plain",
+                "size": 28,
+                "web_view_link": "https://drive.google.com/file/d/5EfGhIjKlMnOpQrStUvWxYz/view"
+              }
+            }
+          }
+
+  - endpoint: /google-drive/download_file
+    examples:
+      - scenario: "Download File"
+        description: "Downloads a file from Google Drive with metadata"
+        input_json: |
+          {
+            "file_id": "5EfGhIjKlMnOpQrStUvWxYz"
+          }
+        output_json: |
+          {
+            "status": "success",
+            "file_content": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IGZpbGUh",
+            "mime_type": "text/plain",
+            "filename": "test.txt",
+            "message": "File downloaded successfully"
+          }
+
+  - endpoint: /google-drive/delete_file
+    examples:
+      - scenario: "Delete a File"
+        description: "Permanently removes a file or folder from Google Drive"
+        input_json: |
+          {
+            "file_id": "5EfGhIjKlMnOpQrStUvWxYz"
+          }
+        output_json: |
+          {
+            "status": "success",
+            "message": "File successfully deleted"
+          }
+
+  - endpoint: /google-drive/move_file
+    examples:
+      - scenario: "Move a File to Different Folder"
+        description: "Moves a file from its current location to a specified folder"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+            "new_parent_id": "3CdEfGhIjKlMnOpQrStUvWxYz"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+              "name": "image.webp",
+              "mime_type": "image/webp",
+              "parent_ids": ["3CdEfGhIjKlMnOpQrStUvWxYz"],
+              "parent_names": ["Project Documentation"],
+              "created_time": "2023-11-21T09:32:45Z",
+              "modified_time": "2023-11-21T11:24:18Z",
+              "size": 245678,
+              "web_view_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view",
+              "web_content_link": "https://drive.google.com/uc?id=4DeFgHiJkLmNoPqRsTuVwXyZ&export=download"
+            },
+            "component": {
+              "type": "FileMovedComponent",
+              "properties": {
+                "name": "image.webp",
+                "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+                "new_location": "Project Documentation",
+                "new_parent_id": "3CdEfGhIjKlMnOpQrStUvWxYz"
+              }
+            }
+          }
+
+  - endpoint: /google-drive/list_folders
+    examples:
+      - scenario: "List Available Folders"
+        description: "Retrieves a list of folders with optional filtering"
+        input_json: |
+          {
+            "pageToken": null,
+            "filters": {
+              "name_contains": "Project",
+              "parent_id": null,
+              "created_after": "2023-01-01T00:00:00Z",
+              "max_results": 10
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "files": [
+                {
+                  "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
+                  "name": "Project Documentation",
+                  "mime_type": "application/vnd.google-apps.folder",
+                  "parent_ids": ["root"],
+                  "parent_names": ["My Drive"],
+                  "created_time": "2023-11-20T15:42:23Z",
+                  "modified_time": "2023-11-21T11:24:18Z",
+                  "size": null,
+                  "web_view_link": "https://drive.google.com/drive/folders/3CdEfGhIjKlMnOpQrStUvWxYz"
+                },
+                {
+                  "id": "6FgHiJkLmNoPqRsTuVwXyZ",
+                  "name": "Project Resources",
+                  "mime_type": "application/vnd.google-apps.folder",
+                  "parent_ids": ["root"],
+                  "parent_names": ["My Drive"],
+                  "created_time": "2023-10-12T14:22:45Z",
+                  "modified_time": "2023-11-05T09:31:17Z",
+                  "size": null,
+                  "web_view_link": "https://drive.google.com/drive/folders/6FgHiJkLmNoPqRsTuVwXyZ"
+                }
+              ],
+              "page_token": null
+            },
+            "component": {
+              "type": "FolderListComponent",
+              "properties": {
+                "folders": [
+                  {
+                    "name": "Project Documentation",
+                    "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
+                    "created_time": "2023-11-20T15:42:23Z",
+                    "parent_folder": "My Drive"
+                  },
+                  {
+                    "name": "Project Resources",
+                    "id": "6FgHiJkLmNoPqRsTuVwXyZ",
+                    "created_time": "2023-10-12T14:22:45Z",
+                    "parent_folder": "My Drive"
+                  }
+                ]
+              }
+            }
+          }
+
+  - endpoint: /google-drive/read_file
+    examples:
+      - scenario: "Read Text File Content"
+        description: "Reads the content of a text-based file from Google Drive"
+        input_json: |
+          {
+            "file_id": "5EfGhIjKlMnOpQrStUvWxYz"
+          }
+        output_json: |
+          {
+            "success": true,
+            "content": "Hello, this is a test file!",
+            "file": {
+              "id": "5EfGhIjKlMnOpQrStUvWxYz",
+              "name": "test.txt"
+            },
+            "mime_type": "text/plain"
+          }
+
+  - endpoint: /google-drive/set_permission
+    examples:
+      - scenario: "Share File with User"
+        description: "Gives a specific user access to a file with defined permissions"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+            "permission": {
+              "email": "collaborator@example.com",
+              "role": "writer",
+              "type": "user"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "perm123456",
+              "role": "writer",
+              "type": "user",
+              "email_address": "collaborator@example.com"
+            },
+            "component": {
+              "type": "PermissionAddedComponent",
+              "properties": {
+                "file_name": "image.webp",
+                "user": "collaborator@example.com",
+                "role": "writer",
+                "permission_id": "perm123456"
+              }
+            }
+          }
+      
+      - scenario: "Create Public Link"
+        description: "Makes a file publicly accessible with a shareable link"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+            "permission": {
+              "type": "anyone",
+              "role": "reader"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "perm789012",
+              "role": "reader",
+              "type": "anyone"
+            },
+            "component": {
+              "type": "PublicLinkCreatedComponent",
+              "properties": {
+                "file_name": "image.webp",
+                "public_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view?usp=sharing",
+                "permission_id": "perm789012"
+              }
+            }
+          }
+
+  - endpoint: /google-drive/list_permissions
+    examples:
+      - scenario: "List File Permissions"
+        description: "Retrieves all permission settings for a specific file"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "perm123456",
+                "role": "writer",
+                "type": "user",
+                "email_address": "collaborator@example.com"
+              },
+              {
+                "id": "perm789012",
+                "role": "reader",
+                "type": "anyone"
+              },
+              {
+                "id": "perm345678",
+                "role": "owner",
+                "type": "user",
+                "email_address": "owner@example.com"
+              }
+            ],
+            "component": {
+              "type": "PermissionListComponent",
+              "properties": {
+                "file_name": "image.webp",
+                "permissions": [
+                  {
+                    "user": "collaborator@example.com",
+                    "role": "writer",
+                    "type": "user",
+                    "id": "perm123456"
+                  },
+                  {
+                    "role": "reader",
+                    "type": "anyone",
+                    "id": "perm789012"
+                  },
+                  {
+                    "user": "owner@example.com",
+                    "role": "owner",
+                    "type": "user",
+                    "id": "perm345678"
+                  }
+                ]
+              }
+            }
+          }
+
+  - endpoint: /google-drive/delete_permission
+    examples:
+      - scenario: "Remove User Access"
+        description: "Revokes a specific permission from a file"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+            "permission_id": "perm123456"
+          }
+        output_json: |
+          {
+            "status": "success",
+            "message": "Permission successfully removed"
+          }
+
+  - endpoint: /google-drive/copy_file
+    examples:
+      - scenario: "Create File Copy"
+        description: "Creates a copy of an existing file, optionally with a new name and in a different folder"
+        input_json: |
+          {
+            "file_id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
+            "name": "image_copy.webp",
+            "parent_id": "6FgHiJkLmNoPqRsTuVwXyZ"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "7GhIjKlMnOpQrStUvWxYz",
+              "name": "image_copy.webp",
+              "mime_type": "image/webp",
+              "parent_ids": ["6FgHiJkLmNoPqRsTuVwXyZ"],
+              "parent_names": ["Project Resources"],
+              "created_time": "2023-11-22T14:58:32Z",
+              "modified_time": "2023-11-22T14:58:32Z",
+              "size": 245678,
+              "web_view_link": "https://drive.google.com/file/d/7GhIjKlMnOpQrStUvWxYz/view",
+              "web_content_link": "https://drive.google.com/uc?id=7GhIjKlMnOpQrStUvWxYz&export=download"
+            },
+            "component": {
+              "type": "FileCopiedComponent",
+              "properties": {
+                "original_name": "image.webp",
+                "copy_name": "image_copy.webp",
+                "copy_id": "7GhIjKlMnOpQrStUvWxYz",
+                "location": "Project Resources"
+              }
+            }
+          } 
