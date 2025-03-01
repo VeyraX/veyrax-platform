@@ -8,6 +8,8 @@ from .schema_generation.openai.schema import get_openai_function_schemas
 from .schema_generation.openai.validate import validate_tool_schema
 import warnings
 from pydantic import ValidationError
+
+
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     """
     Generate a simplified set of OpenAI function schemas from FastAPI routes,
@@ -20,14 +22,12 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         # Skip the /tools endpoint
         if route.path.endswith("/tools"):
             continue
-
+        
         
         tool_schema = get_openai_function_schemas(route)
-
-        # validation_errors = validate_tool_schema(tool_schema)
-        # if len(validation_errors) > 0:
-        #     tools.append({'schema': tool_schema, 'errors': validation_errors})
-        # # # # else:
+        examples = route.endpoint.examples()
+        tool_schema["examples"] = examples
+        
         tools.append(tool_schema)
 
     return tools

@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from .schema import (
-    MessageList, Message, DraftMessage, DraftResponse, DraftList, 
-    MessageFilters, ApiResponse, GetMessagesParams, GetMessageParams,
+ ApiResponse, GetMessagesParams, GetMessageParams,
     DeleteMessageParams, SendMessageParams, GetDraftsParams, 
     CreateDraftParams, DeleteDraftParams, ModifyDraftParams,
     GetMessagesResponse, GetMessageResponse, DeleteMessageResponse,
@@ -11,13 +10,11 @@ from .schema import (
 )
 from .service import GmailService
 from .client import GmailClient
-import pickle
 import os
-from ..common.utils import get_router_tools
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
 from ..common.auth import TokenService, GoogleTokenRefresher
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 

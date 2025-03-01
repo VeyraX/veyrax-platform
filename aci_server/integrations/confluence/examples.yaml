@@ -1,0 +1,253 @@
+routes:
+  - endpoint: /confluence/spaces
+    examples:
+      - scenario: "List Available Spaces"
+        description: "Retrieves a list of all accessible Confluence spaces"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spaces": [
+                {
+                  "id": "space1",
+                  "name": "Engineering",
+                  "key": "ENG"
+                },
+                {
+                  "id": "space2",
+                  "name": "Marketing",
+                  "key": "MKT"
+                }
+              ],
+              "next_page": null
+            },
+            "message": null
+          }
+
+  - endpoint: /confluence/pages
+    examples:
+      - scenario: "List Pages"
+        description: "Retrieves a list of pages with optional filtering"
+        input_json: |
+          {
+            "filters": {
+              "space_id": "space1",
+              "title": null,
+              "limit": 5
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "pages": [
+                {
+                  "id": "page123",
+                  "title": "Updated Project Plan",
+                  "type": "page",
+                  "space": {
+                    "id": "space1"
+                  }
+                },
+                {
+                  "id": "page789",
+                  "title": "Another Page",
+                  "type": "page",
+                  "space": {
+                    "id": "space1"
+                  }
+                }
+              ],
+              "next_page": null
+            },
+            "message": null
+          }
+
+  - endpoint: /confluence/get-page
+    examples:
+      - scenario: "Get Page Details"
+        description: "Retrieves detailed information about a specific page"
+        input_json: |
+          {
+            "page_id": "page123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "164066",
+              "title": "Template - Weekly status report",
+              "type": "page",
+              "space": {
+                  "id": 163844,
+                  "key": "OOP",
+                  "name": "Other or Personal",
+                  "status": "current",
+                  "_links": {
+                      "webui": "/spaces/OOP",
+                      "self": "https://veyraxservice.atlassian.net/wiki/rest/api/space/OOP"
+                  }
+              },
+              "version": {
+                  "by": {
+                      "accountId": "712020:example-id",
+                      "displayName": "Veyrax"
+                  },
+                  "when": "2025-02-25T16:42:57.807Z",
+                  "number": 1,
+                  "_links": {
+                      "self": "https://veyraxservice.atlassian.net/wiki/rest/api/content/164066/version/1"
+                  }
+              },
+              "body": {
+                  "storage": {
+                      "value": "<p>Weekly report template with placeholders.</p>",
+                      "representation": "storage"
+                  }
+              },
+              "status": "current",
+              "html_link": "https://veyraxservice.atlassian.net/wiki/spaces/OOP/pages/164066/Template+-+Weekly+status+report"
+            },
+            "message": null
+          }
+
+  - endpoint: /confluence/create_page
+    examples:
+      - scenario: "Create a New Page"
+        description: "Creates a new page in a specified space"
+        input_json: |
+          {
+            "page": {
+              "title": "New Project Plan",
+              "content": "<p>This is the project plan for the new initiative.</p>",
+              "spaceId": "space1"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "8355850",
+              "title": "New Project Plan",
+              "type": "page",
+              "space": {
+                  "id": 163844,
+                  "key": "OOP",
+                  "name": "Other or Personal",
+                  "status": "current",
+                  "_links": {
+                      "webui": "/spaces/OOP",
+                      "self": "https://veyraxservice.atlassian.net/wiki/rest/api/space/OOP"
+                  }
+              },
+              "version": {
+                  "by": {
+                      "accountId": "712020:example-id",
+                      "displayName": "Veyrax"
+                  },
+                  "when": "2025-03-01T17:59:30.944Z",
+                  "number": 1,
+                  "_links": {
+                      "self": "https://veyraxservice.atlassian.net/wiki/rest/api/content/8355850/version/1"
+                  }
+              },
+              "body": {
+                  "storage": {
+                      "value": "<p>This is the project plan for the new initiative.</p>",
+                      "representation": "storage"
+                  }
+              },
+              "status": "current",
+              "html_link": "https://veyraxservice.atlassian.net/wiki/spaces/OOP/pages/8355850/New+Project+Plan"
+            },
+            "message": "Page successfully created"
+          }
+
+  - endpoint: /confluence/update_page
+    examples:
+      - scenario: "Update an Existing Page"
+        description: "Updates the content and title of an existing page"
+        input_json: |
+          {
+            "page_id": "page123",
+            "update": {
+              "title": "Updated Project Plan",
+              "content": "<p>This is the updated project plan.</p>",
+              "version": 2
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Project Plan",
+              "type": "page",
+              "body": {
+                "storage": {
+                  "value": "<p>This is the updated project plan.</p>",
+                  "representation": "storage"
+                }
+              },
+              "version": {
+                "number": 2
+              }
+            },
+            "message": "Page successfully updated"
+          }
+
+  - endpoint: /confluence/search
+    examples:
+      - scenario: "Search Pages"
+        description: "Searches for pages matching specific criteria"
+        input_json: |
+          {
+            "cql": "title ~ 'Project'",
+            "space_key": null,
+            "title": null,
+            "type": "page",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "pages": [
+                {
+                  "id": "page123",
+                  "title": "Updated Project Plan",
+                  "type": "page",
+                  "space": {
+                    "id": "space1"
+                  }
+                },
+                {
+                  "id": "page456",
+                  "title": "Project Overview",
+                  "type": "page",
+                  "space": {
+                    "id": "space2"
+                  }
+                }
+              ],
+              "next_page": null
+            },
+            "message": null
+          }
+
+  - endpoint: /confluence/delete_page
+    examples:
+      - scenario: "Delete a page by ID"
+        description: "Removes the specified page from Confluence."
+        input_json: |
+          {
+            "page_id": "PAGE_999"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": null,
+            "message": "Page PAGE_999 deleted successfully."
+          }
