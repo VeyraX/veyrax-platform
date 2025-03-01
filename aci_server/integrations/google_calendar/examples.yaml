@@ -1,0 +1,373 @@
+routes:
+  - endpoint: /google-calendar/list_events
+    examples:
+      - scenario: "List Upcoming Events"
+        description: "Retrieves a list of upcoming calendar events with optional filtering"
+        input_json: |
+          {
+            "pageToken": null,
+            "filters": {
+              "calendarId": "primary",
+              "keywords": "meeting",
+              "after_date": "2023-05-01T00:00:00Z",
+              "before_date": "2023-06-01T00:00:00Z",
+              "max_results": 10
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "evt123456789",
+                  "summary": "Weekly Team Meeting",
+                  "description": "Regular sync-up with the development team",
+                  "location": "Conference Room A",
+                  "start": "2023-05-02T10:00:00Z",
+                  "end": "2023-05-02T11:00:00Z",
+                  "htmlLink": "https://www.google.com/calendar/event?eid=abc123",
+                  "creator": {
+                    "email": "organizer@example.com",
+                    "displayName": "Meeting Organizer"
+                  },
+                  "status": "confirmed",
+                  "attendees": [
+                    {
+                      "email": "person1@example.com",
+                      "displayName": "Person One",
+                      "responseStatus": "accepted"
+                    },
+                    {
+                      "email": "person2@example.com",
+                      "displayName": "Person Two",
+                      "responseStatus": "tentative"
+                    }
+                  ]
+                },
+                {
+                  "id": "evt987654321",
+                  "summary": "Project Planning Meeting",
+                  "description": "Discussion about Q3 roadmap",
+                  "location": "Virtual",
+                  "start": "2023-05-15T14:00:00Z",
+                  "end": "2023-05-15T15:30:00Z",
+                  "htmlLink": "https://www.google.com/calendar/event?eid=def456",
+                  "creator": {
+                    "email": "manager@example.com",
+                    "displayName": "Project Manager"
+                  },
+                  "status": "confirmed",
+                  "attendees": [
+                    {
+                      "email": "person1@example.com",
+                      "displayName": "Person One",
+                      "responseStatus": "accepted"
+                    },
+                    {
+                      "email": "person3@example.com",
+                      "displayName": "Person Three",
+                      "responseStatus": "accepted"
+                    }
+                  ]
+                }
+              ],
+              "nextPageToken": null
+            },
+            "component": [
+              {
+                "type": "GoogleCalendarEventCard",
+                "properties": {
+                  "events": [
+                    {
+                      "summary": "Weekly Team Meeting",
+                      "start": "2023-05-02T10:00:00Z",
+                      "end": "2023-05-02T11:00:00Z",
+                      "location": "Conference Room A"
+                    },
+                    {
+                      "summary": "Project Planning Meeting",
+                      "start": "2023-05-15T14:00:00Z",
+                      "end": "2023-05-15T15:30:00Z",
+                      "location": "Virtual"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+
+  - endpoint: /google-calendar/get_event
+    examples:
+      - scenario: "Get Event Details"
+        description: "Retrieves detailed information about a specific calendar event"
+        input_json: |
+          {
+            "event_id": "evt123456789",
+            "calendar_id": "primary"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "evt123456789",
+              "summary": "Weekly Team Meeting",
+              "description": "Regular sync-up with the development team",
+              "location": "Conference Room A",
+              "start": "2023-05-02T10:00:00Z",
+              "end": "2023-05-02T11:00:00Z",
+              "htmlLink": "https://www.google.com/calendar/event?eid=abc123",
+              "creator": {
+                "email": "organizer@example.com",
+                "displayName": "Meeting Organizer"
+              },
+              "status": "confirmed",
+              "attendees": [
+                {
+                  "email": "person1@example.com",
+                  "displayName": "Person One",
+                  "responseStatus": "accepted"
+                },
+                {
+                  "email": "person2@example.com",
+                  "displayName": "Person Two",
+                  "responseStatus": "tentative"
+                }
+              ]
+            },
+            "component": {
+              "type": "GoogleCalendarEventCard",
+              "properties": {
+                "summary": "Weekly Team Meeting",
+                "description": "Regular sync-up with the development team",
+                "location": "Conference Room A",
+                "start": "2023-05-02T10:00:00Z",
+                "end": "2023-05-02T11:00:00Z",
+                "attendees": [
+                  {
+                    "email": "person1@example.com",
+                    "displayName": "Person One"
+                  },
+                  {
+                    "email": "person2@example.com",
+                    "displayName": "Person Two"
+                  }
+                ]
+              }
+            }
+          }
+
+  - endpoint: /google-calendar/create_event
+    examples:
+      - scenario: "Create a New Event"
+        description: "Creates a new calendar event with specified details"
+        input_json: |
+          {
+            "event": {
+              "summary": "Product Launch Meeting",
+              "description": "Discuss final preparations for the new product launch",
+              "location": "Main Conference Room",
+              "start": {
+                "dateTime": "2023-06-15T09:00:00Z"
+              },
+              "end": {
+                "dateTime": "2023-06-15T10:30:00Z"
+              },
+              "attendees": [
+                {
+                  "email": "team@example.com"
+                },
+                {
+                  "email": "partner@example.com"
+                }
+              ]
+            },
+            "calendar_id": "primary"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "evt567890123",
+              "summary": "Product Launch Meeting",
+              "description": "Discuss final preparations for the new product launch",
+              "location": "Main Conference Room",
+              "start": "2023-06-15T09:00:00Z",
+              "end": "2023-06-15T10:30:00Z",
+              "htmlLink": "https://www.google.com/calendar/event?eid=ghi789",
+              "creator": {
+                "email": "current-user@example.com",
+                "displayName": "Current User"
+              },
+              "status": "confirmed",
+              "attendees": [
+                {
+                  "email": "team@example.com",
+                  "responseStatus": "needsAction"
+                },
+                {
+                  "email": "partner@example.com",
+                  "responseStatus": "needsAction"
+                }
+              ]
+            },
+            "component": {
+              "type": "GoogleCalendarEventCard",
+              "properties": {
+                "summary": "Product Launch Meeting",
+                "description": "Discuss final preparations for the new product launch",
+                "location": "Main Conference Room",
+                "start": "2023-06-15T09:00:00Z",
+                "end": "2023-06-15T10:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /google-calendar/update_event
+    examples:
+      - scenario: "Update an Existing Event"
+        description: "Modifies details of an existing calendar event"
+        input_json: |
+          {
+            "event_id": "evt123456789",
+            "event_update": {
+              "summary": "Updated: Weekly Team Meeting",
+              "description": "Regular sync-up with extended discussion on Q2 results",
+              "location": "Conference Room B",
+              "start": {
+                "dateTime": "2023-05-02T10:30:00Z"
+              },
+              "end": {
+                "dateTime": "2023-05-02T12:00:00Z"
+              },
+              "attendees": [
+                {
+                  "email": "person1@example.com"
+                },
+                {
+                  "email": "person2@example.com"
+                },
+                {
+                  "email": "person3@example.com"
+                }
+              ]
+            },
+            "calendar_id": "primary"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "evt123456789",
+              "summary": "Updated: Weekly Team Meeting",
+              "description": "Regular sync-up with extended discussion on Q2 results",
+              "location": "Conference Room B",
+              "start": "2023-05-02T10:30:00Z",
+              "end": "2023-05-02T12:00:00Z",
+              "htmlLink": "https://www.google.com/calendar/event?eid=abc123",
+              "creator": {
+                "email": "organizer@example.com",
+                "displayName": "Meeting Organizer"
+              },
+              "status": "confirmed",
+              "attendees": [
+                {
+                  "email": "person1@example.com",
+                  "displayName": "Person One",
+                  "responseStatus": "needsAction"
+                },
+                {
+                  "email": "person2@example.com",
+                  "displayName": "Person Two",
+                  "responseStatus": "needsAction"
+                },
+                {
+                  "email": "person3@example.com",
+                  "displayName": "Person Three",
+                  "responseStatus": "needsAction"
+                }
+              ]
+            },
+            "component": {
+              "type": "GoogleCalendarEventCard",
+              "properties": {
+                "summary": "Updated: Weekly Team Meeting",
+                "description": "Regular sync-up with extended discussion on Q2 results",
+                "location": "Conference Room B",
+                "start": "2023-05-02T10:30:00Z",
+                "end": "2023-05-02T12:00:00Z"
+              }
+            }
+          }
+
+  - endpoint: /google-calendar/delete_event
+    examples:
+      - scenario: "Delete an Event"
+        description: "Removes a calendar event permanently"
+        input_json: |
+          {
+            "event_id": "evt123456789",
+            "calendar_id": "primary"
+          }
+        output_json: |
+          {
+            "status": "success",
+            "message": "Event successfully deleted"
+          }
+
+  - endpoint: /google-calendar/list_calendars
+    examples:
+      - scenario: "List Available Calendars"
+        description: "Retrieves a list of all available calendars for the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "primary",
+                  "summary": "user@example.com",
+                  "description": "Main calendar",
+                  "primary": true,
+                  "timeZone": "America/Los_Angeles",
+                  "backgroundColor": "#4285F4",
+                  "foregroundColor": "#000000"
+                },
+                {
+                  "id": "calendar_123",
+                  "summary": "Work",
+                  "description": "Work-related events",
+                  "primary": false,
+                  "timeZone": "America/Los_Angeles",
+                  "backgroundColor": "#16A765",
+                  "foregroundColor": "#000000"
+                },
+                {
+                  "id": "calendar_456",
+                  "summary": "Family",
+                  "description": "Family events and birthdays",
+                  "primary": false,
+                  "timeZone": "America/Los_Angeles",
+                  "backgroundColor": "#F4511E",
+                  "foregroundColor": "#000000"
+                }
+              ]
+            },
+            "component": {
+              "type": "GoogleCalendarEventCard",
+              "properties": {
+                "calendars": [
+                  {
+                    "summary": "user@example.com",
+                    "id": "primary",
+                    "primary": true
+                  },
+                  {
+                    "summary": "Work",
+                    "id": "calendar_123"
+                  },
+                  {
+                    "summary": "Family",
+                    "id": "calendar_456"
+                  }
+                ]
+              }
+            }
+          } 

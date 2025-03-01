@@ -1,0 +1,321 @@
+routes:
+  - endpoint: /slack/list_channels
+    examples:
+      - scenario: "List Available Channels"
+        description: "Retrieves a list of all accessible Slack channels"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "channels": [
+                {
+                  "id": "C0123ABCDEF",
+                  "name": "general",
+                  "is_private": false,
+                  "topic": "Company-wide announcements and work-based matters",
+                  "purpose": "This channel is for workspace-wide communication"
+                },
+                {
+                  "id": "C9876ZYXWVU",
+                  "name": "engineering",
+                  "is_private": false,
+                  "topic": "Engineering team discussions",
+                  "purpose": "Collaboration for the engineering team"
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/list_channel_members
+    examples:
+      - scenario: "List Channel Members"
+        description: "Retrieves a list of all members in a specified channel"
+        input_json: |
+          {
+            "channel_id": "C0123ABCDEF"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "members": [
+                {
+                  "id": "U0123USER1",
+                  "name": "johndoe",
+                  "real_name": "John Doe",
+                  "is_bot": false
+                },
+                {
+                  "id": "U0456USER2",
+                  "name": "janedoe",
+                  "real_name": "Jane Doe",
+                  "is_bot": false
+                },
+                {
+                  "id": "U0789BOTID",
+                  "name": "slackbot",
+                  "real_name": "Slackbot",
+                  "is_bot": true
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/list_direct_messages
+    examples:
+      - scenario: "List Direct Messages"
+        description: "Retrieves a list of recent direct messages across all conversations"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "M0123MSG1",
+                  "text": "Hi, do you have a moment to discuss the project?",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673352421.008700",
+                  "thread_ts": null
+                },
+                {
+                  "id": "M0456MSG2",
+                  "text": "Can you review the PR I just submitted?",
+                  "user": "U0456USER2",
+                  "user_name": "janedoe",
+                  "real_name": "Jane Doe",
+                  "timestamp": "1673351421.017800",
+                  "thread_ts": null
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/post_message
+    examples:
+      - scenario: "Post Message to Channel"
+        description: "Sends a new message to a specified Slack channel"
+        input_json: |
+          {
+            "channel_id": "C0123ABCDEF",
+            "message": {
+              "text": "Important announcement: Team meeting at 3pm today"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "M0789MSG3",
+              "text": "Important announcement: Team meeting at 3pm today",
+              "user": "U0123USER1",
+              "user_name": "johndoe",
+              "real_name": "John Doe",
+              "timestamp": "1673355421.009800",
+              "thread_ts": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/send_dm
+    examples:
+      - scenario: "Send Direct Message"
+        description: "Sends a direct message to a specific user"
+        input_json: |
+          {
+            "message": {
+              "user_id": "U0456USER2",
+              "text": "Hi Jane, can we meet to discuss the project specs?"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "M0910MSG4",
+              "text": "Hi Jane, can we meet to discuss the project specs?",
+              "user": "U0123USER1",
+              "user_name": "johndoe",
+              "real_name": "John Doe",
+              "timestamp": "1673356421.007600",
+              "thread_ts": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/reply_in_thread
+    examples:
+      - scenario: "Reply in Thread"
+        description: "Posts a reply to an existing message thread"
+        input_json: |
+          {
+            "channel_id": "C0123ABCDEF",
+            "thread_ts": "1673355421.009800",
+            "message": {
+              "text": "I'll be joining the meeting virtually"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "M1011MSG5",
+              "text": "I'll be joining the meeting virtually",
+              "user": "U0123USER1",
+              "user_name": "johndoe",
+              "real_name": "John Doe",
+              "timestamp": "1673357421.010100",
+              "thread_ts": "1673355421.009800"
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/list_thread_messages
+    examples:
+      - scenario: "List Thread Messages"
+        description: "Retrieves all messages in a specific thread"
+        input_json: |
+          {
+            "channel_id": "C0123ABCDEF",
+            "thread_ts": "1673355421.009800"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "M0789MSG3",
+                  "text": "Important announcement: Team meeting at 3pm today",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673355421.009800",
+                  "thread_ts": "1673355421.009800"
+                },
+                {
+                  "id": "M1011MSG5",
+                  "text": "I'll be joining the meeting virtually",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673357421.010100",
+                  "thread_ts": "1673355421.009800"
+                },
+                {
+                  "id": "M1112MSG6",
+                  "text": "Thanks for letting us know",
+                  "user": "U0456USER2",
+                  "user_name": "janedoe",
+                  "real_name": "Jane Doe",
+                  "timestamp": "1673358421.010200",
+                  "thread_ts": "1673355421.009800"
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/list_channel_messages
+    examples:
+      - scenario: "List Channel Messages"
+        description: "Retrieves recent messages from a specified channel"
+        input_json: |
+          {
+            "channel_id": "C0123ABCDEF"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "M0789MSG3",
+                  "text": "Important announcement: Team meeting at 3pm today",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673355421.009800",
+                  "thread_ts": null
+                },
+                {
+                  "id": "M1213MSG7",
+                  "text": "Project deadline has been extended to next Friday",
+                  "user": "U0456USER2",
+                  "user_name": "janedoe",
+                  "real_name": "Jane Doe",
+                  "timestamp": "1673354421.009700",
+                  "thread_ts": null
+                },
+                {
+                  "id": "M1314MSG8",
+                  "text": "New documentation is available in the shared drive",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673353421.009600",
+                  "thread_ts": null
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          }
+
+  - endpoint: /slack/list_direct_messages_with_user
+    examples:
+      - scenario: "List Direct Messages With User"
+        description: "Retrieves the conversation history with a specific user"
+        input_json: |
+          {
+            "user_id": "U0456USER2"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "M0910MSG4",
+                  "text": "Hi Jane, can we meet to discuss the project specs?",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673356421.007600",
+                  "thread_ts": null
+                },
+                {
+                  "id": "M1415MSG9",
+                  "text": "Sure, how about tomorrow at 10am?",
+                  "user": "U0456USER2",
+                  "user_name": "janedoe",
+                  "real_name": "Jane Doe",
+                  "timestamp": "1673356521.007700",
+                  "thread_ts": null
+                },
+                {
+                  "id": "M1516MSG10",
+                  "text": "Perfect, I'll send a calendar invite",
+                  "user": "U0123USER1",
+                  "user_name": "johndoe",
+                  "real_name": "John Doe",
+                  "timestamp": "1673356621.007800",
+                  "thread_ts": null
+                }
+              ],
+              "cursor": null
+            },
+            "message": null
+          } 

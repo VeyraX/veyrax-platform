@@ -1,5 +1,6 @@
 from slack_sdk import WebClient
 from typing import Dict, Any
+import logging
 
 class SlackClient:
     def __init__(self, token: str):
@@ -65,3 +66,13 @@ class SlackClient:
 
     def open_dm_channel(self, user_id: str) -> Dict[str, Any]:
         return self.client.conversations_open(users=[user_id])
+
+    def join_channel(self, channel: str) -> Dict[str, Any]:
+        """Join a channel if not already a member"""
+        try:
+            return self.client.conversations_join(channel=channel)
+        except Exception as e:
+            # Log the error for debugging
+            logging.error(f"Failed to join channel: {str(e)}")
+            # If already in channel or other error, return info about error
+            return {"ok": False, "error": str(e)}

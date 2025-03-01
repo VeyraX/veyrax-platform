@@ -1,0 +1,432 @@
+routes:
+  - endpoint: /outlook/get_messages
+    examples:
+      - scenario: "List Email Messages"
+        description: "Retrieves a list of email messages with optional filtering"
+        input_json: |
+          {
+            "filters": {
+              "search": null,
+              "to": null,
+              "subject": null,
+              "after_date": null,
+              "before_date": null,
+              "max_results": 5
+            },
+            "next_link": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QCAAA=",
+                  "subject": "Team Meeting",
+                  "body_preview": "Let's schedule a team meeting to discuss...",
+                  "body": "<html><body>Let's schedule a team meeting to discuss the upcoming project deadline.</body></html>",
+                  "from_address": "manager@example.com",
+                  "to_recipients": ["user@example.com"],
+                  "created_datetime": "2023-05-15T09:45:22Z",
+                  "web_link": "https://outlook.office.com/mail/inbox/id/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QCAAA="
+                },
+                {
+                  "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QBAAA=",
+                  "subject": "Weekly Report",
+                  "body_preview": "Please find attached the weekly report...",
+                  "body": "<html><body>Please find attached the weekly report for your review.</body></html>",
+                  "from_address": "colleague@example.com",
+                  "to_recipients": ["user@example.com"],
+                  "created_datetime": "2023-05-14T16:30:00Z",
+                  "web_link": "https://outlook.office.com/mail/inbox/id/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QBAAA="
+                }
+              ],
+              "next_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /outlook/get_message
+    examples:
+      - scenario: "Get Email Message Details"
+        description: "Retrieves detailed information about a specific email message"
+        input_json: |
+          {
+            "message_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QCAAA="
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QCAAA=",
+              "subject": "Team Meeting",
+              "body_preview": "Let's schedule a team meeting to discuss...",
+              "body": "<html><body>Let's schedule a team meeting to discuss the upcoming project deadline.</body></html>",
+              "from_address": "manager@example.com",
+              "to_recipients": ["user@example.com"],
+              "created_datetime": "2023-05-15T09:45:22Z",
+              "web_link": "https://outlook.office.com/mail/inbox/id/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QCAAA=",
+              "importance": "normal",
+              "is_read": false,
+              "categories": ["Work"]
+            },
+            "message": null
+          }
+
+  - endpoint: /outlook/create_draft
+    examples:
+      - scenario: "Create Email Draft"
+        description: "Creates a new email draft message"
+        input_json: |
+          {
+            "draft_args": {
+              "to_recipients": ["test@example.com"],
+              "subject": "[TEST] Outlook Draft",
+              "body": "Test draft content"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QDAAA=",
+              "subject": "[TEST] Outlook Draft",
+              "body_preview": "Test draft content",
+              "body": "Test draft content",
+              "from_address": "user@example.com",
+              "to_recipients": ["test@example.com"],
+              "created_datetime": "2023-05-16T10:15:30Z",
+              "web_link": "https://outlook.office.com/mail/drafts/id/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QDAAA=",
+              "importance": "normal",
+              "is_read": true,
+              "categories": []
+            },
+            "message": "Draft created successfully"
+          }
+
+  - endpoint: /outlook/send_message
+    examples:
+      - scenario: "Send Email Message"
+        description: "Sends an existing draft email message"
+        input_json: |
+          {
+            "message_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QDAAA="
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "sent"
+            },
+            "message": "Message sent successfully"
+          }
+
+  - endpoint: /outlook/delete_message
+    examples:
+      - scenario: "Delete Email Message"
+        description: "Deletes a specific email message or draft"
+        input_json: |
+          {
+            "message_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEMAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QDAAA="
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "status": "success",
+            "message": "Message deleted successfully"
+          }
+
+  - endpoint: /outlook/list_calendars
+    examples:
+      - scenario: "List User Calendars"
+        description: "Retrieves a list of calendars accessible to the user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "calendars": [
+                {
+                  "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEGAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QAAAA=",
+                  "name": "Calendar",
+                  "color": "auto",
+                  "can_edit": true,
+                  "owner": {
+                    "name": "User Name",
+                    "address": "user@example.com"
+                  }
+                },
+                {
+                  "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAEGAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QBAAA=",
+                  "name": "Work Schedule",
+                  "color": "blue",
+                  "can_edit": true,
+                  "owner": {
+                    "name": "User Name",
+                    "address": "user@example.com"
+                  }
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /outlook/list_events
+    examples:
+      - scenario: "List Calendar Events"
+        description: "Retrieves a list of calendar events with optional filtering"
+        input_json: |
+          {
+            "filters": {
+              "calendar_id": null,
+              "search": null,
+              "after_date": "2025-01-01T08:00:00Z",
+              "before_date": "2025-01-01T11:00:00Z",
+              "max_results": 10
+            },
+            "next_link": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "events": [
+                {
+                  "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+                  "subject": "Test Event",
+                  "body": {
+                    "content": "Event details",
+                    "contentType": "html"
+                  },
+                  "start": {
+                    "dateTime": "2025-01-01T09:00:00Z",
+                    "timeZone": "UTC"
+                  },
+                  "end": {
+                    "dateTime": "2025-01-01T10:00:00Z",
+                    "timeZone": "UTC"
+                  },
+                  "location": {
+                    "displayName": "Conference Room A"
+                  },
+                  "web_link": "https://outlook.office.com/calendar/item/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+                  "organizer": {
+                    "emailAddress": {
+                      "name": "User Name",
+                      "address": "user@example.com"
+                    }
+                  }
+                }
+              ],
+              "next_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /outlook/get_event
+    examples:
+      - scenario: "Get Calendar Event Details"
+        description: "Retrieves detailed information about a specific calendar event"
+        input_json: |
+          {
+            "event_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA="
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "subject": "Test Event",
+              "body": {
+                "content": "Event details and agenda",
+                "contentType": "html"
+              },
+              "start": {
+                "dateTime": "2025-01-01T09:00:00Z",
+                "timeZone": "UTC"
+              },
+              "end": {
+                "dateTime": "2025-01-01T10:00:00Z",
+                "timeZone": "UTC"
+              },
+              "location": {
+                "displayName": "Conference Room A"
+              },
+              "web_link": "https://outlook.office.com/calendar/item/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "organizer": {
+                "emailAddress": {
+                  "name": "User Name",
+                  "address": "user@example.com"
+                }
+              },
+              "attendees": [
+                {
+                  "type": "required",
+                  "status": {
+                    "response": "none",
+                    "time": "0001-01-01T00:00:00Z"
+                  },
+                  "emailAddress": {
+                    "name": "Attendee Name",
+                    "address": "attendee@example.com"
+                  }
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /outlook/create_event
+    examples:
+      - scenario: "Create Calendar Event"
+        description: "Creates a new calendar event"
+        input_json: |
+          {
+            "event": {
+              "subject": "Test Event",
+              "start": {
+                "dateTime": "2025-01-01T09:00:00Z",
+                "timeZone": "UTC"
+              },
+              "end": {
+                "dateTime": "2025-01-01T10:00:00Z",
+                "timeZone": "UTC"
+              },
+              "body": {
+                "content": "Meeting to discuss the project status",
+                "contentType": "html"
+              },
+              "attendees": [
+                {
+                  "emailAddress": {
+                    "address": "attendee@example.com",
+                    "name": "Attendee Name"
+                  },
+                  "type": "required"
+                }
+              ]
+            },
+            "calendar_id": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "subject": "Test Event",
+              "body": {
+                "content": "Meeting to discuss the project status",
+                "contentType": "html"
+              },
+              "start": {
+                "dateTime": "2025-01-01T09:00:00Z",
+                "timeZone": "UTC"
+              },
+              "end": {
+                "dateTime": "2025-01-01T10:00:00Z",
+                "timeZone": "UTC"
+              },
+              "location": null,
+              "web_link": "https://outlook.office.com/calendar/item/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "organizer": {
+                "emailAddress": {
+                  "name": "User Name",
+                  "address": "user@example.com"
+                }
+              },
+              "attendees": [
+                {
+                  "type": "required",
+                  "status": {
+                    "response": "none",
+                    "time": "0001-01-01T00:00:00Z"
+                  },
+                  "emailAddress": {
+                    "name": "Attendee Name",
+                    "address": "attendee@example.com"
+                  }
+                }
+              ]
+            },
+            "message": "Event created successfully"
+          }
+
+  - endpoint: /outlook/update_event
+    examples:
+      - scenario: "Update Calendar Event"
+        description: "Updates details of an existing calendar event"
+        input_json: |
+          {
+            "event_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+            "event_update": {
+              "subject": "Updated Event",
+              "start": {
+                "dateTime": "2025-01-01T09:30:00Z",
+                "timeZone": "UTC"
+              },
+              "body": {
+                "content": "Updated meeting agenda and details",
+                "contentType": "html"
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "subject": "Updated Event",
+              "body": {
+                "content": "Updated meeting agenda and details",
+                "contentType": "html"
+              },
+              "start": {
+                "dateTime": "2025-01-01T09:30:00Z",
+                "timeZone": "UTC"
+              },
+              "end": {
+                "dateTime": "2025-01-01T10:00:00Z",
+                "timeZone": "UTC"
+              },
+              "location": {
+                "displayName": "Conference Room A"
+              },
+              "web_link": "https://outlook.office.com/calendar/item/AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA=",
+              "organizer": {
+                "emailAddress": {
+                  "name": "User Name",
+                  "address": "user@example.com"
+                }
+              },
+              "attendees": [
+                {
+                  "type": "required",
+                  "status": {
+                    "response": "none",
+                    "time": "0001-01-01T00:00:00Z"
+                  },
+                  "emailAddress": {
+                    "name": "Attendee Name",
+                    "address": "attendee@example.com"
+                  }
+                }
+              ]
+            },
+            "message": "Event updated successfully"
+          }
+
+  - endpoint: /outlook/delete_event
+    examples:
+      - scenario: "Delete Calendar Event"
+        description: "Deletes a specific calendar event"
+        input_json: |
+          {
+            "event_id": "AAMkADUzNDE5OTk5LTJmOTUtNDFhNC04ZTM1LTAzZjM2MmIxNGJhMwBGAAAAAAC2-6xgZLrPQKxfTZYxUhQyBwA-AcNDW38UQ7kU0AhZ8VcnAAAAAAENAAA-AcNDW38UQ7kU0AhZ8VcnAABZ-_QEAAA="
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "status": "success",
+            "message": "Event deleted successfully"
+          } 

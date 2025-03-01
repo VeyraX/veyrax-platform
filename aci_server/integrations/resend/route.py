@@ -26,8 +26,11 @@ from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/resend", tags=["resend"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/resend directory
 
 async def get_resend_service(request: FastAPIRequest):
     try:
@@ -40,7 +43,7 @@ async def get_resend_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
 
 @router.post("/send_email", response_model=ApiResponse)
-@schema(input_schema_class=SendEmailParams, output_schema_class=SendEmailResponse)
+@schema(input_schema_class=SendEmailParams, output_schema_class=SendEmailResponse, examples=examples["/resend/send_email"])
 async def send_email(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -56,7 +59,7 @@ async def send_email(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_batch_emails", response_model=ApiResponse)
-@schema(input_schema_class=SendBatchEmailsParams, output_schema_class=SendBatchEmailsResponse)
+@schema(input_schema_class=SendBatchEmailsParams, output_schema_class=SendBatchEmailsResponse, examples=examples["/resend/send_batch_emails"])
 async def send_batch_emails(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -72,7 +75,7 @@ async def send_batch_emails(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_email", response_model=ApiResponse)
-@schema(input_schema_class=GetEmailParams, output_schema_class=GetEmailResponse)
+@schema(input_schema_class=GetEmailParams, output_schema_class=GetEmailResponse, examples=examples["/resend/get_email"])
 async def get_email(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -88,7 +91,7 @@ async def get_email(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_email", response_model=ApiResponse)
-@schema(input_schema_class=UpdateEmailParams, output_schema_class=UpdateEmailResponse)
+@schema(input_schema_class=UpdateEmailParams, output_schema_class=UpdateEmailResponse, examples=examples["/resend/update_email"])
 async def update_email(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -104,7 +107,7 @@ async def update_email(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/cancel_email", response_model=ApiResponse)
-@schema(input_schema_class=CancelEmailParams, output_schema_class=CancelEmailResponse)
+@schema(input_schema_class=CancelEmailParams, output_schema_class=CancelEmailResponse, examples=examples["/resend/cancel_email"])
 async def cancel_email(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -120,7 +123,7 @@ async def cancel_email(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_domain", response_model=ApiResponse)
-@schema(input_schema_class=CreateDomainParams, output_schema_class=CreateDomainResponse)
+@schema(input_schema_class=CreateDomainParams, output_schema_class=CreateDomainResponse, examples=examples["/resend/create_domain"])
 async def create_domain(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -136,7 +139,7 @@ async def create_domain(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_domain", response_model=ApiResponse)
-@schema(input_schema_class=GetDomainParams, output_schema_class=GetDomainResponse)
+@schema(input_schema_class=GetDomainParams, output_schema_class=GetDomainResponse, examples=examples["/resend/get_domain"])
 async def get_domain(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -152,7 +155,7 @@ async def get_domain(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/verify_domain", response_model=ApiResponse)
-@schema(input_schema_class=VerifyDomainParams, output_schema_class=VerifyDomainResponse)
+@schema(input_schema_class=VerifyDomainParams, output_schema_class=VerifyDomainResponse, examples=examples["/resend/verify_domain"])
 async def verify_domain(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -168,7 +171,7 @@ async def verify_domain(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_domain", response_model=ApiResponse)
-@schema(input_schema_class=UpdateDomainParams, output_schema_class=UpdateDomainResponse)
+@schema(input_schema_class=UpdateDomainParams, output_schema_class=UpdateDomainResponse, examples=examples["/resend/update_domain"])
 async def update_domain(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -184,7 +187,7 @@ async def update_domain(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_domains", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=ListDomainsResponse)
+@schema(input_schema_class=None, output_schema_class=ListDomainsResponse, examples=examples["/resend/list_domains"])
 async def list_domains(
     service: ResendService = Depends(get_resend_service)
 ):
@@ -196,7 +199,7 @@ async def list_domains(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_domain", response_model=ApiResponse)
-@schema(input_schema_class=DeleteDomainParams, output_schema_class=DeleteDomainResponse)
+@schema(input_schema_class=DeleteDomainParams, output_schema_class=DeleteDomainResponse, examples=examples["/resend/delete_domain"])
 async def delete_domain(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -212,7 +215,7 @@ async def delete_domain(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_api_key", response_model=ApiResponse)
-@schema(input_schema_class=CreateApiKeyParams, output_schema_class=CreateApiKeyResponse)
+@schema(input_schema_class=CreateApiKeyParams, output_schema_class=CreateApiKeyResponse, examples=examples["/resend/create_api_key"])
 async def create_api_key(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -228,7 +231,7 @@ async def create_api_key(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_api_keys", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=ListApiKeysResponse)
+@schema(input_schema_class=None, output_schema_class=ListApiKeysResponse, examples=examples["/resend/list_api_keys"])
 async def list_api_keys(
     service: ResendService = Depends(get_resend_service)
 ):
@@ -240,7 +243,7 @@ async def list_api_keys(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_api_key", response_model=ApiResponse)
-@schema(input_schema_class=DeleteApiKeyParams, output_schema_class=DeleteApiKeyResponse)
+@schema(input_schema_class=DeleteApiKeyParams, output_schema_class=DeleteApiKeyResponse, examples=examples["/resend/delete_api_key"])
 async def delete_api_key(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -256,7 +259,7 @@ async def delete_api_key(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_broadcast", response_model=ApiResponse)
-@schema(input_schema_class=CreateBroadcastParams, output_schema_class=CreateBroadcastResponse)
+@schema(input_schema_class=CreateBroadcastParams, output_schema_class=CreateBroadcastResponse, examples=examples["/resend/create_broadcast"])
 async def create_broadcast(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -272,7 +275,7 @@ async def create_broadcast(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_broadcast", response_model=ApiResponse)
-@schema(input_schema_class=GetBroadcastParams, output_schema_class=GetBroadcastResponse)
+@schema(input_schema_class=GetBroadcastParams, output_schema_class=GetBroadcastResponse, examples=examples["/resend/get_broadcast"])
 async def get_broadcast(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -288,7 +291,7 @@ async def get_broadcast(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_broadcast", response_model=ApiResponse)
-@schema(input_schema_class=SendBroadcastParams, output_schema_class=SendBroadcastResponse)
+@schema(input_schema_class=SendBroadcastParams, output_schema_class=SendBroadcastResponse, examples=examples["/resend/send_broadcast"])
 async def send_broadcast(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -304,7 +307,7 @@ async def send_broadcast(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_broadcast", response_model=ApiResponse)
-@schema(input_schema_class=DeleteBroadcastParams, output_schema_class=DeleteBroadcastResponse)
+@schema(input_schema_class=DeleteBroadcastParams, output_schema_class=DeleteBroadcastResponse, examples=examples["/resend/delete_broadcast"])
 async def delete_broadcast(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -320,7 +323,7 @@ async def delete_broadcast(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_broadcasts", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=ListBroadcastsResponse)
+@schema(input_schema_class=None, output_schema_class=ListBroadcastsResponse, examples=examples["/resend/list_broadcasts"])
 async def list_broadcasts(
     service: ResendService = Depends(get_resend_service)
 ):
@@ -332,7 +335,7 @@ async def list_broadcasts(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_audience", response_model=ApiResponse)
-@schema(input_schema_class=CreateAudienceParams, output_schema_class=CreateAudienceResponse)
+@schema(input_schema_class=CreateAudienceParams, output_schema_class=CreateAudienceResponse, examples=examples["/resend/create_audience"])
 async def create_audience(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -348,7 +351,7 @@ async def create_audience(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_audience", response_model=ApiResponse)
-@schema(input_schema_class=GetAudienceParams, output_schema_class=GetAudienceResponse)
+@schema(input_schema_class=GetAudienceParams, output_schema_class=GetAudienceResponse, examples=examples["/resend/get_audience"])
 async def get_audience(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -364,7 +367,7 @@ async def get_audience(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_audience", response_model=ApiResponse)
-@schema(input_schema_class=DeleteAudienceParams, output_schema_class=DeleteAudienceResponse)
+@schema(input_schema_class=DeleteAudienceParams, output_schema_class=DeleteAudienceResponse, examples=examples["/resend/delete_audience"])
 async def delete_audience(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -380,7 +383,7 @@ async def delete_audience(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_audiences", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=ListAudiencesResponse)
+@schema(input_schema_class=None, output_schema_class=ListAudiencesResponse, examples=examples["/resend/list_audiences"])
 async def list_audiences(
     service: ResendService = Depends(get_resend_service)
 ):
@@ -392,7 +395,7 @@ async def list_audiences(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_contact", response_model=ApiResponse)
-@schema(input_schema_class=CreateContactParams, output_schema_class=CreateContactResponse)
+@schema(input_schema_class=CreateContactParams, output_schema_class=CreateContactResponse, examples=examples["/resend/create_contact"])
 async def create_contact(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -408,7 +411,7 @@ async def create_contact(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_contact", response_model=ApiResponse)
-@schema(input_schema_class=GetContactParams, output_schema_class=GetContactResponse)
+@schema(input_schema_class=GetContactParams, output_schema_class=GetContactResponse, examples=examples["/resend/get_contact"])
 async def get_contact(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -424,7 +427,7 @@ async def get_contact(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_contact", response_model=ApiResponse)
-@schema(input_schema_class=UpdateContactParams, output_schema_class=UpdateContactResponse)
+@schema(input_schema_class=UpdateContactParams, output_schema_class=UpdateContactResponse, examples=examples["/resend/update_contact"])
 async def update_contact(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -442,7 +445,7 @@ async def update_contact(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_contact", response_model=ApiResponse)
-@schema(input_schema_class=DeleteContactParams, output_schema_class=DeleteContactResponse)
+@schema(input_schema_class=DeleteContactParams, output_schema_class=DeleteContactResponse, examples=examples["/resend/delete_contact"])
 async def delete_contact(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)
@@ -460,7 +463,7 @@ async def delete_contact(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_contacts", response_model=ApiResponse)
-@schema(input_schema_class=ListContactsParams, output_schema_class=ListContactsResponse)
+@schema(input_schema_class=ListContactsParams, output_schema_class=ListContactsResponse, examples=examples["/resend/list_contacts"])
 async def list_contacts(
     params: Dict[str, Any] = Body(...),
     service: ResendService = Depends(get_resend_service)

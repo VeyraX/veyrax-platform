@@ -16,6 +16,7 @@ class ChannelMember(BaseModel):
     id: str
     name: str
     real_name: Optional[str]
+    is_bot: Optional[bool] = False
 
 class ChannelMemberList(BaseModel):
     members: List[ChannelMember]

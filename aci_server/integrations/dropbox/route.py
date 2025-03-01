@@ -16,8 +16,11 @@ from pydantic import ValidationError
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.utils import format_validation_error
 from ..common.auth import TokenService, DropboxTokenRefresher
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/dropbox directory
 
 async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
     try:
@@ -34,7 +37,7 @@ async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
         raise HTTPException(status_code=500, detail=f"Failed to initialize Dropbox service: {str(e)}")
 
 @router.post("/list_files", response_model=ApiResponse)
-@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse)
+@schema(input_schema_class=ListFilesParams, output_schema_class=ListFilesResponse, examples=examples["/dropbox/list_files"])
 async def list_files(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -50,7 +53,7 @@ async def list_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_file", response_model=ApiResponse)
-@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse)
+@schema(input_schema_class=GetFileParams, output_schema_class=GetFileResponse, examples=examples["/dropbox/get_file"])
 async def get_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -66,7 +69,7 @@ async def get_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/create_folder", response_model=ApiResponse)
-@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse)
+@schema(input_schema_class=CreateFolderParams, output_schema_class=CreateFolderResponse, examples=examples["/dropbox/create_folder"])
 async def create_folder(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -85,7 +88,7 @@ async def create_folder(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/upload_file", response_model=ApiResponse)
-@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse)
+@schema(input_schema_class=UploadFileParams, output_schema_class=UploadFileResponse, examples=examples["/dropbox/upload_file"])
 async def upload_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -105,7 +108,7 @@ async def upload_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/download_file")
-@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse, examples=examples["/dropbox/download_file"])
 async def download_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -123,7 +126,7 @@ async def download_file(
         raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @router.post("/delete_file", response_model=ApiResponse)
-@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse)
+@schema(input_schema_class=DeleteFileParams, output_schema_class=DeleteFileResponse, examples=examples["/dropbox/delete_file"])
 async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -139,7 +142,7 @@ async def delete_file(
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/move_file", response_model=ApiResponse)
-@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse)
+@schema(input_schema_class=MoveFileParams, output_schema_class=MoveFileResponse, examples=examples["/dropbox/move_file"])
 async def move_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -155,7 +158,7 @@ async def move_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/read_file")
-@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse)
+@schema(input_schema_class=ReadFileParams, output_schema_class=ReadFileResponse, examples=examples["/dropbox/read_file"])
 async def read_file(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -174,7 +177,7 @@ async def read_file(
         }
 
 @router.post("/create_shared_link", response_model=ApiResponse)
-@schema(input_schema_class=CreateSharedLinkParams, output_schema_class=CreateSharedLinkResponse)
+@schema(input_schema_class=CreateSharedLinkParams, output_schema_class=CreateSharedLinkResponse, examples=examples["/dropbox/create_shared_link"])
 async def create_shared_link(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -200,7 +203,7 @@ async def create_shared_link(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/search", response_model=ApiResponse)
-@schema(input_schema_class=SearchParams, output_schema_class=SearchResponse)
+@schema(input_schema_class=SearchParams, output_schema_class=SearchResponse, examples=examples["/dropbox/search"])
 async def search_files(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)
@@ -222,7 +225,7 @@ async def search_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search_continue", response_model=ApiResponse)
-@schema(input_schema_class=SearchContinueParams, output_schema_class=SearchContinueResponse)
+@schema(input_schema_class=SearchContinueParams, output_schema_class=SearchContinueResponse, examples=examples["/dropbox/search_continue"])
 async def search_continue(
     params: Dict[str, Any] = Body(...),
     service: DropboxService = Depends(get_dropbox_service)

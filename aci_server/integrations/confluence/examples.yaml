@@ -65,7 +65,7 @@ routes:
             "message": null
           }
 
-  - endpoint: /confluence/get-page
+  - endpoint: /confluence/get_page
     examples:
       - scenario: "Get Page Details"
         description: "Retrieves detailed information about a specific page"

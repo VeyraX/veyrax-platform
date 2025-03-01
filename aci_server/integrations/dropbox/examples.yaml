@@ -1,0 +1,347 @@
+routes:
+  - endpoint: /dropbox/list_files
+    examples:
+      - scenario: "List Files in a Folder"
+        description: "Retrieves a list of files and folders within a specified Dropbox folder"
+        input_json: |
+          {
+            "filters": {
+              "path": "/Documents",
+              "recursive": false,
+              "limit": 20
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "files": [
+                {
+                  "id": "id:fj39fj39fjw0f9fw",
+                  "name": "Project Proposal.docx",
+                  "path_display": "/Documents/Project Proposal.docx",
+                  "path_lower": "/documents/project proposal.docx",
+                  "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "size": 45231,
+                  "is_folder": false,
+                  "created_time": "2023-07-15T14:32:21Z",
+                  "modified_time": "2023-07-15T14:32:21Z",
+                  "shared_link": null
+                },
+                {
+                  "id": "id:kd82ksks92ks92ls",
+                  "name": "Marketing",
+                  "path_display": "/Documents/Marketing",
+                  "path_lower": "/documents/marketing",
+                  "mime_type": null,
+                  "size": null,
+                  "is_folder": true,
+                  "created_time": "2023-06-10T09:15:33Z",
+                  "modified_time": "2023-06-10T09:15:33Z",
+                  "shared_link": null
+                }
+              ],
+              "cursor": "AAHj38djfk2389fjs9f2j",
+              "has_more": false
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/get_file
+    examples:
+      - scenario: "Get File Metadata"
+        description: "Retrieves metadata about a specific file or folder"
+        input_json: |
+          {
+            "path": "/Documents/Project Proposal.docx"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:fj39fj39fjw0f9fw",
+              "name": "Project Proposal.docx",
+              "path_display": "/Documents/Project Proposal.docx",
+              "path_lower": "/documents/project proposal.docx",
+              "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "size": 45231,
+              "is_folder": false,
+              "created_time": "2023-07-15T14:32:21Z",
+              "modified_time": "2023-07-15T14:32:21Z",
+              "shared_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/create_folder
+    examples:
+      - scenario: "Create New Folder"
+        description: "Creates a new folder in Dropbox"
+        input_json: |
+          {
+            "folder": {
+              "path": "/Documents/New Project"
+            },
+            "autorename": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:d92jd92jd92j29dj",
+              "name": "New Project",
+              "path_display": "/Documents/New Project",
+              "path_lower": "/documents/new project",
+              "mime_type": null,
+              "size": null,
+              "is_folder": true,
+              "created_time": "2023-08-01T10:45:22Z",
+              "modified_time": "2023-08-01T10:45:22Z",
+              "shared_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/upload_file
+    examples:
+      - scenario: "Upload a File"
+        description: "Uploads a new file to Dropbox using base64-encoded content"
+        input_json: |
+          {
+            "path": "/Documents/hello.txt",
+            "file_content": "SGVsbG8sIFdvcmxkIQ==",
+            "mode": "add"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:k39dk39dk39d93kd",
+              "name": "hello.txt",
+              "path_display": "/Documents/hello.txt",
+              "path_lower": "/documents/hello.txt",
+              "mime_type": "text/plain",
+              "size": 13,
+              "is_folder": false,
+              "created_time": "2023-08-02T15:30:45Z",
+              "modified_time": "2023-08-02T15:30:45Z",
+              "shared_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/download_file
+    examples:
+      - scenario: "Download a File"
+        description: "Downloads a file from Dropbox and returns its content as base64"
+        input_json: |
+          {
+            "path": "/Documents/hello.txt"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "file_content": "SGVsbG8sIFdvcmxkIQ==",
+              "metadata": {
+                "id": "id:k39dk39dk39d93kd",
+                "name": "hello.txt",
+                "path_display": "/Documents/hello.txt",
+                "path_lower": "/documents/hello.txt",
+                "mime_type": "text/plain",
+                "size": 13
+              }
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/delete_file
+    examples:
+      - scenario: "Delete a File or Folder"
+        description: "Permanently removes a file or folder from Dropbox"
+        input_json: |
+          {
+            "path": "/Documents/old_file.txt"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:j29dj29dj29d92jd",
+              "name": "old_file.txt",
+              "path_display": "/Documents/old_file.txt",
+              "path_lower": "/documents/old_file.txt",
+              "mime_type": "text/plain",
+              "size": 1024,
+              "is_folder": false,
+              "created_time": "2023-06-15T09:30:00Z",
+              "modified_time": "2023-06-15T09:30:00Z",
+              "shared_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/move_file
+    examples:
+      - scenario: "Move or Rename a File"
+        description: "Moves or renames a file or folder within Dropbox"
+        input_json: |
+          {
+            "from_path": "/Documents/draft.txt",
+            "to_path": "/Documents/Finished/final.txt"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:k39dk39dk39d93kj",
+              "name": "final.txt",
+              "path_display": "/Documents/Finished/final.txt",
+              "path_lower": "/documents/finished/final.txt",
+              "mime_type": "text/plain",
+              "size": 2048,
+              "is_folder": false,
+              "created_time": "2023-07-20T11:25:33Z",
+              "modified_time": "2023-08-02T16:45:12Z",
+              "shared_link": null
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/read_file
+    examples:
+      - scenario: "Read Text File Content"
+        description: "Reads and returns the content of a text file"
+        input_json: |
+          {
+            "path": "/Documents/notes.txt"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "success": true,
+            "data": {
+              "content": "This is the content of the text file.\nIt can contain multiple lines.",
+              "metadata": {
+                "id": "id:f30fjw9fjw9fj39f",
+                "name": "notes.txt",
+                "path_display": "/Documents/notes.txt",
+                "path_lower": "/documents/notes.txt",
+                "mime_type": "text/plain",
+                "size": 67
+              }
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/create_shared_link
+    examples:
+      - scenario: "Create a Shared Link"
+        description: "Creates a shareable link for a file or folder"
+        input_json: |
+          {
+            "path": "/Documents/Presentation.pptx",
+            "settings": {
+              "requested_visibility": "public",
+              "audience": "public",
+              "access": "viewer",
+              "allow_download": true
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "id:j39fj39fj39j93fj",
+              "name": "Presentation.pptx",
+              "path_display": "/Documents/Presentation.pptx",
+              "path_lower": "/documents/presentation.pptx",
+              "mime_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+              "size": 1543200,
+              "is_folder": false,
+              "created_time": "2023-07-25T13:45:22Z",
+              "modified_time": "2023-07-25T13:45:22Z",
+              "shared_link": "https://www.dropbox.com/s/abc123def456/Presentation.pptx"
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/search
+    examples:
+      - scenario: "Search for Files"
+        description: "Searches for files and folders matching a query string"
+        input_json: |
+          {
+            "query": "project",
+            "path": "/Documents",
+            "max_results": 20,
+            "filename_only": true,
+            "file_status": "active"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "files": [
+                {
+                  "id": "id:fj39fj39fjw0f9fw",
+                  "name": "Project Proposal.docx",
+                  "path_display": "/Documents/Project Proposal.docx",
+                  "path_lower": "/documents/project proposal.docx",
+                  "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "size": 45231,
+                  "is_folder": false,
+                  "created_time": "2023-07-15T14:32:21Z",
+                  "modified_time": "2023-07-15T14:32:21Z",
+                  "shared_link": null
+                },
+                {
+                  "id": "id:d92jd92jd92j29dj",
+                  "name": "New Project",
+                  "path_display": "/Documents/New Project",
+                  "path_lower": "/documents/new project",
+                  "mime_type": null,
+                  "size": null,
+                  "is_folder": true,
+                  "created_time": "2023-08-01T10:45:22Z",
+                  "modified_time": "2023-08-01T10:45:22Z",
+                  "shared_link": null
+                }
+              ],
+              "cursor": "AAHdkj38f2j38fj38fj",
+              "has_more": false
+            },
+            "message": null
+          }
+
+  - endpoint: /dropbox/search_continue
+    examples:
+      - scenario: "Continue Search Results"
+        description: "Continues a search operation using a cursor from a previous search"
+        input_json: |
+          {
+            "cursor": "AAHdkj38f2j38fj38fj"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "files": [
+                {
+                  "id": "id:k39dk39dk2kd29dk",
+                  "name": "Project Timeline.xlsx",
+                  "path_display": "/Documents/Project Timeline.xlsx",
+                  "path_lower": "/documents/project timeline.xlsx",
+                  "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "size": 28456,
+                  "is_folder": false,
+                  "created_time": "2023-07-18T16:20:11Z",
+                  "modified_time": "2023-07-18T16:20:11Z",
+                  "shared_link": null
+                }
+              ],
+              "cursor": null,
+              "has_more": false
+            },
+            "message": null
+          } 

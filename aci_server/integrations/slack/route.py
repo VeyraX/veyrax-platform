@@ -16,9 +16,12 @@ from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.auth import TokenService, SlackTokenRefresher
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 import os
 
 router = APIRouter(prefix="/slack", tags=["slack"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/slack directory
 
 async def get_slack_service(request: FastAPIRequest):
     try:
@@ -36,7 +39,7 @@ async def get_slack_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Slack service: {str(e)}")
 
 @router.post("/list_channels", response_model=ApiResponse)
-@schema(input_schema_class=ListChannelsParams, output_schema_class=ListChannelsResponse)
+@schema(input_schema_class=ListChannelsParams, output_schema_class=ListChannelsResponse, examples=examples["/slack/list_channels"])
 async def list_channels(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -52,7 +55,7 @@ async def list_channels(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_channel_members", response_model=ApiResponse)
-@schema(input_schema_class=ListChannelMembersParams, output_schema_class=ListChannelMembersResponse)
+@schema(input_schema_class=ListChannelMembersParams, output_schema_class=ListChannelMembersResponse, examples=examples["/slack/list_channel_members"])
 async def list_channel_members(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -68,7 +71,7 @@ async def list_channel_members(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_direct_messages", response_model=ApiResponse)
-@schema(input_schema_class=ListDirectMessagesParams, output_schema_class=ListDirectMessagesResponse)
+@schema(input_schema_class=ListDirectMessagesParams, output_schema_class=ListDirectMessagesResponse, examples=examples["/slack/list_direct_messages"])
 async def list_direct_messages(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -84,7 +87,7 @@ async def list_direct_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/post_message", response_model=ApiResponse)
-@schema(input_schema_class=PostMessageParams, output_schema_class=PostMessageResponse)
+@schema(input_schema_class=PostMessageParams, output_schema_class=PostMessageResponse, examples=examples["/slack/post_message"])
 async def post_message(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -100,7 +103,7 @@ async def post_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_dm", response_model=ApiResponse)
-@schema(input_schema_class=SendDmParams, output_schema_class=SendDmResponse)
+@schema(input_schema_class=SendDmParams, output_schema_class=SendDmResponse, examples=examples["/slack/send_dm"])
 async def send_dm(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -116,7 +119,7 @@ async def send_dm(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/reply_in_thread", response_model=ApiResponse)
-@schema(input_schema_class=ReplyInThreadParams, output_schema_class=ReplyInThreadResponse)
+@schema(input_schema_class=ReplyInThreadParams, output_schema_class=ReplyInThreadResponse, examples=examples["/slack/reply_in_thread"])
 async def reply_in_thread(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -132,7 +135,7 @@ async def reply_in_thread(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_thread_messages", response_model=ApiResponse)
-@schema(input_schema_class=ListThreadMessagesParams, output_schema_class=ListThreadMessagesResponse)
+@schema(input_schema_class=ListThreadMessagesParams, output_schema_class=ListThreadMessagesResponse, examples=examples["/slack/list_thread_messages"])
 async def list_thread_messages(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -148,7 +151,7 @@ async def list_thread_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_channel_messages", response_model=ApiResponse)
-@schema(input_schema_class=ListChannelMessagesParams, output_schema_class=ListChannelMessagesResponse)
+@schema(input_schema_class=ListChannelMessagesParams, output_schema_class=ListChannelMessagesResponse, examples=examples["/slack/list_channel_messages"])
 async def list_channel_messages(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)
@@ -164,7 +167,7 @@ async def list_channel_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_direct_messages_with_user", response_model=ApiResponse)
-@schema(input_schema_class=ListDirectMessagesWithUserParams, output_schema_class=ListDirectMessagesWithUserResponse)
+@schema(input_schema_class=ListDirectMessagesWithUserParams, output_schema_class=ListDirectMessagesWithUserResponse, examples=examples["/slack/list_direct_messages_with_user"])
 async def list_direct_messages_with_user(
     params: Dict[str, Any] = Body(...),
     service: SlackService = Depends(get_slack_service)

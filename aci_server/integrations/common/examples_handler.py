@@ -46,22 +46,18 @@ class ExamplesLoader:
     def _load_file(self) -> None:
         """Reads the YAML file and populates an internal route -> examples map."""
         if not os.path.exists(self.examples_file):
-            print(f"DEBUG: Examples file not found at path: {self.examples_file}")
             # No file found, leave route map empty
             return
         
-        print(f"DEBUG: Loading examples from file: {self.examples_file}")
         with open(self.examples_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         
         endpoints_list = data.get(self.top_key, [])
-        print(f"DEBUG: Found {len(endpoints_list)} endpoints under '{self.top_key}' key")
         
         for route_info in endpoints_list:
             endpoint_path = route_info.get("endpoint")
             scenario_list = route_info.get("examples", [])
             if endpoint_path:
-                print(f"DEBUG: Loading {len(scenario_list)} examples for endpoint: {endpoint_path}")
                 self._route_map[endpoint_path] = scenario_list
 
     def _find_similar_route(self, route_name: str) -> Optional[str]:
@@ -119,18 +115,13 @@ class ExamplesLoader:
         Returns a list of example definitions for the specified route name 
         (like '/confluence/spaces'), or None if no examples are found.
         """
-        print(f"DEBUG: Searching for examples for route: {route_name}")
         examples = self._route_map.get(route_name)
         if examples is None:
             similar_route = self._find_similar_route(route_name)
             if similar_route:
-                print(f"DEBUG: No exact match found. Closest match was: {similar_route}")
                 warnings.warn(f"No examples found for route: {route_name}. Did you mean '{similar_route}'?")
             else:
-                print(f"DEBUG: No examples found and no similar routes found for: {route_name}")
                 warnings.warn(f"No examples found for route: {route_name}")
-        else:
-            print(f"DEBUG: Found {len(examples)} examples for route: {route_name}")
         return examples
 
 #

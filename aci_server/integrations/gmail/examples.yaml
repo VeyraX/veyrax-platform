@@ -1,0 +1,237 @@
+routes:
+  - endpoint: /gmail/get_messages
+    examples:
+      - scenario: "List Gmail Messages"
+        description: "Retrieves a list of messages from Gmail with optional filtering"
+        input_json: |
+          {
+            "filters": {
+              "body_keywords": "important",
+              "recipient": "example@gmail.com",
+              "subject_keywords": "project",
+              "after_date": "2023-01-01",
+              "before_date": "2023-12-31",
+              "max_results": 10
+            },
+            "pageToken": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "msg123abc",
+                  "thread_id": "thread123",
+                  "subject": "Project Update",
+                  "snippet": "Here's the latest update on our project...",
+                  "body": "Here's the latest update on our project. We've made significant progress on...",
+                  "recipient": "example@gmail.com",
+                  "sender": "sender@example.com",
+                  "date": "2023-03-15T14:30:00Z",
+                  "html_link": "https://mail.google.com/mail/u/0/#inbox/msg123abc"
+                },
+                {
+                  "id": "msg456def",
+                  "thread_id": "thread456",
+                  "subject": "Important Project Meeting",
+                  "snippet": "The important project meeting is scheduled for...",
+                  "body": "The important project meeting is scheduled for tomorrow at 2 PM. Please prepare...",
+                  "recipient": "example@gmail.com",
+                  "sender": "manager@example.com",
+                  "date": "2023-03-10T09:15:00Z",
+                  "html_link": "https://mail.google.com/mail/u/0/#inbox/msg456def"
+                }
+              ],
+              "pageToken": "nextPage123"
+            },
+            "message": null
+          }
+
+  - endpoint: /gmail/get_message
+    examples:
+      - scenario: "Get Specific Email"
+        description: "Retrieves a specific email message by its ID"
+        input_json: |
+          {
+            "message_id": "msg123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "msg123abc",
+              "thread_id": "thread123",
+              "subject": "Project Update",
+              "snippet": "Here's the latest update on our project...",
+              "body": "Here's the latest update on our project. We've made significant progress on the development phase. Please review the attached documents and provide feedback by Friday.\n\nBest regards,\nProject Team",
+              "recipient": "recipient@example.com",
+              "sender": "sender@example.com",
+              "date": "2023-03-15T14:30:00Z",
+              "html_link": "https://mail.google.com/mail/u/0/#inbox/msg123abc",
+              "labels": ["INBOX", "IMPORTANT"],
+              "draft_id": null
+            },
+            "message": null
+          }
+
+  - endpoint: /gmail/delete_message
+    examples:
+      - scenario: "Delete Email"
+        description: "Permanently deletes an email message"
+        input_json: |
+          {
+            "message_id": "msg123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "status": "success",
+            "message": "Message successfully deleted"
+          }
+
+  - endpoint: /gmail/send_message
+    examples:
+      - scenario: "Send Draft Email"
+        description: "Sends an email that was previously saved as a draft"
+        input_json: |
+          {
+            "message_id": "msg456def"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "msg456def",
+              "thread_id": "thread456",
+              "subject": "[Automatic Test] Draft Message",
+              "snippet": "This is a test draft message",
+              "body": "This is a test draft message",
+              "recipient": "veyraxservice@gmail.com",
+              "sender": "me@example.com",
+              "date": "2023-08-10T12:15:30Z",
+              "html_link": "https://mail.google.com/mail/u/0/#sent/msg456def",
+              "labels": ["SENT"],
+              "draft_id": null
+            },
+            "message": "Message sent successfully"
+          }
+
+  - endpoint: /gmail/get_drafts
+    examples:
+      - scenario: "List Draft Emails"
+        description: "Retrieves a list of email drafts"
+        input_json: |
+          {
+            "pageToken": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "messages": [
+                {
+                  "id": "msg789ghi",
+                  "thread_id": "thread789",
+                  "subject": "[Automatic Test] Draft Message",
+                  "snippet": "This is a test draft message",
+                  "body": "This is a test draft message",
+                  "recipient": "veyraxservice@gmail.com",
+                  "sender": "me@example.com",
+                  "date": "2023-08-05T09:30:15Z",
+                  "html_link": "https://mail.google.com/mail/u/0/#drafts/msg789ghi",
+                  "draft_id": "draft123"
+                },
+                {
+                  "id": "msg101jkl",
+                  "thread_id": "thread101",
+                  "subject": "Meeting Notes",
+                  "snippet": "Here are the meeting notes from...",
+                  "body": "Here are the meeting notes from yesterday's discussion. We decided to...",
+                  "recipient": "team@example.com",
+                  "sender": "me@example.com",
+                  "date": "2023-08-01T16:45:00Z",
+                  "html_link": "https://mail.google.com/mail/u/0/#drafts/msg101jkl",
+                  "draft_id": "draft456"
+                }
+              ],
+              "pageToken": null
+            },
+            "message": null
+          }
+
+  - endpoint: /gmail/create_draft
+    examples:
+      - scenario: "Create New Draft Email"
+        description: "Creates a new email draft"
+        input_json: |
+          {
+            "draft_args": {
+              "recipient": "veyraxservice@gmail.com",
+              "subject": "[Automatic Test] Draft Message",
+              "body": "This is a test draft message"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "msg202pqr",
+              "thread_id": "thread202",
+              "subject": "[Automatic Test] Draft Message",
+              "snippet": "This is a test draft message",
+              "body": "This is a test draft message",
+              "recipient": "veyraxservice@gmail.com",
+              "sender": "me@example.com",
+              "date": "2023-08-10T11:20:00Z",
+              "html_link": "https://mail.google.com/mail/u/0/#drafts/msg202pqr",
+              "draft_id": "draft789"
+            },
+            "message": "Draft created successfully"
+          }
+
+  - endpoint: /gmail/delete_draft
+    examples:
+      - scenario: "Delete Draft Email"
+        description: "Permanently deletes an email draft"
+        input_json: |
+          {
+            "draft_id": "draft789"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "status": "success",
+            "message": "Draft successfully deleted"
+          }
+
+  - endpoint: /gmail/modify_draft
+    examples:
+      - scenario: "Update Draft Email"
+        description: "Modifies an existing email draft"
+        input_json: |
+          {
+            "draft_id": "draft789",
+            "update_args": {
+              "recipient": "veyraxservice@gmail.com",
+              "subject": "Updated Subject",
+              "body": "Updated content"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "msg202pqr",
+              "thread_id": "thread202",
+              "subject": "Updated Subject",
+              "snippet": "Updated content",
+              "body": "Updated content",
+              "recipient": "veyraxservice@gmail.com",
+              "sender": "me@example.com",
+              "date": "2023-08-10T11:25:30Z",
+              "html_link": "https://mail.google.com/mail/u/0/#drafts/msg202pqr",
+              "draft_id": "draft789"
+            },
+            "message": "Draft updated successfully"
+          } 

@@ -1,0 +1,179 @@
+routes:
+  - endpoint: /perplexity/create_completion
+    examples:
+      - scenario: "Basic Text Completion"
+        description: "Generate a completion using only the required parameters"
+        input_json: |
+          {
+            "messages": [{"role": "user", "content": "What is AI?"}],
+            "model": "sonar"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "cmpl-12345abcde",
+              "model": "sonar",
+              "object": "completion",
+              "created": 1677858242,
+              "citations": [
+                "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                "https://www.ibm.com/cloud/learn/what-is-artificial-intelligence"
+              ],
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "Artificial Intelligence (AI) refers to computer systems designed to perform tasks that typically require human intelligence. These tasks include learning, reasoning, problem-solving, perception, language understanding, and decision making. AI systems work by analyzing large amounts of data, recognizing patterns, and using those patterns to make predictions or decisions.\n\nThere are two main categories of AI:\n\n1. Narrow or Weak AI: Systems designed for a specific task, like voice assistants, recommendation algorithms, or autonomous vehicles.\n\n2. General or Strong AI: Systems with human-level intelligence across a wide range of tasks. This type of AI doesn't fully exist yet.\n\nModern AI technologies include machine learning (where systems learn from data) and deep learning (using neural networks with many layers). These technologies power many applications we use daily, from search engines and social media algorithms to virtual assistants and facial recognition systems."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 6,
+                "completion_tokens": 182,
+                "total_tokens": 188
+              }
+            },
+            "message": null
+          }
+
+      - scenario: "Advanced Text Completion with Full Parameters"
+        description: "Generate a completion using all available parameters"
+        input_json: |
+          {
+            "messages": [{"role": "user", "content": "Explain quantum computing"}],
+            "model": "sonar",
+            "max_tokens": 500,
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "return_images": true,
+            "return_related_questions": true,
+            "top_k": 3,
+            "stream": false,
+            "presence_penalty": 0,
+            "frequency_penalty": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "cmpl-67890fghij",
+              "model": "sonar",
+              "object": "completion",
+              "created": 1677859555,
+              "citations": [
+                "https://www.ibm.com/quantum/what-is-quantum-computing",
+                "https://www.nature.com/articles/d41586-019-02936-3",
+                "https://www.sciencedirect.com/topics/computer-science/quantum-computing"
+              ],
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "Quantum computing is a type of computation that harnesses the unique properties of quantum mechanics to process information in ways that classical computers cannot. While classical computers use bits as the smallest unit of data (represented as either a 0 or 1), quantum computers use quantum bits or 'qubits'.\n\nHere are the key concepts that make quantum computing revolutionary:\n\n1. **Superposition**: Unlike classical bits, qubits can exist in multiple states simultaneously. This means they can be both 0 and 1 at the same time, allowing quantum computers to process vast amounts of possibilities at once.\n\n2. **Entanglement**: Qubits can become 'entangled,' meaning the state of one qubit instantly affects another, no matter the distance between them. This allows quantum computers to perform complex calculations with correlated qubits.\n\n3. **Quantum Interference**: Quantum algorithms manipulate qubits to increase the probability of correct answers and decrease the probability of wrong answers through quantum interference.\n\nQuantum computers excel at solving specific problems that are practically impossible for classical computers, such as:\n- Factoring large numbers (important for cryptography)\n- Simulating quantum systems (crucial for chemistry and material science)\n- Optimization problems (supply chain, traffic flow, financial modeling)\n- Machine learning and AI applications\n\nHowever, quantum computers are still in their early stages of development. They face significant challenges including qubit stability, error correction, and scaling up to useful sizes. Current quantum computers have dozens to hundreds of qubits, but millions may be needed for some of the most promising applications.",
+                    "related_questions": [
+                      "What are the limitations of quantum computing?",
+                      "How does quantum encryption work?",
+                      "When will quantum computers be commercially available?"
+                    ]
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 8,
+                "completion_tokens": 342,
+                "total_tokens": 350
+              }
+            },
+            "message": null
+          }
+          
+      - scenario: "Text Completion with Search Domain Filter"
+        description: "Generate a completion using the search domain filter for academic sources"
+        input_json: |
+          {
+            "messages": [{"role": "user", "content": "What are the latest advancements in CRISPR technology?"}],
+            "model": "sonar",
+            "max_tokens": 800,
+            "temperature": 0.3,
+            "search_domain_filter": "academic",
+            "return_related_questions": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "cmpl-ab123cde456",
+              "model": "sonar",
+              "object": "completion",
+              "created": 1677861000,
+              "citations": [
+                "https://www.nature.com/articles/s41586-023-05794-2",
+                "https://www.science.org/doi/10.1126/science.abg5793",
+                "https://www.cell.com/cell/fulltext/S0092-8674(21)00783-4"
+              ],
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "Recent advancements in CRISPR (Clustered Regularly Interspaced Short Palindromic Repeats) technology have significantly expanded its capabilities and applications. Here are some of the latest developments:\n\n1. **Prime Editing**: Developed in 2019 and refined since, prime editing is a more precise version of CRISPR that can make targeted insertions, deletions, and all 12 possible base-to-base conversions without requiring double-strand breaks or donor DNA templates. This technique has shown lower off-target effects than traditional CRISPR-Cas9.\n\n2. **Base Editing**: This technique allows scientists to change individual DNA letters without cutting the DNA backbone, reducing unwanted mutations. Recent improvements have expanded the range of possible edits and increased efficiency.\n\n3. **CRISPR-Cas13**: While CRISPR-Cas9 targets DNA, CRISPR-Cas13 systems target RNA. This has opened new therapeutic possibilities for temporary gene expression modification without permanent genomic changes. Recent research has optimized these systems for improved specificity.\n\n4. **In vivo CRISPR Delivery**: Significant progress has been made in delivering CRISPR components directly into living organisms. Lipid nanoparticles, engineered viral vectors, and other delivery methods have improved targeting specific tissues and organs.\n\n5. **CRISPR Screens**: New techniques allow for high-throughput functional genomics studies, enabling researchers to systematically investigate gene function across entire genomes.\n\n6. **Miniaturized Cas Enzymes**: Researchers have discovered and engineered smaller Cas proteins (like Cas12f) that are easier to deliver using viral vectors, addressing one of the major limitations in CRISPR therapeutics.\n\n7. **Anti-CRISPR Proteins**: These naturally occurring proteins that inhibit CRISPR-Cas systems have been adapted as regulators to control gene editing activity more precisely.\n\n8. **Clinical Applications**: CRISPR therapies for sickle cell disease, beta-thalassemia, and certain forms of inherited blindness have shown promising results in clinical trials, with some receiving regulatory approvals.\n\nThese advances are collectively moving CRISPR technology toward safer, more precise, and more versatile gene editing capabilities with significant implications for treating genetic diseases, developing improved crops, and advancing biological research.",
+                    "related_questions": [
+                      "What are the ethical concerns with CRISPR technology?",
+                      "How does prime editing differ from traditional CRISPR-Cas9?",
+                      "What diseases are currently being treated with CRISPR in clinical trials?"
+                    ]
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 14,
+                "completion_tokens": 452,
+                "total_tokens": 466
+              }
+            },
+            "message": null
+          }
+
+      - scenario: "Streaming Text Completion"
+        description: "Request a streaming completion (note: the actual streaming behavior would be handled by the client)"
+        input_json: |
+          {
+            "messages": [{"role": "user", "content": "Write a short poem about technology"}],
+            "model": "sonar",
+            "max_tokens": 200,
+            "temperature": 0.8,
+            "stream": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "cmpl-stream123456",
+              "model": "sonar",
+              "object": "completion.chunk",
+              "created": 1677862000,
+              "citations": [],
+              "choices": [
+                {
+                  "index": 0,
+                  "delta": {
+                    "role": "assistant",
+                    "content": "Digital Dreams\n\nSilicon veins and electric hearts,\nWhere human thought and lightning parts.\nPixels dance across the screen,\nBridging worlds, the space between.\n\nFingerprints on glass and steel,\nInvisible threads that make us feel\nConnected to the distant stars,\nThrough circuits, codes, and avatar.\n\nIn this realm of ones and zeros,\nWe build our future, craft our heroes.\nTechnology: our tool, our art—\nAn extension of the human heart."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 9,
+                "completion_tokens": 98,
+                "total_tokens": 107
+              }
+            },
+            "message": null
+          } 

@@ -17,8 +17,11 @@ from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
+
+examples = ExamplesLoader()  # Will automatically use /integrations/gmail directory
 
 async def get_gmail_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'gmail')
@@ -43,7 +46,7 @@ async def get_gmail_service(request: FastAPIRequest):
 
 
 @router.post("/get_messages", response_model=ApiResponse)
-@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse, examples=examples["/gmail/get_messages"])
 async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -60,7 +63,7 @@ async def get_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_message", response_model=ApiResponse)
-@schema(input_schema_class=GetMessageParams, output_schema_class=GetMessageResponse)
+@schema(input_schema_class=GetMessageParams, output_schema_class=GetMessageResponse, examples=examples["/gmail/get_message"])
 async def get_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -76,7 +79,7 @@ async def get_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_message")
-@schema(input_schema_class=DeleteMessageParams, output_schema_class=DeleteMessageResponse)
+@schema(input_schema_class=DeleteMessageParams, output_schema_class=DeleteMessageResponse, examples=examples["/gmail/delete_message"])
 async def delete_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -93,7 +96,7 @@ async def delete_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/send_message", response_model=ApiResponse)
-@schema(input_schema_class=SendMessageParams, output_schema_class=SendMessageResponse)
+@schema(input_schema_class=SendMessageParams, output_schema_class=SendMessageResponse, examples=examples["/gmail/send_message"])
 async def send_message(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -109,7 +112,7 @@ async def send_message(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_drafts", response_model=ApiResponse)
-@schema(input_schema_class=GetDraftsParams, output_schema_class=GetDraftsResponse)
+@schema(input_schema_class=GetDraftsParams, output_schema_class=GetDraftsResponse, examples=examples["/gmail/get_drafts"])
 async def get_drafts(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -125,7 +128,7 @@ async def get_drafts(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_draft", response_model=ApiResponse)
-@schema(input_schema_class=CreateDraftParams, output_schema_class=CreateDraftResponse)
+@schema(input_schema_class=CreateDraftParams, output_schema_class=CreateDraftResponse, examples=examples["/gmail/create_draft"])
 async def create_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -141,7 +144,7 @@ async def create_draft(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/delete_draft")
-@schema(input_schema_class=DeleteDraftParams, output_schema_class=DeleteDraftResponse)
+@schema(input_schema_class=DeleteDraftParams, output_schema_class=DeleteDraftResponse, examples=examples["/gmail/delete_draft"])
 async def delete_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)
@@ -158,7 +161,7 @@ async def delete_draft(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/modify_draft", response_model=ApiResponse)
-@schema(input_schema_class=ModifyDraftParams, output_schema_class=ModifyDraftResponse)
+@schema(input_schema_class=ModifyDraftParams, output_schema_class=ModifyDraftResponse, examples=examples["/gmail/modify_draft"])
 async def modify_draft(
     params: Dict[str, Any] = Body(...),
     service: GmailService = Depends(get_gmail_service)

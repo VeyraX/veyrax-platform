@@ -1,0 +1,770 @@
+routes:
+  - endpoint: /linear/list_issues
+    examples:
+      - scenario: "List Linear Issues"
+        description: "Retrieves a paginated list of Linear issues"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "1234-5678-91011",
+                  "title": "Implement new authentication flow",
+                  "identifier": "ENG-123",
+                  "description": "We need to implement OAuth2 for better security",
+                  "priority": 2,
+                  "state": {
+                    "id": "state-123",
+                    "name": "In Progress",
+                    "color": "#FFFF00"
+                  },
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering"
+                  },
+                  "assignee": {
+                    "id": "user-123",
+                    "name": "Jane Smith",
+                    "email": "jane@example.com"
+                  },
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "created_at": "2023-05-15T09:45:23Z",
+                  "updated_at": "2023-05-16T14:32:17Z",
+                  "url": "https://linear.app/company/issue/ENG-123",
+                  "labels": [
+                    {
+                      "id": "label-123",
+                      "name": "frontend",
+                      "color": "#FF0000"
+                    }
+                  ]
+                },
+                {
+                  "id": "2345-6789-10111",
+                  "title": "Fix critical bug in payment processing",
+                  "identifier": "ENG-124",
+                  "description": "Users are experiencing failed payments intermittently",
+                  "priority": 1,
+                  "state": {
+                    "id": "state-456",
+                    "name": "Todo",
+                    "color": "#0000FF"
+                  },
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering"
+                  },
+                  "assignee": null,
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "created_at": "2023-05-17T11:23:45Z",
+                  "updated_at": "2023-05-17T11:23:45Z",
+                  "url": "https://linear.app/company/issue/ENG-124",
+                  "labels": []
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearIssueCard",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/search_issues
+    examples:
+      - scenario: "Search for Linear Issues"
+        description: "Searches for issues matching a specific query string"
+        input_json: |
+          {
+            "query": "authentication",
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "1234-5678-91011",
+                  "title": "Implement new authentication flow",
+                  "identifier": "ENG-123",
+                  "description": "We need to implement OAuth2 for better security",
+                  "priority": 2,
+                  "state": {
+                    "id": "state-123",
+                    "name": "In Progress",
+                    "color": "#FFFF00"
+                  },
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering"
+                  },
+                  "assignee": {
+                    "id": "user-123",
+                    "name": "Jane Smith",
+                    "email": "jane@example.com"
+                  },
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "created_at": "2023-05-15T09:45:23Z",
+                  "updated_at": "2023-05-16T14:32:17Z",
+                  "url": "https://linear.app/company/issue/ENG-123",
+                  "labels": [
+                    {
+                      "id": "label-123",
+                      "name": "frontend",
+                      "color": "#FF0000"
+                    }
+                  ]
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearIssueCard",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/filter_issues
+    examples:
+      - scenario: "Filter Linear Issues"
+        description: "Retrieves issues that match specified filters"
+        input_json: |
+          {
+            "filters": {
+              "assignee_id": "user-123",
+              "creator_id": null,
+              "project_id": null,
+              "state_id": "state-123",
+              "priority": 2,
+              "created_after": "2023-01-01T00:00:00Z",
+              "created_before": null
+            },
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "1234-5678-91011",
+                  "title": "Implement new authentication flow",
+                  "identifier": "ENG-123",
+                  "description": "We need to implement OAuth2 for better security",
+                  "priority": 2,
+                  "state": {
+                    "id": "state-123",
+                    "name": "In Progress",
+                    "color": "#FFFF00"
+                  },
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering"
+                  },
+                  "assignee": {
+                    "id": "user-123",
+                    "name": "Jane Smith",
+                    "email": "jane@example.com"
+                  },
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "created_at": "2023-05-15T09:45:23Z",
+                  "updated_at": "2023-05-16T14:32:17Z",
+                  "url": "https://linear.app/company/issue/ENG-123",
+                  "labels": [
+                    {
+                      "id": "label-123",
+                      "name": "frontend",
+                      "color": "#FF0000"
+                    }
+                  ]
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearIssueCard",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/create_issue
+    examples:
+      - scenario: "Create a New Linear Issue"
+        description: "Creates a new issue with specified attributes"
+        input_json: |
+          {
+            "issue": {
+              "title": "Implement new feature",
+              "team_id": "team-123",
+              "description": "We need to implement this new feature according to the design specs",
+              "assignee_id": "user-123",
+              "priority": 2,
+              "state_id": "state-456",
+              "labels": ["feature", "ui"]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "3456-7890-12345",
+              "title": "Implement new feature",
+              "identifier": "ENG-125",
+              "description": "We need to implement this new feature according to the design specs",
+              "priority": 2,
+              "state": {
+                "id": "state-456",
+                "name": "Todo",
+                "color": "#0000FF"
+              },
+              "team": {
+                "id": "team-123",
+                "name": "Engineering"
+              },
+              "assignee": {
+                "id": "user-123",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              },
+              "creator": {
+                "id": "user-456",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "created_at": "2023-05-20T15:32:47Z",
+              "updated_at": "2023-05-20T15:32:47Z",
+              "url": "https://linear.app/company/issue/ENG-125",
+              "labels": [
+                {
+                  "id": "label-123",
+                  "name": "feature",
+                  "color": "#00FF00"
+                },
+                {
+                  "id": "label-456",
+                  "name": "ui",
+                  "color": "#00FFFF"
+                }
+              ]
+            },
+            "component": [
+              {
+                "type": "LinearIssueCard",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/update_issue
+    examples:
+      - scenario: "Update an Existing Issue"
+        description: "Updates the specified fields of an existing issue"
+        input_json: |
+          {
+            "issue_id": "1234-5678-91011",
+            "issue_update": {
+              "title": "Updated Test Issue",
+              "description": "This is an updated description with additional details.",
+              "assignee_id": "user-789",
+              "priority": 1,
+              "state_id": "state-789"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "1234-5678-91011",
+              "title": "Updated Test Issue",
+              "identifier": "ENG-123",
+              "description": "This is an updated description with additional details.",
+              "priority": 1,
+              "state": {
+                "id": "state-789",
+                "name": "In Review",
+                "color": "#FFA500"
+              },
+              "team": {
+                "id": "team-123",
+                "name": "Engineering"
+              },
+              "assignee": {
+                "id": "user-789",
+                "name": "Alex Johnson",
+                "email": "alex@example.com"
+              },
+              "creator": {
+                "id": "user-456",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "created_at": "2023-05-15T09:45:23Z",
+              "updated_at": "2023-05-21T10:12:33Z",
+              "url": "https://linear.app/company/issue/ENG-123",
+              "labels": [
+                {
+                  "id": "label-123",
+                  "name": "frontend",
+                  "color": "#FF0000"
+                }
+              ]
+            },
+            "component": [
+              {
+                "type": "LinearIssueCard",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/comment_issue
+    examples:
+      - scenario: "Comment on an Issue"
+        description: "Adds a comment to a specific issue"
+        input_json: |
+          {
+            "issue_id": "1234-5678-91011",
+            "comment": {
+              "body": "This is a test comment."
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "comment-123",
+              "body": "This is a test comment.",
+              "user": {
+                "id": "user-456",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "issue": {
+                "id": "1234-5678-91011",
+                "title": "Updated Test Issue"
+              },
+              "createdAt": "2023-05-21T11:45:33Z",
+              "updatedAt": "2023-05-21T11:45:33Z"
+            },
+            "component": null
+          }
+
+  - endpoint: /linear/list_projects
+    examples:
+      - scenario: "List Linear Projects"
+        description: "Retrieves a paginated list of all accessible Linear projects"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "project-123",
+                  "name": "Q2 Website Redesign",
+                  "description": "Complete redesign of the company website",
+                  "icon": "🎨",
+                  "color": "#FF00FF",
+                  "state": "started",
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "lead": {
+                    "id": "user-123",
+                    "name": "Jane Smith",
+                    "email": "jane@example.com"
+                  },
+                  "members": [
+                    {
+                      "id": "user-123",
+                      "name": "Jane Smith",
+                      "email": "jane@example.com"
+                    },
+                    {
+                      "id": "user-456",
+                      "name": "John Doe",
+                      "email": "john@example.com"
+                    }
+                  ],
+                  "created_at": "2023-04-01T10:00:00Z",
+                  "updated_at": "2023-04-15T11:22:33Z",
+                  "start_date": "2023-04-01",
+                  "target_date": "2023-06-30",
+                  "progress": 25
+                },
+                {
+                  "id": "project-456",
+                  "name": "Mobile App v2",
+                  "description": "Version 2 of our mobile application",
+                  "icon": "📱",
+                  "color": "#00FF00",
+                  "state": "planned",
+                  "creator": {
+                    "id": "user-456",
+                    "name": "John Doe",
+                    "email": "john@example.com"
+                  },
+                  "lead": {
+                    "id": "user-789",
+                    "name": "Alex Johnson",
+                    "email": "alex@example.com"
+                  },
+                  "members": [
+                    {
+                      "id": "user-789",
+                      "name": "Alex Johnson",
+                      "email": "alex@example.com"
+                    }
+                  ],
+                  "created_at": "2023-05-10T14:30:00Z",
+                  "updated_at": "2023-05-10T14:30:00Z",
+                  "start_date": "2023-07-01",
+                  "target_date": "2023-09-30",
+                  "progress": 0
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearProjectList",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieves detailed information about a specific project"
+        input_json: |
+          {
+            "project_id": "project-123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "project-123",
+              "name": "Q2 Website Redesign",
+              "description": "Complete redesign of the company website",
+              "icon": "🎨",
+              "color": "#FF00FF",
+              "state": "started",
+              "creator": {
+                "id": "user-456",
+                "name": "John Doe",
+                "email": "john@example.com"
+              },
+              "lead": {
+                "id": "user-123",
+                "name": "Jane Smith",
+                "email": "jane@example.com"
+              },
+              "members": [
+                {
+                  "id": "user-123",
+                  "name": "Jane Smith",
+                  "email": "jane@example.com"
+                },
+                {
+                  "id": "user-456",
+                  "name": "John Doe",
+                  "email": "john@example.com"
+                }
+              ],
+              "created_at": "2023-04-01T10:00:00Z",
+              "updated_at": "2023-04-15T11:22:33Z",
+              "start_date": "2023-04-01",
+              "target_date": "2023-06-30",
+              "issues": [
+                {
+                  "id": "1234-5678-91011",
+                  "title": "Updated Test Issue",
+                  "identifier": "ENG-123"
+                },
+                {
+                  "id": "3456-7890-12345",
+                  "title": "Implement new feature",
+                  "identifier": "ENG-125"
+                }
+              ],
+              "progress": 25
+            },
+            "component": null
+          }
+
+  - endpoint: /linear/list_users
+    examples:
+      - scenario: "List Linear Users"
+        description: "Retrieves a list of all users in the workspace"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "user-123",
+                  "name": "Jane Smith",
+                  "email": "jane@example.com",
+                  "display_name": "Jane Smith",
+                  "avatar_url": "https://example.com/avatar/jane.jpg",
+                  "active": true,
+                  "admin": true
+                },
+                {
+                  "id": "user-456",
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "display_name": "John Doe",
+                  "avatar_url": "https://example.com/avatar/john.jpg",
+                  "active": true,
+                  "admin": false
+                },
+                {
+                  "id": "user-789",
+                  "name": "Alex Johnson",
+                  "email": "alex@example.com",
+                  "display_name": "Alex J.",
+                  "avatar_url": "https://example.com/avatar/alex.jpg",
+                  "active": true,
+                  "admin": false
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": null
+          }
+
+  - endpoint: /linear/list_teams
+    examples:
+      - scenario: "List Linear Teams"
+        description: "Retrieves a list of all teams in the workspace"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "team-123",
+                  "name": "Engineering",
+                  "key": "ENG",
+                  "description": "Engineering team responsible for product development",
+                  "icon": "💻",
+                  "color": "#0000FF",
+                  "created_at": "2022-01-01T00:00:00Z",
+                  "private": false
+                },
+                {
+                  "id": "team-456",
+                  "name": "Design",
+                  "key": "DES",
+                  "description": "Design team responsible for UI/UX",
+                  "icon": "🎨",
+                  "color": "#FF00FF",
+                  "created_at": "2022-01-02T00:00:00Z",
+                  "private": false
+                },
+                {
+                  "id": "team-789",
+                  "name": "Marketing",
+                  "key": "MKT",
+                  "description": "Marketing team",
+                  "icon": "📢",
+                  "color": "#00FF00",
+                  "created_at": "2022-01-03T00:00:00Z",
+                  "private": false
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearTeamList",
+                "data": {}
+              }
+            ]
+          }
+
+  - endpoint: /linear/get_team
+    examples:
+      - scenario: "Get Team Details"
+        description: "Retrieves detailed information about a specific team"
+        input_json: |
+          {
+            "team_id": "team-123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "team-123",
+              "name": "Engineering",
+              "key": "ENG",
+              "description": "Engineering team responsible for product development",
+              "icon": "💻",
+              "color": "#0000FF",
+              "created_at": "2022-01-01T00:00:00Z",
+              "private": false,
+              "members": [
+                {
+                  "id": "user-123",
+                  "name": "Jane Smith",
+                  "email": "jane@example.com"
+                },
+                {
+                  "id": "user-456",
+                  "name": "John Doe",
+                  "email": "john@example.com"
+                }
+              ],
+              "issues_count": 124,
+              "completed_issues_count": 98,
+              "states": [
+                {
+                  "id": "state-123",
+                  "name": "In Progress",
+                  "color": "#FFFF00",
+                  "type": "started"
+                },
+                {
+                  "id": "state-456",
+                  "name": "Todo",
+                  "color": "#0000FF",
+                  "type": "backlog"
+                },
+                {
+                  "id": "state-789",
+                  "name": "In Review",
+                  "color": "#FFA500",
+                  "type": "started"
+                }
+              ]
+            },
+            "component": null
+          }
+
+  - endpoint: /linear/list_workflow_states
+    examples:
+      - scenario: "List Workflow States"
+        description: "Retrieves a list of all workflow states across all teams"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "state-123",
+                  "name": "In Progress",
+                  "description": "Issues actively being worked on",
+                  "color": "#FFFF00",
+                  "type": "started",
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering",
+                    "key": "ENG"
+                  },
+                  "position": 2
+                },
+                {
+                  "id": "state-456",
+                  "name": "Todo",
+                  "description": "Issues ready to be worked on",
+                  "color": "#0000FF",
+                  "type": "backlog",
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering",
+                    "key": "ENG"
+                  },
+                  "position": 1
+                },
+                {
+                  "id": "state-789",
+                  "name": "In Review",
+                  "description": "Issues being reviewed before merging",
+                  "color": "#FFA500",
+                  "type": "started",
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering",
+                    "key": "ENG"
+                  },
+                  "position": 3
+                },
+                {
+                  "id": "state-101",
+                  "name": "Done",
+                  "description": "Completed issues",
+                  "color": "#00FF00",
+                  "type": "completed",
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering",
+                    "key": "ENG"
+                  },
+                  "position": 4
+                },
+                {
+                  "id": "state-102",
+                  "name": "Canceled",
+                  "description": "Issues that won't be implemented",
+                  "color": "#FF0000",
+                  "type": "canceled",
+                  "team": {
+                    "id": "team-123",
+                    "name": "Engineering",
+                    "key": "ENG"
+                  },
+                  "position": 5
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "type": "LinearWorkflowStateList",
+                "data": {}
+              }
+            ]
+          } 
