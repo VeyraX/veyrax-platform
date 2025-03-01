@@ -1,132 +1,154 @@
 [
-    {
-      "name": "SlackChannelList",
-      "version": "1.0.0",
-      "description": "A React component for displaying Slack channels",
-      "related_endpoints": ["list_channels"],
-      "component": {
-        "jsx": "function SlackChannelList(props) {\n  const data = props.data;\n  if (!data || !data.channels || data.channels.length === 0) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    table: {\n      width: '100%',\n      borderCollapse: 'collapse',\n      fontSize: '14px',\n      marginBottom: '16px'\n    },\n    thead: {\n      backgroundColor: '#f8fafc'\n    },\n    th: {\n      padding: '12px 16px',\n      textAlign: 'left',\n      fontWeight: '600',\n      color: '#475569',\n      borderBottom: '1px solid #e2e8f0'\n    },\n    td: {\n      padding: '12px 16px',\n      borderBottom: '1px solid #e2e8f0',\n      color: '#1e293b'\n    },\n    row: {\n      backgroundColor: '#ffffff'\n    },\n    privateIcon: {\n      marginLeft: '8px',\n      color: '#64748b',\n      fontSize: '14px'\n    },\n    pagination: {\n      display: 'flex',\n      justifyContent: 'flex-end',\n      marginTop: '16px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('table', { style: styles.table },\n      React.createElement('thead', { style: styles.thead },\n        React.createElement('tr', {},\n          React.createElement('th', { style: styles.th }, 'Channel Name'),\n          React.createElement('th', { style: styles.th }, 'Topic'),\n          React.createElement('th', { style: styles.th }, 'Purpose')\n        )\n      ),\n      React.createElement('tbody', {},\n        data.channels.map(channel => {\n          return React.createElement('tr', { key: channel.id, style: styles.row },\n            React.createElement('td', { style: styles.td }, \n              React.createElement('span', {}, `#${channel.name}`),\n              channel.is_private && React.createElement('span', { style: styles.privateIcon }, '🔒')\n            ),\n            React.createElement('td', { style: styles.td }, channel.topic || '-'),\n            React.createElement('td', { style: styles.td }, channel.purpose || '-')\n          );\n        })\n      )\n    ),\n    data.cursor && React.createElement('div', { style: styles.pagination },\n      React.createElement('span', {}, 'More channels available')\n    )\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "channels": [
-            {
-              "id": "C01234ABCDE",
-              "name": "general",
-              "is_private": false,
-              "topic": "Company-wide announcements and work-based matters",
-              "purpose": "This channel is for workspace-wide communication and announcements"
-            },
-            {
-              "id": "C01234FGHIJ",
-              "name": "random",
-              "is_private": false,
-              "topic": "Non-work banter and water cooler conversation",
-              "purpose": "A place for non-work-related flimflam"
-            },
-            {
-              "id": "C01234KLMNO",
-              "name": "project-alpha",
-              "is_private": true,
-              "topic": "Alpha project discussion",
-              "purpose": "Collaboration on Project Alpha"
-            }
-          ],
-          "cursor": "dXNlcjpVMDYyRkU3QVY="
-        }
-      },
-      "schemaRef": "schema.ChannelList"
+  {
+    "name": "SlackMessageCard",
+    "version": "1.0.0",
+    "description": "A React component for displaying a single Slack message",
+    "related_endpoints": ["post_message", "send_dm", "reply_in_thread"],
+    "component": {
+      "jsx": "function(props) {\n  function SlackMessageCard(props) {\n    const message = props.data;\n    if (!message) return null;\n    \n    // Format timestamp to readable format\n    function formatTimestamp(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true\n      });\n    }\n    \n    // Function to generate color from string (for avatars)\n    function stringToColor(string) {\n      if (!string) return '#6B778C';\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n    \n    // User avatar component\n    function UserAvatar({ name }) {\n      if (!name) return null;\n      \n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      \n      const avatarStyle = {\n        width: '32px',\n        height: '32px',\n        borderRadius: '4px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '14px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        flexShrink: 0,\n        marginTop: '4px'\n      };\n      \n      return React.createElement('div', {\n        style: avatarStyle,\n        className: 'user-avatar'\n      }, initials);\n    }\n    \n    // Thread icon SVG\n    function ThreadIcon() {\n      return React.createElement('svg', {\n        width: '12',\n        height: '12',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M1 4.5C1 3.11929 2.11929 2 3.5 2H8.5C9.88071 2 11 3.11929 11 4.5V5.5C11 6.88071 9.88071 8 8.5 8H7.5L5.5 10L5.5 8C4.11929 8 3 6.88071 3 5.5V4.5C3 3.11929 4.11929 2 5.5 2',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M5 10.5C5 9.11929 6.11929 8 7.5 8H12.5C13.8807 8 15 9.11929 15 10.5V11.5C15 12.8807 13.8807 14 12.5 14H11.5L9.5 16L9.5 14C8.11929 14 7 12.8807 7 11.5V10.5C7 9.11929 8.11929 8 9.5 8',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      gap: '12px',\n      alignItems: 'flex-start'\n    };\n    \n    const contentStyle = {\n      flex: 1,\n      minWidth: 0\n    };\n    \n    const headerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      marginBottom: '4px'\n    };\n    \n    const userInfoStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const nameStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      fontSize: '14px'\n    };\n    \n    const timeStyle = {\n      color: '#64748b',\n      fontSize: '12px'\n    };\n    \n    const messageTextStyle = {\n      color: '#1e293b',\n      fontSize: '14px',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap',\n      wordBreak: 'break-word'\n    };\n    \n    const threadIndicatorStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px',\n      color: '#64748b',\n      fontSize: '12px',\n      marginTop: '4px'\n    };\n    \n    const displayName = message.real_name || message.user_name || 'Unknown User';\n    const formattedTime = formatTimestamp(message.timestamp);\n    \n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement(UserAvatar, { name: displayName }),\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: headerStyle },\n            React.createElement('div', { style: userInfoStyle },\n              React.createElement('span', { style: nameStyle }, displayName)\n            ),\n            React.createElement('span', { style: timeStyle }, formattedTime)\n          ),\n          React.createElement('div', { style: messageTextStyle }, message.text),\n          message.thread_ts && message.thread_ts !== message.timestamp && \n            React.createElement('div', { style: threadIndicatorStyle },\n              React.createElement(ThreadIcon),\n              React.createElement('span', {}, 'Thread')\n            )\n        )\n      )\n    );\n  }\n  \n  return SlackMessageCard(props);\n}"
     },
-    {
-      "name": "SlackChannelMembers",
-      "version": "1.0.0",
-      "description": "A React component for displaying members of a Slack channel",
-      "related_endpoints": ["list_channel_members"],
-      "component": {
-        "jsx": "function SlackChannelMembers(props) {\n  const data = props.data;\n  if (!data || !data.members || data.members.length === 0) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    header: {\n      fontSize: '18px',\n      fontWeight: '600',\n      marginBottom: '16px',\n      color: '#1e293b'\n    },\n    memberList: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px'\n    },\n    memberCard: {\n      display: 'flex',\n      flexDirection: 'column',\n      alignItems: 'center',\n      padding: '16px',\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      width: '120px'\n    },\n    avatar: {\n      width: '48px',\n      height: '48px',\n      borderRadius: '50%',\n      backgroundColor: '#f1f5f9',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginBottom: '8px',\n      fontSize: '18px',\n      color: '#64748b'\n    },\n    name: {\n      fontWeight: '600',\n      fontSize: '14px',\n      color: '#1e293b',\n      textAlign: 'center',\n      marginBottom: '4px'\n    },\n    realName: {\n      fontSize: '12px',\n      color: '#64748b',\n      textAlign: 'center'\n    },\n    pagination: {\n      display: 'flex',\n      justifyContent: 'flex-end',\n      marginTop: '16px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header }, `Channel Members (${data.members.length})`),\n    React.createElement('div', { style: styles.memberList },\n      data.members.map(member => {\n        const initials = member.name.substring(0, 2).toUpperCase();\n        return React.createElement('div', { key: member.id, style: styles.memberCard },\n          React.createElement('div', { style: styles.avatar }, initials),\n          React.createElement('div', { style: styles.name }, member.name),\n          member.real_name && React.createElement('div', { style: styles.realName }, member.real_name)\n        );\n      })\n    ),\n    data.cursor && React.createElement('div', { style: styles.pagination },\n      React.createElement('span', {}, 'More members available')\n    )\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "members": [
-            {
-              "id": "U01234ABCDE",
-              "name": "johndoe",
-              "real_name": "John Doe"
-            },
-            {
-              "id": "U01234FGHIJ",
-              "name": "janesmith",
-              "real_name": "Jane Smith"
-            },
-            {
-              "id": "U01234KLMNO",
-              "name": "bobross",
-              "real_name": "Bob Ross"
-            },
-            {
-              "id": "U01234PQRST",
-              "name": "sarahlee",
-              "real_name": "Sarah Lee"
-            }
-          ],
-          "cursor": "dXNlcjpVMDYyRkU3QVY="
-        }
-      },
-      "schemaRef": "schema.ChannelMemberList"
+    "exampleProps": {
+      "data": {
+        "id": "msg123",
+        "text": "Hello team! I've just pushed the latest changes to the repository.",
+        "user": "U12345",
+        "user_name": "johndoe",
+        "real_name": "John Doe",
+        "timestamp": "1677721600.123456",
+        "thread_ts": null
+      }
     },
-    {
-      "name": "SlackMessageList",
-      "version": "1.0.0",
-      "description": "A React component for displaying Slack messages",
-      "related_endpoints": ["list_channel_messages", "list_direct_messages", "list_thread_messages", "list_direct_messages_with_user"],
-      "component": {
-        "jsx": "function SlackMessageList(props) {\n  const data = props.data;\n  if (!data || !data.messages || data.messages.length === 0) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto',\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      overflow: 'hidden'\n    },\n    header: {\n      padding: '16px',\n      borderBottom: '1px solid #e2e8f0',\n      backgroundColor: '#f8fafc'\n    },\n    title: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#1e293b'\n    },\n    messageList: {\n      padding: '0'\n    },\n    messageItem: {\n      padding: '16px',\n      borderBottom: '1px solid #f1f5f9',\n      display: 'flex'\n    },\n    avatar: {\n      width: '36px',\n      height: '36px',\n      borderRadius: '4px',\n      backgroundColor: '#f1f5f9',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      marginRight: '12px',\n      fontSize: '14px',\n      color: '#64748b',\n      flexShrink: 0\n    },\n    messageContent: {\n      flex: 1\n    },\n    messageHeader: {\n      display: 'flex',\n      alignItems: 'baseline',\n      marginBottom: '4px'\n    },\n    userName: {\n      fontWeight: '600',\n      fontSize: '14px',\n      color: '#1e293b',\n      marginRight: '8px'\n    },\n    timestamp: {\n      fontSize: '12px',\n      color: '#94a3b8'\n    },\n    messageText: {\n      fontSize: '14px',\n      color: '#334155',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap'\n    },\n    threadIndicator: {\n      fontSize: '12px',\n      color: '#64748b',\n      marginTop: '4px',\n      display: 'flex',\n      alignItems: 'center'\n    },\n    threadIcon: {\n      marginRight: '4px'\n    },\n    pagination: {\n      padding: '12px 16px',\n      borderTop: '1px solid #e2e8f0',\n      display: 'flex',\n      justifyContent: 'center'\n    }\n  };\n\n  const formatTimestamp = (timestamp) => {\n    const date = new Date(parseFloat(timestamp) * 1000);\n    return date.toLocaleString();\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.title }, 'Messages')\n    ),\n    React.createElement('div', { style: styles.messageList },\n      data.messages.map(message => {\n        const initials = (message.user_name || 'U').substring(0, 2).toUpperCase();\n        return React.createElement('div', { key: message.id, style: styles.messageItem },\n          React.createElement('div', { style: styles.avatar }, initials),\n          React.createElement('div', { style: styles.messageContent },\n            React.createElement('div', { style: styles.messageHeader },\n              React.createElement('div', { style: styles.userName }, message.user_name || message.user),\n              React.createElement('div', { style: styles.timestamp }, formatTimestamp(message.timestamp))\n            ),\n            React.createElement('div', { style: styles.messageText }, message.text),\n            message.thread_ts && message.thread_ts !== message.timestamp && \n              React.createElement('div', { style: styles.threadIndicator },\n                React.createElement('span', { style: styles.threadIcon }, '🧵'),\n                'Part of a thread'\n              )\n          )\n        );\n      })\n    ),\n    data.cursor && React.createElement('div', { style: styles.pagination },\n      React.createElement('span', {}, 'Load more messages')\n    )\n  );\n}"
-      },
-      "exampleProps": {
-        "data": {
-          "messages": [
-            {
-              "id": "1612345678.123456",
-              "text": "Hey team, just a reminder about our meeting tomorrow at 10am.",
-              "user": "U01234ABCDE",
-              "user_name": "johndoe",
-              "real_name": "John Doe",
-              "timestamp": "1612345678.123456",
-              "thread_ts": null
-            },
-            {
-              "id": "1612345789.123457",
-              "text": "Thanks for the reminder! Will the meeting be in the main conference room?",
-              "user": "U01234FGHIJ",
-              "user_name": "janesmith",
-              "real_name": "Jane Smith",
-              "timestamp": "1612345789.123457",
-              "thread_ts": null
-            },
-            {
-              "id": "1612345890.123458",
-              "text": "Yes, main conference room. I've also prepared the slides for our presentation.",
-              "user": "U01234ABCDE",
-              "user_name": "johndoe",
-              "real_name": "John Doe",
-              "timestamp": "1612345890.123458",
-              "thread_ts": "1612345789.123457"
-            }
-          ],
-          "cursor": "dGltZXN0YW1wOjE2MTIzNDU2NzguMTIzNDU2"
-        }
-      },
-      "schemaRef": "schema.MessageList"
+    "schemaRef": ["schema.Message"]
+  },
+  {
+    "name": "SlackMessageList",
+    "version": "1.0.0",
+    "description": "A React component for displaying a list of Slack messages",
+    "related_endpoints": ["list_channel_messages", "list_thread_messages", "list_direct_messages_with_user"],
+    "component": {
+      "jsx": "function(props) {\n  function SlackMessageList(props) {\n    const data = props.data;\n    if (!data || !data.messages || data.messages.length === 0) return null;\n    \n    // Format date for message groups\n    function formatDate(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      const today = new Date();\n      const yesterday = new Date(today);\n      yesterday.setDate(yesterday.getDate() - 1);\n      \n      if (date.toDateString() === today.toDateString()) {\n        return 'Today';\n      } else if (date.toDateString() === yesterday.toDateString()) {\n        return 'Yesterday';\n      } else {\n        return date.toLocaleDateString('en-US', {\n          weekday: 'long',\n          month: 'short',\n          day: 'numeric'\n        });\n      }\n    }\n    \n    // Format timestamp to readable format\n    function formatTimestamp(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true\n      });\n    }\n    \n    // Function to generate color from string (for avatars)\n    function stringToColor(string) {\n      if (!string) return '#6B778C';\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n    \n    // User avatar component\n    function UserAvatar({ name }) {\n      if (!name) return null;\n      \n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      \n      const avatarStyle = {\n        width: '32px',\n        height: '32px',\n        borderRadius: '4px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '14px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        flexShrink: 0,\n        marginTop: '4px'\n      };\n      \n      return React.createElement('div', {\n        style: avatarStyle,\n        className: 'user-avatar'\n      }, initials);\n    }\n    \n    // Group messages by date\n    const messagesByDate = {};\n    data.messages.forEach(message => {\n      const dateKey = formatDate(message.timestamp);\n      if (!messagesByDate[dateKey]) {\n        messagesByDate[dateKey] = [];\n      }\n      messagesByDate[dateKey].push(message);\n    });\n    \n    const containerStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '16px',\n      width: '100%'\n    };\n    \n    const dateHeaderStyle = {\n      textAlign: 'center',\n      position: 'relative',\n      marginBottom: '8px',\n      marginTop: '8px'\n    };\n    \n    const dateLineStyle = {\n      position: 'absolute',\n      top: '50%',\n      left: 0,\n      right: 0,\n      height: '1px',\n      backgroundColor: '#e2e8f0',\n      zIndex: 1\n    };\n    \n    const dateLabelStyle = {\n      position: 'relative',\n      zIndex: 2,\n      backgroundColor: 'white',\n      padding: '0 12px',\n      fontSize: '12px',\n      fontWeight: '500',\n      color: '#64748b',\n      display: 'inline-block'\n    };\n    \n    const messageGroupStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px'\n    };\n    \n    const messageStyle = {\n      display: 'flex',\n      gap: '12px',\n      alignItems: 'flex-start'\n    };\n    \n    const contentStyle = {\n      flex: 1,\n      minWidth: 0\n    };\n    \n    const headerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      marginBottom: '4px'\n    };\n    \n    const userInfoStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const nameStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      fontSize: '14px'\n    };\n    \n    const timeStyle = {\n      color: '#64748b',\n      fontSize: '12px'\n    };\n    \n    const messageTextStyle = {\n      color: '#1e293b',\n      fontSize: '14px',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap',\n      wordBreak: 'break-word'\n    };\n    \n    // Render date groups and messages\n    const dateGroups = Object.keys(messagesByDate).map(dateKey => {\n      const messages = messagesByDate[dateKey];\n      \n      return React.createElement('div', { key: dateKey },\n        React.createElement('div', { style: dateHeaderStyle },\n          React.createElement('div', { style: dateLineStyle }),\n          React.createElement('span', { style: dateLabelStyle }, dateKey)\n        ),\n        React.createElement('div', { style: messageGroupStyle },\n          messages.map(message => {\n            const displayName = message.real_name || message.user_name || 'Unknown User';\n            const formattedTime = formatTimestamp(message.timestamp);\n            \n            return React.createElement('div', { key: message.id, style: messageStyle },\n              React.createElement(UserAvatar, { name: displayName }),\n              React.createElement('div', { style: contentStyle },\n                React.createElement('div', { style: headerStyle },\n                  React.createElement('div', { style: userInfoStyle },\n                    React.createElement('span', { style: nameStyle }, displayName)\n                  ),\n                  React.createElement('span', { style: timeStyle }, formattedTime)\n                ),\n                React.createElement('div', { style: messageTextStyle }, message.text)\n              )\n            );\n          })\n        )\n      );\n    });\n    \n    return React.createElement('div', { style: containerStyle }, dateGroups);\n  }\n  \n  return SlackMessageList(props);\n}"
     },
-    {
-      "name": "SlackMessageComposer",
-      "version": "1.0.0",
-      "description": "A React component for composing and sending Slack messages",
-      "related_endpoints": ["post_message", "send_dm", "reply_in_thread"],
-      "component": {
-        "jsx": "function SlackMessageComposer(props) {\n  const [message, setMessage] = React.useState('');\n  const [sending, setSending] = React.useState(false);\n  const [error, setError] = React.useState(null);\n  const [sent, setSent] = React.useState(false);\n  \n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto',\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      padding: '16px'\n    },\n    header: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#1e293b',\n      marginBottom: '12px'\n    },\n    form: {\n      display: 'flex',\n      flexDirection: 'column'\n    },\n    textarea: {\n      padding: '12px',\n      borderRadius: '4px',\n      border: '1px solid #e2e8f0',\n      fontSize: '14px',\n      minHeight: '80px',\n      resize: 'vertical',\n      marginBottom: '12px'\n    },\n    buttonContainer: {\n      display: 'flex',\n      justifyContent: 'flex-end'\n    },\n    button: {\n      backgroundColor: '#4f46e5',\n      color: '#ffffff',\n      border: 'none',\n      borderRadius: '4px',\n      padding: '8px 16px',\n      fontSize: '14px',\n      fontWeight: '500',\n      cursor: 'pointer'\n    },\n    disabledButton: {\n      backgroundColor: '#94a3b8',\n      cursor: 'not-allowed'\n    },\n    error: {\n      color: '#ef4444',\n      fontSize: '14px',\n      marginBottom: '12px'\n    },\n    success: {\n      color: '#10b981',\n      fontSize: '14px',\n      marginBottom: '12px'\n    }\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    if (!message.trim()) return;\n    \n    setSending(true);\n    setError(null);\n    \n    // In a real implementation, this would call an API\n    setTimeout(() => {\n      setSending(false);\n      setSent(true);\n      setMessage('');\n      \n      // Reset success message after 3 seconds\n      setTimeout(() => {\n        setSent(false);\n      }, 3000);\n    }, 1000);\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header }, 'Compose Message'),\n    error && React.createElement('div', { style: styles.error }, error),\n    sent && React.createElement('div', { style: styles.success }, 'Message sent successfully!'),\n    React.createElement('form', { style: styles.form, onSubmit: handleSubmit },\n      React.createElement('textarea', {\n        style: styles.textarea,\n        value: message,\n        onChange: (e) => setMessage(e.target.value),\n        placeholder: 'Type your message here...',\n        disabled: sending\n      }),\n      React.createElement('div', { style: styles.buttonContainer },\n        React.createElement('button', {\n          type: 'submit',\n          style: { ...styles.button, ...(sending || !message.trim() ? styles.disabledButton : {}) },\n          disabled: sending || !message.trim()\n        }, sending ? 'Sending...' : 'Send Message')\n      )\n    )\n  );\n}"
-      },
-      "exampleProps": {},
-      "schemaRef": ["schema.Message", "schema.DirectMessage", "schema.ThreadMessage"]
-    }
-  ]
+    "exampleProps": {
+      "data": {
+        "messages": [
+          {
+            "id": "msg123",
+            "text": "Hello team! I've just pushed the latest changes to the repository.",
+            "user": "U12345",
+            "user_name": "johndoe",
+            "real_name": "John Doe",
+            "timestamp": "1677721600.123456",
+            "thread_ts": null
+          },
+          {
+            "id": "msg124",
+            "text": "Great! I'll review it this afternoon.",
+            "user": "U67890",
+            "user_name": "janesmith",
+            "real_name": "Jane Smith",
+            "timestamp": "1677722500.654321",
+            "thread_ts": null
+          },
+          {
+            "id": "msg125",
+            "text": "Don't forget to update the documentation as well.",
+            "user": "U13579",
+            "user_name": "mikebrown",
+            "real_name": "Mike Brown",
+            "timestamp": "1677723400.987654",
+            "thread_ts": "1677721600.123456"
+          }
+        ],
+        "cursor": "next_page_cursor"
+      }
+    },
+    "schemaRef": ["schema.MessageList"]
+  },
+  {
+    "name": "SlackChannelList",
+    "version": "1.0.0",
+    "description": "A React component for displaying a list of Slack channels",
+    "related_endpoints": ["list_channels"],
+    "component": {
+      "jsx": "function(props) {\n  function SlackChannelList(props) {\n    const data = props.data;\n    if (!data || !data.channels || data.channels.length === 0) return null;\n    \n    // Channel icon SVG\n    function ChannelIcon({ isPrivate }) {\n      if (isPrivate) {\n        return React.createElement('svg', {\n          width: '16',\n          height: '16',\n          viewBox: '0 0 16 16',\n          fill: 'none',\n          style: { color: '#64748b' }\n        }, [\n          React.createElement('path', {\n            key: 'p1',\n            d: 'M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z',\n            stroke: 'currentColor',\n            strokeWidth: '1.5',\n            strokeLinecap: 'round',\n            strokeLinejoin: 'round'\n          }),\n          React.createElement('path', {\n            key: 'p2',\n            d: 'M11 5H12C12.5523 5 13 5.44772 13 6V10C13 10.5523 12.5523 11 12 11H4C3.44772 11 3 10.5523 3 10V6C3 5.44772 3.44772 5 4 5H5',\n            stroke: 'currentColor',\n            strokeWidth: '1.5',\n            strokeLinecap: 'round',\n            strokeLinejoin: 'round'\n          }),\n          React.createElement('path', {\n            key: 'p3',\n            d: 'M5 5V3.5C5 2.11929 6.34315 1 8 1C9.65685 1 11 2.11929 11 3.5V5',\n            stroke: 'currentColor',\n            strokeWidth: '1.5',\n            strokeLinecap: 'round',\n            strokeLinejoin: 'round'\n          })\n        ]);\n      } else {\n        return React.createElement('svg', {\n          width: '16',\n          height: '16',\n          viewBox: '0 0 16 16',\n          fill: 'none',\n          style: { color: '#64748b' }\n        }, [\n          React.createElement('path', {\n            key: 'p1',\n            d: 'M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z',\n            stroke: 'currentColor',\n            strokeWidth: '1.5',\n            strokeLinecap: 'round',\n            strokeLinejoin: 'round'\n          }),\n          React.createElement('path', {\n            key: 'p2',\n            d: 'M8 5V8L10 10',\n            stroke: 'currentColor',\n            strokeWidth: '1.5',\n            strokeLinecap: 'round',\n            strokeLinejoin: 'round'\n          })\n        ]);\n      }\n    }\n    \n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)',\n      minWidth: '250px',\n      boxSizing: 'border-box'\n    };\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      gap: '8px'\n    };\n    \n    const contentStyle = {\n      minWidth: 0,\n      flex: 1\n    };\n    \n    const titleContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const titleStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      fontSize: '14px',\n      margin: 0\n    };\n    \n    const subtitleStyle = {\n      fontSize: '12px',\n      color: '#64748b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      marginTop: '4px',\n      margin: 0\n    };\n    \n    const statusBadgeStyle = {\n      display: 'inline-block',\n      fontSize: '10px',\n      fontWeight: '500',\n      padding: '2px 6px',\n      borderRadius: '4px',\n      backgroundColor: '#f1f5f9',\n      color: '#475569',\n      textTransform: 'capitalize'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      data.channels.map(channel => {\n        return React.createElement('div', { key: channel.id, style: cardWrapperStyle },\n          React.createElement('div', { style: cardStyle },\n            React.createElement('div', { style: flexContainerStyle },\n              React.createElement('div', { style: contentStyle },\n                React.createElement('div', { style: titleContainerStyle },\n                  React.createElement(ChannelIcon, { isPrivate: channel.is_private }),\n                  React.createElement('h3', { style: titleStyle }, '#' + channel.name)\n                ),\n                React.createElement('p', { style: subtitleStyle }, \n                  channel.topic || channel.purpose || 'No description'\n                )\n              ),\n              React.createElement('div', {},\n                React.createElement('span', { style: statusBadgeStyle },\n                  channel.is_private ? 'Private' : 'Public'\n                )\n              )\n            )\n          )\n        );\n      })\n    );\n  }\n  \n  return SlackChannelList(props);\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "channels": [
+          {
+            "id": "C12345",
+            "name": "general",
+            "is_private": false,
+            "topic": "Company-wide announcements and work-based matters",
+            "purpose": "This channel is for workspace-wide communication"
+          },
+          {
+            "id": "C67890",
+            "name": "random",
+            "is_private": false,
+            "topic": "Non-work banter and water cooler conversation",
+            "purpose": "A place for non-work-related flimflam"
+          },
+          {
+            "id": "C13579",
+            "name": "project-alpha",
+            "is_private": true,
+            "topic": "Alpha project discussion",
+            "purpose": "Collaboration on Project Alpha"
+          },
+          {
+            "id": "C24680",
+            "name": "engineering",
+            "is_private": false,
+            "topic": "Engineering team discussions",
+            "purpose": "For engineering team members"
+          }
+        ],
+        "cursor": "next_page_cursor"
+      }
+    },
+    "schemaRef": ["schema.ChannelList"]
+  },
+  {
+    "name": "SlackChannelMembers",
+    "version": "1.0.0",
+    "description": "A React component for displaying Slack channel members",
+    "related_endpoints": ["list_channel_members"],
+    "component": {
+      "jsx": "function(props) {\n  function SlackChannelMembers(props) {\n    const data = props.data;\n    if (!data || !data.members || data.members.length === 0) return null;\n    \n    // Function to generate color from string (for avatars)\n    function stringToColor(string) {\n      if (!string) return '#6B778C';\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n    \n    const styles = {\n      container: {\n        width: '100%',\n        overflowX: 'auto'\n      },\n      table: {\n        width: '100%',\n        backgroundColor: 'white',\n        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n        borderRadius: '8px',\n        overflow: 'hidden',\n        borderCollapse: 'collapse'\n      },\n      thead: {\n        backgroundColor: '#f8fafc'\n      },\n      th: {\n        padding: '12px 16px',\n        textAlign: 'left',\n        fontSize: '14px',\n        fontWeight: '600',\n        color: '#475569',\n        borderBottom: '1px solid #e2e8f0'\n      },\n      tr: {\n        borderBottom: '1px solid #f1f5f9',\n        transition: 'background-color 0.2s'\n      },\n      td: {\n        padding: '12px 16px',\n        fontSize: '14px',\n        color: '#1e293b'\n      },\n      nameCell: {\n        display: 'flex',\n        alignItems: 'center',\n        gap: '12px'\n      },\n      avatar: {\n        width: '32px',\n        height: '32px',\n        borderRadius: '4px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '14px',\n        fontWeight: '500',\n        flexShrink: 0\n      },\n      userName: {\n        fontWeight: '500'\n      },\n      realName: {\n        color: '#64748b',\n        fontSize: '13px',\n        marginLeft: '4px'\n      }\n    };\n    \n    return React.createElement('div', { style: styles.container },\n      React.createElement('table', { style: styles.table },\n        React.createElement('thead', { style: styles.thead },\n          React.createElement('tr', {},\n            React.createElement('th', { style: styles.th }, 'Member'),\n            React.createElement('th', { style: styles.th }, 'Username')\n          )\n        ),\n        React.createElement('tbody', {},\n          data.members.map((member) => {\n            const displayName = member.real_name || member.name || 'Unknown User';\n            const initials = displayName.split(' ')\n              .map((part) => part.charAt(0))\n              .join('')\n              .substring(0, 2)\n              .toUpperCase();\n            \n            const backgroundColor = stringToColor(displayName);\n            \n            return React.createElement('tr', {\n              key: member.id,\n              style: styles.tr,\n              onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n              onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n            },\n              React.createElement('td', { style: styles.td },\n                React.createElement('div', { style: styles.nameCell },\n                  React.createElement('div', { \n                    style: { ...styles.avatar, backgroundColor: backgroundColor } \n                  }, initials),\n                  React.createElement('span', { style: styles.userName }, displayName)\n                )\n              ),\n              React.createElement('td', { style: styles.td },\n                '@' + member.name\n              )\n            );\n          })\n        )\n      )\n    );\n  }\n  \n  return SlackChannelMembers(props);\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "members": [
+          {
+            "id": "U12345",
+            "name": "johndoe",
+            "real_name": "John Doe"
+          },
+          {
+            "id": "U67890",
+            "name": "janesmith",
+            "real_name": "Jane Smith"
+          },
+          {
+            "id": "U13579",
+            "name": "mikebrown",
+            "real_name": "Mike Brown"
+          },
+          {
+            "id": "U24680",
+            "name": "sarahwilliams",
+            "real_name": "Sarah Williams"
+          },
+          {
+            "id": "U97531",
+            "name": "alexjohnson",
+            "real_name": "Alex Johnson"
+          }
+        ],
+        "cursor": "next_page_cursor"
+      }
+    },
+    "schemaRef": ["schema.ChannelMemberList"]
+  }
+]

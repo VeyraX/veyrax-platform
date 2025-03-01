@@ -1,0 +1,630 @@
+---
+description: Design components for endpoints
+globs: 
+alwaysApply: false
+---
+# Component Design Principles
+
+This document outlines the core design principles and styling guidelines for our UI components. These principles ensure consistency across all integration components while maintaining a clean, modern aesthetic.
+
+## Card Components
+
+Cards are fundamental building blocks of our UI. They display concise information about entities in a consistent format.
+
+### Standard Card Structure
+
+1. **Layout**:
+   - Cards display two per row by default
+   - Minimum width: 250px
+   - Responsive: Cards stack on smaller screens
+
+2. **Content Structure**:
+   - Left side: Icon + Title + Subtitle
+   - Right side: Entity representation (status, avatar, tags, etc.)
+
+3. **Title Section**:
+   - Small icon/link icon on the left (optional)
+   - Title text (bold, truncated with ellipsis if too long)
+   - External link icon (if applicable)
+
+4. **Subtitle Section**:
+   - Up to 3 pieces of information
+   - Separated by middot character (·)
+   - Examples: assignee, status, priority, date
+
+5. **Right Section Options**:
+   - Status badge
+   - User avatar
+   - Tags collection
+   - Action button
+
+### Card Styling
+
+```jsx
+// Card container
+{
+  position: 'relative',
+  borderRadius: '8px',
+  border: '1px solid #e2e8f0',
+  backgroundColor: '#ffffff',
+  padding: '8px 12px',
+  marginBottom: '8px',
+  width: '100%',
+  boxSizing: 'border-box'
+}
+
+// Flex container for content
+{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '8px'
+}
+
+// Title styling
+{
+  fontWeight: '500',
+  color: '#1e293b',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  fontSize: '14px',
+  margin: 0
+}
+
+// Subtitle styling
+{
+  fontSize: '12px',
+  color: '#64748b',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  marginTop: '4px',
+  margin: 0
+}
+```
+### Card Example 
+```jsx
+"function(props) {\n  // Main component function\n  function GoogleCalendarEventCard(props) {\n    const event = props.data;\n    if (!event) return null;\n\n    // Function to generate color from string\n    function stringToColor(string) {\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n\n    // Format response status\n    function formatResponseStatus(status) {\n      if (!status) return '';\n      \n      switch(status.toLowerCase()) {\n        case 'accepted':\n          return 'Accepted';\n        case 'declined':\n          return 'Declined';\n        case 'tentative':\n          return 'Maybe';\n        case 'needsaction':\n          return 'Pending';\n        default:\n          return status;\n      }\n    }\n\n    // User avatar component with tooltip\n    function UserAvatar({ user, index }) {\n      const name = user.displayName || user.email || '';\n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      const status = formatResponseStatus(user.responseStatus);\n      \n      const avatarStyle = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '10px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        position: 'relative',\n        cursor: 'pointer',\n        border: '1px solid white',\n        zIndex: 5 - index // Higher index = lower z-index to stack properly\n      };\n      \n      const tooltipContainerStyle = {\n        position: 'relative',\n        zIndex: 0,\n        marginLeft: index > 0 ? '-8px' : '0' // Overlap avatars by 8px\n      };\n      \n      // Using onMouseOver/onMouseOut for tooltip functionality\n      return React.createElement('div', {\n        style: tooltipContainerStyle,\n        className: 'user-avatar-container',\n        onMouseOver: function(e) {\n          const tooltip = document.createElement('div');\n          tooltip.className = 'avatar-tooltip';\n          tooltip.style.position = 'absolute';\n          tooltip.style.bottom = '100%';\n          tooltip.style.left = '50%';\n          tooltip.style.transform = 'translateX(-50%)';\n          tooltip.style.marginBottom = '6px';\n          tooltip.style.padding = '4px 8px';\n          tooltip.style.backgroundColor = '#333';\n          tooltip.style.color = 'white';\n          tooltip.style.borderRadius = '4px';\n          tooltip.style.fontSize = '10px';\n          tooltip.style.whiteSpace = 'nowrap';\n          tooltip.style.zIndex = '10';\n          \n          const nameElement = document.createElement('div');\n          nameElement.style.fontWeight = '500';\n          nameElement.textContent = name;\n          tooltip.appendChild(nameElement);\n          \n          if (status) {\n            const statusElement = document.createElement('div');\n            statusElement.style.color = '#ccc';\n            statusElement.textContent = status;\n            tooltip.appendChild(statusElement);\n          }\n          \n          // Add arrow\n          const arrow = document.createElement('div');\n          arrow.style.position = 'absolute';\n          arrow.style.top = '100%';\n          arrow.style.left = '50%';\n          arrow.style.transform = 'translateX(-50%)';\n          arrow.style.borderWidth = '4px';\n          arrow.style.borderStyle = 'solid';\n          arrow.style.borderColor = '#333 transparent transparent transparent';\n          tooltip.appendChild(arrow);\n          \n          e.currentTarget.appendChild(tooltip);\n        },\n        onMouseOut: function(e) {\n          const tooltip = e.currentTarget.querySelector('.avatar-tooltip');\n          if (tooltip) {\n            tooltip.remove();\n          }\n        }\n      }, React.createElement('div', {\n        style: avatarStyle\n      }, initials));\n    }\n\n    // Component for additional attendees\n    function MoreAttendees({ count, index }) {\n      const style = {\n        width: '20px',\n        height: '20px',\n        borderRadius: '50%',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        backgroundColor: '#e2e8f0',\n        color: '#64748b',\n        fontSize: '10px',\n        fontWeight: '500',\n        border: '1px solid white',\n        zIndex: 1\n      };\n      \n      return React.createElement('div', {\n        style: {\n          position: 'relative',\n          zIndex: 0,\n          marginLeft: '-8px' // Overlap with the last avatar\n        }\n      }, React.createElement('div', {\n        style: style\n      }, '+' + count));\n    }\n\n    const formatTime = (dateStr) => {\n      if (!dateStr) return 'TBD';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return 'TBD';\n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true,\n        timeZone: 'America/Los_Angeles'\n      }).replace(/\\s/g, '');\n    };\n\n    // Short date format (Feb 28)\n    const formatShortDate = (dateStr) => {\n      if (!dateStr) return '';\n      const date = new Date(dateStr);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        month: 'short',\n        day: 'numeric'\n      });\n    };\n\n    const startTime = formatTime(event.start);\n    const endTime = formatTime(event.end);\n    const shortDate = formatShortDate(event.start);\n    \n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      gap: '8px'\n    };\n    \n    const contentStyle = {\n      minWidth: 0,\n      flex: 1\n    };\n    \n    const titleContainerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '2px'\n    };\n    \n    const titleStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      fontSize: '14px',\n      margin: 0\n    };\n    \n    const timeStyle = {\n      fontSize: '12px',\n      color: '#64748b',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      marginTop: '4px',\n      margin: 0\n    };\n    \n    const attendeesStyle = {\n      display: 'flex',\n      alignItems: 'center'\n    };\n\n    const linkStyle = {\n      color: '#64748b',\n      display: 'flex',\n      alignItems: 'center',\n      marginRight: '4px',\n      textDecoration: 'none',\n      flexShrink: 0\n    };\n    \n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: titleContainerStyle },\n            event.htmlLink && React.createElement('a', {\n              href: event.htmlLink,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: linkStyle\n            }, React.createElement(LinkIcon)),\n            React.createElement('h3', { style: titleStyle }, event.summary)\n          ),\n          React.createElement('p', { style: timeStyle },\n            shortDate + ', ' + startTime + ' - ' + endTime\n          )\n        ),\n        React.createElement('div', { style: attendeesStyle },\n          event.attendees && event.attendees.slice(0, 3).map((attendee, index) =>\n            React.createElement(UserAvatar, { key: index, user: attendee, index: index })\n          ),\n          event.attendees && event.attendees.length > 3 &&\n            React.createElement(MoreAttendees, { count: event.attendees.length - 3, index: 3 })\n        )\n      )\n    );\n  }\n\n  // Render multiple events if provided\n  function renderEvents(props) {\n    const events = Array.isArray(props.data) ? props.data : [props.data];\n    \n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)', // Two cards per row with gap in between\n      minWidth: '250px',\n      boxSizing: 'border-box'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      events.map((event, index) => \n        React.createElement('div', { \n          key: event.id || index,\n          style: cardWrapperStyle\n        },\n          React.createElement(GoogleCalendarEventCard, { \n            data: event \n          })\n        )\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  return Array.isArray(props.data) ? renderEvents(props) : GoogleCalendarEventCard(props);\n}"
+```
+
+## Conversation Components
+
+Conversation components display message threads and interactions between users.
+
+### Message Card Structure
+
+1. **Layout**:
+   - Avatar on the left
+   - Message content on the right
+   - Vertical alignment with avatar aligned to the first line of text
+
+2. **Content Structure**:
+   - Header: User name + timestamp
+   - Message body: Text content
+   - Optional: Thread indicator, reactions, attachments
+
+3. **Visual Hierarchy**:
+   - User name in bold
+   - Timestamp in lighter color
+   - Message text in standard weight
+
+### Message Card Styling
+
+```jsx
+// Message card container
+{
+  position: 'relative',
+  borderRadius: '8px',
+  border: '1px solid #e2e8f0',
+  backgroundColor: '#ffffff',
+  padding: '8px 12px',
+  marginBottom: '8px',
+  width: '100%',
+  boxSizing: 'border-box'
+}
+
+// Flex container for avatar and content
+{
+  display: 'flex',
+  gap: '12px',
+  alignItems: 'flex-start'
+}
+
+// Avatar styling
+{
+  width: '32px',
+  height: '32px',
+  borderRadius: '4px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'white',
+  fontSize: '14px',
+  fontWeight: '500',
+  backgroundColor: backgroundColor,
+  flexShrink: 0,
+  marginTop: '4px'
+}
+
+// Message content container
+{
+  flex: 1,
+  minWidth: 0
+}
+
+// Message header
+{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: '4px'
+}
+
+// User name
+{
+  fontWeight: '500',
+  color: '#1e293b',
+  fontSize: '14px'
+}
+
+// Timestamp
+{
+  color: '#64748b',
+  fontSize: '12px'
+}
+
+// Message text
+{
+  color: '#1e293b',
+  fontSize: '14px',
+  lineHeight: '1.5',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word'
+}
+```
+
+### Message Card Exmaple 
+```
+      "jsx": "function(props) {\n  function SlackMessageCard(props) {\n    const message = props.data;\n    if (!message) return null;\n    \n    // Format timestamp to readable format\n    function formatTimestamp(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true\n      });\n    }\n    \n    // Function to generate color from string (for avatars)\n    function stringToColor(string) {\n      if (!string) return '#6B778C';\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n    \n    // User avatar component\n    function UserAvatar({ name }) {\n      if (!name) return null;\n      \n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      \n      const avatarStyle = {\n        width: '32px',\n        height: '32px',\n        borderRadius: '4px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '14px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        flexShrink: 0,\n        marginTop: '4px'\n      };\n      \n      return React.createElement('div', {\n        style: avatarStyle,\n        className: 'user-avatar'\n      }, initials);\n    }\n    \n    // Thread icon SVG\n    function ThreadIcon() {\n      return React.createElement('svg', {\n        width: '12',\n        height: '12',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M1 4.5C1 3.11929 2.11929 2 3.5 2H8.5C9.88071 2 11 3.11929 11 4.5V5.5C11 6.88071 9.88071 8 8.5 8H7.5L5.5 10L5.5 8C4.11929 8 3 6.88071 3 5.5V4.5C3 3.11929 4.11929 2 5.5 2',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M5 10.5C5 9.11929 6.11929 8 7.5 8H12.5C13.8807 8 15 9.11929 15 10.5V11.5C15 12.8807 13.8807 14 12.5 14H11.5L9.5 16L9.5 14C8.11929 14 7 12.8807 7 11.5V10.5C7 9.11929 8.11929 8 9.5 8',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n    \n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '8px 12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box'\n    };\n    \n    const flexContainerStyle = {\n      display: 'flex',\n      gap: '12px',\n      alignItems: 'flex-start'\n    };\n    \n    const contentStyle = {\n      flex: 1,\n      minWidth: 0\n    };\n    \n    const headerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      marginBottom: '4px'\n    };\n    \n    const userInfoStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const nameStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      fontSize: '14px'\n    };\n    \n    const timeStyle = {\n      color: '#64748b',\n      fontSize: '12px'\n    };\n    \n    const messageTextStyle = {\n      color: '#1e293b',\n      fontSize: '14px',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap',\n      wordBreak: 'break-word'\n    };\n    \n    const threadIndicatorStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px',\n      color: '#64748b',\n      fontSize: '12px',\n      marginTop: '4px'\n    };\n    \n    const displayName = message.real_name || message.user_name || 'Unknown User';\n    const formattedTime = formatTimestamp(message.timestamp);\n    \n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement(UserAvatar, { name: displayName }),\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: headerStyle },\n            React.createElement('div', { style: userInfoStyle },\n              React.createElement('span', { style: nameStyle }, displayName)\n            ),\n            React.createElement('span', { style: timeStyle }, formattedTime)\n          ),\n          React.createElement('div', { style: messageTextStyle }, message.text),\n          message.thread_ts && message.thread_ts !== message.timestamp && \n            React.createElement('div', { style: threadIndicatorStyle },\n              React.createElement(ThreadIcon),\n              React.createElement('span', {}, 'Thread')\n            )\n        )\n      )\n    );\n  }\n  \n  return SlackMessageCard(props);\n}"
+```
+
+### Message List Structure
+
+1. **Layout**:
+   - Vertical list of messages
+   - Grouped by date
+   - Date separators between groups
+
+2. **Date Separator**:
+   - Horizontal line with date label in the center
+   - Date label has background to create visual break
+
+3. **Message Grouping**:
+   - Messages from the same user in sequence can be visually grouped
+   - Subsequent messages may have smaller top margin
+
+### Message List Styling
+
+```jsx
+// Container
+{
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+  width: '100%'
+}
+
+// Date header
+{
+  textAlign: 'center',
+  position: 'relative',
+  marginBottom: '8px',
+  marginTop: '8px'
+}
+
+// Date separator line
+{
+  position: 'absolute',
+  top: '50%',
+  left: 0,
+  right: 0,
+  height: '1px',
+  backgroundColor: '#e2e8f0',
+  zIndex: 1
+}
+
+// Date label
+{
+  position: 'relative',
+  zIndex: 2,
+  backgroundColor: 'white',
+  padding: '0 12px',
+  fontSize: '12px',
+  fontWeight: '500',
+  color: '#64748b',
+  display: 'inline-block'
+}
+
+// Message group
+{
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px'
+}
+```
+
+### Message List Example 
+```
+"jsx": "function(props) {\n  function SlackMessageList(props) {\n    const data = props.data;\n    if (!data || !data.messages || data.messages.length === 0) return null;\n    \n    // Format date for message groups\n    function formatDate(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      const today = new Date();\n      const yesterday = new Date(today);\n      yesterday.setDate(yesterday.getDate() - 1);\n      \n      if (date.toDateString() === today.toDateString()) {\n        return 'Today';\n      } else if (date.toDateString() === yesterday.toDateString()) {\n        return 'Yesterday';\n      } else {\n        return date.toLocaleDateString('en-US', {\n          weekday: 'long',\n          month: 'short',\n          day: 'numeric'\n        });\n      }\n    }\n    \n    // Format timestamp to readable format\n    function formatTimestamp(timestamp) {\n      if (!timestamp) return '';\n      const date = new Date(parseFloat(timestamp) * 1000);\n      if (date.toString() === 'Invalid Date') return '';\n      \n      return date.toLocaleTimeString('en-US', {\n        hour: 'numeric',\n        minute: '2-digit',\n        hour12: true\n      });\n    }\n    \n    // Function to generate color from string (for avatars)\n    function stringToColor(string) {\n      if (!string) return '#6B778C';\n      let hash = 0;\n      for (let i = 0; i < string.length; i++) {\n        hash = string.charCodeAt(i) + ((hash << 5) - hash);\n      }\n      let color = '#';\n      for (let i = 0; i < 3; i++) {\n        const value = (hash >> (i * 8)) & 0xFF;\n        color += ('00' + value.toString(16)).substr(-2);\n      }\n      return color;\n    }\n    \n    // User avatar component\n    function UserAvatar({ name }) {\n      if (!name) return null;\n      \n      const initials = name.split(' ')\n        .map((part) => part.charAt(0))\n        .join('')\n        .substring(0, 2)\n        .toUpperCase();\n      \n      const backgroundColor = stringToColor(name);\n      \n      const avatarStyle = {\n        width: '32px',\n        height: '32px',\n        borderRadius: '4px',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        color: 'white',\n        fontSize: '14px',\n        fontWeight: '500',\n        backgroundColor: backgroundColor,\n        flexShrink: 0,\n        marginTop: '4px'\n      };\n      \n      return React.createElement('div', {\n        style: avatarStyle,\n        className: 'user-avatar'\n      }, initials);\n    }\n    \n    // Group messages by date\n    const messagesByDate = {};\n    data.messages.forEach(message => {\n      const dateKey = formatDate(message.timestamp);\n      if (!messagesByDate[dateKey]) {\n        messagesByDate[dateKey] = [];\n      }\n      messagesByDate[dateKey].push(message);\n    });\n    \n    const containerStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '16px',\n      width: '100%'\n    };\n    \n    const dateHeaderStyle = {\n      textAlign: 'center',\n      position: 'relative',\n      marginBottom: '8px',\n      marginTop: '8px'\n    };\n    \n    const dateLineStyle = {\n      position: 'absolute',\n      top: '50%',\n      left: 0,\n      right: 0,\n      height: '1px',\n      backgroundColor: '#e2e8f0',\n      zIndex: 1\n    };\n    \n    const dateLabelStyle = {\n      position: 'relative',\n      zIndex: 2,\n      backgroundColor: 'white',\n      padding: '0 12px',\n      fontSize: '12px',\n      fontWeight: '500',\n      color: '#64748b',\n      display: 'inline-block'\n    };\n    \n    const messageGroupStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px'\n    };\n    \n    const messageStyle = {\n      display: 'flex',\n      gap: '12px',\n      alignItems: 'flex-start'\n    };\n    \n    const contentStyle = {\n      flex: 1,\n      minWidth: 0\n    };\n    \n    const headerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      marginBottom: '4px'\n    };\n    \n    const userInfoStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const nameStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      fontSize: '14px'\n    };\n    \n    const timeStyle = {\n      color: '#64748b',\n      fontSize: '12px'\n    };\n    \n    const messageTextStyle = {\n      color: '#1e293b',\n      fontSize: '14px',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap',\n      wordBreak: 'break-word'\n    };\n    \n    // Render date groups and messages\n    const dateGroups = Object.keys(messagesByDate).map(dateKey => {\n      const messages = messagesByDate[dateKey];\n      \n      return React.createElement('div', { key: dateKey },\n        React.createElement('div', { style: dateHeaderStyle },\n          React.createElement('div', { style: dateLineStyle }),\n          React.createElement('span', { style: dateLabelStyle }, dateKey)\n        ),\n        React.createElement('div', { style: messageGroupStyle },\n          messages.map(message => {\n            const displayName = message.real_name || message.user_name || 'Unknown User';\n            const formattedTime = formatTimestamp(message.timestamp);\n            \n            return React.createElement('div', { key: message.id, style: messageStyle },\n              React.createElement(UserAvatar, { name: displayName }),\n              React.createElement('div', { style: contentStyle },\n                React.createElement('div', { style: headerStyle },\n                  React.createElement('div', { style: userInfoStyle },\n                    React.createElement('span', { style: nameStyle }, displayName)\n                  ),\n                  React.createElement('span', { style: timeStyle }, formattedTime)\n                ),\n                React.createElement('div', { style: messageTextStyle }, message.text)\n              )\n            );\n          })\n        )\n      );\n    });\n    \n    return React.createElement('div', { style: containerStyle }, dateGroups);\n  }\n  \n  return SlackMessageList(props);\n}"
+```
+
+
+## Micro-Card Components
+
+Micro-cards are compact representations of entities, designed for inline display or in constrained spaces.
+
+### Micro-Card Structure
+
+1. **Layout**:
+   - Horizontal layout with minimal height
+   - Fixed width or flexible based on context
+   - Compact padding (4-8px)
+
+2. **Content Structure**:
+   - Small icon or avatar (16-24px)
+   - Primary text (entity name)
+   - Optional secondary text or badge
+
+3. **Visual Style**:
+   - Subtle background color or border
+   - Rounded corners (4px)
+   - Hover state for interactive micro-cards
+
+### Micro-Card Styling
+
+```jsx
+// Micro-card container
+{
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  padding: '4px 8px',
+  borderRadius: '4px',
+  backgroundColor: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  maxWidth: '100%',
+  overflow: 'hidden'
+}
+
+// Icon/Avatar
+{
+  width: '16px',
+  height: '16px',
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+}
+
+// Primary text
+{
+  fontSize: '12px',
+  fontWeight: '500',
+  color: '#1e293b',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis'
+}
+
+// Badge
+{
+  fontSize: '10px',
+  padding: '1px 4px',
+  borderRadius: '3px',
+  backgroundColor: '#e2e8f0',
+  color: '#475569'
+}
+```
+
+## Table Component
+
+Tables display structured data in a compact, scannable format.
+
+### Table Principles
+
+1. **Minimalism**:
+   - Clean, lightweight appearance
+   - Subtle borders and shadows
+   - Ample whitespace
+
+2. **Content Density**:
+   - Reduce text where possible
+   - Use visual elements instead of text when appropriate
+   - Truncate long text with ellipsis
+
+3. **Interactive Elements**:
+   - Hover states for rows
+   - Tooltips for truncated or abbreviated content
+
+### Table Styling
+
+```jsx
+// Table container
+{
+  width: '100%',
+  overflowX: 'auto'
+}
+
+// Table
+{
+  width: '100%',
+  backgroundColor: 'white',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  borderCollapse: 'collapse'
+}
+
+// Table header
+{
+  backgroundColor: '#f8fafc'
+}
+
+// Table header cell
+{
+  padding: '12px 16px',
+  textAlign: 'left',
+  fontSize: '14px',
+  fontWeight: '600',
+  color: '#475569',
+  borderBottom: '1px solid #e2e8f0'
+}
+
+// Table row
+{
+  borderBottom: '1px solid #f1f5f9',
+  transition: 'background-color 0.2s'
+}
+
+// Table cell
+{
+  padding: '12px 16px',
+  fontSize: '14px',
+  color: '#1e293b'
+}
+```
+
+### Table Example
+```
+"jsx": "function(props) { function LinearTeamList(props) { const teams = props.data && props.data.items ? props.data.items : []; if (!teams || !Array.isArray(teams) || teams.length === 0) return null; const styles = { container: { width: '100%', overflowX: 'auto' }, table: { width: '100%', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', borderRadius: '8px', overflow: 'hidden', borderCollapse: 'collapse' }, thead: { backgroundColor: '#f8fafc' }, th: { padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#475569', borderBottom: '1px solid #e2e8f0' }, tr: { borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }, td: { padding: '12px 16px', fontSize: '14px', color: '#1e293b' }, nameCell: { display: 'flex', alignItems: 'center', gap: '2px' }, description: { color: '#64748b', fontSize: '13px' }, externalLink: { color: '#64748b', display: 'flex', alignItems: 'center', marginRight: '4px', textDecoration: 'none' } }; function LinkIcon() { return React.createElement('svg', { width: '10', height: '10', viewBox: '0 0 16 16', fill: 'none', style: { color: '#64748b' } }, [ React.createElement('path', { key: 'p1', d: 'M6.5 9.5L9.5 6.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p2', d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }), React.createElement('path', { key: 'p3', d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round', strokeLinejoin: 'round' }) ]); } return React.createElement('div', { style: styles.container }, React.createElement('table', { style: styles.table }, React.createElement('thead', { style: styles.thead }, React.createElement('tr', {}, React.createElement('th', { style: styles.th }, 'Team Name'), React.createElement('th', { style: styles.th }, 'Description') ) ), React.createElement('tbody', {}, teams.map((team, index) => { return React.createElement('tr', { key: team.id, style: styles.tr, onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; }, onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; } }, React.createElement('td', { style: styles.td }, React.createElement('div', { style: styles.nameCell }, team.key && React.createElement('a', { href: `https://linear.app/team/${team.key}`, target: '_blank', rel: 'noopener noreferrer', style: styles.externalLink }, React.createElement(LinkIcon)), team.name ) ), React.createElement('td', { style: styles.td }, team.description ? team.description : React.createElement('span', { style: styles.description }, 'No description') ) ); }) ) )); } return LinearTeamList(props); }"
+```
+
+## Interactive Elements
+
+### Tooltips
+
+Tooltips provide additional information on hover without cluttering the UI.
+
+```jsx
+// Tooltip container
+{
+  position: 'absolute',
+  bottom: '100%',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  marginBottom: '6px',
+  backgroundColor: '#333',
+  color: 'white',
+  fontSize: '10px',
+  padding: '4px 8px',
+  borderRadius: '4px',
+  whiteSpace: 'nowrap',
+  zIndex: '10'
+}
+
+// Tooltip arrow
+{
+  position: 'absolute',
+  top: '100%',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  borderWidth: '4px',
+  borderStyle: 'solid',
+  borderColor: '#333 transparent transparent transparent'
+}
+```
+
+### User Avatars
+
+User avatars display initials with a background color derived from the user's name.
+
+```jsx
+// Avatar container
+{
+  width: '32px',
+  height: '32px',
+  borderRadius: '4px',  // or '50%' for circular avatars
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'white',
+  fontSize: '14px',
+  fontWeight: '500',
+  backgroundColor: backgroundColor,
+  flexShrink: 0
+}
+```
+
+### Status Badges
+
+Status badges use color to convey state information.
+
+```jsx
+// Status badge
+{
+  display: 'inline-block',
+  fontSize: '10px',
+  fontWeight: '500',
+  padding: '2px 6px',
+  borderRadius: '4px',
+  backgroundColor: status === 'active' ? '#dcfce7' : '#fee2e2',
+  color: status === 'active' ? '#166534' : '#b91c1c',
+  textTransform: 'capitalize'
+}
+```
+
+### Buttons
+
+Buttons follow a consistent style across the application.
+
+```jsx
+// Primary button
+{
+  backgroundColor: '#3b82f6',
+  color: 'white',
+  border: 'none',
+  borderRadius: '4px',
+  padding: '6px 12px',
+  fontSize: '14px',
+  fontWeight: '500',
+  cursor: 'pointer',
+  transition: 'background-color 0.2s'
+}
+
+// Secondary button
+{
+  backgroundColor: 'white',
+  color: '#1e293b',
+  border: '1px solid #e2e8f0',
+  borderRadius: '4px',
+  padding: '6px 12px',
+  fontSize: '14px',
+  fontWeight: '500',
+  cursor: 'pointer',
+  transition: 'all 0.2s'
+}
+
+// Icon button
+{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '28px',
+  height: '28px',
+  borderRadius: '4px',
+  backgroundColor: 'transparent',
+  color: '#64748b',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'background-color 0.2s'
+}
+```
+
+## Empty States
+
+Empty states provide feedback when no data is available.
+
+```jsx
+// Empty state container
+{
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '24px',
+  backgroundColor: '#f8fafc',
+  borderRadius: '8px',
+  border: '1px dashed #e2e8f0'
+}
+
+// Empty state icon
+{
+  color: '#94a3b8',
+  marginBottom: '12px',
+  width: '32px',
+  height: '32px'
+}
+
+// Empty state text
+{
+  color: '#64748b',
+  fontSize: '14px',
+  textAlign: 'center'
+}
+```
+
+## Color Palette
+
+- **Text**:
+  - Primary: #1e293b
+  - Secondary: #64748b
+  - Muted: #94a3b8
+
+- **Backgrounds**:
+  - Card/Table: #ffffff
+  - Page: #f8fafc
+  - Hover: #f1f5f9
+
+- **Borders**:
+  - Light: #e2e8f0
+  - Medium: #cbd5e1
+
+- **Status Colors**:
+  - Success: #166534 (text), #dcfce7 (bg)
+  - Error: #b91c1c (text), #fee2e2 (bg)
+  - Warning: #92400e (text), #fef3c7 (bg)
+  - Info: #0369a1 (text), #e0f2fe (bg)
+
+- **Brand Colors**:
+  - Primary: #3b82f6
+  - Secondary: #6366f1
+  - Accent: #8b5cf6
+
+## Typography
+
+- **Font Family**: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif
+- **Sizes**:
+  - Title: 14px, 500 weight
+  - Subtitle: 12px, 400 weight
+  - Table Header: 14px, 600 weight
+  - Table Cell: 14px, 400 weight
+  - Status/Tag: 10px, 500 weight
+  - Message Text: 14px, 400 weight
+
+## Spacing System
+
+- **Base Unit**: 4px
+- **Common Spacings**:
+  - Extra Small: 4px
+  - Small: 8px
+  - Medium: 12px
+  - Large: 16px
+  - Extra Large: 24px
+
+## Best Practices
+
+1. **Minimize Text**:
+   - Use visual elements where possible
+   - Truncate long text with ellipsis
+   - Use tooltips to show full content on hover
+
+2. **Consistent Spacing**:
+   - Use the spacing system consistently
+   - Maintain consistent padding within similar components
+   - Use gap property for flex layouts
+
+3. **Visual Hierarchy**:
+   - Use weight and color to establish importance
+   - Group related information
+   - Maintain consistent positioning of elements
+
+4. **Responsive Design**:
+   - Cards should stack on smaller screens
+   - Tables should scroll horizontally when needed
+   - Minimum width constraints prevent cramped layouts
+
+5. **Accessibility**:
+   - Maintain sufficient color contrast
+   - Provide alternative text for visual elements
+   - Ensure interactive elements are keyboard accessible
