@@ -14,11 +14,11 @@ from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 
-router = APIRouter(prefix="/browser_use", tags=["browser_use"])
+router = APIRouter(prefix="/browser-use", tags=["browser-use"])
 
 async def get_browser_use_service(request: FastAPIRequest):
     try:
-        api_key = await validate_provider_api_key(request, "browser_use")
+        api_key = await validate_provider_api_key(request, "browser-use")
         client = BrowserUseClient(api_key)
         return BrowserUseService(client)
     except Exception as e:
