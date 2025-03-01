@@ -92,7 +92,6 @@ class BrowserUseService:
         return self.prepare_response(response, "BrowserUseAuthCard")
 
     def ping(self) -> ApiResponse:
-        """Check if the server is running."""
         response = self.client.ping()
         
         return self.prepare_response(response, "BrowserUsePingCard")
