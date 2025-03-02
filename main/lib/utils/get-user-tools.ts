@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/utils/supabase/server';
 
-const API_BASE_URL = process.env.ACI_SERVER_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export async function getUserTools() {
   try {
