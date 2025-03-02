@@ -22,7 +22,7 @@ export const tool_call = tool({
         }
       });
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/${tool}/${method}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${tool}/${method}`;
       console.log('Making request to:', url);
       console.log('With params:', JSON.stringify(params, null, 2));
       console.log('With headers:', JSON.stringify(headers, null, 2));
