@@ -34,4 +34,3 @@ services:
       - nginx
 
 volumes:
-  redis_data:
