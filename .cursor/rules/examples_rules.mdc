@@ -1,0 +1,106 @@
+---
+description: If we want to create examples.yaml based on route
+globs: 
+---
+Here's a generalized instruction for creating `examples.yaml` files for any integration:
+
+---
+
+### Creating Integration Examples (examples.yaml)
+
+**File Location**  
+Create in your integration directory:  
+`integrations/[integration_name]/examples.yaml`
+
+**Structure Requirements**  
+```yaml
+routes:
+  - endpoint: "/your/route/path"  # Must match exactly with route decorator path
+    examples:
+      - scenario: "Human-readable scenario name"
+        description: "Brief explanation of what this example demonstrates"
+        input_json: |  # Must match your input schema
+          {
+            "field1": "example_value",
+            "field2": 123
+          }
+        output_json: |  # Must match your output schema
+          {
+            "status_code": 200,
+            "data": {
+              "result_field": "example_response"
+            }
+          }
+      # Add more examples as needed
+  # Add more endpoints
+```
+
+**Key Requirements**  
+1. **Mandatory Fields** for each example:
+   - `endpoint`: Full route path (must exactly match FastAPI decorator path)
+   - `scenario`: Unique name for the test case
+   - `input_json`: Valid JSON matching the route's input schema
+   - `output_json`: Valid JSON matching the route's output schema
+
+2. **Formatting Rules**:
+   - Use 2-space indentation throughout
+   - JSON blocks must use `|` with proper indentation
+   - Endpoint paths are case-sensitive and must match exactly
+   - Maintain consistent quoting style (prefer double quotes for JSON, optional for YAML)
+
+3. **Validation**:
+   - Every route in `route.py` must have at least one example
+   - Input/output JSON should reflect real-world usage patterns
+   - Arrays must have consistent indentation:
+     ```yaml
+     examples:
+       - scenario: "Valid Case"
+         input_json: |
+           {
+             "array_field": [
+               "item1",
+               "item2"
+             ]
+           }
+     ```
+
+**Example for Slack-like Integration**  
+```yaml
+routes:
+  - endpoint: "/slack/channels"
+    examples:
+      - scenario: "List public channels"
+        input_json: |
+          {
+            "types": ["public"],
+            "limit": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "channels": [
+                {"id": "C123", "name": "general"},
+                {"id": "C456", "name": "random"}
+              ]
+            }
+          }
+```
+
+**Common Pitfalls to Avoid**  
+❌ Incorrect endpoint paths (check for typos)  
+❌ Invalid JSON syntax in input/output blocks  
+❌ Inconsistent indentation (use YAML linter)  
+❌ Missing required fields in JSON examples  
+❌ Mismatched data types between examples and schemas
+
+**Verification**  
+After creating, test with:
+```python
+# In your route.py
+from ..common.examples_handler import ExamplesLoader
+examples = ExamplesLoader()  # Auto-loads from integration dir
+
+# Access examples for a route
+examples["/your/route/path"]
+```
