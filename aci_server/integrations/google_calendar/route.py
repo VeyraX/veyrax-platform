@@ -152,7 +152,9 @@ async def list_calendars(
     service: CalendarService = Depends(get_calendar_service)
 ):
     try:
+        print(f"Listing calendars with params: {params}")
         validated_params = ListCalendarsParams(**params)
+        print(f"Validated params: {validated_params}")
         return service.list_calendars()
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListCalendarsParams'))
