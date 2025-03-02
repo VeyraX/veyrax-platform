@@ -243,7 +243,12 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
                               </Badge>
                             )}
                           </div>
-                          <p className="text-muted-foreground text-sm mb-4">{param.description}</p>
+                          {param.description && 
+                           !param.description.match(new RegExp(`^${param.name.replace(/_/g, ' ')}$`, 'i')) && 
+                           !param.description.match(new RegExp(`^${param.name}$`, 'i')) &&
+                           param.description !== param.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') && (
+                            <p className="text-muted-foreground text-sm mb-4">{param.description}</p>
+                          )}
                           {param.default && (
                             <p className="text-xs text-muted-foreground mt-1 mb-4">Default: {param.default}</p>
                           )}
@@ -266,7 +271,12 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
                                         </Badge>
                                       )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground ml-4">{nestedParam.description}</p>
+                                    {nestedParam.description && 
+                                     !nestedParam.description.match(new RegExp(`^${nestedParam.name.replace(/_/g, ' ')}$`, 'i')) && 
+                                     !nestedParam.description.match(new RegExp(`^${nestedParam.name}$`, 'i')) &&
+                                     nestedParam.description !== nestedParam.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') && (
+                                      <p className="text-xs text-muted-foreground ml-4">{nestedParam.description}</p>
+                                    )}
                                     {nestedParam.default && (
                                       <p className="text-xs text-muted-foreground mt-1 ml-4">Default: {nestedParam.default}</p>
                                     )}
