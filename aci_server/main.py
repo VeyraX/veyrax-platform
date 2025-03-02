@@ -75,8 +75,11 @@ async def get_tools():
     
     return {"tools": tools}
 
+
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request):
+    from fastapi import Depends
+    
     try:
         params = await request.json()
     except:
@@ -93,18 +96,49 @@ async def handle_tool_call(tool: str, method: str, request: Request):
             
             endpoint_args = {}
             
+            # First handle any dependencies
             for name, param in signature.parameters.items():
-                if name in params:
-                    endpoint_args[name] = params[name]
+                if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
+                    dep_func = param.default.dependency
+                    try:
+                        # Get the actual service/dependency instance
+                        dependency_result = await dep_func(request)
+                        
+                        # Make sure it's not a Depends object itself
+                        if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
+                            raise ValueError(f"Dependency resolution error: got Depends object instead of service instance")
+                            
+                        endpoint_args[name] = dependency_result
+                    except Exception as e:
+                        error_msg = f"Error resolving dependency {name}: {str(e)}"
+                        print(error_msg)
+                        # Always fail on dependency resolution errors
+                        raise HTTPException(status_code=500, detail=error_msg)
             
+            # Now handle regular parameters
             for name, param in signature.parameters.items():
-                if name not in endpoint_args:
-                    if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
-                        dep_func = param.default.dependency
-                        try:
-                            endpoint_args[name] = await dep_func(request)
-                        except Exception as e:
-                            print(f"Error resolving dependency {name}: {str(e)}")
+                # Skip parameters that are already handled by dependencies
+                if name in endpoint_args:
+                    continue
+                    
+                # Check if parameter is a Body parameter
+                is_body_param = (
+                    param.default != inspect.Parameter.empty 
+                    and hasattr(param.default, "__class__") 
+                    and param.default.__class__.__name__ == "Body"
+                )
+                
+                if name in params:
+                    # Add the parameter directly if it's in our params
+                    endpoint_args[name] = params[name]
+                elif name == "params" and is_body_param:
+                    # For Body parameters named "params", pass the entire params dict
+                    endpoint_args[name] = params
+                elif name == "request" and name not in endpoint_args:
+                    # If the endpoint expects the request object
+                    endpoint_args[name] = request
+            
+            print(f"Calling {method} with {endpoint_args}")
             
             return await route.endpoint(**endpoint_args)
     
