@@ -7,7 +7,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 import { Button } from "@/components/ui/button"
 import { Sun, Moon, MoveRight, ArrowUp } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { WaitlistDialog } from "@/app/modules/landing/components/waitlist-dialog"
+import { WaitlistDialog } from "@/app/modules/landing/components/web/waitlist-dialog"
 import { BetaDialog } from "@/app/modules/landing/components/agent/beta-dialog"
 
 

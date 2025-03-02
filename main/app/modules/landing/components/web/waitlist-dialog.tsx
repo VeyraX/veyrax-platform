@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { WaitlistService } from '../api/api.service';
+import { WaitlistService } from '@/app/modules/landing/api/api.service';
 import { validateEmail } from '@/lib/utils/email-validator';
 
 interface WaitlistDialogProps {

@@ -10,9 +10,11 @@ import { BorderBeam } from "@/components/ui/border-beam";
 import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { WaitlistService } from '../../api/api.service';
+import { WaitlistService } from '@/app/modules/landing/api/api.service';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { validateEmail } from '@/lib/utils/email-validator';
+import { WaitlistDialog } from "./waitlist-dialog";
+import Link from "next/link";
 
 export const Hero = () => {
   const { resolvedTheme } = useTheme();
@@ -86,7 +88,7 @@ export const Hero = () => {
               <div className="flex gap-4 flex-col">
                 <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
                   <span className="text-spektr-cyan-50">VeyraX is </span>
-                  <span className="font-semibold">Agentic Component Interface</span>
+                  <span className="font-semibold">Agenic Component Interface</span>
                 </h1>
 
                 <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
@@ -94,30 +96,20 @@ export const Hero = () => {
                 </p>
               </div>
               
-              <div className="flex flex-col items-center gap-4 w-full max-w-md">
-                {message && (
-                  <Alert variant={message.type === 'success' ? 'default' : 'destructive'} className="w-full">
-                    <AlertDescription className="text-center">
-                      {message.text}
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
-                {showForm && (
-                  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full">
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="flex-1 px-4 py-2 rounded-lg border border-border bg-background"
-                    />
-                    <Button type="submit" disabled={isLoading} className="gap-2">
-                      {isLoading ? 'Joining...' : 'Join Waitlist'} <MoveRight className="w-4 h-4" />
+              <div className="flex flex-row items-center gap-4 w-full max-w-md justify-center">
+                <WaitlistDialog 
+                  trigger={
+                    <Button className="gap-2">
+                      Join Waitlist <MoveRight className="w-4 h-4" />
                     </Button>
-                  </form>
-                )}
+                  } 
+                />
+                
+                <Link href="/marketplace">
+                  <Button variant="outline" className="gap-2">
+                    Explore Marketplace
+                  </Button>
+                </Link>
               </div>
 
               <div className="relative w-full max-w-7xl z-10">
