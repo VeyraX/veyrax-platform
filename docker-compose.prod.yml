@@ -24,35 +24,6 @@ services:
       - redis
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
-  celery_worker:
-    build: ./aci_server
-    volumes:
-      - ./aci_server:/app
-      - ./.env:/app/.env
-    depends_on:
-      - redis
-      - aci_server
-    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
-
-  celery_flower:
-    build: ./aci_server
-    ports:
-      - "5555:5555"
-    volumes:
-      - ./aci_server:/app
-      - ./.env:/app/.env
-    depends_on:
-      - redis
-      - celery_worker
-    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0"]
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
   certbot:
     image: certbot/certbot
     volumes:
