@@ -9,7 +9,7 @@ import Link from "next/link"
 interface SuggestionsEmptyStateProps {
   onToolClick: (tool: string) => void
   onSelectSuggestion?: (text: string) => void
-  connectedTools: { providerTag: string, logoUrl: string }[]
+  connectedTools: { providerTag: string, logoUrl: string, isConnected: boolean }[]
 }
 
 function chunk<T>(array: T[], size: number): T[][] {
@@ -36,7 +36,11 @@ export function SuggestionsEmptyState({
       setIsLoading(false)
       return
     }
-    setToolQuestions(getToolQuestions(connectedTools.map(tool => tool.providerTag)))
+    const trulyConnectedTools = connectedTools
+      .filter(tool => tool.isConnected)
+      .map(tool => tool.providerTag);
+      
+    setToolQuestions(getToolQuestions(trulyConnectedTools))
     setIsLoading(false)
   }, [connectedTools])
 
@@ -146,7 +150,12 @@ export function SuggestionsEmptyState({
             className="flex overflow-x-auto gap-4 w-full pb-4 px-4 no-scrollbar justify-center"
           >
             {toolGroup.map((tool) => {
-              const connectedTool = connectedTools.find(ct => ct.providerTag === tool.toolName);
+              const connectedTool = connectedTools.find(ct => 
+                ct.providerTag === tool.toolName && ct.isConnected
+              );
+              
+              if (!connectedTool) return null;
+              
               return (
                 <Button
                   key={tool.toolName}

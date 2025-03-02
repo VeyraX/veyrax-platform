@@ -8,7 +8,7 @@ interface AssistantEmptyStateProps {
   onStop: () => void
   userTools: Record<string, any>
   onToolClick: (tool: string) => void
-  connectedTools: { providerTag: string, logoUrl: string }[]
+  connectedTools: { providerTag: string, logoUrl: string, isConnected: boolean }[]
 }
 
 export function AssistantEmptyState({

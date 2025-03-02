@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from db.supabase import get_supabase
+from integrations.common.auth import get_user_from_request
 from integrations.google_calendar.schema import EventFilters
 from integrations.google_calendar.route import get_calendar_service
 from integrations.gmail.route import router as gmail_router
@@ -115,3 +117,35 @@ async def get_tool_spec(tool_name: str):
     
     router = INTEGRATION_ROUTERS[tool_name]
     return {"tools": get_router_tools(router)}
+
+
+@app.get("/get-tools")
+async def get_user_tools(request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        
+        user_providers = supabase.table('users_providers') \
+            .select('provider_id') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not user_providers.data:
+            return {"tools": {}}
+            
+        provider_ids = [item['provider_id'] for item in user_providers.data]
+        
+        providers = supabase.table('providers') \
+            .select('provider_tag, input_schema') \
+            .in_('id', provider_ids) \
+            .execute()
+            
+        user_tools = {}
+        for provider in providers.data:
+            if provider.get('input_schema'):
+                user_tools[provider['provider_tag']] = provider['input_schema']
+        
+        return {"tools": user_tools}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")

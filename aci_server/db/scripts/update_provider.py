@@ -104,16 +104,19 @@ async def update_provider_data():
                                 
                                 print(f"  Processing tool spec for endpoint: {endpoint_name}")
                                 
-                                input_schema = tool_item.copy()
+                                input_schema = {
+                                    'type': 'function',
+                                    'function': function_data.copy()
+                                }
                                 
-                                if 'output_schema' in function_data:
-                                    output_schema = function_data['output_schema']
+                                if 'output_schema' in input_schema['function']:
+                                    output_schema = input_schema['function']['output_schema']
                                     output_schemas[endpoint_name] = output_schema
-                                    
-                                    input_schema['function'] = function_data.copy()
                                     del input_schema['function']['output_schema']
-                                    
                                     print(f"  Extracted output schema from tool spec for {endpoint_name}")
+                                
+                                if 'examples' in input_schema:
+                                    del input_schema['examples']
                                 
                                 input_schemas[endpoint_name] = input_schema
                                 print(f"  Added input schema for {endpoint_name}")

@@ -62,7 +62,7 @@ export default function AssistantPage({
   });
 
   const [userTools, setUserTools] = useState<Record<string, any>>({});
-  const [connectedTools, setConnectedTools] = useState<{ providerTag: string, logoUrl: string }[]>([]);
+  const [connectedTools, setConnectedTools] = useState<{ providerTag: string, logoUrl: string, isConnected: boolean }[]>([]);
   const [chatState, setChatState] = useState<{
     id: string | null;
   }>({

@@ -1,25 +1,34 @@
 import { createClient } from '@/lib/utils/supabase/server';
-import { tools as allTools } from '@/lib/ai/tools';
 
-export async function getUserTools(userId: string) {
-  const supabase = createClient();
-  
-  const { data: availableTools, error } = await supabase
-    .rpc('get_user_tools_secure', { user_id_param: userId })
-    .select();
+const API_BASE_URL = process.env.ACI_SERVER_URL || 'http://localhost:8000';
 
-  if (error) {
-    console.error('Error fetching user tools:', error);
+export async function getUserTools() {
+  try {
+    const supabase = createClient();
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/get-tools`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user tools: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.tools || {};
+  } catch (error) {
+    console.error('Error in getUserTools:', error);
     return {};
   }
-
-  if (!availableTools) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    availableTools
-      .filter(tool => tool.tool_name in allTools)
-      .map(tool => [tool.tool_name, allTools[tool.tool_name as keyof typeof allTools]])
-  );
 }

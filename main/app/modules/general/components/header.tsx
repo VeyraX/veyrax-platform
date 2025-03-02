@@ -82,7 +82,7 @@ export function Header({
             </>
           ) : (
             <>
-              <Button variant="link" size="sm">
+              <Button variant="link" size="sm" onClick={() => router.push('https://docs.veyrax.com/')}>
                 Docs
               </Button>
               <Button 

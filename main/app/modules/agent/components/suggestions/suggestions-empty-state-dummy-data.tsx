@@ -80,6 +80,42 @@ export const getToolQuestions = (connectedTools: string[]) => {
         "Check my Outlook calendar for upcoming meetings",
         "Schedule a new meeting with team members in Outlook"
       ]
+    },
+    {
+      toolName: "dropbox",
+      questions: [
+        "Find recent files in my Dropbox",
+        "Search for specific documents in my Dropbox",
+        "Get information about a file in my Dropbox",
+        "List files in a specific Dropbox folder"
+      ]
+    },
+    {
+      toolName: "slack",
+      questions: [
+        "Find recent messages in a Slack channel",
+        "Search for specific content in Slack conversations",
+        "Get information about a Slack channel",
+        "Find messages from a specific person in Slack"
+      ]
+    },
+    {
+      toolName: "browser-use",
+      questions: [
+        "Search for information on a specific website",
+        "Find recent browser history",
+        "Open a specific webpage and extract information",
+        "Analyze the content of a webpage"
+      ]
+    },
+    {
+      toolName: "resend",
+      questions: [
+        "Send an email with specific content",
+        "Find recent emails in my Resend inbox",
+        "Get information about a specific email in Resend",
+        "Find emails from a specific person in Resend"
+      ]
     }
   ]
 

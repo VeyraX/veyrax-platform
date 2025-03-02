@@ -9,7 +9,6 @@ import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { Button } from "@/components/ui/button";
 import { CircleStop } from "lucide-react";
 import { AudioWaveform } from "./audio-input"
-import { ToolSuggestionsCommand } from "../suggestions/tool-suggestions"
 import React from "react";
 
 interface AIInputWithSearchProps {
@@ -23,10 +22,6 @@ interface AIInputWithSearchProps {
   className?: string;
   isLoading?: boolean;
   onStop?: () => void;
-  onToolSelect?: (tool: { apiName: string, question: string }) => void;
-  type?: 'default' | 'generate';
-  onAddDocLink?: (link: string) => void;
-  onRemoveDocLink?: (link: string) => void;
   onShowSuggestions?: (show: boolean) => void;
   userTools: Record<string, any>;
 }
@@ -53,8 +48,6 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
-  const [showCommands, setShowCommands] = useState(false);
-  const [selectedTool, setSelectedTool] = useState<{ apiName: string, question: string } | null>(null);
 
   React.useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement);
 
@@ -140,36 +133,16 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
     const newValue = e.target.value;
     setValue(newValue);
     
-    // Show command menu when slash is typed at the start
-    if (newValue.startsWith('/')) {
-      setShowCommands(true);
-      onShowSuggestions?.(false);
-    } else {
-      setShowCommands(false);
-      onShowSuggestions?.(true);
-    }
+    onShowSuggestions?.(true);
     
     adjustHeight();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (showCommands && ['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
-      e.preventDefault();
-      return;
-    }
-    
-    if (e.key === 'Enter' && !e.shiftKey && !showCommands) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
-  };
-
-  const handleToolSelect = (tool: { apiName: string, question: string }) => {
-    setValue(tool.question);
-    setShowCommands(false);
-    onShowSuggestions?.(true);
-    setSelectedTool(tool);
-    adjustHeight();
   };
 
   return (
@@ -190,22 +163,11 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
               <Textarea
                 id={id}
                 value={value}
-                placeholder="Ask anything, press '/' to search actions..."
+                placeholder="Ask anything..."
                 className="w-full rounded-xl rounded-b-none px-4 py-3 bg-black/5 dark:bg-white/5 border-none dark:text-white placeholder:text-black/70 dark:placeholder:text-white/70 resize-none focus-visible:ring-0 leading-[1.2]"
                 ref={textareaRef}
                 onKeyDown={handleKeyDown}
                 onChange={handleInputChange}
-              />
-            </div>
-          )}
-
-          {showCommands && (
-            <div className="absolute bottom-full mb-1 w-full z-10">
-              <ToolSuggestionsCommand 
-                onSelect={handleToolSelect}
-                isOpen={showCommands}
-                searchQuery={value}
-                userTools={userTools}
               />
             </div>
           )}

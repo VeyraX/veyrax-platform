@@ -216,9 +216,14 @@ class DropboxTokenRefresher(BaseTokenRefresher):
                     error_text = await response.text()
                     raise ValueError(f"Failed to refresh token: {error_text}")
                     
-                new_token_data = await response.json()
-                if "refresh_token" not in new_token_data:
-                    new_token_data["refresh_token"] = refresh_token
+                refresh_data = await response.json()
+                
+                new_token_data = {
+                    'access_token': refresh_data['access_token'],
+                    'refresh_token': refresh_data.get('refresh_token', refresh_token),
+                    'expires_at': int(datetime.now().timestamp() + refresh_data.get('expires_in', 14400)),
+                    'raw_token_data': refresh_data
+                }
                     
                 return await TokenService.update_token(request, token_data, new_token_data)
 

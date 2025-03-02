@@ -176,25 +176,48 @@ export const getUserApiKey = async (providerId: string): Promise<string | null> 
   return data.api_key;
 }
 
-export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string }[]> => {
+export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string, isConnected: boolean }[]> => {
   const { data: { user } } = await supabase.auth.getUser()
   
   type ProviderResponse = {
     providers: {
       provider_tag: string,
-      logo_url: string
+      logo_url: string,
+      auth_method: string,
+      id: string
     }
   }
   
   const { data: userProviders } = await supabase
     .from('users_providers')
-    .select('providers(provider_tag, logo_url)')
+    .select('providers(provider_tag, logo_url, auth_method, id)')
     .eq('user_id', user?.id) as { data: ProviderResponse[] | null }
   
-  return userProviders?.map(up => ({
-    providerTag: up.providers.provider_tag,
-    logoUrl: up.providers.logo_url
-  })) || []
+  if (!userProviders?.length) return [];
+  
+  const { data: userApiKeys } = await supabase
+    .from('users_provider_api_keys')
+    .select('provider_id, api_key')
+    .eq('user_id', user?.id)
+
+  const providersWithApiKeys = new Set(
+    userApiKeys
+      ?.filter(k => k.api_key && k.api_key.trim() !== '')
+      .map(k => k.provider_id)
+  )
+  
+  return userProviders.map(up => {
+    const isApiKeyProvider = up.providers.auth_method === 'api_key';
+    const isReallyConnected = isApiKeyProvider 
+      ? providersWithApiKeys.has(up.providers.id) 
+      : true;
+      
+    return {
+      providerTag: up.providers.provider_tag,
+      logoUrl: up.providers.logo_url,
+      isConnected: isReallyConnected
+    };
+  }) || [];
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {

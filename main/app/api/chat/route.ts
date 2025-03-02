@@ -20,12 +20,14 @@ export async function POST(req: Request) {
   const { messages, chatId } = body;
 
   try {
-    const userTools = await getUserTools(user.id);
+    const userTools = await getUserTools();
+    
+    const customSystemPrompt = `${main_system_prompt}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
 
     const result = streamText({
       model: openai('gpt-4o'),
       messages,
-      system: main_system_prompt,
+      system: customSystemPrompt,
       tools: tools,
       experimental_toolCallStreaming: true,
       maxSteps: 25,
