@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "../api/types.settings"
 import { useEffect, useState } from "react"
-import { getUserProfile } from "../api/api.settings"
 import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, Plus, LogOut } from "lucide-react"
 import {
@@ -21,23 +20,20 @@ import {
   LanguageOption
 } from "../api/types.settings"
 import { useTheme } from "next-themes"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function AccountSettings() {
+interface AccountSettingsProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+}
+
+export default function AccountSettings({ profile, isLoading }: AccountSettingsProps) {
   const { theme, setTheme } = useTheme()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [settings, setSettings] = useState<UserSettings>({
     theme: theme as ThemeOption,
     language: 'en'
   })
   const [isSaving, setIsSaving] = useState(false)
-
-  useEffect(() => {
-    async function loadProfile() {
-      const data = await getUserProfile()
-      setProfile(data)
-    }
-    loadProfile()
-  }, [])
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
@@ -67,31 +63,41 @@ export default function AccountSettings() {
       {/* Profile Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Profile</h3>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            {profile?.avatar_url ? (
-              <AvatarImage
-                src={profile.avatar_url}
-                alt={profile?.full_name ?? 'Profile picture'}
-              />
-            ) : null}
-            <AvatarFallback>
-              {profile?.full_name 
-                ? profile.full_name.split(' ').map(n => n[0]).join('')
-                : 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-4 my-auto">
-            <div className="space-y-2">
-              <div>
-                <p className="text-foreground font-medium">{profile?.full_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{profile?.email}</p>
+        {isLoading ? (
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <div className="flex-1 space-y-4">
+              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-3 w-[150px]" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              {profile?.avatar_url ? (
+                <AvatarImage
+                  src={profile.avatar_url}
+                  alt={profile?.full_name ?? 'Profile picture'}
+                />
+              ) : null}
+              <AvatarFallback>
+                {profile?.full_name 
+                  ? profile.full_name.split(' ').map(n => n[0]).join('')
+                  : 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 space-y-4 my-auto">
+              <div className="space-y-2">
+                <div>
+                  <p className="text-foreground font-medium">{profile?.full_name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Separator />

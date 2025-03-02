@@ -21,7 +21,7 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/google-calendar", tags=["google-calendar"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/google_calendar directory
+examples = ExamplesLoader() 
 
 async def get_calendar_service(request: FastAPIRequest):
     try:

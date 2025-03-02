@@ -1,7 +1,7 @@
 'use client'
 
-import { FC, useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
+import { FC, useState } from 'react'
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowUpRight, Plus, Files } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,13 +11,12 @@ import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
 import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../api/api.integrations'
 import { ManageDialog } from './integration-manage'
-import { useGetProviders } from '../api/quries.integrations'
 
-export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
+export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> = (props) => {
   const router = useRouter()
   const [showSettings, setShowSettings] = useState(false);
   const [showManage, setShowManage] = useState(false);
-  const { isFetching, isStale } = useGetProviders()
+  const { isPublic = false } = props;
 
   const handleShowSettings = (provider: Provider) => {
     setShowSettings(true);
@@ -45,6 +44,14 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
     }
   };
   
+  const handleDocsClick = () => {
+    if (isPublic) {
+      router.push(`/marketplace/${props.provider_tag}`);
+    } else {
+      router.push(`/integrations/${props.provider_tag}`);
+    }
+  };
+  
   return (
     <>
       <Card className="w-full border shadow-none rounded-lg h-[204px]">
@@ -61,7 +68,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
                   e.currentTarget.src = '/default-logo.svg'
                 }}
               />
-              {props.connected && (
+              {!isPublic && props.connected && (
                 <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors">
                   Connected
                 </Badge>
@@ -77,36 +84,38 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/integrations/${props.provider_tag}`)}
+              onClick={handleDocsClick}
             >
               Docs
               <Files className="h-4 w-4" />
             </Button>
             
-            {props.connected ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowManage(true)}
-              >
-                {props.auth_method === 'api_key' ? 'Manage' : 'Manage'}
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleConnect}
-              >
-                Connect
-                <Plus className="h-4 w-4" />
-              </Button>
+            {!isPublic && (
+              props.connected ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowManage(true)}
+                >
+                  {props.auth_method === 'api_key' ? 'Manage' : 'Manage'}
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConnect}
+                >
+                  Connect
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )
             )}
           </div>
         </CardContent>
       </Card>
 
-      {props.auth_method === 'api_key' && (
+      {!isPublic && props.auth_method === 'api_key' && (
         <ManageDialog
           provider={props}
           open={showManage}
@@ -115,7 +124,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
         />
       )}
       
-      {props.auth_method === 'oauth' && props.connected && (
+      {!isPublic && props.auth_method === 'oauth' && props.connected && (
         <ManageDialog
           provider={props}
           open={showManage}
@@ -124,7 +133,7 @@ export const IntegrationCard: FC<IntegrationCardProps> = (props) => {
         />
       )}
 
-      {props.auth_method === 'oauth' && (
+      {!isPublic && props.auth_method === 'oauth' && (
         <ScopeDialog
           provider={{
             id: props.id,

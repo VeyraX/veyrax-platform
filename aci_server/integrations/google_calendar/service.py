@@ -16,6 +16,7 @@ class CalendarService:
         
     def prepare_response(self, data: Union[Event, EventList, CalendarList], component_name: str = None) -> ApiResponse:
         tool_name = "google-calendar"
+        print
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 

@@ -1,11 +1,13 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { X, MoreHorizontal, UserCircle2, Key } from "lucide-react"
+import { UserCircle2, Key } from "lucide-react"
 import Link from "next/link"
 import AccountSettings from "../components/account-settings"
 import ApiKeySettings from "../components/api-key-settings"
 import { useState, useEffect } from "react"
+import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey } from "../api/api.settings"
+import { UserProfile, UserApiKey } from "../api/types.settings"
 
 interface AccountSettingsDialogProps {
   open: boolean
@@ -19,6 +21,70 @@ export function AccountSettingsDialog({
   initialTab = 'account' 
 }: AccountSettingsDialogProps) {
   const [activeTab, setActiveTab] = useState<'account' | 'api-key'>(initialTab);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [apiKey, setApiKey] = useState<UserApiKey | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
+
+  useEffect(() => {
+    if (open) {
+      const fetchProfile = async () => {
+        setIsLoadingProfile(true);
+        try {
+          const data = await getUserProfile();
+          setProfile(data);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setIsLoadingProfile(false);
+        }
+      };
+      
+      fetchProfile();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open && activeTab === 'api-key') {
+      const fetchApiKey = async () => {
+        setIsLoadingApiKey(true);
+        try {
+          const data = await getUserApiKey();
+          setApiKey(data);
+        } catch (error) {
+          console.error('Error fetching API key:', error);
+        } finally {
+          setIsLoadingApiKey(false);
+        }
+      };
+      
+      fetchApiKey();
+    }
+  }, [open, activeTab]);
+
+  const handleGenerateApiKey = async () => {
+    try {
+      const newKey = await generateApiKey();
+      setApiKey(newKey);
+      return newKey;
+    } catch (error) {
+      console.error('Error generating API key:', error);
+      return null;
+    }
+  };
+
+  const handleRevokeApiKey = async () => {
+    try {
+      const success = await revokeApiKey();
+      if (success) {
+        setApiKey(null);
+      }
+      return success;
+    } catch (error) {
+      console.error('Error revoking API key:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (initialTab) {
@@ -39,7 +105,10 @@ export function AccountSettingsDialog({
             <nav className="space-y-0.5 -ml-3 mt-4">
               <Link
                 href="#"
-                onClick={() => setActiveTab('account')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('account');
+                }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'account' 
                     ? 'bg-secondary text-secondary-foreground' 
@@ -51,7 +120,10 @@ export function AccountSettingsDialog({
               </Link>
               <Link
                 href="#"
-                onClick={() => setActiveTab('api-key')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('api-key');
+                }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'api-key' 
                     ? 'bg-secondary text-secondary-foreground' 
@@ -65,7 +137,19 @@ export function AccountSettingsDialog({
           </div>
 
           <div className="flex-1 p-6 overflow-y-auto">
-            {activeTab === 'account' ? <AccountSettings /> : <ApiKeySettings />}
+            {activeTab === 'account' ? (
+              <AccountSettings 
+                profile={profile} 
+                isLoading={isLoadingProfile} 
+              />
+            ) : (
+              <ApiKeySettings 
+                apiKey={apiKey}
+                isLoading={isLoadingApiKey}
+                onGenerateApiKey={handleGenerateApiKey}
+                onRevokeApiKey={handleRevokeApiKey}
+              />
+            )}
           </div>
         </div>
       </DialogContent>

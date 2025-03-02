@@ -10,9 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 interface IntegrationPageDetailProps {
   providerTag: string
+  isPublic?: boolean
 }
 
-export default function IntegrationPageDetail({ providerTag }: IntegrationPageDetailProps) {
+export default function IntegrationPageDetail({ providerTag, isPublic = false }: IntegrationPageDetailProps) {
   const [providerDetails, setProviderDetails] = useState<ProviderDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -110,7 +111,7 @@ export default function IntegrationPageDetail({ providerTag }: IntegrationPageDe
 
   return (
     <div className="flex-1 flex flex-col relative h-[100vh] w-full">
-      <Header isShowChat={false} />
+      {!isPublic && <Header isShowChat={false} />}
 
       <div className="flex-1 px-8 py-6 overflow-auto">
         {loading ? (
@@ -122,7 +123,7 @@ export default function IntegrationPageDetail({ providerTag }: IntegrationPageDe
           </div>
         ) : (
           <div className="max-w-6xl mx-auto">
-            <IntegrationDetailSummary providerDetails={providerDetails} />
+            <IntegrationDetailSummary providerDetails={providerDetails} isPublic={isPublic} />
             <IntegrationDetailApiReferences providerDetails={providerDetails} />
           </div>
         )}

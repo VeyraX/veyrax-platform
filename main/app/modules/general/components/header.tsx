@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Menu, MoreHorizontal, Link, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SidebarToggle } from './toggle-sidebar';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { AccountSettingsDialog } from '@/app/modules/settings/pages/settings-page';
-import { useGetUserProfile } from '@/app/modules/settings/api/queries.settings';
+import { getUserProfile } from '@/app/modules/settings/api/api.settings';
 import { UserDropdown } from './profile-dropdown';
+import { UserProfile } from '@/app/modules/settings/api/types.settings';
 
 export function Header({ 
   className, 
@@ -24,8 +25,20 @@ export function Header({
   const [showSettings, setShowSettings] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'account' | 'api-key'>('account');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-  
-  const { data: profile } = useGetUserProfile();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getUserProfile();
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+    
+    fetchProfile();
+  }, []);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -96,7 +109,7 @@ export function Header({
             </>
           )}
           <UserDropdown 
-            profile={profile || null}
+            profile={profile}
             onOpenSettings={() => openSettings('account')}
           />
         </div>

@@ -51,7 +51,7 @@ def prepare_components_auto(data: Any, component_name: str, components: List[Dic
         return None
     
     if hasattr(data, 'items') and data.items:
-        component_list = [create_component(component_def, item) for item in data.items()]
+        component_list = [create_component(component_def, item) for item in data.items]
         return wrap_component_with_tool(component_list, tool_name)
     
     elif isinstance(data, list):

@@ -15,7 +15,11 @@ import { ManageDialog } from '../integration-manage'
 import { initiateOAuthFlow } from '../../api/api.integrations'
 import { getIntegrationsData } from '../../api/api.integrations'
 
-export default function IntegrationDetailSummary({ providerDetails }: IntegrationDetailSummaryProps) {
+interface IntegrationDetailSummaryPropsWithPublic extends IntegrationDetailSummaryProps {
+  isPublic?: boolean
+}
+
+export default function IntegrationDetailSummary({ providerDetails, isPublic = false }: IntegrationDetailSummaryPropsWithPublic) {
   const { provider, totalEndpoints, totalParameters, totalComponents, endpointsList } = providerDetails
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -63,19 +67,21 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
   }, []);
 
   useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const providers = await getIntegrationsData();
-        const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
-        setIsConnected(currentProvider?.connected || false);
-      } catch (error) {
-        console.error('Failed to check connection status:', error);
-        setIsConnected(false);
-      }
-    };
-    
-    checkConnection();
-  }, [provider.provider_tag]);
+    if (!isPublic) {
+      const checkConnection = async () => {
+        try {
+          const providers = await getIntegrationsData();
+          const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+          setIsConnected(currentProvider?.connected || false);
+        } catch (error) {
+          console.error('Failed to check connection status:', error);
+          setIsConnected(false);
+        }
+      };
+      
+      checkConnection();
+    }
+  }, [provider.provider_tag, isPublic]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -129,24 +135,26 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
               <p className="text-muted-foreground mt-4">{provider.description}</p>
             </div>
           </div>
-          <Button 
-            className="mt-4 md:mt-0" 
-            onClick={handleConnect}
-            size="sm"
-            variant={isConnected ? "outline" : "default"}
-          >
-            {isConnected ? (
-              <>
-                Manage
-                <ArrowUpRightIcon className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                Connect
-                <PlusIcon className="h-4 w-4" />
-              </>
-            )}
-          </Button>
+          {!isPublic && (
+            <Button 
+              className="mt-4 md:mt-0" 
+              onClick={handleConnect}
+              size="sm"
+              variant={isConnected ? "outline" : "default"}
+            >
+              {isConnected ? (
+                <>
+                  Manage
+                  <ArrowUpRightIcon className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Connect
+                  <PlusIcon className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -254,7 +262,7 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
         </Button>
       )}
 
-      {provider.auth_method === 'api_key' && (
+      {!isPublic && provider.auth_method === 'api_key' && (
         <ManageDialog
           provider={{
             ...provider,
@@ -268,7 +276,7 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
         />
       )}
       
-      {provider.auth_method === 'oauth' && isConnected && (
+      {!isPublic && provider.auth_method === 'oauth' && isConnected && (
         <ManageDialog
           provider={{
             ...provider,
@@ -282,7 +290,7 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
         />
       )}
 
-      {provider.auth_method === 'oauth' && (
+      {!isPublic && provider.auth_method === 'oauth' && (
         <ScopeDialog
           provider={{
             id: provider.id,

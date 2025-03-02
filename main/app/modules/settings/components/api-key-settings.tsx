@@ -2,18 +2,25 @@
 
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
-import { useGetUserApiKey } from "../api/queries.settings"
-import { generateApiKey, revokeApiKey } from "../api/api.settings"
+import { useState } from "react"
 import { UserApiKey } from "../api/types.settings"
 import { Input } from "@/components/ui/input"
-import { Copy, Eye, EyeOff, RefreshCw, AlertTriangle } from "lucide-react"
-import { useQueryClient } from "@tanstack/react-query"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Copy, Eye, EyeOff, RefreshCw, Check } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function ApiKeySettings() {
-  const queryClient = useQueryClient()
-  const { data: apiKey, isLoading } = useGetUserApiKey()
+interface ApiKeySettingsProps {
+  apiKey: UserApiKey | null;
+  isLoading: boolean;
+  onGenerateApiKey: () => Promise<UserApiKey | null>;
+  onRevokeApiKey: () => Promise<boolean>;
+}
+
+export default function ApiKeySettings({ 
+  apiKey, 
+  isLoading, 
+  onGenerateApiKey, 
+  onRevokeApiKey 
+}: ApiKeySettingsProps) {
   const [showApiKey, setShowApiKey] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isRevoking, setIsRevoking] = useState(false)
@@ -22,10 +29,7 @@ export default function ApiKeySettings() {
   const handleGenerateApiKey = async () => {
     setIsGenerating(true)
     try {
-      await generateApiKey()
-      queryClient.invalidateQueries({ queryKey: ['user-api-key'] })
-    } catch (error) {
-      console.error('Error generating API key:', error)
+      await onGenerateApiKey()
     } finally {
       setIsGenerating(false)
     }
@@ -38,10 +42,7 @@ export default function ApiKeySettings() {
     
     setIsRevoking(true)
     try {
-      await revokeApiKey()
-      queryClient.invalidateQueries({ queryKey: ['user-api-key'] })
-    } catch (error) {
-      console.error('Error revoking API key:', error)
+      await onRevokeApiKey()
     } finally {
       setIsRevoking(false)
     }
@@ -69,7 +70,6 @@ export default function ApiKeySettings() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Your API Key</h3>
         
-
         {isLoading ? (
           <div className="h-10 bg-muted animate-pulse rounded-md"></div>
         ) : apiKey ? (
@@ -94,9 +94,8 @@ export default function ApiKeySettings() {
                 variant="outline" 
                 size="icon" 
                 onClick={handleCopyApiKey}
-                className={copied ? "text-green-600 border-green-600" : ""}
               >
-                <Copy className="h-4 w-4" />
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
               <Button 
                 variant="outline" 
@@ -132,18 +131,6 @@ export default function ApiKeySettings() {
       </div>
 
       <Separator />
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Usage</h3>
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Use your API key to authenticate requests to the Veyrax API. Include it in the header:
-          </p>
-          <div className="bg-muted p-3 rounded-md font-mono text-sm overflow-x-auto">
-            <pre>VEYRAX_API_KEY: {apiKey?.api_key || 'YOUR_API_KEY'}</pre>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
