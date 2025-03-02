@@ -66,6 +66,7 @@ export interface ProviderDetails {
   totalParameters: number;
   totalComponents: number;
   endpointsList: ProviderEndpoint[];
+  exampleSchema?: any;
 }
 
 export interface IntegrationDetailSummaryProps {

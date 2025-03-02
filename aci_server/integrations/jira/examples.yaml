@@ -70,7 +70,10 @@ routes:
               "total": 2,
               "start_at": 0
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraIssueCard"
+            }
           }
 
   - endpoint: /jira/get_issue
@@ -124,7 +127,10 @@ routes:
               "labels": ["feature", "ui"],
               "components": ["frontend"]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraIssueCard"
+            }
           }
 
   - endpoint: /jira/create_issue
@@ -175,7 +181,10 @@ routes:
               "labels": ["backend", "security"],
               "components": ["auth-service"]
             },
-            "message": "Issue successfully created"
+            "message": "Issue successfully created",
+            "component": {
+              "name": "JiraIssueCard"
+            }
           }
 
       - scenario: "Create a Subtask"
@@ -223,7 +232,10 @@ routes:
               "labels": [],
               "components": []
             },
-            "message": "Subtask successfully created"
+            "message": "Subtask successfully created",
+            "component": {
+              "name": "JiraIssueCard"
+            }
           }
 
   - endpoint: /jira/update_issue
@@ -283,7 +295,10 @@ routes:
               "labels": ["feature", "ui", "updated"],
               "components": ["frontend"]
             },
-            "message": "Issue successfully updated"
+            "message": "Issue successfully updated",
+            "component": {
+              "name": "JiraIssueCard"
+            }
           }
 
   - endpoint: /jira/delete_issue
@@ -370,7 +385,10 @@ routes:
                 "versions": []
               }
             ],
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraProjectsTable"
+            }
           }
 
   - endpoint: /jira/get_project
@@ -422,7 +440,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraProjectCard"
+            }
           }
 
   - endpoint: /jira/get_statuses
@@ -468,7 +489,10 @@ routes:
                 }
               }
             ],
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraStatusesTable"
+            }
           }
 
   - endpoint: /jira/get_priorities
@@ -511,7 +535,10 @@ routes:
                 "iconUrl": "https://company.atlassian.net/images/icons/priorities/lowest.svg"
               }
             ],
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraPrioritiesTable"
+            }
           }
 
   - endpoint: /jira/get_issue_types
@@ -559,7 +586,10 @@ routes:
                 "subtask": false
               }
             ],
-            "message": null
+            "message": null,
+            "component": {
+              "name": "JiraIssueTypesTable"
+            }
           }
 
   - endpoint: /jira/get_fields

@@ -1,0 +1,214 @@
+routes:
+  - endpoint: "/browser-use/run_task"
+    examples:
+      - scenario: "Search for information"
+        description: "Start a browser task to search for information on Google"
+        input_json: {
+          "task": "Go to Google, search for 'artificial intelligence news', and summarize the top 3 results",
+          "save_browser_data": true
+        }
+        output_json: {
+          "data": {
+            "task_id": "task_67890"
+          },
+          "message": "Task started successfully",
+          "component": {
+            "name": "BrowserTaskCard"
+          }
+        }
+
+  - endpoint: "/browser-use/stop_task"
+    examples:
+      - scenario: "Stop a running task"
+        description: "Stop a browser automation task that is currently running"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": {
+            "success": true
+          },
+          "message": "Task stopped successfully",
+          "component": {
+            "name": "BrowserTaskCard"
+          }
+        }
+
+  - endpoint: "/browser-use/pause_task"
+    examples:
+      - scenario: "Pause a running task"
+        description: "Temporarily pause a browser automation task"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": {
+            "success": true
+          },
+          "message": "Task paused successfully",
+          "component": {
+            "name": "BrowserTaskCard"
+          }
+        }
+
+  - endpoint: "/browser-use/resume_task"
+    examples:
+      - scenario: "Resume a paused task"
+        description: "Resume a previously paused browser automation task"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": {
+            "success": true
+          },
+          "message": "Task resumed successfully",
+          "component": {
+            "name": "BrowserTaskCard"
+          }
+        }
+
+  - endpoint: "/browser-use/get_task"
+    examples:
+      - scenario: "Get task details"
+        description: "Retrieve detailed information about a specific task"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": {
+            "id": "task_12345",
+            "task": "Navigate to example.com and take a screenshot",
+            "status": "running",
+            "created_at": "2023-06-15T10:30:00Z",
+            "steps": [
+              {
+                "id": "step_1",
+                "step": 1,
+                "next_goal": "Navigate to example.com"
+              }
+            ],
+            "live_url": "https://browser-use.com/live/task_12345"
+          },
+          "message": "Task details retrieved successfully",
+          "component": {
+            "name": "BrowserTaskDetailCard"
+          }
+        }
+
+  - endpoint: "/browser-use/get_task_status"
+    examples:
+      - scenario: "Check task status"
+        description: "Check the current status of a browser automation task"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": "running",
+          "message": "Task status retrieved successfully",
+          "component": {
+            "name": "BrowserTaskDetailCard"
+          }
+        }
+
+  - endpoint: "/browser-use/get_task_media"
+    examples:
+      - scenario: "Get task media"
+        description: "Retrieve media files (screenshots, recordings) from a completed task"
+        input_json: {
+          "task_id": "task_12345"
+        }
+        output_json: {
+          "data": {
+            "recordings": [
+              "https://browser-use.com/media/task_12345/recording.mp4",
+              "https://browser-use.com/media/task_12345/screenshot.png"
+            ]
+          },
+          "message": "Task media retrieved successfully"
+        }
+
+  - endpoint: "/browser-use/list_tasks"
+    examples:
+      - scenario: "List all tasks"
+        description: "Retrieve a list of all browser automation tasks"
+        input_json: {}
+        output_json: {
+          "data": [
+            {
+              "id": "task_12345",
+              "task": "Navigate to example.com and take a screenshot",
+              "status": "finished",
+              "created_at": "2023-06-15T10:30:00Z",
+              "steps": [
+                {
+                  "id": "step_1",
+                  "step": 1,
+                  "evaluation_previous_goal": "Successfully navigated to example.com",
+                  "next_goal": "Take a screenshot"
+                },
+                {
+                  "id": "step_2",
+                  "step": 2,
+                  "evaluation_previous_goal": "Successfully took a screenshot",
+                  "next_goal": null
+                }
+              ],
+              "live_url": "https://browser-use.com/live/task_12345",
+              "finished_at": "2023-06-15T10:35:00Z"
+            },
+            {
+              "id": "task_67890",
+              "task": "Go to Google, search for 'artificial intelligence news'",
+              "status": "running",
+              "created_at": "2023-06-15T11:00:00Z",
+              "steps": [
+                {
+                  "id": "step_1",
+                  "step": 1,
+                  "next_goal": "Navigate to Google"
+                }
+              ],
+              "live_url": "https://browser-use.com/live/task_67890"
+            }
+          ],
+          "message": "Tasks retrieved successfully",
+          "component": {
+            "name": "BrowserTaskDetailCard"
+          }
+        }
+
+  - endpoint: "/browser-use/check_balance"
+    examples:
+      - scenario: "Check account balance"
+        description: "Check the remaining API credits in your account"
+        input_json: {}
+        output_json: {
+          "data": {
+            "balance": 500
+          },
+          "message": "Balance retrieved successfully"
+        }
+
+  - endpoint: "/browser-use/me"
+    examples:
+      - scenario: "Verify API key"
+        description: "Verify that your API key is valid"
+        input_json: {}
+        output_json: {
+          "data": true,
+          "message": "API key is valid"
+        }
+
+  - endpoint: "/browser-use/ping"
+    examples:
+      - scenario: "Check API availability"
+        description: "Check if the Browser Use API is available"
+        input_json: {}
+        output_json: {
+          "data": {
+            "status": "ok",
+            "version": "1.0.0"
+          },
+          "message": "API is available"
+        }

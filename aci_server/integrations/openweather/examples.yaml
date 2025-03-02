@@ -63,7 +63,9 @@ routes:
               ]
             },
             "message": null,
-            "component": "WeatherForecastCard"
+            "component": {
+              "name": "WeatherForecastView"
+            }
           }
 
       - scenario: "Get Weather Forecast for New York"
@@ -128,7 +130,9 @@ routes:
               ]
             },
             "message": null,
-            "component": "WeatherForecastCard"
+            "component": {
+              "name": "WeatherForecastView"
+            }
           }
 
       - scenario: "Get Weather Forecast for Tokyo"
@@ -193,7 +197,9 @@ routes:
               ]
             },
             "message": null,
-            "component": "WeatherForecastCard"
+            "component": {
+              "name": "WeatherForecastView"
+            }
           }
 
       - scenario: "Invalid City Name"

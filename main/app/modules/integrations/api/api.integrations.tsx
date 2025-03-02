@@ -211,6 +211,7 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
 
   let inputSchema = {};
   let uiComponents = [];
+  let exampleSchema = {};
   
   try {
     inputSchema = typeof provider.input_schema === 'string' 
@@ -231,6 +232,15 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
   } catch (e) {
     console.error('Error parsing UI components:', e);
     uiComponents = [];
+  }
+
+  try {
+    exampleSchema = typeof provider.example_schema === 'string'
+      ? JSON.parse(provider.example_schema)
+      : provider.example_schema || {};
+  } catch (e) {
+    console.error('Error parsing example schema:', e);
+    exampleSchema = {};
   }
 
   const totalEndpoints = Object.keys(inputSchema).length;
@@ -286,12 +296,31 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     };
   });
 
+  endpointsList.sort((a, b) => {
+    const getKeyParts = (name: string) => {
+      const parts = name.split('_');
+      const action = parts[0] || '';
+      const entity = parts.slice(1).join('_') || '';
+      return { action, entity };
+    };
+
+    const partsA = getKeyParts(a.name);
+    const partsB = getKeyParts(b.name);
+
+    if (partsA.entity !== partsB.entity) {
+      return partsA.entity.localeCompare(partsB.entity);
+    }
+    
+    return partsA.action.localeCompare(partsB.action);
+  });
+
   return {
     provider,
     totalEndpoints,
     totalParameters,
     totalComponents,
-    endpointsList
+    endpointsList,
+    exampleSchema
   };
 };
 
@@ -321,14 +350,12 @@ export const findComponentForEndpoint = async (providerTag: string, endpointName
     return null;
   }
 
+  // Ищем только компонент, который точно соответствует данному эндпоинту
   const componentWithRelatedEndpoint = uiComponents.find(component => 
     component.related_endpoints && 
     component.related_endpoints.includes(endpointName)
   );
   
-  if (componentWithRelatedEndpoint) {
-    return componentWithRelatedEndpoint;
-  }
-  
-  return uiComponents.length > 0 ? uiComponents[0] : null;
+  // Возвращаем только если нашли точное соответствие, иначе null
+  return componentWithRelatedEndpoint || null;
 };

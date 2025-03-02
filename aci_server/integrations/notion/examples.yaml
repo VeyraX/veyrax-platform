@@ -31,7 +31,9 @@ routes:
               "next_cursor": "cursor_value_for_next_page"
             },
             "message": null,
-            "component": "NotionDatabaseTable"
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
           }
 
   - endpoint: /notion/get_database
@@ -89,7 +91,9 @@ routes:
               "last_edited_time": "2023-05-20T14:22:31.000Z"
             },
             "message": null,
-            "component": "NotionDatabaseTable"
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
           }
 
   - endpoint: /notion/list_database_pages
@@ -189,7 +193,9 @@ routes:
               "next_cursor": "cursor_value_for_next_page"
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           }
 
   - endpoint: /notion/query_database
@@ -265,7 +271,9 @@ routes:
               "next_cursor": null
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           }
 
   - endpoint: /notion/create_page
@@ -338,7 +346,9 @@ routes:
               }
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           }
 
   - endpoint: /notion/get_page
@@ -395,7 +405,9 @@ routes:
               }
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           }
 
   - endpoint: /notion/update_page
@@ -464,7 +476,9 @@ routes:
               }
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           }
 
   - endpoint: /notion/search
@@ -527,5 +541,7 @@ routes:
               "next_cursor": null
             },
             "message": null,
-            "component": "NotionPageCard"
+            "component": {
+              "name": "NotionPageCard"
+            }
           } 

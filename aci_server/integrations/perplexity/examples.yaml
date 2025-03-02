@@ -36,7 +36,10 @@ routes:
                 "total_tokens": 188
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "PerplexityResponseView"
+            }
           }
 
       - scenario: "Advanced Text Completion with Full Parameters"
@@ -89,7 +92,10 @@ routes:
                 "total_tokens": 350
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "PerplexityResponseView"
+            }
           }
           
       - scenario: "Text Completion with Search Domain Filter"
@@ -137,7 +143,10 @@ routes:
                 "total_tokens": 466
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "PerplexityResponseView"
+            }
           }
 
       - scenario: "Streaming Text Completion"
@@ -175,5 +184,8 @@ routes:
                 "total_tokens": 107
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "PerplexityResponseView"
+            }
           } 

@@ -79,8 +79,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearIssueCard",
-                "data": {}
+                "name": "LinearIssueCard"
               }
             ]
           }
@@ -140,8 +139,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearIssueCard",
-                "data": {}
+                "name": "LinearIssueCard"
               }
             ]
           }
@@ -209,8 +207,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearIssueCard",
-                "data": {}
+                "name": "LinearIssueCard"
               }
             ]
           }
@@ -276,8 +273,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearIssueCard",
-                "data": {}
+                "name": "LinearIssueCard"
               }
             ]
           }
@@ -337,8 +333,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearIssueCard",
-                "data": {}
+                "name": "LinearIssueCard"
               }
             ]
           }
@@ -457,8 +452,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearProjectList",
-                "data": {}
+                "name": "LinearProjectList"
               }
             ]
           }
@@ -617,8 +611,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearTeamList",
-                "data": {}
+                "name": "LinearTeamList"
               }
             ]
           }
@@ -763,8 +756,7 @@ routes:
             },
             "component": [
               {
-                "type": "LinearWorkflowStateList",
-                "data": {}
+                "name": "LinearWorkflowStateList"
               }
             ]
           } 

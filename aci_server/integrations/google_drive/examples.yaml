@@ -48,25 +48,7 @@ routes:
               "page_token": null
             },
             "component": {
-              "type": "FileListComponent",
-              "properties": {
-                "files": [
-                  {
-                    "name": "Q4 Financial Report.pdf",
-                    "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
-                    "mime_type": "application/pdf",
-                    "size": 1258291,
-                    "modified_date": "2023-10-16T09:14:23Z"
-                  },
-                  {
-                    "name": "Monthly Status Report.pdf",
-                    "id": "2BcDeFgHiJkLmNoPqRsTuVwXyZ",
-                    "mime_type": "application/pdf",
-                    "size": 892340,
-                    "modified_date": "2023-09-01T11:12:45Z"
-                  }
-                ]
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -93,16 +75,7 @@ routes:
               "web_content_link": "https://drive.google.com/uc?id=1AbCdEfGhIjKlMnOpQrStUvWxYz&export=download"
             },
             "component": {
-              "type": "FileDetailsComponent",
-              "properties": {
-                "name": "Q4 Financial Report.pdf",
-                "id": "1AbCdEfGhIjKlMnOpQrStUvWxYz",
-                "mime_type": "application/pdf",
-                "size": 1258291,
-                "created_time": "2023-10-15T14:32:17Z",
-                "modified_time": "2023-10-16T09:14:23Z",
-                "parent_folder": "Financial Documents"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -131,13 +104,7 @@ routes:
               "web_view_link": "https://drive.google.com/drive/folders/3CdEfGhIjKlMnOpQrStUvWxYz"
             },
             "component": {
-              "type": "FolderCreatedComponent",
-              "properties": {
-                "name": "Project Documentation",
-                "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
-                "created_time": "2023-11-20T15:42:23Z",
-                "parent_folder": "My Drive"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -171,14 +138,7 @@ routes:
               "web_content_link": "https://drive.google.com/uc?id=4DeFgHiJkLmNoPqRsTuVwXyZ&export=download"
             },
             "component": {
-              "type": "FileUploadedComponent",
-              "properties": {
-                "name": "image.webp",
-                "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
-                "mime_type": "image/webp",
-                "size": 245678,
-                "web_view_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
       
@@ -210,14 +170,7 @@ routes:
               "web_content_link": "https://drive.google.com/uc?id=5EfGhIjKlMnOpQrStUvWxYz&export=download"
             },
             "component": {
-              "type": "FileUploadedComponent",
-              "properties": {
-                "name": "test.txt",
-                "id": "5EfGhIjKlMnOpQrStUvWxYz",
-                "mime_type": "text/plain",
-                "size": 28,
-                "web_view_link": "https://drive.google.com/file/d/5EfGhIjKlMnOpQrStUvWxYz/view"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -276,13 +229,7 @@ routes:
               "web_content_link": "https://drive.google.com/uc?id=4DeFgHiJkLmNoPqRsTuVwXyZ&export=download"
             },
             "component": {
-              "type": "FileMovedComponent",
-              "properties": {
-                "name": "image.webp",
-                "id": "4DeFgHiJkLmNoPqRsTuVwXyZ",
-                "new_location": "Project Documentation",
-                "new_parent_id": "3CdEfGhIjKlMnOpQrStUvWxYz"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -330,23 +277,7 @@ routes:
               "page_token": null
             },
             "component": {
-              "type": "FolderListComponent",
-              "properties": {
-                "folders": [
-                  {
-                    "name": "Project Documentation",
-                    "id": "3CdEfGhIjKlMnOpQrStUvWxYz",
-                    "created_time": "2023-11-20T15:42:23Z",
-                    "parent_folder": "My Drive"
-                  },
-                  {
-                    "name": "Project Resources",
-                    "id": "6FgHiJkLmNoPqRsTuVwXyZ",
-                    "created_time": "2023-10-12T14:22:45Z",
-                    "parent_folder": "My Drive"
-                  }
-                ]
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -391,13 +322,7 @@ routes:
               "email_address": "collaborator@example.com"
             },
             "component": {
-              "type": "PermissionAddedComponent",
-              "properties": {
-                "file_name": "image.webp",
-                "user": "collaborator@example.com",
-                "role": "writer",
-                "permission_id": "perm123456"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
       
@@ -419,12 +344,7 @@ routes:
               "type": "anyone"
             },
             "component": {
-              "type": "PublicLinkCreatedComponent",
-              "properties": {
-                "file_name": "image.webp",
-                "public_link": "https://drive.google.com/file/d/4DeFgHiJkLmNoPqRsTuVwXyZ/view?usp=sharing",
-                "permission_id": "perm789012"
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -458,29 +378,7 @@ routes:
               }
             ],
             "component": {
-              "type": "PermissionListComponent",
-              "properties": {
-                "file_name": "image.webp",
-                "permissions": [
-                  {
-                    "user": "collaborator@example.com",
-                    "role": "writer",
-                    "type": "user",
-                    "id": "perm123456"
-                  },
-                  {
-                    "role": "reader",
-                    "type": "anyone",
-                    "id": "perm789012"
-                  },
-                  {
-                    "user": "owner@example.com",
-                    "role": "owner",
-                    "type": "user",
-                    "id": "perm345678"
-                  }
-                ]
-              }
+              "name": "GoogleDriveFileCard"
             }
           }
 
@@ -524,12 +422,6 @@ routes:
               "web_content_link": "https://drive.google.com/uc?id=7GhIjKlMnOpQrStUvWxYz&export=download"
             },
             "component": {
-              "type": "FileCopiedComponent",
-              "properties": {
-                "original_name": "image.webp",
-                "copy_name": "image_copy.webp",
-                "copy_id": "7GhIjKlMnOpQrStUvWxYz",
-                "location": "Project Resources"
-              }
+              "name": "GoogleDriveFileCard"
             }
           } 

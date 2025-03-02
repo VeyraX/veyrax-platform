@@ -20,7 +20,7 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/dropbox", tags=["dropbox"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/dropbox directory
+examples = ExamplesLoader() 
 
 async def get_dropbox_service(request: FastAPIRequest) -> DropboxService:
     try:

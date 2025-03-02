@@ -75,23 +75,7 @@ routes:
             },
             "component": [
               {
-                "type": "GoogleCalendarEventCard",
-                "properties": {
-                  "events": [
-                    {
-                      "summary": "Weekly Team Meeting",
-                      "start": "2023-05-02T10:00:00Z",
-                      "end": "2023-05-02T11:00:00Z",
-                      "location": "Conference Room A"
-                    },
-                    {
-                      "summary": "Project Planning Meeting",
-                      "start": "2023-05-15T14:00:00Z",
-                      "end": "2023-05-15T15:30:00Z",
-                      "location": "Virtual"
-                    }
-                  ]
-                }
+                "name": "GoogleCalendarEventCard"
               }
             ]
           }
@@ -134,24 +118,7 @@ routes:
               ]
             },
             "component": {
-              "type": "GoogleCalendarEventCard",
-              "properties": {
-                "summary": "Weekly Team Meeting",
-                "description": "Regular sync-up with the development team",
-                "location": "Conference Room A",
-                "start": "2023-05-02T10:00:00Z",
-                "end": "2023-05-02T11:00:00Z",
-                "attendees": [
-                  {
-                    "email": "person1@example.com",
-                    "displayName": "Person One"
-                  },
-                  {
-                    "email": "person2@example.com",
-                    "displayName": "Person Two"
-                  }
-                ]
-              }
+              "name": "GoogleCalendarEventCard"
             }
           }
 
@@ -209,14 +176,7 @@ routes:
               ]
             },
             "component": {
-              "type": "GoogleCalendarEventCard",
-              "properties": {
-                "summary": "Product Launch Meeting",
-                "description": "Discuss final preparations for the new product launch",
-                "location": "Main Conference Room",
-                "start": "2023-06-15T09:00:00Z",
-                "end": "2023-06-15T10:30:00Z"
-              }
+              "name": "GoogleCalendarEventCard"
             }
           }
 
@@ -285,14 +245,7 @@ routes:
               ]
             },
             "component": {
-              "type": "GoogleCalendarEventCard",
-              "properties": {
-                "summary": "Updated: Weekly Team Meeting",
-                "description": "Regular sync-up with extended discussion on Q2 results",
-                "location": "Conference Room B",
-                "start": "2023-05-02T10:30:00Z",
-                "end": "2023-05-02T12:00:00Z"
-              }
+              "name": "GoogleCalendarEventCard"
             }
           }
 
@@ -351,23 +304,6 @@ routes:
               ]
             },
             "component": {
-              "type": "GoogleCalendarEventCard",
-              "properties": {
-                "calendars": [
-                  {
-                    "summary": "user@example.com",
-                    "id": "primary",
-                    "primary": true
-                  },
-                  {
-                    "summary": "Work",
-                    "id": "calendar_123"
-                  },
-                  {
-                    "summary": "Family",
-                    "id": "calendar_456"
-                  }
-                ]
-              }
+              "name": "GoogleCalendarEventCard"
             }
           } 

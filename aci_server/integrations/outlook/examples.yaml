@@ -43,7 +43,10 @@ routes:
               ],
               "next_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "OutlookMessageList"
+            }
           }
 
   - endpoint: /outlook/get_message
@@ -70,7 +73,10 @@ routes:
               "is_read": false,
               "categories": ["Work"]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "OutlookMessageCard"
+            }
           }
 
   - endpoint: /outlook/create_draft
@@ -101,7 +107,10 @@ routes:
               "is_read": true,
               "categories": []
             },
-            "message": "Draft created successfully"
+            "message": "Draft created successfully",
+            "component": {
+              "name": "OutlookMessageCard"
+            }
           }
 
   - endpoint: /outlook/send_message
@@ -118,7 +127,10 @@ routes:
             "data": {
               "status": "sent"
             },
-            "message": "Message sent successfully"
+            "message": "Message sent successfully",
+            "component": {
+              "name": "OutlookMessageCard"
+            }
           }
 
   - endpoint: /outlook/delete_message
@@ -133,7 +145,10 @@ routes:
           {
             "status_code": 200,
             "status": "success",
-            "message": "Message deleted successfully"
+            "message": "Message deleted successfully",
+            "component": {
+              "name": "OutlookMessageCard"
+            }
           }
 
   - endpoint: /outlook/list_calendars
@@ -169,7 +184,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "OutlookMessageList"
+            }
           }
 
   - endpoint: /outlook/list_events
@@ -221,7 +239,10 @@ routes:
               ],
               "next_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "OutlookCalendarEventCard"
+            }
           }
 
   - endpoint: /outlook/get_event
@@ -274,7 +295,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "OutlookCalendarEventCard"
+            }
           }
 
   - endpoint: /outlook/create_event
@@ -349,7 +373,10 @@ routes:
                 }
               ]
             },
-            "message": "Event created successfully"
+            "message": "Event created successfully",
+            "component": {
+              "name": "OutlookCalendarEventCard"
+            }
           }
 
   - endpoint: /outlook/update_event
@@ -413,7 +440,10 @@ routes:
                 }
               ]
             },
-            "message": "Event updated successfully"
+            "message": "Event updated successfully",
+            "component": {
+              "name": "OutlookCalendarEventCard"
+            }
           }
 
   - endpoint: /outlook/delete_event
@@ -428,5 +458,8 @@ routes:
           {
             "status_code": 200,
             "status": "success",
-            "message": "Event deleted successfully"
+            "message": "Event deleted successfully",
+            "component": {
+              "name": "OutlookCalendarEventCard"
+            }
           } 

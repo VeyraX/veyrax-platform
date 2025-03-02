@@ -45,7 +45,12 @@ routes:
               ],
               "pageToken": "nextPage123"
             },
-            "message": null
+            "message": null,
+            "component": [
+              {
+                "name": "GmailMessageList"
+              }
+            ]
           }
 
   - endpoint: /gmail/get_message
@@ -72,7 +77,10 @@ routes:
               "labels": ["INBOX", "IMPORTANT"],
               "draft_id": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "GmailMessageCard"
+            }
           }
 
   - endpoint: /gmail/delete_message
@@ -114,7 +122,10 @@ routes:
               "labels": ["SENT"],
               "draft_id": null
             },
-            "message": "Message sent successfully"
+            "message": "Message sent successfully",
+            "component": {
+              "name": "GmailMessageCard"
+            }
           }
 
   - endpoint: /gmail/get_drafts
@@ -157,7 +168,12 @@ routes:
               ],
               "pageToken": null
             },
-            "message": null
+            "message": null,
+            "component": [
+              {
+                "name": "GmailMessageList"
+              }
+            ]
           }
 
   - endpoint: /gmail/create_draft
@@ -187,7 +203,10 @@ routes:
               "html_link": "https://mail.google.com/mail/u/0/#drafts/msg202pqr",
               "draft_id": "draft789"
             },
-            "message": "Draft created successfully"
+            "message": "Draft created successfully",
+            "component": {
+              "name": "GmailMessageCard"
+            }
           }
 
   - endpoint: /gmail/delete_draft
@@ -233,5 +252,8 @@ routes:
               "html_link": "https://mail.google.com/mail/u/0/#drafts/msg202pqr",
               "draft_id": "draft789"
             },
-            "message": "Draft updated successfully"
+            "message": "Draft updated successfully",
+            "component": {
+              "name": "GmailMessageCard"
+            }
           } 

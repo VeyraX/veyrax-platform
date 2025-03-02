@@ -23,7 +23,10 @@ routes:
               "last_event": "delivered",
               "object": "email"
             },
-            "message": "Email sent successfully"
+            "message": "Email sent successfully",
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
       
       - scenario: "Send Email with Advanced Options"
@@ -64,7 +67,10 @@ routes:
               "last_event": "scheduled",
               "object": "email"
             },
-            "message": "Email scheduled successfully"
+            "message": "Email scheduled successfully",
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
 
   - endpoint: /resend/send_batch_emails
@@ -101,7 +107,10 @@ routes:
                 }
               ]
             },
-            "message": "Batch emails sent successfully"
+            "message": "Batch emails sent successfully",
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
 
   - endpoint: /resend/get_email
@@ -129,7 +138,10 @@ routes:
               "reply_to": null,
               "last_event": "delivered"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
 
   - endpoint: /resend/update_email
@@ -153,7 +165,10 @@ routes:
               "last_event": "scheduled",
               "created_at": "2023-09-15T16:04:45.457Z"
             },
-            "message": "Email schedule updated successfully"
+            "message": "Email schedule updated successfully",
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
 
   - endpoint: /resend/cancel_email
@@ -172,7 +187,10 @@ routes:
               "object": "email",
               "last_event": "canceled"
             },
-            "message": "Email canceled successfully"
+            "message": "Email canceled successfully",
+            "component": {
+              "name": "ResendEmailCard"
+            }
           }
 
   # Domain Endpoints
@@ -215,7 +233,10 @@ routes:
               ],
               "object": "domain"
             },
-            "message": "Domain created successfully"
+            "message": "Domain created successfully",
+            "component": {
+              "name": "ResendDomainCard"
+            }
           }
 
   - endpoint: /resend/get_domain
@@ -256,7 +277,10 @@ routes:
               ],
               "object": "domain"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendDomainCard"
+            }
           }
 
   - endpoint: /resend/verify_domain
@@ -325,7 +349,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendDomainCard"
+            }
           }
 
   - endpoint: /resend/delete_domain
@@ -342,7 +369,10 @@ routes:
             "data": {
               "success": true
             },
-            "message": "Domain deleted successfully"
+            "message": "Domain deleted successfully",
+            "component": {
+              "name": "ResendDomainCard"
+            }
           }
 
   # API Key Endpoints
@@ -362,7 +392,10 @@ routes:
               "id": "key_123abcdef",
               "token": "re_123456789abcdefghijklmnopqrstuvwxyz"
             },
-            "message": "API key created successfully. Copy your key now as it won't be displayed again."
+            "message": "API key created successfully. Copy your key now as it won't be displayed again.",
+            "component": {
+              "name": "ResendAPIKeyCard"
+            }
           }
 
   - endpoint: /resend/list_api_keys
@@ -405,7 +438,10 @@ routes:
             "data": {
               "success": true
             },
-            "message": "API key deleted successfully"
+            "message": "API key deleted successfully",
+            "component": {
+              "name": "ResendAPIKeyCard"
+            }
           }
 
   # Broadcast Endpoints
@@ -428,7 +464,10 @@ routes:
             "data": {
               "id": "broadcast_123abc"
             },
-            "message": "Broadcast created successfully"
+            "message": "Broadcast created successfully",
+            "component": {
+              "name": "ResendBroadcastCard"
+            }
           }
 
   - endpoint: /resend/get_broadcast
@@ -455,7 +494,10 @@ routes:
               "reply_to": "support@example.com",
               "object": "broadcast"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendBroadcastCard"
+            }
           }
 
   - endpoint: /resend/send_broadcast
@@ -473,7 +515,10 @@ routes:
             "data": {
               "id": "broadcast_123abc"
             },
-            "message": "Broadcast scheduled successfully"
+            "message": "Broadcast scheduled successfully",
+            "component": {
+              "name": "ResendBroadcastCard"
+            }
           }
 
   - endpoint: /resend/delete_broadcast
@@ -490,7 +535,10 @@ routes:
             "data": {
               "success": true
             },
-            "message": "Broadcast deleted successfully"
+            "message": "Broadcast deleted successfully",
+            "component": {
+              "name": "ResendBroadcastCard"
+            }
           }
 
   - endpoint: /resend/list_broadcasts
@@ -527,7 +575,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendBroadcastCard"
+            }
           }
 
   # Audience Endpoints
@@ -548,7 +599,10 @@ routes:
               "created_at": "2023-09-15T16:12:45.457Z",
               "object": "audience"
             },
-            "message": "Audience created successfully"
+            "message": "Audience created successfully",
+            "component": {
+              "name": "ResendAudienceCard"
+            }
           }
 
   - endpoint: /resend/get_audience
@@ -568,7 +622,10 @@ routes:
               "created_at": "2023-09-15T16:12:45.457Z",
               "object": "audience"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendAudienceCard"
+            }
           }
 
   - endpoint: /resend/delete_audience
@@ -585,7 +642,10 @@ routes:
             "data": {
               "success": true
             },
-            "message": "Audience deleted successfully"
+            "message": "Audience deleted successfully",
+            "component": {
+              "name": "ResendAudienceCard"
+            }
           }
 
   - endpoint: /resend/list_audiences
@@ -614,7 +674,10 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendAudienceCard"
+            }
           }
 
   # Contact Endpoints
@@ -636,7 +699,10 @@ routes:
             "data": {
               "id": "contact_123abc"
             },
-            "message": "Contact created successfully"
+            "message": "Contact created successfully",
+            "component": {
+              "name": "ResendContactCard"
+            }
           }
 
   - endpoint: /resend/get_contact
@@ -660,7 +726,10 @@ routes:
               "unsubscribed": false,
               "object": "contact"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendContactCard"
+            }
           }
 
   - endpoint: /resend/update_contact
@@ -699,7 +768,10 @@ routes:
             "data": {
               "success": true
             },
-            "message": "Contact deleted successfully"
+            "message": "Contact deleted successfully",
+            "component": {
+              "name": "ResendContactCard"
+            }
           }
 
   - endpoint: /resend/list_contacts
@@ -736,5 +808,8 @@ routes:
                 }
               ]
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ResendContactCard"
+            }
           } 

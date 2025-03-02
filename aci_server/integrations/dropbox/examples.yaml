@@ -44,7 +44,10 @@ routes:
               "cursor": "AAHj38djfk2389fjs9f2j",
               "has_more": false
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/get_file
@@ -70,7 +73,10 @@ routes:
               "modified_time": "2023-07-15T14:32:21Z",
               "shared_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/create_folder
@@ -99,7 +105,10 @@ routes:
               "modified_time": "2023-08-01T10:45:22Z",
               "shared_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/upload_file
@@ -127,7 +136,10 @@ routes:
               "modified_time": "2023-08-02T15:30:45Z",
               "shared_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/download_file
@@ -152,7 +164,10 @@ routes:
                 "size": 13
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/delete_file
@@ -178,7 +193,10 @@ routes:
               "modified_time": "2023-06-15T09:30:00Z",
               "shared_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/move_file
@@ -205,7 +223,10 @@ routes:
               "modified_time": "2023-08-02T16:45:12Z",
               "shared_link": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/read_file
@@ -231,7 +252,10 @@ routes:
                 "size": 67
               }
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/create_shared_link
@@ -263,7 +287,10 @@ routes:
               "modified_time": "2023-07-25T13:45:22Z",
               "shared_link": "https://www.dropbox.com/s/abc123def456/Presentation.pptx"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/search
@@ -311,7 +338,10 @@ routes:
               "cursor": "AAHdkj38f2j38fj38fj",
               "has_more": false
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           }
 
   - endpoint: /dropbox/search_continue
@@ -343,5 +373,8 @@ routes:
               "cursor": null,
               "has_more": false
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "DropboxFileCard"
+            }
           } 

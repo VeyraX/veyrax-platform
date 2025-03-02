@@ -23,7 +23,10 @@ routes:
               ],
               "next_page": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ConfluenceSpaceList"
+            }
           }
 
   - endpoint: /confluence/pages
@@ -62,7 +65,10 @@ routes:
               ],
               "next_page": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }
 
   - endpoint: /confluence/get_page
@@ -110,7 +116,10 @@ routes:
               "status": "current",
               "html_link": "https://veyraxservice.atlassian.net/wiki/spaces/OOP/pages/164066/Template+-+Weekly+status+report"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }
 
   - endpoint: /confluence/create_page
@@ -162,7 +171,10 @@ routes:
               "status": "current",
               "html_link": "https://veyraxservice.atlassian.net/wiki/spaces/OOP/pages/8355850/New+Project+Plan"
             },
-            "message": "Page successfully created"
+            "message": "Page successfully created",
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }
 
   - endpoint: /confluence/update_page
@@ -195,7 +207,10 @@ routes:
                 "number": 2
               }
             },
-            "message": "Page successfully updated"
+            "message": "Page successfully updated",
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }
 
   - endpoint: /confluence/search
@@ -234,7 +249,10 @@ routes:
               ],
               "next_page": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }
 
   - endpoint: /confluence/delete_page
@@ -249,5 +267,8 @@ routes:
           {
             "status_code": 200,
             "data": null,
-            "message": "Page PAGE_999 deleted successfully."
+            "message": "Page PAGE_999 deleted successfully.",
+            "component": {
+              "name": "ConfluencePageCard"
+            }
           }

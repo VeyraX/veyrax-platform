@@ -5,16 +5,114 @@ import {
   GlobeIcon, 
   ArrowUpRightIcon, 
   TargetIcon, 
-  SettingsIcon 
+  SettingsIcon,
+  ChevronUpIcon
 } from "lucide-react"
 import { IntegrationDetailSummaryProps } from "../../api/types.integrations"
+import { useEffect, useState } from "react"
+import { ScopeDialog } from '../integration-settings'
+import { ManageDialog } from '../integration-manage'
+import { initiateOAuthFlow } from '../../api/api.integrations'
+import { getIntegrationsData } from '../../api/api.integrations'
 
 export default function IntegrationDetailSummary({ providerDetails }: IntegrationDetailSummaryProps) {
   const { provider, totalEndpoints, totalParameters, totalComponents, endpointsList } = providerDetails
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showManage, setShowManage] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchorLink = target.closest('a[href^="#"]');
+      
+      if (anchorLink) {
+        e.preventDefault();
+        const targetId = anchorLink.getAttribute('href')?.substring(1);
+        
+        if (targetId) {
+          const targetElement = document.getElementById(targetId);
+          
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 80, 
+              behavior: 'smooth'
+            });
+            
+            targetElement.classList.add('highlight-target');
+            setTimeout(() => {
+              targetElement.classList.remove('highlight-target');
+            }, 2000);
+          }
+        }
+      }
+    };
+
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      document.removeEventListener('click', handleAnchorClick);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const providers = await getIntegrationsData();
+        const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+        setIsConnected(currentProvider?.connected || false);
+      } catch (error) {
+        console.error('Failed to check connection status:', error);
+        setIsConnected(false);
+      }
+    };
+    
+    checkConnection();
+  }, [provider.provider_tag]);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
+  const handleConnect = () => {
+    if (isConnected) {
+      setShowManage(true);
+    } else {
+      if (provider.auth_method === 'api_key') {
+        setShowManage(true);
+      } else {
+        setShowSettings(true);
+      }
+    }
+  };
+
+  const handleSettingsClose = () => {
+    setShowSettings(false);
+  };
+
+  const handleSettingsConfirm = async (scopes: string[]) => {
+    setShowSettings(false);
+    try {
+      const url = await initiateOAuthFlow(provider.provider_tag, scopes);
+      window.location.href = url;
+    } catch (error) {
+      console.error(`Failed to start OAuth flow for ${provider.name}:`, error);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container mx-auto px-4 py-8">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      <main className="flex-1">
         <div className="flex flex-col md:flex-row justify-between items-start mb-6">
           <div className="flex items-start gap-4">
             {provider.logo_url && (
@@ -31,9 +129,23 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
               <p className="text-muted-foreground mt-4">{provider.description}</p>
             </div>
           </div>
-          <Button className="mt-4 md:mt-0">
-            <PlusIcon size={16} />
-            Connect
+          <Button 
+            className="mt-4 md:mt-0" 
+            onClick={handleConnect}
+            size="sm"
+            variant={isConnected ? "outline" : "default"}
+          >
+            {isConnected ? (
+              <>
+                Manage
+                <ArrowUpRightIcon className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Connect
+                <PlusIcon className="h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
 
@@ -45,7 +157,7 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-foreground">{totalEndpoints}</h2>
-                <p className="text-muted-foreground">Total Endpoints</p>
+                <p className="text-muted-foreground">Total Actions</p>
               </div>
             </div>
           </div>
@@ -74,18 +186,19 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
         </div>
 
         <div className="border border-border rounded-lg p-6 mb-8 bg-card">
-          <h2 className="text-lg font-bold mb-1 text-foreground">Available Endpoints</h2>
+          <h2 className="text-lg font-bold mb-1 text-foreground">Available Actions</h2>
           <p className="text-muted-foreground mb-6">
-            Contains {totalEndpoints} endpoints that agents can invoke with natural language.
+            Contains {totalEndpoints} actions that agents can invoke with natural language.
           </p>
 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-muted-foreground">
-                  <th className="pb-4 font-medium w-1/4">Endpoint</th>
+                  <th className="pb-4 font-medium w-1/4">Action</th>
                   <th className="pb-4 font-medium w-2/5">Description</th>
                   <th className="pb-4 font-medium text-center w-1/6">Parameters</th>
+                  <th className="pb-4 font-medium text-right w-1/6"></th>
                 </tr>
               </thead>
               <tbody>
@@ -99,6 +212,28 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
                       {endpoint.description}
                     </td>
                     <td className="py-4 text-center text-muted-foreground">{endpoint.paramCount}</td>
+                    <td className="py-4 text-right">
+                      <Button 
+                        variant="link" 
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const targetElement = document.getElementById(endpoint.name);
+                          if (targetElement) {
+                            window.scrollTo({
+                              top: targetElement.offsetTop - 80,
+                              behavior: 'smooth'
+                            });
+                            targetElement.classList.add('highlight-target');
+                            setTimeout(() => {
+                              targetElement.classList.remove('highlight-target');
+                            }, 2000);
+                          }
+                        }}
+                      >
+                        <ArrowUpRightIcon size={14} />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -106,6 +241,63 @@ export default function IntegrationDetailSummary({ providerDetails }: Integratio
           </div>
         </div>
       </main>
+
+      {showScrollTop && (
+        <Button
+          variant="default"
+          size="icon"
+          className="fixed bottom-4 right-4 rounded-full shadow-md h-8 w-8 p-0 flex items-center justify-center"
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+        >
+          <ChevronUpIcon size={16} />
+        </Button>
+      )}
+
+      {provider.auth_method === 'api_key' && (
+        <ManageDialog
+          provider={{
+            ...provider,
+            connected: isConnected,
+            hasIndex: false,
+            indexStatus: null
+          }}
+          open={showManage}
+          onClose={() => setShowManage(false)}
+          onUpdate={() => {}}
+        />
+      )}
+      
+      {provider.auth_method === 'oauth' && isConnected && (
+        <ManageDialog
+          provider={{
+            ...provider,
+            connected: isConnected,
+            hasIndex: false,
+            indexStatus: null
+          }}
+          open={showManage}
+          onClose={() => setShowManage(false)}
+          onUpdate={() => {}}
+        />
+      )}
+
+      {provider.auth_method === 'oauth' && (
+        <ScopeDialog
+          provider={{
+            id: provider.id,
+            name: provider.name,
+            description: provider.description,
+            logo_url: provider.logo_url,
+            provider_tag: provider.provider_tag,
+            auth_method: provider.auth_method as 'oauth' | 'api_key',
+            scopes: provider.scopes,
+          }}
+          open={showSettings}
+          onClose={handleSettingsClose}
+          onConfirm={handleSettingsConfirm}
+        />
+      )}
     </div>
   )
 }

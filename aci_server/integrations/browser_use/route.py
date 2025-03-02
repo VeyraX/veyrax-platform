@@ -13,8 +13,11 @@ from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
+from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/browser-use", tags=["browser-use"])
+
+examples = ExamplesLoader()
 
 async def get_browser_use_service(request: FastAPIRequest):
     try:
@@ -27,7 +30,7 @@ async def get_browser_use_service(request: FastAPIRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
 
 @router.post("/run_task", response_model=ApiResponse)
-@schema(input_schema_class=RunTaskParams, output_schema_class=RunTaskResponse)
+@schema(input_schema_class=RunTaskParams, output_schema_class=RunTaskResponse, examples=examples["/browser-use/run_task"])
 async def run_task(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -43,7 +46,7 @@ async def run_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/stop_task", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=StopTaskResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=StopTaskResponse, examples=examples["/browser-use/stop_task"])
 async def stop_task(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -59,7 +62,7 @@ async def stop_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/pause_task", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=PauseTaskResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=PauseTaskResponse, examples=examples["/browser-use/pause_task"])
 async def pause_task(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -75,7 +78,7 @@ async def pause_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/resume_task", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=ResumeTaskResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=ResumeTaskResponse, examples=examples["/browser-use/resume_task"])
 async def resume_task(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -91,7 +94,7 @@ async def resume_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_task", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskResponse, examples=examples["/browser-use/get_task"])
 async def get_task(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -107,7 +110,7 @@ async def get_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_task_status", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskStatusResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskStatusResponse, examples=examples["/browser-use/get_task_status"])
 async def get_task_status(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -123,7 +126,7 @@ async def get_task_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/get_task_media", response_model=ApiResponse)
-@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskMediaResponse)
+@schema(input_schema_class=TaskIdParams, output_schema_class=GetTaskMediaResponse, examples=examples["/browser-use/get_task_media"])
 async def get_task_media(
     params: Dict[str, Any] = Body(...),
     service: BrowserUseService = Depends(get_browser_use_service)
@@ -139,7 +142,7 @@ async def get_task_media(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/list_tasks", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=ListTasksResponse)
+@schema(input_schema_class=None, output_schema_class=ListTasksResponse, examples=examples["/browser-use/list_tasks"])
 async def list_tasks(
     service: BrowserUseService = Depends(get_browser_use_service)
 ):
@@ -151,7 +154,7 @@ async def list_tasks(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/check_balance", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=CheckBalanceResponse)
+@schema(input_schema_class=None, output_schema_class=CheckBalanceResponse, examples=examples["/browser-use/check_balance"])
 async def check_balance(
     service: BrowserUseService = Depends(get_browser_use_service)
 ):
@@ -163,7 +166,7 @@ async def check_balance(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/me", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=MeResponse)
+@schema(input_schema_class=None, output_schema_class=MeResponse, examples=examples["/browser-use/me"])
 async def me(
     service: BrowserUseService = Depends(get_browser_use_service)
 ):
@@ -175,7 +178,7 @@ async def me(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/ping", response_model=ApiResponse)
-@schema(input_schema_class=None, output_schema_class=PingResponse)
+@schema(input_schema_class=None, output_schema_class=PingResponse, examples=examples["/browser-use/ping"])
 async def ping(
     service: BrowserUseService = Depends(get_browser_use_service)
 ):

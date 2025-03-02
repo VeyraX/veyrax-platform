@@ -4,6 +4,7 @@ import json
 import asyncio
 from pathlib import Path
 import inspect
+import yaml
 
 sys.path.append('/app')
 
@@ -39,8 +40,58 @@ async def update_provider_data():
                 
                 input_schemas = {}
                 output_schemas = {}
+                example_schemas = {}
                 
                 print(f"Checking routes for {provider['name']}...")
+                
+                examples_path = Path('/app/integrations') / provider_tag / "examples.yaml"
+                alt_examples_path = Path('/app/integrations') / normalize_provider_tag(provider_tag) / "examples.yaml"
+                
+                examples_data = None
+                for path in [examples_path, alt_examples_path]:
+                    print(f"Checking for examples at: {path}")
+                    if path.exists():
+                        try:
+                            with open(path, "r") as f:
+                                examples_data = yaml.safe_load(f)
+                            print(f"Loaded examples.yaml for {provider['name']} from {path}")
+                            break
+                        except Exception as e:
+                            print(f"Error loading examples.yaml for {provider['name']} from {path}: {str(e)}")
+                
+                if examples_data and "routes" in examples_data:
+                    for route_info in examples_data["routes"]:
+                        if "endpoint" in route_info and "examples" in route_info:
+                            endpoint_name = route_info["endpoint"].split("/")[-1]
+                            print(f"  Processing examples for endpoint: {endpoint_name}")
+                            
+                            endpoint_examples = []
+                            for example in route_info["examples"]:
+                                try:
+                                    example_entry = {
+                                        "scenario": example.get("scenario", ""),
+                                        "description": example.get("description", "")
+                                    }
+                                    
+                                    if "input_json" in example:
+                                        if isinstance(example["input_json"], str):
+                                            example_entry["input"] = json.loads(example["input_json"])
+                                        else:
+                                            example_entry["input"] = example["input_json"]
+                                    
+                                    if "output_json" in example:
+                                        if isinstance(example["output_json"], str):
+                                            example_entry["output"] = json.loads(example["output_json"])
+                                        else:
+                                            example_entry["output"] = example["output_json"]
+                                    
+                                    endpoint_examples.append(example_entry)
+                                    print(f"    Added example: {example.get('scenario', 'Unnamed')}")
+                                except Exception as e:
+                                    print(f"    Error processing example: {str(e)}")
+                            
+                            if endpoint_examples:
+                                example_schemas[endpoint_name] = endpoint_examples
                 
                 if isinstance(full_tool_spec, list):
                     for tool_item in full_tool_spec:
@@ -92,7 +143,7 @@ async def update_provider_data():
                         except Exception as e:
                             print(f"  Error accessing output schema class: {str(e)}")
                 
-                print(f"Found {len(input_schemas)} input schemas and {len(output_schemas)} output schemas for {provider['name']}")
+                print(f"Found {len(input_schemas)} input schemas, {len(output_schemas)} output schemas, and {len(example_schemas)} example schemas for {provider['name']}")
                 
                 if not input_schemas:
                     print(f"WARNING: Input schemas is empty for {provider['name']}!")
@@ -129,6 +180,9 @@ async def update_provider_data():
                 
                 if output_schemas:
                     update_data["output_schema"] = output_schemas
+                
+                if example_schemas:
+                    update_data["example_schema"] = example_schemas
                 
                 if component_data:
                     update_data["ui_component"] = component_data

@@ -27,7 +27,10 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackChannelList"
+            }
           }
 
   - endpoint: /slack/list_channel_members
@@ -64,7 +67,10 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackChannelMembers"
+            }
           }
 
   - endpoint: /slack/list_direct_messages
@@ -99,7 +105,10 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageList"
+            }
           }
 
   - endpoint: /slack/post_message
@@ -125,7 +134,10 @@ routes:
               "timestamp": "1673355421.009800",
               "thread_ts": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageCard"
+            }
           }
 
   - endpoint: /slack/send_dm
@@ -151,7 +163,10 @@ routes:
               "timestamp": "1673356421.007600",
               "thread_ts": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageCard"
+            }
           }
 
   - endpoint: /slack/reply_in_thread
@@ -178,7 +193,10 @@ routes:
               "timestamp": "1673357421.010100",
               "thread_ts": "1673355421.009800"
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageCard"
+            }
           }
 
   - endpoint: /slack/list_thread_messages
@@ -225,7 +243,10 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageList"
+            }
           }
 
   - endpoint: /slack/list_channel_messages
@@ -271,7 +292,10 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageList"
+            }
           }
 
   - endpoint: /slack/list_direct_messages_with_user
@@ -317,5 +341,8 @@ routes:
               ],
               "cursor": null
             },
-            "message": null
+            "message": null,
+            "component": {
+              "name": "SlackMessageList"
+            }
           } 
