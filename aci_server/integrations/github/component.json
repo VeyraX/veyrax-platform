@@ -1,0 +1,387 @@
+[
+    {
+        "name": "GitHubRepositoryCard",
+        "version": "1.0.0",
+        "description": "A React component for displaying GitHub repositories (single or list)",
+        "related_endpoints": ["repository", "repositories"],
+        "component": {
+          "jsx": "function(props) {\n  // Main component function\n  function GitHubRepositoryCard(props) {\n    const repo = props.data;\n    if (!repo) return null;\n\n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Star icon SVG\n    function StarIcon() {\n      return React.createElement('svg', {\n        width: '14',\n        height: '14',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 1.5L10.163 5.77865L15 6.46898L11.5 9.79758L12.326 14.5L8 12.2787L3.674 14.5L4.5 9.79758L1 6.46898L5.837 5.77865L8 1.5Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Commit icon SVG\n    function CommitIcon() {\n      return React.createElement('svg', {\n        width: '14',\n        height: '14',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 4V12',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 14C9.10457 14 10 13.1046 10 12C10 10.8954 9.10457 10 8 10C6.89543 10 6 10.8954 6 12C6 13.1046 6.89543 14 8 14Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 6C9.10457 6 10 5.10457 10 4C10 2.89543 9.10457 2 8 2C6.89543 2 6 2.89543 6 4C6 5.10457 6.89543 6 8 6Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Topic tag component\n    function TopicTag(props) {\n      const { topic } = props;\n      \n      const tagStyle = {\n        display: 'inline-block',\n        fontSize: '10px',\n        fontWeight: '500',\n        padding: '2px 6px',\n        borderRadius: '12px',\n        backgroundColor: '#e2e8f0',\n        color: '#475569',\n        marginRight: '4px',\n        marginBottom: '4px'\n      };\n      \n      return React.createElement('span', { style: tagStyle }, topic);\n    }\n\n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box',\n      cursor: repo.html_url ? 'pointer' : 'default'\n    };\n    \n    const headerStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px',\n      marginBottom: '8px'\n    };\n    \n    const titleStyle = {\n      fontWeight: '500',\n      color: '#1e293b',\n      fontSize: '14px',\n      margin: 0,\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap'\n    };\n    \n    const descriptionStyle = {\n      color: '#64748b',\n      fontSize: '12px',\n      lineHeight: '1.5',\n      marginBottom: '12px',\n      display: '-webkit-box',\n      WebkitLineClamp: 2,\n      WebkitBoxOrient: 'vertical',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis'\n    };\n    \n    const metaRowStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      flexWrap: 'wrap',\n      gap: '12px',\n      fontSize: '12px',\n      color: '#64748b',\n      marginBottom: '8px'\n    };\n    \n    const metaItemStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px'\n    };\n    \n    const topicsStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      marginTop: '8px'\n    };\n    \n    // Create the card element\n    const cardElement = React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: headerStyle },\n        React.createElement('h3', { style: titleStyle }, repo.full_name || repo.name),\n        repo.html_url && React.createElement('a', {\n          href: repo.html_url,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: {\n            marginLeft: 'auto',\n            color: '#64748b',\n            display: 'flex',\n            alignItems: 'center',\n            textDecoration: 'none'\n          },\n          onClick: (e) => e.stopPropagation()\n        }, React.createElement(LinkIcon))\n      ),\n      repo.description && React.createElement('p', { style: descriptionStyle }, repo.description),\n      React.createElement('div', { style: metaRowStyle },\n        repo.stargazers_count !== undefined && React.createElement('div', { style: metaItemStyle },\n          React.createElement(StarIcon),\n          React.createElement('span', {}, repo.stargazers_count.toLocaleString())\n        ),\n        repo.commits_count !== undefined && React.createElement('div', { style: metaItemStyle },\n          React.createElement(CommitIcon),\n          React.createElement('span', {}, repo.commits_count.toLocaleString())\n        )\n      ),\n      repo.topics && repo.topics.length > 0 && React.createElement('div', { style: topicsStyle },\n        repo.topics.map((topic, index) => \n          React.createElement(TopicTag, { key: index, topic: topic })\n        )\n      )\n    );\n    \n    // If there's a URL, wrap the card in a link\n    if (repo.html_url) {\n      return React.createElement('a', {\n        href: repo.html_url,\n        target: '_blank',\n        rel: 'noopener noreferrer',\n        style: {\n          textDecoration: 'none',\n          color: 'inherit',\n          display: 'block',\n          width: '100%'\n        }\n      }, cardElement);\n    }\n    \n    return cardElement;\n  }\n\n  // Render multiple repositories if provided\n  function renderRepositories(props) {\n    const repositories = props.data.repositories;\n    \n    const containerStyle = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    const cardWrapperStyle = {\n      width: 'calc(50% - 6px)', // Two cards per row with gap in between\n      minWidth: '250px',\n      boxSizing: 'border-box',\n      '@media (max-width: 768px)': {\n        width: '100%'\n      }\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      repositories.map((repo, index) => \n        React.createElement('div', { \n          key: repo.id || index,\n          style: cardWrapperStyle\n        },\n          React.createElement(GitHubRepositoryCard, { \n            data: repo \n          })\n        )\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  if (props.data && props.data.repositories) {\n    return renderRepositories(props);\n  } else {\n    return GitHubRepositoryCard(props);\n  }\n}"
+        },
+        "exampleProps": {
+          "data": {
+            "repositories": [
+              {
+                "id": 1296269,
+                "name": "Hello-World",
+                "full_name": "octocat/Hello-World",
+                "description": "This your first repo!",
+                "html_url": "https://github.com/octocat/Hello-World",
+                "stargazers_count": 1524,
+                "commits_count": 342,
+                "owner": {
+                  "login": "octocat",
+                  "id": 1,
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "html_url": "https://github.com/octocat"
+                },
+                "private": false,
+                "topics": ["octocat", "atom", "electron", "api"]
+              },
+              {
+                "id": 1296270,
+                "name": "octocat-project",
+                "full_name": "octocat/octocat-project",
+                "description": "A project about Octocats",
+                "html_url": "https://github.com/octocat/octocat-project",
+                "stargazers_count": 80,
+                "commits_count": 156,
+                "owner": {
+                  "login": "octocat",
+                  "id": 1,
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "html_url": "https://github.com/octocat"
+                },
+                "private": false,
+                "topics": ["python", "machine-learning"]
+              }
+            ],
+            "next_page": 2
+          }
+        },
+        "schemaRef": "schema.RepositoryList"
+      },
+{
+    "name": "GitHubIssueCard",
+    "version": "1.0.0",
+    "description": "A React component for displaying GitHub issues (single or list)",
+    "related_endpoints": ["issue", "issues"],
+    "component": {
+      "jsx": "function(props) {\n  // Main component function\n  function GitHubIssueCard(props) {\n    const issue = props.data;\n    if (!issue) return null;\n\n    // Format date to readable format\n    function formatDate(dateString) {\n      if (!dateString) return '';\n      const date = new Date(dateString);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        year: 'numeric',\n        month: 'short',\n        day: 'numeric'\n      });\n    }\n\n    // Issue open icon SVG\n    function IssueOpenIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#1a7f37' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 5V9',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 12.01L8.01 11.999',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Issue closed icon SVG\n    function IssueClosedIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#cf222e' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M5 8L7 10L11 6',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Comment icon SVG\n    function CommentIcon() {\n      return React.createElement('svg', {\n        width: '14',\n        height: '14',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 1C11.866 1 15 3.58172 15 6.8C15 10.0183 11.866 12.6 8 12.6C7.06645 12.6 6.17067 12.4561 5.34616 12.1909C3.75628 13.3404 2.5 13.4 1.5 13.4C2.5 12.4 2.80224 11.4041 2.84677 10.7048C1.70809 9.66958 1 8.30032 1 6.8C1 3.58172 4.13401 1 8 1Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Label component\n    function Label(props) {\n      const { label } = props;\n      if (!label) return null;\n      \n      // Convert hex color to contrasting text color\n      function getContrastColor(hexColor) {\n        if (!hexColor || hexColor.length < 6) return '#000000';\n        \n        // Add # if missing\n        const hex = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;\n        \n        // Convert hex to RGB\n        const r = parseInt(hex.slice(1, 3), 16);\n        const g = parseInt(hex.slice(3, 5), 16);\n        const b = parseInt(hex.slice(5, 7), 16);\n        \n        // Calculate luminance\n        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;\n        \n        // Return black or white based on luminance\n        return luminance > 0.5 ? '#000000' : '#ffffff';\n      }\n      \n      const labelStyle = {\n        display: 'inline-block',\n        fontSize: '10px',\n        fontWeight: '500',\n        padding: '2px 6px',\n        borderRadius: '12px',\n        backgroundColor: `#${label.color}`,\n        color: getContrastColor(label.color),\n        marginRight: '4px'\n      };\n      \n      return React.createElement('span', { style: labelStyle }, label.name);\n    }\n\n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box',\n      cursor: issue.html_url ? 'pointer' : 'default'\n    };\n    \n    const titleStyle = {\n      fontWeight: '600',\n      color: '#1e293b',\n      fontSize: '14px',\n      margin: '0 0 4px 0',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const subtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#64748b',\n      margin: '0'\n    };\n    \n    const leftSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const rightSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const isOpen = issue.state === 'open';\n    const createdDate = formatDate(issue.created_at);\n    const repoName = issue.repository ? `${issue.repository.owner}/${issue.repository.name}` : '';\n    \n    // Get up to 3 labels for the subtitle\n    const displayLabels = issue.labels && issue.labels.length > 0 \n      ? issue.labels.slice(0, 3) \n      : [];\n    \n    // Create the card element\n    const cardElement = React.createElement('div', { style: cardStyle },\n      // Title with issue icon and title text\n      React.createElement('h3', { style: titleStyle }, \n        isOpen ? React.createElement(IssueOpenIcon) : React.createElement(IssueClosedIcon),\n        issue.title,\n        issue.html_url && React.createElement('a', {\n          href: issue.html_url,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: {\n            marginLeft: 'auto',\n            color: '#64748b',\n            display: 'flex',\n            alignItems: 'center'\n          },\n          onClick: (e) => e.stopPropagation()\n        }, React.createElement(LinkIcon))\n      ),\n      \n      // Subtitle with left and right sections\n      React.createElement('div', { style: subtitleStyle },\n        // Left subtitle section (up to 3 elements)\n        React.createElement('div', { style: leftSubtitleStyle },\n          // Element 1: Issue number\n          React.createElement('span', {}, `#${issue.number}`),\n          \n          // Element 2: Repository name (if available)\n          repoName && React.createElement('span', {}, repoName),\n          \n          // Element 3: First label (if available)\n          displayLabels.length > 0 && React.createElement(Label, { label: displayLabels[0] })\n        ),\n        \n        // Right subtitle section\n        React.createElement('div', { style: rightSubtitleStyle },\n          // Comments count with icon\n          issue.comments > 0 && React.createElement('div', {\n            style: {\n              display: 'flex',\n              alignItems: 'center',\n              gap: '4px'\n            }\n          },\n            React.createElement(CommentIcon),\n            React.createElement('span', {}, issue.comments)\n          ),\n          \n          // Created date\n          React.createElement('span', {}, createdDate)\n        )\n      )\n    );\n    \n    // If there's a URL, wrap the card in a link\n    if (issue.html_url) {\n      return React.createElement('a', {\n        href: issue.html_url,\n        target: '_blank',\n        rel: 'noopener noreferrer',\n        style: {\n          textDecoration: 'none',\n          color: 'inherit',\n          display: 'block',\n          width: '100%'\n        }\n      }, cardElement);\n    }\n    \n    return cardElement;\n  }\n\n  // Render multiple issues if provided\n  function renderIssues(props) {\n    const issues = props.data.issues;\n    \n    const containerStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px',\n      width: '100%'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      issues.map((issue, index) => \n        React.createElement(GitHubIssueCard, { \n          key: issue.id || index,\n          data: issue \n        })\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  if (props.data && props.data.issues) {\n    return renderIssues(props);\n  } else {\n    return GitHubIssueCard(props);\n  }\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "issues": [
+          {
+            "id": 1,
+            "number": 1347,
+            "title": "Found a bug",
+            "body": "I'm having a problem with this.",
+            "state": "open",
+            "html_url": "https://github.com/octocat/Hello-World/issues/1347",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "html_url": "https://github.com/octocat"
+            },
+            "created_at": "2011-04-22T13:33:48Z",
+            "updated_at": "2011-04-22T13:33:48Z",
+            "closed_at": null,
+            "labels": [
+              {
+                "id": 208045946,
+                "name": "bug",
+                "color": "f29513"
+              }
+            ],
+            "assignees": [
+              {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+              }
+            ],
+            "comments": 0,
+            "repository": {
+              "owner": "octocat",
+              "name": "Hello-World"
+            }
+          },
+          {
+            "id": 2,
+            "number": 1348,
+            "title": "New feature request",
+            "body": "Please add this feature.",
+            "state": "open",
+            "html_url": "https://github.com/octocat/Hello-World/issues/1348",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "html_url": "https://github.com/octocat"
+            },
+            "created_at": "2011-04-22T14:33:48Z",
+            "updated_at": "2011-04-22T14:33:48Z",
+            "closed_at": null,
+            "labels": [
+              {
+                "id": 208045947,
+                "name": "enhancement",
+                "color": "84b6eb"
+              }
+            ],
+            "assignees": [],
+            "comments": 2,
+            "repository": {
+              "owner": "octocat",
+              "name": "Hello-World"
+            }
+          }
+        ],
+        "next_page": 2
+      }
+    },
+    "schemaRef": "schema.IssueList"
+  },
+  {
+    "name": "GitHubPullRequestCard",
+    "version": "1.0.0",
+    "description": "A React component for displaying GitHub pull requests (single or list)",
+    "related_endpoints": ["pull_request", "pull_requests"],
+    "component": {
+      "jsx": "function(props) {\n  // Main component function\n  function GitHubPullRequestCard(props) {\n    const pr = props.data;\n    if (!pr) return null;\n\n    // Format date to readable format\n    function formatDate(dateString) {\n      if (!dateString) return '';\n      const date = new Date(dateString);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        year: 'numeric',\n        month: 'short',\n        day: 'numeric'\n      });\n    }\n\n    // PR open icon SVG\n    function PrOpenIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#2da44e' }\n      }, [\n        React.createElement('path', {\n          d: 'M1.5 3.25C1.5 2.55964 2.05964 2 2.75 2H5.25C5.94036 2 6.5 2.55964 6.5 3.25V5.75C6.5 6.44036 5.94036 7 5.25 7H2.75C2.05964 7 1.5 6.44036 1.5 5.75V3.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M9.5 10.25C9.5 9.55964 10.0596 9 10.75 9H13.25C13.9404 9 14.5 9.55964 14.5 10.25V12.75C14.5 13.4404 13.9404 14 13.25 14H10.75C10.0596 14 9.5 13.4404 9.5 12.75V10.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M4 7V10.5C4 11.6046 4.89543 12.5 6 12.5H10',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // PR merged icon SVG\n    function PrMergedIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#8250df' }\n      }, [\n        React.createElement('path', {\n          d: 'M1.5 3.25C1.5 2.55964 2.05964 2 2.75 2H5.25C5.94036 2 6.5 2.55964 6.5 3.25V5.75C6.5 6.44036 5.94036 7 5.25 7H2.75C2.05964 7 1.5 6.44036 1.5 5.75V3.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M9.5 10.25C9.5 9.55964 10.0596 9 10.75 9H13.25C13.9404 9 14.5 9.55964 14.5 10.25V12.75C14.5 13.4404 13.9404 14 13.25 14H10.75C10.0596 14 9.5 13.4404 9.5 12.75V10.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M6.5 4.5L9.5 11.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // PR closed icon SVG\n    function PrClosedIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#cf222e' }\n      }, [\n        React.createElement('path', {\n          d: 'M1.5 3.25C1.5 2.55964 2.05964 2 2.75 2H5.25C5.94036 2 6.5 2.55964 6.5 3.25V5.75C6.5 6.44036 5.94036 7 5.25 7H2.75C2.05964 7 1.5 6.44036 1.5 5.75V3.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M9.5 10.25C9.5 9.55964 10.0596 9 10.75 9H13.25C13.9404 9 14.5 9.55964 14.5 10.25V12.75C14.5 13.4404 13.9404 14 13.25 14H10.75C10.0596 14 9.5 13.4404 9.5 12.75V10.25Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M10.5 3.5L5.5 12.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Comment icon SVG\n    function CommentIcon() {\n      return React.createElement('svg', {\n        width: '14',\n        height: '14',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 1C11.866 1 15 3.58172 15 6.8C15 10.0183 11.866 12.6 8 12.6C7.06645 12.6 6.17067 12.4561 5.34616 12.1909C3.75628 13.3404 2.5 13.4 1.5 13.4C2.5 12.4 2.80224 11.4041 2.84677 10.7048C1.70809 9.66958 1 8.30032 1 6.8C1 3.58172 4.13401 1 8 1Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Label component\n    function Label(props) {\n      const { label } = props;\n      if (!label) return null;\n      \n      // Convert hex color to contrasting text color\n      function getContrastColor(hexColor) {\n        if (!hexColor || hexColor.length < 6) return '#000000';\n        \n        // Add # if missing\n        const hex = hexColor.startsWith('#') ? hexColor : `#${hexColor}`;\n        \n        // Convert hex to RGB\n        const r = parseInt(hex.slice(1, 3), 16);\n        const g = parseInt(hex.slice(3, 5), 16);\n        const b = parseInt(hex.slice(5, 7), 16);\n        \n        // Calculate luminance\n        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;\n        \n        // Return black or white based on luminance\n        return luminance > 0.5 ? '#000000' : '#ffffff';\n      }\n      \n      const labelStyle = {\n        display: 'inline-block',\n        fontSize: '10px',\n        fontWeight: '500',\n        padding: '2px 6px',\n        borderRadius: '12px',\n        backgroundColor: `#${label.color}`,\n        color: getContrastColor(label.color),\n        marginRight: '4px'\n      };\n      \n      return React.createElement('span', { style: labelStyle }, label.name);\n    }\n\n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box',\n      cursor: pr.html_url ? 'pointer' : 'default'\n    };\n    \n    const titleStyle = {\n      fontWeight: '600',\n      color: '#1e293b',\n      fontSize: '14px',\n      margin: '0 0 4px 0',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const subtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#64748b',\n      margin: '0'\n    };\n    \n    const leftSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const rightSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    // Determine PR state and icon\n    let prIcon;\n    if (pr.merged) {\n      prIcon = React.createElement(PrMergedIcon);\n    } else if (pr.state === 'closed') {\n      prIcon = React.createElement(PrClosedIcon);\n    } else {\n      prIcon = React.createElement(PrOpenIcon);\n    }\n    \n    const createdDate = formatDate(pr.created_at);\n    const repoName = pr.base && pr.base.repo ? `${pr.base.repo.owner.login}/${pr.base.repo.name}` : '';\n    \n    // Get up to 3 labels for the subtitle\n    const displayLabels = pr.labels && pr.labels.length > 0 \n      ? pr.labels.slice(0, 1) \n      : [];\n    \n    // Create the card element\n    const cardElement = React.createElement('div', { style: cardStyle },\n      // Title with PR icon and title text\n      React.createElement('h3', { style: titleStyle }, \n        prIcon,\n        pr.title,\n        pr.html_url && React.createElement('a', {\n          href: pr.html_url,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: {\n            marginLeft: 'auto',\n            color: '#64748b',\n            display: 'flex',\n            alignItems: 'center'\n          },\n          onClick: (e) => e.stopPropagation()\n        }, React.createElement(LinkIcon))\n      ),\n      \n      // Subtitle with left and right sections\n      React.createElement('div', { style: subtitleStyle },\n        // Left subtitle section (up to 3 elements)\n        React.createElement('div', { style: leftSubtitleStyle },\n          // Element 1: PR number\n          React.createElement('span', {}, `#${pr.number}`),\n          \n          // Element 2: Repository name (if available)\n          repoName && React.createElement('span', {}, repoName),\n          \n          // Element 3: First label (if available)\n          displayLabels.length > 0 && React.createElement(Label, { label: displayLabels[0] })\n        ),\n        \n        // Right subtitle section\n        React.createElement('div', { style: rightSubtitleStyle },\n          // Comments count with icon (if available)\n          pr.comments > 0 && React.createElement('div', {\n            style: {\n              display: 'flex',\n              alignItems: 'center',\n              gap: '4px'\n            }\n          },\n            React.createElement(CommentIcon),\n            React.createElement('span', {}, pr.comments)\n          ),\n          \n          // Created date\n          React.createElement('span', {}, createdDate)\n        )\n      )\n    );\n    \n    // If there's a URL, wrap the card in a link\n    if (pr.html_url) {\n      return React.createElement('a', {\n        href: pr.html_url,\n        target: '_blank',\n        rel: 'noopener noreferrer',\n        style: {\n          textDecoration: 'none',\n          color: 'inherit',\n          display: 'block',\n          width: '100%'\n        }\n      }, cardElement);\n    }\n    \n    return cardElement;\n  }\n\n  // Render multiple pull requests if provided\n  function renderPullRequests(props) {\n    const pullRequests = props.data.pull_requests;\n    \n    const containerStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px',\n      width: '100%'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      pullRequests.map((pr, index) => \n        React.createElement(GitHubPullRequestCard, { \n          key: pr.id || index,\n          data: pr \n        })\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  if (props.data && props.data.pull_requests) {\n    return renderPullRequests(props);\n  } else {\n    return GitHubPullRequestCard(props);\n  }\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "pull_requests": [
+          {
+            "id": 1,
+            "number": 1347,
+            "title": "New feature implementation",
+            "body": "This PR adds a new feature",
+            "state": "open",
+            "html_url": "https://github.com/octocat/Hello-World/pull/1347",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "html_url": "https://github.com/octocat"
+            },
+            "created_at": "2011-04-22T13:33:48Z",
+            "updated_at": "2011-04-22T13:33:48Z",
+            "closed_at": null,
+            "merged_at": null,
+            "labels": [
+              {
+                "id": 208045946,
+                "name": "enhancement",
+                "color": "84b6eb"
+              }
+            ],
+            "assignees": [
+              {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+              }
+            ],
+            "requested_reviewers": [
+              {
+                "login": "other-user",
+                "id": 2,
+                "avatar_url": "https://github.com/images/error/other_user.gif"
+              }
+            ],
+            "head": {
+              "label": "octocat:new-feature",
+              "ref": "new-feature",
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+            },
+            "base": {
+              "label": "octocat:main",
+              "ref": "main",
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "repo": {
+                "owner": {
+                  "login": "octocat"
+                },
+                "name": "Hello-World"
+              }
+            },
+            "merged": false,
+            "mergeable": true,
+            "draft": false,
+            "comments": 0
+          },
+          {
+            "id": 2,
+            "number": 1348,
+            "title": "Bug fix",
+            "body": "This PR fixes a critical bug",
+            "state": "open",
+            "html_url": "https://github.com/octocat/Hello-World/pull/1348",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "html_url": "https://github.com/octocat"
+            },
+            "created_at": "2011-04-22T14:33:48Z",
+            "updated_at": "2011-04-22T14:33:48Z",
+            "closed_at": null,
+            "merged_at": null,
+            "labels": [
+              {
+                "id": 208045947,
+                "name": "bug",
+                "color": "f29513"
+              }
+            ],
+            "assignees": [],
+            "requested_reviewers": [],
+            "head": {
+              "label": "octocat:bug-fix",
+              "ref": "bug-fix",
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+            },
+            "base": {
+              "label": "octocat:main",
+              "ref": "main",
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "repo": {
+                "owner": {
+                  "login": "octocat"
+                },
+                "name": "Hello-World"
+              }
+            },
+            "merged": false,
+            "mergeable": true,
+            "draft": false,
+            "comments": 2
+          }
+        ],
+        "next_page": 2
+      }
+    },
+    "schemaRef": "schema.PullRequestList"
+  },
+  {
+    "name": "GitHubCommitCard",
+    "version": "1.0.0",
+    "description": "A React component for displaying GitHub commits (single or list)",
+    "related_endpoints": ["commits", "commit"],
+    "component": {
+      "jsx": "function(props) {\n  // Main component function\n  function GitHubCommitCard(props) {\n    const commit = props.data;\n    if (!commit) return null;\n\n    // Format date to readable format\n    function formatDate(dateString) {\n      if (!dateString) return '';\n      const date = new Date(dateString);\n      if (date.toString() === 'Invalid Date') return '';\n      return date.toLocaleDateString('en-US', {\n        year: 'numeric',\n        month: 'short',\n        day: 'numeric'\n      });\n    }\n\n    // Commit icon SVG\n    function CommitIcon() {\n      return React.createElement('svg', {\n        width: '16',\n        height: '16',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#57606a' }\n      }, [\n        React.createElement('path', {\n          d: 'M8 4V12',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 14C9.10457 14 10 13.1046 10 12C10 10.8954 9.10457 10 8 10C6.89543 10 6 10.8954 6 12C6 13.1046 6.89543 14 8 14Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M8 6C9.10457 6 10 5.10457 10 4C10 2.89543 9.10457 2 8 2C6.89543 2 6 2.89543 6 4C6 5.10457 6.89543 6 8 6Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // Link icon SVG\n    function LinkIcon() {\n      return React.createElement('svg', {\n        width: '10',\n        height: '10',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          key: 'p1',\n          d: 'M6.5 9.5L9.5 6.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p2',\n          d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          key: 'p3',\n          d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    // File changes icon SVG\n    function FileChangesIcon() {\n      return React.createElement('svg', {\n        width: '14',\n        height: '14',\n        viewBox: '0 0 16 16',\n        fill: 'none',\n        style: { color: '#64748b' }\n      }, [\n        React.createElement('path', {\n          d: 'M2 4.5C2 3.11929 3.11929 2 4.5 2H8.5C9.88071 2 11 3.11929 11 4.5V5.5H12.5C13.8807 5.5 15 6.61929 15 8V11.5C15 12.8807 13.8807 14 12.5 14H8.5C7.11929 14 6 12.8807 6 11.5V10.5H4.5C3.11929 10.5 2 9.38071 2 8V4.5Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        }),\n        React.createElement('path', {\n          d: 'M6 8H11V11.5C11 10.6716 10.3284 10 9.5 10H6V8Z',\n          stroke: 'currentColor',\n          strokeWidth: '1.5',\n          strokeLinecap: 'round',\n          strokeLinejoin: 'round'\n        })\n      ]);\n    }\n\n    const cardStyle = {\n      position: 'relative',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      backgroundColor: '#ffffff',\n      padding: '12px',\n      marginBottom: '8px',\n      width: '100%',\n      boxSizing: 'border-box',\n      cursor: commit.html_url ? 'pointer' : 'default'\n    };\n    \n    const titleStyle = {\n      fontWeight: '600',\n      color: '#1e293b',\n      fontSize: '14px',\n      margin: '0 0 4px 0',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap',\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const subtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#64748b',\n      margin: '0'\n    };\n    \n    const leftSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    const rightSubtitleStyle = {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    };\n    \n    // Get commit message (first line only)\n    const commitMessage = commit.commit && commit.commit.message \n      ? commit.commit.message.split('\\n')[0] \n      : '';\n    \n    // Get commit date\n    const commitDate = commit.commit && commit.commit.author && commit.commit.author.date \n      ? formatDate(commit.commit.author.date) \n      : '';\n    \n    // Get author name\n    const authorName = commit.author && commit.author.login \n      ? commit.author.login \n      : (commit.commit && commit.commit.author ? commit.commit.author.name : '');\n    \n    // Get short SHA\n    const shortSha = commit.sha ? commit.sha.substring(0, 7) : '';\n    \n    // Get file changes count\n    const fileChanges = commit.files ? commit.files.length : 0;\n    \n    // Create the card element\n    const cardElement = React.createElement('div', { style: cardStyle },\n      // Title with commit icon and commit message\n      React.createElement('h3', { style: titleStyle }, \n        React.createElement(CommitIcon),\n        commitMessage,\n        commit.html_url && React.createElement('a', {\n          href: commit.html_url,\n          target: '_blank',\n          rel: 'noopener noreferrer',\n          style: {\n            marginLeft: 'auto',\n            color: '#64748b',\n            display: 'flex',\n            alignItems: 'center'\n          },\n          onClick: (e) => e.stopPropagation()\n        }, React.createElement(LinkIcon))\n      ),\n      \n      // Subtitle with left and right sections\n      React.createElement('div', { style: subtitleStyle },\n        // Left subtitle section\n        React.createElement('div', { style: leftSubtitleStyle },\n          // Element 1: Commit SHA\n          React.createElement('span', {}, shortSha),\n          \n          // Element 2: Author name\n          authorName && React.createElement('span', {}, authorName)\n        ),\n        \n        // Right subtitle section\n        React.createElement('div', { style: rightSubtitleStyle },\n          // File changes count with icon\n          fileChanges > 0 && React.createElement('div', {\n            style: {\n              display: 'flex',\n              alignItems: 'center',\n              gap: '4px'\n            }\n          },\n            React.createElement(FileChangesIcon),\n            React.createElement('span', {}, fileChanges)\n          ),\n          \n          // Commit date\n          React.createElement('span', {}, commitDate)\n        )\n      )\n    );\n    \n    // If there's a URL, wrap the card in a link\n    if (commit.html_url) {\n      return React.createElement('a', {\n        href: commit.html_url,\n        target: '_blank',\n        rel: 'noopener noreferrer',\n        style: {\n          textDecoration: 'none',\n          color: 'inherit',\n          display: 'block',\n          width: '100%'\n        }\n      }, cardElement);\n    }\n    \n    return cardElement;\n  }\n\n  // Render multiple commits if provided\n  function renderCommits(props) {\n    const commits = props.data.commits;\n    \n    const containerStyle = {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px',\n      width: '100%'\n    };\n    \n    return React.createElement('div', { style: containerStyle },\n      commits.map((commit, index) => \n        React.createElement(GitHubCommitCard, { \n          key: commit.sha || index,\n          data: commit \n        })\n      )\n    );\n  }\n\n  // Return the appropriate component based on input\n  if (props.data && props.data.commits) {\n    return renderCommits(props);\n  } else {\n    return GitHubCommitCard(props);\n  }\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "commits": [
+          {
+            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+            "commit": {
+              "author": {
+                "name": "Dmitry Korzhov",
+                "email": "diko0071@example.com",
+                "date": "2025-02-28T16:00:49Z"
+              },
+              "committer": {
+                "name": "Dmitry Korzhov",
+                "email": "diko0071@example.com",
+                "date": "2025-02-28T16:00:49Z"
+              },
+              "message": "Add voice recognition feature",
+              "tree": {
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              }
+            },
+            "author": {
+              "login": "diko0071",
+              "id": 82669452,
+              "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+              "html_url": "https://github.com/diko0071"
+            },
+            "committer": {
+              "login": "diko0071",
+              "id": 82669452,
+              "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+              "html_url": "https://github.com/diko0071"
+            },
+            "html_url": "https://github.com/diko0071/voice_ai/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+            "parents": [
+              {
+                "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                "url": "https://api.github.com/repos/diko0071/voice_ai/commits/7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                "html_url": "https://github.com/diko0071/voice_ai/commit/7dcb09b5b57875f334f61aebed695e2e4193db5f"
+              }
+            ],
+            "stats": {
+              "total": 15,
+              "additions": 12,
+              "deletions": 3
+            },
+            "files": [
+              {
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                "filename": "src/recognition.js",
+                "status": "modified",
+                "additions": 12,
+                "deletions": 3,
+                "changes": 15,
+                "patch": "@@ -29,7 +29,16 @@\n...\n-const recognition = new SpeechRecognition();\n+const recognition = new SpeechRecognition();\n+recognition.continuous = true;\n+recognition.interimResults = true;"
+              }
+            ]
+          },
+          {
+            "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+            "commit": {
+              "author": {
+                "name": "Dmitry Korzhov",
+                "email": "diko0071@example.com",
+                "date": "2025-02-25T14:30:21Z"
+              },
+              "committer": {
+                "name": "Dmitry Korzhov",
+                "email": "diko0071@example.com",
+                "date": "2025-02-25T14:30:21Z"
+              },
+              "message": "Initial project setup",
+              "tree": {
+                "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f"
+              }
+            },
+            "author": {
+              "login": "diko0071",
+              "id": 82669452,
+              "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+              "html_url": "https://github.com/diko0071"
+            },
+            "committer": {
+              "login": "diko0071",
+              "id": 82669452,
+              "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+              "html_url": "https://github.com/diko0071"
+            },
+            "html_url": "https://github.com/diko0071/voice_ai/commit/7dcb09b5b57875f334f61aebed695e2e4193db5f",
+            "parents": [],
+            "stats": {
+              "total": 45,
+              "additions": 45,
+              "deletions": 0
+            },
+            "files": [
+              {
+                "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                "filename": "package.json",
+                "status": "added",
+                "additions": 25,
+                "deletions": 0,
+                "changes": 25
+              },
+              {
+                "sha": "8dcb09b5b57875f334f61aebed695e2e4193db5g",
+                "filename": "src/index.js",
+                "status": "added",
+                "additions": 20,
+                "deletions": 0,
+                "changes": 20
+              }
+            ]
+          }
+        ],
+        "next_page": 2
+      }
+    },
+    "schemaRef": "schema.CommitList"
+  }
+]

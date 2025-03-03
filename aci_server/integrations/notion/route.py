@@ -23,7 +23,7 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/notion", tags=["notion"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/notion directory
+examples = ExamplesLoader()
 
 async def get_notion_service(request: FastAPIRequest):
     try:

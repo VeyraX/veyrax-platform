@@ -23,7 +23,6 @@ class DropboxService:
         return ApiResponse(data=data, component=components)
 
     def _convert_to_dropbox_file(self, file_data: dict, is_folder: bool = False) -> DropboxFile:
-        # Try to determine mime_type from file extension if not provided
         mime_type = file_data.get("mime_type")
         if not mime_type and not is_folder and file_data.get("name"):
             mime_type = get_mime_type_from_extension(file_data.get("name", ""))
@@ -35,7 +34,7 @@ class DropboxService:
             path_lower=file_data.get("path_lower", ""),
             mime_type=mime_type,
             size=file_data.get("size"),
-            is_folder=is_folder or (file_data.get(".tag") == "folder"),  # create folder doesn't return is_folder so we need to hardcode it
+            is_folder=is_folder or (file_data.get(".tag") == "folder"),
             created_time=datetime.fromisoformat(file_data.get("client_modified", "1970-01-01T00:00:00Z").replace("Z", "+00:00")),
             modified_time=datetime.fromisoformat(file_data.get("server_modified", "1970-01-01T00:00:00Z").replace("Z", "+00:00")),
             shared_link=None 

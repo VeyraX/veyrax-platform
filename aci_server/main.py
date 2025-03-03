@@ -20,6 +20,7 @@ from integrations.outlook.route import router as outlook_router
 from integrations.dropbox.route import router as dropbox_router
 from integrations.resend.route import router as resend_router
 from integrations.browser_use.route import router as browser_use_router
+from integrations.github.route import router as github_router
 from integrations.common.utils import get_router_tools
 from celery_app import celery_app
 
@@ -45,7 +46,8 @@ INTEGRATION_ROUTERS = {
     "outlook": outlook_router,
     "dropbox": dropbox_router,
     "resend": resend_router,
-    "browser-use": browser_use_router
+    "browser-use": browser_use_router,
+    "github": github_router
 }
 
 app = FastAPI()

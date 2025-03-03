@@ -1,0 +1,757 @@
+routes:
+  - endpoint: /github/repositories
+    examples:
+      - scenario: "List User Repositories"
+        description: "Retrieves a list of repositories for the authenticated user or a specific user"
+        input_json: |
+          {
+            "username": "octocat",
+            "type": "owner",
+            "sort": "updated",
+            "direction": "desc",
+            "per_page": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "repositories": [
+                {
+                  "id": 1296269,
+                  "name": "Hello-World",
+                  "full_name": "octocat/Hello-World",
+                  "description": "This your first repo!",
+                  "html_url": "https://github.com/octocat/Hello-World",
+                  "stargazers_count": 1524,
+                  "forks_count": 1124,
+                  "open_issues_count": 23,
+                  "owner": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "private": false,
+                  "created_at": "2011-01-26T19:01:12Z",
+                  "updated_at": "2011-01-26T19:14:43Z",
+                  "language": "JavaScript",
+                  "default_branch": "main",
+                  "topics": ["octocat", "atom", "electron", "api"]
+                },
+                {
+                  "id": 1296270,
+                  "name": "octocat-project",
+                  "full_name": "octocat/octocat-project",
+                  "description": "A project about Octocats",
+                  "html_url": "https://github.com/octocat/octocat-project",
+                  "stargazers_count": 80,
+                  "forks_count": 20,
+                  "open_issues_count": 5,
+                  "owner": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "private": false,
+                  "created_at": "2011-01-26T19:01:12Z",
+                  "updated_at": "2011-01-26T19:14:43Z",
+                  "language": "Python",
+                  "default_branch": "main",
+                  "topics": ["python", "machine-learning"]
+                }
+              ],
+              "next_page": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubRepositoryList"
+            }
+          }
+
+  - endpoint: /github/repository
+    examples:
+      - scenario: "Get Repository Details"
+        description: "Retrieves detailed information about a specific repository"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 1296269,
+              "name": "Hello-World",
+              "full_name": "octocat/Hello-World",
+              "description": "This your first repo!",
+              "html_url": "https://github.com/octocat/Hello-World",
+              "stargazers_count": 1524,
+              "forks_count": 1124,
+              "open_issues_count": 23,
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "private": false,
+              "created_at": "2011-01-26T19:01:12Z",
+              "updated_at": "2011-01-26T19:14:43Z",
+              "language": "JavaScript",
+              "default_branch": "main",
+              "topics": ["octocat", "atom", "electron", "api"]
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubRepositoryCard"
+            }
+          }
+
+  - endpoint: /github/issues
+    examples:
+      - scenario: "List Repository Issues"
+        description: "Retrieves a list of issues for a specific repository"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "state": "open",
+            "sort": "created",
+            "direction": "desc",
+            "per_page": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "issues": [
+                {
+                  "id": 1,
+                  "number": 1347,
+                  "title": "Found a bug",
+                  "body": "I'm having a problem with this.",
+                  "state": "open",
+                  "html_url": "https://github.com/octocat/Hello-World/issues/1347",
+                  "user": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "created_at": "2011-04-22T13:33:48Z",
+                  "updated_at": "2011-04-22T13:33:48Z",
+                  "closed_at": null,
+                  "labels": [
+                    {
+                      "id": 208045946,
+                      "name": "bug",
+                      "color": "f29513"
+                    }
+                  ],
+                  "assignees": [
+                    {
+                      "login": "octocat",
+                      "id": 1,
+                      "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+                    }
+                  ],
+                  "comments": 0,
+                  "repository": {
+                    "owner": "octocat",
+                    "name": "Hello-World"
+                  }
+                },
+                {
+                  "id": 2,
+                  "number": 1348,
+                  "title": "New feature request",
+                  "body": "Please add this feature.",
+                  "state": "open",
+                  "html_url": "https://github.com/octocat/Hello-World/issues/1348",
+                  "user": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "created_at": "2011-04-22T14:33:48Z",
+                  "updated_at": "2011-04-22T14:33:48Z",
+                  "closed_at": null,
+                  "labels": [
+                    {
+                      "id": 208045947,
+                      "name": "enhancement",
+                      "color": "84b6eb"
+                    }
+                  ],
+                  "assignees": [],
+                  "comments": 2,
+                  "repository": {
+                    "owner": "octocat",
+                    "name": "Hello-World"
+                  }
+                }
+              ],
+              "next_page": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubIssueList"
+            }
+          }
+
+  - endpoint: /github/issue
+    examples:
+      - scenario: "Get Issue Details"
+        description: "Retrieves detailed information about a specific issue"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "issue_number": 1347
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 1,
+              "number": 1347,
+              "title": "Found a bug",
+              "body": "I'm having a problem with this.",
+              "state": "open",
+              "html_url": "https://github.com/octocat/Hello-World/issues/1347",
+              "user": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "created_at": "2011-04-22T13:33:48Z",
+              "updated_at": "2011-04-22T13:33:48Z",
+              "closed_at": null,
+              "labels": [
+                {
+                  "id": 208045946,
+                  "name": "bug",
+                  "color": "f29513"
+                }
+              ],
+              "assignees": [
+                {
+                  "login": "octocat",
+                  "id": 1,
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+                }
+              ],
+              "comments": 0,
+              "repository": {
+                "owner": "octocat",
+                "name": "Hello-World"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubIssueCard"
+            }
+          }
+
+  - endpoint: /github/pull_requests
+    examples:
+      - scenario: "List Repository Pull Requests"
+        description: "Retrieves a list of pull requests for a specific repository"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "state": "open",
+            "sort": "created",
+            "direction": "desc",
+            "per_page": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "pull_requests": [
+                {
+                  "id": 1,
+                  "number": 1347,
+                  "title": "New feature implementation",
+                  "body": "This PR adds a new feature",
+                  "state": "open",
+                  "html_url": "https://github.com/octocat/Hello-World/pull/1347",
+                  "user": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "created_at": "2011-04-22T13:33:48Z",
+                  "updated_at": "2011-04-22T13:33:48Z",
+                  "closed_at": null,
+                  "merged_at": null,
+                  "labels": [
+                    {
+                      "id": 208045946,
+                      "name": "enhancement",
+                      "color": "84b6eb"
+                    }
+                  ],
+                  "assignees": [
+                    {
+                      "login": "octocat",
+                      "id": 1,
+                      "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+                    }
+                  ],
+                  "requested_reviewers": [
+                    {
+                      "login": "other-user",
+                      "id": 2,
+                      "avatar_url": "https://github.com/images/error/other_user.gif"
+                    }
+                  ],
+                  "head": {
+                    "label": "octocat:new-feature",
+                    "ref": "new-feature",
+                    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                  },
+                  "base": {
+                    "label": "octocat:main",
+                    "ref": "main",
+                    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                  },
+                  "merged": false,
+                  "mergeable": true,
+                  "draft": false
+                },
+                {
+                  "id": 2,
+                  "number": 1348,
+                  "title": "Bug fix",
+                  "body": "This PR fixes a critical bug",
+                  "state": "open",
+                  "html_url": "https://github.com/octocat/Hello-World/pull/1348",
+                  "user": {
+                    "login": "octocat",
+                    "id": 1,
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "html_url": "https://github.com/octocat"
+                  },
+                  "created_at": "2011-04-22T14:33:48Z",
+                  "updated_at": "2011-04-22T14:33:48Z",
+                  "closed_at": null,
+                  "merged_at": null,
+                  "labels": [
+                    {
+                      "id": 208045947,
+                      "name": "bug",
+                      "color": "f29513"
+                    }
+                  ],
+                  "assignees": [],
+                  "requested_reviewers": [],
+                  "head": {
+                    "label": "octocat:bug-fix",
+                    "ref": "bug-fix",
+                    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                  },
+                  "base": {
+                    "label": "octocat:main",
+                    "ref": "main",
+                    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                  },
+                  "merged": false,
+                  "mergeable": true,
+                  "draft": false
+                }
+              ],
+              "next_page": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestList"
+            }
+          }
+
+  - endpoint: /github/pull_request
+    examples:
+      - scenario: "Get Pull Request Details"
+        description: "Retrieves detailed information about a specific pull request"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "pull_number": 1347
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 1,
+              "number": 1347,
+              "title": "New feature implementation",
+              "body": "This PR adds a new feature",
+              "state": "open",
+              "html_url": "https://github.com/octocat/Hello-World/pull/1347",
+              "user": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "created_at": "2011-04-22T13:33:48Z",
+              "updated_at": "2011-04-22T13:33:48Z",
+              "closed_at": null,
+              "merged_at": null,
+              "labels": [
+                {
+                  "id": 208045946,
+                  "name": "enhancement",
+                  "color": "84b6eb"
+                }
+              ],
+              "assignees": [
+                {
+                  "login": "octocat",
+                  "id": 1,
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+                }
+              ],
+              "requested_reviewers": [
+                {
+                  "login": "other-user",
+                  "id": 2,
+                  "avatar_url": "https://github.com/images/error/other_user.gif"
+                }
+              ],
+              "head": {
+                "label": "octocat:new-feature",
+                "ref": "new-feature",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "base": {
+                "label": "octocat:main",
+                "ref": "main",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "merged": false,
+              "mergeable": true,
+              "draft": false
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestCard"
+            }
+          }
+
+  - endpoint: /github/commit
+    examples:
+      - scenario: "Get Commit Details"
+        description: "Retrieves detailed information about a specific commit"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "commit_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "commit": {
+                "author": {
+                  "name": "Monalisa Octocat",
+                  "email": "mona@github.com",
+                  "date": "2011-04-14T16:00:49Z"
+                },
+                "committer": {
+                  "name": "Monalisa Octocat",
+                  "email": "mona@github.com",
+                  "date": "2011-04-14T16:00:49Z"
+                },
+                "message": "Fix all the bugs",
+                "tree": {
+                  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                }
+              },
+              "author": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "committer": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "html_url": "https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "parents": [
+                {
+                  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "url": "https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "html_url": "https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                }
+              ],
+              "stats": {
+                "total": 2,
+                "additions": 1,
+                "deletions": 1
+              },
+              "files": [
+                {
+                  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "filename": "file1.txt",
+                  "status": "modified",
+                  "additions": 1,
+                  "deletions": 1,
+                  "changes": 2,
+                  "patch": "@@ -29,7 +29,7 @@\n...\n-var a = 1;\n+var a = 2;"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubCommitCard"
+            }
+          }
+
+  - endpoint: /github/star
+    examples:
+      - scenario: "Star a Repository"
+        description: "Stars a repository for the authenticated user"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "message": "Repository octocat/Hello-World has been starred successfully",
+            "data": null,
+            "component": {
+              "name": "GitHubRepositoryCard"
+            }
+          }
+
+  - endpoint: /github/unstar
+    examples:
+      - scenario: "Unstar a Repository"
+        description: "Removes a star from a repository for the authenticated user"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "message": "Repository octocat/Hello-World has been unstarred successfully",
+            "data": null,
+            "component": {
+              "name": "GitHubRepositoryCard"
+            }
+          }
+
+  - endpoint: /github/commits
+    examples:
+      - scenario: "List Repository Commits"
+        description: "Retrieves a list of commits for a specific repository"
+        input_json: |
+          {
+            "owner": "diko0071",
+            "repo": "voice_ai",
+            "per_page": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "commits": [
+                {
+                  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "commit": {
+                    "author": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-28T16:00:49Z"
+                    },
+                    "committer": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-28T16:00:49Z"
+                    },
+                    "message": "Add voice recognition feature",
+                    "tree": {
+                      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                    }
+                  },
+                  "author": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "committer": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "html_url": "https://github.com/diko0071/voice_ai/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "parents": [
+                    {
+                      "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                      "url": "https://api.github.com/repos/diko0071/voice_ai/commits/7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                      "html_url": "https://github.com/diko0071/voice_ai/commit/7dcb09b5b57875f334f61aebed695e2e4193db5f"
+                    }
+                  ],
+                  "stats": {
+                    "total": 15,
+                    "additions": 12,
+                    "deletions": 3
+                  },
+                  "files": [
+                    {
+                      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                      "filename": "src/recognition.js",
+                      "status": "modified",
+                      "additions": 12,
+                      "deletions": 3,
+                      "changes": 15,
+                      "patch": "@@ -29,7 +29,16 @@\n...\n-const recognition = new SpeechRecognition();\n+const recognition = new SpeechRecognition();\n+recognition.continuous = true;\n+recognition.interimResults = true;"
+                    }
+                  ]
+                },
+                {
+                  "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                  "commit": {
+                    "author": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-25T14:30:21Z"
+                    },
+                    "committer": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-25T14:30:21Z"
+                    },
+                    "message": "Initial project setup",
+                    "tree": {
+                      "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f"
+                    }
+                  },
+                  "author": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "committer": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "html_url": "https://github.com/diko0071/voice_ai/commit/7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                  "parents": [],
+                  "stats": {
+                    "total": 45,
+                    "additions": 45,
+                    "deletions": 0
+                  },
+                  "files": [
+                    {
+                      "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                      "filename": "package.json",
+                      "status": "added",
+                      "additions": 25,
+                      "deletions": 0,
+                      "changes": 25
+                    },
+                    {
+                      "sha": "8dcb09b5b57875f334f61aebed695e2e4193db5g",
+                      "filename": "src/index.js",
+                      "status": "added",
+                      "additions": 20,
+                      "deletions": 0,
+                      "changes": 20
+                    }
+                  ]
+                }
+              ],
+              "next_page": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubCommitList"
+            }
+          }
+      
+      - scenario: "Filter Commits by Author"
+        description: "Retrieves commits filtered by a specific author"
+        input_json: |
+          {
+            "owner": "diko0071",
+            "repo": "voice_ai",
+            "author": "diko0071",
+            "per_page": 3
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "commits": [
+                {
+                  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "commit": {
+                    "author": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-28T16:00:49Z"
+                    },
+                    "committer": {
+                      "name": "Dmitry Korzhov",
+                      "email": "diko0071@example.com",
+                      "date": "2025-02-28T16:00:49Z"
+                    },
+                    "message": "Add voice recognition feature",
+                    "tree": {
+                      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                    }
+                  },
+                  "author": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "committer": {
+                    "login": "diko0071",
+                    "id": 82669452,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/82669452?v=4",
+                    "html_url": "https://github.com/diko0071"
+                  },
+                  "html_url": "https://github.com/diko0071/voice_ai/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                  "parents": [
+                    {
+                      "sha": "7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                      "url": "https://api.github.com/repos/diko0071/voice_ai/commits/7dcb09b5b57875f334f61aebed695e2e4193db5f",
+                      "html_url": "https://github.com/diko0071/voice_ai/commit/7dcb09b5b57875f334f61aebed695e2e4193db5f"
+                    }
+                  ]
+                }
+              ],
+              "next_page": null
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubCommitList"
+            }
+          }

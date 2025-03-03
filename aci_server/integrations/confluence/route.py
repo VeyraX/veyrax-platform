@@ -37,7 +37,7 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/confluence directory
+examples = ExamplesLoader()
 
 async def get_confluence_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'confluence')
