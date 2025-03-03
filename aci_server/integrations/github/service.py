@@ -124,14 +124,12 @@ class GitHubService:
     def star_repository(self, owner: str, repo: str) -> ApiResponse:
         self.client.star_repository(owner, repo)
         
-        return self.prepare_response(None, "GitHubRepositoryCard", 
-                                    message=f"Repository {owner}/{repo} has been starred successfully")
+        return ApiResponse(message='Repository starred successfully')
 
     def unstar_repository(self, owner: str, repo: str) -> ApiResponse:
         self.client.unstar_repository(owner, repo)
         
-        return self.prepare_response(None, "GitHubRepositoryCard", 
-                                    message=f"Repository {owner}/{repo} has been unstarred successfully")
+        return ApiResponse(message='Repository unstarred successfully')
 
     def get_commits(self, owner: str, repo: str, sha=None, path=None, author=None,
                    since=None, until=None, per_page=30, page=1) -> ApiResponse:
