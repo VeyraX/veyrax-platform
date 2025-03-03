@@ -6,7 +6,7 @@ from openai.types.chat import ChatCompletionToolParam
 from openai.types.shared_params import FunctionDefinition
 from pydantic import create_model
 import openai
-
+from ...route_identifier import route_identifier, route_method
 
 def get_route_schema_class(route: routing.APIRouter) -> Optional[Type[BaseModel]]:
     if hasattr(route.endpoint, "__schema_class__"):
@@ -117,7 +117,7 @@ def get_openai_function_schemas(
     input_schema_class = get_route_schema_class(route)
     output_schema_class = get_route_output_schema_class(route)
     
-    route_name = f"{route.path}" # route.name or route.path.split("/")[-1]
+    route_name = route_method(route)
     route_description = (endpoint_func.__doc__ or f"Handle {list(route.methods)[0]} {route.path}").strip()
     
     if input_schema_class:

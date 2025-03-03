@@ -33,6 +33,17 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     return tools
 
 
+def route_identifier(route: routing.APIRoute) -> str:
+    """
+    Extract a consistent identifier for a route that can be used to match
+    between frontend tool calls and backend route handlers.
+    
+    Returns the route path, which provides a consistent way to identify routes
+    across the application.
+    """
+    return str(route.path)
+
+
 def format_validation_error(e: ValidationError, model_name: str = "InputValidation"):
     errors = e.errors()
     schema_info = {

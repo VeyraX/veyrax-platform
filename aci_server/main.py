@@ -22,6 +22,7 @@ from integrations.resend.route import router as resend_router
 from integrations.browser_use.route import router as browser_use_router
 from integrations.github.route import router as github_router
 from integrations.common.utils import get_router_tools
+from integrations.common.route_identifier import route_method
 from celery_app import celery_app
 
 
@@ -80,7 +81,6 @@ async def get_tools():
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request):
-    from fastapi import Depends
     
     try:
         params = await request.json()
@@ -93,7 +93,7 @@ async def handle_tool_call(tool: str, method: str, request: Request):
     router = INTEGRATION_ROUTERS[tool]
     
     for route in router.routes:
-        if route.name == method:
+        if route_method(route) == method:
             signature = inspect.signature(route.endpoint)
             
             endpoint_args = {}
