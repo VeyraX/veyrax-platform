@@ -23,6 +23,7 @@ from integrations.browser_use.route import router as browser_use_router
 from integrations.github.route import router as github_router
 from integrations.common.utils import get_router_tools
 from integrations.common.route_identifier import route_method
+from integrations.common.prompt_example import get_tools_example_prompt
 from celery_app import celery_app
 
 import os
@@ -154,13 +155,10 @@ async def handle_tool_call(tool: str, method: str, request: Request):
                 )
                 
                 if name in params:
-                    # Add the parameter directly if it's in our params
                     endpoint_args[name] = params[name]
                 elif name == "params" and is_body_param:
-                    # For Body parameters named "params", pass the entire params dict
                     endpoint_args[name] = params
                 elif name == "request" and name not in endpoint_args:
-                    # If the endpoint expects the request object
                     endpoint_args[name] = request
             
             print(f"Calling {method} with {endpoint_args}")
@@ -176,7 +174,6 @@ async def get_tool_spec(tool_name: str):
     
     router = INTEGRATION_ROUTERS[tool_name]
     return {"tools": get_router_tools(router)}
-
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
@@ -201,18 +198,12 @@ async def get_user_tools(request: Request):
             .execute()
             
         user_tools = {}
+        user_tools['examples'] = json.loads(get_tools_example_prompt)
+
         for provider in providers.data:
             if provider.get('input_schema'):
-                tool_name = provider['provider_tag']
-                for method in provider['input_schema']:
-
-                    route = find_route_by_tool_and_method(tool_name, method)
-                    examples = route.endpoint.examples()
-
-                    provider['input_schema'][method]['examples'] = examples
-        
                 user_tools[provider['provider_tag']] = provider['input_schema']
-
+        
         return {"tools": user_tools}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
