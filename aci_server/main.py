@@ -25,7 +25,6 @@ from integrations.common.utils import get_router_tools
 from integrations.common.route_identifier import route_method
 from celery_app import celery_app
 
-
 import os
 import importlib
 import json
@@ -78,6 +77,30 @@ async def get_tools():
     
     return {"tools": tools}
 
+def find_route_by_tool_and_method(tool: str, method: str):
+    """
+    Helper function to find a route by tool name and method.
+    
+    Args:
+        tool: The name of the tool/integration
+        method: The method name to find
+        
+    Returns:
+        The matching route or None if not found
+    
+    Raises:
+        HTTPException: If the tool doesn't exist
+    """
+    if tool not in INTEGRATION_ROUTERS:
+        raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
+    
+    router = INTEGRATION_ROUTERS[tool]
+    
+    for route in router.routes:
+        if route_method(route) == method:
+            return route
+    
+    return None
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request):
@@ -180,8 +203,16 @@ async def get_user_tools(request: Request):
         user_tools = {}
         for provider in providers.data:
             if provider.get('input_schema'):
-                user_tools[provider['provider_tag']] = provider['input_schema']
+                tool_name = provider['provider_tag']
+                for method in provider['input_schema']:
+
+                    route = find_route_by_tool_and_method(tool_name, method)
+                    examples = route.endpoint.examples()
+
+                    provider['input_schema'][method]['examples'] = examples
         
+                user_tools[provider['provider_tag']] = provider['input_schema']
+
         return {"tools": user_tools}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")

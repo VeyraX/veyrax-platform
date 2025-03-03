@@ -32,3 +32,10 @@ def route_method(route: routing.APIRoute) -> str:
     across the application.
     """
     return route_identifier(route).split('/')[1]
+
+def create_route_identifier(tool_name: str, method_name: str) -> str:
+    """
+    Create a consistent identifier for a route that can be used to match
+    between frontend tool calls and backend route handlers.
+    """
+    return f"{tool_name}/{method_name}"
