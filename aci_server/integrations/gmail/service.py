@@ -42,9 +42,13 @@ class GmailService:
             if filters.before_date:
                 before_date = datetime.fromisoformat(filters.before_date).strftime('%Y/%m/%d')
                 query_parts.append(f'before:{before_date}')
+            if filters.from_email:
+                query_parts.append(f'from:{filters.from_email}')
+            if filters.has_attachments:
+                query_parts.append(f'has:attachment')
         
         q = ' '.join(query_parts) if query_parts else None
-        max_results = filters.max_results if filters and filters.max_results else 20
+        max_results = filters.max_results if filters and filters.max_results else 5
         response = self.client.list_messages(pageToken=pageToken, q=q, maxResults=max_results)
         messages = []
         

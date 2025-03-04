@@ -54,6 +54,9 @@ class MessageFilters(BaseModel):
     after_date: Optional[str] = None  
     before_date: Optional[str] = None
     max_results: Optional[int] = 20
+    from_email: Optional[str] = None
+    has_attachments: Optional[bool] = None
+
 
 class ApiResponse(BaseModel):
     data: Union[Message, MessageList, DraftList, DraftResponse]

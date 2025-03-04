@@ -21,6 +21,7 @@ from integrations.dropbox.route import router as dropbox_router
 from integrations.resend.route import router as resend_router
 from integrations.browser_use.route import router as browser_use_router
 from integrations.github.route import router as github_router
+from integrations.youtube.route import router as youtube_router
 from integrations.common.utils import get_router_tools
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt
@@ -48,7 +49,8 @@ INTEGRATION_ROUTERS = {
     "dropbox": dropbox_router,
     "resend": resend_router,
     "browser-use": browser_use_router,
-    "github": github_router
+    "github": github_router,
+    "youtube": youtube_router
 }
 
 app = FastAPI()
@@ -79,19 +81,6 @@ async def get_tools():
     return {"tools": tools}
 
 def find_route_by_tool_and_method(tool: str, method: str):
-    """
-    Helper function to find a route by tool name and method.
-    
-    Args:
-        tool: The name of the tool/integration
-        method: The method name to find
-        
-    Returns:
-        The matching route or None if not found
-    
-    Raises:
-        HTTPException: If the tool doesn't exist
-    """
     if tool not in INTEGRATION_ROUTERS:
         raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
     
@@ -122,15 +111,12 @@ async def handle_tool_call(tool: str, method: str, request: Request):
             
             endpoint_args = {}
             
-            # First handle any dependencies
             for name, param in signature.parameters.items():
                 if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
                     dep_func = param.default.dependency
                     try:
-                        # Get the actual service/dependency instance
                         dependency_result = await dep_func(request)
                         
-                        # Make sure it's not a Depends object itself
                         if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
                             raise ValueError(f"Dependency resolution error: got Depends object instead of service instance")
                             
@@ -138,16 +124,12 @@ async def handle_tool_call(tool: str, method: str, request: Request):
                     except Exception as e:
                         error_msg = f"Error resolving dependency {name}: {str(e)}"
                         print(error_msg)
-                        # Always fail on dependency resolution errors
                         raise HTTPException(status_code=500, detail=error_msg)
             
-            # Now handle regular parameters
             for name, param in signature.parameters.items():
-                # Skip parameters that are already handled by dependencies
                 if name in endpoint_args:
                     continue
                     
-                # Check if parameter is a Body parameter
                 is_body_param = (
                     param.default != inspect.Parameter.empty 
                     and hasattr(param.default, "__class__") 

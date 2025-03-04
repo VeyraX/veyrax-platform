@@ -1,0 +1,117 @@
+[
+    {
+      "name": "YouTubeVideoCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying YouTube video details",
+      "related_endpoints": ["get_video"],
+      "component": {
+        "jsx": "function YouTubeVideoCard(props) {\n  const video = props.data;\n  if (!video) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n\n  const formatNumber = (num) => {\n    if (!num && num !== 0) return '0';\n    return new Intl.NumberFormat().format(num);\n  };\n\n  // Link icon SVG\n  function LinkIcon() {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  }\n\n  const cardStyle = {\n    position: 'relative',\n    borderRadius: '8px',\n    border: '1px solid #e2e8f0',\n    backgroundColor: '#ffffff',\n    padding: '8px 12px',\n    marginBottom: '8px',\n    width: '100%',\n    boxSizing: 'border-box'\n  };\n\n  const flexContainerStyle = {\n    display: 'flex',\n    alignItems: 'flex-start',\n    gap: '12px'\n  };\n\n  const thumbnailStyle = {\n    width: '120px',\n    height: '68px',\n    borderRadius: '4px',\n    objectFit: 'cover',\n    flexShrink: 0\n  };\n\n  const contentStyle = {\n    flex: 1,\n    minWidth: 0\n  };\n\n  const titleContainerStyle = {\n    display: 'flex',\n    alignItems: 'center',\n    gap: '2px'\n  };\n\n  const titleStyle = {\n    fontWeight: '500',\n    color: '#1e293b',\n    overflow: 'hidden',\n    textOverflow: 'ellipsis',\n    whiteSpace: 'nowrap',\n    fontSize: '14px',\n    margin: 0\n  };\n\n  const infoStyle = {\n    fontSize: '12px',\n    color: '#64748b',\n    overflow: 'hidden',\n    textOverflow: 'ellipsis',\n    whiteSpace: 'nowrap',\n    marginTop: '4px',\n    margin: 0\n  };\n\n  const statsStyle = {\n    display: 'flex',\n    gap: '8px',\n    marginTop: '4px'\n  };\n\n  const statItemStyle = {\n    fontSize: '12px',\n    color: '#64748b'\n  };\n\n  const linkStyle = {\n    color: '#64748b',\n    display: 'flex',\n    alignItems: 'center',\n    marginRight: '4px',\n    textDecoration: 'none',\n    flexShrink: 0\n  };\n\n  // Function to render multiple cards in a grid\n  function renderCards() {\n    const videos = Array.isArray(props.data) ? props.data : [props.data];\n    \n    const containerStyles = {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '12px',\n      width: '100%'\n    };\n    \n    return React.createElement('div', { style: containerStyles },\n      videos.map((videoItem, index) => {\n        return React.createElement('div', {\n          key: videoItem.id || index,\n          style: {\n            width: 'calc(50% - 6px)',\n            minWidth: '250px',\n            boxSizing: 'border-box'\n          }\n        }, renderSingleCard(videoItem));\n      })\n    );\n  }\n\n  // Function to render a single card\n  function renderSingleCard(videoData) {\n    return React.createElement('div', { style: cardStyle },\n      React.createElement('div', { style: flexContainerStyle },\n        React.createElement('img', {\n          src: videoData.thumbnail_url,\n          alt: videoData.title,\n          style: thumbnailStyle\n        }),\n        React.createElement('div', { style: contentStyle },\n          React.createElement('div', { style: titleContainerStyle },\n            videoData.html_link && React.createElement('a', {\n              href: videoData.html_link,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: linkStyle\n            }, React.createElement(LinkIcon)),\n            React.createElement('h3', { style: titleStyle }, videoData.title)\n          ),\n          React.createElement('p', { style: infoStyle },\n            `${videoData.channel_title} • ${formatDate(videoData.published_at)}`\n          ),\n          React.createElement('div', { style: statsStyle },\n            videoData.view_count !== undefined && React.createElement('span', { style: statItemStyle },\n              `${formatNumber(videoData.view_count)} views`\n            ),\n            videoData.duration && React.createElement('span', { style: statItemStyle },\n              videoData.duration\n            )\n          )\n        )\n      )\n    );\n  }\n\n  // Return multiple cards if array, otherwise single card\n  return Array.isArray(props.data) ? renderCards() : renderSingleCard(video);\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "id": "dQw4w9WgXcQ",
+          "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+          "description": "The official music video for \"Never Gonna Give You Up\" by Rick Astley",
+          "thumbnail_url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+          "published_at": "2009-10-25T06:57:33Z",
+          "channel_title": "Rick Astley",
+          "channel_id": "UCuAXFkgsw1L7xaCfnd5JJOw",
+          "view_count": 1235789012,
+          "like_count": 14500000,
+          "comment_count": 1200000,
+          "duration": "3:32",
+          "html_link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        }
+      },
+      "schemaRef": "schema.Video"
+    },
+    {
+      "name": "YouTubeVideoList",
+      "version": "1.0.0",
+      "description": "A React component for displaying a list of YouTube videos",
+      "related_endpoints": ["search_videos"],
+      "component": {
+        "jsx": "function YouTubeVideoList(props) {\n  const videoList = props.data;\n  if (!videoList || !videoList.videos || videoList.videos.length === 0) return null;\n\n  const formatDate = (dateStr) => {\n    if (!dateStr) return '';\n    const date = new Date(dateStr);\n    if (date.toString() === 'Invalid Date') return '';\n    return date.toLocaleDateString('en-US', {\n      year: 'numeric',\n      month: 'short',\n      day: 'numeric'\n    });\n  };\n\n  // Link icon SVG\n  function LinkIcon() {\n    return React.createElement('svg', {\n      width: '10',\n      height: '10',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#64748b' }\n    }, [\n      React.createElement('path', {\n        key: 'p1',\n        d: 'M6.5 9.5L9.5 6.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p2',\n        d: 'M4.5 7.5L3 9C2.17157 9.82843 2.17157 11.1716 3 12C3.82843 12.8284 5.17157 12.8284 6 12L7.5 10.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        key: 'p3',\n        d: 'M8.5 5.5L10 4C10.8284 3.17157 12.1716 3.17157 13 4C13.8284 4.82843 13.8284 6.17157 13 7L11.5 8.5',\n        stroke: 'currentColor',\n        strokeWidth: '1.5',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      })\n    ]);\n  }\n\n  const containerStyles = {\n    display: 'flex',\n    flexWrap: 'wrap',\n    gap: '12px',\n    width: '100%'\n  };\n\n  const cardStyle = {\n    position: 'relative',\n    borderRadius: '8px',\n    border: '1px solid #e2e8f0',\n    backgroundColor: '#ffffff',\n    padding: '8px 12px',\n    marginBottom: '8px',\n    width: 'calc(50% - 6px)',\n    minWidth: '250px',\n    boxSizing: 'border-box'\n  };\n\n  const flexContainerStyle = {\n    display: 'flex',\n    alignItems: 'flex-start',\n    gap: '12px'\n  };\n\n  const thumbnailStyle = {\n    width: '120px',\n    height: '68px',\n    borderRadius: '4px',\n    objectFit: 'cover',\n    flexShrink: 0\n  };\n\n  const contentStyle = {\n    flex: 1,\n    minWidth: 0\n  };\n\n  const titleContainerStyle = {\n    display: 'flex',\n    alignItems: 'center',\n    gap: '2px'\n  };\n\n  const titleStyle = {\n    fontWeight: '500',\n    color: '#1e293b',\n    overflow: 'hidden',\n    textOverflow: 'ellipsis',\n    whiteSpace: 'nowrap',\n    fontSize: '14px',\n    margin: 0\n  };\n\n  const infoStyle = {\n    fontSize: '12px',\n    color: '#64748b',\n    overflow: 'hidden',\n    textOverflow: 'ellipsis',\n    whiteSpace: 'nowrap',\n    marginTop: '4px',\n    margin: 0\n  };\n\n  const linkStyle = {\n    color: '#64748b',\n    display: 'flex',\n    alignItems: 'center',\n    marginRight: '4px',\n    textDecoration: 'none',\n    flexShrink: 0\n  };\n\n  const paginationStyle = {\n    display: 'flex',\n    justifyContent: 'center',\n    marginTop: '16px',\n    gap: '8px'\n  };\n\n  const paginationInfoStyle = {\n    fontSize: '12px',\n    color: '#64748b'\n  };\n\n  return React.createElement('div', {},\n    React.createElement('div', { style: containerStyles },\n      videoList.videos.map((video, index) => {\n        const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;\n        \n        return React.createElement('div', { key: video.id || index, style: cardStyle },\n          React.createElement('div', { style: flexContainerStyle },\n            React.createElement('img', {\n              src: video.thumbnail_url,\n              alt: video.title,\n              style: thumbnailStyle\n            }),\n            React.createElement('div', { style: contentStyle },\n              React.createElement('div', { style: titleContainerStyle },\n                React.createElement('a', {\n                  href: videoUrl,\n                  target: '_blank',\n                  rel: 'noopener noreferrer',\n                  style: linkStyle\n                }, React.createElement(LinkIcon)),\n                React.createElement('h3', { style: titleStyle }, video.title)\n              ),\n              React.createElement('p', { style: infoStyle },\n                `${video.channel_title} • ${formatDate(video.published_at)}`\n              )\n            )\n          )\n        );\n      })\n    ),\n    videoList.total_results && React.createElement('div', { style: paginationStyle },\n      React.createElement('span', { style: paginationInfoStyle },\n        `Showing ${videoList.videos.length} of ${videoList.total_results} results`\n      )\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "videos": [
+            {
+              "id": "dQw4w9WgXcQ",
+              "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+              "description": "The official music video for \"Never Gonna Give You Up\" by Rick Astley",
+              "thumbnail_url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+              "published_at": "2009-10-25T06:57:33Z",
+              "channel_title": "Rick Astley",
+              "channel_id": "UCuAXFkgsw1L7xaCfnd5JJOw"
+            },
+            {
+              "id": "yPYZpwSpKmA",
+              "title": "Rick Astley - Together Forever (Official Music Video)",
+              "description": "The official music video for \"Together Forever\" by Rick Astley",
+              "thumbnail_url": "https://i.ytimg.com/vi/yPYZpwSpKmA/hqdefault.jpg",
+              "published_at": "2010-10-25T06:57:33Z",
+              "channel_title": "Rick Astley",
+              "channel_id": "UCuAXFkgsw1L7xaCfnd5JJOw"
+            }
+          ],
+          "next_page_token": "CBQQAA",
+          "total_results": 1250
+        }
+      },
+      "schemaRef": "schema.VideoList"
+    },
+    {
+      "name": "YouTubeCaptionList",
+      "version": "1.0.0",
+      "description": "A React component for displaying available captions for a YouTube video",
+      "related_endpoints": ["get_captions"],
+      "component": {
+        "jsx": "function YouTubeCaptionList(props) {\n  const captionData = props.data;\n  if (!captionData || !captionData.captions || captionData.captions.length === 0) return null;\n\n  const containerStyle = {\n    width: '100%',\n    overflowX: 'auto'\n  };\n\n  const tableStyle = {\n    width: '100%',\n    backgroundColor: 'white',\n    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',\n    borderRadius: '8px',\n    overflow: 'hidden',\n    borderCollapse: 'collapse'\n  };\n\n  const theadStyle = {\n    backgroundColor: '#f8fafc'\n  };\n\n  const thStyle = {\n    padding: '12px 16px',\n    textAlign: 'left',\n    fontSize: '14px',\n    fontWeight: '600',\n    color: '#475569',\n    borderBottom: '1px solid #e2e8f0'\n  };\n\n  const trStyle = {\n    borderBottom: '1px solid #f1f5f9',\n    transition: 'background-color 0.2s'\n  };\n\n  const tdStyle = {\n    padding: '12px 16px',\n    fontSize: '14px',\n    color: '#1e293b'\n  };\n\n  const badgeStyle = (isAuto) => ({\n    display: 'inline-block',\n    fontSize: '10px',\n    fontWeight: '500',\n    padding: '2px 6px',\n    borderRadius: '4px',\n    backgroundColor: isAuto ? '#fee2e2' : '#dcfce7',\n    color: isAuto ? '#b91c1c' : '#166534',\n    textTransform: 'capitalize'\n  });\n\n  return React.createElement('div', { style: containerStyle },\n    React.createElement('table', { style: tableStyle },\n      React.createElement('thead', { style: theadStyle },\n        React.createElement('tr', {},\n          React.createElement('th', { style: thStyle }, 'Language'),\n          React.createElement('th', { style: thStyle }, 'Name'),\n          React.createElement('th', { style: thStyle }, 'Type')\n        )\n      ),\n      React.createElement('tbody', {},\n        captionData.captions.map((caption) => {\n          return React.createElement('tr', {\n            key: caption.id,\n            style: trStyle,\n            onMouseEnter: (e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; },\n            onMouseLeave: (e) => { e.currentTarget.style.backgroundColor = ''; }\n          },\n            React.createElement('td', { style: tdStyle }, caption.language),\n            React.createElement('td', { style: tdStyle }, caption.name),\n            React.createElement('td', { style: tdStyle },\n              React.createElement('span', {\n                style: badgeStyle(caption.is_auto)\n              }, caption.is_auto ? 'Auto-generated' : 'Manual')\n            )\n          );\n        })\n      )\n    )\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "captions": [
+            {
+              "id": "caption123",
+              "language": "en",
+              "name": "English",
+              "is_auto": false
+            },
+            {
+              "id": "caption456",
+              "language": "es",
+              "name": "Spanish",
+              "is_auto": true
+            },
+            {
+              "id": "caption789",
+              "language": "fr",
+              "name": "French",
+              "is_auto": true
+            }
+          ],
+          "video_id": "dQw4w9WgXcQ"
+        }
+      },
+      "schemaRef": "schema.CaptionList"
+    },
+    {
+      "name": "YouTubeTranscription",
+      "version": "1.0.0",
+      "description": "A React component for displaying a YouTube video transcription",
+      "related_endpoints": ["get_transcription"],
+      "component": {
+        "jsx": "function YouTubeTranscription(props) {\n  const transcription = props.data;\n  if (!transcription || !transcription.text) return null;\n\n  const containerStyle = {\n    width: '100%',\n    maxWidth: '800px',\n    margin: '0 auto'\n  };\n\n  const headerStyle = {\n    display: 'flex',\n    alignItems: 'center',\n    justifyContent: 'space-between',\n    marginBottom: '12px'\n  };\n\n  const titleStyle = {\n    fontSize: '16px',\n    fontWeight: '600',\n    color: '#1e293b',\n    margin: 0\n  };\n\n  const languageBadgeStyle = {\n    display: 'inline-block',\n    fontSize: '10px',\n    fontWeight: '500',\n    padding: '2px 6px',\n    borderRadius: '4px',\n    backgroundColor: '#e0f2fe',\n    color: '#0369a1'\n  };\n\n  const transcriptContainerStyle = {\n    backgroundColor: '#ffffff',\n    border: '1px solid #e2e8f0',\n    borderRadius: '8px',\n    padding: '16px',\n    maxHeight: '400px',\n    overflowY: 'auto'\n  };\n\n  const transcriptTextStyle = {\n    fontSize: '14px',\n    lineHeight: '1.6',\n    color: '#1e293b',\n    whiteSpace: 'pre-wrap'\n  };\n\n  const videoLinkStyle = {\n    display: 'inline-block',\n    marginTop: '12px',\n    fontSize: '12px',\n    color: '#3b82f6',\n    textDecoration: 'none'\n  };\n\n  return React.createElement('div', { style: containerStyle },\n    React.createElement('div', { style: headerStyle },\n      React.createElement('h3', { style: titleStyle }, 'Video Transcription'),\n      React.createElement('span', { style: languageBadgeStyle }, transcription.language.toUpperCase())\n    ),\n    React.createElement('div', { style: transcriptContainerStyle },\n      React.createElement('div', { style: transcriptTextStyle }, transcription.text)\n    ),\n    React.createElement('a', {\n      href: `https://www.youtube.com/watch?v=${transcription.video_id}`,\n      target: '_blank',\n      rel: 'noopener noreferrer',\n      style: videoLinkStyle\n    }, 'Watch video on YouTube')\n  );\n}"
+      },
+      "exampleProps": {
+        "data": {
+          "video_id": "dQw4w9WgXcQ",
+          "caption_id": "caption123",
+          "text": "We're no strangers to love\nYou know the rules and so do I\nA full commitment's what I'm thinking of\nYou wouldn't get this from any other guy\nI just wanna tell you how I'm feeling\nGotta make you understand\n\nNever gonna give you up\nNever gonna let you down\nNever gonna run around and desert you\nNever gonna make you cry\nNever gonna say goodbye\nNever gonna tell a lie and hurt you",
+          "language": "en"
+        }
+      },
+      "schemaRef": "schema.Transcription"
+    }
+  ]

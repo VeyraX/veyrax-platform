@@ -1,0 +1,138 @@
+routes:
+  - endpoint: /youtube/search_videos
+    examples:
+      - scenario: "Search YouTube Videos"
+        description: "Search for videos on YouTube with optional filters"
+        input_json: |
+          {
+            "filters": {
+              "query": "machine learning tutorial",
+              "max_results": 5,
+              "published_after": "2022-01-01T00:00:00Z",
+              "order": "relevance"
+            },
+            "page_token": null
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "videos": [
+                {
+                  "id": "video123",
+                  "title": "Machine Learning for Beginners",
+                  "description": "A comprehensive tutorial on machine learning basics",
+                  "thumbnail_url": "https://i.ytimg.com/vi/video123/hqdefault.jpg",
+                  "published_at": "2022-03-15T14:30:00Z",
+                  "channel_title": "Tech Tutorials",
+                  "channel_id": "channel456"
+                },
+                {
+                  "id": "video789",
+                  "title": "Advanced Machine Learning Techniques",
+                  "description": "Learn advanced ML algorithms and implementations",
+                  "thumbnail_url": "https://i.ytimg.com/vi/video789/hqdefault.jpg",
+                  "published_at": "2022-05-20T10:15:00Z",
+                  "channel_title": "Data Science Pro",
+                  "channel_id": "channel101"
+                }
+              ],
+              "next_page_token": "nextPage123",
+              "total_results": 1250
+            },
+            "message": null,
+            "component": [
+              {
+                "name": "YouTubeVideoList"
+              }
+            ]
+          }
+
+  - endpoint: /youtube/get_video
+    examples:
+      - scenario: "Get Video Details"
+        description: "Retrieve detailed information about a specific YouTube video"
+        input_json: |
+          {
+            "video_id": "video123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "video123",
+              "title": "Machine Learning for Beginners",
+              "description": "A comprehensive tutorial on machine learning basics covering fundamental concepts, algorithms, and practical implementations.",
+              "thumbnail_url": "https://i.ytimg.com/vi/video123/hqdefault.jpg",
+              "published_at": "2022-03-15T14:30:00Z",
+              "channel_title": "Tech Tutorials",
+              "channel_id": "channel456",
+              "view_count": 125000,
+              "like_count": 8500,
+              "comment_count": 320,
+              "duration": "15:30",
+              "html_link": "https://www.youtube.com/watch?v=video123"
+            },
+            "message": null,
+            "component": {
+              "name": "YouTubeVideoCard"
+            }
+          }
+
+  - endpoint: /youtube/get_captions
+    examples:
+      - scenario: "Get Video Captions"
+        description: "Retrieve available caption tracks for a YouTube video"
+        input_json: |
+          {
+            "video_id": "video123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "captions": [
+                {
+                  "id": "caption123",
+                  "language": "en",
+                  "name": "English",
+                  "is_auto": false
+                },
+                {
+                  "id": "caption456",
+                  "language": "es",
+                  "name": "Spanish",
+                  "is_auto": true
+                },
+                {
+                  "id": "caption789",
+                  "language": "fr",
+                  "name": "French",
+                  "is_auto": true
+                }
+              ],
+              "video_id": "video123"
+            },
+            "message": null
+          }
+
+  - endpoint: /youtube/get_transcription
+    examples:
+      - scenario: "Get Video Transcription"
+        description: "Retrieve the transcription text for a YouTube video"
+        input_json: |
+          {
+            "video_id": "video123",
+            "language": "en"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "video_id": "video123",
+              "caption_id": "caption123",
+              "text": "Hello and welcome to this machine learning tutorial. Today we're going to cover the basics of machine learning algorithms and how to implement them in Python. Let's start by understanding what machine learning is and why it's important in today's data-driven world.",
+              "language": "en"
+            },
+            "message": null
+          }
