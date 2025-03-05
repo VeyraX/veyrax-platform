@@ -31,8 +31,28 @@ import os
 import importlib
 import json
 import inspect
+import sentry_sdk
 
 load_dotenv()
+
+sentry_url = os.getenv("SENTRY_URL")
+
+sentry_sdk.init(
+    dsn=sentry_url,
+
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+)
 
 INTEGRATION_ROUTERS = {
     "gmail": gmail_router,
@@ -91,6 +111,10 @@ def find_route_by_tool_and_method(tool: str, method: str):
             return route
     
     return None
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request, include_component: bool = True):
