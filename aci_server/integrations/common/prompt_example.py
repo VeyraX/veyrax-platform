@@ -1,35 +1,42 @@
-get_tools_example_prompt = """
-{
-  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question.",
+from datetime import datetime
+
+
+today_day = datetime.now().strftime("%Y-%m-%d")
+
+
+
+get_tools_example_prompt = f"""
+{{
+  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question. The date is today's date: {today_day}",
   "examples": [
-    {
+    {{
     "user_question": "I need to find a 5 pages in Confluence about the API documentation. Please search for it.",
     "tool": "confluence",
     "method": "search_content",
-    "parameters": {
+    "parameters": {{
         "cql": null,
         "space_key": null,
         "title": "API",
         "type": "page",
         "limit": 5
-        }
-    },
-    {
+        }}
+    }},
+    {{
       "user_question": "I need to find quarterly report in my emails between 2023-01-01 and 2023-12-31. Please search for it.",
       "tool": "gmail",
       "method": "get_messages",
-      "parameters": {
+      "parameters": {{
           "pageToken": null,
-          "filters": {
+          "filters": {{
             "body_keywords": "quarterly report",
             "recipient": null,
             "subject_keywords": "quarterly report",
             "after_date": "2023-01-01",
             "before_date": "2023-12-31",
             "max_results": 5
-          }
-        }
-      }
+          }}
+        }}
+      }}
   ]
-}
+}}
 """

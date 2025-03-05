@@ -57,8 +57,8 @@ export default function HowTo() {
   }, [activeCard, currentFeature?.duration]);
 
   return (
-    <div className="w-full space-y-4 md:space-y-8">
-      <div className="flex flex-col items-center gap-4 px-4 md:px-8 py-8 md:py-16 relative">
+    <div className="w-full pb-8 md:pb-16">
+      <div className="flex flex-col items-center gap-4 px-4 md:px-8 py-8 md:py-16 relative mb-4 md:mb-8">
         <Particles
           className="absolute inset-0"
           quantity={100}
@@ -69,13 +69,13 @@ export default function HowTo() {
         <h1 className="text-5xl md:text-7xl tracking-tighter text-center font-regular relative">
           <span className="text-spektr-cyan-50">Getting Started</span>
         </h1>
-        <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center relative mb-12">
+        <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center relative">
           Set up your tools in minutes with these four simple steps.
         </p>
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex flex-col items-center w-full space-y-12">
+      <div className="hidden md:flex flex-col items-center w-full space-y-8">
         <div className="w-full px-4 md:px-8 max-w-[1400px] mx-auto">
           <div className="flex flex-row gap-4 w-full">
             {featureData.map((feature) => (

@@ -327,6 +327,8 @@ async def get_user_from_request(request: Request) -> str:
         else:
             raise HTTPException(status_code=401, detail="Invalid authorization format. Use 'Bearer <token>' or provide 'VEYRAX_API_KEY' header")
             
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
 
