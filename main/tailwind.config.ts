@@ -60,7 +60,7 @@ const config: Config = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			},
-  			'light-special-background': 'hsl(var(--light-special-background))',
+  			'light-special-background': 'hsl(var(--light-special-background))'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -91,12 +91,52 @@ const config: Config = {
   				'100%': {
   					transform: 'rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg))'
   				}
+  			},
+  			marquee: {
+  				from: {
+  					transform: 'translateX(0)'
+  				},
+  				to: {
+  					transform: 'translateX(calc(-100% - var(--gap)))'
+  				}
+  			},
+  			'marquee-vertical': {
+  				from: {
+  					transform: 'translateY(0)'
+  				},
+  				to: {
+  					transform: 'translateY(calc(-100% - var(--gap)))'
+  				}
+  			},
+  			'skew-scroll': {
+  				from: {
+  					transform: 'translateY(0) skewY(5deg)'
+  				},
+  				to: {
+  					transform: 'translateY(-50%) skewY(5deg)'
+  				}
+  			},
+  			'infinite-scroll': {
+  				from: {
+  					transform: 'translateY(0) skewX(-10deg)'
+  				},
+  				to: {
+  					transform: 'translateY(calc(-50%)) skewX(-10deg)'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-  			orbit: 'orbit calc(var(--duration)*1s) linear infinite'
+  			orbit: 'orbit calc(var(--duration)*1s) linear infinite',
+  			marquee: 'marquee var(--duration) infinite linear',
+  			'marquee-vertical': 'marquee-vertical var(--duration) linear infinite',
+  			'skew-scroll': 'skew-scroll 20s linear infinite',
+  			'infinite-scroll': 'infinite-scroll 20s linear infinite'
+  		},
+  		backgroundImage: {
+  			'grid-pattern': 'linear-gradient(to right, #80808012 1px, transparent 1px), linear-gradient(to bottom, #80808012 1px, transparent 1px)',
+  			'grid-pattern-light': 'linear-gradient(to right, #80808008 1px, transparent 1px), linear-gradient(to bottom, #80808008 1px, transparent 1px)'
   		}
   	}
   },

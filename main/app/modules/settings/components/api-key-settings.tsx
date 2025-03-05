@@ -61,14 +61,14 @@ export default function ApiKeySettings({
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">API Key</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your API key for programmatic access to VeyraX.
+          Manage your API key for connected tools.
         </p>
       </div>
 
       <Separator />
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Active API Key</h3>
+        <h3 className="text font-semibold">Your API Key</h3>
         
         {isLoading ? (
           <div className="h-10 bg-muted animate-pulse rounded-md"></div>

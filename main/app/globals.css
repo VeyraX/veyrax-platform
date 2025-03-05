@@ -104,3 +104,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .scroller {
+    transform: skewX(-10deg);
+  }
+  
+  .scroller > div {
+    min-height: 250px;
+    width: 300px;
+  }
+}

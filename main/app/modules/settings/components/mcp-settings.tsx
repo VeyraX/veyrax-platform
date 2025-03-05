@@ -19,11 +19,12 @@ interface MCPSettingsProps {
 export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsProps) {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [activeTab, setActiveTab] = useState('cursor')
 
   const mcpCommands = {
     cursor: apiKey ? 
-      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\", \\"VEYRAX_API_URL\\":\\"https://your-api-url.com\\"}"` : 
-      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"your-api-key\\", \\"VEYRAX_API_URL\\":\\"https://your-api-url.com\\"}"`,
+      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` : 
+      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"VEYRAX_API_KEY\\"}"`,
     claude: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude`,
     windsurf: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf`,
     cline: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline`,
@@ -73,10 +74,34 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
 
       <Tabs defaultValue="cursor" className="w-full">
         <TabsList className="h-auto gap-2 rounded-none bg-transparent px-0 py-1 text-foreground mb-4">
-        <TabsTrigger className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" value="cursor">Cursor</TabsTrigger>
-          <TabsTrigger className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" value="claude">Claude</TabsTrigger>
-          <TabsTrigger className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" value="windsurf">Windsurf</TabsTrigger>
-          <TabsTrigger className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" value="cline">Cline</TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="cursor"
+            onClick={() => setActiveTab('cursor')}
+          >
+            Cursor
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="claude"
+            onClick={() => setActiveTab('claude')}
+          >
+            Claude
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="windsurf"
+            onClick={() => setActiveTab('windsurf')}
+          >
+            Windsurf
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="cline"
+            onClick={() => setActiveTab('cline')}
+          >
+            Cline
+          </TabsTrigger>
         </TabsList>
         
         {Object.entries(mcpCommands).map(([key, command]) => (
@@ -85,9 +110,7 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
               <div className="mb-4">
                 <h3 className="text-lg font-semibold capitalize">{key} Setup</h3>
                 <p className="text-sm text-muted-foreground">
-                  {key === 'cursor' 
-                    ? 'Configure VeyraX MCP with your API key' 
-                    : `Install VeyraX MCP with ${key} client`}
+                  Configure VeyraX MCP with your API key
                 </p>
               </div>
               
@@ -133,16 +156,16 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           <div className="flex gap-2">
             <Button 
               variant="outline"
+              onClick={() => window.open(`https://docs.veyrax.com/mcp/${activeTab}`, '_blank')}
+            >
+              Open Docs
+              <ArrowUpRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => window.open('https://docs.veyrax.com/mcp', '_blank')}
             >
-            Open Docs
-            <ArrowUpRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => window.open('https://docs.veyrax.com/mcp', '_blank')}
-          >
-            Ask a Question
+              Ask a Question
             </Button>
           </div>
         </div>
