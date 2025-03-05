@@ -24,6 +24,7 @@ class LinearService:
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         try:
+            print("Listing issues max_results", max_results)
             response = self.client.list_issues(cursor, max_results)
             
             if not response or 'data' not in response or 'issues' not in response['data']:
