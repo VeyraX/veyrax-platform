@@ -47,7 +47,7 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
 
       <div className="flex-1 px-8 py-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">{isPublic ? "Marketplace" : "Integrations"}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{isPublic ? "Marketplace" : "Integrations"}</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

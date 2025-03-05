@@ -13,6 +13,9 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
   
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { WaitlistDialog } from "../web/waitlist-dialog";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
   
 const integrationItems = [
   { id: "slack", text: "Slack", logoSrc: "/logos/slack-logo.svg" },
@@ -99,6 +102,7 @@ const features = [
       description: "Login in all your tools once and use them everywhere.",
       href: "/",
       cta: "Join waitlist",
+      useWaitlistDialog: true,
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">
@@ -116,7 +120,7 @@ const features = [
     },
     {
       Icon: Layers,
-      name: "20+ Integrations",
+      name: "16+ Integrations",
       description: "with your favorite tools available in one place.",
       href: "https://veyrax.com/marketplace",
       cta: "Visit marketplace",
