@@ -26,6 +26,7 @@ from integrations.common.utils import get_router_tools
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt
 from celery_app import celery_app
+import sentry_sdk
 
 import os
 import importlib
@@ -33,6 +34,27 @@ import json
 import inspect
 
 load_dotenv()
+
+sentry_url = os.getenv("SENTRY_URL")
+
+sentry_sdk.init(
+    dsn=sentry_url,
+
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+)
+
+
 
 INTEGRATION_ROUTERS = {
     "gmail": gmail_router,
@@ -79,6 +101,10 @@ async def get_tools():
         tools[name] = get_router_tools(router)
     
     return {"tools": tools}
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 def find_route_by_tool_and_method(tool: str, method: str):
     if tool not in INTEGRATION_ROUTERS:
