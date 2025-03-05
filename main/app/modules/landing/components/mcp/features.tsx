@@ -72,8 +72,8 @@ const features = [
       Icon: Globe,
       name: "Connect Everywhere",
       description: "Compatible with any MCP enviroment such as Cursor, VSCode, Windsurf, Claude Desktop, etc.",
-      href: "/",
-      cta: "Learn more",
+      href: "https://docs.veyrax.com/mcp",
+      cta: "Check documentation",
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">
@@ -98,7 +98,7 @@ const features = [
       name: "One Place for Auth",
       description: "Login in all your tools once and use them everywhere.",
       href: "/",
-      cta: "Learn more",
+      cta: "Join waitlist",
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">
@@ -118,8 +118,8 @@ const features = [
       Icon: Layers,
       name: "20+ Integrations",
       description: "with your favorite tools available in one place.",
-      href: "/",
-      cta: "Learn more",
+      href: "https://veyrax.com/marketplace",
+      cta: "Visit marketplace",
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">
@@ -147,8 +147,8 @@ const features = [
       name: "100+ Actions",
       description:
         "that AI Agent can execute.",
-      href: "/",
-      cta: "Learn more",
+      href: "https://veyrax.com/marketplace",
+      cta: "Visit marketplace",
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">
