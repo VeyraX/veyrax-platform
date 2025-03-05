@@ -27,5 +27,8 @@ PyPDF2==3.0.1
 docx==0.2.4
 openpyxl==3.1.2 
 pytest==8.3.4
+sentry-sdk[fastapi]==2.22.0
+certifi==2024.2.2
+urllib3==1.26.18
 pyyaml==6.0.2
 youtube-transcript-api==0.6.3
