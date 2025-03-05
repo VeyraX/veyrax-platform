@@ -58,7 +58,6 @@ class YouTubeClient:
             }
     
     def get_caption_track(self, caption_id: str) -> str:
-        """Get caption track text using youtube-transcript-api"""
         try:
             parts = caption_id.split('_')
             if len(parts) >= 2:

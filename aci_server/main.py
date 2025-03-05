@@ -93,7 +93,7 @@ def find_route_by_tool_and_method(tool: str, method: str):
     return None
 
 @app.post("/tool-call/{tool}/{method}")
-async def handle_tool_call(tool: str, method: str, request: Request):
+async def handle_tool_call(tool: str, method: str, request: Request, include_component: bool = True):
     
     try:
         params = await request.json()
@@ -145,7 +145,18 @@ async def handle_tool_call(tool: str, method: str, request: Request):
             
             print(f"Calling {method} with {endpoint_args}")
             
-            return await route.endpoint(**endpoint_args)
+            response = await route.endpoint(**endpoint_args)
+            
+            if not include_component:
+                if isinstance(response, dict) and "component" in response:
+                    response.pop("component")
+                elif hasattr(response, "component") and hasattr(response, "dict"):
+                    response_dict = response.dict()
+                    if "component" in response_dict:
+                        response_dict.pop("component")
+                    return response_dict
+            
+            return response
     
     raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}'")
 
