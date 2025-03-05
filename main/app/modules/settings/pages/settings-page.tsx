@@ -1,10 +1,11 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { UserCircle2, Key } from "lucide-react"
+import { UserCircle2, Key, Terminal } from "lucide-react"
 import Link from "next/link"
 import AccountSettings from "../components/account-settings"
 import ApiKeySettings from "../components/api-key-settings"
+import MCPSettings from "../components/mcp-settings"
 import { useState, useEffect } from "react"
 import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey } from "../api/api.settings"
 import { UserProfile, UserApiKey } from "../api/types.settings"
@@ -12,7 +13,7 @@ import { UserProfile, UserApiKey } from "../api/types.settings"
 interface AccountSettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initialTab?: 'account' | 'api-key'
+  initialTab?: 'account' | 'api-key' | 'mcp'
 }
 
 export function AccountSettingsDialog({ 
@@ -20,7 +21,7 @@ export function AccountSettingsDialog({
   onOpenChange, 
   initialTab = 'account' 
 }: AccountSettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'api-key'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'account' | 'api-key' | 'mcp'>(initialTab);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [apiKey, setApiKey] = useState<UserApiKey | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -45,7 +46,7 @@ export function AccountSettingsDialog({
   }, [open]);
 
   useEffect(() => {
-    if (open && activeTab === 'api-key') {
+    if (open && (activeTab === 'api-key' || activeTab === 'mcp')) {
       const fetchApiKey = async () => {
         setIsLoadingApiKey(true);
         try {
@@ -133,6 +134,21 @@ export function AccountSettingsDialog({
                 <Key className="h-3.5 w-3.5" />
                 <span>API Key</span>
               </Link>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('mcp');
+                }}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
+                  activeTab === 'mcp' 
+                    ? 'bg-secondary text-secondary-foreground' 
+                    : 'text-muted-foreground hover:bg-secondary'
+                }`}
+              >
+                <Terminal className="h-3.5 w-3.5" />
+                <span>MCP</span>
+              </Link>
             </nav>
           </div>
 
@@ -142,12 +158,17 @@ export function AccountSettingsDialog({
                 profile={profile} 
                 isLoading={isLoadingProfile} 
               />
-            ) : (
+            ) : activeTab === 'api-key' ? (
               <ApiKeySettings 
                 apiKey={apiKey}
                 isLoading={isLoadingApiKey}
                 onGenerateApiKey={handleGenerateApiKey}
                 onRevokeApiKey={handleRevokeApiKey}
+              />
+            ) : (
+              <MCPSettings 
+                apiKey={apiKey}
+                onGenerateApiKey={handleGenerateApiKey}
               />
             )}
           </div>

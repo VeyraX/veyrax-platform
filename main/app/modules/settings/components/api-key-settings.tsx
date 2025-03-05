@@ -68,7 +68,7 @@ export default function ApiKeySettings({
       <Separator />
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Your API Key</h3>
+        <h3 className="text-lg font-semibold">Active API Key</h3>
         
         {isLoading ? (
           <div className="h-10 bg-muted animate-pulse rounded-md"></div>
@@ -119,8 +119,9 @@ export default function ApiKeySettings({
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-muted-foreground">You don't have an API key yet.</p>
+            <p className="text-muted-foreground">You do not have an active API key yet.</p>
             <Button 
+              variant="outline"
               onClick={handleGenerateApiKey}
               disabled={isGenerating}
             >
@@ -129,8 +130,6 @@ export default function ApiKeySettings({
           </div>
         )}
       </div>
-
-      <Separator />
     </div>
   )
 }
