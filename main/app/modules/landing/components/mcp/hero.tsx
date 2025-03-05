@@ -96,7 +96,7 @@ export const Hero = () => {
                 </div>
 
                 <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
-                  VeyraX MCP is a only connection you need to get access to all your tools in any MCP-compatible environments.{" "}
+                  VeyraX MCP is the only connection you need to get access to all your tools in any MCP-compatible environment.{" "}
                 </p>
               </div>
 

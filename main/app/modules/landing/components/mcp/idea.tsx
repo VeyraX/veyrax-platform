@@ -26,7 +26,7 @@ export function Idea() {
       <div className="text-center mb-12 relative z-10 px-4 md:px-8">
         <h2 className="text-5xl md:text-7xl max-w-3xl tracking-tighter font-regular mx-auto">
           <div>
-            <span className="text-spektr-cyan-50">Our Core Architecture</span>
+            <span className="text-spektr-cyan-50">Our core architecture</span>
           </div>
           <div>
             <span className="font-semibold">just one tool</span>
