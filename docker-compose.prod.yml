@@ -14,13 +14,14 @@ services:
     depends_on:
       - aci_server
   aci_server:
-    build: ./aci_server
+    build: 
+      context: ./aci_server
     ports:
       - "8000:8000"
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
-      
+    restart: always
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   certbot:

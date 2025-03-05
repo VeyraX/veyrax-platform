@@ -170,11 +170,15 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
+    
     try:
         user_id = await get_user_from_request(request)
-        
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
         supabase = get_supabase()
-        
+    
         user_providers = supabase.table('users_providers') \
             .select('provider_id') \
             .eq('user_id', user_id) \
