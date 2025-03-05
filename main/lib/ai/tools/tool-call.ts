@@ -22,9 +22,6 @@ export const tool_call = tool({
       });
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${tool}/${method}`;
-      console.log('Making request to:', url);
-      console.log('With params:', JSON.stringify(params, null, 2));
-      console.log('With headers:', JSON.stringify(headers, null, 2));
 
       const response = await fetch(url, {
         method: 'POST',
@@ -36,11 +33,8 @@ export const tool_call = tool({
         credentials: 'include'
       });
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
         throw new Error(`API request failed with status ${response.status}: ${errorText}`);
       }
       
@@ -54,7 +48,6 @@ export const tool_call = tool({
         }
       };
     } catch (error) {
-      console.error('Tool call execution error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to execute tool call'
