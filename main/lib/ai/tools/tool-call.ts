@@ -7,9 +7,8 @@ export const tool_call = tool({
   parameters: z.object({
     tool: z.string().describe('Name of the tool/integration to use, example: "google_calendar"'),
     method: z.string().describe('Name of the method to call, example: "get_event"'),
-    params: z.record(z.any())
-      .describe('Object with arbitrary parameters, example: { "event_id": 123 }, follow the annotation of the tool to choose the correct parameters. Parameters are NOT optional. You MUST include all required parameters.')
-      .default({})
+    params: z.object({}).catchall(z.any())
+      .describe('Object with arbitrary parameters. Parameters are NOT optional. You MUST include all required parameters.')
   }),
   execute: async function({ tool, method, params = {} }) {
     try {
