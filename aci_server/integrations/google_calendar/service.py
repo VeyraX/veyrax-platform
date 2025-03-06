@@ -100,18 +100,27 @@ class CalendarService:
     
     def _format_datetime_param(self, date_str: str) -> str:
         try:
-            if date_str.endswith('Z'):
-                return date_str
+            if len(date_str) == 10 and date_str[4] == '-' and date_str[7] == '-':
+                return f"{date_str}T00:00:00Z"
                 
-            elif '+' in date_str or (len(date_str) > 6 and date_str[-6] == '-'):
+            if 'T' in date_str and not (date_str.endswith('Z') or '+' in date_str or date_str[-6] == '-'):
+                return f"{date_str}Z"
+                
+            if '+' in date_str or (len(date_str) > 6 and date_str[-6] == '-'):
                 dt = datetime.fromisoformat(date_str)
                 return dt.isoformat().replace('+00:00', 'Z')
                 
-            else:
-                dt = datetime.fromisoformat(date_str)
-                return dt.isoformat() + 'Z'
-        except ValueError:
-            return date_str
+            if date_str.endswith('Z'):
+                return date_str
+                
+            dt = datetime.fromisoformat(date_str)
+            return dt.isoformat() + 'Z'
+        except ValueError as e:
+            try:
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+            except:
+                return date_str
 
     def list_calendars(self) -> ApiResponse:
         response = self.client.list_calendars()
