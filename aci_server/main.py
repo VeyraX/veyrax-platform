@@ -26,10 +26,7 @@ from integrations.common.utils import get_router_tools
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt
 from celery_app import celery_app
-import sentry_sdk
-
 import os
-import importlib
 import json
 import inspect
 import sentry_sdk
@@ -136,7 +133,6 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                         endpoint_args[name] = dependency_result
                     except Exception as e:
                         error_msg = f"Error resolving dependency {name}: {str(e)}"
-                        print(error_msg)
                         raise HTTPException(status_code=500, detail=error_msg)
             
             for name, param in signature.parameters.items():
@@ -155,8 +151,6 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                     endpoint_args[name] = params
                 elif name == "request" and name not in endpoint_args:
                     endpoint_args[name] = request
-            
-            print(f"Calling {method} with {endpoint_args}")
             
             response = await route.endpoint(**endpoint_args)
             

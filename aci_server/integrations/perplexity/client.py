@@ -11,7 +11,6 @@ class PerplexityClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        
         response = requests.post(self.base_url, json=kwargs, headers=headers)
         response.raise_for_status()
         return response.json()

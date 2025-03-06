@@ -12,7 +12,7 @@ import os
 
 router = APIRouter(prefix="/perplexity", tags=["perplexity"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/perplexity directory
+examples = ExamplesLoader() 
 
 async def get_perplexity_service(request: Request):
     try:

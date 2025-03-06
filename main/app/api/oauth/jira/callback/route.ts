@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { encrypt } from '@/lib/utils/encryption';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -55,6 +56,15 @@ export async function GET(request: NextRequest) {
             throw new Error(tokens.error_description || tokens.error);
         }
 
+        const encryptedAccessToken = encrypt(tokens.access_token);
+        const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
+        
+        const encryptedTokenData = {
+            ...tokens,
+            access_token: encryptedAccessToken,
+            refresh_token: encryptedRefreshToken
+        };
+
         const { error: providerUpsertError } = await supabase
             .from('users_providers')
             .upsert({
@@ -74,11 +84,11 @@ export async function GET(request: NextRequest) {
             .upsert({
                 user_id: user.id,
                 provider_id: provider_id,
-                access_token: tokens.access_token,
-                refresh_token: tokens.refresh_token,
+                access_token: encryptedAccessToken,
+                refresh_token: encryptedRefreshToken,
                 expires_at: Math.floor(Date.now() / 1000) + tokens.expires_in,
                 scopes: Array.isArray(scopes) ? scopes.join(',') : scopes,
-                raw_token_data: tokens,
+                raw_token_data: encryptedTokenData,
             }, {
                 onConflict: 'user_id,provider_id'
             });
