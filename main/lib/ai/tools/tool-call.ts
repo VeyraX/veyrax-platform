@@ -7,9 +7,8 @@ export const tool_call = tool({
   parameters: z.object({
     tool: z.string().describe('Name of the tool/integration to use, example: "google_calendar"'),
     method: z.string().describe('Name of the method to call, example: "get_event"'),
-    params: z.record(z.any())
-      .describe('Object with arbitrary parameters, example: { "event_id": 123 }, follow the annotation of the tool to choose the correct parameters. Parameters are NOT optional. You MUST include all required parameters.')
-      .default({})
+    params: z.object({}).catchall(z.any())
+      .describe('Object with arbitrary parameters. Parameters are NOT optional. You MUST include all required parameters.')
   }),
   execute: async function({ tool, method, params = {} }) {
     try {
@@ -23,9 +22,6 @@ export const tool_call = tool({
       });
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${tool}/${method}`;
-      console.log('Making request to:', url);
-      console.log('With params:', JSON.stringify(params, null, 2));
-      console.log('With headers:', JSON.stringify(headers, null, 2));
 
       const response = await fetch(url, {
         method: 'POST',
@@ -37,11 +33,8 @@ export const tool_call = tool({
         credentials: 'include'
       });
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
         throw new Error(`API request failed with status ${response.status}: ${errorText}`);
       }
       
@@ -55,7 +48,6 @@ export const tool_call = tool({
         }
       };
     } catch (error) {
-      console.error('Tool call execution error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to execute tool call'

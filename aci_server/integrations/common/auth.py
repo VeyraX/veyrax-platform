@@ -9,12 +9,35 @@ import json
 import requests
 import aiohttp
 import time
+from .encryption import decrypt, encrypt
 
 class TokenService:
     @staticmethod
     async def update_token(request: Request, token_data: dict, new_token_data: dict) -> dict:
         try:
             user_id = await get_user_from_request(request)
+            
+            original_access_token = new_token_data.get('access_token')
+            original_refresh_token = new_token_data.get('refresh_token')
+            original_raw_data = None
+            
+            if 'raw_token_data' in new_token_data and isinstance(new_token_data['raw_token_data'], dict):
+                raw_data = new_token_data['raw_token_data']
+                original_raw_data = {
+                    'access_token': raw_data.get('access_token'),
+                    'refresh_token': raw_data.get('refresh_token')
+                }
+                
+                if 'access_token' in raw_data:
+                    raw_data['access_token'] = encrypt(raw_data['access_token'])
+                if 'refresh_token' in raw_data and raw_data['refresh_token']:
+                    raw_data['refresh_token'] = encrypt(raw_data['refresh_token'])
+            
+            if 'access_token' in new_token_data:
+                new_token_data['access_token'] = encrypt(new_token_data['access_token'])
+            
+            if 'refresh_token' in new_token_data and new_token_data['refresh_token']:
+                new_token_data['refresh_token'] = encrypt(new_token_data['refresh_token'])
             
             supabase = get_supabase()
             result = supabase.table('users_oauth_tokens') \
@@ -23,11 +46,24 @@ class TokenService:
                 .eq('provider_id', token_data['provider_id']) \
                 .execute()
             
-            
             if len(result.data) == 0:
                 raise HTTPException(status_code=404, detail="Token not found")
+            
+            result_data = {**token_data, **new_token_data}
+            
+            if original_access_token:
+                result_data['access_token'] = original_access_token
+            if original_refresh_token:
+                result_data['refresh_token'] = original_refresh_token
+            
+            if original_raw_data and 'raw_token_data' in result_data:
+                raw_data = result_data['raw_token_data']
+                if original_raw_data.get('access_token') and 'access_token' in raw_data:
+                    raw_data['access_token'] = original_raw_data['access_token']
+                if original_raw_data.get('refresh_token') and 'refresh_token' in raw_data:
+                    raw_data['refresh_token'] = original_raw_data['refresh_token']
                 
-            return {**token_data, **new_token_data}
+            return result_data
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to update token: {str(e)}")
 
@@ -64,8 +100,22 @@ class TokenService:
             
             if not token_res.data:
                 raise HTTPException(status_code=404, detail="Token not found")
+            
+            token_data = token_res.data[0]
+            
+            if token_data.get('access_token'):
+                token_data['access_token'] = decrypt(token_data['access_token'])
+            
+            if token_data.get('refresh_token'):
+                token_data['refresh_token'] = decrypt(token_data['refresh_token'])
+            if token_data.get('raw_token_data') and isinstance(token_data['raw_token_data'], dict):
+                raw_data = token_data['raw_token_data']
+                if 'access_token' in raw_data:
+                    raw_data['access_token'] = token_data['access_token']
+                if 'refresh_token' in raw_data and raw_data['refresh_token']:
+                    raw_data['refresh_token'] = token_data['refresh_token']
                 
-            return token_res.data[0]
+            return token_data
             
         except HTTPException as he:
             raise he
@@ -355,8 +405,11 @@ async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
         
         if not api_key_res.data:
             raise HTTPException(status_code=404, detail=f"API key for provider {provider_tag} not found")
+        
+        encrypted_api_key = api_key_res.data[0]['api_key']
+        decrypted_api_key = decrypt(encrypted_api_key)
             
-        return api_key_res.data[0]['api_key']
+        return decrypted_api_key
     except HTTPException as he:
         raise he
     except Exception as e:

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Files, Ticket, ArrowUpRight } from "lucide-react"
+import FeedbackDialog from "@/app/modules/general/components/feedback-dialog"
 
 interface MCPSettingsProps {
   apiKey: UserApiKey | null;
@@ -20,6 +21,7 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [activeTab, setActiveTab] = useState('cursor')
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
 
   const mcpCommands = {
     cursor: apiKey ? 
@@ -163,13 +165,18 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.open('https://docs.veyrax.com/mcp', '_blank')}
+              onClick={() => setFeedbackDialogOpen(true)}
             >
               Ask a Question
             </Button>
           </div>
         </div>
       </div>
+
+      <FeedbackDialog 
+        open={feedbackDialogOpen} 
+        onOpenChange={setFeedbackDialogOpen} 
+      />
     </div>
   )
 }

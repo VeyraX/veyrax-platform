@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react'
-import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles, ArrowRight } from "lucide-react"
+import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles, ArrowRight, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import {
@@ -28,6 +28,7 @@ import { usePathname } from "next/navigation"
 import { getChats } from "@/app/modules/agent/api/api.agent"
 import { authApi } from '@/app/modules/auth/api/api.auth'
 import { useGetChats } from "@/app/modules/agent/api/quries.agent"
+import FeedbackDialog from './feedback-dialog'
 
 const items = [
   {
@@ -40,6 +41,15 @@ const items = [
       {
         title: "Integrations",
         url: "/integrations",
+      },
+      {
+        title: "Feedback",
+        action: "feedback",
+      },
+      {
+        title: "Join Discord",
+        action: "discord",
+        url: "https://discord.gg/7XjRRZjC"
       },
     ],
   },
@@ -59,6 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [showAllChats, setShowAllChats] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { data: chatData } = useGetChats()
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -87,6 +98,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }
 
+  const handleItemClick = (item: any) => {
+    if (item.action === 'feedback') {
+      setFeedbackDialogOpen(true);
+    } else if (item.action === 'discord') {
+      window.open(item.url, '_blank');
+    } else if (item.url) {
+      router.push(item.url);
+    }
+  }
+
   if (!mounted) return null;
 
   return (
@@ -109,7 +130,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === item.url}
-                        onClick={() => router.push(item.url)}
+                        onClick={() => handleItemClick(item)}
                       >
                         <div>
                           <span>{item.title}</span>
@@ -150,6 +171,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
+      
+      <FeedbackDialog 
+        open={feedbackDialogOpen} 
+        onOpenChange={setFeedbackDialogOpen} 
+      />
     </>
   )
 }

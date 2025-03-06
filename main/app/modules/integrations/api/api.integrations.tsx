@@ -105,7 +105,6 @@ export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): 
 export const enableApiKeyProvider = async (providerId: string, apiKey: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Сначала обновляем связь пользователя с провайдером
   const { error: providerError } = await supabase
     .from('users_providers')
     .upsert({
@@ -117,7 +116,6 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
 
   if (providerError) throw providerError;
   
-  // Если API ключ пустой, удаляем существующий ключ
   if (!apiKey) {
     const { error: deleteError } = await supabase
       .from('users_provider_api_keys')
@@ -131,6 +129,20 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
     return;
   }
   
+  const response = await fetch('/api/encrypt', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ apiKey })
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to encrypt API key');
+  }
+  
+  const { encryptedKey } = await response.json();
+  
   const { data: existingKey } = await supabase
     .from('users_provider_api_keys')
     .select('id')
@@ -143,7 +155,7 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
   if (existingKey) {
     const { error } = await supabase
       .from('users_provider_api_keys')
-      .update({ api_key: apiKey })
+      .update({ api_key: encryptedKey })
       .eq('id', existingKey.id);
     
     apiKeyError = error;
@@ -153,7 +165,7 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
       .insert({
         user_id: user?.id,
         provider_id: providerId,
-        api_key: apiKey
+        api_key: encryptedKey
       });
     
     apiKeyError = error;

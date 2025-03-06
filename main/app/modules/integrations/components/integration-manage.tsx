@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
 import { disconnectProvider, getUserApiKey, enableApiKeyProvider } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, RefreshCw, KeyRound, Eye, EyeOff } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { HelpCircle, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +14,6 @@ import { Label } from "@/components/ui/label";
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
@@ -94,7 +92,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
               <div className="flex flex-wrap gap-2 justify-end">
                 {provider.scopes.map((scope) => (
-                  <Badge key={scope.scope} variant="secondary" className="bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300 transition-colors">
+                  <Badge key={scope.scope} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors">
                     {scope.scope_name}
                   </Badge>
                 ))}
@@ -113,20 +111,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                   <div className="relative flex-1">
                     <Input
                       id="apiKey"
-                      type={showApiKey ? "text" : "password"}
+                      type="password"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="Enter your API key"
+                      placeholder={apiKey ? "••••••••••••••••••••••" : "Enter your API key"}
                       className="pr-10"
                       disabled={isLoading}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
                   </div>
                   <Button 
                     onClick={handleSaveApiKey} 

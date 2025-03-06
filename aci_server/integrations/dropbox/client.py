@@ -16,6 +16,9 @@ class DropboxClient:
 
     def list_files(self, path: str = "", **kwargs) -> Dict[str, Any]:
         endpoint = f"{self.BASE_URL}/files/list_folder"
+        if path is None:
+            path = ""
+        
         data = {
             "path": path,
             "recursive": False,
@@ -26,6 +29,7 @@ class DropboxClient:
         }
         
         response = requests.post(endpoint, headers=self.headers, json=data)
+        
         response.raise_for_status()
         return response.json()
 

@@ -22,17 +22,28 @@ from integrations.resend.route import router as resend_router
 from integrations.browser_use.route import router as browser_use_router
 from integrations.github.route import router as github_router
 from integrations.youtube.route import router as youtube_router
-from integrations.common.utils import get_router_tools
+from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt
 from celery_app import celery_app
-
 import os
-import importlib
 import json
 import inspect
+import sentry_sdk
+
 
 load_dotenv()
+
+sentry_url = os.getenv("SENTRY_URL")
+
+sentry_sdk.init(
+    dsn=sentry_url,
+    send_default_pii=True,
+    traces_sample_rate=1.0,
+    _experiments={
+        "continuous_profiling_auto_start": True,
+    },
+)
 
 INTEGRATION_ROUTERS = {
     "gmail": gmail_router,
@@ -123,7 +134,6 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                         endpoint_args[name] = dependency_result
                     except Exception as e:
                         error_msg = f"Error resolving dependency {name}: {str(e)}"
-                        print(error_msg)
                         raise HTTPException(status_code=500, detail=error_msg)
             
             for name, param in signature.parameters.items():
@@ -143,9 +153,24 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                 elif name == "request" and name not in endpoint_args:
                     endpoint_args[name] = request
             
-            print(f"Calling {method} with {endpoint_args}")
+            try:
+                response = await route.endpoint(**endpoint_args)
+                success = 1
+            except Exception as e:
+                success = 0 
+                raise e
             
-            response = await route.endpoint(**endpoint_args)
+            try:
+                user_id = await get_user_from_request(request)
+                    
+                log_api_call(
+                    user_id=user_id,
+                    endpoint=f"/tool-call/{tool}/{method}",
+                    success=success
+                )
+                
+            except Exception as e:
+                print(f"Error logging API call for Supabase: {str(e)}")
             
             if not include_component:
                 if isinstance(response, dict) and "component" in response:
@@ -201,6 +226,17 @@ async def get_user_tools(request: Request):
             if provider.get('input_schema'):
                 user_tools[provider['provider_tag']] = provider['input_schema']
         
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-tools",
+            success=1  # Успешный вызов API
+        )
+        
         return {"tools": user_tools}
     except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-tools",
+            success=0  # Неуспешный вызов API
+        )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
