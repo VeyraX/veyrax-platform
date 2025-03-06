@@ -283,8 +283,12 @@ class ResendService:
         update_data = {k: v for k, v in update_data.items() if v is not None}
         
         response = self.client.update_contact(audience_id, contact_identifier, update_data)
+
+        get_contact_response = self.client.get_contact(audience_id, contact_identifier)
+
+        contact_response = Contact(**get_contact_response)
         
-        return self.prepare_response(response, "ResendContactCard")
+        return self.prepare_response(contact_response, "ResendContactCard")
 
     def delete_contact(self, params: DeleteContactParams) -> ApiResponse:
         """Delete a contact."""
@@ -304,4 +308,4 @@ class ResendService:
         
         contacts_response = ContactList(**response)
         
-        return self.prepare_response(contacts_response, "ResendContactListCard")
+        return self.prepare_response(contacts_response, "ResendContactCard")
