@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { createClient } from '@/lib/utils/supabase/client'
 import { authApi } from '../api/api.auth'
+import Image from "next/image"
 
 export function LoginForm() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -56,7 +57,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center px-4 md:px-8">
+    <div className="w-full flex items-center justify-center px-4 md:px-8">
       <div className="flex items-center justify-center">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -125,24 +126,20 @@ export function LoginForm() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
+              className="flex items-center gap-2"
             >
               {isGoogleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Sign in with Google"
-              )}
-            </Button>
-
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handleTwitterLogin}
-              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
-            >
-              {isTwitterLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Sign in with Twitter"
+                <>
+                  <Image 
+                    src="/logos/google-logo.svg" 
+                    alt="Google logo" 
+                    width={16} 
+                    height={16} 
+                  />
+                  <span>Sign in with Google</span>
+                </>
               )}
             </Button>
           </form>

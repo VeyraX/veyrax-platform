@@ -18,7 +18,7 @@ export default function AuthLayout({
               Terms of Service
             </Link>
             <span className="mx-2 text-gray-400">|</span>
-            <Link href="/privacy-policy" className="text-xs text-gray-600 hover:text-blue-600 hover:underline">
+            <Link href="/privacy" className="text-xs text-gray-600 hover:text-blue-600 hover:underline">
               Privacy Policy
             </Link>
           </div>

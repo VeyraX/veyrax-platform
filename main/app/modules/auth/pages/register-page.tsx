@@ -7,6 +7,7 @@ import { AlertCircle, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authApi } from '@/app/modules/auth/api/api.auth'
+import Image from "next/image"
 
 export function RegisterForm() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -53,7 +54,7 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center px-4 md:px-8">
+    <div className="w-full flex items-center justify-center px-4 md:px-8">
       <div className="flex items-center justify-center">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -113,24 +114,20 @@ export function RegisterForm() {
               type="button"
               onClick={handleGoogleSignUp}
               disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
+              className="flex items-center gap-2"
             >
               {isGoogleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Sign up with Google"
-              )}
-            </Button>
-
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handleTwitterSignUp}
-              disabled={isEmailLoading || isGoogleLoading || isTwitterLoading}
-            >
-              {isTwitterLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Sign up with Twitter"
+                <>
+                  <Image 
+                    src="/logos/google-logo.svg" 
+                    alt="Google logo" 
+                    width={16} 
+                    height={16} 
+                  />
+                  <span>Sign up with Google</span>
+                </>
               )}
             </Button>
           </form>
