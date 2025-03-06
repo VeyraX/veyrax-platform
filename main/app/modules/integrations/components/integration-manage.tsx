@@ -92,7 +92,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
               <div className="flex flex-wrap gap-2 justify-end">
                 {provider.scopes.map((scope) => (
-                  <Badge key={scope.scope} variant="secondary" className="bg-gray-900/20 text-gray-400 dark:bg-gray-900/30 dark:text-gray-300 transition-colors">
+                  <Badge key={scope.scope} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors">
                     {scope.scope_name}
                   </Badge>
                 ))}

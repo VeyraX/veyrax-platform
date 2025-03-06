@@ -17,18 +17,27 @@ class TokenService:
         try:
             user_id = await get_user_from_request(request)
             
+            original_access_token = new_token_data.get('access_token')
+            original_refresh_token = new_token_data.get('refresh_token')
+            original_raw_data = None
+            
+            if 'raw_token_data' in new_token_data and isinstance(new_token_data['raw_token_data'], dict):
+                raw_data = new_token_data['raw_token_data']
+                original_raw_data = {
+                    'access_token': raw_data.get('access_token'),
+                    'refresh_token': raw_data.get('refresh_token')
+                }
+                
+                if 'access_token' in raw_data:
+                    raw_data['access_token'] = encrypt(raw_data['access_token'])
+                if 'refresh_token' in raw_data and raw_data['refresh_token']:
+                    raw_data['refresh_token'] = encrypt(raw_data['refresh_token'])
+            
             if 'access_token' in new_token_data:
                 new_token_data['access_token'] = encrypt(new_token_data['access_token'])
             
             if 'refresh_token' in new_token_data and new_token_data['refresh_token']:
                 new_token_data['refresh_token'] = encrypt(new_token_data['refresh_token'])
-            
-            if 'raw_token_data' in new_token_data and isinstance(new_token_data['raw_token_data'], dict):
-                raw_data = new_token_data['raw_token_data']
-                if 'access_token' in raw_data:
-                    raw_data['access_token'] = new_token_data['access_token']
-                if 'refresh_token' in raw_data and raw_data['refresh_token']:
-                    raw_data['refresh_token'] = new_token_data.get('refresh_token')
             
             supabase = get_supabase()
             result = supabase.table('users_oauth_tokens') \
@@ -39,8 +48,22 @@ class TokenService:
             
             if len(result.data) == 0:
                 raise HTTPException(status_code=404, detail="Token not found")
+            
+            result_data = {**token_data, **new_token_data}
+            
+            if original_access_token:
+                result_data['access_token'] = original_access_token
+            if original_refresh_token:
+                result_data['refresh_token'] = original_refresh_token
+            
+            if original_raw_data and 'raw_token_data' in result_data:
+                raw_data = result_data['raw_token_data']
+                if original_raw_data.get('access_token') and 'access_token' in raw_data:
+                    raw_data['access_token'] = original_raw_data['access_token']
+                if original_raw_data.get('refresh_token') and 'refresh_token' in raw_data:
+                    raw_data['refresh_token'] = original_raw_data['refresh_token']
                 
-            return {**token_data, **new_token_data}
+            return result_data
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to update token: {str(e)}")
 
@@ -85,7 +108,6 @@ class TokenService:
             
             if token_data.get('refresh_token'):
                 token_data['refresh_token'] = decrypt(token_data['refresh_token'])
-            
             if token_data.get('raw_token_data') and isinstance(token_data['raw_token_data'], dict):
                 raw_data = token_data['raw_token_data']
                 if 'access_token' in raw_data:

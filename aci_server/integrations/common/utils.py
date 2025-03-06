@@ -1,3 +1,4 @@
+import time
 from typing import List, Dict, Any, get_type_hints, Optional, get_origin, get_args, Union, Type
 from fastapi import routing
 import os
@@ -8,7 +9,7 @@ from .schema_generation.openai.schema import get_openai_function_schemas
 from .schema_generation.openai.validate import validate_tool_schema
 import warnings
 from pydantic import ValidationError
-
+from db.supabase import get_supabase
 
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     """
@@ -54,3 +55,18 @@ def format_validation_error(e: ValidationError, model_name: str = "InputValidati
         }
     }
     return schema_info
+
+
+def log_api_call(user_id: str, endpoint: Optional[str] = None, success: Optional[int] = None):
+    try:
+        supabase = get_supabase()
+        
+        api_call_data = {
+            "user_id": user_id,
+            "endpoint": endpoint,
+            "success": success
+        }
+        
+        supabase.table("api_calls").insert(api_call_data).execute()
+    except Exception as e:
+        print(f"Error logging API call: {str(e)}")

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Provider } from "../api/types.integrations";
 import { useState } from "react";
+import { ShieldAlert, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 interface ScopeDialogProps {
   provider: Provider;
@@ -23,6 +25,11 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
     onConfirm(selectedScopes);
   };
 
+  const isGoogleProvider = provider.name.toLowerCase().includes('google') || 
+                          provider.name.toLowerCase().includes('gmail') || 
+                          provider.name.toLowerCase().includes('drive') || 
+                          provider.name.toLowerCase().includes('calendar');
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -36,6 +43,35 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
             Integration with {provider.name}
           </DialogTitle>
         </DialogHeader>
+        
+        {isGoogleProvider && (
+          <div className="p-4 border rounded-lg bg-amber-50 border-amber-200 flex gap-3 mb-4">
+            <ShieldAlert className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold mb-1 text-amber-800">Verification in Progress</h3>
+              <p className="text-sm text-amber-700">
+                Google may show a security warning during connection. This is normal while we complete 
+                Google's verification process.
+                <br />
+                <Button 
+                  variant="link" 
+                  className="text-amber-800 p-0 h-auto mt-4"
+                  asChild
+                >
+                  <Link 
+                    href="/integrations/google-issue" 
+                    className="flex items-center gap-1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Learn how to proceed
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </p>
+            </div>
+          </div>
+        )}
         
         <div className="flex flex-col gap-6 py-4">
           <div className="grid grid-cols-2 gap-4">

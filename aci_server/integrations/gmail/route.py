@@ -21,14 +21,16 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/gmail directory
+examples = ExamplesLoader()
 
 async def get_gmail_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'gmail')
     
     if TokenService.is_token_expired(token_data):
+        print('refreshing token')
         try:
             token_data = await GoogleTokenRefresher.refresh(request, token_data)
+            print(f"new token data: {token_data}")
         except Exception as e:
             raise HTTPException(status_code=401, detail="Failed to refresh token")
         
