@@ -300,7 +300,7 @@ class ResendService:
         
         response = self.client.delete_contact(audience_id, contact_identifier)
         
-        return self.prepare_response(response, "ResendContactCard")
+        return self.prepare_response(response, None)
 
     def list_contacts(self, audience_id: str) -> ApiResponse:
         """List all contacts in an audience."""
