@@ -3,7 +3,7 @@ from .client import OutlookClient
 from .schema import (
     MessageList, Message, EventList, Event, EventCreate, 
     EventUpdate, Calendar, CalendarList, MessageFilters, 
-    EventFilters, DraftMessage, Location, EmailAddress, Organizer, ApiResponse, EventTime
+    EventFilters, DraftMessage, ApiResponse
 )
 from datetime import datetime
 import json
@@ -149,27 +149,27 @@ class OutlookService:
             next_link=response.get('@odata.nextLink')
         )
         
-        return self.prepare_response(event_list, "OutlookEventCard")
+        return self.prepare_response(event_list, "OutlookCalendarEventCard")
 
     def get_event(self, event_id: str, calendar_id: Optional[str] = None) -> ApiResponse:
         event = self.client.get_event(event_id, calendar_id)
         
         event = self._convert_to_event(event)
-        return self.prepare_response(event, "OutlookEventCard")
+        return self.prepare_response(event, "OutlookCalendarEventCard")
 
     def create_event(self, event: EventCreate, calendar_id: Optional[str] = None) -> ApiResponse:
         # Convert Pydantic model to dict for the client
         event_data = event.dict(exclude_none=True)
         response = self.client.create_event(event_data, calendar_id)
         created_event = self._convert_to_event(response)
-        return self.prepare_response(created_event, "OutlookEventCard")
+        return self.prepare_response(created_event, "OutlookCalendarEventCard")
 
     def update_event(self, event_id: str, event: EventUpdate, 
                     calendar_id: Optional[str] = None) -> ApiResponse:
         event_data = event.dict(exclude_none=True)
         response = self.client.update_event(event_id, event_data, calendar_id)
         updated_event = self._convert_to_event(response)
-        return self.prepare_response(updated_event, "OutlookEventCard")
+        return self.prepare_response(updated_event, "OutlookCalendarEventCard")
 
     def delete_event(self, event_id: str, calendar_id: Optional[str] = None) -> None:
         self.client.delete_event(event_id, calendar_id)
@@ -208,51 +208,58 @@ class OutlookService:
         )
 
     def _convert_to_event(self, item: Dict[str, Any]) -> Event:
-        start_time = None
-        if 'start' in item and 'dateTime' in item['start']:
-            start_time = EventTime(
-                dateTime=item['start']['dateTime'],
-                timeZone=item['start'].get('timeZone', 'UTC')
-            )
-            
-        end_time = None
-        if 'end' in item and 'dateTime' in item['end']:
-            end_time = EventTime(
-                dateTime=item['end']['dateTime'],
-                timeZone=item['end'].get('timeZone', 'UTC')
-            )
-            
+        # Format datetime strings directly
+        start_time = item['start']['dateTime'].split('.')[0] + 'Z'
+        end_time = item['end']['dateTime'].split('.')[0] + 'Z'
+
+        # Extract description from body content
+        description = item.get('body', {}).get('content') if item.get('body') else None
+        
+        # Handle location as string
         location = None
-        if 'location' in item and 'displayName' in item['location']:
-            location = Location(
-                displayName=item['location']['displayName'],
-                address=item['location'].get('address', None),
-                coordinates=item['location'].get('coordinates', None)
-            )
-            
+        if item.get('location'):
+            # Try different location formats
+            if isinstance(item['location'], str):
+                location = item['location']
+            else:
+                location = item['location'].get('displayName') or item['location'].get('locationUri')
+
+        # Extract organizer information
         organizer = None
-        if 'organizer' in item and 'emailAddress' in item['organizer']:
-            email = EmailAddress(
-                name=item['organizer']['emailAddress'].get('name'),
-                address=item['organizer']['emailAddress'].get('address', '')
-            )
-            organizer = Organizer(emailAddress=email)
-            
-        body = None
-        if 'body' in item and 'content' in item['body']:
-            body = {
-                'content': item['body']['content'],
-                'contentType': item['body'].get('contentType', 'text')
+        if item.get('organizer'):
+            org_email = item['organizer'].get('emailAddress', {})
+            organizer = {
+                "email": org_email.get('address'),
+                "displayName": org_email.get('name')
             }
-            
+
+        # Process attendees
+        attendees = []
+        for attendee in item.get('attendees', []):
+            email_info = attendee.get('emailAddress', {})
+            attendees.append({
+                "email": email_info.get('address'),
+                "displayName": email_info.get('name'),
+                "responseStatus": attendee.get('status', {}).get('response', 'none')
+            })
+
+        # Extract web link from Outlook's complex URL structure
+        # TODO: looks like this is not working well, need to fix
+        raw_url = item.get('webLink') or item.get('webUrl', '')
+        # Clean up the Outlook URL to a direct calendar link
+        web_link = raw_url.split('&exvsurl=1')[0].replace('owa/?itemid=', 'calendar/item/')
+
         return Event(
             id=item.get('id', ''),
             subject=item.get('subject', ''),
-            body=body,
-            start=start_time,
-            end=end_time,
+            body=item.get('body'),
+            description=description,
+            start=start_time,  # Direct string assignment
+            end=end_time,      # Direct string assignment
             location=location,
-            web_link=item.get('webLink', ''),
+            web_link=web_link,
             organizer=organizer,
-            attendees=item.get('attendees')
+            status=item.get('responseStatus', {}).get('response'),
+            is_recurring=item.get('type') == 'seriesMaster',
+            attendees=attendees
         )
