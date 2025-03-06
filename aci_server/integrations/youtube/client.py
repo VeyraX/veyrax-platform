@@ -69,7 +69,6 @@ class YouTubeClient:
                 transcript_text = ""
                 for entry in transcript_data:
                     transcript_text += f"{entry['text']}\n"
-                    transcript_text += f"{entry['text']}\n"
                 
                 return transcript_text
             else:
@@ -81,4 +80,22 @@ class YouTubeClient:
             import traceback
             traceback.print_exc()
             print(f"Error getting caption track for ID {caption_id}: {str(e)}")
+            return f"Error retrieving transcript: {str(e)}"
+    
+    def get_transcript(self, video_id: str, language: Optional[str] = None) -> str:
+        try:
+            if language:
+                transcript_data = YouTubeTranscriptApi.get_transcript(video_id, languages=[language])
+            else:
+                transcript_data = YouTubeTranscriptApi.get_transcript(video_id)
+            
+            transcript_text = ""
+            for entry in transcript_data:
+                transcript_text += f"{entry['text']}\n"
+            
+            return transcript_text
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"Error getting transcript for video {video_id}: {str(e)}")
             return f"Error retrieving transcript: {str(e)}"

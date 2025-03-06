@@ -141,30 +141,31 @@ class YouTubeService:
         return self.prepare_response(caption_list, "YouTubeCaptionList")
 
     def get_transcription(self, video_id: str, caption_id: Optional[str] = None, language: Optional[str] = None) -> ApiResponse:
-        if not caption_id:
-            captions_response = self.client.get_captions(video_id)
-            captions = captions_response.get('items', [])
+        if caption_id:
+            caption_text = self.client.get_caption_track(caption_id)
+            if not language:
+                parts = caption_id.split('_')
+                if len(parts) >= 2:
+                    language = parts[-1]
+        else:
+            caption_text = self.client.get_transcript(video_id, language)
             
-            if not captions:
-                raise ValueError(f"No captions found for video {video_id}")
-                
-            if language:
-                caption = next((c for c in captions if c['snippet']['language'] == language), None)
-                if not caption:
-                    raise ValueError(f"No caption found for language {language}")
-            else:
-                caption = captions[0]
-                
-            caption_id = caption['id']
-            language = caption['snippet']['language']
-        
-        caption_text = self.client.get_caption_track(caption_id)
+            if not language:
+                try:
+                    captions_response = self.client.get_captions(video_id)
+                    captions = captions_response.get('items', [])
+                    if captions:
+                        language = captions[0]['snippet']['language']
+                    else:
+                        language = 'en'
+                except:
+                    language = 'en'
         
         transcription = Transcription(
             video_id=video_id,
-            caption_id=caption_id,
+            caption_id=caption_id or f"{video_id}_{language}",
             text=caption_text,
-            language=language
+            language=language or 'en'
         )
         
         return self.prepare_response(transcription, "YouTubeTranscription")
