@@ -1,10 +1,9 @@
 from typing import Optional, Dict, Any, List, Union
 from .client import JiraClient
 from .schema import (
-    JiraServerInfo, JiraCredentials, IssueList, Issue, 
+    IssueList, Issue, 
     IssueCreate, IssueUpdate, IssueFilters, Project, StatusCategory, Status, Priority, IssueType, Field, FieldSchema, JiraUser
 )
-from datetime import datetime
 from fastapi import HTTPException
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -35,6 +34,7 @@ class JiraService:
         self.site_id = resource.get('url', '').split('/')[-1].replace('.atlassian.net', '')
         self.base_url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
         self.cloud_id = cloud_id
+        self.browser_base_url = f"https://{self.site_id}.atlassian.net"
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         return self.client.make_request(
@@ -45,7 +45,7 @@ class JiraService:
         )
 
     def _generate_html_link(self, issue_key: str) -> str:
-        return f"https://{self.site_id}.atlassian.net/browse/{issue_key}"
+        return f"{self.browser_base_url}/browse/{issue_key}"
 
     def get_issues(self, filters: Optional[IssueFilters] = None):
         jql_parts = []
@@ -224,10 +224,12 @@ class JiraService:
             name=p['name'],
             description=p.get('description'),
             lead=p.get('lead', {}).get('displayName'),
-            url=p['self'],
+            url=f"{self.browser_base_url}/projects/{p['key']}",
             components=p.get('components', []),
             versions=p.get('versions', [])
         ) for p in projects]
+
+        print("get all projects", projects)
         
         return self.prepare_response(project_list, "JiraProjectCard")
 
@@ -239,7 +241,7 @@ class JiraService:
             name=project['name'],
             description=project.get('description'),
             lead=project.get('lead', {}).get('displayName'),
-            url=project['self'],
+            url=f"{self.browser_base_url}/projects/{project['key']}",
             components=project.get('components', []),
             versions=project.get('versions', [])
         )

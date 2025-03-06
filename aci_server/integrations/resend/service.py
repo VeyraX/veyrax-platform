@@ -33,6 +33,10 @@ class ResendService:
         response = self.client.send_email(email_data)
         
         email_response = EmailResponse(id=response.get("id"))
+
+        get_email_response = self.client.get_email(email_response.id)
+
+        email_response = EmailResponse(**get_email_response)
         
         return self.prepare_response(email_response, "ResendEmailCard")
 
@@ -44,7 +48,7 @@ class ResendService:
         
         batch_response = BatchEmailResponse(data=response.get("data", []))
         
-        return self.prepare_response(batch_response, "ResendBatchEmailCard")
+        return self.prepare_response(batch_response, "ResendEmailCard")
 
     def get_email(self, email_id: str) -> ApiResponse:
         """Retrieve details of a specific email."""
@@ -59,6 +63,10 @@ class ResendService:
         response = self.client.update_email(email_id, scheduled_at)
         
         email_response = EmailResponse(**response)
+
+        get_email_response = self.client.get_email(email_response.id)
+
+        email_response = EmailResponse(**get_email_response)
         
         return self.prepare_response(email_response, "ResendEmailCard")
 
@@ -68,7 +76,7 @@ class ResendService:
         
         email_response = EmailResponse(**response)
         
-        return self.prepare_response(email_response, "ResendEmailCard")
+        return self.prepare_response(email_response, None)
 
     def create_domain(self, params: CreateDomainParams) -> ApiResponse:
         """Create a new domain."""
@@ -146,7 +154,23 @@ class ResendService:
         
         response = self.client.create_broadcast(broadcast_data)
         
-        return self.prepare_response(response, "ResendBroadcastCard")
+        # Get audience details to populate audience_name
+        audience_response = self.client.get_audience(params.audience_id)
+        
+        broadcast_response = Broadcast(
+            id=response["id"],
+            audience_id=params.audience_id,
+            audience_name=audience_response.get("name"),
+            status="draft",
+            created_at=response.get("created_at"),
+            name=params.name,
+            from_email=params.from_email,
+            subject=params.subject,
+            reply_to=params.reply_to,
+            object="broadcast"
+        )
+        
+        return self.prepare_response(broadcast_response, "ResendBroadcastCard")
 
     def get_broadcast(self, broadcast_id: str) -> ApiResponse:
         """Retrieve details of a specific broadcast."""
@@ -170,7 +194,7 @@ class ResendService:
         """Delete a broadcast."""
         response = self.client.delete_broadcast(broadcast_id)
         
-        return self.prepare_response(response, "ResendBroadcastCard")
+        return self.prepare_response(response, None)
 
     def list_broadcasts(self) -> ApiResponse:
         """List all broadcasts."""
@@ -178,13 +202,15 @@ class ResendService:
         
         broadcasts_response = BroadcastList(**response)
         
-        return self.prepare_response(broadcasts_response, "ResendBroadcastListCard")
+        return self.prepare_response(broadcasts_response, "ResendBroadcastCard")
 
     def create_audience(self, params: CreateAudienceParams) -> ApiResponse:
         """Create a new audience."""
         audience_data = params.dict(exclude_none=True)
         
         response = self.client.create_audience(audience_data)
+
+        response["url"] = f"https://resend.com/audiences/{response['id']}"
         
         audience_response = Audience(**response)
         
@@ -194,7 +220,11 @@ class ResendService:
         """Retrieve details of a specific audience."""
         response = self.client.get_audience(audience_id)
         
+        response["url"] = f"https://resend.com/audiences/{response['id']}"
+
         audience_response = Audience(**response)
+
+        
         
         return self.prepare_response(audience_response, "ResendAudienceCard")
 
@@ -202,15 +232,24 @@ class ResendService:
         """Delete an audience."""
         response = self.client.delete_audience(audience_id)
         
-        return self.prepare_response(response, "ResendAudienceCard")
+        return self.prepare_response(response, None)
 
     def list_audiences(self) -> ApiResponse:
         """List all audiences."""
         response = self.client.list_audiences()
         
-        audiences_response = AudienceList(**response)
+        # Create proper Audience instances with URL
+        audience_list = [
+            Audience(
+                **audience_data,
+                url=f"https://resend.com/audiences/{audience_data['id']}"
+            )
+            for audience_data in response.get('data', [])
+        ]
         
-        return self.prepare_response(audiences_response, "ResendAudienceListCard")
+        audiences_response = AudienceList(data=audience_list)
+        
+        return self.prepare_response(audiences_response, "ResendAudienceCard")
 
     def create_contact(self, params: CreateContactParams) -> ApiResponse:
         """Create a new contact in an audience."""
@@ -252,8 +291,12 @@ class ResendService:
         update_data = {k: v for k, v in update_data.items() if v is not None}
         
         response = self.client.update_contact(audience_id, contact_identifier, update_data)
+
+        get_contact_response = self.client.get_contact(audience_id, contact_identifier)
+
+        contact_response = Contact(**get_contact_response)
         
-        return self.prepare_response(response, "ResendContactCard")
+        return self.prepare_response(contact_response, "ResendContactCard")
 
     def delete_contact(self, params: DeleteContactParams) -> ApiResponse:
         """Delete a contact."""
@@ -265,7 +308,7 @@ class ResendService:
         
         response = self.client.delete_contact(audience_id, contact_identifier)
         
-        return self.prepare_response(response, "ResendContactCard")
+        return self.prepare_response(response, None)
 
     def list_contacts(self, audience_id: str) -> ApiResponse:
         """List all contacts in an audience."""
@@ -273,4 +316,4 @@ class ResendService:
         
         contacts_response = ContactList(**response)
         
-        return self.prepare_response(contacts_response, "ResendContactListCard")
+        return self.prepare_response(contacts_response, "ResendContactCard")

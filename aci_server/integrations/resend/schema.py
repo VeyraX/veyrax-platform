@@ -186,6 +186,7 @@ class DeleteApiKeyResponse(BaseModel):
 class Broadcast(BaseModel):
     id: str
     audience_id: str
+    audience_name: Optional[str] = None
     status: str
     created_at: Optional[str] = None
     scheduled_at: Optional[str] = None
@@ -244,6 +245,7 @@ class ListBroadcastsResponse(BaseModel):
 class Audience(BaseModel):
     id: str
     name: str
+    url: Optional[str] = None
     created_at: Optional[str] = None
     object: Optional[str] = None
 

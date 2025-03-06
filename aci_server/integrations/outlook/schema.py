@@ -7,10 +7,10 @@ class MessageBase(BaseModel):
     id: str
     subject: Optional[str]
     body_preview: str
-    body: Optional[str]
-    from_address: Optional[str]
-    to_recipients: Optional[List[str]]
-    created_datetime: datetime
+    # body: Optional[str]  # body is a html string, can cause issues with rendering in the UI
+    sender: Optional[str]
+    recipient: Optional[str]
+    date: datetime
     web_link: str
 
 class Message(MessageBase):
@@ -35,10 +35,6 @@ class MessageFilters(BaseModel):
     before_date: Optional[str] = None
     max_results: Optional[int] = 20
 
-class EventTime(BaseModel):
-    dateTime: str
-    timeZone: str
-
 class Location(BaseModel):
     displayName: Optional[str] = None
     address: Optional[Dict[str, Any]] = None
@@ -54,20 +50,24 @@ class Organizer(BaseModel):
 class EventBase(BaseModel):
     id: str
     subject: str
-    body: Optional[Dict[str, str]]
-    start: EventTime
-    end: EventTime
-    location: Optional[Location] = None
-    web_link: str
-    organizer: Optional[Organizer] = None
+    body: Optional[Dict[str, str]] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    start: str
+    end: str
+    web_link: str = Field(default="", alias="webLink")
+    organizer: Optional[Dict[str, str]] = None
+    status: Optional[str] = None
+    is_recurring: Optional[bool] = Field(None, alias="isRecurring")
+    attendees: Optional[List[Dict[str, str]]] = None
 
 class Event(EventBase):
-    attendees: Optional[List[Dict[str, Any]]] = None
+    pass
 
 class EventCreate(BaseModel):
     subject: str
-    start: EventTime
-    end: EventTime
+    start: str
+    end: str
     body: Optional[Dict[str, str]] = None
     location: Optional[Location] = None
     attendees: Optional[List[Dict[str, Any]]] = None
@@ -86,8 +86,8 @@ class EventCreate(BaseModel):
 class EventUpdate(BaseModel):
     subject: Optional[str] = None
     body: Optional[Dict[str, str]] = None
-    start: Optional[EventTime] = None
-    end: Optional[EventTime] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
     location: Optional[Dict[str, str]] = None
     attendees: Optional[List[Dict[str, str]]] = None
 

@@ -58,7 +58,7 @@ const SingleComponent: React.FC<{ component: ComponentData }> = ({ component }) 
         
         // Merge safeFunctions with props
         const enhancedProps = { ...safeProps, ...safeFunctions };
-        
+      
         return Comp(enhancedProps);
       } catch (err) {
         console.error('Runtime error in dynamic component:', err);
