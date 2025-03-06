@@ -105,6 +105,11 @@ export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): 
 export const enableApiKeyProvider = async (providerId: string, apiKey: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
+  if (!apiKey) {
+    await disconnectProvider(providerId);
+    return;
+  }
+  
   const { error: providerError } = await supabase
     .from('users_providers')
     .upsert({
@@ -115,19 +120,6 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
     });
 
   if (providerError) throw providerError;
-  
-  if (!apiKey) {
-    const { error: deleteError } = await supabase
-      .from('users_provider_api_keys')
-      .delete()
-      .match({
-        user_id: user?.id,
-        provider_id: providerId
-      });
-      
-    if (deleteError) throw deleteError;
-    return;
-  }
   
   const response = await fetch('/api/encrypt', {
     method: 'POST',

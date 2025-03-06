@@ -24,7 +24,7 @@ from integrations.github.route import router as github_router
 from integrations.youtube.route import router as youtube_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
-from integrations.common.prompt_example import get_tools_example_prompt
+from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from celery_app import celery_app
 import os
 import json
@@ -208,9 +208,13 @@ async def get_user_tools(request: Request):
             .select('provider_id') \
             .eq('user_id', user_id) \
             .execute()
+        print(user_id)
+        print(user_providers.data)
             
         if not user_providers.data:
-            return {"tools": {}}
+            tools_response = {"tools": {}}
+            tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
+            return tools_response
             
         provider_ids = [item['provider_id'] for item in user_providers.data]
         
@@ -229,7 +233,7 @@ async def get_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/get-tools",
-            success=1  # Успешный вызов API
+            success=1
         )
         
         return {"tools": user_tools}
@@ -237,6 +241,6 @@ async def get_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/get-tools",
-            success=0  # Неуспешный вызов API
+            success=0 
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")

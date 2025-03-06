@@ -40,3 +40,11 @@ get_tools_example_prompt = f"""
   ]
 }}
 """
+
+
+get_tools_example_prompt_empty = f"""
+{{
+  "instruction": "User doesn't have any active tools. Provide guidance to go to VeryX platform and setup integrations: https://veyrax.com/integrations The date is today's date: {today_day}",
+  "examples": []
+}}
+"""
