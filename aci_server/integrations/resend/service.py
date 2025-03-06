@@ -33,6 +33,10 @@ class ResendService:
         response = self.client.send_email(email_data)
         
         email_response = EmailResponse(id=response.get("id"))
+
+        get_email_response = self.client.get_email(email_response.id)
+
+        email_response = EmailResponse(**get_email_response)
         
         return self.prepare_response(email_response, "ResendEmailCard")
 
@@ -44,7 +48,7 @@ class ResendService:
         
         batch_response = BatchEmailResponse(data=response.get("data", []))
         
-        return self.prepare_response(batch_response, "ResendBatchEmailCard")
+        return self.prepare_response(batch_response, "ResendEmailCard")
 
     def get_email(self, email_id: str) -> ApiResponse:
         """Retrieve details of a specific email."""
@@ -59,6 +63,10 @@ class ResendService:
         response = self.client.update_email(email_id, scheduled_at)
         
         email_response = EmailResponse(**response)
+
+        get_email_response = self.client.get_email(email_response.id)
+
+        email_response = EmailResponse(**get_email_response)
         
         return self.prepare_response(email_response, "ResendEmailCard")
 
@@ -68,7 +76,7 @@ class ResendService:
         
         email_response = EmailResponse(**response)
         
-        return self.prepare_response(email_response, "ResendEmailCard")
+        return self.prepare_response(email_response, None)
 
     def create_domain(self, params: CreateDomainParams) -> ApiResponse:
         """Create a new domain."""
@@ -186,7 +194,7 @@ class ResendService:
         """Delete a broadcast."""
         response = self.client.delete_broadcast(broadcast_id)
         
-        return self.prepare_response(response, "ResendBroadcastCard")
+        return self.prepare_response(response, None)
 
     def list_broadcasts(self) -> ApiResponse:
         """List all broadcasts."""
@@ -194,7 +202,7 @@ class ResendService:
         
         broadcasts_response = BroadcastList(**response)
         
-        return self.prepare_response(broadcasts_response, "ResendBroadcastListCard")
+        return self.prepare_response(broadcasts_response, "ResendBroadcastCard")
 
     def create_audience(self, params: CreateAudienceParams) -> ApiResponse:
         """Create a new audience."""
