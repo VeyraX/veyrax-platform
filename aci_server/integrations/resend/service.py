@@ -146,7 +146,23 @@ class ResendService:
         
         response = self.client.create_broadcast(broadcast_data)
         
-        return self.prepare_response(response, "ResendBroadcastCard")
+        # Get audience details to populate audience_name
+        audience_response = self.client.get_audience(params.audience_id)
+        
+        broadcast_response = Broadcast(
+            id=response["id"],
+            audience_id=params.audience_id,
+            audience_name=audience_response.get("name"),
+            status="draft",
+            created_at=response.get("created_at"),
+            name=params.name,
+            from_email=params.from_email,
+            subject=params.subject,
+            reply_to=params.reply_to,
+            object="broadcast"
+        )
+        
+        return self.prepare_response(broadcast_response, "ResendBroadcastCard")
 
     def get_broadcast(self, broadcast_id: str) -> ApiResponse:
         """Retrieve details of a specific broadcast."""
@@ -185,6 +201,8 @@ class ResendService:
         audience_data = params.dict(exclude_none=True)
         
         response = self.client.create_audience(audience_data)
+
+        response["url"] = f"https://resend.com/audiences/{response['id']}"
         
         audience_response = Audience(**response)
         
@@ -194,7 +212,11 @@ class ResendService:
         """Retrieve details of a specific audience."""
         response = self.client.get_audience(audience_id)
         
+        response["url"] = f"https://resend.com/audiences/{response['id']}"
+
         audience_response = Audience(**response)
+
+        
         
         return self.prepare_response(audience_response, "ResendAudienceCard")
 
@@ -202,15 +224,24 @@ class ResendService:
         """Delete an audience."""
         response = self.client.delete_audience(audience_id)
         
-        return self.prepare_response(response, "ResendAudienceCard")
+        return self.prepare_response(response, None)
 
     def list_audiences(self) -> ApiResponse:
         """List all audiences."""
         response = self.client.list_audiences()
         
-        audiences_response = AudienceList(**response)
+        # Create proper Audience instances with URL
+        audience_list = [
+            Audience(
+                **audience_data,
+                url=f"https://resend.com/audiences/{audience_data['id']}"
+            )
+            for audience_data in response.get('data', [])
+        ]
         
-        return self.prepare_response(audiences_response, "ResendAudienceListCard")
+        audiences_response = AudienceList(data=audience_list)
+        
+        return self.prepare_response(audiences_response, "ResendAudienceCard")
 
     def create_contact(self, params: CreateContactParams) -> ApiResponse:
         """Create a new contact in an audience."""
