@@ -5,11 +5,6 @@ import pickle
 from .service import ConfluenceService
 from .client import ConfluenceClient
 from .schema import (
-    SpaceSchema,
-    PageSchema,
-    PageCreateSchema,
-    PageUpdateSchema,
-    PaginatedResponseSchema,
     PageFilters,
     ApiResponse,
     GetSpacesParams,
@@ -19,8 +14,6 @@ from .schema import (
     UpdatePageParams,
     SearchContentParams,
     DeletePageParams,
-    SpaceList,
-    PageList,
     SpacesResponse,
     PagesResponse,
     PageResponse,

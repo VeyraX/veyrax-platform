@@ -58,25 +58,52 @@ class NotionClient:
         ).json()
 
     def search_pages(self, query="", **kwargs):
+        # Build the payload with appropriate defaults
         payload = {
-            "query": query,
-            "filter": kwargs.get("filter", {"property": "object", "value": "page"}),
-            "sort": kwargs.get("sort", {
-                "direction": "descending",
-                "timestamp": "last_edited_time"
-            }),
-            "page_size": kwargs.get("max_results", 100)
+            "query": query
         }
         
-        if kwargs.get("start_cursor"):
+        # Only set default filter if none provided
+        if "filter" in kwargs:
+            payload["filter"] = kwargs["filter"]
+        elif not any(k == "filter" for k in kwargs):
+            payload["filter"] = {"property": "object", "value": "page"}
+        
+        # Only set default sort if none provided
+        if "sort" in kwargs:
+            payload["sort"] = kwargs["sort"]
+        elif not any(k == "sort" for k in kwargs):
+            payload["sort"] = {
+                "direction": "descending",
+                "timestamp": "last_edited_time"
+            }
+        
+        # Handle page_size directly
+        if "page_size" in kwargs:
+            payload["page_size"] = kwargs["page_size"]
+        # For backward compatibility
+        elif "max_results" in kwargs:
+            payload["page_size"] = kwargs["max_results"]
+        else:
+            payload["page_size"] = 100
+        
+        # Add start_cursor if provided
+        if "start_cursor" in kwargs:
             payload["start_cursor"] = kwargs["start_cursor"]
-            
+        
+        # For debugging
+        print(f"Sending to Notion API: {payload}")
+        
         response = requests.post(
             f"{self.base_url}/search",
             headers=self.headers,
             json=payload
-        ).json()
-        return response
+        )
+        
+        # For debugging: log the raw response
+        print(f"Notion API status: {response.status_code}")
+        
+        return response.json()
 
     def query_database(self, database_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
         return requests.post(

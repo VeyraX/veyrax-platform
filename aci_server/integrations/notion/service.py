@@ -33,18 +33,30 @@ class NotionService:
         return response
 
     def list_databases(self, start_cursor: Optional[str] = None, max_results: Optional[int] = None) -> ApiResponse:
-        params = {
+        # Set up search parameters exactly as required by Notion API
+        # The filter must be an object with 'value' and 'property' keys at the top level
+        search_params = {
+            # This is the correct way to filter specifically for databases
             "filter": {
-                "property": "object",
-                "value": "database"
+                "value": "database",
+                "property": "object"
+            },
+            "sort": {
+                "direction": "descending",
+                "timestamp": "last_edited_time"
             },
             "page_size": min(max_results, 100) if max_results else 100
         }
         
         if start_cursor:
-            params["start_cursor"] = start_cursor
+            search_params["start_cursor"] = start_cursor
         
-        response = self.client.search_pages(**params)
+        # Pass an empty query string
+        response = self.client.search_pages(query="", **search_params)
+        response = self._handle_notion_response(response)
+        
+        # For debugging
+        print(f"Notion API response: {response}")
         
         databases = []
         for db in response.get('results', []):

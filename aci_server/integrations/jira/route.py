@@ -4,10 +4,7 @@ import os
 from .service import JiraService
 from .client import JiraClient
 from .schema import (
-    IssueList, Issue, IssueCreate, IssueUpdate, 
-    IssueFilters, JiraServerInfo, JiraCredentials,
-    Project, Status, Priority, IssueType, Field,
-    JiraUser, ApiResponse,
+    ApiResponse,
     GetIssuesParams, GetIssueParams, CreateIssueParams,
     UpdateIssueParams, DeleteIssueParams, GetProjectParams,
     GetProjectsParams, GetStatusesParams, GetPrioritiesParams,
@@ -18,7 +15,7 @@ from .schema import (
     GetIssueTypesResponse, GetFieldsResponse, GetUsersResponse
 )
 from ..common.auth import TokenService, JiraTokenRefresher
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 from ..common.examples_handler import ExamplesLoader
