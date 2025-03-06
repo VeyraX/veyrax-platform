@@ -27,7 +27,11 @@ export function LoginForm() {
     
     const { error } = await authApi.login(email, password);
     if (error) {
-      setError([error.message]);
+      if (error.message.includes('Invalid login credentials')) {
+        setError(['Invalid email or password. Please try again.']);
+      } else {
+        setError([error.message]);
+      }
     } else {
       window.location.href = '/agent/new';
     }
