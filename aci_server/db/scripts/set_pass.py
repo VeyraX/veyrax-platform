@@ -1,6 +1,8 @@
 import os
 import supabase
 from supabase import create_client, Client
+from dotenv import load_dotenv
+load_dotenv()   
 
 # 🔹 Replace with your Supabase project details
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -58,6 +60,6 @@ def update_user_password(email, new_password):
 
 
 # 🔹 Run the function (Replace with actual email & password)
-email = "" # email
-new_password = "" #pass
+email = os.environ.get("SERVICE_ACCOUNT_EMAIL")
+new_password = os.environ.get("SERVICE_ACCOUNT_SECRET")
 update_user_password(email, new_password)

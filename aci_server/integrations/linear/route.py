@@ -48,6 +48,7 @@ async def list_issues(
     service: LinearService = Depends(get_linear_service)
 ):
     try:
+        print("ROUTE Listing issues params", params)
         validated_params = ListIssuesParams(**params)
         return service.list_issues(
             validated_params.cursor, 
