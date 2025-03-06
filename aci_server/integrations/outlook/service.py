@@ -175,15 +175,18 @@ class OutlookService:
         self.client.delete_event(event_id, calendar_id)
 
     def _convert_to_message(self, item: Dict[str, Any]) -> Message:
-        from_address = None
+        sender = None
         if 'from' in item and 'emailAddress' in item['from']:
-            from_address = item['from']['emailAddress'].get('address')
+            sender = item['from']['emailAddress'].get('address')
             
-        to_recipients = []
-        if 'toRecipients' in item:
-            for recipient in item['toRecipients']:
-                if 'emailAddress' in recipient:
-                    to_recipients.append(recipient['emailAddress'].get('address'))
+        recipient = None
+        if 'toRecipients' in item and item['toRecipients']:
+            recipients = []
+            for to_recipient in item['toRecipients']:
+                if 'emailAddress' in to_recipient:
+                    recipients.append(to_recipient['emailAddress'].get('address'))
+            if recipients:
+                recipient = ', '.join(recipients)
         
         body_preview = item.get('bodyPreview', '')
         body = None
@@ -194,10 +197,10 @@ class OutlookService:
             id=item.get('id', ''),
             subject=item.get('subject', ''),
             body_preview=body_preview,
-            body=body,
-            from_address=from_address,
-            to_recipients=to_recipients,
-            created_datetime=item.get('createdDateTime'),
+            # body=body,
+            sender=sender,
+            recipient=recipient,
+            date=item.get('createdDateTime'),
             web_link=item.get('webLink', ''),
             importance=item.get('importance'),
             is_read=item.get('isRead', False),

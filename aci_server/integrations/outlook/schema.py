@@ -7,10 +7,10 @@ class MessageBase(BaseModel):
     id: str
     subject: Optional[str]
     body_preview: str
-    body: Optional[str]
-    from_address: Optional[str]
-    to_recipients: Optional[List[str]]
-    created_datetime: datetime
+    # body: Optional[str]  # body is a html string, can cause issues with rendering in the UI
+    sender: Optional[str]
+    recipient: Optional[str]
+    date: datetime
     web_link: str
 
 class Message(MessageBase):
