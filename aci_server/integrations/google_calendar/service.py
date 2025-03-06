@@ -115,6 +115,7 @@ class CalendarService:
                 
             dt = datetime.fromisoformat(date_str)
             return dt.isoformat() + 'Z'
+        
         except ValueError as e:
             try:
                 dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
