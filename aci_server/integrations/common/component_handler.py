@@ -31,9 +31,24 @@ def find_component(components: List[Dict[str, Any]], name: str) -> Optional[Dict
 def create_component(component_def: Dict[str, Any], data: Any) -> Dict[str, Any]:
     data_dict = data.dict() if hasattr(data, 'dict') else data
     
-    for key, value in data_dict.items():
-        if hasattr(value, 'isoformat'):
-            data_dict[key] = value.isoformat()
+    # Handle list data
+    if isinstance(data_dict, list):
+        processed_list = []
+        for item in data_dict:
+            # Convert item to dict if it's a Pydantic model
+            item_data = item.dict() if hasattr(item, 'dict') else item
+            # Process datetime fields if item is a dict
+            if isinstance(item_data, dict):
+                for key, value in list(item_data.items()):
+                    if hasattr(value, 'isoformat'):
+                        item_data[key] = value.isoformat()
+            processed_list.append(item_data)
+        data_dict = processed_list
+    elif isinstance(data_dict, dict):
+        # Existing processing for single object
+        for key, value in list(data_dict.items()):
+            if hasattr(value, 'isoformat'):
+                data_dict[key] = value.isoformat()
     
     return {
         "name": component_def["name"],
