@@ -103,13 +103,11 @@ export const Hero = () => {
               </div>
               
               <div className="flex flex-row items-center gap-4 w-full max-w-md justify-center">
-                <WaitlistDialog 
-                  trigger={
-                    <Button className="gap-2">
-                      Join Waitlist <MoveRight className="w-4 h-4" />
-                    </Button>
-                  } 
-                />
+                <Link href="/register">
+                  <Button className="gap-2">
+                    Register <MoveRight className="w-4 h-4" />
+                  </Button>
+                </Link>
                 
                 <Link href="/marketplace">
                   <Button variant="outline" className="gap-2">

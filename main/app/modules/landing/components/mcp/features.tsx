@@ -100,9 +100,9 @@ const features = [
       Icon: Lock,
       name: "One Place for Auth",
       description: "Login in all your tools once and use them everywhere.",
-      href: "/",
-      cta: "Join waitlist",
-      useWaitlistDialog: true,
+      href: "/register",
+      cta: "Register",
+      useWaitlistDialog: false,
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <svg className="h-full w-full opacity-5" xmlns="http://www.w3.org/2000/svg">

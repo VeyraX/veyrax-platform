@@ -66,13 +66,14 @@ export function TopBarMenu() {
                   }
                 />
               ) : (
-                <WaitlistDialog 
-                  trigger={
-                    <Button variant="default" className="gap-2" size="sm">
-                      Join Waitlist <MoveRight className="h-4 w-4" />
-                    </Button>
-                  }
-                />
+                <Button 
+                  variant="default" 
+                  className="gap-2" 
+                  size="sm"
+                  onClick={() => router.push('/register')}
+                >
+                  Register <MoveRight className="h-4 w-4" />
+                </Button>
               )}
             </>
           )}
