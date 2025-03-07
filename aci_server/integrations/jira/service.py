@@ -6,7 +6,7 @@ from .schema import (
 )
 from fastapi import HTTPException
 import os
-from ..common.component_handler import load_components, prepare_components_auto
+from ..common.component_handler import load_components, prepare_components_auto, create_component, find_component, wrap_component_with_tool
 import json
 
 class JiraService:
@@ -21,8 +21,16 @@ class JiraService:
         
     def prepare_response(self, data: Union[Issue, IssueList, Project, List[Project]], component_name: str = None):
         tool_name = "jira"
-        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
-        return {"data": data, "component": components}
+
+
+        if component_name == 'JiraStatusesTable':
+            component_def = find_component(self.components_data, 'JiraStatusesTable')
+            component = create_component(component_def, data)
+            component = wrap_component_with_tool(component, tool_name)
+            return {"data": data, "component": component}
+        else:
+            components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+            return {"data": data, "component": components}
 
     def _initialize_service(self):
         resources = self.client.get_accessible_resources()
@@ -256,14 +264,15 @@ class JiraService:
             description=s.get('description'),
             category=StatusCategory(**s['statusCategory'])
         ) for s in statuses]
+
         
-        return self.prepare_response(status_list, "JiraDataTable")
+        return self.prepare_response(status_list, "JiraStatusesTable")
 
     def get_all_priorities(self) -> Dict[str, Any]:
         priorities = self._make_request('GET', 'priority')
         priority_list = [Priority(**p) for p in priorities]
         
-        return self.prepare_response(priority_list, "JiraDataTable")
+        return self.prepare_response(priority_list, "JiraStatusesTable")
 
     def get_all_issue_types(self) -> Dict[str, Any]:
         issue_types = self._make_request('GET', 'issuetype')

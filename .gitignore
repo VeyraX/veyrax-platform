@@ -2,6 +2,9 @@
 
 utils/*.py
 
+main/.env.sentry-build-plugin
+.env.sentry-build-plugin
+
 aci_server/__pycache__/main.cpython-311.pyc
 main/pnpm-lock.yaml
 # dependencies

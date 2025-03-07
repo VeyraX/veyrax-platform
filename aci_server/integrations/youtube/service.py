@@ -122,6 +122,8 @@ class YouTubeService:
 
     def get_captions(self, video_id: str) -> ApiResponse:
         response = self.client.get_captions(video_id)
+
+        print("get_captions response", response)
         captions = []
         
         for item in response.get('items', []):
