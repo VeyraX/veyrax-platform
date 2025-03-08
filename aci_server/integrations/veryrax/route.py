@@ -33,23 +33,16 @@ async def save_memory(
     service: VeryraxMemoryService = Depends(get_veryrax_memory_service)
 ):
     try:
-        print("SAVE_MEMORY RECEIVED PARAMS:", params)
-        print("PARAMS TYPE:", type(params))
-        print("PARAMS KEYS:", list(params.keys()))
-        
         validated_params = SaveMemoryParams(**params)
-        print("VALIDATED PARAMS:", validated_params.dict())
         
         return service.save_memory(
             memory=validated_params.memory,
             tool=validated_params.tool
         )
     except ValidationError as e:
-        print("VALIDATION ERROR:", e)
-        print("ERROR JSON:", e.json())
+
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'SaveMemoryParams'))
     except Exception as e:
-        print("GENERAL ERROR:", str(e))
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

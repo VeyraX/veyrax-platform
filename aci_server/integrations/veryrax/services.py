@@ -10,12 +10,9 @@ class VeryraxMemoryService:
         self.client = client
         
     def save_memory(self, memory: str, tool: Optional[str] = None) -> ApiResponse:
-        print("SERVICE SAVE_MEMORY CALLED WITH:", memory, tool)
         result = self.client.save_memory(memory, tool)
-        print("CLIENT RETURNED:", result)
         response_data = SaveMemoryResponse(**result)
-        print("RESPONSE DATA:", response_data)
-        
+       
         return ApiResponse(data=response_data)
     
     def get_memories(self, tool: Optional[str] = None, limit: int = 50, offset: int = 0) -> ApiResponse:
