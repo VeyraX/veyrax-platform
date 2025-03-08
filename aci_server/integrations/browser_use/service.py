@@ -53,7 +53,7 @@ class BrowserUseService:
         
         task_detail = TaskDetail(**response)
         
-        return self.prepare_response(task_detail, "BrowserUseTaskDetailCard")
+        return self.prepare_response(task_detail, "BrowserTaskDetailCard")
 
     def get_task_status(self, task_id: str) -> ApiResponse:
         """Get the current status of a task."""
@@ -72,10 +72,18 @@ class BrowserUseService:
     def list_tasks(self) -> ApiResponse:
         """List all tasks."""
         response = self.client.list_tasks()
+        # Extract the tasks array from the response dictionary
+        task_list = response.get('tasks', [])
         
-        tasks = [TaskDetail(**task) for task in response]
+        # Add missing required fields with default values if not present
+        tasks = []
+        for task in task_list:
+            # Add empty steps list if missing
+            if 'steps' not in task:
+                task['steps'] = []
+            tasks.append(TaskDetail(**task))
         
-        return self.prepare_response(tasks, "BrowserUseTaskListCard")
+        return self.prepare_response(tasks, "BrowserTaskCard")
 
     def check_balance(self) -> ApiResponse:
         """Get the user's current API credit balance."""
