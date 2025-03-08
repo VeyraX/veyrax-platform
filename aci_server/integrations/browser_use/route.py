@@ -146,7 +146,6 @@ async def get_task_media(
 async def list_tasks(
     service: BrowserUseService = Depends(get_browser_use_service)
 ):
-    print("DEBUG: Listing tasks")
     try:
         return service.list_tasks()
     except Exception as e:

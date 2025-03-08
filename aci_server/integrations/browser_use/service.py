@@ -72,8 +72,6 @@ class BrowserUseService:
     def list_tasks(self) -> ApiResponse:
         """List all tasks."""
         response = self.client.list_tasks()
-        
-        print(f"DEBUG: List tasks response: {response}")
         # Extract the tasks array from the response dictionary
         task_list = response.get('tasks', [])
         
