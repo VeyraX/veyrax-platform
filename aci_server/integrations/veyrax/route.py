@@ -11,8 +11,8 @@ from .schema import (
     SaveMemoryResponse, GetMemoriesResponse, UpdateMemoryResponse, DeleteMemoryResponse,
     ApiResponse
 )
-from .client import VeryraxMemoryClient
-from .services import VeryraxMemoryService
+from .client import VeyraxMemoryClient
+from .services import VeyraxMemoryService
 
 router = APIRouter(prefix="/veyrax", tags=["veyrax"])
 
@@ -21,8 +21,8 @@ examples = ExamplesLoader()
 async def get_veryrax_memory_service(request: FastAPIRequest):
     try:
         user_id = await get_user_from_request(request)
-        client = VeryraxMemoryClient(user_id)
-        return VeryraxMemoryService(client)
+        client = VeyraxMemoryClient(user_id)
+        return VeyraxMemoryService(client)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
 
@@ -30,7 +30,7 @@ async def get_veryrax_memory_service(request: FastAPIRequest):
 @schema(input_schema_class=SaveMemoryParams, output_schema_class=SaveMemoryResponse, examples=examples["/veyrax/save_memory"])
 async def save_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeryraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veryrax_memory_service)
 ):
     try:
         validated_params = SaveMemoryParams(**params)
@@ -91,7 +91,7 @@ async def update_memory(
 @schema(input_schema_class=DeleteMemoryParams, output_schema_class=DeleteMemoryResponse, examples=examples["/veyrax/delete_memory"])
 async def delete_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeryraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veryrax_memory_service)
 ):
     try:
         validated_params = DeleteMemoryParams(**params)
