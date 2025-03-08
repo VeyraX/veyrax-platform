@@ -83,7 +83,7 @@ class BrowserUseService:
                 task['steps'] = []
             tasks.append(TaskDetail(**task))
         
-        return self.prepare_response(tasks, "BrowserUseTaskListCard")
+        return self.prepare_response(tasks, "BrowserTaskCard")
 
     def check_balance(self) -> ApiResponse:
         """Get the user's current API credit balance."""
