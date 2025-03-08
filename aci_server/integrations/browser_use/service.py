@@ -73,7 +73,17 @@ class BrowserUseService:
         """List all tasks."""
         response = self.client.list_tasks()
         
-        tasks = [TaskDetail(**task) for task in response]
+        print(f"DEBUG: List tasks response: {response}")
+        # Extract the tasks array from the response dictionary
+        task_list = response.get('tasks', [])
+        
+        # Add missing required fields with default values if not present
+        tasks = []
+        for task in task_list:
+            # Add empty steps list if missing
+            if 'steps' not in task:
+                task['steps'] = []
+            tasks.append(TaskDetail(**task))
         
         return self.prepare_response(tasks, "BrowserUseTaskListCard")
 
