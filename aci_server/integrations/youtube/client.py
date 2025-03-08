@@ -94,10 +94,12 @@ class YouTubeClient:
     
     def get_transcript(self, video_id: str, language: Optional[str] = None) -> str:
         try:
+            proxies = get_proxy_config()
+
             if language:
-                transcript_data = YouTubeTranscriptApi.get_transcript(video_id, languages=[language])
+                transcript_data = YouTubeTranscriptApi.get_transcript(video_id, languages=[language], proxies=proxies)
             else:
-                transcript_data = YouTubeTranscriptApi.get_transcript(video_id)
+                transcript_data = YouTubeTranscriptApi.get_transcript(video_id, proxies=proxies)
             
             transcript_text = ""
             for entry in transcript_data:
