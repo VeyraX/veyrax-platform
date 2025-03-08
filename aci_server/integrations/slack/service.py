@@ -198,6 +198,12 @@ class SlackService:
     def post_message(self, channel: str, text: str) -> ApiResponse:
         # Try to join the channel first and handle any errors
         join_result = self.client.join_channel(channel=channel)
+
+        print(f"DEBUG: Join result: {join_result}")
+        
+        # Check if join was unsuccessful and has an error message indicating we're not in the channel
+        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
+            raise Exception(f"Cannot post message: {join_result.get('error', 'Not in channel')}")
         
         # Log the result for debugging
         logging.info(f"Join result: {join_result}")
@@ -231,6 +237,16 @@ class SlackService:
         return self.prepare_response(message, "SlackMessageComposer")
 
     def reply_in_thread(self, channel: str, thread_ts: str, text: str) -> ApiResponse:
+        # Try to join the channel first and handle any errors
+        join_result = self.client.join_channel(channel=channel)
+        
+        # Check if join was unsuccessful and has an error message indicating we're not in the channel
+        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
+            raise Exception(f"Cannot reply in thread: {join_result.get('error', 'Not in channel')}")
+        
+        # Log the result for debugging
+        logging.info(f"Join result for thread reply: {join_result}")
+        
         response = self.client.reply_in_thread(
             channel=channel,
             thread_ts=thread_ts,
@@ -249,6 +265,16 @@ class SlackService:
         return self.prepare_response(message, "SlackMessageComposer")
 
     def list_thread_messages(self, channel: str, thread_ts: str, cursor: Optional[str] = None) -> ApiResponse:
+        # Try to join the channel first and handle any errors
+        join_result = self.client.join_channel(channel=channel)
+        
+        # Check if join was unsuccessful and has an error message indicating we're not in the channel
+        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
+            raise Exception(f"Cannot list thread messages: {join_result.get('error', 'Not in channel')}")
+            
+        # Log the result for debugging
+        logging.info(f"Join result for thread messages: {join_result}")
+        
         response = self.client.list_thread_messages(
             channel=channel,
             thread_ts=thread_ts,
@@ -266,6 +292,16 @@ class SlackService:
         return self.prepare_response(message_list, "SlackMessageList")
 
     def list_channel_messages(self, channel: str, cursor: Optional[str] = None) -> ApiResponse:
+        # Try to join the channel first and handle any errors
+        join_result = self.client.join_channel(channel=channel)
+        
+        # Check if join was unsuccessful and has an error message indicating we're not in the channel
+        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
+            raise Exception(f"Cannot list channel messages: {join_result.get('error', 'Not in channel')}")
+            
+        # Log the result for debugging
+        logging.info(f"Join result for channel messages: {join_result}")
+        
         response = self.client.list_channel_messages(
             channel=channel,
             cursor=cursor
