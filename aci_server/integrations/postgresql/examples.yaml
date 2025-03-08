@@ -6,7 +6,6 @@ routes:
         input_json: |
           {
             "query": "SELECT * FROM users LIMIT 10",
-            "params": null,
             "limit": 50
           }
         output_json: |

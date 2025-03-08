@@ -6,7 +6,6 @@ routes:
         input_json: |
           {
             "query": "SELECT * FROM my_table LIMIT 5",
-            "params": null,
             "limit": 50
           }
         output_json: |

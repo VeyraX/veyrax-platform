@@ -19,7 +19,6 @@ class ClickHouseConnectionParams(BaseModel):
 
 class ExecuteQueryParams(BaseModel):
     query: str = Field(..., description="SQL query to execute")
-    params: Optional[Dict[str, Any]] = Field(None, description="Parameters for parameterized queries")
     limit: Optional[int] = Field(50, description="Maximum number of rows to return (default: 50)")
 
 

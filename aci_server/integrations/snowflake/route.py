@@ -36,7 +36,7 @@ async def execute_query(
 ):
     try:
         validated_params = ExecuteQueryParams(**params)
-        return service.execute_query(validated_params.query, validated_params.params, validated_params.limit)
+        return service.execute_query(validated_params.query, validated_params.limit)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ExecuteQueryParams'))
     except Exception as e:

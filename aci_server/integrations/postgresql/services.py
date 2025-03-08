@@ -29,13 +29,13 @@ class PostgreSQLService:
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
-    def execute_query(self, query: str, params: Optional[List[Any]] = None, limit: Optional[int] = None) -> ApiResponse:
+    def execute_query(self, query: str, limit: Optional[int] = None) -> ApiResponse:
         try:
             if limit is not None:
                 if "LIMIT" not in query.upper():
                     query = f"{query} LIMIT {limit}"
             
-            results = self.client.execute_query(query, params)
+            results = self.client.execute_query(query)
             
             query_result = QueryResult(
                 rows=results,

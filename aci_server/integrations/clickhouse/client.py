@@ -39,14 +39,14 @@ class ClickHouseClient:
     def disconnect(self):
         self.client = None
 
-    def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def execute_query(self, query: str) -> List[Dict[str, Any]]:
         try:
             self.connect()
             print(f"Executing query: {query}")
             
             result, columns = self.client.execute(
                 query, 
-                params or {}, 
+                {}, 
                 with_column_types=True
             )
             

@@ -25,10 +25,10 @@ class PostgreSQLClient:
             self.conn.close()
             self.conn = None
 
-    def execute_query(self, query: str, params: Optional[Union[List, Dict, Tuple]] = None) -> List[Dict[str, Any]]:
+    def execute_query(self, query: str) -> List[Dict[str, Any]]:
         try:
             self.connect()
-            self.cursor.execute(query, params)
+            self.cursor.execute(query)
             if self.cursor.description:
                 columns = [desc[0] for desc in self.cursor.description]
                 results = []
@@ -46,7 +46,7 @@ class PostgreSQLClient:
             self.disconnect()
 
     def get_tables(self) -> List[Dict[str, Any]]:
-        query = """
+        query = f"""
         SELECT 
             table_name, 
             table_type,
@@ -56,28 +56,28 @@ class PostgreSQLClient:
         JOIN 
             pg_catalog.pg_class pgc ON t.table_name = pgc.relname
         WHERE 
-            table_schema = %s
+            table_schema = '{self.schema}'
         ORDER BY 
             table_name;
         """
-        return self.execute_query(query, (self.schema,))
+        return self.execute_query(query)
 
     def get_columns(self, table_name: str) -> List[Dict[str, Any]]:
-        query = """
+        query = f"""
         SELECT 
             column_name, 
             data_type, 
             is_nullable,
             column_default,
             pg_catalog.col_description(
-                format('%%s.%%s', table_schema, table_name)::regclass::oid, 
+                format('%I.%I', table_schema, table_name)::regclass::oid, 
                 ordinal_position
             ) as column_description
         FROM 
             information_schema.columns
         WHERE 
-            table_schema = %s AND table_name = %s
+            table_schema = '{self.schema}' AND table_name = '{table_name}'
         ORDER BY 
             ordinal_position;
         """
-        return self.execute_query(query, (self.schema, table_name))
+        return self.execute_query(query)
