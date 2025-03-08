@@ -6,19 +6,19 @@ from integrations.common.auth import get_user_from_request
 from integrations.common.utils import format_validation_error
 from integrations.common.examples_handler import ExamplesLoader
 from integrations.common.input_schema_decorator import schema
-from .schema import (
+from integrations.veyrax.schema import (
     SaveMemoryParams, GetMemoriesParams, UpdateMemoryParams, DeleteMemoryParams,
     SaveMemoryResponse, GetMemoriesResponse, UpdateMemoryResponse, DeleteMemoryResponse,
     ApiResponse
 )
-from .client import VeyraxMemoryClient
-from .services import VeyraxMemoryService
+from integrations.veyrax.client import VeyraxMemoryClient
+from integrations.veyrax.services import VeyraxMemoryService
 
 router = APIRouter(prefix="/veyrax", tags=["veyrax"])
 
 examples = ExamplesLoader()
 
-async def get_veryrax_memory_service(request: FastAPIRequest):
+async def get_veyrax_memory_service(request: FastAPIRequest):
     try:
         user_id = await get_user_from_request(request)
         client = VeyraxMemoryClient(user_id)
@@ -30,7 +30,7 @@ async def get_veryrax_memory_service(request: FastAPIRequest):
 @schema(input_schema_class=SaveMemoryParams, output_schema_class=SaveMemoryResponse, examples=examples["/veyrax/save_memory"])
 async def save_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeyraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veyrax_memory_service)
 ):
     try:
         validated_params = SaveMemoryParams(**params)
@@ -51,7 +51,7 @@ async def save_memory(
 @schema(input_schema_class=GetMemoriesParams, output_schema_class=GetMemoriesResponse, examples=examples["/veyrax/get_memory"])
 async def get_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeryraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veyrax_memory_service)
 ):
     try:
         validated_params = GetMemoriesParams(**params)
@@ -71,7 +71,7 @@ async def get_memory(
 @schema(input_schema_class=UpdateMemoryParams, output_schema_class=UpdateMemoryResponse, examples=examples["/veyrax/update_memory"])
 async def update_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeryraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veyrax_memory_service)
 ):
     try:
         validated_params = UpdateMemoryParams(**params)
@@ -91,7 +91,7 @@ async def update_memory(
 @schema(input_schema_class=DeleteMemoryParams, output_schema_class=DeleteMemoryResponse, examples=examples["/veyrax/delete_memory"])
 async def delete_memory(
     params: Dict[str, Any] = Body(...),
-    service: VeyraxMemoryService = Depends(get_veryrax_memory_service)
+    service: VeyraxMemoryService = Depends(get_veyrax_memory_service)
 ):
     try:
         validated_params = DeleteMemoryParams(**params)

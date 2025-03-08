@@ -2,7 +2,7 @@ from db.supabase import get_supabase
 from fastapi import HTTPException
 from typing import List, Dict, Any, Optional
 
-class VeryraxMemoryClient:
+class VeyraxMemoryClient:
     def __init__(self, user_id: str):
         self.user_id = user_id
         self.supabase = get_supabase()
