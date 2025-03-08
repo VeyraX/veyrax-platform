@@ -69,7 +69,6 @@ class YouTubeClient:
                 transcript_text = ""
                 for entry in transcript_data:
                     transcript_text += f"{entry['text']}\n"
-                    transcript_text += f"{entry['text']}\n"
                 
                 return transcript_text
             else:
