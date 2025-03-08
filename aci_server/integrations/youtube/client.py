@@ -1,6 +1,10 @@
 from googleapiclient.discovery import build
 from typing import Optional, Dict, Any, List
 from youtube_transcript_api import YouTubeTranscriptApi
+from typing import List, Dict, Any, Optional
+from ..common.proxy_utils import get_proxy_config
+
+
 
 class YouTubeClient:
     def __init__(self, api_key: str):
@@ -21,7 +25,8 @@ class YouTubeClient:
     
     def get_captions(self, video_id: str) -> Dict[str, Any]:
         try:
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            proxies = get_proxy_config()
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id, proxies=proxies)
             
             items = []
             for transcript in transcript_list:
@@ -64,7 +69,12 @@ class YouTubeClient:
                 language_code = parts[-1]
                 video_id = '_'.join(parts[:-1])
                 
-                transcript_data = YouTubeTranscriptApi.get_transcript(video_id, languages=[language_code])
+                proxies = get_proxy_config()
+                transcript_data = YouTubeTranscriptApi.get_transcript(
+                    video_id, 
+                    languages=[language_code], 
+                    proxies=proxies
+                ) 
                 
                 transcript_text = ""
                 for entry in transcript_data:
