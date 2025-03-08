@@ -23,8 +23,8 @@ class JiraService:
         tool_name = "jira"
 
 
-        if component_name == 'JiraStatusesTable':
-            component_def = find_component(self.components_data, 'JiraStatusesTable')
+        if component_name in ['JiraStatusesTable', 'JiraIssueTypesTable']:
+            component_def = find_component(self.components_data, component_name)
             component = create_component(component_def, data)
             component = wrap_component_with_tool(component, tool_name)
             return {"data": data, "component": component}
@@ -278,7 +278,7 @@ class JiraService:
         issue_types = self._make_request('GET', 'issuetype')
         issue_type_list = [IssueType(**it) for it in issue_types]
         
-        return self.prepare_response(issue_type_list, "JiraDataTable")
+        return self.prepare_response(issue_type_list, "JiraIssueTypesTable")
 
     def get_all_fields(self) -> Dict[str, Any]:
         fields = self._make_request('GET', 'field')
