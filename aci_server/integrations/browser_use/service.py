@@ -53,7 +53,7 @@ class BrowserUseService:
         
         task_detail = TaskDetail(**response)
         
-        return self.prepare_response(task_detail, "BrowserUseTaskDetailCard")
+        return self.prepare_response(task_detail, "BrowserTaskDetailCard")
 
     def get_task_status(self, task_id: str) -> ApiResponse:
         """Get the current status of a task."""
