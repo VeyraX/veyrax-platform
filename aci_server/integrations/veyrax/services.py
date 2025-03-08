@@ -1,12 +1,12 @@
 from typing import Optional, Dict, Any
-from .client import VeryraxMemoryClient
-from .schema import (
+from integrations.veyrax.client import VeyraxMemoryClient
+from integrations.veyrax.schema import (
     SaveMemoryResponse, GetMemoriesResponse, UpdateMemoryResponse, 
     DeleteMemoryResponse, ApiResponse, MemoryList, MemoryItem, SaveMemoryParams
 )
 
-class VeryraxMemoryService:
-    def __init__(self, client: VeryraxMemoryClient):
+class VeyraxMemoryService:
+    def __init__(self, client: VeyraxMemoryClient):
         self.client = client
         
     def save_memory(self, memory: str, tool: Optional[str] = None) -> ApiResponse:
