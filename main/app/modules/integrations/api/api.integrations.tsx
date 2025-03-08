@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint } from './types.integrations'
+import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess } from './types.integrations'
 import { getAuthHeaders } from '@/lib/actions/actions'
 
 const supabase = createClient()
@@ -61,11 +61,125 @@ export const enableProvider = async (providerId: string): Promise<void> => {
     })
 }
 
+export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data: provider } = await supabase
+    .from('providers')
+    .select('provider_tag')
+    .eq('id', providerId)
+    .single();
+  
+  const isSnowflake = provider?.provider_tag === 'snowflake';
+  
+  if (isSnowflake) {
+    if (!dbConfig.account || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
+      await disconnectProvider(providerId);
+      return;
+    }
+  } else {
+    if (!dbConfig.host || !dbConfig.port || !dbConfig.dbname || !dbConfig.user || !dbConfig.password) {
+      await disconnectProvider(providerId);
+      return;
+    }
+  }
+  
+  const { error: providerError } = await supabase
+    .from('users_providers')
+    .upsert({
+      user_id: user?.id,
+      provider_id: providerId
+    }, {
+      onConflict: 'provider_id,user_id'
+    });
+
+  if (providerError) throw providerError;
+  
+  const response = await fetch('/api/encrypt', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ apiKey: dbConfig.password })
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to encrypt database password');
+  }
+  
+  const { encryptedKey } = await response.json();
+  
+  const credentials = {
+    ...dbConfig,
+    password: encryptedKey
+  };
+  
+  const { data: existingCredentials } = await supabase
+    .from('users_db_access')
+    .select('id')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
+    .single();
+  
+  let dbAccessError;
+  
+  if (existingCredentials) {
+    const { error } = await supabase
+      .from('users_db_access')
+      .update({ credentials: JSON.stringify(credentials) })
+      .eq('id', existingCredentials.id);
+    
+    dbAccessError = error;
+  } else {
+    const { error } = await supabase
+      .from('users_db_access')
+      .insert({
+        user_id: user?.id,
+        provider_id: providerId,
+        credentials: JSON.stringify(credentials)
+      });
+    
+    dbAccessError = error;
+  }
+
+  if (dbAccessError) throw dbAccessError;
+}
+
+export const getUserDbCredentials = async (providerId: string): Promise<DbConfig | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data, error } = await supabase
+    .from('users_db_access')
+    .select('credentials')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
+    .single();
+  
+  if (error || !data) return null;
+  
+  try {
+    const credentials = JSON.parse(data.credentials) as DbConfig;
+    
+    return credentials;
+  } catch (error) {
+    console.error('Error parsing credentials:', error);
+    return null;
+  }
+}
+
 export const disconnectProvider = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser()
 
   await supabase
     .from('users_provider_api_keys')
+    .delete()
+    .match({ 
+      user_id: user?.id,
+      provider_id: providerId 
+    });
+
+  await supabase
+    .from('users_db_access')
     .delete()
     .match({ 
       user_id: user?.id,
@@ -377,12 +491,52 @@ export const findComponentForEndpoint = async (providerTag: string, endpointName
     return null;
   }
 
-  // Ищем только компонент, который точно соответствует данному эндпоинту
   const componentWithRelatedEndpoint = uiComponents.find(component => 
     component.related_endpoints && 
     component.related_endpoints.includes(endpointName)
   );
   
-  // Возвращаем только если нашли точное соответствие, иначе null
   return componentWithRelatedEndpoint || null;
+};
+
+export const testDbConnection = async (providerId: string, dbConfig: DbConfig): Promise<{success: boolean, message: string}> => {
+  try {
+    const { data: provider, error: providerError } = await supabase
+      .from('providers')
+      .select('provider_tag')
+      .eq('id', providerId)
+      .single();
+    
+    if (providerError) throw providerError;
+    
+    const providerTag = provider.provider_tag;
+    
+    const response = await fetch(`/api/integrations/test_connection`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        providerTag,
+        dbConfig
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { 
+        success: false, 
+        message: errorData.message || 'Connection test failed' 
+      };
+    }
+    
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error testing database connection:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
 };

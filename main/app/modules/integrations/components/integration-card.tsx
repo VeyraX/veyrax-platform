@@ -37,7 +37,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
   };
 
   const handleConnect = () => {
-    if (props.auth_method === 'api_key') {
+    if (props.auth_method === 'api_key' || props.auth_method === 'db_access') {
       setShowManage(true);
     } else {
       handleShowSettings(props as Provider);
@@ -115,7 +115,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
         </CardContent>
       </Card>
 
-      {!isPublic && props.auth_method === 'api_key' && (
+      {!isPublic && (props.auth_method === 'api_key' || props.auth_method === 'db_access') && (
         <ManageDialog
           provider={props}
           open={showManage}

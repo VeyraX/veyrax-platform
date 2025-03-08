@@ -1,0 +1,133 @@
+routes:
+  - endpoint: /postgresql/execute_query
+    examples:
+      - scenario: "Select all users"
+        description: "Execute a query to select all users from the users table"
+        input_json: |
+          {
+            "query": "SELECT * FROM users LIMIT 10",
+            "params": null,
+            "limit": 50
+          }
+        output_json: |
+          {
+            "data": {
+              "rows": [
+                {
+                  "id": 1,
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "created_at": "2023-01-01T00:00:00Z"
+                },
+                {
+                  "id": 2,
+                  "name": "Jane Smith",
+                  "email": "jane@example.com",
+                  "created_at": "2023-01-02T00:00:00Z"
+                }
+              ],
+              "row_count": 2,
+              "query": "SELECT * FROM users LIMIT 10"
+            },
+            "message": null
+          }
+
+  - endpoint: /postgresql/get_tables
+    examples:
+      - scenario: "List tables in public schema"
+        description: "Get a list of all tables in the public schema"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "tables": [
+                {
+                  "table_name": "users",
+                  "table_type": "BASE TABLE",
+                  "table_description": "User accounts"
+                },
+                {
+                  "table_name": "products",
+                  "table_type": "BASE TABLE",
+                  "table_description": "Product catalog"
+                },
+                {
+                  "table_name": "orders",
+                  "table_type": "BASE TABLE",
+                  "table_description": "Customer orders"
+                }
+              ],
+              "schema": "public"
+            },
+            "message": null
+          }
+
+  - endpoint: /postgresql/get_columns
+    examples:
+      - scenario: "Get columns for users table"
+        description: "Get column information for the users table"
+        input_json: |
+          {
+            "table_name": "users"
+          }
+        output_json: |
+          {
+            "data": {
+              "columns": [
+                {
+                  "column_name": "id",
+                  "data_type": "integer",
+                  "is_nullable": "NO",
+                  "column_default": "nextval('users_id_seq'::regclass)",
+                  "column_description": "Primary key"
+                },
+                {
+                  "column_name": "name",
+                  "data_type": "character varying",
+                  "is_nullable": "NO",
+                  "column_default": null,
+                  "column_description": "User's full name"
+                },
+                {
+                  "column_name": "email",
+                  "data_type": "character varying",
+                  "is_nullable": "NO",
+                  "column_default": null,
+                  "column_description": "User's email address"
+                },
+                {
+                  "column_name": "created_at",
+                  "data_type": "timestamp with time zone",
+                  "is_nullable": "NO",
+                  "column_default": "CURRENT_TIMESTAMP",
+                  "column_description": "Account creation timestamp"
+                }
+              ],
+              "table_name": "users",
+              "schema": "public"
+            },
+            "message": null
+          }
+
+  - endpoint: /postgresql/test_connection
+    examples:
+      - scenario: "Test database connection"
+        description: "Test if the database connection is working"
+        input_json: |
+          {
+            "host": "localhost",
+            "port": 5432,
+            "dbname": "postgres",
+            "user": "postgres",
+            "password": "password",
+            "schema": "public"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Connection successful"
+            },
+            "message": null
+          }

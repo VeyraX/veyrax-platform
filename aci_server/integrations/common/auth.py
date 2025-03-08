@@ -414,5 +414,42 @@ async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to validate provider API key: {str(e)}")
+
+async def get_user_db_credentials(request: Request, provider_tag: str) -> dict:
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        
+        provider_res = supabase.table('providers') \
+            .select('id') \
+            .eq('provider_tag', provider_tag) \
+            .execute()
+        
+        if not provider_res.data:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        provider_id = provider_res.data[0]['id']
+        
+        creds_res = supabase.table('users_db_access') \
+            .select('credentials') \
+            .eq('user_id', user_id) \
+            .eq('provider_id', provider_id) \
+            .execute()
+        
+        if not creds_res.data:
+            raise HTTPException(status_code=404, detail="Database credentials not found")
+        
+        credentials = json.loads(creds_res.data[0]['credentials'])
+        
+        if credentials.get('password'):
+            credentials['password'] = decrypt(credentials['password'])
+        
+        return credentials
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get database credentials: {str(e)}")
     
     

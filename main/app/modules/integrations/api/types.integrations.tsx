@@ -4,7 +4,7 @@ export interface Provider {
   description: string;
   logo_url?: string;
   provider_tag: string;
-  auth_method: 'oauth' | 'api_key';
+  auth_method: 'oauth' | 'api_key' | 'db_access';
   scopes?: {
     scope: string;
     scope_name: string;
@@ -14,6 +14,26 @@ export interface Provider {
   created_at?: string | number;
   is_enabled?: boolean;
   ui_component?: string | object;
+}
+
+export interface DbConfig {
+  host?: string;
+  port?: string;
+  dbname?: string;
+  user: string;
+  password: string;
+  schema: string;
+  warehouse?: string;
+  account?: string;
+  role?: string;
+  database?: string;
+}
+
+export interface UserDbAccess {
+  id: string;
+  user_id: string;
+  provider_id: string;
+  credentials: string;
 }
 
 export interface IntegrationCardProps extends Provider {

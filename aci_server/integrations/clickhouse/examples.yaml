@@ -1,0 +1,110 @@
+routes:
+  - endpoint: /clickhouse/execute_query
+    examples:
+      - scenario: "Select data from a table"
+        description: "Execute a query to select data from a table"
+        input_json: |
+          {
+            "query": "SELECT * FROM system.numbers LIMIT 5",
+            "params": null,
+            "limit": 50
+          }
+        output_json: |
+          {
+            "data": {
+              "rows": [
+                {
+                  "number": 0
+                },
+                {
+                  "number": 1
+                },
+                {
+                  "number": 2
+                },
+                {
+                  "number": 3
+                },
+                {
+                  "number": 4
+                }
+              ],
+              "row_count": 5,
+              "query": "SELECT * FROM system.numbers LIMIT 5"
+            },
+            "message": null
+          }
+
+  - endpoint: /clickhouse/get_tables
+    examples:
+      - scenario: "List tables in default database"
+        description: "Get a list of all tables in the default database"
+        input_json: |
+          {
+          }
+        output_json: |
+          {
+            "data": {
+              "tables": [
+                {
+                  "name": "events"
+                },
+                {
+                  "name": "visits"
+                },
+                {
+                  "name": "users"
+                }
+              ],
+              "database": "default"
+            },
+            "message": null
+          }
+
+  - endpoint: /clickhouse/get_columns
+    examples:
+      - scenario: "Get columns for system.numbers table"
+        description: "Get column information for the system.numbers table"
+        input_json: |
+          {
+            "table_name": "numbers"
+          }
+        output_json: |
+          {
+            "data": {
+              "columns": [
+                {
+                  "name": "number",
+                  "type": "UInt64",
+                  "default_type": "",
+                  "default_expression": "",
+                  "comment": "",
+                  "codec_expression": null,
+                  "ttl_expression": null
+                }
+              ],
+              "table_name": "numbers"
+            },
+            "message": null
+          }
+
+  - endpoint: /clickhouse/test_connection
+    examples:
+      - scenario: "Test database connection"
+        description: "Test if the ClickHouse database connection is working"
+        input_json: |
+          {
+            "host": "localhost",
+            "port": 9000,
+            "database": "default",
+            "user": "default",
+            "password": ""
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Connection successful"
+            },
+            "message": null
+          }

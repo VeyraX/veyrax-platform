@@ -1,0 +1,10 @@
+[
+    {
+      "name": "SnowflakeResponseView",
+      "version": "1.0.0",
+      "description": "A React component for displaying Snowflake responses",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

@@ -22,6 +22,9 @@ from integrations.resend.route import router as resend_router
 from integrations.browser_use.route import router as browser_use_router
 from integrations.github.route import router as github_router
 from integrations.youtube.route import router as youtube_router
+from integrations.clickhouse.route import router as clickhouse_router
+from integrations.snowflake.route import router as snowflake_router
+from integrations.postgresql.route import router as postgresql_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -61,7 +64,10 @@ INTEGRATION_ROUTERS = {
     "resend": resend_router,
     "browser-use": browser_use_router,
     "github": github_router,
-    "youtube": youtube_router
+    "youtube": youtube_router,
+    "clickhouse": clickhouse_router,
+    "snowflake": snowflake_router,
+    "postgresql": postgresql_router
 }
 
 app = FastAPI()

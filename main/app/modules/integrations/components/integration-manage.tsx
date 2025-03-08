@@ -4,23 +4,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, getUserApiKey, enableApiKeyProvider } from "../api/api.integrations";
+import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-config";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [dbConfig, setDbConfig] = useState({
+    host: "",
+    port: "5432",
+    dbname: "",
+    user: "",
+    password: "",
+    schema: "public",
+    account: "",
+    warehouse: "",
+    database: "",
+    role: ""
+  });
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open && provider.auth_method === 'api_key') {
-      fetchApiKey();
+    if (open) {
+      if (provider.auth_method === 'api_key') {
+        fetchApiKey();
+      } else if (provider.auth_method === 'db_access') {
+        fetchDbCredentials();
+      }
     }
-  }, [open, provider.id]);
+  }, [open, provider.id, provider.auth_method]);
 
   const fetchApiKey = async () => {
     if (provider.auth_method !== 'api_key') return;
@@ -31,6 +49,43 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       setApiKey(key || "");
     } catch (error) {
       console.error('Failed to fetch API key:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDbCredentials = async () => {
+    if (provider.auth_method !== 'db_access') return;
+    
+    setIsLoading(true);
+    try {
+      const credentials = await getUserDbCredentials(provider.id);
+      if (credentials) {
+        if (provider.provider_tag === 'snowflake') {
+          setDbConfig({
+            ...dbConfig,
+            account: credentials.account || "",
+            user: credentials.user || "",
+            password: credentials.password || "",
+            warehouse: credentials.warehouse || "",
+            database: credentials.database || "",
+            schema: credentials.schema || "PUBLIC",
+            role: credentials.role || ""
+          });
+        } else {
+          setDbConfig({
+            ...dbConfig,
+            host: credentials.host || "",
+            port: credentials.port || "5432",
+            dbname: credentials.dbname || "",
+            user: credentials.user || "",
+            password: credentials.password || "",
+            schema: credentials.schema || "public"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch database credentials:', error);
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +104,34 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     }
   };
 
+  const handleSaveDbConfig = async () => {
+    setIsSaving(true);
+    setConnectionError(null);
+    
+    try {
+      console.log("Testing connection with config:", dbConfig);
+      const testResult = await testDbConnection(provider.id, dbConfig);
+      
+      console.log("Test connection result:", testResult);
+      
+      if (!testResult.success) {
+        setConnectionError(testResult.message || "Connection test failed");
+        setIsSaving(false);
+        return;
+      }
+      
+      await enableDbAccessProvider(provider.id, dbConfig);
+      setConnectionError(null);
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error('Failed to save database configuration:', error);
+      setConnectionError(error instanceof Error ? error.message : 'An unexpected error occurred');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDisconnect = async () => {
     try {
       await disconnectProvider(provider.id);
@@ -56,6 +139,89 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       onClose();
     } catch (error) {
       console.error('Failed to disconnect provider:', error);
+    }
+  };
+
+  const renderDbConfigForm = () => {
+    if (provider.provider_tag === 'snowflake') {
+      return (
+        <SnowflakeConfigForm 
+          config={dbConfig} 
+          onChange={setDbConfig} 
+          disabled={isLoading}
+        />
+      );
+    } else {
+      return (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="host">Host</Label>
+            <Input
+              id="host"
+              value={dbConfig.host}
+              onChange={(e) => setDbConfig({...dbConfig, host: e.target.value})}
+              placeholder="e.g., db.example.com"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="port">Port</Label>
+            <Input
+              id="port"
+              value={dbConfig.port}
+              onChange={(e) => setDbConfig({...dbConfig, port: e.target.value})}
+              placeholder="e.g., 5432"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="dbname">Database Name</Label>
+            <Input
+              id="dbname"
+              value={dbConfig.dbname}
+              onChange={(e) => setDbConfig({...dbConfig, dbname: e.target.value})}
+              placeholder="e.g., postgres"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="user">Username</Label>
+            <Input
+              id="user"
+              value={dbConfig.user}
+              onChange={(e) => setDbConfig({...dbConfig, user: e.target.value})}
+              placeholder="e.g., postgres"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={dbConfig.password}
+              onChange={(e) => setDbConfig({...dbConfig, password: e.target.value})}
+              placeholder={provider.connected ? "••••••" : "Enter password"}
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="schema">Schema</Label>
+            <Input
+              id="schema"
+              value={dbConfig.schema}
+              onChange={(e) => setDbConfig({...dbConfig, schema: e.target.value})}
+              placeholder="e.g., public"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      );
     }
   };
 
@@ -133,10 +299,25 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
             </div>
           )}
+
+          {/* Database Access Configuration */}
+          {provider.auth_method === 'db_access' && (
+            <div className="space-y-4">
+              {connectionError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{connectionError}</span>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                {renderDbConfigForm()}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex justify-between">
-          {provider.auth_method === 'oauth' && (
+          {provider.connected && (provider.auth_method === 'oauth' || provider.auth_method === 'db_access') && (
             <div className="flex gap-2">
               <Button
                 variant="destructive"
@@ -145,6 +326,19 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                 Disconnect
               </Button>
             </div>
+          )}
+          
+          {provider.auth_method === 'db_access' && !provider.connected && (
+            <Button 
+              onClick={handleSaveDbConfig} 
+              disabled={isLoading || isSaving}
+            >
+              {isSaving ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                "Save Connection"
+              )}
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

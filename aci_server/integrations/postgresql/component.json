@@ -1,0 +1,10 @@
+[
+    {
+      "name": "PostgreSQLResponseView",
+      "version": "1.0.0",
+      "description": "A React component for displaying PostgreSQL responses",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

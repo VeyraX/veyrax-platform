@@ -1,0 +1,10 @@
+[
+    {
+      "name": "ClickHouseResponseView",
+      "version": "1.0.0",
+      "description": "A React component for displaying ClickHouse responses",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

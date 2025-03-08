@@ -1,0 +1,148 @@
+routes:
+  - endpoint: /snowflake/execute_query
+    examples:
+      - scenario: "Select data from a table"
+        description: "Execute a query to select data from a table"
+        input_json: |
+          {
+            "query": "SELECT * FROM my_table LIMIT 5",
+            "params": null,
+            "limit": 50
+          }
+        output_json: |
+          {
+            "data": {
+              "rows": [
+                {
+                  "id": 1,
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "created_at": "2023-01-01T00:00:00Z"
+                },
+                {
+                  "id": 2,
+                  "name": "Jane Smith",
+                  "email": "jane@example.com",
+                  "created_at": "2023-01-02T00:00:00Z"
+                }
+              ],
+              "row_count": 2,
+              "query": "SELECT * FROM my_table LIMIT 5"
+            },
+            "message": null
+          }
+
+  - endpoint: /snowflake/get_tables
+    examples:
+      - scenario: "List tables in a schema"
+        description: "Get a list of all tables in a specific schema"
+        input_json: |
+          {
+          }
+        output_json: |
+          {
+            "data": {
+              "tables": [
+                {
+                  "name": "USERS",
+                  "database": "MY_DATABASE",
+                  "schema": "PUBLIC",
+                  "kind": "TABLE",
+                  "created_on": "2023-01-01T00:00:00Z",
+                  "comment": "User accounts"
+                },
+                {
+                  "name": "ORDERS",
+                  "database": "MY_DATABASE",
+                  "schema": "PUBLIC",
+                  "kind": "TABLE",
+                  "created_on": "2023-01-01T00:00:00Z",
+                  "comment": "Customer orders"
+                }
+              ],
+              "database": "MY_DATABASE",
+              "schema": "PUBLIC"
+            },
+            "message": null
+          }
+
+  - endpoint: /snowflake/get_columns
+    examples:
+      - scenario: "Get columns for a table"
+        description: "Get column information for a specific table"
+        input_json: |
+          {
+            "table_name": "USERS"
+          }
+        output_json: |
+          {
+            "data": {
+              "columns": [
+                {
+                  "name": "ID",
+                  "type": "NUMBER(38,0)",
+                  "kind": "COLUMN",
+                  "null": false,
+                  "default": null,
+                  "primary_key": true,
+                  "unique_key": true,
+                  "comment": "Primary key"
+                },
+                {
+                  "name": "NAME",
+                  "type": "VARCHAR(255)",
+                  "kind": "COLUMN",
+                  "null": false,
+                  "default": null,
+                  "primary_key": false,
+                  "unique_key": false,
+                  "comment": "User's full name"
+                },
+                {
+                  "name": "EMAIL",
+                  "type": "VARCHAR(255)",
+                  "kind": "COLUMN",
+                  "null": false,
+                  "default": null,
+                  "primary_key": false,
+                  "unique_key": true,
+                  "comment": "User's email address"
+                },
+                {
+                  "name": "CREATED_AT",
+                  "type": "TIMESTAMP_NTZ(9)",
+                  "kind": "COLUMN",
+                  "null": false,
+                  "default": "CURRENT_TIMESTAMP()",
+                  "primary_key": false,
+                  "unique_key": false,
+                  "comment": "Account creation timestamp"
+                }
+              ],
+              "table_name": "USERS"
+            },
+            "message": null
+          }
+
+  - endpoint: /snowflake/test_connection
+    examples:
+      - scenario: "Test database connection"
+        description: "Test if the Snowflake database connection is working"
+        input_json: |
+          {
+            "account": "myaccount",
+            "user": "myuser",
+            "password": "mypassword",
+            "warehouse": "compute_wh",
+            "database": "mydatabase",
+            "schema": "public",
+            "role": "myrole"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Connection successful"
+            },
+            "message": null
+          }
