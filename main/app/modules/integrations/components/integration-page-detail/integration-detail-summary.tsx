@@ -248,6 +248,21 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
             </table>
           </div>
         </div>
+
+        {/* Add documentation block for database providers */}
+        {['snowflake', 'clickhouse', 'postgres', 'postgresql'].includes(provider.provider_tag.toLowerCase()) && (
+          <div className="border border-border rounded-lg p-6 mb-8 bg-card flex justify-between items-center">
+            <span className="text-foreground font-medium">How-To Documentation</span>
+            <Button 
+              variant="link"
+              size="sm"
+              onClick={() => window.open(`https://docs.veyrax.com/integrations/${provider.provider_tag.toLowerCase()}`, '_blank')}
+              className="flex items-center gap-2 text-primary"
+            >
+              <ArrowUpRightIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </main>
 
       {showScrollTop && (
