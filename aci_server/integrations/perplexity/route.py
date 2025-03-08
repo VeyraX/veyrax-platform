@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from ..common.utils import format_validation_error
 from ..common.examples_handler import ExamplesLoader
 import os
+from requests import HTTPError
 
 router = APIRouter(prefix="/perplexity", tags=["perplexity"])
 
@@ -33,6 +34,8 @@ async def create_completion(
         return service.create_completion(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'CompletionRequest'))
+    except HTTPError as e:
+        raise HTTPException(status_code=500, detail=f"Perplexity API Error: {str(e)}")
     except Exception as e:
         import traceback
         traceback.print_exc()

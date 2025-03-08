@@ -6,7 +6,7 @@ class Message(BaseModel):
     content: str
 
 class CompletionRequest(BaseModel):
-    messages: List[Message]
+    messages: List[Message] = Field(description="The messages to send to the Perplexity API; Last message must have role `user`")
     model: str = "sonar"
     max_tokens: Optional[int] = 1024
     temperature: float = 0.4
