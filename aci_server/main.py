@@ -25,10 +25,12 @@ from integrations.youtube.route import router as youtube_router
 from integrations.clickhouse.route import router as clickhouse_router
 from integrations.snowflake.route import router as snowflake_router
 from integrations.postgresql.route import router as postgresql_router
+from integrations.veryrax.route import router as veryrax_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from celery_app import celery_app
+from integrations.common.get_memory import get_user_memories
 import os
 import json
 import inspect
@@ -67,7 +69,8 @@ INTEGRATION_ROUTERS = {
     "youtube": youtube_router,
     "clickhouse": clickhouse_router,
     "snowflake": snowflake_router,
-    "postgresql": postgresql_router
+    "postgresql": postgresql_router,
+    "veyrax": veryrax_router
 }
 
 app = FastAPI()
@@ -220,6 +223,9 @@ async def get_user_tools(request: Request):
         if not user_providers.data:
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
+            
+            tools_response["tools"]["memories"] = {}
+            
             return tools_response
             
         provider_ids = [item['provider_id'] for item in user_providers.data]
@@ -235,6 +241,9 @@ async def get_user_tools(request: Request):
         for provider in providers.data:
             if provider.get('input_schema'):
                 user_tools[provider['provider_tag']] = provider['input_schema']
+        
+        user_memories = await get_user_memories(user_id)
+        user_tools['memories'] = user_memories
         
         log_api_call(
             user_id=user_id,
