@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/utils/supabase/client'
 import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess } from './types.integrations'
-import { getAuthHeaders } from '@/lib/actions/actions'
 
 const supabase = createClient()
 
@@ -538,5 +537,62 @@ export const testDbConnection = async (providerId: string, dbConfig: DbConfig): 
       success: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred' 
     };
+  }
+};
+
+export const getUserMemoryChunks = async (): Promise<any[]> => {
+  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { data, error } = await supabase
+      .from('users_memory')
+      .select('*')
+      .eq('user_id', user?.id);
+    
+    if (error) throw error;
+    console.log(data);
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching memory chunks:', error);
+    throw error;
+  }
+};
+
+export const deleteUserMemoryChunk = async (chunkId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { error } = await supabase
+      .from('users_memory')
+      .delete()
+      .eq('id', chunkId)
+      .eq('user_id', user?.id);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting memory chunk:', error);
+    throw error;
+  }
+};
+
+export const upsertIntegrationRequest = async (integrationName: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user?.id) {
+    throw new Error('User not authenticated');
+  }
+  
+  try {
+    const { error } = await supabase
+      .from('integration_requests')
+      .upsert({
+        user_id: user.id,
+        integration_name: integrationName,
+        created_at: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error upserting integration request:', error);
+    throw error;
   }
 };

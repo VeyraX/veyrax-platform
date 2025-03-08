@@ -19,37 +19,22 @@ class SlackService:
         return load_components(current_dir)
 
     def _unwrap_user_references(self, message_text: str, user_cache: Dict[str, Dict] = None) -> str:
-        """
-        Unwraps user references like <@U123456> in message text with actual user names.
-        
-        Args:
-            message_text: The message text containing user references
-            user_cache: Optional dictionary to cache user info to avoid repeated API calls
-            
-        Returns:
-            The message text with user references replaced by user names
-        """
         if not message_text:
             return message_text
             
-        # Initialize cache if not provided
         if user_cache is None:
             user_cache = {}
             
         import re
-        # Find all user references like <@U123456>
         user_refs = re.findall(r'<@(U[A-Z0-9]+)>', message_text)
         
-        # Replace each reference with the actual user name
         for user_id in user_refs:
             if user_id not in user_cache:
                 try:
-                    # Get user info from Slack API - ensure consistent method usage
                     user_info = self.client.client.users_info(user=user_id)
                     user_cache[user_id] = user_info["user"]
                 except Exception as e:
                     logging.warning(f"Failed to get user info for {user_id}: {str(e)}")
-                    # If we can't get user info, just use the user ID as fallback
                     message_text = message_text.replace(f"<@{user_id}>", f"@{user_id}")
                     continue
                     
@@ -60,26 +45,13 @@ class SlackService:
         return message_text
         
     def _process_messages(self, messages: List[Dict], user_cache: Dict[str, Dict] = None) -> List[Message]:
-        """
-        Process a list of message dictionaries into Message objects,
-        unwrapping user references in the message text.
-        
-        Args:
-            messages: List of raw message dictionaries from Slack API
-            user_cache: Optional dictionary to cache user info
-            
-        Returns:
-            List of processed Message objects
-        """
         if user_cache is None:
             user_cache = {}
             
         processed_messages = []
         for msg in messages:
-            # Unwrap user references in the message text
             text = self._unwrap_user_references(msg.get("text", ""), user_cache)
             
-            # Get user info
             user_id = msg.get("user", "")
             user_info = None
             
@@ -93,7 +65,6 @@ class SlackService:
                 else:
                     user_info = user_cache[user_id]
             
-            # Create message object
             processed_messages.append(
                 Message(
                     id=msg.get("client_msg_id", msg.get("ts", "")),
@@ -160,7 +131,6 @@ class SlackService:
             user_id = conv.get("user", "")
             if user_id not in user_cache:
                 try:
-                    # Use consistent client method
                     user_info = self.client.client.users_info(user=user_id)["user"]
                     user_cache[user_id] = user_info
                 except Exception:
@@ -169,11 +139,9 @@ class SlackService:
             else:
                 user_info = user_cache[user_id]
                 
-            # Get the latest message if available
             latest = conv.get("latest", {})
             text = latest.get("text", "")
             
-            # Unwrap user references
             if text:
                 text = self._unwrap_user_references(text, user_cache)
                 
@@ -196,19 +164,11 @@ class SlackService:
         return self.prepare_response(message_list, "SlackMessageList")
 
     def post_message(self, channel: str, text: str) -> ApiResponse:
-        # Try to join the channel first and handle any errors
         join_result = self.client.join_channel(channel=channel)
-
-        print(f"DEBUG: Join result: {join_result}")
         
-        # Check if join was unsuccessful and has an error message indicating we're not in the channel
         if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
             raise Exception(f"Cannot post message: {join_result.get('error', 'Not in channel')}")
         
-        # Log the result for debugging
-        logging.info(f"Join result: {join_result}")
-        
-        # Then post the message
         response = self.client.post_message(channel=channel, text=text)
         user_info = self.client.users_info(response["message"]["user"])["user"]
         message = Message(
@@ -237,15 +197,6 @@ class SlackService:
         return self.prepare_response(message, "SlackMessageComposer")
 
     def reply_in_thread(self, channel: str, thread_ts: str, text: str) -> ApiResponse:
-        # Try to join the channel first and handle any errors
-        join_result = self.client.join_channel(channel=channel)
-        
-        # Check if join was unsuccessful and has an error message indicating we're not in the channel
-        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
-            raise Exception(f"Cannot reply in thread: {join_result.get('error', 'Not in channel')}")
-        
-        # Log the result for debugging
-        logging.info(f"Join result for thread reply: {join_result}")
         
         response = self.client.reply_in_thread(
             channel=channel,
@@ -265,15 +216,6 @@ class SlackService:
         return self.prepare_response(message, "SlackMessageComposer")
 
     def list_thread_messages(self, channel: str, thread_ts: str, cursor: Optional[str] = None) -> ApiResponse:
-        # Try to join the channel first and handle any errors
-        join_result = self.client.join_channel(channel=channel)
-        
-        # Check if join was unsuccessful and has an error message indicating we're not in the channel
-        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
-            raise Exception(f"Cannot list thread messages: {join_result.get('error', 'Not in channel')}")
-            
-        # Log the result for debugging
-        logging.info(f"Join result for thread messages: {join_result}")
         
         response = self.client.list_thread_messages(
             channel=channel,
@@ -281,7 +223,6 @@ class SlackService:
             cursor=cursor
         )
         
-        # Use the helper method to process messages
         user_cache = {}
         messages = self._process_messages(response["messages"], user_cache)
         
@@ -292,22 +233,12 @@ class SlackService:
         return self.prepare_response(message_list, "SlackMessageList")
 
     def list_channel_messages(self, channel: str, cursor: Optional[str] = None) -> ApiResponse:
-        # Try to join the channel first and handle any errors
-        join_result = self.client.join_channel(channel=channel)
-        
-        # Check if join was unsuccessful and has an error message indicating we're not in the channel
-        if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):
-            raise Exception(f"Cannot list channel messages: {join_result.get('error', 'Not in channel')}")
-            
-        # Log the result for debugging
-        logging.info(f"Join result for channel messages: {join_result}")
         
         response = self.client.list_channel_messages(
             channel=channel,
             cursor=cursor
         )
         
-        # Use the helper method to process messages
         user_cache = {}
         messages = self._process_messages(response["messages"], user_cache)
         
@@ -323,7 +254,6 @@ class SlackService:
         
         response = self.client.list_direct_messages_with_user(channel_id, cursor=cursor)
         
-        # Use the helper method to process messages
         user_cache = {}
         messages = self._process_messages(response["messages"], user_cache)
         

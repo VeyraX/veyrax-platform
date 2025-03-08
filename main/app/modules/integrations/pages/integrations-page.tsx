@@ -20,7 +20,14 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
     setIsLoading(true)
     try {
       const data = await getIntegrationsData()
-      setIntegrations(data)
+      
+      const sortedData = [...data].sort((a, b) => {
+        if (a.provider_tag === 'integration-request') return -1;
+        if (b.provider_tag === 'integration-request') return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      setIntegrations(sortedData)
     } catch (error) {
       console.error('Failed to fetch integrations:', error)
     } finally {

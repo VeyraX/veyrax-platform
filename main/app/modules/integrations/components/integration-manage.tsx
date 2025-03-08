@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-config";
+import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
@@ -109,10 +110,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     setConnectionError(null);
     
     try {
-      console.log("Testing connection with config:", dbConfig);
       const testResult = await testDbConnection(provider.id, dbConfig);
-      
-      console.log("Test connection result:", testResult);
       
       if (!testResult.success) {
         setConnectionError(testResult.message || "Connection test failed");
@@ -240,7 +238,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
-          {/* OAuth Scopes */}
           {provider.auth_method === 'oauth' && provider.scopes && (
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
@@ -266,7 +263,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             </div>
           )}
 
-          {/* API Key Input */}
+          {provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax' && (
+            <VeyraxConfig 
+              onUpdate={onUpdate}
+              disabled={isLoading}
+            />
+          )}
+
           {provider.auth_method === 'api_key' && (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -300,7 +303,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             </div>
           )}
 
-          {/* Database Access Configuration */}
           {provider.auth_method === 'db_access' && (
             <div className="space-y-4">
               {connectionError && (
@@ -317,7 +319,12 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </div>
 
         <DialogFooter className="flex justify-between">
-          {provider.connected && (provider.auth_method === 'oauth' || provider.auth_method === 'db_access') && (
+          {provider.connected && (
+            provider.auth_method === 'oauth' || 
+            provider.auth_method === 'db_access' || 
+            provider.auth_method === 'none' || 
+            (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax')
+          ) && (
             <div className="flex gap-2">
               <Button
                 variant="destructive"

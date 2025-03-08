@@ -4,7 +4,7 @@ export interface Provider {
   description: string;
   logo_url?: string;
   provider_tag: string;
-  auth_method: 'oauth' | 'api_key' | 'db_access';
+  auth_method: 'oauth' | 'api_key' | 'db_access' | 'none';
   scopes?: {
     scope: string;
     scope_name: string;

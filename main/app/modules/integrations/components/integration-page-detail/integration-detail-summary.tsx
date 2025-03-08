@@ -14,6 +14,7 @@ import { ScopeDialog } from '../integration-settings'
 import { ManageDialog } from '../integration-manage'
 import { initiateOAuthFlow } from '../../api/api.integrations'
 import { getIntegrationsData } from '../../api/api.integrations'
+import { enableProvider } from '../../api/api.integrations'
 
 interface IntegrationDetailSummaryPropsWithPublic extends IntegrationDetailSummaryProps {
   isPublic?: boolean
@@ -94,8 +95,37 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
     if (isConnected) {
       setShowManage(true);
     } else {
+      if (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax') {
+        const enableVeyraxProvider = async () => {
+          try {
+            await enableProvider(provider.id);
+            const providers = await getIntegrationsData();
+            const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+            setIsConnected(currentProvider?.connected || false);
+          } catch (error) {
+            console.error(`Failed to connect ${provider.name}:`, error);
+          }
+        };
+        
+        enableVeyraxProvider();
+        return;
+      }
+      
       if (provider.auth_method === 'api_key') {
         setShowManage(true);
+      } else if (provider.auth_method === 'none') {
+        const enableNoneProvider = async () => {
+          try {
+            await enableProvider(provider.id);
+            const providers = await getIntegrationsData();
+            const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+            setIsConnected(currentProvider?.connected || false);
+          } catch (error) {
+            console.error(`Failed to connect ${provider.name}:`, error);
+          }
+        };
+        
+        enableNoneProvider();
       } else {
         setShowSettings(true);
       }
@@ -277,18 +307,35 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
         </Button>
       )}
 
-      {!isPublic && provider.auth_method === 'api_key' && (
-        <ManageDialog
-          provider={{
-            ...provider,
-            connected: isConnected,
-            hasIndex: false,
-            indexStatus: null
-          }}
-          open={showManage}
-          onClose={() => setShowManage(false)}
-          onUpdate={() => {}}
-        />
+      {!isPublic && (
+        (provider.auth_method === 'api_key' || 
+         provider.auth_method === 'db_access' || 
+         (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax') ||
+         (provider.auth_method === 'none' && isConnected)) && (
+          <ManageDialog
+            provider={{
+              ...provider,
+              connected: isConnected,
+              hasIndex: false,
+              indexStatus: null
+            }}
+            open={showManage}
+            onClose={() => setShowManage(false)}
+            onUpdate={() => {
+              const checkConnection = async () => {
+                try {
+                  const providers = await getIntegrationsData();
+                  const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+                  setIsConnected(currentProvider?.connected || false);
+                } catch (error) {
+                  console.error('Failed to check connection status:', error);
+                }
+              };
+              
+              checkConnection();
+            }}
+          />
+        )
       )}
       
       {!isPublic && provider.auth_method === 'oauth' && isConnected && (
@@ -301,7 +348,19 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
           }}
           open={showManage}
           onClose={() => setShowManage(false)}
-          onUpdate={() => {}}
+          onUpdate={() => {
+            const checkConnection = async () => {
+              try {
+                const providers = await getIntegrationsData();
+                const currentProvider = providers.find(p => p.provider_tag === provider.provider_tag);
+                setIsConnected(currentProvider?.connected || false);
+              } catch (error) {
+                console.error('Failed to check connection status:', error);
+              }
+            };
+            
+            checkConnection();
+          }}
         />
       )}
 

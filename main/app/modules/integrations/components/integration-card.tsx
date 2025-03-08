@@ -3,20 +3,26 @@
 import { FC, useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpRight, Plus, Files } from 'lucide-react'
+import { ArrowUpRight, Plus, Files, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider } from '../api/api.integrations'
+import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider, enableProvider } from '../api/api.integrations'
 import { ManageDialog } from './integration-manage'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { IntegrationRequestForm } from './provider-connection-forms/integration-request'
 
 export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> = (props) => {
   const router = useRouter()
   const [showSettings, setShowSettings] = useState(false);
   const [showManage, setShowManage] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const { isPublic = false } = props;
+  
+  const isRequestCard = props.provider_tag === 'integration-request';
 
   const handleShowSettings = (provider: Provider) => {
     setShowSettings(true);
@@ -36,9 +42,45 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
     }
   };
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
+    if (isRequestCard) {
+      setShowRequestForm(true);
+      return;
+    }
+    
+    if (props.provider_tag && props.provider_tag.toLowerCase() === 'veyrax') {
+      if (!props.connected) {
+        setIsConnecting(true);
+        try {
+          await enableProvider(props.id);
+          if (props.onConnectionChange) {
+            props.onConnectionChange();
+          }
+        } catch (error) {
+          console.error(`Failed to connect ${props.name}:`, error);
+        } finally {
+          setIsConnecting(false);
+        }
+      } else {
+        setShowManage(true);
+      }
+      return;
+    }
+    
     if (props.auth_method === 'api_key' || props.auth_method === 'db_access') {
       setShowManage(true);
+    } else if (props.auth_method === 'none') {
+      setIsConnecting(true);
+      try {
+        await enableProvider(props.id);
+        if (props.onConnectionChange) {
+          props.onConnectionChange();
+        }
+      } catch (error) {
+        console.error(`Failed to connect ${props.name}:`, error);
+      } finally {
+        setIsConnecting(false);
+      }
     } else {
       handleShowSettings(props as Provider);
     }
@@ -52,9 +94,22 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
     }
   };
   
+  const handleRequestFormSubmit = () => {
+    setShowRequestForm(false);
+    if (props.onConnectionChange) {
+      props.onConnectionChange();
+    }
+  };
+  
   return (
     <>
-      <Card className="w-full border shadow-none rounded-lg h-[204px]">
+      <Card 
+        className={`w-full shadow-none rounded-lg h-[204px] ${
+          isRequestCard 
+            ? "border-2 border-dashed border-primary" 
+            : "border"
+        }`}
+      >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex flex-col gap-3 flex-1">
             <div className="flex justify-between items-center">
@@ -81,23 +136,35 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
           </div>
 
           <div className="flex items-center mt-3 pt-3 justify-between gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDocsClick}
-            >
-              Docs
-              <Files className="h-4 w-4" />
-            </Button>
+            {!isRequestCard && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDocsClick}
+              >
+                Docs
+                <Files className="h-4 w-4" />
+              </Button>
+            )}
             
             {!isPublic && (
-              props.connected ? (
+              isRequestCard ? (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConnect}
+                  className="ml-auto"
+                >
+                  Request
+                  <Plus className="h-4 w-4" />
+                </Button>
+              ) : props.connected ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowManage(true)}
                 >
-                  {props.auth_method === 'api_key' ? 'Manage' : 'Manage'}
+                  Manage
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
               ) : (
@@ -105,9 +172,16 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                   variant="outline"
                   size="sm"
                   onClick={handleConnect}
+                  disabled={isConnecting}
                 >
-                  Connect
-                  <Plus className="h-4 w-4" />
+                  {isConnecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Connect
+                      <Plus className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               )
             )}
@@ -115,13 +189,37 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
         </CardContent>
       </Card>
 
-      {!isPublic && (props.auth_method === 'api_key' || props.auth_method === 'db_access') && (
-        <ManageDialog
-          provider={props}
-          open={showManage}
-          onClose={() => setShowManage(false)}
-          onUpdate={props.onConnectionChange || (() => {})}
-        />
+      {/* Integration Request Dialog */}
+      <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img
+                src={props.logo_url || '/default-logo.svg'}
+                alt={props.name}
+                className="w-6 h-6 rounded"
+              />
+              Request Integration
+            </DialogTitle>
+          </DialogHeader>
+          <IntegrationRequestForm 
+            onSubmit={handleRequestFormSubmit}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {!isPublic && (
+        (props.auth_method === 'api_key' || 
+         props.auth_method === 'db_access' || 
+         (props.provider_tag && props.provider_tag.toLowerCase() === 'veyrax') ||
+         (props.auth_method === 'none' && props.connected)) && (
+          <ManageDialog
+            provider={props}
+            open={showManage}
+            onClose={() => setShowManage(false)}
+            onUpdate={props.onConnectionChange || (() => {})}
+          />
+        )
       )}
       
       {!isPublic && props.auth_method === 'oauth' && props.connected && (

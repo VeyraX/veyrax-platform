@@ -27,16 +27,8 @@ async def get_slack_service(request: FastAPIRequest):
     try:
         token_data = await TokenService.get_user_token(request, 'slack')
 
-        print(f"DEBUG: Token data: {token_data}")
-        
         if TokenService.is_token_expired(token_data):
-
-            print(f"DEBUG: Token expired, attempting to refresh")
-            try:
-                token_data = await SlackTokenRefresher.refresh(request, token_data)
-                print(f"DEBUG: Token refreshed successfully: {token_data}")
-            except Exception as e:
-                raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+            token_data = await SlackTokenRefresher.refresh(request, token_data)
         
         client = SlackClient(token_data['access_token'])
         return SlackService(client)
@@ -168,13 +160,6 @@ async def list_channel_messages(
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListChannelMessagesParams'))
     except Exception as e:
         import traceback
-        error_message = str(e)
-        
-        # Check for the specific Slack API error
-        if "not_in_channel" in error_message:
-            raise HTTPException(status_code=403, detail="Cannot access channel messages: Bot is not a member of this channel, please add VeyraX to the channel")
-            
-        # For all other errors, standard 500 response
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
