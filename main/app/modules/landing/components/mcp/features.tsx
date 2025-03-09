@@ -120,7 +120,7 @@ const features = [
     },
     {
       Icon: Layers,
-      name: "16+ Integrations",
+      name: "20+ Integrations",
       description: "with your favorite tools available in one place.",
       href: "https://veyrax.com/marketplace",
       cta: "Visit marketplace",
