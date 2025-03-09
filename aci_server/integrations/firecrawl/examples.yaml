@@ -1,0 +1,340 @@
+routes:
+  - endpoint: /firecrawl/scrape
+    examples:
+      - scenario: "Scrape a webpage"
+        description: "Scrape a webpage and get its content in markdown format"
+        input_json: |
+          {
+            "url": "https://example.com",
+            "formats": ["markdown", "html"],
+            "onlyMainContent": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "data": {
+                "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.\n\n[More information...](https://www.iana.org/domains/example)",
+                "html": "<h1>Example Domain</h1><p>This domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.</p><p><a href=\"https://www.iana.org/domains/example\">More information...</a></p>",
+                "metadata": {
+                  "title": "Example Domain",
+                  "description": "Example Domain",
+                  "language": "en",
+                  "sourceURL": "https://example.com",
+                  "statusCode": 200
+                }
+              }
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/batch_scrape
+    examples:
+      - scenario: "Batch scrape multiple webpages"
+        description: "Scrape multiple webpages in a single request"
+        input_json: |
+          {
+            "urls": [
+              "https://example.com",
+              "https://example.org"
+            ],
+            "formats": ["markdown"],
+            "onlyMainContent": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "id": "batch_12345",
+              "url": "https://api.firecrawl.dev/v1/batch/scrape/batch_12345"
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_batch_status
+    examples:
+      - scenario: "Check batch scrape status"
+        description: "Get the status and results of a batch scrape job"
+        input_json: |
+          {
+            "id": "batch_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "total": 2,
+              "completed": 2,
+              "creditsUsed": 2,
+              "expiresAt": "2023-12-31T23:59:59Z",
+              "data": [
+                {
+                  "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.\n\n[More information...](https://www.iana.org/domains/example)",
+                  "metadata": {
+                    "title": "Example Domain",
+                    "sourceURL": "https://example.com",
+                    "statusCode": 200
+                  }
+                },
+                {
+                  "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.\n\n[More information...](https://www.iana.org/domains/example)",
+                  "metadata": {
+                    "title": "Example Domain",
+                    "sourceURL": "https://example.org",
+                    "statusCode": 200
+                  }
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_batch_errors
+    examples:
+      - scenario: "Get batch scrape errors"
+        description: "Get errors from a batch scrape job"
+        input_json: |
+          {
+            "id": "batch_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "errors": [
+                {
+                  "id": "error_1",
+                  "timestamp": "2023-11-01T12:00:00Z",
+                  "url": "https://nonexistent-site.example",
+                  "error": "Failed to resolve DNS"
+                }
+              ],
+              "robotsBlocked": [
+                "https://example.com/private"
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/crawl
+    examples:
+      - scenario: "Crawl a website"
+        description: "Crawl a website starting from a specific URL"
+        input_json: |
+          {
+            "url": "https://example.com",
+            "maxDepth": 2,
+            "limit": 100,
+            "scrapeOptions": {
+              "formats": ["markdown"],
+              "onlyMainContent": true
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "id": "crawl_12345",
+              "url": "https://example.com"
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_crawl_status
+    examples:
+      - scenario: "Check crawl status"
+        description: "Get the status and results of a crawl job"
+        input_json: |
+          {
+            "id": "crawl_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "total": 10,
+              "completed": 10,
+              "creditsUsed": 10,
+              "expiresAt": "2023-12-31T23:59:59Z",
+              "data": [
+                {
+                  "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.\n\n[More information...](https://www.iana.org/domains/example)",
+                  "metadata": {
+                    "title": "Example Domain",
+                    "sourceURL": "https://example.com",
+                    "statusCode": 200
+                  }
+                },
+                {
+                  "markdown": "# About Example\n\nThis is an about page for the example domain.",
+                  "metadata": {
+                    "title": "About Example",
+                    "sourceURL": "https://example.com/about",
+                    "statusCode": 200
+                  }
+                }
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/cancel_crawl
+    examples:
+      - scenario: "Cancel a crawl job"
+        description: "Cancel an in-progress crawl job"
+        input_json: |
+          {
+            "id": "crawl_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "cancelled"
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_crawl_errors
+    examples:
+      - scenario: "Get crawl errors"
+        description: "Get errors from a crawl job"
+        input_json: |
+          {
+            "id": "crawl_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "errors": [
+                {
+                  "id": "error_1",
+                  "timestamp": "2023-11-01T12:00:00Z",
+                  "url": "https://example.com/broken-link",
+                  "error": "404 Not Found"
+                }
+              ],
+              "robotsBlocked": [
+                "https://example.com/private"
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/map_site
+    examples:
+      - scenario: "Map a website"
+        description: "Get all links from a website"
+        input_json: |
+          {
+            "url": "https://example.com",
+            "limit": 100,
+            "ignoreSitemap": false
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "links": [
+                "https://example.com",
+                "https://example.com/about",
+                "https://example.com/contact",
+                "https://example.com/products"
+              ]
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/extract
+    examples:
+      - scenario: "Extract structured data"
+        description: "Extract structured data from websites"
+        input_json: |
+          {
+            "urls": ["https://example.com"],
+            "prompt": "Extract the main heading and description",
+            "schema": {
+              "heading": "string",
+              "description": "string"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "id": "extract_12345"
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_extract_status
+    examples:
+      - scenario: "Check extract status"
+        description: "Get the status and results of an extract job"
+        input_json: |
+          {
+            "id": "extract_12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "data": {
+                "heading": "Example Domain",
+                "description": "This domain is for use in illustrative examples in documents."
+              },
+              "status": "completed",
+              "expiresAt": "2023-12-31T23:59:59Z"
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/search
+    examples:
+      - scenario: "Search the web"
+        description: "Search the web and get results with content"
+        input_json: |
+          {
+            "query": "example domain",
+            "limit": 3,
+            "scrapeOptions": {
+              "formats": ["markdown"]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "data": [
+                {
+                  "title": "Example Domain",
+                  "description": "This domain is for use in illustrative examples in documents.",
+                  "url": "https://example.com",
+                  "markdown": "# Example Domain\n\nThis domain is for use in illustrative examples in documents. You may use this domain in literature without prior coordination or asking for permission.\n\n[More information...](https://www.iana.org/domains/example)"
+                },
+                {
+                  "title": "Example Domains - IANA",
+                  "description": "Information about example domains from IANA.",
+                  "url": "https://www.iana.org/domains/example",
+                  "markdown": "# IANA — Example Domains\n\nExample domains are reserved for use in documentation and are not available for registration."
+                }
+              ],
+              "warning": null
+            },
+            "message": null
+          }
+
+  - endpoint: /firecrawl/get_credit_usage
+    examples:
+      - scenario: "Get credit usage"
+        description: "Get the team's credit usage information"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "data": {
+                "remaining_credits": 1000
+              }
+            },
+            "message": null
+          }

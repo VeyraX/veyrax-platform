@@ -19,13 +19,10 @@ class PerplexityService:
         return ApiResponse(data=data, component=components)
         
     def create_completion(self, request: CompletionRequest) -> ApiResponse:
-        # Serialize the request data carefully
         request_data = request.dict(exclude_unset=True)
-        # Handle specific serialization for response_format if needed
         if isinstance(request_data.get('response_format'), str):
             request_data['response_format'] = {'type': request_data['response_format']}
         
-        # Send the serialized request data to the client
         response = self.client.create_completion(**request_data)
         completion_response = CompletionResponse(**response)
         return self.prepare_response(completion_response, "PerplexityResponseView")
