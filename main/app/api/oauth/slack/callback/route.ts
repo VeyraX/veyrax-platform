@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
             access_token: encryptedAccessToken,
             refresh_token: encryptedRefreshToken
         };
+        console.log(tokens)
 
         const { error: upsertError } = await supabase
             .from('users_oauth_tokens')
