@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
             throw providerUpsertError;
         }
 
-        const encryptedAccessToken = encrypt(tokens.access_token);
+        const encryptedAccessToken = tokens.access_token ? encrypt(tokens.access_token) : null;
         const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
         
         const encryptedTokenData = {
