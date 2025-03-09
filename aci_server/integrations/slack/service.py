@@ -164,6 +164,8 @@ class SlackService:
         return self.prepare_response(message_list, "SlackMessageList")
 
     def post_message(self, channel: str, text: str) -> ApiResponse:
+        print(f"Using token: {self.client.client.token[:10]}...")
+        
         join_result = self.client.join_channel(channel=channel)
         
         if not join_result.get("ok", True) and "not_in_channel" in str(join_result.get("error", "")):

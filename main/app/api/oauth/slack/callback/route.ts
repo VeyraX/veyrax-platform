@@ -55,6 +55,15 @@ export async function GET(request: NextRequest) {
             throw new Error(tokens.error || 'Failed to obtain access token');
         }
 
+        const accessToken = tokens.authed_user?.access_token || tokens.access_token;
+        const refreshToken = tokens.authed_user?.refresh_token || tokens.refresh_token;
+        const expiresIn = tokens.authed_user?.expires_in || tokens.expires_in;
+
+        if (!accessToken) {
+            console.error('Missing access_token in OAuth response:', tokens);
+            throw new Error('OAuth failed: Missing access token');
+        }
+
         const { error: providerUpsertError } = await supabase
             .from('users_providers')
             .upsert({
@@ -69,15 +78,15 @@ export async function GET(request: NextRequest) {
             throw providerUpsertError;
         }
 
-        const encryptedAccessToken = tokens.access_token ? encrypt(tokens.access_token) : null;
-        const encryptedRefreshToken = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
+        const encryptedAccessToken =  encrypt(accessToken);
+        const encryptedRefreshToken = refreshToken ? encrypt(refreshToken) : null;
+        
         
         const encryptedTokenData = {
             ...tokens,
             access_token: encryptedAccessToken,
             refresh_token: encryptedRefreshToken
         };
-        console.log(tokens)
 
         const { error: upsertError } = await supabase
             .from('users_oauth_tokens')
@@ -86,8 +95,8 @@ export async function GET(request: NextRequest) {
                 provider_id: provider_id,
                 access_token: encryptedAccessToken,
                 refresh_token: encryptedRefreshToken,
-                expires_at: tokens.expires_in 
-                    ? Math.floor(Date.now() / 1000) + tokens.expires_in 
+                expires_at: expiresIn 
+                    ? Math.floor(Date.now() / 1000) + expiresIn 
                     : null,
                 scopes: Array.isArray(scopes) ? scopes.join(',') : scopes,
                 raw_token_data: encryptedTokenData,
