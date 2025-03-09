@@ -21,7 +21,7 @@ import os
 
 router = APIRouter(prefix="/slack", tags=["slack"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/slack directory
+examples = ExamplesLoader()
 
 async def get_slack_service(request: FastAPIRequest):
     try:
@@ -107,7 +107,7 @@ async def send_dm(
 ):
     try:
         validated_params = SendDmParams(**params)
-        return service.send_dm(validated_params.message.user_id, validated_params.message.text)
+        return service.send_dm(validated_params.message.user, validated_params.message.text)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'SendDmParams'))
     except Exception as e:
@@ -171,7 +171,7 @@ async def list_direct_messages_with_user(
 ):
     try:
         validated_params = ListDirectMessagesWithUserParams(**params)
-        return service.list_direct_messages_with_user(validated_params.user_id, validated_params.cursor)
+        return service.list_direct_messages_with_user(validated_params.user, validated_params.cursor)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListDirectMessagesWithUserParams'))
     except Exception as e:

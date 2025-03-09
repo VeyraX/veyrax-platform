@@ -36,7 +36,7 @@ class MessageList(BaseModel):
     cursor: Optional[str]
 
 class DirectMessage(BaseModel):
-    user_id: str
+    user: str
     text: str
 
 class ThreadMessage(BaseModel):
@@ -75,7 +75,7 @@ class ListChannelMessagesParams(BaseModel):
     cursor: Optional[str] = None
 
 class ListDirectMessagesWithUserParams(BaseModel):
-    user_id: str
+    user: str
     cursor: Optional[str] = None
 
 # API Response class

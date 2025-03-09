@@ -147,7 +147,7 @@ routes:
         input_json: |
           {
             "message": {
-              "user_id": "U0456USER2",
+              "user": "U0456USER2",
               "text": "Hi Jane, can we meet to discuss the project specs?"
             }
           }
@@ -304,7 +304,7 @@ routes:
         description: "Retrieves the conversation history with a specific user"
         input_json: |
           {
-            "user_id": "U0456USER2"
+            "user": "U0456USER2"
           }
         output_json: |
           {

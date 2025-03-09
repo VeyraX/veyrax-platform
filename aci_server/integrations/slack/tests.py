@@ -122,7 +122,7 @@ def test_direct_messaging(base_setup, test_user):
     # Send direct message
     dm_payload = {
         "message": {
-            "user_id": test_user["id"],
+            "user": test_user["id"],
             "text": "Test direct message"
         }
     }
@@ -132,7 +132,7 @@ def test_direct_messaging(base_setup, test_user):
         dm_data = dm_response.json()["data"]
         
         # List DMs with user
-        history_payload = {"user_id": test_user["id"]}
+        history_payload = {"user": test_user["id"]}
         history_response = base_setup.post("/slack/list_direct_messages_with_user", payload=history_payload)
         history_messages = history_response.json()["data"]["messages"]
         
