@@ -319,8 +319,16 @@ class NotionService:
                 params["query"] = filters.query
                 
             if filters.sort_direction:
+                direction = filters.sort_direction
+                if direction.lower() in ["desc", "descending"]:
+                    direction = "descending"
+                elif direction.lower() in ["asc", "ascending"]:
+                    direction = "ascending"
+                else:
+                    direction = "descending"
+                    
                 params["sort"] = {
-                    "direction": filters.sort_direction,
+                    "direction": direction,
                     "timestamp": "last_edited_time"
                 }
                 
