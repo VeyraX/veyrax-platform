@@ -145,7 +145,7 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Mac</h4>
+                    <h4 className="text-sm font-medium mb-2">MacOS</h4>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Input
