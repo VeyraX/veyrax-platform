@@ -84,8 +84,11 @@ export async function GET(request: NextRequest) {
         
         const encryptedTokenData = {
             ...tokens,
-            access_token: encryptedAccessToken,
-            refresh_token: encryptedRefreshToken
+            authed_user: tokens.authed_user ? {
+                ...tokens.authed_user,
+                access_token: encryptedAccessToken,
+                refresh_token: encryptedRefreshToken
+            } : undefined
         };
 
         const { error: upsertError } = await supabase
