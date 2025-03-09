@@ -30,6 +30,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     role: ""
   });
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [shouldCloseAfterUpdate, setShouldCloseAfterUpdate] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -140,6 +141,10 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     }
   };
 
+  const handleVeyraxUpdate = () => {
+    if (onUpdate) onUpdate();
+  };
+
   const renderDbConfigForm = () => {
     if (provider.provider_tag === 'snowflake') {
       return (
@@ -225,7 +230,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <img
@@ -265,7 +270,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
           {provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax' && (
             <VeyraxConfig 
-              onUpdate={onUpdate}
+              onUpdate={handleVeyraxUpdate}
               disabled={isLoading}
             />
           )}

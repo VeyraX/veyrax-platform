@@ -558,6 +558,47 @@ export const getUserMemoryChunks = async (): Promise<any[]> => {
   }
 };
 
+export const addUserMemoryChunk = async (memory: string, tool: string): Promise<any> => {
+  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { data, error } = await supabase
+      .from('users_memory')
+      .insert({
+        user_id: user?.id,
+        memory: memory,
+        tool: tool,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding memory chunk:', error);
+    throw error;
+  }
+};
+
+export const updateUserMemoryChunk = async (chunkId: string, memory: string, tool: string): Promise<any> => {
+  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { data, error } = await supabase
+      .from('users_memory')
+      .update({ memory, tool })
+      .eq('id', chunkId)
+      .eq('user_id', user?.id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating memory chunk:', error);
+    throw error;
+  }
+};
+
 export const deleteUserMemoryChunk = async (chunkId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser()
   try {
