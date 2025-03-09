@@ -24,9 +24,14 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
 
   const mcpCommands = {
-    cursor: apiKey ? 
-      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` : 
-      `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"VEYRAX_API_KEY\\"}"`,
+    cursor: {
+      Windows: apiKey ? 
+        `cmd /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` : 
+        `cmd /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"VEYRAX_API_KEY\\"}"`,
+      MacOS: apiKey ? 
+        `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` : 
+        `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"VEYRAX_API_KEY\\"}"`
+    },
     claude: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude`,
     windsurf: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf`,
     cline: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline`,
@@ -116,24 +121,72 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
                 </p>
               </div>
               
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    value={command}
-                    readOnly
-                    className="pr-10 font-mono text-sm"
-                  />
+              {key === 'cursor' ? (
+                <>
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium mb-2">Windows</h4>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          value={(command as {Windows: string; MacOS: string}).Windows}
+                          readOnly
+                          className="pr-10 font-mono text-sm"
+                        />
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).Windows)}
+                      >
+                        {copiedCommand === (command as {Windows: string; MacOS: string}).Windows ? 
+                          <Check className="h-4 w-4" /> : 
+                          <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Mac</h4>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          value={(command as {Windows: string; MacOS: string}).MacOS}
+                          readOnly
+                          className="pr-10 font-mono text-sm"
+                        />
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).MacOS)}
+                      >
+                        {copiedCommand === (command as {Windows: string; MacOS: string}).MacOS ? 
+                          <Check className="h-4 w-4" /> : 
+                          <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      value={command as string}
+                      readOnly
+                      className="pr-10 font-mono text-sm"
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleCopyCommand(command as string)}
+                  >
+                    {copiedCommand === command ? 
+                      <Check className="h-4 w-4" /> : 
+                      <Copy className="h-4 w-4" />}
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={() => handleCopyCommand(command)}
-                >
-                  {copiedCommand === command ? 
-                    <Check className="h-4 w-4" /> : 
-                    <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
+              )}
+              
               {key === 'config' && !apiKey && (
                 <p className="text-sm text-amber-500 mt-2">
                   Note: Generate an API key first to get a valid configuration command.

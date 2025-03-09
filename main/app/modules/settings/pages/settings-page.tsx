@@ -95,7 +95,7 @@ export function AccountSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 h-[80vh]">
+      <DialogContent className="max-w-4xl p-0 h-[80vh] overflow-hidden">
         <div className="flex h-full">
           <div className="w-64 border-r p-6">
             <DialogHeader>
@@ -152,7 +152,7 @@ export function AccountSettingsDialog({
             </nav>
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-6 overflow-y-auto max-h-[80vh]">
             {activeTab === 'account' ? (
               <AccountSettings 
                 profile={profile} 
