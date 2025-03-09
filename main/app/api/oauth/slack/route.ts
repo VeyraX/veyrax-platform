@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         `client_id=${process.env.SLACK_CLIENT_ID}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
-        `user_scope=${encodeURIComponent(scopes.join(','))}&` +
+        `scope=${encodeURIComponent(scopes.join(','))}&` +
         `state=${state}`;
 
     return NextResponse.json({ url: authUrl });
