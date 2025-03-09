@@ -44,28 +44,61 @@ class FirecrawlService:
             return schema
             
         schema_properties = {}
+        required_fields = []
+        
         for key, value in schema.items():
+            is_optional = False
+            if isinstance(value, str) and value.endswith('?'):
+                is_optional = True
+                value = value[:-1]  
+            
+            is_array = False
+            if isinstance(value, str) and value.endswith('[]'):
+                is_array = True
+                value = value[:-2] 
+            
             if value == 'string' or value == '':
-                schema_properties[key] = {"type": "string"}
+                if is_array:
+                    schema_properties[key] = {"type": "array", "items": {"type": "string"}}
+                else:
+                    schema_properties[key] = {"type": "string"}
             elif value == 'number' or value == 'integer':
-                schema_properties[key] = {"type": value}
+                if is_array:
+                    schema_properties[key] = {"type": "array", "items": {"type": value}}
+                else:
+                    schema_properties[key] = {"type": value}
             elif value == 'boolean':
-                schema_properties[key] = {"type": "boolean"}
+                if is_array:
+                    schema_properties[key] = {"type": "array", "items": {"type": "boolean"}}
+                else:
+                    schema_properties[key] = {"type": "boolean"}
             elif value == 'array':
                 schema_properties[key] = {"type": "array", "items": {"type": "string"}}
             elif value == 'object':
                 schema_properties[key] = {"type": "object"}
             else:
                 schema_properties[key] = value
+            
+            if not is_optional:
+                required_fields.append(key)
         
-        return {
+        result = {
             "type": "object",
-            "properties": schema_properties,
-            "required": list(schema_properties.keys())
+            "properties": schema_properties
         }
+        
+        if required_fields:
+            result["required"] = required_fields
+        
+        return result
     
     def scrape(self, params: ScrapeParams) -> ApiResponse:
-        response = self.client.scrape(**params.dict(exclude_none=True))
+        params_dict = params.dict(exclude_none=True)
+        
+        if 'jsonOptions' in params_dict and 'schema' in params_dict['jsonOptions']:
+            params_dict['jsonOptions']['schema'] = self._convert_schema_to_json_schema(params_dict['jsonOptions']['schema'])
+        
+        response = self.client.scrape(**params_dict)
         return ApiResponse(data=response)
     
     def batch_scrape(self, params: BatchScrapeParams) -> ApiResponse:
