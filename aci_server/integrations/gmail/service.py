@@ -127,8 +127,47 @@ class GmailService:
         
         return self.prepare_response(message_obj, "GmailMessageCard")
 
+    def move_to_trash(self, message_id: str) -> ApiResponse:
+        message_data = self.client.move_to_trash(message_id)
+        # Get full message data since trash response doesn't include all fields
+        full_message_data = self.client.get_message(message_id)
+        
+        message = Message(
+            id=message_data['id'],
+            thread_id=message_data['threadId'],
+            subject=self._get_header(full_message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(full_message_data),
+            sender=self._get_header(full_message_data, 'From'),
+            recipient=self._get_header(full_message_data, 'To'),
+            date=parser.parse(self._get_header(full_message_data, 'Date')) if self._get_header(full_message_data, 'Date') else datetime.fromtimestamp(int(message_data['internalDate'])/1000),
+            html_link=self._generate_html_link(message_data['id']),
+            labels=message_data.get('labelIds', [])
+        )
+        return self.prepare_response(message, "GmailMessageCard")
+
     def delete_message(self, message_id: str) -> None:
+        # First move to trash to get the message data
+        message_data = self.client.move_to_trash(message_id)
+        # Get full message data since trash response doesn't include all fields
+        full_message_data = self.client.get_message(message_id)
+        
+        message = Message(
+            id=message_data['id'],
+            thread_id=message_data['threadId'],
+            subject=self._get_header(full_message_data, 'Subject'),
+            snippet=message_data['snippet'],
+            body=self._get_body(full_message_data),
+            sender=self._get_header(full_message_data, 'From'),
+            recipient=self._get_header(full_message_data, 'To'),
+            date=parser.parse(self._get_header(full_message_data, 'Date')) if self._get_header(full_message_data, 'Date') else datetime.fromtimestamp(int(message_data['internalDate'])/1000),
+            html_link=self._generate_html_link(message_data['id']),
+            labels=message_data.get('labelIds', [])
+        )
+        
+        # Now actually delete the message
         self.client.delete_message(message_id)
+        return self.prepare_response(message, "GmailMessageCard")
 
     def _create_mime_message(self, to: str, subject: str, body: str) -> Dict[str, Any]:
         message = MIMEText(body)
@@ -189,7 +228,8 @@ class GmailService:
                 'recipient': self._get_header(message_data, 'To') or None,
                 'sender': self._get_header(message_data, 'From') or None,
                 'date': date,
-                'html_link': self._generate_html_link(message_data['id'])
+                'html_link': self._generate_html_link(message_data['id']),
+                'draft_id': draft['id']
             })
             
         message_list = MessageList(
@@ -252,3 +292,4 @@ class GmailService:
         except Exception as e:
             print(f"Error decoding message body: {e}")
             return ""
+

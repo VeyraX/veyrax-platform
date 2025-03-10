@@ -86,7 +86,7 @@ routes:
   - endpoint: /gmail/delete_message
     examples:
       - scenario: "Delete Email"
-        description: "Permanently deletes an email message"
+        description: "Moves to Trash email (do not delete it entirely)"
         input_json: |
           {
             "message_id": "msg123abc"
@@ -96,6 +96,35 @@ routes:
             "status_code": 200,
             "status": "success",
             "message": "Message successfully deleted"
+          }
+
+  - endpoint: /gmail/move_to_trash
+    examples:
+      - scenario: "Move Email to Trash"
+        description: "Moves an email message to the trash folder"
+        input_json: |
+          {
+            "message_id": "msg123abc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "msg123abc",
+              "thread_id": "thread123",
+              "subject": "Project Update",
+              "snippet": "Here's the latest update on our project...",
+              "body": "Here's the latest update on our project. We've made significant progress on...",
+              "recipient": "recipient@example.com",
+              "sender": "sender@example.com",
+              "date": "2023-03-15T14:30:00Z",
+              "html_link": "https://mail.google.com/mail/u/0/#trash/msg123abc",
+              "labels": ["TRASH"]
+            },
+            "message": "Message moved to trash successfully",
+            "component": {
+              "name": "GmailMessageCard"
+            }
           }
 
   - endpoint: /gmail/send_message
