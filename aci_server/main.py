@@ -41,11 +41,13 @@ import sentry_sdk
 load_dotenv()
 
 sentry_url = os.getenv("SENTRY_URL")
+NEXT_PUBLIC_SENTRY_ENVIRONMENT = os.getenv('NEXT_PUBLIC_SENTRY_ENVIRONMENT', 'production')
 
 sentry_sdk.init(
     dsn=sentry_url,
     send_default_pii=True,
     traces_sample_rate=1.0,
+    environment=NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     _experiments={
         "continuous_profiling_auto_start": True,
     },
