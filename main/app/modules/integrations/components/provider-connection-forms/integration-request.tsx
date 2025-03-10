@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { upsertIntegrationRequest } from "../../api/api.integrations";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from '@/lib/utils/supabase/client';
 
 interface IntegrationRequestFormProps {
   onSubmit?: () => void;
@@ -15,10 +16,25 @@ export function IntegrationRequestForm({ onSubmit, disabled = false }: Integrati
   const [integrationName, setIntegrationName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      setError("Please sign in to submit an integration request");
+      return;
+    }
+
     if (!integrationName.trim()) {
       setError("Please enter an integration name");
       return;
@@ -59,6 +75,22 @@ export function IntegrationRequestForm({ onSubmit, disabled = false }: Integrati
             </div>
           )}
 
+          {!isAuthenticated && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded relative" role="alert">
+                <p className="font-medium">Please sign in to submit an integration request</p>
+              </div>
+              <Button 
+                type="button" 
+                onClick={() => window.location.href = '/login'}
+                className="w-full"
+                variant="outline"
+              >
+                Sign In
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="integrationName">Which integration would you like to see?</Label>
             <Input
@@ -66,13 +98,13 @@ export function IntegrationRequestForm({ onSubmit, disabled = false }: Integrati
               value={integrationName}
               onChange={(e) => setIntegrationName(e.target.value)}
               placeholder="e.g., Salesforce, HubSpot, Asana, etc."
-              disabled={disabled || isSubmitting}
+              disabled={disabled || isSubmitting || !isAuthenticated}
             />
           </div>
 
           <Button 
             type="submit" 
-            disabled={disabled || isSubmitting || !integrationName.trim()}
+            disabled={disabled || isSubmitting || !integrationName.trim() || !isAuthenticated}
             className="w-full"
           >
             {isSubmitting ? (
