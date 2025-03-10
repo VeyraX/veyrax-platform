@@ -350,6 +350,121 @@ routes:
               "name": "NotionPageCard"
             }
           }
+      - scenario: "Create a Page with People Property"
+        description: "Creates a new page with a people property"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              },
+              "properties": {
+                "Título del Contenido": { 
+                  "title": [
+                    { "text": { "content": "Nuevo Contenido" } }
+                  ] 
+                },
+                "Tipo de Contenido": { 
+                  "select": { "name": "Blog" } 
+                },
+                "Fecha de Publicación": { 
+                  "date": { "start": "2025-03-08" } 
+                },
+                "Plataforma de Publicación": { 
+                  "multi_select": [
+                    { "name": "Sitio Web" }
+                  ] 
+                },
+                "Objetivo del Contenido": { 
+                  "rich_text": [
+                    { "text": { "content": "Informar" } }
+                  ] 
+                },
+                "Público Objetivo": { 
+                  "rich_text": [
+                    { "text": { "content": "General" } }
+                  ] 
+                },
+                "Palabras Clave": { 
+                  "multi_select": [
+                    { "name": "SEO" }
+                  ] 
+                },
+                "Responsable": { 
+                  "people": [
+                    { "id": "user_id_123" }
+                  ] 
+                },
+                "Estado": { 
+                  "select": { "name": "En proceso" } 
+                },
+                "Notas Adicionales": { 
+                  "rich_text": [
+                    { "text": { "content": "Notas adicionales sobre el contenido." } }
+                  ] 
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "new_page_789",
+              "title": "Nuevo Contenido",
+              "properties": {
+                "Título del Contenido": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Nuevo Contenido"
+                      },
+                      "plain_text": "Nuevo Contenido"
+                    }
+                  ]
+                },
+                "Responsable": {
+                  "id": "resp",
+                  "type": "people",
+                  "people": [
+                    {
+                      "id": "user_id_123",
+                      "name": "John Doe",
+                      "avatar_url": "https://secure.notion-static.com/avatar_123.png",
+                      "type": "person",
+                      "person": {
+                        "email": "john.doe@example.com"
+                      }
+                    }
+                  ]
+                },
+                "Estado": {
+                  "id": "stat",
+                  "type": "select",
+                  "select": {
+                    "id": "1",
+                    "name": "En proceso",
+                    "color": "blue"
+                  }
+                }
+              },
+              "created_time": "2023-05-22T16:45:30.000Z",
+              "last_edited_time": "2023-05-22T16:45:30.000Z",
+              "url": "https://www.notion.so/myworkspace/new_page_789",
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
 
   - endpoint: /notion/get_page
     examples:
@@ -543,5 +658,320 @@ routes:
             "message": null,
             "component": {
               "name": "NotionPageCard"
+            }
+          }
+
+  - endpoint: /notion/append_block_children
+    examples:
+      - scenario: "Append Link to Database"
+        description: "Appends a link to an existing database to a page"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "object": "block",
+                "type": "link_to_page",
+                "link_to_page": {
+                  "type": "database_id",
+                  "database_id": "db123456"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Block updated",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+  - endpoint: /notion/create_page_with_database
+    examples:
+      - scenario: "Create Page with Database Reference"
+        description: "Creates a new page and adds a link to an existing database"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              },
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "Project Tasks Overview"
+                      }
+                    }
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "object": "block",
+                  "type": "paragraph",
+                  "paragraph": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "This page contains a link to our project tasks database."
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "database_id": "db123456"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "new_page_456",
+              "title": "Project Tasks Overview",
+              "properties": {
+                "title": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Project Tasks Overview"
+                      },
+                      "plain_text": "Project Tasks Overview"
+                    }
+                  ]
+                }
+              },
+              "created_time": "2023-05-22T15:30:45.000Z",
+              "last_edited_time": "2023-05-22T15:30:45.000Z",
+              "url": "https://www.notion.so/myworkspace/new_page_456",
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+  - endpoint: /notion/create_page_with_inline_database
+    examples:
+      - scenario: "Create Page with New Database"
+        description: "Creates a new page and a new database, then links them together"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              },
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "Task Management Dashboard"
+                      }
+                    }
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "object": "block",
+                  "type": "paragraph",
+                  "paragraph": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "This page contains our task management database."
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "database": {
+              "title": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "Tasks Database"
+                  }
+                }
+              ],
+              "properties": {
+                "Task Name": {
+                  "title": {}
+                },
+                "Status": {
+                  "select": {
+                    "options": [
+                      {
+                        "name": "Not Started",
+                        "color": "gray"
+                      },
+                      {
+                        "name": "In Progress",
+                        "color": "blue"
+                      },
+                      {
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                },
+                "Priority": {
+                  "select": {
+                    "options": [
+                      {
+                        "name": "High",
+                        "color": "red"
+                      },
+                      {
+                        "name": "Medium",
+                        "color": "yellow"
+                      },
+                      {
+                        "name": "Low",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                }
+              },
+              "is_inline": true
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "new_page_789",
+              "title": "Task Management Dashboard",
+              "properties": {
+                "title": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Task Management Dashboard"
+                      },
+                      "plain_text": "Task Management Dashboard"
+                    }
+                  ]
+                }
+              },
+              "created_time": "2023-05-22T16:45:30.000Z",
+              "last_edited_time": "2023-05-22T16:45:30.000Z",
+              "url": "https://www.notion.so/myworkspace/new_page_789",
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+  - endpoint: /notion/get_users
+    examples:
+      - scenario: "List Workspace Users"
+        description: "Retrieves a list of all users in the Notion workspace"
+        input_json: |
+          {
+            "start_cursor": null,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "user_id_123",
+                  "name": "John Doe",
+                  "avatar_url": "https://secure.notion-static.com/avatar_123.png",
+                  "type": "person",
+                  "person": {
+                    "email": "john.doe@example.com"
+                  }
+                },
+                {
+                  "id": "user_id_456",
+                  "name": "Jane Smith",
+                  "avatar_url": "https://secure.notion-static.com/avatar_456.png",
+                  "type": "person",
+                  "person": {
+                    "email": "jane.smith@example.com"
+                  }
+                },
+                {
+                  "id": "user_id_789",
+                  "name": "Notion Bot",
+                  "avatar_url": "https://secure.notion-static.com/avatar_789.png",
+                  "type": "bot",
+                  "bot": {
+                    "owner": {
+                      "type": "workspace",
+                      "workspace": true
+                    }
+                  }
+                }
+              ],
+              "next_cursor": null
+            },
+            "message": null,
+            "component": {
+              "name": "NotionUserList"
+            }
+          }
+
+  - endpoint: /notion/get_user
+    examples:
+      - scenario: "Get User Details"
+        description: "Retrieves detailed information about a specific user"
+        input_json: |
+          {
+            "user_id": "user_id_123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "user_id_123",
+              "name": "John Doe",
+              "avatar_url": "https://secure.notion-static.com/avatar_123.png",
+              "type": "person",
+              "person": {
+                "email": "john.doe@example.com"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionUser"
             }
           } 

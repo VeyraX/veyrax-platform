@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import requests
 
 class NotionClient:
@@ -40,6 +40,24 @@ class NotionClient:
         
         return response.json()
 
+    def create_database(self, database_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create a database in Notion.
+        
+        Args:
+            database_data: The database data to create.
+            
+        Returns:
+            The created database data.
+        """
+        response = requests.post(
+            f"{self.base_url}/databases",
+            headers=self.headers,
+            json=database_data
+        )
+        
+        return response.json()
+
     def update_page(self, page_id: str, page_data: Dict[str, Any]) -> Dict[str, Any]:
         
         response = requests.patch(
@@ -56,6 +74,25 @@ class NotionClient:
             headers=self.headers,
             json={"archived": True}
         ).json()
+
+    def append_block_children(self, block_id: str, children: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Append blocks to a page or block.
+        
+        Args:
+            block_id: The ID of the block to append to (can be a page ID)
+            children: The blocks to append
+            
+        Returns:
+            The response from the Notion API
+        """
+        response = requests.patch(
+            f"{self.base_url}/blocks/{block_id}/children",
+            headers=self.headers,
+            json={"children": children}
+        )
+        
+        return response.json()
 
     def search_pages(self, query="", **kwargs):
         # Build the payload with appropriate defaults
@@ -121,11 +158,55 @@ class NotionClient:
         ).json()
 
     def get_database(self, database_id: str) -> Dict[str, Any]:
-        """Get database metadata including its property schema"""
+        """
+        Get a database by ID.
+        
+        Args:
+            database_id: The ID of the database to retrieve
+            
+        Returns:
+            The response from the Notion API
+        """
         response = requests.get(
             f"{self.base_url}/databases/{database_id}",
             headers=self.headers
         )
+        
+        return response.json()
+
+    def get_users(self, **params) -> Dict[str, Any]:
+        """
+        List all users in the workspace with pagination parameters.
+        
+        Args:
+            **params: Pagination parameters like start_cursor and page_size
+            
+        Returns:
+            The response from the Notion API containing a list of users
+        """
+        response = requests.get(
+            f"{self.base_url}/users",
+            headers=self.headers,
+            params=params
+        )
+        
+        return response.json()
+
+    def get_user(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get a user by ID.
+        
+        Args:
+            user_id: The ID of the user to retrieve
+            
+        Returns:
+            The response from the Notion API
+        """
+        response = requests.get(
+            f"{self.base_url}/users/{user_id}",
+            headers=self.headers
+        )
+        
         return response.json()
 
     

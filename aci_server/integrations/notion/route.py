@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
-from typing import Optional, Dict, Any, List, Union
+from typing import Dict, Any
 from .schema import (
-    DatabaseList, PageList, Page, Database, PageCreate, PageUpdate, 
-    DatabaseFilters, PageFilters, SearchResult, ApiResponse,
+    PageFilters, ApiResponse,
     ListDatabasesParams, GetDatabaseParams, ListDatabasePagesParams,
     QueryDatabaseParams, CreatePageParams, GetPageParams,
     UpdatePageParams, SearchParams,
     ListDatabasesResponse, GetDatabaseResponse, ListDatabasePagesResponse,
     QueryDatabaseResponse, CreatePageResponse, GetPageResponse,
-    UpdatePageResponse, SearchResponse
+    UpdatePageResponse, SearchResponse, CreateDatabaseParams, CreateDatabaseResponse,
+    AppendBlockChildrenParams, AppendBlockChildrenResponse, CreatePageWithDatabaseParams,
+    GetUsersParams, GetUsersResponse, GetUserParams, GetUserResponse,
 )
 from .service import NotionService
 from .client import NotionClient
-import os
 from ..common.auth import TokenService
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
 from ..common.utils import format_validation_error
 from ..common.examples_handler import ExamplesLoader
@@ -133,6 +133,22 @@ async def create_page(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/create_database", response_model=ApiResponse)
+@schema(input_schema_class=CreateDatabaseParams, output_schema_class=CreateDatabaseResponse)
+async def create_database(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    try:
+        validated_params = CreateDatabaseParams(**params)
+        return service.create_database(validated_params.database)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateDatabaseParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/get_page", response_model=ApiResponse)
 @schema(input_schema_class=GetPageParams, output_schema_class=GetPageResponse, examples=examples["/notion/get_page"])
 async def get_page(
@@ -178,15 +194,11 @@ async def search(
 ):
     try:
         validated_params = SearchParams(**params)
-        
-        filters = PageFilters(
-            query=validated_params.query,
-            sort_direction=validated_params.sort_direction,
-            max_results=validated_params.page_size
-        )
-        
         return service.search(
-            filters=filters, 
+            filters=PageFilters(
+                query=validated_params.query,
+                sort_direction=validated_params.sort_direction
+            ),
             start_cursor=validated_params.start_cursor
         )
     except ValidationError as e:
@@ -196,3 +208,50 @@ async def search(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/append_block_children", response_model=ApiResponse)
+@schema(input_schema_class=AppendBlockChildrenParams, output_schema_class=AppendBlockChildrenResponse, examples=examples["/notion/append_block_children"])
+async def append_block_children(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    try:
+        validated_params = AppendBlockChildrenParams(**params)
+        return service.append_block_children(validated_params.block_id, validated_params.children)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'AppendBlockChildrenParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_users", response_model=ApiResponse)
+@schema(input_schema_class=GetUsersParams, output_schema_class=GetUsersResponse)#, examples=examples["/notion/get_users"] if "/notion/get_users" in examples else None)
+async def get_users(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    try:
+        validated_params = GetUsersParams(**params)
+        return service.get_users(validated_params.start_cursor, validated_params.page_size)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetUsersParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_user", response_model=ApiResponse)
+@schema(input_schema_class=GetUserParams, output_schema_class=GetUserResponse)#, examples=examples["/notion/get_user"] if "/notion/get_user" in examples else None)
+async def get_user(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    try:
+        validated_params = GetUserParams(**params)
+        return service.get_user(validated_params.user_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetUserParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
