@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/agent/') || 
     pathname.startsWith('/components/') || 
-    pathname.startsWith('/integrations')
+    pathname.startsWith('/integrations') ||
+    pathname.startsWith('/integrations/')
   ) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -38,6 +39,7 @@ export const config = {
     '/agent/:path*',
     '/components/:path*',
     '/web',
-    '/integrations'
+    '/integrations',
+    '/integrations/:path*',
   ]
 }
