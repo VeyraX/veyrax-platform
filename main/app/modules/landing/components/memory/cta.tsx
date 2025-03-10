@@ -26,13 +26,9 @@ export const CTA = () => {
       />
       
       <div className="text-center mb-12 relative z-10 px-4 md:px-8">
-        <h2 className="text-5xl md:text-7xl max-w-3xl tracking-tighter font-regular mx-auto">
-          <div>
-            <span className="text-spektr-cyan-50">Enable Memory</span>
-          </div>
-          <div>
-            <span className="font-semibold">everywhere</span>
-          </div>
+        <h2 className="text-5xl md:text-7xl max-w-3xl tracking-tighter font-regular">
+          <span className="text-spektr-cyan-50">Enable Memory </span>
+          <span className="font-semibold">everywhere</span>
         </h2>
         <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center mx-auto mt-4">
           VeyraX Memory is already available for you. Just sign up, connect it, and start making your Agents truly personal.
