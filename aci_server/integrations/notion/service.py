@@ -272,7 +272,10 @@ class NotionService:
                 parent=response.get('parent')
             )
             
-            return self.prepare_response(page, "NotionPageCard")
+            # Wrap the page in a PageList to make it compatible with the NotionPageCard component
+            page_list = PageList(items=[page], next_cursor=None)
+            
+            return self.prepare_response(page_list, "NotionPageCard")
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -428,7 +431,7 @@ class NotionService:
             page_response = self.create_page(page_data)
             
             # Get the page ID from the response
-            page_id = page_response.data.id
+            page_id = page_response.data.items[0].id
             
             # Create the database reference block
             database_block = {
@@ -582,7 +585,7 @@ class NotionService:
                 next_cursor=response.get('next_cursor')
             )
             
-            return self.prepare_response(search_result, "NotionSearchResults")
+            return self.prepare_response(search_result, "NotionPageCard")
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=str(e))
 
