@@ -263,8 +263,3 @@ async def get_user_tools(request: Request):
             success=0 
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
-    
-
-@app.get("/debug-sentry")
-async def trigger_error():
-    division_by_zero = 1 / 0
