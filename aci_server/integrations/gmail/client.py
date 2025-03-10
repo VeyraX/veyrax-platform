@@ -70,3 +70,9 @@ class GmailClient:
             id=draft_id,
             body={'message': message}
         ).execute()
+
+    def move_to_trash(self, message_id: str) -> Dict[str, Any]:
+        return self.service.users().messages().trash(
+            userId='me',
+            id=message_id
+        ).execute()

@@ -6,7 +6,8 @@ from .schema import (
     CreateDraftParams, DeleteDraftParams, ModifyDraftParams,
     GetMessagesResponse, GetMessageResponse, DeleteMessageResponse,
     SendMessageResponse, GetDraftsResponse, CreateDraftResponse,
-    DeleteDraftResponse, ModifyDraftResponse
+    DeleteDraftResponse, ModifyDraftResponse, MoveToTrashParams,
+    MoveToTrashResponse
 )
 from .service import GmailService
 from .client import GmailClient
@@ -92,6 +93,22 @@ async def delete_message(
         return {"status": "success"}
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteMessageParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/move_to_trash", response_model=ApiResponse)
+@schema(input_schema_class=MoveToTrashParams, output_schema_class=MoveToTrashResponse, examples=examples["/gmail/move_to_trash"])
+async def move_to_trash(
+    params: Dict[str, Any] = Body(...),
+    service: GmailService = Depends(get_gmail_service)
+):
+    try:
+        validated_params = MoveToTrashParams(**params)
+        return service.move_to_trash(validated_params.message_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MoveToTrashParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()
