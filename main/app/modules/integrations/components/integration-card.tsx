@@ -147,18 +147,18 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
               </Button>
             )}
             
-            {!isPublic && (
-              isRequestCard ? (
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={handleConnect}
-                  className="ml-auto"
-                >
-                  Request
-                  <Plus className="h-4 w-4" />
-                </Button>
-              ) : props.connected ? (
+            {isRequestCard ? (
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleConnect}
+                className="ml-auto"
+              >
+                Request
+                <Plus className="h-4 w-4" />
+              </Button>
+            ) : !isPublic && (
+              props.connected ? (
                 <Button
                   variant="outline"
                   size="sm"

@@ -12,6 +12,7 @@ class MessageBase(BaseModel):
     sender: Optional[str]
     date: datetime
     html_link: str
+    draft_id: Optional[str] = None
 
 class Message(MessageBase):
     subject: Optional[str] = None
@@ -119,5 +120,12 @@ class DeleteDraftResponse(BaseModel):
     message: Optional[str] = None
 
 class ModifyDraftResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+class MoveToTrashParams(BaseModel):
+    message_id: str
+
+class MoveToTrashResponse(BaseModel):
     data: Message
     message: Optional[str] = None
