@@ -94,10 +94,6 @@ class SearchResult(BaseModel):
     items: List[Union[Page, Database]]
     next_cursor: Optional[str] = None
 
-class ApiResponse(BaseModel):
-    data: Union[Page, PageList, Database, DatabaseList, SearchResult]
-    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
-
 class PropertyType(BaseModel):
     id: str
     type: Literal[
@@ -194,4 +190,69 @@ class SearchResponse(BaseModel):
     data: SearchResult
     message: Optional[str] = None
 
+class DatabaseCreate(BaseModel):
+    parent: Union[PageParent, WorkspaceParent]
+    title: List[Dict[str, Any]]
+    properties: Dict[str, Any]
+    is_inline: Optional[bool] = False
 
+class CreateDatabaseParams(BaseModel):
+    database: DatabaseCreate
+
+class CreateDatabaseResponse(BaseModel):
+    data: Database
+    message: Optional[str] = None
+
+class AppendBlockChildrenParams(BaseModel):
+    block_id: str
+    children: List[Dict[str, Any]]
+
+class AppendBlockChildrenResponse(BaseModel):
+    data: Dict[str, Any]
+    message: Optional[str] = None
+
+class CreatePageWithDatabaseParams(BaseModel):
+    page: PageCreate
+    database_id: str
+
+class CreatePageWithInlineDatabaseParams(BaseModel):
+    page: PageCreate
+    database: DatabaseCreate
+
+class NotionUser(BaseModel):
+    id: str
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    type: str
+    person: Optional[Dict[str, Any]] = None
+    bot: Optional[Dict[str, Any]] = None
+
+class UserList(BaseModel):
+    items: List[NotionUser]
+    next_cursor: Optional[str] = None
+
+class GetUsersParams(BaseModel):
+    start_cursor: Optional[str] = None
+    page_size: Optional[int] = Field(default=100, le=100)
+
+class GetUserParams(BaseModel):
+    user_id: str
+
+class GetUsersResponse(BaseModel):
+    data: UserList
+    message: Optional[str] = None
+
+class GetUserResponse(BaseModel):
+    data: NotionUser
+    message: Optional[str] = None
+
+
+class ApiResponse(BaseModel):
+    data: Union[Page, PageList, Database, DatabaseList, SearchResult, UserList, NotionUser, Dict[str, Any], DatabaseProperties]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+class DatabaseBlock(BaseModel):
+    """Schema for a database block that can be included in page children"""
+    type: str = "database"
+    object: str = "block"
+    database: Dict[str, Any]
