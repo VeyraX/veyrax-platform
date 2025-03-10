@@ -1,14 +1,14 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 interface BorderBeamProps {
-  className?: string;
-  size?: number;
-  duration?: number;
-  borderWidth?: number;
-  anchor?: number;
-  colorFrom?: string;
-  colorTo?: string;
-  delay?: number;
+  className?: string
+  size?: number
+  duration?: number
+  borderWidth?: number
+  anchor?: number
+  colorFrom?: string
+  colorTo?: string
+  delay?: number
 }
 
 export const BorderBeam = ({
@@ -17,8 +17,8 @@ export const BorderBeam = ({
   duration = 15,
   anchor = 90,
   borderWidth = 1.5,
-  colorFrom = "hsl(var(--primary))",
-  colorTo = "hsl(var(--primary))",
+  colorFrom = "#ffaa40",
+  colorTo = "#9c40ff",
   delay = 0,
 }: BorderBeamProps) => {
   return (
@@ -45,5 +45,5 @@ export const BorderBeam = ({
         className,
       )}
     />
-  );
-};
+  )
+}
