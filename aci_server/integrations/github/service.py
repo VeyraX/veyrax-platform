@@ -169,14 +169,17 @@ class GitHubService:
     def create_pull_request(self, owner: str, repo: str, title: str, head: str, 
                            base: str, body: str = None, draft: bool = False) -> ApiResponse:
         try:
+            data = {
+                "title": title,
+                "head": head,
+                "base": base,
+                "body": body,
+                "draft": draft
+            }
             response = self.client.create_pull_request(
                 owner=owner,
                 repo=repo,
-                title=title,
-                head=head,
-                base=base,
-                body=body,
-                draft=draft
+                data=data
             )
             
             pull_request = PullRequestSchema(**response)
@@ -196,23 +199,20 @@ class GitHubService:
                            title: str = None, body: str = None, state: str = None, 
                            base: str = None, maintainer_can_modify: bool = None) -> ApiResponse:
         try:
-            update_data = {}
-            if title is not None:
-                update_data["title"] = title
-            if body is not None:
-                update_data["body"] = body
-            if state is not None:
-                update_data["state"] = state
-            if base is not None:
-                update_data["base"] = base
-            if maintainer_can_modify is not None:
-                update_data["maintainer_can_modify"] = maintainer_can_modify
-                
+            update_data = {
+                "title": title,
+                "body": body,
+                "state": state,
+                "base": base,
+                "maintainer_can_modify": maintainer_can_modify
+            }
+            update_data = {k: v for k, v in update_data.items() if v is not None}
+            
             response = self.client.update_pull_request(
                 owner=owner,
                 repo=repo,
                 pull_number=pull_number,
-                **update_data
+                data=update_data
             )
 
             print("Update pull request response:", response)
@@ -239,13 +239,18 @@ class GitHubService:
                           commit_title: str = None, commit_message: str = None, 
                           merge_method: str = "merge") -> ApiResponse:
         try:
+            data = {
+                "merge_method": merge_method,
+                "commit_title": commit_title,
+                "commit_message": commit_message
+            }
+            data = {k: v for k, v in data.items() if v is not None}
+            
             response = self.client.merge_pull_request(
                 owner=owner,
                 repo=repo,
                 pull_number=pull_number,
-                commit_title=commit_title,
-                commit_message=commit_message,
-                merge_method=merge_method
+                data=data
             )
             
             return ApiResponse(message="Pull request merged successfully", data=response)
@@ -281,13 +286,18 @@ class GitHubService:
                                   body: str = None, event: str = None, 
                                   comments: list = None) -> ApiResponse:
         try:
+            data = {
+                "body": body,
+                "event": event,
+                "comments": comments
+            }
+            data = {k: v for k, v in data.items() if v is not None}
+            
             response = self.client.create_pull_request_review(
                 owner=owner,
                 repo=repo,
                 pull_number=pull_number,
-                body=body,
-                event=event,
-                comments=comments
+                data=data
             )
             
             review = PullRequestReviewSchema(**response)
