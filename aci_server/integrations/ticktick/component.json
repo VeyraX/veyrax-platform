@@ -1,0 +1,20 @@
+[
+  {
+    "name": "TaskCard",
+    "version": "1.0.0",
+    "description": "Displays TickTick task details",
+    "related_endpoints": ["/ticktick/tasks/*"],
+    "component": {
+      "jsx": "function(props) { /* React component implementation */ }"
+    }
+  },
+  {
+    "name": "ProjectCard",
+    "version": "1.0.0",
+    "description": "Displays TickTick project information",
+    "related_endpoints": ["/ticktick/projects/*"],
+    "component": {
+      "jsx": "function(props) { /* React component implementation */ }"
+    }
+  }
+] 

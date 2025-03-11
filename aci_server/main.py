@@ -27,6 +27,7 @@ from integrations.snowflake.route import router as snowflake_router
 from integrations.postgresql.route import router as postgresql_router
 from integrations.veyrax.route import router as veyrax_router
 from integrations.firecrawl.route import router as firecrawl_router
+from integrations.ticktick.route import router as ticktick_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -74,7 +75,8 @@ INTEGRATION_ROUTERS = {
     "snowflake": snowflake_router,
     "postgresql": postgresql_router,
     "veyrax": veyrax_router,
-    "firecrawl": firecrawl_router
+    "firecrawl": firecrawl_router,
+    "ticktick": ticktick_router
 }
 
 app = FastAPI()
