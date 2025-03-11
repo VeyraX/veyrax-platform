@@ -117,4 +117,24 @@ routes:
         output_json:
           data:
             id: "6226ff9877acee87727f6bca"
-            color: "#A3E635" 
+            color: "#A3E635"
+
+  - endpoint: "/ticktick/tasks-list"
+    examples:
+      - scenario: "List Project Tasks"
+        description: "Retrieve all tasks in a specific project"
+        input_json:
+          project_id: "6226ff9877acee87727f6bca"
+        output_json:
+          data:
+            items:
+              - id: "63b7bebb91c0a5474805fcd4"
+                title: "Complete API Integration"
+                projectId: "6226ff9877acee87727f6bca"
+                status: 0
+                priority: 3
+              - id: "64ca1f8b91c0a5474806acb2"
+                title: "Review Documentation"
+                projectId: "6226ff9877acee87727f6bca"
+                status: 0
+                priority: 1 

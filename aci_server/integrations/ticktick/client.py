@@ -1,5 +1,6 @@
 import requests
 from typing import Dict, Any, Optional
+import json
 
 class TickTickClient:
     BASE_URL = "https://api.ticktick.com"
@@ -20,13 +21,21 @@ class TickTickClient:
         return response.json()
 
     def create_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        response = requests.post(
-            f"{self.BASE_URL}/open/v1/task",
-            json=task_data,
-            headers=self.headers
-        )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(
+                f"{self.BASE_URL}/open/v1/task",
+                json=task_data,
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as e:
+            try:
+                error_data = response.json()
+                raise ValueError(f"API Error: {error_data.get('error', str(e))}")
+            except json.JSONDecodeError:
+                raise ValueError(f"HTTP Error: {str(e)}") from e
 
     def update_task(self, task_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
         response = requests.post(
@@ -92,4 +101,21 @@ class TickTickClient:
             f"{self.BASE_URL}/open/v1/project/{project_id}",
             headers=self.headers
         )
-        response.raise_for_status() 
+        response.raise_for_status()
+
+    def get_project_data(self, project_id: str) -> Dict[str, Any]:
+        """Get complete project data including tasks, columns and project details
+        Endpoint: GET /open/v1/project/{projectId}/data
+        Returns:
+        {
+            "project": Project,
+            "tasks": Task[],
+            "columns": Column[]
+        }
+        """
+        response = requests.get(
+            f"{self.BASE_URL}/open/v1/project/{project_id}/data",
+            headers=self.headers
+        )
+        response.raise_for_status()
+        return response.json() 

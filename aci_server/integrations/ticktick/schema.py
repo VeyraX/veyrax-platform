@@ -15,37 +15,27 @@ class ChecklistItem(BaseModel):
 class TaskBase(BaseModel):
     title: str
     project_id: str = Field(..., alias="projectId")
-    content: Optional[str] = None
-    desc: Optional[str] = None
-    is_all_day: Optional[bool] = Field(None, alias="isAllDay")
-    start_date: Optional[datetime] = Field(None, alias="startDate")
-    due_date: Optional[datetime] = Field(None, alias="dueDate")
-    time_zone: Optional[str] = Field(None, alias="timeZone")
-    reminders: Optional[List[str]] = None
-    repeat_flag: Optional[str] = Field(None, alias="repeatFlag")
+    content: Optional[str] = Field(None, nullable=True)
+    desc: Optional[str] = Field(None, nullable=True)
+    is_all_day: Optional[bool] = Field(None, alias="isAllDay", nullable=True)
+    start_date: Optional[datetime] = Field(None, alias="startDate", nullable=True)
+    due_date: Optional[datetime] = Field(None, alias="dueDate", nullable=True)
+    time_zone: Optional[str] = Field(None, alias="timeZone", nullable=True)
+    reminders: Optional[List[str]] = Field(None, nullable=True)
+    repeat_flag: Optional[str] = Field(None, alias="repeatFlag", nullable=True)
     priority: int = Field(0, ge=0, le=5)
-    sort_order: Optional[int] = Field(None, alias="sortOrder")
-    items: Optional[List[ChecklistItem]] = None
+    sort_order: Optional[int] = Field(None, alias="sortOrder", nullable=True)
+    items: Optional[List[ChecklistItem]] = Field(None, nullable=True)
 
     class Config:
         allow_population_by_field_name = True
 
 class TaskCreate(TaskBase):
-    @root_validator(pre=True)
-    def validate_create_fields(cls, values):
-        if not values.get('title'):
-            raise ValueError("Title is required for task creation")
-        if not values.get('project_id'):
-            raise ValueError("Project ID is required for task creation")
-        return values
+    pass
 
 class TaskUpdate(TaskBase):
     id: str
-    @root_validator(pre=True)
-    def validate_update_fields(cls, values):
-        if not values.get('id'):
-            raise ValueError("Task ID is required for update")
-        return values
+    pass
 
 class TaskResponse(TaskBase):
     id: str
@@ -64,18 +54,14 @@ class ProjectBase(BaseModel):
     kind: Optional[str] = Field(None, pattern="^(TASK|NOTE)$")
 
 class ProjectCreate(ProjectBase):
-    @validator('name')
-    def name_required(cls, v):
-        if not v:
-            raise ValueError("Project name is required")
-        return v
+    pass
 
 class ProjectUpdate(ProjectBase):
     pass
 
 class ProjectResponse(ProjectBase):
     id: str
-    closed: bool
+    closed: bool = False
     group_id: Optional[str] = Field(None, alias="groupId")
     permission: Optional[str] = None
 

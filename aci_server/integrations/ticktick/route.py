@@ -48,12 +48,23 @@ async def create_task(
     service: TickTickService = Depends(get_ticktick_service)
 ):
     try:
+        print("Creating task with params: ", params)
         validated = TaskCreate(**params)
+        print("Validated task: ", validated)
         return service.create_task(validated)
     except ValidationError as e:
-        raise HTTPException(400, detail=format_validation_error(e, 'TaskCreate'))
+        error_msg = format_validation_error(e, 'TaskCreate')
+        return ApiResponse(
+            data={"validation_errors": error_msg},
+            message="Invalid task data",
+            status_code=400
+        )
     except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        return ApiResponse(
+            data={"error": str(e)},
+            message="Server error",
+            status_code=500
+        )
 
 @router.post("/tasks-update", response_model=ApiResponse)
 @schema(input_schema_class=TaskUpdate, output_schema_class=ApiResponse, examples=examples["/ticktick/tasks-update"])
@@ -130,5 +141,19 @@ async def update_project(
         return service.update_project(validated.id, validated)
     except ValidationError as e:
         raise HTTPException(400, detail=format_validation_error(e, 'ProjectUpdate'))
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+@router.post("/tasks-list", response_model=ApiResponse)
+@schema(input_schema_class=ProjectOperationParams, output_schema_class=ApiResponse)
+async def list_tasks(
+    params: Dict[str, Any] = Body(...),
+    service: TickTickService = Depends(get_ticktick_service)
+):
+    try:
+        validated = ProjectOperationParams(**params)
+        return service.get_project_tasks(validated.project_id)
+    except ValidationError as e:
+        raise HTTPException(400, detail=format_validation_error(e, 'ProjectOperationParams'))
     except Exception as e:
         raise HTTPException(500, detail=str(e)) 
