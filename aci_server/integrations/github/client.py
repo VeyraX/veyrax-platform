@@ -9,8 +9,6 @@ class GitHubClient:
         self.token = token
         self._initialize_client()
 
-        print("GitHubClient initialized with token:", self.token)
-
     def _initialize_client(self):
         self.headers = {
             "Authorization": f"token {self.token}",
