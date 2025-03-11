@@ -755,3 +755,225 @@ routes:
               "name": "GitHubCommitList"
             }
           }
+
+  - endpoint: /create_pull_request
+    examples:
+      - scenario: "Create a Pull Request"
+        description: "Creates a new pull request between two branches"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "title": "New feature implementation",
+            "head": "feature-branch",
+            "base": "main",
+            "body": "This pull request adds a new feature that does X, Y, and Z.",
+            "draft": false
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "id": 1,
+              "number": 1347,
+              "title": "New feature implementation",
+              "body": "This pull request adds a new feature that does X, Y, and Z.",
+              "state": "open",
+              "html_url": "https://github.com/octocat/Hello-World/pull/1347",
+              "user": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "created_at": "2023-04-22T13:33:48Z",
+              "updated_at": "2023-04-22T13:33:48Z",
+              "closed_at": null,
+              "merged_at": null,
+              "head": {
+                "label": "octocat:feature-branch",
+                "ref": "feature-branch",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "base": {
+                "label": "octocat:main",
+                "ref": "main",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "merged": false,
+              "mergeable": true,
+              "draft": false
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestCard"
+            }
+          }
+
+  - endpoint: /update_pull_request
+    examples:
+      - scenario: "Update a Pull Request"
+        description: "Updates an existing pull request with new information"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "pull_number": 1347,
+            "title": "Updated feature implementation",
+            "body": "This pull request has been updated with additional changes.",
+            "state": "open",
+            "base": "main"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 1,
+              "number": 1347,
+              "title": "Updated feature implementation",
+              "body": "This pull request has been updated with additional changes.",
+              "state": "open",
+              "html_url": "https://github.com/octocat/Hello-World/pull/1347",
+              "user": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "created_at": "2023-04-22T13:33:48Z",
+              "updated_at": "2023-04-22T14:45:30Z",
+              "closed_at": null,
+              "merged_at": null,
+              "head": {
+                "label": "octocat:feature-branch",
+                "ref": "feature-branch",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "base": {
+                "label": "octocat:main",
+                "ref": "main",
+                "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+              },
+              "merged": false,
+              "mergeable": true,
+              "draft": false
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestCard"
+            }
+          }
+
+  - endpoint: /merge_pull_request
+    examples:
+      - scenario: "Merge a Pull Request"
+        description: "Merges an open pull request into the base branch"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "pull_number": 1347,
+            "commit_title": "Merge pull request #1347 from octocat/feature-branch",
+            "commit_message": "This merges the feature branch implementing the new functionality",
+            "merge_method": "merge"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "merged": true,
+              "message": "Pull Request successfully merged"
+            },
+            "message": "Pull request merged successfully",
+            "component": {
+              "name": "GitHubPullRequestCard"
+            }
+          }
+
+  - endpoint: /get_pull_request_reviews
+    examples:
+      - scenario: "Get Pull Request Reviews"
+        description: "Retrieves all reviews for a specific pull request"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "pull_number": 1347
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "reviews": [
+                {
+                  "id": 80,
+                  "user": {
+                    "login": "other-user",
+                    "id": 2,
+                    "avatar_url": "https://github.com/images/error/other_user.gif",
+                    "html_url": "https://github.com/other-user"
+                  },
+                  "body": "This looks good! Just a few minor suggestions.",
+                  "state": "APPROVED",
+                  "html_url": "https://github.com/octocat/Hello-World/pull/1347#pullrequestreview-80",
+                  "submitted_at": "2023-04-23T10:15:30Z",
+                  "commit_id": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                },
+                {
+                  "id": 81,
+                  "user": {
+                    "login": "third-user",
+                    "id": 3,
+                    "avatar_url": "https://github.com/images/error/third_user.gif",
+                    "html_url": "https://github.com/third-user"
+                  },
+                  "body": "Please fix the issues mentioned before merging.",
+                  "state": "CHANGES_REQUESTED",
+                  "html_url": "https://github.com/octocat/Hello-World/pull/1347#pullrequestreview-81",
+                  "submitted_at": "2023-04-23T11:30:45Z",
+                  "commit_id": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                }
+              ],
+              "next_page": null
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestReviewCard"
+            }
+          }
+
+  - endpoint: /create_pull_request_review
+    examples:
+      - scenario: "Create a Pull Request Review"
+        description: "Creates a new review for a specific pull request"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "pull_number": 1347,
+            "body": "The code looks good, but please add more tests.",
+            "event": "COMMENT"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 82,
+              "user": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "body": "The code looks good, but please add more tests.",
+              "state": "COMMENTED",
+              "html_url": "https://github.com/octocat/Hello-World/pull/1347#pullrequestreview-82",
+              "submitted_at": "2023-04-24T09:45:12Z",
+              "commit_id": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubPullRequestReviewCard"
+            }
+          }

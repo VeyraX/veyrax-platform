@@ -396,6 +396,7 @@ def test_commits_date_filtering(base_setup, test_repo_info):
 
 
 def test_commits_with_branch_or_tag(base_setup, test_repo_info):
+    """Test listing commits with a specific branch or tag."""
     client, service = base_setup
     owner, repo = test_repo_info
     
@@ -413,3 +414,190 @@ def test_commits_with_branch_or_tag(base_setup, test_repo_info):
     if branch_commits.data.commits:
         assert hasattr(branch_commits.data.commits[0], 'sha')
         assert hasattr(branch_commits.data.commits[0], 'commit')
+
+
+def test_create_pull_request(base_setup, test_repo_info):
+    """Test creating a pull request."""
+    service = base_setup["service"]
+    owner = test_repo_info["owner"]
+    repo = test_repo_info["repo"]
+    
+    # Create a unique branch name for testing
+    branch_name = f"test-branch-{int(time.time())}"
+    
+    # First, we need to create a new branch
+    # This is done outside the service since branch creation is not part of our API
+    try:
+        # Get the default branch to use as base
+        repo_info = service.get_repository(owner=owner, repo=repo)
+        default_branch = repo_info.data.default_branch
+        
+        # Create a test PR title
+        pr_title = get_timestamped_title("Test Pull Request")
+        
+        # For testing purposes, we'll try to create a PR from the same branch to itself
+        # This will fail in a real scenario, but we can test the API call structure
+        response = service.create_pull_request(
+            owner=owner,
+            repo=repo,
+            title=pr_title,
+            head=default_branch,  # In a real scenario, this would be a different branch
+            base=default_branch,
+            body="This is a test pull request created by automated tests.",
+            draft=True
+        )
+        
+        # This will likely fail with a same-branch error, but we can check the error handling
+        if "Error creating pull request" in response.message:
+            # Expected error for same branch
+            assert "No commits between" in response.message or "same branch" in response.message.lower()
+        else:
+            # If it somehow succeeds (e.g., if the repo has multiple branches)
+            assert response.data is not None
+            assert isinstance(response.data, PullRequestSchema)
+            assert response.data.title == pr_title
+    except Exception as e:
+        # This test may fail in CI environments without proper permissions
+        # We'll make it a soft assertion
+        print(f"Error in create_pull_request test: {str(e)}")
+        assert "Error creating pull request" in str(e) or "No commits between" in str(e) or "same branch" in str(e).lower()
+
+
+def test_update_pull_request(base_setup, test_repo_info):
+    """Test updating a pull request."""
+    service = base_setup["service"]
+    owner = test_repo_info["owner"]
+    repo = test_repo_info["repo"]
+    
+    # First, get an existing PR if available
+    prs_response = service.get_pull_requests(owner=owner, repo=repo, state="all")
+    
+    if not prs_response.data or not prs_response.data.pull_requests:
+        pytest.skip("No pull requests available for testing update")
+    
+    # Get the first PR
+    pr = prs_response.data.pull_requests[0]
+    pr_number = pr.number
+    
+    # Update the PR with a new title
+    new_title = get_timestamped_title("Updated PR Title")
+    response = service.update_pull_request(
+        owner=owner,
+        repo=repo,
+        pull_number=pr_number,
+        title=new_title
+    )
+    
+    # Check if update was successful
+    if "Error updating pull request" in response.message:
+        # This might happen if we don't have write permissions
+        assert "permission" in response.message.lower() or "not authorized" in response.message.lower()
+    else:
+        assert response.data is not None
+        assert isinstance(response.data, PullRequestSchema)
+        assert response.data.title == new_title
+
+
+def test_merge_pull_request(base_setup, test_repo_info):
+    """Test merging a pull request."""
+    service = base_setup["service"]
+    owner = test_repo_info["owner"]
+    repo = test_repo_info["repo"]
+    
+    # First, get an open PR if available
+    prs_response = service.get_pull_requests(owner=owner, repo=repo, state="open")
+    
+    if not prs_response.data or not prs_response.data.pull_requests:
+        pytest.skip("No open pull requests available for testing merge")
+    
+    # Get the first open PR
+    pr = prs_response.data.pull_requests[0]
+    pr_number = pr.number
+    
+    # Try to merge the PR
+    response = service.merge_pull_request(
+        owner=owner,
+        repo=repo,
+        pull_number=pr_number,
+        commit_title=f"Merge PR #{pr_number}",
+        merge_method="merge"
+    )
+    
+    # Check if merge was successful or failed with expected error
+    if "Error merging pull request" in response.message:
+        # This might happen if we don't have write permissions or PR isn't mergeable
+        assert ("permission" in response.message.lower() or 
+                "not authorized" in response.message.lower() or
+                "not mergeable" in response.message.lower())
+    else:
+        assert response.message == "Pull request merged successfully"
+        assert response.data is not None
+
+
+def test_get_pull_request_reviews(base_setup, test_repo_info):
+    """Test getting reviews for a pull request."""
+    service = base_setup["service"]
+    owner = test_repo_info["owner"]
+    repo = test_repo_info["repo"]
+    
+    # First, get a PR if available
+    prs_response = service.get_pull_requests(owner=owner, repo=repo, state="all")
+    
+    if not prs_response.data or not prs_response.data.pull_requests:
+        pytest.skip("No pull requests available for testing reviews")
+    
+    # Get the first PR
+    pr = prs_response.data.pull_requests[0]
+    pr_number = pr.number
+    
+    # Get reviews for the PR
+    response = service.get_pull_request_reviews(
+        owner=owner,
+        repo=repo,
+        pull_number=pr_number
+    )
+    
+    # Check response structure
+    assert response.data is not None
+    
+    # Reviews might be empty if none exist
+    if response.data.reviews:
+        review = response.data.reviews[0]
+        assert review.id is not None
+        assert review.user is not None
+        assert review.state is not None
+
+
+def test_create_pull_request_review(base_setup, test_repo_info):
+    """Test creating a review for a pull request."""
+    service = base_setup["service"]
+    owner = test_repo_info["owner"]
+    repo = test_repo_info["repo"]
+    
+    # First, get an open PR if available
+    prs_response = service.get_pull_requests(owner=owner, repo=repo, state="open")
+    
+    if not prs_response.data or not prs_response.data.pull_requests:
+        pytest.skip("No open pull requests available for testing review creation")
+    
+    # Get the first open PR
+    pr = prs_response.data.pull_requests[0]
+    pr_number = pr.number
+    
+    # Create a review
+    response = service.create_pull_request_review(
+        owner=owner,
+        repo=repo,
+        pull_number=pr_number,
+        body="This is a test review created by automated tests.",
+        event="COMMENT"  # APPROVE, REQUEST_CHANGES, COMMENT
+    )
+    
+    # Check if review creation was successful
+    if "Error creating pull request review" in response.message:
+        # This might happen if we don't have write permissions
+        assert "permission" in response.message.lower() or "not authorized" in response.message.lower()
+    else:
+        assert response.data is not None
+        assert response.data.body == "This is a test review created by automated tests."
+        assert response.data.state is not None

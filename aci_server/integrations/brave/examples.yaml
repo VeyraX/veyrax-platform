@@ -1,0 +1,123 @@
+routes:
+  - endpoint: /brave/web_search
+    examples:
+      - scenario: "Basic Web Search"
+        description: "Simple search with safe search moderation"
+        input_json: |
+          {
+            "q": "brave search engine features",
+            "count": 3,
+            "safesearch": "moderate",
+            "freshness": "pw",
+            "country": "US"
+          }
+        output_json: |
+          {
+            "data": {
+              "web": {
+                "results": [
+                  {
+                    "title": "Brave Search Features",
+                    "url": "https://search.brave.com/features",
+                    "description": "Discover Brave's privacy-focused search features including...",
+                    "thumbnail": {
+                      "src": "https://example.com/brave-features-thumb.jpg"
+                    }
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "BraveWebSearchCard"
+            }
+          }
+
+  - endpoint: /brave/images_search
+    examples:
+      - scenario: "AI Development Images"
+        input_json: |
+          {
+            "q": "latest AI developments",
+            "count": 1,
+            "country": "DE"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "title": "AI Developments Overview",
+                "url": "https://example.com/ai-image.jpg",
+                "thumbnail": {
+                  "src": "https://example.com/ai-thumb.jpg"
+                },
+                "source": "techinsights.com",
+                "width": 1920,
+                "height": 1080,
+                "aspect_ratio": 1.78
+              }
+            ],
+            "component": {
+              "name": "BraveImageCard"
+            }
+          }
+
+  - endpoint: /brave/videos_search
+    examples:
+      - scenario: "Educational Videos"
+        input_json: |
+          {
+            "q": "machine learning basics",
+            "duration": "medium",
+            "search_lang": "en",
+            "country": "US"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "title": "Introduction to Machine Learning",
+                "url": "https://www.youtube.com/watch?v=abc123",
+                "thumbnail": {
+                  "src": "https://i.ytimg.com/vi/abc123/maxresdefault.jpg"
+                },
+                "duration": "18:45",
+                "views": 150000,
+                "publisher": "AI Academy",
+                "published_date": "2024-03-15T00:00:00Z",
+                "description": "Beginner-friendly introduction to ML concepts"
+              }
+            ],
+            "component": {
+              "name": "BraveVideoCard"
+            }
+          }
+
+  - endpoint: /brave/news_search
+    examples:
+      - scenario: "Tech News Search"
+        input_json: |
+          {
+            "q": "quantum computing breakthroughs",
+            "freshness": "pm",
+            "units": "metric",
+            "country": "US"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "title": "New Quantum Computing Milestone Achieved",
+                "url": "https://example.com/quantum-news",
+                "description": "Researchers demonstrate error-corrected quantum computation...",
+                "source": "techfrontiers.com",
+                "date": "2024-03-20T08:00:00Z",
+                "thumbnail": {
+                  "src": "https://example.com/quantum-thumb.jpg"
+                },
+                "authors": ["Jane Smith", "John Doe"]
+              }
+            ],
+            "component": {
+              "name": "BraveNewsCard"
+            }
+          } 

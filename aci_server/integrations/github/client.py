@@ -59,6 +59,31 @@ class GitHubClient:
         endpoint = f"/user/starred/{owner}/{repo}"
         return self._make_request("DELETE", endpoint)
 
+    def create_pull_request(self, owner: str, repo: str, data: dict) -> Dict[str, Any]:
+        """Create a new pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls"
+        return self._make_request("POST", endpoint, data=data)
+
+    def update_pull_request(self, owner: str, repo: str, pull_number: int, data: dict) -> Dict[str, Any]:
+        """Update an existing pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}"
+        return self._make_request("PATCH", endpoint, data=data)
+
+    def merge_pull_request(self, owner: str, repo: str, pull_number: int, data: dict) -> Dict[str, Any]:
+        """Merge a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+        return self._make_request("PUT", endpoint, data=data)
+
+    def get_pull_request_reviews(self, owner: str, repo: str, pull_number: int) -> Dict[str, Any]:
+        """Get reviews for a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+        return self._make_request("GET", endpoint)
+
+    def create_pull_request_review(self, owner: str, repo: str, pull_number: int, data: dict) -> Dict[str, Any]:
+        """Create a review for a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+        return self._make_request("POST", endpoint, data=data)
+
     def _make_request(self, method, endpoint, params=None, data=None):
         """Make a request to the GitHub API."""
         url = f"{self.BASE_URL}{endpoint}"

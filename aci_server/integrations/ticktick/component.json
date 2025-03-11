@@ -1,0 +1,53 @@
+[
+  {
+    "name": "TickTickTaskCard",
+    "version": "1.0.0",
+    "description": "Displays TickTick tasks in a card format",
+    "related_endpoints": [
+      "/ticktick/tasks-get",
+      "/ticktick/tasks-create",
+      "/ticktick/tasks-update"
+    ],
+    "component": {
+      "jsx": "function(props) { function TickTickTaskCard(props) { const task = props.data; if (!task) return null; const statusColors = { 0: '#e2e8f0', 2: '#dcfce7' }; const priorityColors = { 0: '#e2e8f0', 1: '#bfdbfe', 3: '#fef08a', 5: '#fecaca' }; const getDueDate = () => { if (!task.dueDate) return 'No due date'; const date = new Date(task.dueDate); return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }; const styles = { container: { display: 'flex', flexWrap: 'wrap', gap: '12px', width: '100%' }, cardWrapper: { width: 'calc(50% - 6px)', minWidth: '250px', boxSizing: 'border-box' }, card: { position: 'relative', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', padding: '12px', marginBottom: '8px', width: '100%', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }, title: { fontWeight: '600', color: '#1e293b', fontSize: '14px', margin: '0 0 4px 0', textDecoration: task.status === 2 ? 'line-through' : 'none' }, subtitle: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b', marginBottom: '8px' }, projectTag: { display: 'inline-flex', alignItems: 'center', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#e2e8f0', fontSize: '10px' }, priorityDot: { width: '8px', height: '8px', borderRadius: '50%' }, dueDate: { display: 'flex', alignItems: 'center', gap: '4px' }, progressBar: { height: '4px', borderRadius: '2px', backgroundColor: '#e2e8f0', margin: '8px 0' }, progressFill: { height: '100%', borderRadius: '2px', backgroundColor: '#3b82f6', transition: 'width 0.3s' }, checklist: { marginTop: '8px', fontSize: '12px' }, checklistItem: { display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', textDecoration: task.status === 2 ? 'line-through' : 'none' } }; return React.createElement('div', { style: styles.card }, React.createElement('h3', { style: styles.title }, task.title), React.createElement('div', { style: styles.subtitle }, React.createElement('div', { style: styles.projectTag }, task.projectId), React.createElement('div', { style: { ...styles.priorityDot, backgroundColor: priorityColors[task.priority] } }), React.createElement('div', { style: styles.dueDate }, getDueDate()) ), task.items && task.items.length > 0 && React.createElement('div', { style: styles.checklist }, task.items.map((item, index) => React.createElement('div', { key: index, style: styles.checklistItem }, React.createElement('input', { type: 'checkbox', checked: item.status === 1, disabled: true }), item.title ))) ); } return props.data && props.data.items ? React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } }, props.data.items.map(task => React.createElement(TickTickTaskCard, { key: task.id, data: task }))) : React.createElement(TickTickTaskCard, props); }"
+    },
+    "exampleProps": {
+      "data": {
+        "id": "63b7bebb91c0a5474805fcd4",
+        "title": "Complete API Integration",
+        "projectId": "6226ff9877acee87727f6bca",
+        "dueDate": "2023-06-20T09:00:00Z",
+        "priority": 3,
+        "status": 0,
+        "items": [
+          { "title": "Implement authentication", "status": 1 },
+          { "title": "Create task endpoints", "status": 0 }
+        ]
+      }
+    },
+    "schemaRef": "schema.TaskResponse"
+  },
+  {
+    "name": "TickTickProjectCard",
+    "version": "1.0.0",
+    "description": "Displays TickTick projects in a card format",
+    "related_endpoints": [
+      "/ticktick/projects-get",
+      "/ticktick/projects-create",
+      "/ticktick/projects-update"
+    ],
+    "component": {
+      "jsx": "function(props) { function TickTickProjectCard(props) { const project = props.data; if (!project) return null; const styles = { card: { position: 'relative', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', padding: '12px', marginBottom: '8px', width: '100%', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }, header: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }, colorBadge: { width: '16px', height: '16px', borderRadius: '4px', backgroundColor: project.color || '#e2e8f0' }, title: { fontWeight: '600', color: '#1e293b', fontSize: '14px', margin: 0 }, meta: { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748b' }, progressBar: { height: '4px', borderRadius: '2px', backgroundColor: '#e2e8f0', margin: '8px 0' }, progressFill: { height: '100%', borderRadius: '2px', backgroundColor: project.color || '#3b82f6' } }; return React.createElement('div', { style: styles.card }, React.createElement('div', { style: styles.header }, React.createElement('div', { style: styles.colorBadge }), React.createElement('h3', { style: styles.title }, project.name)), React.createElement('div', { style: styles.meta }, React.createElement('span', null, project.kind), React.createElement('span', null, project.viewMode)), React.createElement('div', { style: styles.progressBar }, React.createElement('div', { style: { ...styles.progressFill, width: '60%' } })) ); } return props.data && props.data.items ? React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } }, props.data.items.map(project => React.createElement(TickTickProjectCard, { key: project.id, data: project }))) : React.createElement(TickTickProjectCard, props); }"
+    },
+    "exampleProps": {
+      "data": {
+        "id": "6226ff9877acee87727f6bca",
+        "name": "Development Tasks",
+        "color": "#3b82f6",
+        "viewMode": "list",
+        "kind": "TASK"
+      }
+    },
+    "schemaRef": "schema.ProjectResponse"
+  }
+] 

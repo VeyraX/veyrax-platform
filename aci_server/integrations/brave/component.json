@@ -1,0 +1,96 @@
+[
+  {
+    "name": "BraveWebSearchCard",
+    "version": "1.0.0",
+    "description": "Displays Brave web search results in a card format",
+    "related_endpoints": ["web_search"],
+    "component": {
+      "jsx": "function BraveWebSearchCard(props) {\n  const result = props.data;\n  \n  function CalendarIcon() {\n    return React.createElement('svg', {\n      width: '12',\n      height: '12',\n      viewBox: '0 0 16 16',\n      fill: 'none',\n      style: { color: '#94a3b8', marginRight: '4px' }\n    }, [\n      React.createElement('path', {\n        d: 'M12 2.5H4a1.5 1.5 0 0 0-1.5 1.5v8A1.5 1.5 0 0 0 4 13.5h8a1.5 1.5 0 0 0 1.5-1.5V4A1.5 1.5 0 0 0 12 2.5z',\n        stroke: 'currentColor',\n        strokeWidth: '1.2',\n        strokeLinecap: 'round',\n        strokeLinejoin: 'round'\n      }),\n      React.createElement('path', {\n        d: 'M5.5 1.5v2M10.5 1.5v2M2.5 5.5h11',\n        stroke: 'currentColor',\n        strokeWidth: '1.2',\n        strokeLinecap: 'round'\n      })\n    ]);\n  }\n\n  const styles = {\n    card: {\n      backgroundColor: '#ffffff',\n      borderRadius: '12px',\n      border: '1px solid #e2e8f0',\n      padding: '16px',\n      marginBottom: '12px',\n      width: '100%',\n      boxSizing: 'border-box',\n      transition: 'transform 0.2s, box-shadow 0.2s',\n      ':hover': {\n        transform: 'translateY(-2px)',\n        boxShadow: '0 4px 6px rgba(0,0,0,0.05)'\n      }\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '12px',\n      gap: '8px'\n    },\n    favicon: {\n      width: '20px',\n      height: '20px',\n      borderRadius: '4px'\n    },\n    source: {\n      fontSize: '13px',\n      color: '#64748b',\n      fontWeight: '500'\n    },\n    content: {\n      display: 'flex',\n      gap: '16px'\n    },\n    thumbnail: {\n      width: '120px',\n      flexShrink: 0,\n      borderRadius: '6px',\n      overflow: 'hidden',\n      background: '#f1f5f9'\n    },\n    image: {\n      width: '100%',\n      height: '80px',\n      objectFit: 'cover'\n    },\n    textContainer: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#1e293b',\n      margin: '0 0 8px 0',\n      lineHeight: '1.3',\n      display: '-webkit-box',\n      WebkitLineClamp: 2,\n      WebkitBoxOrient: 'vertical',\n      overflow: 'hidden',\n      textDecoration: 'none',\n      ':hover': {\n        textDecoration: 'underline'\n      }\n    },\n    url: {\n      fontSize: '13px',\n      color: '#64748b',\n      marginBottom: '8px',\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px',\n      textOverflow: 'ellipsis',\n      overflow: 'hidden',\n      whiteSpace: 'nowrap'\n    },\n    description: {\n      fontSize: '14px',\n      color: '#475569',\n      lineHeight: '1.4',\n      marginBottom: '12px',\n      display: '-webkit-box',\n      WebkitLineClamp: 3,\n      WebkitBoxOrient: 'vertical',\n      overflow: 'hidden'\n    },\n    metaContainer: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '12px',\n      fontSize: '12px',\n      color: '#94a3b8'\n    },\n    buttonsContainer: {\n      display: 'flex',\n      gap: '8px',\n      marginTop: '12px',\n      flexWrap: 'wrap'\n    },\n    button: {\n      padding: '4px 8px',\n      borderRadius: '20px',\n      border: '1px solid #e2e8f0',\n      background: '#f8fafc',\n      color: '#475569',\n      fontSize: '12px',\n      cursor: 'pointer',\n      transition: 'background 0.2s',\n      ':hover': {\n        background: '#f1f5f9'\n      }\n    }\n  };\n\n  return React.createElement('a', {\n    href: result.url,\n    target: '_blank',\n    rel: 'noopener noreferrer',\n    style: { textDecoration: 'none', color: 'inherit' }\n  },\n    React.createElement('div', { style: styles.card },\n      React.createElement('div', { style: styles.header },\n        result.meta_url?.favicon && React.createElement('img', {\n          src: result.meta_url.favicon,\n          style: styles.favicon,\n          alt: result.profile?.name\n        }),\n        React.createElement('span', { style: styles.source },\n          result.profile?.name || result.meta_url?.hostname\n        )\n      ),\n      React.createElement('div', { style: styles.content },\n        result.thumbnail?.src && React.createElement('div', { style: styles.thumbnail },\n          React.createElement('img', {\n            src: result.thumbnail.src,\n            style: styles.image,\n            alt: result.title\n          })\n        ),\n        React.createElement('div', { style: styles.textContainer },\n          React.createElement('h3', { style: styles.title }, result.title),\n          React.createElement('div', { style: styles.url },\n            result.url\n          ),\n          result.description && React.createElement('p', { style: styles.description }, result.description),\n          result.deep_results?.buttons && React.createElement('div', { style: styles.buttonsContainer },\n            result.deep_results.buttons.map((button, index) =>\n              React.createElement('a', {\n                key: index,\n                href: button.url,\n                style: styles.button,\n                target: '_blank',\n                rel: 'noopener noreferrer'\n              }, button.title)\n            )\n          ),\n          React.createElement('div', { style: styles.metaContainer },\n            React.createElement(CalendarIcon),\n            result.age\n          )\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "title": "Family of Donald Trump - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Family_of_Donald_Trump",
+        "description": "The family of Donald Trump, the 45th and 47th president of the United States and owner of the Trump Organization, is an American family of Bavarian German and Scottish descent...",
+        "age": "1 day ago",
+        "thumbnail": {
+          "src": "https://upload.wikimedia.org/wikipedia/commons/0/03/Donald_Trump_%2832758233090%29.jpg"
+        },
+        "profile": {
+          "name": "Wikipedia",
+          "img": "https://en.wikipedia.org/static/favicon/wikipedia.ico"
+        },
+        "deep_results": {
+          "buttons": [
+            {
+              "title": "Early Life",
+              "url": "#Early_life"
+            },
+            {
+              "title": "Business Career",
+              "url": "#Business_career"
+            }
+          ]
+        }
+      }
+    },
+    "schemaRef": "schema.WebSearchResult"
+  },
+  {
+    "name": "BraveImageCard",
+    "version": "1.0.0",
+    "description": "Displays Brave image search results in a grid card format",
+    "related_endpoints": ["image_search"],
+    "component": {
+      "jsx": "function BraveImageCard(props) {\n  const image = props.data;\n  \n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '12px',\n      width: '100%',\n      display: 'flex',\n      gap: '12px',\n      backgroundColor: '#ffffff',\n      transition: 'transform 0.2s',\n      ':hover': {\n        backgroundColor: '#f8fafc'\n      }\n    },\n    imageContainer: {\n      width: '120px',\n      flexShrink: 0,\n      position: 'relative'\n    },\n    image: {\n      width: '100%',\n      height: '100px',\n      borderRadius: '4px',\n      objectFit: 'cover'\n    },\n    content: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#1e293b',\n      marginBottom: '6px',\n      lineHeight: '1.3',\n      display: '-webkit-box',\n      WebkitLineClamp: 2,\n      WebkitBoxOrient: 'vertical',\n      overflow: 'hidden'\n    },\n    metaContainer: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px',\n      fontSize: '11px',\n      color: '#94a3b8'\n    },\n    size: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px'\n    },\n    dimensions: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px'\n    }\n  };\n\n  return React.createElement('a', {\n    href: image.url,\n    target: '_blank',\n    rel: 'noopener noreferrer',\n    style: { textDecoration: 'none', color: 'inherit' }\n  },\n    React.createElement('div', { style: styles.card },\n      React.createElement('div', { style: styles.imageContainer },\n        React.createElement('img', { \n          src: image.thumbnail?.src, \n          style: styles.image,\n          alt: image.title\n        })\n      ),\n      React.createElement('div', { style: styles.content },\n        React.createElement('h3', { style: styles.title }, image.title),\n        React.createElement('div', { style: styles.metaContainer },\n          image.source && React.createElement('span', null, image.source),\n          image.size && React.createElement('span', { style: styles.size },\n            `${Math.round(image.size/1024)}KB`\n          ),\n          image.width && image.height && React.createElement('span', { style: styles.dimensions },\n            `${image.width}×${image.height}`\n          )\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "title": "AI-Generated Landscape Artwork",
+        "thumbnail": { "src": "https://example.com/ai-art.jpg" },
+        "source": "Digital Art Gallery",
+        "size": 204800,
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    "schemaRef": "schema.ImageSearchResult"
+  },
+  {
+    "name": "BraveVideoCard",
+    "version": "1.0.0",
+    "description": "Displays Brave video search results with preview and metadata",
+    "related_endpoints": ["video_search"],
+    "component": {
+      "jsx": "function BraveVideoCard(props) {\n  const video = props.data;\n  \n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '12px',\n      width: '100%',\n      display: 'flex',\n      gap: '12px',\n      transition: 'transform 0.2s',\n      backgroundColor: '#ffffff',\n      ':hover': {\n        backgroundColor: '#f8fafc'\n      }\n    },\n    thumbnailContainer: {\n      width: '120px',\n      flexShrink: 0,\n      position: 'relative'\n    },\n    thumbnail: {\n      width: '100%',\n      height: '80px',\n      borderRadius: '4px',\n      objectFit: 'cover'\n    },\n    content: {\n      flex: 1,\n      minWidth: 0\n    },\n    title: {\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#1e293b',\n      marginBottom: '6px',\n      lineHeight: '1.3'\n    },\n    description: {\n      fontSize: '13px',\n      color: '#64748b',\n      marginBottom: '8px',\n      lineHeight: '1.4',\n      display: '-webkit-box',\n      WebkitLineClamp: 2,\n      WebkitBoxOrient: 'vertical',\n      overflow: 'hidden'\n    },\n    metaContainer: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px',\n      fontSize: '11px',\n      color: '#94a3b8'\n    },\n    duration: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '4px'\n    },\n    publisher: {\n      maxWidth: '200px',\n      overflow: 'hidden',\n      textOverflow: 'ellipsis',\n      whiteSpace: 'nowrap'\n    }\n  };\n\n  return React.createElement('a', {\n    href: video.url,\n    target: '_blank',\n    rel: 'noopener noreferrer',\n    style: { textDecoration: 'none', color: 'inherit' }\n  },\n    React.createElement('div', { style: styles.card },\n      React.createElement('div', { style: styles.thumbnailContainer },\n        React.createElement('img', { \n          src: video.thumbnail?.src, \n          style: styles.thumbnail,\n          alt: video.title\n        }),\n        video.duration && React.createElement('span', { style: {\n          position: 'absolute',\n          bottom: '4px',\n          right: '4px',\n          backgroundColor: 'rgba(0,0,0,0.7)',\n          color: 'white',\n          padding: '2px 4px',\n          borderRadius: '3px',\n          fontSize: '10px'\n        } }, video.duration)\n      ),\n      React.createElement('div', { style: styles.content },\n        React.createElement('h3', { style: styles.title }, video.title),\n        video.description && React.createElement('p', { style: styles.description }, video.description),\n        React.createElement('div', { style: styles.metaContainer },\n          video.publisher && React.createElement('span', { style: styles.publisher }, video.publisher),\n          video.duration && React.createElement('span', { style: styles.duration }, video.duration)\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "title": "AI Explained: Deep Learning Fundamentals",
+        "description": "A comprehensive guide to understanding deep learning architectures and their real-world applications in artificial intelligence.",
+        "thumbnail": { "src": "https://example.com/video-thumb.jpg" },
+        "duration": "12:34",
+        "publisher": "Tech Education Channel"
+      }
+    },
+    "schemaRef": "schema.VideoSearchResult"
+  },
+  {
+    "name": "BraveNewsCard",
+    "version": "1.0.0",
+    "description": "Displays Brave news search results with source and date information",
+    "related_endpoints": ["news_search"],
+    "component": {
+      "jsx": "function BraveNewsCard(props) {\n  const news = props.data;\n  \n  const styles = {\n    card: {\n      border: '1px solid #e2e8f0',\n      borderRadius: '8px',\n      padding: '12px',\n      backgroundColor: '#ffffff',\n      width: '100%',\n      transition: 'background-color 0.2s',\n      ':hover': {\n        backgroundColor: '#f8fafc'\n      }\n    },\n    header: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      marginBottom: '8px'\n    },\n    source: {\n      fontSize: '12px',\n      fontWeight: '500',\n      color: '#475569'\n    },\n    date: {\n      fontSize: '11px',\n      color: '#94a3b8'\n    },\n    title: {\n      fontSize: '14px',\n      fontWeight: '500',\n      marginBottom: '4px',\n      color: '#3b82f6',\n      ':hover': {\n        textDecoration: 'underline'\n      }\n    },\n    description: {\n      fontSize: '13px',\n      color: '#64748b'\n    }\n  };\n\n  return React.createElement('a', {\n    href: news.url,\n    target: '_blank',\n    rel: 'noopener noreferrer',\n    style: { textDecoration: 'none', color: 'inherit' }\n  },\n    React.createElement('div', { style: styles.card },\n      React.createElement('div', { style: styles.header },\n        React.createElement('span', { style: styles.source }, news.source),\n        React.createElement('span', { style: styles.date }, news.date)\n      ),\n      React.createElement('h3', { style: styles.title }, news.title),\n      news.description && React.createElement('p', { style: styles.description }, news.description)\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "title": "Breakthrough in AI Research",
+        "source": "TechNews.com",
+        "date": "2024-03-15",
+        "description": "New study reveals significant advances in neural network architectures"
+      }
+    },
+    "schemaRef": "schema.NewsSearchResult"
+  }
+]

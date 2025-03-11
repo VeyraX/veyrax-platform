@@ -11,7 +11,7 @@ import { createChat } from "../api/api.agent";
 import { useRouter } from "next/navigation";
 import { createChatMessage } from "../api/api.agent";
 import { getChatMessages } from "../api/api.agent";
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import { getChat } from "../api/api.agent";
 import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrations";
@@ -45,6 +45,8 @@ export default function AssistantPage({
     return false;
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const { messages, append, isLoading, stop, setMessages } = useChat({
     api: '/api/chat',
     id: currentChatIdRef.current || undefined,
@@ -58,6 +60,20 @@ export default function AssistantPage({
     },
     onError: (error) => {
       console.error('Error in useChat:', error);
+      let errorMessage = "An error occurred while processing your request.";
+      
+      try {
+        const errorData = JSON.parse(error.message);
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
+      } catch (e) {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      // Auto-hide error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     },
   });
 
@@ -245,6 +261,13 @@ export default function AssistantPage({
           chatName={!isNewChat ? chatName : "New Chat"}
         />
         
+        {error && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 bg-destructive text-destructive-foreground px-4 py-2 rounded-md shadow-lg">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+
         {(isLoadingMessages && !isJustCreated && !isNewChat) ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="animate-spin" />
