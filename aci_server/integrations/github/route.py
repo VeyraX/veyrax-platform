@@ -17,7 +17,11 @@ from .schema import (
     UnstarRepositoryParams, RepositoriesResponse, RepositoryResponse,
     IssuesResponse, IssueResponse, PullRequestsResponse, 
     PullRequestResponse, CommitResponse, StarResponse, UnstarResponse,
-    GetCommitsParams, CommitsResponse
+    GetCommitsParams, CommitsResponse, CreatePullRequestParams, 
+    UpdatePullRequestParams, MergePullRequestParams, GetPullRequestReviewsParams,
+    CreatePullRequestReviewParams, PullRequestReviewsResponse, 
+    PullRequestReviewResponse, CreatePullRequestResponse, UpdatePullRequestResponse,
+    MergePullRequestResponse
 )
 from ..common.examples_handler import ExamplesLoader
 router = APIRouter(prefix="/github", tags=["github"])
@@ -203,6 +207,91 @@ async def unstar_repository(
         return service.unstar_repository(**validated_params.dict())
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'UnstarRepositoryParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create_pull_request", response_model=ApiResponse)
+@schema(input_schema_class=CreatePullRequestParams, output_schema_class=CreatePullRequestResponse, examples=examples["/create_pull_request"])
+async def create_pull_request(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = CreatePullRequestParams(**params)
+        return service.create_pull_request(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePullRequestParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/update_pull_request", response_model=ApiResponse)
+@schema(input_schema_class=UpdatePullRequestParams, output_schema_class=UpdatePullRequestResponse, examples=examples["/update_pull_request"])
+async def update_pull_request(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = UpdatePullRequestParams(**params)
+        return service.update_pull_request(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdatePullRequestParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/merge_pull_request", response_model=ApiResponse)
+@schema(input_schema_class=MergePullRequestParams, output_schema_class=MergePullRequestResponse, examples=examples["/merge_pull_request"])
+async def merge_pull_request(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = MergePullRequestParams(**params)
+        return service.merge_pull_request(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MergePullRequestParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/get_pull_request_reviews", response_model=ApiResponse)
+@schema(input_schema_class=GetPullRequestReviewsParams, output_schema_class=PullRequestReviewsResponse, examples=examples["/get_pull_request_reviews"])
+async def get_pull_request_reviews(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = GetPullRequestReviewsParams(**params)
+        return service.get_pull_request_reviews(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPullRequestReviewsParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create_pull_request_review", response_model=ApiResponse)
+@schema(input_schema_class=CreatePullRequestReviewParams, output_schema_class=PullRequestReviewResponse, examples=examples["/create_pull_request_review"])
+async def create_pull_request_review(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = CreatePullRequestReviewParams(**params)
+        return service.create_pull_request_review(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePullRequestReviewParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

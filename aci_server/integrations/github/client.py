@@ -9,6 +9,8 @@ class GitHubClient:
         self.token = token
         self._initialize_client()
 
+        print("GitHubClient initialized with token:", self.token)
+
     def _initialize_client(self):
         self.headers = {
             "Authorization": f"token {self.token}",
@@ -58,6 +60,54 @@ class GitHubClient:
     def unstar_repository(self, owner: str, repo: str) -> None:
         endpoint = f"/user/starred/{owner}/{repo}"
         return self._make_request("DELETE", endpoint)
+
+    def create_pull_request(self, owner: str, repo: str, title: str, head: str, base: str, body: str = None, draft: bool = False) -> Dict[str, Any]:
+        """Create a new pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls"
+        data = {
+            "title": title,
+            "head": head,
+            "base": base,
+            "body": body,
+            "draft": draft
+        }
+        return self._make_request("POST", endpoint, data=data)
+
+    def update_pull_request(self, owner: str, repo: str, pull_number: int, **kwargs) -> Dict[str, Any]:
+        """Update an existing pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}"
+        return self._make_request("PATCH", endpoint, data=kwargs)
+
+    def merge_pull_request(self, owner: str, repo: str, pull_number: int, commit_title: str = None, 
+                          commit_message: str = None, merge_method: str = "merge") -> Dict[str, Any]:
+        """Merge a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+        data = {
+            "merge_method": merge_method
+        }
+        if commit_title:
+            data["commit_title"] = commit_title
+        if commit_message:
+            data["commit_message"] = commit_message
+        return self._make_request("PUT", endpoint, data=data)
+
+    def get_pull_request_reviews(self, owner: str, repo: str, pull_number: int) -> Dict[str, Any]:
+        """Get reviews for a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+        return self._make_request("GET", endpoint)
+
+    def create_pull_request_review(self, owner: str, repo: str, pull_number: int, 
+                                  body: str = None, event: str = None, comments: list = None) -> Dict[str, Any]:
+        """Create a review for a pull request."""
+        endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+        data = {}
+        if body:
+            data["body"] = body
+        if event:
+            data["event"] = event  # APPROVE, REQUEST_CHANGES, COMMENT
+        if comments:
+            data["comments"] = comments
+        return self._make_request("POST", endpoint, data=data)
 
     def _make_request(self, method, endpoint, params=None, data=None):
         """Make a request to the GitHub API."""

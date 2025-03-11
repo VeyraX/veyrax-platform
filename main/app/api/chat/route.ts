@@ -81,16 +81,30 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse({
       getErrorMessage: (error: unknown) => {
-        if (error instanceof Error && error.message.includes('maximum context length')) {
-          const truncatedMessages = messages.slice(0, -1);
-          return "Token limit exceeded. Please try rephrasing your last question more concisely.";
+        if (error instanceof Error) {
+          // Check for OpenAI's context length error format
+          try {
+            const errorObj = JSON.parse(error.message);
+            if (errorObj.error?.code === 'context_length_exceeded' || 
+                errorObj.error?.message?.includes('maximum context length')) {
+              return "The conversation is too long. Please start a new chat or try rephrasing your last question more concisely.";
+            }
+          } catch (e) {
+            // If error message isn't JSON, check the raw message
+            if (error.message.includes('maximum context length') || 
+                error.message.includes('context_length_exceeded')) {
+              return "The conversation is too long. Please start a new chat or try rephrasing your last question more concisely.";
+            }
+          }
+          
+          if (error.message.includes('ToolInvocation')) {
+            return "Error processing tool invocation. Please try again.";
+          }
+          
+          return error.message;
         }
         
-        if (error instanceof Error && error.message.includes('ToolInvocation')) {
-          return "Error processing tool invocation. Please try again.";
-        }
-        
-        return error instanceof Error ? error.message : 'An unknown error occurred';
+        return 'An unknown error occurred';
       }
     });
   } catch (error) {

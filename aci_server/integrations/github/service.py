@@ -1,11 +1,13 @@
 import json
 import os
 from typing import Dict, Any, List, Optional, Union
+import requests
 
 from .client import GitHubClient
 from .schema import (
     RepositorySchema, RepositoryList, IssueSchema, IssueList,
-    PullRequestSchema, PullRequestList, CommitSchema, ApiResponse, CommitList
+    PullRequestSchema, PullRequestList, CommitSchema, ApiResponse, CommitList,
+    PullRequestReviewSchema, PullRequestReviewList
 )
 from ..common.component_handler import prepare_components_auto, load_components
 
@@ -112,6 +114,8 @@ class GitHubService:
     def get_pull_request(self, owner: str, repo: str, pull_number: int) -> ApiResponse:
         response = self.client.get_pull_request(owner, repo, pull_number)
         pull_request = PullRequestSchema(**response)
+
+        print("Pull request:", pull_request)
         
         return self.prepare_response(pull_request, "GitHubPullRequestCard")
 
@@ -161,3 +165,134 @@ class GitHubService:
             import traceback
             traceback.print_exc()
             return ApiResponse(message=f"Error retrieving commits: {str(e)}")
+
+    def create_pull_request(self, owner: str, repo: str, title: str, head: str, 
+                           base: str, body: str = None, draft: bool = False) -> ApiResponse:
+        try:
+            response = self.client.create_pull_request(
+                owner=owner,
+                repo=repo,
+                title=title,
+                head=head,
+                base=base,
+                body=body,
+                draft=draft
+            )
+            
+            pull_request = PullRequestSchema(**response)
+            return self.prepare_response(pull_request, "GitHubPullRequestCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            
+            error_message = str(e)
+            # Check if it's a 422 error for pull request creation
+            if "422 Client Error: Unprocessable Entity" in error_message and "/pulls" in error_message:
+                return ApiResponse(message="Check your branch, cannot create pull request")
+            
+            return ApiResponse(message=f"Error creating pull request: {str(e)}")
+
+    def update_pull_request(self, owner: str, repo: str, pull_number: int, 
+                           title: str = None, body: str = None, state: str = None, 
+                           base: str = None, maintainer_can_modify: bool = None) -> ApiResponse:
+        try:
+            update_data = {}
+            if title is not None:
+                update_data["title"] = title
+            if body is not None:
+                update_data["body"] = body
+            if state is not None:
+                update_data["state"] = state
+            if base is not None:
+                update_data["base"] = base
+            if maintainer_can_modify is not None:
+                update_data["maintainer_can_modify"] = maintainer_can_modify
+                
+            response = self.client.update_pull_request(
+                owner=owner,
+                repo=repo,
+                pull_number=pull_number,
+                **update_data
+            )
+
+            print("Update pull request response:", response)
+            
+            pull_request = PullRequestSchema(**response)
+            return self.prepare_response(pull_request, "GitHubPullRequestCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+
+            response_err = e.response.json()
+
+            try:
+                err_message = response_err['errors'][0]['message']
+            except (KeyError, IndexError):
+                err_message = str(response_err)
+            
+            if 'Fork collab can only be enabled on cross-repo pull requests' in err_message:
+                return ApiResponse(message="Warning: Fork collab can only be enabled on cross-repo pull requests (Hint: probably you need to remove maintainer_can_modify param because it is not a fork repo)")
+            
+            return ApiResponse(message=f"Error updating pull request: {str(e.response.json())}")
+
+    def merge_pull_request(self, owner: str, repo: str, pull_number: int, 
+                          commit_title: str = None, commit_message: str = None, 
+                          merge_method: str = "merge") -> ApiResponse:
+        try:
+            response = self.client.merge_pull_request(
+                owner=owner,
+                repo=repo,
+                pull_number=pull_number,
+                commit_title=commit_title,
+                commit_message=commit_message,
+                merge_method=merge_method
+            )
+            
+            return ApiResponse(message="Pull request merged successfully", data=response)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return ApiResponse(message=f"Error merging pull request: {str(e)}")
+
+    def get_pull_request_reviews(self, owner: str, repo: str, pull_number: int) -> ApiResponse:
+        try:
+            response = self.client.get_pull_request_reviews(
+                owner=owner,
+                repo=repo,
+                pull_number=pull_number
+            )
+            
+            reviews = []
+            for review_data in response:
+                reviews.append(PullRequestReviewSchema(**review_data))
+            
+            review_list = PullRequestReviewList(
+                reviews=reviews,
+                next_page=None  # GitHub API doesn't support pagination for reviews
+            )
+            
+            return self.prepare_response(review_list, "GitHubPullRequestReviewCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return ApiResponse(message=f"Error retrieving pull request reviews: {str(e.response.json())}")
+
+    def create_pull_request_review(self, owner: str, repo: str, pull_number: int, 
+                                  body: str = None, event: str = None, 
+                                  comments: list = None) -> ApiResponse:
+        try:
+            response = self.client.create_pull_request_review(
+                owner=owner,
+                repo=repo,
+                pull_number=pull_number,
+                body=body,
+                event=event,
+                comments=comments
+            )
+            
+            review = PullRequestReviewSchema(**response)
+            return self.prepare_response(review, "GitHubPullRequestReviewCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return ApiResponse(message=f"Error creating pull request review: {str(e.response.json())}")

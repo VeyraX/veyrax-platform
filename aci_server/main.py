@@ -209,6 +209,10 @@ async def get_tool_spec(tool_name: str):
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
     
+    # If environment is development, use the dev version of the endpoint
+    if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
+        return await get_dev_user_tools(request)
+    
     try:
         user_id = await get_user_from_request(request)
     except Exception as e:  
@@ -263,3 +267,73 @@ async def get_user_tools(request: Request):
             success=0 
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
+
+async def get_dev_user_tools(request: Request):
+    """
+    Development utility endpoint that gets tools filtered by available providers for a user.
+    Instead of using provider['input_schema'], this endpoint uses the tool schemas returned by get_router_tools (local schema).
+    """
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
+        supabase = get_supabase()
+    
+        # Get user's providers
+        user_providers = supabase.table('users_providers') \
+            .select('provider_id') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not user_providers.data:
+            tools_response = {"tools": {}}
+            tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
+            tools_response["tools"]["memories"] = {}
+            
+            return tools_response
+            
+        provider_ids = [item['provider_id'] for item in user_providers.data]
+        
+        # Get provider tags for the user's providers
+        providers = supabase.table('providers') \
+            .select('provider_tag') \
+            .in_('id', provider_ids) \
+            .execute()
+            
+        provider_tags = [provider['provider_tag'] for provider in providers.data]
+        
+        # Initialize user_tools with examples
+        user_tools = {}
+        user_tools['examples'] = json.loads(get_tools_example_prompt)
+        
+        # Get all tools
+        for name, router in INTEGRATION_ROUTERS.items():
+            # Only include tools for providers the user has access to
+            if name in provider_tags:
+                # Get tool schemas from router
+                tool_schemas = get_router_tools(router)
+                
+                # Convert list of tool schemas to dictionary with method name as key
+                provider_tools = {}
+                for tool_schema in tool_schemas:
+                    method_name = tool_schema["function"]["name"]
+                    provider_tools[method_name] = tool_schema
+                
+                # Add to user_tools
+                user_tools[name] = provider_tools
+        
+        # Add memories
+        user_memories = await get_user_memories(user_id)
+        user_tools['memories'] = user_memories
+        
+        
+        return {"tools": user_tools}
+    except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint="/dev/get-user-tools",
+            success=0 
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get dev user tools: {str(e)}")
