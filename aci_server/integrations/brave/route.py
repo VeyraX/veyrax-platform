@@ -31,16 +31,14 @@ async def get_brave_service(request: Request):
 @schema(
     input_schema_class=WebSearchParams,
     output_schema_class=ApiResponse,
-    examples=examples["web_search"]
+    examples=examples["/brave/web_search"]
 )
 async def web_search(
     params: Dict[str, Any] = Body(...),
-    service: BraveService = Depends(get_brave_service)
+    service: BraveService = Depends(get_brave_service),
 ):
     try:
-        print("web_search params", params)
         validated_params = WebSearchParams(**params)
-        print("web_search validated_params", validated_params)
         return service.web_search(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'WebSearchParams'))
@@ -51,7 +49,7 @@ async def web_search(
 @schema(
     input_schema_class=ImageSearchParams,
     output_schema_class=ApiResponse,
-    examples=examples["images_search"]
+    examples=examples["/brave/images_search"]
 )
 async def image_search(
     params: Dict[str, Any] = Body(...),
