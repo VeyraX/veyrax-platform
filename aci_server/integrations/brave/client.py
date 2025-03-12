@@ -59,7 +59,7 @@ class BraveClient:
             if v is None:
                 continue
             if isinstance(v, bool):
-                cleaned[k] = str(v).lower()  # Convert True/False to 'true'/'false'
+                cleaned[k] = str(v).lower() 
             elif isinstance(v, list):
                 cleaned[k] = ",".join(map(str, v))
             else:
