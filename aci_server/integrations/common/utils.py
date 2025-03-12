@@ -57,14 +57,15 @@ def format_validation_error(e: ValidationError, model_name: str = "InputValidati
     return schema_info
 
 
-def log_api_call(user_id: str, endpoint: Optional[str] = None, success: Optional[int] = None):
+def log_api_call(user_id: str, endpoint: Optional[str] = None, success: Optional[int] = None, error_message: Optional[str] = None):
     try:
         supabase = get_supabase()
         
         api_call_data = {
             "user_id": user_id,
             "endpoint": endpoint,
-            "success": success
+            "success": success,
+            "error_message": error_message
         }
         
         supabase.table("api_calls").insert(api_call_data).execute()

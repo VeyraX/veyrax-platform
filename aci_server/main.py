@@ -122,85 +122,93 @@ def find_route_by_tool_and_method(tool: str, method: str):
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request, include_component: bool = True):
-    
+    success = 0
+    response = None
+    error_message = None
     try:
-        params = await request.json()
-    except:
-        params = {}
-    
-    if tool not in INTEGRATION_ROUTERS:
-        raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
-    
-    router = INTEGRATION_ROUTERS[tool]
-    
-    for route in router.routes:
-        if route_method(route) == method:
-            signature = inspect.signature(route.endpoint)
-            
-            endpoint_args = {}
-            
-            for name, param in signature.parameters.items():
-                if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
-                    dep_func = param.default.dependency
-                    try:
-                        dependency_result = await dep_func(request)
-                        
-                        if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
-                            raise ValueError(f"Dependency resolution error: got Depends object instead of service instance")
+        try:
+            params = await request.json()
+        except:
+            params = {}
+        
+        if tool not in INTEGRATION_ROUTERS:
+            raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
+        
+        router = INTEGRATION_ROUTERS[tool]
+        
+        for route in router.routes:
+            if route_method(route) == method:
+                signature = inspect.signature(route.endpoint)
+                
+                endpoint_args = {}
+                
+                for name, param in signature.parameters.items():
+                    if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
+                        dep_func = param.default.dependency
+                        try:
+                            dependency_result = await dep_func(request)
                             
-                        endpoint_args[name] = dependency_result
-                    except Exception as e:
-                        error_msg = f"Error resolving dependency {name}: {str(e)}"
-                        raise HTTPException(status_code=500, detail=error_msg)
-            
-            for name, param in signature.parameters.items():
-                if name in endpoint_args:
-                    continue
-                    
-                is_body_param = (
-                    param.default != inspect.Parameter.empty 
-                    and hasattr(param.default, "__class__") 
-                    and param.default.__class__.__name__ == "Body"
-                )
+                            if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
+                                raise ValueError(f"Dependency resolution error: got Depends object instead of service instance")
+                                
+                            endpoint_args[name] = dependency_result
+                        except Exception as dep_error:
+                            error_msg = f"Error resolving dependency {name}: {str(dep_error)}"
+                            raise HTTPException(status_code=500, detail=error_msg)
                 
-                if name in params:
-                    endpoint_args[name] = params[name]
-                elif name == "params" and is_body_param:
-                    endpoint_args[name] = params
-                elif name == "request" and name not in endpoint_args:
-                    endpoint_args[name] = request
-            
-            try:
-                response = await route.endpoint(**endpoint_args)
-                success = 1
-            except Exception as e:
-                success = 0 
-                raise e
-            
-            try:
-                user_id = await get_user_from_request(request)
+                for name, param in signature.parameters.items():
+                    if name in endpoint_args:
+                        continue
+                        
+                    is_body_param = (
+                        param.default != inspect.Parameter.empty 
+                        and hasattr(param.default, "__class__") 
+                        and param.default.__class__.__name__ == "Body"
+                    )
                     
-                log_api_call(
-                    user_id=user_id,
-                    endpoint=f"/tool-call/{tool}/{method}",
-                    success=success
-                )
+                    if name in params:
+                        endpoint_args[name] = params
+                    elif name == "params" and is_body_param:
+                        endpoint_args[name] = params
+                    elif name == "request" and name not in endpoint_args:
+                        endpoint_args[name] = request
                 
-            except Exception as e:
-                print(f"Error logging API call for Supabase: {str(e)}")
-            
-            if not include_component:
-                if isinstance(response, dict) and "component" in response:
-                    response.pop("component")
-                elif hasattr(response, "component") and hasattr(response, "dict"):
-                    response_dict = response.dict()
-                    if "component" in response_dict:
-                        response_dict.pop("component")
-                    return response_dict
-            
-            return response
+                try:
+                    response = await route.endpoint(**endpoint_args)
+                    success = 1
+                except Exception as exc:
+                    success = 0 
+                    error_message = str(exc)
+                    raise exc
+                
+                if not include_component:
+                    if isinstance(response, dict) and "component" in response:
+                        response.pop("component")
+                    elif hasattr(response, "component") and hasattr(response, "dict"):
+                        response_dict = response.dict()
+                        if "component" in response_dict:
+                            response_dict.pop("component")
+                        return response_dict
+                
+                return response
+        
+        raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}'")
     
-    raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}'")
+    except Exception as exc:
+        error_message = str(exc)
+        raise
+    
+    finally:
+        try:
+            user_id = await get_user_from_request(request)
+            log_api_call(
+                user_id=user_id,
+                endpoint=f"/tool-call/{tool}/{method}",
+                success=success,
+                error_message=error_message
+            )
+        except Exception as log_error:
+            print(f"Error logging API call for Supabase: {str(log_error)}")
 
 @app.get("/tools/{tool_name}")
 async def get_tool_spec(tool_name: str):
@@ -212,8 +220,6 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
-    
-    # If environment is development, use the dev version of the endpoint
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
         return await get_dev_user_tools(request)
     
@@ -268,15 +274,12 @@ async def get_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/get-tools",
-            success=0 
+            success=0,
+            error_message=str(e)
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 
 async def get_dev_user_tools(request: Request):
-    """
-    Development utility endpoint that gets tools filtered by available providers for a user.
-    Instead of using provider['input_schema'], this endpoint uses the tool schemas returned by get_router_tools (local schema).
-    """
     try:
         user_id = await get_user_from_request(request)
     except Exception as e:  
@@ -285,7 +288,6 @@ async def get_dev_user_tools(request: Request):
     try:
         supabase = get_supabase()
     
-        # Get user's providers
         user_providers = supabase.table('users_providers') \
             .select('provider_id') \
             .eq('user_id', user_id) \
@@ -300,7 +302,6 @@ async def get_dev_user_tools(request: Request):
             
         provider_ids = [item['provider_id'] for item in user_providers.data]
         
-        # Get provider tags for the user's providers
         providers = supabase.table('providers') \
             .select('provider_tag') \
             .in_('id', provider_ids) \
@@ -308,18 +309,13 @@ async def get_dev_user_tools(request: Request):
             
         provider_tags = [provider['provider_tag'] for provider in providers.data]
         
-        # Initialize user_tools with examples
         user_tools = {}
         user_tools['examples'] = json.loads(get_tools_example_prompt)
         
-        # Get all tools
         for name, router in INTEGRATION_ROUTERS.items():
-            # Only include tools for providers the user has access to
             if name in provider_tags:
-                # Get tool schemas from router
                 tool_schemas = get_router_tools(router)
-                
-                # Convert list of tool schemas to dictionary with method name as key
+
                 provider_tools = {}
                 for tool_schema in tool_schemas:
                     method_name = tool_schema["function"]["name"]
@@ -338,6 +334,7 @@ async def get_dev_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/dev/get-user-tools",
-            success=0 
+            success=0,
+            error_message=str(e)
         )
         raise HTTPException(status_code=500, detail=f"Failed to get dev user tools: {str(e)}")

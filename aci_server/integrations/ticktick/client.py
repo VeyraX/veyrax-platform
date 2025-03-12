@@ -104,15 +104,6 @@ class TickTickClient:
         response.raise_for_status()
 
     def get_project_data(self, project_id: str) -> Dict[str, Any]:
-        """Get complete project data including tasks, columns and project details
-        Endpoint: GET /open/v1/project/{projectId}/data
-        Returns:
-        {
-            "project": Project,
-            "tasks": Task[],
-            "columns": Column[]
-        }
-        """
         response = requests.get(
             f"{self.BASE_URL}/open/v1/project/{project_id}/data",
             headers=self.headers
