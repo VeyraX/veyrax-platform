@@ -61,7 +61,6 @@ def github_error_handler(func):
             raise he
         
         except GitHubAPIError as git_err:
-            print("github error", git_err.status_code, git_err.message)
             raise HTTPException(
                 status_code=git_err.status_code,
                 detail=git_err.message

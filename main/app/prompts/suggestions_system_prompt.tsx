@@ -7,7 +7,7 @@ You MUST analyze user previous question and response of the system and generate 
 
 It MUST be ONLY 3 suggestions.
 
-Agnet has tools:
+Agent has tools:
 - Get Events from Eventbrite
 - Book and purchase tickets for events from Eventbrite
 - Add events to the user's Google Calendar

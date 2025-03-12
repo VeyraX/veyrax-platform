@@ -9,16 +9,16 @@ class CompletionRequest(BaseModel):
     messages: List[Message] = Field(description="The messages to send to the Perplexity API; Last message must have role `user`")
     model: str = "sonar"
     max_tokens: Optional[int] = 1024
-    temperature: float = 0.4
-    top_p: float = 0.9
+    temperature: Optional[float] = 0.4
+    top_p: Optional[float] = 0.9
     search_domain_filter: Optional[str] = Field(default=None, description="Only available in certain tiers")
-    return_images: bool = False
-    return_related_questions: bool = False
+    return_images: Optional[bool] = False
+    return_related_questions: Optional[bool] = False
     search_recency_filter: Optional[str] = None
-    top_k: int = 5
-    stream: bool = False
+    top_k: Optional[int] = 5
+    stream: Optional[bool] = False
     presence_penalty: Optional[float] = 0
-    frequency_penalty: Optional[float] = 1
+    frequency_penalty: Optional[float] = Field(default=1)
     response_format: Optional[str] = None
 
 class CompletionResponse(BaseModel):
