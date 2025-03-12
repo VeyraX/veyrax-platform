@@ -9,7 +9,7 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
 import { ScopeDialog } from './integration-settings'
 import { Provider } from '../api/types.integrations'
-import { disconnectProvider, initiateOAuthFlow, enableApiKeyProvider, enableProvider } from '../api/api.integrations'
+import { initiateOAuthFlow, enableProvider } from '../api/api.integrations'
 import { ManageDialog } from './integration-manage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { IntegrationRequestForm } from './provider-connection-forms/integration-request'
