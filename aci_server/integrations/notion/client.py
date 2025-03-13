@@ -128,8 +128,6 @@ class NotionClient:
         if "start_cursor" in kwargs:
             payload["start_cursor"] = kwargs["start_cursor"]
         
-        # For debugging
-        print(f"Sending to Notion API: {payload}")
         
         response = requests.post(
             f"{self.base_url}/search",
