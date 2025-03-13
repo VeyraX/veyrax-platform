@@ -317,7 +317,7 @@ async def get_dev_user_tools(request: Request):
         user_tools['examples'] = json.loads(get_tools_example_prompt)
         
         for name, router in INTEGRATION_ROUTERS.items():
-            if name in provider_tags and name == 'tavily':
+            if name in provider_tags:
                 tool_schemas = get_router_tools(router)
 
                 provider_tools = {}
