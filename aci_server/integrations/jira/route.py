@@ -12,7 +12,8 @@ from .schema import (
     GetIssuesResponse, GetIssueResponse, CreateIssueResponse,
     UpdateIssueResponse, DeleteIssueResponse, GetProjectsResponse,
     GetProjectResponse, GetStatusesResponse, GetPrioritiesResponse,
-    GetIssueTypesResponse, GetFieldsResponse, GetUsersResponse
+    GetIssueTypesResponse, GetFieldsResponse, GetUsersResponse,
+    GetTransitionsParams, GetTransitionsResponse
 )
 from ..common.auth import TokenService, JiraTokenRefresher
 from ..common.input_schema_decorator import schema
@@ -161,7 +162,6 @@ async def get_statuses(
     service: JiraService = Depends(get_jira_service)
 ):
     try:
-        validated_params = GetStatusesParams(**params)
         return service.get_all_statuses()
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetStatusesParams'))
@@ -231,6 +231,26 @@ async def get_users(
         return service.get_users(validated_params.query)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetUsersParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_transitions", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetTransitionsParams,
+    output_schema_class=GetTransitionsResponse,
+    examples=examples["/jira/get_transitions"]
+)
+async def get_transitions(
+    params: Dict[str, Any] = Body(...),
+    service: JiraService = Depends(get_jira_service)
+):
+    try:
+        validated_params = GetTransitionsParams(**params)
+        return service.get_allowed_transitions(validated_params.issue_id)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetTransitionsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

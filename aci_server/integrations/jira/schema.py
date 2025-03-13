@@ -138,9 +138,7 @@ class JiraUser(BaseModel):
     display_name: str
     active: bool
 
-class ApiResponse(BaseModel):
-    data: Union[Issue, IssueList, Project, List[Project], List[Status], List[Priority], List[IssueType], List[Field], List[JiraUser]]
-    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
 
 # New parameter schemas
 class GetIssuesParams(BaseModel):
@@ -180,6 +178,9 @@ class GetIssueTypesParams(BaseModel):
 
 class GetFieldsParams(BaseModel):
     pass
+
+class GetTransitionsParams(BaseModel):
+    issue_id: str
 
 # Response schema classes
 class GetIssuesResponse(BaseModel):
@@ -229,3 +230,18 @@ class GetFieldsResponse(BaseModel):
 class GetUsersResponse(BaseModel):
     data: List[JiraUser]
     message: Optional[str] = None
+
+class Transition(BaseModel):
+    id: str
+    name: str
+    to_status: Status
+    is_available: bool
+
+class GetTransitionsResponse(BaseModel):
+    data: List[Transition]
+    message: Optional[str] = None
+
+
+class ApiResponse(BaseModel):
+    data: Union[Issue, IssueList, Project, List[Project], List[Status], List[Priority], List[IssueType], List[Field], List[JiraUser], List[Transition]]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

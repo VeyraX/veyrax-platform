@@ -1,9 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any, Union
 
 class SpaceSchema(BaseModel):
     id: str
     name: str
+    key: str
     description: Optional[Dict[str, Any]] = None
     homepageId: Optional[str] = None
     type: str
@@ -22,7 +23,8 @@ class PageSchema(BaseModel):
 class PageCreateSchema(BaseModel):
     title: str
     content: str
-    spaceId: str
+    spaceKey: str = Field(..., min_length=1, max_length=255, pattern="^[A-Z0-9]+$", 
+                        description="Space key in uppercase (e.g. 'PRAC')")
     parentId: Optional[str] = None
 
 class PageUpdateSchema(BaseModel):

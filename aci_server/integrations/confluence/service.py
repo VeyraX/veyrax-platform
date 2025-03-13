@@ -30,6 +30,7 @@ class ConfluenceService:
 
     def get_spaces(self) -> ApiResponse:
         response = self.client.list_spaces(limit=100)
+
         spaces = []
         
         for space in response.get('results', []):
@@ -80,7 +81,7 @@ class ConfluenceService:
         data = {
             'type': 'page',
             'title': page_data.title,
-            'space': {'id': page_data.spaceId},
+            'space': {'key': page_data.spaceKey},
             'body': {
                 'storage': {
                     'value': page_data.content,
