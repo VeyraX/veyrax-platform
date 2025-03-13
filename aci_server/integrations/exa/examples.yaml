@@ -1,0 +1,120 @@
+routes:
+  - endpoint: /exa/search
+    examples:
+      - scenario: "Advanced Search with Filters"
+        description: "Search with domain filters and date constraints"
+        input_json: |
+          {
+            "query": "quantum computing breakthroughs",
+            "numResults": 5,
+            "includeDomains": ["nature.com", "science.org"],
+            "startPublishedDate": "2023-01-01",
+            "endPublishedDate": "2024-03-01"
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "search-789012",
+              "results": [
+                {
+                  "id": "doc-2",
+                  "title": "Quantum Error Correction Breakthrough",
+                  "url": "https://nature.com/articles/quantum-error-correction",
+                  "publishedDate": "2023-11-15",
+                  "author": "John Doe et al.",
+                  "score": 0.98,
+                  "text": "Researchers have achieved a significant milestone in quantum error correction...",
+                  "image": "https://nature.com/images/quantum-computing.jpg",
+                  "favicon": "https://nature.com/favicon.ico"
+                }
+              ],
+              "costDollars": {
+                "total": 0.03,
+                "search": {
+                  "api": 0.015,
+                  "processing": 0.015
+                }
+              }
+            },
+            "component": {
+              "name": "ExaSearchCard"
+            }
+          }
+
+  - endpoint: /exa/contents
+    examples:
+      - scenario: "Retrieve Content by URLs"
+        description: "Get full content for specific URLs"
+        input_json: |
+          {
+            "ids": [
+              "https://example.com/ai-research/llm-advances",
+              "https://nature.com/articles/quantum-error-correction"
+            ],
+            "text": true
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "contents-345678",
+              "results": [
+                {
+                  "id": "doc-1",
+                  "title": "Advances in Large Language Models",
+                  "url": "https://example.com/ai-research/llm-advances",
+                  "publishedDate": "2024-03-01",
+                  "author": "Jane Smith",
+                  "text": "Recent advances in large language models have shown significant improvements in reasoning capabilities. This paper explores the latest developments in transformer architectures and their applications in various domains...",
+                  "image": "https://example.com/images/llm-research.jpg",
+                  "favicon": "https://example.com/favicon.ico"
+                }
+              ],
+              "costDollars": {
+                "total": 0.05,
+                "contents": {
+                  "api": 0.025,
+                  "processing": 0.025
+                }
+              }
+            },
+            "component": {
+              "name": "ExaContentCard"
+            }
+          }
+
+  - endpoint: /exa/find_similar
+    examples:
+      - scenario: "Find Similar Content"
+        description: "Discover content similar to a given URL"
+        input_json: |
+          {
+            "url": "https://example.com/ai-research/llm-advances",
+            "numResults": 3,
+            "excludeDomains": ["blog.example.com"]
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "similar-901234",
+              "results": [
+                {
+                  "id": "doc-3",
+                  "title": "The Future of Language Models",
+                  "url": "https://research.ai/future-of-llms",
+                  "publishedDate": "2024-02-15",
+                  "author": "Alex Johnson",
+                  "score": 0.89
+                }
+              ],
+              "costDollars": {
+                "total": 0.04,
+                "search": {
+                  "api": 0.02,
+                  "processing": 0.02
+                }
+              }
+            },
+            "component": {
+              "name": "ExaSimilarCard"
+            }
+          }

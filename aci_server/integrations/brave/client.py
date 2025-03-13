@@ -33,7 +33,6 @@ class BraveClient:
         return response.json()
 
     def video_search(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform a video search"""
         response = requests.get(
             f"{self.BASE_URL}/videos/search",
             headers=self.headers,
@@ -43,7 +42,6 @@ class BraveClient:
         return response.json()
 
     def news_search(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform a news search"""
         response = requests.get(
             f"{self.BASE_URL}/news/search",
             headers=self.headers,
@@ -53,7 +51,6 @@ class BraveClient:
         return response.json()
 
     def _clean_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Convert boolean values to lowercase strings"""
         cleaned = {}
         for k, v in params.items():
             if v is None:

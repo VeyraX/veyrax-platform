@@ -1,0 +1,10 @@
+[
+    {
+      "name": "ExaSearchCard",
+      "version": "1.0.0",
+      "description": "A React component for displaying Exa search results",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]
