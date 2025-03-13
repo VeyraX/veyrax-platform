@@ -53,7 +53,7 @@ export function IntegrationRequestForm({ onSubmit, disabled = false, isPublic = 
           <div className="space-y-2">
             <Label htmlFor="integrationName">Which integration would you like to see?</Label>
             
-            {isPublic ? (
+            {!isPublic ? (
               <Input
                 id="integrationName"
                 value={integrationName}
@@ -68,7 +68,7 @@ export function IntegrationRequestForm({ onSubmit, disabled = false, isPublic = 
             )}
           </div>
 
-          {isPublic ? (
+          {!isPublic ? (
             <Button 
               type="submit" 
               disabled={disabled || isSubmitting || !integrationName.trim()}

@@ -204,6 +204,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
           </DialogHeader>
           <IntegrationRequestForm 
             onSubmit={handleRequestFormSubmit}
+            isPublic={isPublic}
           />
         </DialogContent>
       </Dialog>
