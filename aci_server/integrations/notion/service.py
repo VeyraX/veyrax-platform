@@ -160,7 +160,11 @@ class NotionService:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail=str(e))
         
-    def _find_database_blocks(self, children: List[Dict[str, Any]]):
+    def _find_database_blocks(self, children: Optional[List[Dict[str, Any]]] = None):
+        if children is None:
+            return [], None, []
+
+
         new_children = []
         database_block = None
         rest_children = []
@@ -205,6 +209,7 @@ class NotionService:
                 "parent": page_data.parent.dict(),
                 "properties": processed_properties
             }
+
 
             new_children, database_block, rest_children = self._find_database_blocks(page_data.children)
 
