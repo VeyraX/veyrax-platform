@@ -1,0 +1,208 @@
+routes:
+  - endpoint: /tavily/search
+    examples:
+      - scenario: "Basic Search Query"
+        description: "Simple search without additional features"
+        input_json: |
+          {
+            "query": "artificial intelligence",
+            "topic": "general",
+            "search_depth": "basic",
+            "max_results": 3
+          }
+        output_json: |
+          {
+            "data": {
+              "query": "artificial intelligence",
+              "results": [
+                {
+                  "title": "What is Artificial Intelligence (AI)?",
+                  "url": "https://www.example.com/ai-explained",
+                  "content": "Artificial intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions.",
+                  "score": 0.92
+                },
+                {
+                  "title": "How AI is Changing Industries",
+                  "url": "https://www.example.com/ai-industries",
+                  "content": "Artificial intelligence technology is transforming various sectors including healthcare, finance, and manufacturing.",
+                  "score": 0.85
+                }
+              ],
+              "response_time": "0.78"
+            }
+          }
+      
+      - scenario: "Search With Answer"
+        description: "Search query with generated answer"
+        input_json: |
+          {
+            "query": "Who is Leo Messi?",
+            "include_answer": true,
+            "max_results": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "query": "Who is Leo Messi?",
+              "answer": "Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability.",
+              "results": [
+                {
+                  "title": "Lionel Messi Facts | Britannica",
+                  "url": "https://www.britannica.com/facts/Lionel-Messi",
+                  "content": "Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation.",
+                  "score": 0.81
+                }
+              ],
+              "response_time": "1.67"
+            }
+          }
+          
+      - scenario: "Search With Images"
+        description: "Search query including images in results"
+        input_json: |
+          {
+            "query": "Mount Everest",
+            "include_images": true,
+            "include_image_descriptions": true,
+            "include_answer": true,
+            "max_results": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "query": "Mount Everest",
+              "answer": "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas on the border between Nepal and China.",
+              "images": [
+                {
+                  "url": "https://example.com/everest.jpg",
+                  "description": "Mount Everest peak covered in snow"
+                },
+                {
+                  "url": "https://example.com/everest-climbers.jpg",
+                  "description": "Climbers ascending Mount Everest"
+                }
+              ],
+              "results": [
+                {
+                  "title": "Mount Everest - Wikipedia",
+                  "url": "https://en.wikipedia.org/wiki/Mount_Everest",
+                  "content": "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas.",
+                  "score": 0.95
+                }
+              ],
+              "response_time": "1.24"
+            }
+          }
+
+  - endpoint: /tavily/extract
+    examples:
+      - scenario: "Basic Web Content Extraction"
+        description: "Extract content from a web page"
+        input_json: |
+          {
+            "urls": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+            "include_images": false,
+            "extract_depth": "basic"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                  "raw_content": "Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to intelligence of humans and other animals... [truncated for brevity]",
+                  "images": []
+                }
+              ],
+              "failed_results": [],
+              "response_time": 0.65
+            }
+          }
+          
+      - scenario: "Extract with Images"
+        description: "Extract content including images from a web page"
+        input_json: |
+          {
+            "urls": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+            "include_images": true,
+            "extract_depth": "advanced"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                  "raw_content": "Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to intelligence of humans and other animals... [truncated for brevity]",
+                  "images": [
+                    "https://example.com/ai-image1.jpg",
+                    "https://example.com/ai-image2.jpg"
+                  ]
+                }
+              ],
+              "failed_results": [],
+              "response_time": 0.82
+            }
+          }
+          
+      - scenario: "Multi-URL Extraction"
+        description: "Extract content from multiple URLs"
+        input_json: |
+          {
+            "urls": [
+              "https://en.wikipedia.org/wiki/Artificial_intelligence",
+              "https://en.wikipedia.org/wiki/Machine_learning"
+            ],
+            "include_images": false,
+            "extract_depth": "basic"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                  "raw_content": "Artificial intelligence (AI) is intelligence demonstrated by machines...",
+                  "images": []
+                },
+                {
+                  "url": "https://en.wikipedia.org/wiki/Machine_learning",
+                  "raw_content": "Machine learning (ML) is a field of inquiry devoted to understanding and building methods that 'learn'...",
+                  "images": []
+                }
+              ],
+              "failed_results": [],
+              "response_time": 1.2
+            }
+          }
+          
+      - scenario: "Extraction with Failures"
+        description: "Extract content with some failed URLs"
+        input_json: |
+          {
+            "urls": [
+              "https://en.wikipedia.org/wiki/Artificial_intelligence",
+              "https://invalid-url.example.com"
+            ],
+            "include_images": false,
+            "extract_depth": "basic"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                  "raw_content": "Artificial intelligence (AI) is intelligence demonstrated by machines...",
+                  "images": []
+                }
+              ],
+              "failed_results": [
+                {
+                  "url": "https://invalid-url.example.com",
+                  "error": "Could not access URL"
+                }
+              ],
+              "response_time": 0.95
+            }
+          } 

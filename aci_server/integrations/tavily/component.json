@@ -1,0 +1,123 @@
+[
+  {
+    "name": "TavilySearchCard",
+    "version": "1.0.0",
+    "description": "Displays Tavily search results in a card format",
+    "related_endpoints": ["search"],
+    "component": {
+      "jsx": "function TavilySearchCard(props) {\n  const data = props.data;\n  const results = data.results || [];\n  \n  // Style definitions\n  const styles = {\n    container: {\n      fontFamily: '\"Segoe UI\", Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    searchInfo: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      fontSize: '12px',\n      color: '#666',\n      marginBottom: '12px',\n      padding: '0 4px'\n    },\n    resultsList: {\n      listStyle: 'none',\n      padding: 0,\n      margin: 0\n    },\n    resultItem: {\n      padding: '16px',\n      marginBottom: '16px',\n      borderRadius: '8px',\n      border: '1px solid #e0e0e0',\n      backgroundColor: '#fff',\n      transition: 'transform 0.2s, box-shadow 0.2s',\n      ':hover': {\n        transform: 'translateY(-2px)',\n        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'\n      }\n    },\n    resultTitle: {\n      fontSize: '18px',\n      fontWeight: '600',\n      color: '#1a73e8',\n      margin: '0 0 8px 0',\n      textDecoration: 'none'\n    },\n    resultUrl: {\n      fontSize: '13px',\n      color: '#0d652d',\n      margin: '0 0 8px 0',\n      wordBreak: 'break-all'\n    },\n    resultContent: {\n      fontSize: '14px',\n      color: '#3c4043',\n      lineHeight: '1.5',\n      margin: '8px 0'\n    },\n    resultFooter: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#70757a',\n      marginTop: '8px'\n    },\n    score: {\n      backgroundColor: '#f1f3f4',\n      padding: '2px 6px',\n      borderRadius: '4px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.searchInfo },\n      React.createElement('div', null, `Query: \"${data.query}\"`),\n      React.createElement('div', null, `Response time: ${data.response_time}s`)\n    ),\n    results.length > 0 ? (\n      React.createElement('ul', { style: styles.resultsList },\n        results.map((result, index) => \n          React.createElement('li', { key: index, style: styles.resultItem },\n            React.createElement('a', { \n              href: result.url,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: { textDecoration: 'none' }\n            },\n              React.createElement('h3', { style: styles.resultTitle }, result.title)\n            ),\n            React.createElement('div', { style: styles.resultUrl }, result.url),\n            React.createElement('div', { style: styles.resultContent }, result.content),\n            React.createElement('div', { style: styles.resultFooter },\n              React.createElement('span', { style: styles.score }, `Relevance: ${(result.score * 100).toFixed(0)}%`)\n            )\n          )\n        )\n      )\n    ) : (\n      React.createElement('p', null, 'No results found.')\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "query": "artificial intelligence",
+        "results": [
+          {
+            "title": "What is Artificial Intelligence (AI)?",
+            "url": "https://example.com/what-is-ai",
+            "content": "Artificial intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions...",
+            "score": 0.92
+          },
+          {
+            "title": "History of AI Development",
+            "url": "https://example.com/ai-history",
+            "content": "The term artificial intelligence was coined in 1956, but AI has become more popular today thanks to increased data volumes and advanced algorithms...",
+            "score": 0.85
+          }
+        ],
+        "response_time": "0.78"
+      }
+    },
+    "schemaRef": "schema.SearchResponse"
+  },
+  {
+    "name": "TavilySearchWithAnswerCard",
+    "version": "1.0.0",
+    "description": "Displays Tavily search results with an AI-generated answer",
+    "related_endpoints": ["search"],
+    "component": {
+      "jsx": "function TavilySearchWithAnswerCard(props) {\n  const data = props.data;\n  const results = data.results || [];\n  \n  // Style definitions\n  const styles = {\n    container: {\n      fontFamily: '\"Segoe UI\", Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    searchInfo: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      fontSize: '12px',\n      color: '#666',\n      marginBottom: '12px',\n      padding: '0 4px'\n    },\n    answerContainer: {\n      backgroundColor: '#f8f9fa',\n      border: '1px solid #dadce0',\n      borderRadius: '8px',\n      padding: '16px',\n      marginBottom: '20px'\n    },\n    answerHeading: {\n      fontSize: '14px',\n      fontWeight: '500',\n      color: '#666',\n      marginTop: 0,\n      marginBottom: '8px'\n    },\n    answerText: {\n      fontSize: '16px',\n      lineHeight: '1.6',\n      color: '#202124',\n      margin: 0\n    },\n    resultsList: {\n      listStyle: 'none',\n      padding: 0,\n      margin: 0\n    },\n    resultItem: {\n      padding: '16px',\n      marginBottom: '16px',\n      borderRadius: '8px',\n      border: '1px solid #e0e0e0',\n      backgroundColor: '#fff',\n      transition: 'transform 0.2s, box-shadow 0.2s',\n      ':hover': {\n        transform: 'translateY(-2px)',\n        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'\n      }\n    },\n    resultTitle: {\n      fontSize: '18px',\n      fontWeight: '600',\n      color: '#1a73e8',\n      margin: '0 0 8px 0',\n      textDecoration: 'none'\n    },\n    resultUrl: {\n      fontSize: '13px',\n      color: '#0d652d',\n      margin: '0 0 8px 0',\n      wordBreak: 'break-all'\n    },\n    resultContent: {\n      fontSize: '14px',\n      color: '#3c4043',\n      lineHeight: '1.5',\n      margin: '8px 0'\n    },\n    resultFooter: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#70757a',\n      marginTop: '8px'\n    },\n    score: {\n      backgroundColor: '#f1f3f4',\n      padding: '2px 6px',\n      borderRadius: '4px'\n    },\n    sourcesHeading: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#3c4043',\n      marginTop: '24px',\n      marginBottom: '12px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.searchInfo },\n      React.createElement('div', null, `Query: \"${data.query}\"`),\n      React.createElement('div', null, `Response time: ${data.response_time}s`)\n    ),\n    data.answer && React.createElement('div', { style: styles.answerContainer },\n      React.createElement('h2', { style: styles.answerHeading }, 'Answer:'),\n      React.createElement('p', { style: styles.answerText }, data.answer)\n    ),\n    results.length > 0 && React.createElement('h3', { style: styles.sourcesHeading }, 'Sources:'),\n    results.length > 0 ? (\n      React.createElement('ul', { style: styles.resultsList },\n        results.map((result, index) => \n          React.createElement('li', { key: index, style: styles.resultItem },\n            React.createElement('a', { \n              href: result.url,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: { textDecoration: 'none' }\n            },\n              React.createElement('h3', { style: styles.resultTitle }, result.title)\n            ),\n            React.createElement('div', { style: styles.resultUrl }, result.url),\n            React.createElement('div', { style: styles.resultContent }, result.content),\n            React.createElement('div', { style: styles.resultFooter },\n              React.createElement('span', { style: styles.score }, `Relevance: ${(result.score * 100).toFixed(0)}%`)\n            )\n          )\n        )\n      )\n    ) : (\n      React.createElement('p', null, 'No results found.')\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "query": "Who is Leo Messi?",
+        "answer": "Lionel Messi, born in 1987, is an Argentine footballer widely regarded as one of the greatest players of his generation. He spent the majority of his career playing for FC Barcelona, where he won numerous domestic league titles and UEFA Champions League titles. Messi is known for his exceptional dribbling skills, vision, and goal-scoring ability.",
+        "results": [
+          {
+            "title": "Lionel Messi Facts | Britannica",
+            "url": "https://www.britannica.com/facts/Lionel-Messi",
+            "content": "Lionel Messi, an Argentine footballer, is widely regarded as one of the greatest football players of his generation.",
+            "score": 0.81
+          }
+        ],
+        "response_time": "1.67"
+      }
+    },
+    "schemaRef": "schema.SearchResponse"
+  },
+  {
+    "name": "TavilySearchWithImagesCard",
+    "version": "1.0.0",
+    "description": "Displays Tavily search results with images",
+    "related_endpoints": ["search"],
+    "component": {
+      "jsx": "function TavilySearchWithImagesCard(props) {\n  const data = props.data;\n  const results = data.results || [];\n  const images = data.images || [];\n  \n  // Style definitions\n  const styles = {\n    container: {\n      fontFamily: '\"Segoe UI\", Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    searchInfo: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      fontSize: '12px',\n      color: '#666',\n      marginBottom: '12px',\n      padding: '0 4px'\n    },\n    answerContainer: {\n      backgroundColor: '#f8f9fa',\n      border: '1px solid #dadce0',\n      borderRadius: '8px',\n      padding: '16px',\n      marginBottom: '20px'\n    },\n    answerHeading: {\n      fontSize: '14px',\n      fontWeight: '500',\n      color: '#666',\n      marginTop: 0,\n      marginBottom: '8px'\n    },\n    answerText: {\n      fontSize: '16px',\n      lineHeight: '1.6',\n      color: '#202124',\n      margin: 0\n    },\n    imagesContainer: {\n      marginBottom: '20px'\n    },\n    imagesHeading: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#3c4043',\n      marginTop: '24px',\n      marginBottom: '12px'\n    },\n    imagesGrid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',\n      gap: '12px'\n    },\n    imageCard: {\n      border: '1px solid #e0e0e0',\n      borderRadius: '8px',\n      overflow: 'hidden',\n      transition: 'transform 0.2s',\n      ':hover': {\n        transform: 'scale(1.03)'\n      }\n    },\n    image: {\n      width: '100%',\n      height: '140px',\n      objectFit: 'cover',\n      display: 'block'\n    },\n    imageCaption: {\n      padding: '8px',\n      fontSize: '12px',\n      color: '#3c4043',\n      backgroundColor: '#fff'\n    },\n    resultsList: {\n      listStyle: 'none',\n      padding: 0,\n      margin: 0\n    },\n    resultItem: {\n      padding: '16px',\n      marginBottom: '16px',\n      borderRadius: '8px',\n      border: '1px solid #e0e0e0',\n      backgroundColor: '#fff',\n      transition: 'transform 0.2s, box-shadow 0.2s',\n      ':hover': {\n        transform: 'translateY(-2px)',\n        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'\n      }\n    },\n    resultTitle: {\n      fontSize: '18px',\n      fontWeight: '600',\n      color: '#1a73e8',\n      margin: '0 0 8px 0',\n      textDecoration: 'none'\n    },\n    resultUrl: {\n      fontSize: '13px',\n      color: '#0d652d',\n      margin: '0 0 8px 0',\n      wordBreak: 'break-all'\n    },\n    resultContent: {\n      fontSize: '14px',\n      color: '#3c4043',\n      lineHeight: '1.5',\n      margin: '8px 0'\n    },\n    resultFooter: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      fontSize: '12px',\n      color: '#70757a',\n      marginTop: '8px'\n    },\n    score: {\n      backgroundColor: '#f1f3f4',\n      padding: '2px 6px',\n      borderRadius: '4px'\n    },\n    sourcesHeading: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#3c4043',\n      marginTop: '24px',\n      marginBottom: '12px'\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.searchInfo },\n      React.createElement('div', null, `Query: \"${data.query}\"`),\n      React.createElement('div', null, `Response time: ${data.response_time}s`)\n    ),\n    data.answer && React.createElement('div', { style: styles.answerContainer },\n      React.createElement('h2', { style: styles.answerHeading }, 'Answer:'),\n      React.createElement('p', { style: styles.answerText }, data.answer)\n    ),\n    images.length > 0 && React.createElement('div', { style: styles.imagesContainer },\n      React.createElement('h3', { style: styles.imagesHeading }, 'Images:'),\n      React.createElement('div', { style: styles.imagesGrid },\n        images.map((image, index) => \n          React.createElement('a', {\n            key: index,\n            href: image.url,\n            target: '_blank',\n            rel: 'noopener noreferrer',\n            style: { textDecoration: 'none' }\n          },\n            React.createElement('div', { style: styles.imageCard },\n              React.createElement('img', {\n                src: image.url,\n                alt: image.description || 'Search result image',\n                style: styles.image\n              }),\n              image.description && React.createElement('div', { style: styles.imageCaption }, image.description)\n            )\n          )\n        )\n      )\n    ),\n    results.length > 0 && React.createElement('h3', { style: styles.sourcesHeading }, 'Sources:'),\n    results.length > 0 ? (\n      React.createElement('ul', { style: styles.resultsList },\n        results.map((result, index) => \n          React.createElement('li', { key: index, style: styles.resultItem },\n            React.createElement('a', { \n              href: result.url,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: { textDecoration: 'none' }\n            },\n              React.createElement('h3', { style: styles.resultTitle }, result.title)\n            ),\n            React.createElement('div', { style: styles.resultUrl }, result.url),\n            React.createElement('div', { style: styles.resultContent }, result.content),\n            React.createElement('div', { style: styles.resultFooter },\n              React.createElement('span', { style: styles.score }, `Relevance: ${(result.score * 100).toFixed(0)}%`)\n            )\n          )\n        )\n      )\n    ) : (\n      React.createElement('p', null, 'No results found.')\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "query": "Mount Everest",
+        "answer": "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas on the border between Nepal and China.",
+        "images": [
+          {
+            "url": "https://example.com/everest.jpg",
+            "description": "Mount Everest peak covered in snow"
+          },
+          {
+            "url": "https://example.com/everest-climbers.jpg",
+            "description": "Climbers ascending Mount Everest"
+          }
+        ],
+        "results": [
+          {
+            "title": "Mount Everest - Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/Mount_Everest",
+            "content": "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas.",
+            "score": 0.95
+          }
+        ],
+        "response_time": "1.24"
+      }
+    },
+    "schemaRef": "schema.SearchResponse"
+  },
+  {
+    "name": "TavilyExtractCard",
+    "version": "1.0.0",
+    "description": "Displays Tavily extracted web content",
+    "related_endpoints": ["extract"],
+    "component": {
+      "jsx": "function TavilyExtractCard(props) {\n  const data = props.data;\n  const results = data.results || [];\n  const failedResults = data.failed_results || [];\n  \n  // Function to truncate long text\n  const truncateText = (text, maxLength = 300) => {\n    if (text.length <= maxLength) return text;\n    return text.substring(0, maxLength) + '...';\n  };\n  \n  // Style definitions\n  const styles = {\n    container: {\n      fontFamily: '\"Segoe UI\", Arial, sans-serif',\n      maxWidth: '100%',\n      margin: '0 auto'\n    },\n    header: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      marginBottom: '16px'\n    },\n    resultsList: {\n      listStyle: 'none',\n      padding: 0,\n      margin: 0\n    },\n    resultItem: {\n      padding: '16px',\n      marginBottom: '20px',\n      borderRadius: '8px',\n      border: '1px solid #e0e0e0',\n      backgroundColor: '#fff'\n    },\n    urlHeader: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      marginBottom: '12px',\n      borderBottom: '1px solid #f0f0f0',\n      paddingBottom: '10px'\n    },\n    url: {\n      fontSize: '14px',\n      fontWeight: '500',\n      color: '#1a73e8',\n      textDecoration: 'none',\n      ':hover': {\n        textDecoration: 'underline'\n      }\n    },\n    contentContainer: {\n      maxHeight: '300px',\n      overflow: 'auto',\n      padding: '8px',\n      backgroundColor: '#f9f9f9',\n      borderRadius: '4px'\n    },\n    content: {\n      fontSize: '14px',\n      lineHeight: '1.5',\n      whiteSpace: 'pre-wrap',\n      color: '#3c4043'\n    },\n    imagesHeading: {\n      fontSize: '14px',\n      fontWeight: '500',\n      marginTop: '12px',\n      marginBottom: '8px'\n    },\n    imagesGrid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',\n      gap: '8px'\n    },\n    image: {\n      width: '100%',\n      height: '100px',\n      objectFit: 'cover',\n      borderRadius: '4px'\n    },\n    failedHeader: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#d93025',\n      marginTop: '20px',\n      marginBottom: '12px'\n    },\n    failedItem: {\n      padding: '12px',\n      marginBottom: '8px',\n      borderRadius: '4px',\n      backgroundColor: '#fce8e6',\n      borderLeft: '4px solid #d93025'\n    },\n    failedUrl: {\n      fontWeight: '500',\n      color: '#d93025',\n      marginBottom: '4px'\n    },\n    failedError: {\n      fontSize: '13px'\n    },\n    responseTime: {\n      fontSize: '12px',\n      color: '#70757a',\n      textAlign: 'right',\n      marginTop: '8px'\n    },\n    expandButton: {\n      backgroundColor: '#f1f3f4',\n      border: 'none',\n      borderRadius: '4px',\n      padding: '4px 8px',\n      fontSize: '12px',\n      cursor: 'pointer',\n      color: '#1a73e8'\n    }\n  };\n\n  // State for tracking expanded content\n  const [expandedUrls, setExpandedUrls] = React.useState({});\n\n  const toggleExpand = (url) => {\n    setExpandedUrls(prev => ({\n      ...prev,\n      [url]: !prev[url]\n    }));\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header },\n      React.createElement('h2', null, 'Extracted Content'),\n      React.createElement('span', { style: styles.responseTime }, `Response time: ${data.response_time}s`)\n    ),\n    results.length > 0 ? (\n      React.createElement('ul', { style: styles.resultsList },\n        results.map((result, index) => \n          React.createElement('li', { key: index, style: styles.resultItem },\n            React.createElement('div', { style: styles.urlHeader },\n              React.createElement('a', { \n                href: result.url,\n                target: '_blank',\n                rel: 'noopener noreferrer',\n                style: styles.url\n              }, result.url),\n              React.createElement('button', {\n                onClick: () => toggleExpand(result.url),\n                style: styles.expandButton\n              }, expandedUrls[result.url] ? 'Collapse' : 'Expand')\n            ),\n            React.createElement('div', { style: styles.contentContainer },\n              React.createElement('div', { style: styles.content }, \n                expandedUrls[result.url] ? result.raw_content : truncateText(result.raw_content)\n              )\n            ),\n            result.images && result.images.length > 0 && React.createElement('div', null,\n              React.createElement('h4', { style: styles.imagesHeading }, 'Images:'),\n              React.createElement('div', { style: styles.imagesGrid },\n                result.images.map((imageUrl, imgIndex) => \n                  React.createElement('a', {\n                    key: imgIndex,\n                    href: imageUrl,\n                    target: '_blank',\n                    rel: 'noopener noreferrer'\n                  },\n                    React.createElement('img', {\n                      src: imageUrl,\n                      alt: `Image ${imgIndex + 1} from ${result.url}`,\n                      style: styles.image\n                    })\n                  )\n                )\n              )\n            )\n          )\n        )\n      )\n    ) : (\n      React.createElement('p', null, 'No content was successfully extracted.')\n    ),\n    failedResults.length > 0 && React.createElement('div', null,\n      React.createElement('h3', { style: styles.failedHeader }, 'Failed Extractions:'),\n      failedResults.map((failed, index) => \n        React.createElement('div', { key: index, style: styles.failedItem },\n          React.createElement('div', { style: styles.failedUrl }, failed.url),\n          React.createElement('div', { style: styles.failedError }, `Error: ${failed.error}`)\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "results": [
+          {
+            "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+            "raw_content": "Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to intelligence of humans and other animals... [truncated for brevity]",
+            "images": [
+              "https://example.com/ai-image1.jpg",
+              "https://example.com/ai-image2.jpg"
+            ]
+          }
+        ],
+        "failed_results": [
+          {
+            "url": "https://invalid-url.example.com",
+            "error": "Could not access URL"
+          }
+        ],
+        "response_time": 0.82
+      }
+    },
+    "schemaRef": "schema.ExtractResponse"
+  }
+] 

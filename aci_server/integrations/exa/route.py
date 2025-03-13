@@ -28,7 +28,7 @@ async def get_exa_service(request: Request):
 @schema(
     input_schema_class=SearchParams,
     output_schema_class=ApiResponse,
-    examples=examples["search"]
+    examples=examples["/exa/search"]
 )
 async def search(
     params: Dict[str, Any] = Body(...),
@@ -46,7 +46,7 @@ async def search(
 @schema(
     input_schema_class=ContentsParams,
     output_schema_class=ApiResponse,
-    examples=examples["contents"]
+    examples=examples["/exa/contents"]
 )
 async def get_contents(
     params: Dict[str, Any] = Body(...),
@@ -64,7 +64,7 @@ async def get_contents(
 @schema(
     input_schema_class=FindSimilarParams,
     output_schema_class=ApiResponse,
-    examples=examples["find_similar"]
+    examples=examples["/exa/find_similar"]
 )
 async def find_similar(
     params: Dict[str, Any] = Body(...),
