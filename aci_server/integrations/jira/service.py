@@ -22,7 +22,6 @@ class JiraService:
     def prepare_response(self, data: Union[Issue, IssueList, Project, List[Project], List[Transition]], component_name: str = None):
         tool_name = "jira"
 
-
         if component_name in ['JiraStatusesTable', 'JiraIssueTypesTable']:
             component_def = find_component(self.components_data, component_name)
             component = create_component(component_def, data)
@@ -33,24 +32,9 @@ class JiraService:
             return {"data": data, "component": components}
 
     def _initialize_service(self):
-        resources = self.client.get_accessible_resources()
-        if not resources:
-            raise Exception("No Jira resources available")
-        
-        resource = resources[0]
-        cloud_id = resource['id']
-        self.site_id = resource.get('url', '').split('/')[-1].replace('.atlassian.net', '')
-        self.base_url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
-        self.cloud_id = cloud_id
-        self.browser_base_url = f"https://{self.site_id}.atlassian.net"
-
-    def _make_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
-        return self.client.make_request(
-            self.base_url,
-            method,
-            endpoint,
-            **kwargs
-        )
+        resource = self.client.initialize_client()
+        self.site_id = self.client.site_id
+        self.browser_base_url = self.client.browser_base_url
 
     def _generate_html_link(self, issue_key: str) -> str:
         return f"{self.browser_base_url}/browse/{issue_key}"
@@ -73,16 +57,9 @@ class JiraService:
                 jql_parts.append(f'priority = {filters.priority_id}')
         
         jql = ' AND '.join(jql_parts) if jql_parts else "order by created DESC"
+        max_results = filters.max_results if filters and filters.max_results else 50
         
-        response = self._make_request(
-            'GET',
-            'search',
-            params={
-                'jql': jql,
-                'startAt': 0,
-                'maxResults': filters.max_results if filters and filters.max_results else 50
-            }
-        )
+        response = self.client.search_issues(jql=jql, start_at=0, max_results=max_results)
         
         issues = [
             Issue(
@@ -103,8 +80,9 @@ class JiraService:
         return self.prepare_response(issue_list, "JiraIssueCard")
 
     def get_issue(self, issue_id: str):
-        issue = self._make_request('GET', f'issue/{issue_id}')
-        comments = self._make_request('GET', f'issue/{issue_id}/comment')
+        issue = self.client.get_issue(issue_id)
+        comments = self.client.get_issue_comments(issue_id)
+        
         issue_obj = Issue(
             **self._format_issue_base(issue),
             comments=comments.get('comments', []),
@@ -132,15 +110,11 @@ class JiraService:
         
         fields.update({k: v for k, v in optional_fields.items() if v is not None})
         
-        response = self._make_request('POST', 'issue', json={'fields': fields})
+        response = self.client.create_issue(fields)
         
         if issue_create.status_id:
             issue_key = response['key']
-            self._make_request(
-                'POST',
-                f'issue/{issue_key}/transitions',
-                json={'transition': {'id': issue_create.status_id}}
-            )
+            self.client.transition_issue(issue_key, issue_create.status_id)
         
         # Get the issue data and return it properly
         issue_data = self.get_issue(response['id'])
@@ -148,14 +122,12 @@ class JiraService:
         return issue_data  # The get_issue method already calls prepare_response
 
     def _get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
-        response = self._make_request('GET', f'issue/{issue_id}/transitions')
+        response = self.client.get_transitions(issue_id)
         return response.get('transitions', [])
     
     def get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
         allowed_transitions = self._get_allowed_transitions(issue_id)
-
         prep_resp = self.prepare_response(allowed_transitions, None)
-        
         return prep_resp
 
     def _validate_status_transition(self, issue_id: str, new_status_id: str) -> bool:
@@ -182,11 +154,7 @@ class JiraService:
         #     fields['components'] = [{'name': c} for c in update.components]
             
         if fields:
-            update_response = self._make_request(
-                'PUT',
-                f'issue/{issue_id}',
-                json={'fields': fields}
-            )
+            self.client.update_issue(issue_id, fields)
         
         if update.status_id is not None:
             transaction = self._validate_status_transition(issue_id, update.status_id)
@@ -202,20 +170,12 @@ class JiraService:
                           f"Check the workflow for the issue. Allowed transitions: {allowed_transitions}"
                 )
                 
-            transition_response = self._make_request(
-                'POST',
-                f'issue/{issue_id}/transitions',
-                json={'transition': {'id': transaction['id']}}
-            )
+            self.client.transition_issue(issue_id, transaction['id'])
         
         return self.get_issue(issue_id)
 
     def delete_issue(self, issue_id: str) -> Dict[str, Any]:
-        self._make_request(
-            'DELETE',
-            f'issue/{issue_id}'
-        )
-        
+        self.client.delete_issue(issue_id)
         return {"status": "success"}
 
     def _format_issue_base(self, issue: Dict[str, Any]) -> Dict[str, Any]:
@@ -238,7 +198,7 @@ class JiraService:
         }
 
     def get_all_projects(self):
-        projects = self._make_request('GET', 'project')
+        projects = self.client.get_projects()
         project_list = [Project(
             id=p['id'],
             key=p['key'],
@@ -253,7 +213,7 @@ class JiraService:
         return self.prepare_response(project_list, "JiraProjectCard")
 
     def get_project_details(self, project_id: str):
-        project = self._make_request('GET', f'project/{project_id}')
+        project = self.client.get_project(project_id)
         project_obj = Project(
             id=project['id'],
             key=project['key'],
@@ -268,32 +228,30 @@ class JiraService:
         return self.prepare_response(project_obj, "JiraProjectCard")
 
     def get_all_statuses(self) -> Dict[str, Any]:
-
-        statuses = self._make_request('GET', 'status')
+        statuses = self.client.get_all_statuses()
         status_list = [Status(
             id=s['id'],
             name=s['name'],
             description=s.get('description'),
             category=StatusCategory(**s['statusCategory'])
         ) for s in statuses]
-
         
         return self.prepare_response(status_list, "JiraStatusesTable")
 
     def get_all_priorities(self) -> Dict[str, Any]:
-        priorities = self._make_request('GET', 'priority')
+        priorities = self.client.get_all_priorities()
         priority_list = [Priority(**p) for p in priorities]
         
         return self.prepare_response(priority_list, "JiraStatusesTable")
 
     def get_all_issue_types(self) -> Dict[str, Any]:
-        issue_types = self._make_request('GET', 'issuetype')
+        issue_types = self.client.get_all_issue_types()
         issue_type_list = [IssueType(**it) for it in issue_types]
         
         return self.prepare_response(issue_type_list, "JiraIssueTypesTable")
 
     def get_all_fields(self) -> Dict[str, Any]:
-        fields = self._make_request('GET', 'field')
+        fields = self.client.get_all_fields()
         field_list = [
             Field(
                 **{
@@ -307,15 +265,7 @@ class JiraService:
         return self.prepare_response(field_list, "JiraDataTable")
 
     def get_users(self, query: Optional[str] = None) -> Dict[str, Any]:
-        resources = self.client.get_accessible_resources()
-        
-        if not resources:
-            raise Exception("No Jira resources available")
-        
-        cloud_id = resources[0]['id']
-        base_url = f"https://api.atlassian.com/ex/jira/{cloud_id}"
-        
-        users = self.client.get_users(query, base_url)
+        users = self.client.get_users(query)
         
         user_list = [
             JiraUser(
