@@ -29,6 +29,7 @@ from integrations.veyrax.route import router as veyrax_router
 from integrations.firecrawl.route import router as firecrawl_router
 from integrations.ticktick.route import router as ticktick_router
 from integrations.brave.route import router as brave_router
+from integrations.tavily.route import router as tavily_router
 from integrations.exa.route import router as exa_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
@@ -80,7 +81,8 @@ INTEGRATION_ROUTERS = {
     "firecrawl": firecrawl_router,
     "ticktick": ticktick_router,
     "brave": brave_router,
-    "exa": exa_router
+    "exa": exa_router,
+    "tavily": tavily_router
 }
 
 app = FastAPI()
