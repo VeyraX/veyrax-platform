@@ -465,6 +465,392 @@ routes:
               "name": "NotionPageCard"
             }
           }
+      - scenario: "Create Page with Table Block"
+        description: "Creates a new page with a complex table structure"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              },
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "Project Timeline"
+                      }
+                    }
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "type": "table",
+                  "table": {
+                    "table_width": 3,
+                    "has_column_header": true,
+                    "has_row_header": false,
+                    "children": [
+                      {
+                        "type": "table_row",
+                        "table_row": {
+                          "cells": [
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "Phase",
+                                  "link": null
+                                }
+                              }
+                            ],
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "Owner",
+                                  "link": null
+                                }
+                              }
+                            ],
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "Deadline",
+                                  "link": null
+                                }
+                              }
+                            ]
+                          ]
+                        }
+                      },
+                      {
+                        "type": "table_row",
+                        "table_row": {
+                          "cells": [
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "Research",
+                                  "link": null
+                                }
+                              }
+                            ],
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "UX Team",
+                                  "link": null
+                                }
+                              }
+                            ],
+                            [
+                              {
+                                "type": "text",
+                                "text": {
+                                  "content": "2023-06-30",
+                                  "link": null
+                                }
+                              }
+                            ]
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "timeline_page_456",
+              "title": "Project Timeline",
+              "properties": {
+                "title": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Project Timeline"
+                      }
+                    }
+                  ]
+                }
+              },
+              "created_time": "2023-05-23T09:15:00.000Z",
+              "last_edited_time": "2023-05-23T09:15:00.000Z",
+              "url": "https://www.notion.so/timeline_page_456",
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Create Page with Multiple People"
+        description: "Creates a page with multiple people assigned"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              },
+              "properties": {
+                "Task Name": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "API Integration"
+                      }
+                    }
+                  ]
+                },
+                "Assignees": {
+                  "people": [
+                    {"id": "user_789"},
+                    {"id": "user_456"},
+                    {"id": "user_123"}
+                  ]
+                },
+                "Status": {
+                  "select": {
+                    "name": "In Review"
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "callout",
+                  "callout": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Important: Please review by EOD"
+                        }
+                      }
+                    ],
+                    "icon": {
+                      "emoji": "⚠️"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "api_page_789",
+              "title": "API Integration",
+              "properties": {
+                "Assignees": {
+                  "id": "assign",
+                  "type": "people",
+                  "people": [
+                    {
+                      "id": "user_789",
+                      "name": "Alex Chen",
+                      "avatar_url": "https://avatar.alex.png",
+                      "type": "person"
+                    },
+                    {
+                      "id": "user_456",
+                      "name": "Maria Gomez",
+                      "avatar_url": "https://avatar.maria.png",
+                      "type": "person"
+                    }
+                  ]
+                },
+                "Status": {
+                  "id": "stat",
+                  "type": "select",
+                  "select": {
+                    "id": "4",
+                    "name": "In Review",
+                    "color": "purple"
+                  }
+                }
+              },
+              "created_time": "2023-05-23T10:30:00.000Z",
+              "last_edited_time": "2023-05-23T10:30:00.000Z",
+              "url": "https://www.notion.so/api_page_789",
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Create Page with Multiple Block Types"
+        description: "Demonstrates various block types in a single page creation"
+        input_json: |
+          {
+            "page": {
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              },
+              "properties": {
+                "title": {
+                  "title": [
+                    {
+                      "text": {
+                        "content": "API Documentation Example"
+                      }
+                    }
+                  ]
+                }
+              },
+              "children": [
+                {
+                  "type": "heading_2",
+                  "heading_2": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Core Components",
+                          "link": null
+                        }
+                      }
+                    ],
+                    "color": "blue",
+                    "is_toggleable": true
+                  }
+                },
+                {
+                  "type": "callout",
+                  "callout": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Important implementation notes"
+                        }
+                      }
+                    ],
+                    "icon": {
+                      "emoji": "⚠️"
+                    },
+                    "color": "yellow_background"
+                  }
+                },
+                {
+                  "type": "code",
+                  "code": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "const client = new NotionClient(API_KEY);"
+                        }
+                      }
+                    ],
+                    "language": "javascript",
+                    "caption": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Sample initialization"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "equation",
+                  "equation": {
+                    "expression": "e=mc^2"
+                  }
+                },
+                {
+                  "type": "bookmark",
+                  "bookmark": {
+                    "url": "https://developers.notion.com/reference/block",
+                    "caption": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Official Block Documentation"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "divider",
+                  "divider": {}
+                },
+                {
+                  "type": "to_do",
+                  "to_do": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Implement synced blocks"
+                        }
+                      }
+                    ],
+                    "checked": false,
+                    "color": "green_background"
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "multi_block_page_456",
+              "title": "API Documentation Example",
+              "properties": {
+                "title": {
+                  "id": "title",
+                  "type": "title",
+                  "title": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "API Documentation Example"
+                      }
+                    }
+                  ]
+                }
+              },
+              "created_time": "2023-05-24T14:20:00.000Z",
+              "last_edited_time": "2023-05-24T14:20:00.000Z",
+              "url": "https://www.notion.so/multi_block_page_456",
+              "parent": {
+                "type": "page_id",
+                "page_id": "parent_page_123"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
 
   - endpoint: /notion/get_page
     examples:
@@ -595,6 +981,78 @@ routes:
               "name": "NotionPageCard"
             }
           }
+      - scenario: "Update Complex Block Properties"
+        description: "Updates multiple block properties including color and annotations"
+        input_json: |
+          {
+            "page_id": "page123",
+            "page_update": {
+              "properties": {
+                "Status": {
+                  "select": {
+                    "name": "Completed",
+                    "color": "green"
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "heading_2",
+                  "heading_2": {
+                    "rich_text": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "content": "Updated Implementation Details",
+                          "link": null
+                        },
+                        "annotations": {
+                          "bold": true,
+                          "italic": false,
+                          "strikethrough": false,
+                          "underline": true,
+                          "code": false,
+                          "color": "blue"
+                        }
+                      }
+                    ],
+                    "color": "yellow_background",
+                    "is_toggleable": true
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Implementation Details",
+              "properties": {
+                "Status": {
+                  "id": "stat",
+                  "type": "select",
+                  "select": {
+                    "id": "5",
+                    "name": "Completed",
+                    "color": "green"
+                  }
+                }
+              },
+              "created_time": "2023-03-15T09:12:34.000Z",
+              "last_edited_time": "2023-05-24T15:45:00.000Z",
+              "url": "https://www.notion.so/page123",
+              "parent": {
+                "type": "database_id",
+                "database_id": "db123456"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
 
   - endpoint: /notion/search
     examples:
@@ -685,6 +1143,120 @@ routes:
             "data": {
               "id": "page123",
               "title": "Block updated",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Multiple Content Blocks"
+        description: "Appends different types of content blocks to a page"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "heading_2",
+                "heading_2": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Implementation Details"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "bulleted_list_item",
+                "bulleted_list_item": {
+                  "rich_text": [
+                    {
+                      "type": "text", 
+                      "text": {
+                        "content": "OAuth 2.0 authentication"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "code",
+                "code": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "const notion = new NotionClient(API_KEY);"
+                      }
+                    }
+                  ],
+                  "language": "javascript"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Complex Synced Blocks"
+        description: "Appends original and synced blocks with nested content"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "synced_block",
+                "synced_block": {
+                  "synced_from": null,
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "paragraph": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Master content block"
+                            }
+                          }
+                        ],
+                        "color": "purple_background"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "synced_block",
+                "synced_block": {
+                  "synced_from": {
+                    "block_id": "original_synced_block_id"
+                  }
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page",
               "properties": {},
               "url": "https://www.notion.so/page123"
             },

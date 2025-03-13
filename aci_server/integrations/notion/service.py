@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, List, Union, Tuple
 from fastapi import HTTPException
 import requests
 import os
+import re
 from .client import NotionClient
 from .schema import (
     DatabaseList, Database, PageList, Page, 
@@ -31,6 +32,30 @@ class NotionService:
             message = response.get('message', 'Unknown Notion API error')
             raise HTTPException(status_code=status, detail=message)
         return response
+
+    def format_page_id(self, page_id: str) -> str:
+        """
+        Check if the page ID is in the correct format with hyphens.
+        If not, convert it from format like '1b25c159362a80c28aebc05f1f880bdc'
+        to '1b25c159-362a-80c2-8aeb-c05f1f880bdc'.
+        
+        Args:
+            page_id: The page ID to format
+            
+        Returns:
+            Properly formatted page ID with hyphens
+        """
+        # Check if the ID already has hyphens
+        if re.match(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$', page_id):
+            return page_id
+            
+        # Check if it's a 32-character hex string without hyphens
+        if re.match(r'^[a-f0-9]{32}$', page_id):
+            # Insert hyphens in the correct positions
+            return f"{page_id[0:8]}-{page_id[8:12]}-{page_id[12:16]}-{page_id[16:20]}-{page_id[20:32]}"
+            
+        # If it doesn't match either pattern, return as is
+        return page_id
 
     def list_databases(self, start_cursor: Optional[str] = None, max_results: Optional[int] = None) -> ApiResponse:
         # Set up search parameters exactly as required by Notion API
@@ -131,10 +156,13 @@ class NotionService:
 
     def get_page(self, page_id: str) -> ApiResponse:
         try:
-            response = self.client.get_page(page_id)
+            # Format the page ID to ensure it has the correct format
+            formatted_page_id = self.format_page_id(page_id)
+            
+            response = self.client.get_page(formatted_page_id)
             validated_response = self._handle_notion_response(response)
             
-            blocks_response = self.client.get_block_children(page_id)
+            blocks_response = self.client.get_block_children(formatted_page_id)
             validated_blocks = self._handle_notion_response(blocks_response)
             
             title = ""
@@ -355,11 +383,14 @@ class NotionService:
 
     def update_page(self, page_id: str, page_data: PageUpdate) -> ApiResponse:
         try:
+            # Format the page ID to ensure it has the correct format
+            formatted_page_id = self.format_page_id(page_id)
+            
             payload = {
                 "properties": page_data.properties
             }
             
-            response = self.client.update_page(page_id, payload)
+            response = self.client.update_page(formatted_page_id, payload)
             
             if 'object' in response and response['object'] == 'error':
                 raise HTTPException(
@@ -397,7 +428,10 @@ class NotionService:
             The response from the Notion API
         """
         try:
-            response = self.client.append_block_children(block_id, children)
+            # Format the block ID to ensure it has the correct format
+            formatted_block_id = self.format_page_id(block_id)
+            
+            response = self.client.append_block_children(formatted_block_id, children)
             
             print(f"Notion API response for append block children: {response}")
             
@@ -410,10 +444,10 @@ class NotionService:
             # Create a custom response that matches the ApiResponse model
             # We'll use a Page object with the block_id as the page ID
             page = Page(
-                id=block_id,
+                id=formatted_block_id,
                 title="Block updated",
                 properties={},
-                url=f"https://www.notion.so/{block_id.replace('-', '')}"
+                url=f"https://www.notion.so/{formatted_block_id.replace('-', '')}"
             )
             
             return self.prepare_response(page, "NotionPageCard")
@@ -432,6 +466,9 @@ class NotionService:
             The created page with the database reference
         """
         try:
+            # Format the database ID to ensure it has the correct format
+            formatted_database_id = self.format_page_id(database_id)
+            
             # Create the page first
             page_response = self.create_page(page_data)
             
@@ -444,7 +481,7 @@ class NotionService:
                 "type": "link_to_page",
                 "link_to_page": {
                     "type": "database_id",
-                    "database_id": database_id
+                    "database_id": formatted_database_id
                 }
             }
             
@@ -458,7 +495,10 @@ class NotionService:
 
     def get_database(self, database_id: str) -> ApiResponse:
         """Get database details including its schema"""
-        response = self.client.get_database(database_id)
+        # Format the database ID to ensure it has the correct format
+        formatted_database_id = self.format_page_id(database_id)
+        
+        response = self.client.get_database(formatted_database_id)
         validated_response = self._handle_notion_response(response)
         
         title = " ".join(
@@ -480,6 +520,9 @@ class NotionService:
     def query_database(self, database_id: str, filter_data: Dict[str, Any] = None, 
                       sorts: List[Dict[str, Any]] = None, start_cursor: Optional[str] = None, 
                       page_size: int = 100) -> ApiResponse:
+        # Format the database ID to ensure it has the correct format
+        formatted_database_id = self.format_page_id(database_id)
+        
         params = {
             "page_size": min(page_size, 100)
         }
@@ -493,7 +536,7 @@ class NotionService:
         if start_cursor:
             params["start_cursor"] = start_cursor
         
-        response = self.client.query_database(database_id, params)
+        response = self.client.query_database(formatted_database_id, params)
         validated_response = self._handle_notion_response(response)
         
         pages = []
@@ -648,7 +691,10 @@ class NotionService:
             ApiResponse containing the user details
         """
         try:
-            response = self.client.get_user(user_id)
+            # Format the user ID to ensure it has the correct format
+            formatted_user_id = self.format_page_id(user_id)
+            
+            response = self.client.get_user(formatted_user_id)
             
             if 'object' in response and response['object'] == 'error':
                 raise HTTPException(
@@ -681,9 +727,12 @@ class NotionService:
         """
         people = []
         for user_id in user_ids:
+            # Format the user ID to ensure it has the correct format
+            formatted_user_id = self.format_page_id(user_id)
+            
             # For each user ID, we need to determine if it's a person or bot
             try:
-                user_response = self.client.get_user(user_id)
+                user_response = self.client.get_user(formatted_user_id)
                 
                 if 'object' in user_response and user_response['object'] == 'error':
                     continue  # Skip this user if there's an error
@@ -692,11 +741,11 @@ class NotionService:
                 
                 if user_type == 'person':
                     people.append({
-                        "id": user_id
+                        "id": formatted_user_id
                     })
                 elif user_type == 'bot':
                     people.append({
-                        "id": user_id
+                        "id": formatted_user_id
                     })
             except Exception:
                 # If we can't get the user, skip it

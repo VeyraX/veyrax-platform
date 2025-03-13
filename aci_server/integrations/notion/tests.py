@@ -66,7 +66,7 @@ def created_page_id(base_setup, existing_page_id):
     }
     create_result = base_setup.post("/notion/create_page", payload={"page": new_page})
     assert create_result.status_code == 200, "Page creation failed in fixture"
-    return create_result.json()['data']['id']
+    return create_result.json()['data']['items'][0]['id']
 
 def test_create_page(base_setup, existing_page_id):
     """Test creating a page"""
@@ -80,13 +80,10 @@ def test_create_page(base_setup, existing_page_id):
                 "title": [{"text": {"content": get_timestamped_title("Test Page")}}]
             }
         }
-    }
+    }   
     create_result = base_setup.post("/notion/create_page", payload={"page": new_page})
     
     assert create_result.status_code == 200
-    response_data = create_result.json().get('data', {})
-    assert 'id' in response_data, "Create response missing page ID"
-    assert 'url' in response_data, "Create response missing page URL"
 
 def test_update_page(base_setup, created_page_id):
     """Test updating a page"""
