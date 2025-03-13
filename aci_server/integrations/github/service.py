@@ -1,7 +1,9 @@
+import json
 import os
-from typing import Union
+from typing import Dict, Any, List, Optional, Union
+import requests
 
-from .client import GitHubClient, GitHubAPIError
+from .client import GitHubClient
 from .schema import (
     RepositorySchema, RepositoryList, IssueSchema, IssueList,
     PullRequestSchema, PullRequestList, CommitSchema, ApiResponse, CommitList,
@@ -182,20 +184,16 @@ class GitHubService:
             
             pull_request = PullRequestSchema(**response)
             return self.prepare_response(pull_request, "GitHubPullRequestCard")
-        except GitHubAPIError as git_err:
-            return ApiResponse(
-                message=git_err.message,
-                status_code=git_err.status_code,
-                warning=False
-            )
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return ApiResponse(
-                message=f"Unexpected error: {str(e)}",
-                status_code=500,
-                warning=False
-            )
+            
+            error_message = str(e)
+            # Check if it's a 422 error for pull request creation
+            if "422 Client Error: Unprocessable Entity" in error_message and "/pulls" in error_message:
+                return ApiResponse(message="Check your branch, cannot create pull request")
+            
+            return ApiResponse(message=f"Error creating pull request: {str(e)}")
 
     def update_pull_request(self, owner: str, repo: str, pull_number: int, 
                            title: str = None, body: str = None, state: str = None, 
@@ -221,21 +219,21 @@ class GitHubService:
             
             pull_request = PullRequestSchema(**response)
             return self.prepare_response(pull_request, "GitHubPullRequestCard")
-        except GitHubAPIError as git_err:
-            # Preserve original error message and status code
-            return ApiResponse(
-                message=git_err.message,
-                status_code=git_err.status_code,
-                warning=False
-            )
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return ApiResponse(
-                message=f"Unexpected error: {str(e)}",
-                status_code=500,
-                warning=False
-            )
+
+            response_err = e.response.json()
+
+            try:
+                err_message = response_err['errors'][0]['message']
+            except (KeyError, IndexError):
+                err_message = str(response_err)
+            
+            if 'Fork collab can only be enabled on cross-repo pull requests' in err_message:
+                return ApiResponse(message="Warning: Fork collab can only be enabled on cross-repo pull requests (Hint: probably you need to remove maintainer_can_modify param because it is not a fork repo)")
+            
+            return ApiResponse(message=f"Error updating pull request: {str(e.response.json())}")
 
     def merge_pull_request(self, owner: str, repo: str, pull_number: int, 
                           commit_title: str = None, commit_message: str = None, 
@@ -256,20 +254,10 @@ class GitHubService:
             )
             
             return ApiResponse(message="Pull request merged successfully", data=response)
-        except GitHubAPIError as git_err:
-            return ApiResponse(
-                message=git_err.message,
-                status_code=git_err.status_code,
-                warning=False
-            )
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return ApiResponse(
-                message=f"Unexpected error: {str(e)}",
-                status_code=500,
-                warning=False
-            )
+            return ApiResponse(message=f"Error merging pull request: {str(e)}")
 
     def get_pull_request_reviews(self, owner: str, repo: str, pull_number: int) -> ApiResponse:
         try:

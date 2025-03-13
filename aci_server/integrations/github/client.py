@@ -2,56 +2,6 @@ import requests
 from typing import Dict, Any, Optional
 
 
-class GitHubAPIError(Exception):
-    """Base exception for GitHub API errors"""
-    default_message = "GitHub API error occurred"
-    default_status = 500
-    
-    def __init__(self, message=None, status_code=None):
-        self.message = message or self.default_message
-        self.status_code = status_code or self.default_status
-        super().__init__(self.message)
-
-    @classmethod
-    def from_response(cls, response: requests.Response):
-        """Factory method to create appropriate error from response"""
-        error_classes = {
-            401: GitHubAuthError,
-            404: GitHubNotFoundError,
-            422: GitHubValidationError,
-            429: GitHubRateLimitError
-        }
-        
-        error_class = error_classes.get(response.status_code, cls)
-        
-        try:
-            error_data = response.json()
-            message = error_data.get('message', response.text)
-        except:
-            message = response.text
-            
-        return error_class(
-            message=f"{response.status_code} Error: {message}",
-            status_code=response.status_code
-        )
-
-# Subclasses must be defined AFTER the from_response method
-class GitHubAuthError(GitHubAPIError):
-    default_message = "Authentication failed - invalid or expired token"
-    default_status = 401
-
-class GitHubNotFoundError(GitHubAPIError):
-    default_message = "Resource not found - check repository/user existence and permissions"
-    default_status = 404
-
-class GitHubValidationError(GitHubAPIError):
-    default_message = "Invalid request parameters"
-    default_status = 422
-
-class GitHubRateLimitError(GitHubAPIError):
-    default_message = "API rate limit exceeded"
-    default_status = 429
-
 class GitHubClient:
     BASE_URL = "https://api.github.com"
 
@@ -135,25 +85,38 @@ class GitHubClient:
         return self._make_request("POST", endpoint, data=data)
 
     def _make_request(self, method, endpoint, params=None, data=None):
+        """Make a request to the GitHub API."""
         url = f"{self.BASE_URL}{endpoint}"
-        try:
-            response = requests.request(
-                method=method,
-                url=url,
-                headers=self.headers,
-                params=params,
-                json=data
-            )
+        response = requests.request(
+            method=method,
+            url=url,
+            headers=self.headers,
+            params=params,
+            json=data
+        )
+        
+        if response.status_code == 204:
+            return {}
+        
+        if not response.ok:
+            error_detail = response.text
+            try:
+                error_json = response.json()
+                if isinstance(error_json, dict):
+                    error_detail = error_json.get('errorMessages', [])
+                    if not error_detail and 'errors' in error_json:
+                        error_detail = error_json['errors']
+            except:
+                pass
             
-            if not response.ok:
-                error = GitHubAPIError.from_response(response)
+            error_msg = f"{response.status_code} {response.reason} for url: {url}"
+            if error_detail:
+                error_msg += f" - Details: {error_detail}"
 
-                if isinstance(error, GitHubValidationError) and "/pulls" in endpoint:
-                    error.message += " - Check your branch names, cannot create pull request between these branches"
-                
-                raise error
+            if response.status_code == 404:
+                error_msg += ' \n Note: maybe you need to check user/repository existence and permissions'
 
-            return response.json() if response.content else {}
+            raise requests.exceptions.HTTPError(error_msg, response=response)
             
-        except requests.exceptions.RequestException as e:
-            raise GitHubAPIError(f"Request failed: {str(e)}", 500) from e
+        response.raise_for_status()
+        return response.json() if response.content else {}

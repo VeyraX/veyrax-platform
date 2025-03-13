@@ -30,9 +30,7 @@ async def create_completion(
     service: PerplexityService = Depends(get_perplexity_service)
 ):
     try:
-        print("params", params)
         validated_params = CompletionRequest(**params)
-        print("validated_params", validated_params)
         return service.create_completion(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'CompletionRequest'))
