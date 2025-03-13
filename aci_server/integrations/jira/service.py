@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any, List, Union
 from .client import JiraClient
 from .schema import (
     IssueList, Issue, 
-    IssueCreate, IssueUpdate, IssueFilters, Project, StatusCategory, Status, Priority, IssueType, Field, FieldSchema, JiraUser
+    IssueCreate, IssueUpdate, IssueFilters, Project, StatusCategory, Status, Priority, IssueType, Field, FieldSchema, JiraUser, Transition
 )
 from fastapi import HTTPException
 import os
@@ -19,7 +19,7 @@ class JiraService:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         return load_components(current_dir)
         
-    def prepare_response(self, data: Union[Issue, IssueList, Project, List[Project]], component_name: str = None):
+    def prepare_response(self, data: Union[Issue, IssueList, Project, List[Project], List[Transition]], component_name: str = None):
         tool_name = "jira"
 
 
@@ -105,14 +105,12 @@ class JiraService:
     def get_issue(self, issue_id: str):
         issue = self._make_request('GET', f'issue/{issue_id}')
         comments = self._make_request('GET', f'issue/{issue_id}/comment')
-        
         issue_obj = Issue(
             **self._format_issue_base(issue),
             comments=comments.get('comments', []),
             labels=issue['fields'].get('labels', []),
             components=[c['name'] for c in issue['fields'].get('components', [])]
         )
-        
         return self.prepare_response(issue_obj, "JiraIssueCard")
 
     def create_issue(self, issue_create: IssueCreate):
@@ -152,10 +150,20 @@ class JiraService:
     def _get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
         response = self._make_request('GET', f'issue/{issue_id}/transitions')
         return response.get('transitions', [])
+    
+    def get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
+        allowed_transitions = self._get_allowed_transitions(issue_id)
+
+        prep_resp = self.prepare_response(allowed_transitions, None)
+        
+        return prep_resp
 
     def _validate_status_transition(self, issue_id: str, new_status_id: str) -> bool:
         allowed_transitions = self._get_allowed_transitions(issue_id)
-        return any(t['id'] == new_status_id for t in allowed_transitions)
+        for t in allowed_transitions:
+            if t['to']['id'] == new_status_id:
+                return t
+        return None
 
     def update_issue(self, issue_id: str, update: IssueUpdate):
         fields = {}
@@ -170,29 +178,34 @@ class JiraService:
             fields['priority'] = {'id': update.priority_id}
         if update.labels is not None:
             fields['labels'] = update.labels
-        if update.components is not None:
-            fields['components'] = [{'name': c} for c in update.components]
+        # if update.components is not None:
+        #     fields['components'] = [{'name': c} for c in update.components]
             
         if fields:
-            self._make_request(
+            update_response = self._make_request(
                 'PUT',
                 f'issue/{issue_id}',
                 json={'fields': fields}
             )
         
         if update.status_id is not None:
-            if not self._validate_status_transition(issue_id, update.status_id):
-                current_status = self.get_issue(issue_id).status.name
+            transaction = self._validate_status_transition(issue_id, update.status_id)
+            if transaction is None:
+                current_issue = self.get_issue(issue_id)
+                status_name = current_issue['data'].status.name
+
+                allowed_transitions = self._get_allowed_transitions(issue_id)
+                
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Cannot transition from status '{current_status}' to status '{update.status_id}'. "
-                          f"Check the workflow for the issue."
+                    detail=f"Cannot transition from status '{status_name}' to status '{update.status_id}'. "
+                          f"Check the workflow for the issue. Allowed transitions: {allowed_transitions}"
                 )
                 
-            self._make_request(
+            transition_response = self._make_request(
                 'POST',
                 f'issue/{issue_id}/transitions',
-                json={'transition': {'id': update.status_id}}
+                json={'transition': {'id': transaction['id']}}
             )
         
         return self.get_issue(issue_id)
@@ -236,8 +249,6 @@ class JiraService:
             components=p.get('components', []),
             versions=p.get('versions', [])
         ) for p in projects]
-
-        print("get all projects", projects)
         
         return self.prepare_response(project_list, "JiraProjectCard")
 
@@ -257,6 +268,7 @@ class JiraService:
         return self.prepare_response(project_obj, "JiraProjectCard")
 
     def get_all_statuses(self) -> Dict[str, Any]:
+
         statuses = self._make_request('GET', 'status')
         status_list = [Status(
             id=s['id'],

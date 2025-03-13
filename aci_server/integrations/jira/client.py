@@ -122,3 +122,10 @@ class JiraClient:
             'query': query if query else ''
         }
         return self.make_request(base_url, 'GET', 'user/search', params=params)
+
+    def get_transitions(self, issue_id: str, base_url: str) -> List[Dict[str, Any]]:
+        return self.make_request(
+            base_url,
+            'GET',
+            f'issue/{issue_id}/transitions'
+        )
