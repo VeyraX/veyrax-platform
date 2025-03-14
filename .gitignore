@@ -62,4 +62,7 @@ aci_server/credentials/
 venv/
 
 
-/certbot*.swp
+/certbot
+*.swp
+.env*
+*.env*
