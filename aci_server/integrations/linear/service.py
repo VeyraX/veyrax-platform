@@ -3,7 +3,7 @@ from .client import LinearClient
 from .schema import (
     IssueList, Issue, ProjectList, Project,
     IssueCreate, IssueUpdate, CommentCreate, IssueFilter, CommentResponse, UserList, User, TeamList, Team,
-    WorkflowState, WorkflowStateList, ApiResponse, ProjectCreate
+    WorkflowState, WorkflowStateList, ApiResponse, LabelListItem, LabelList
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -24,7 +24,6 @@ class LinearService:
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         try:
-            print("Listing issues max_results", max_results)
             response = self.client.list_issues(cursor, max_results)
             
             if not response or 'data' not in response or 'issues' not in response['data']:
@@ -45,16 +44,33 @@ class LinearService:
             raise
 
     def search_issues(self, query: str, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
-        response = self.client.search_issues(query, cursor, max_results)
-        data = response['data']['issueSearch']
-        
-        issues = [Issue(**issue) for issue in data['nodes']]
-        issues_list = IssueList(
-            items=issues,
-            cursor=data['pageInfo']['endCursor']
-        )
-        
-        return self.prepare_response(issues_list, "LinearIssueCard")
+        try:
+            # Check if query matches ID format (Linear IDs are UUIDs)
+            search_id = query if len(query) == 36 and '-' in query else None
+            
+            response = self.client.search_issues(
+                search_text=query,
+                search_id=search_id,
+                cursor=cursor,
+                max_results=max_results
+            )
+            
+            if not response or 'data' not in response or 'issues' not in response['data']:
+                raise ValueError("Invalid response format from Linear API")
+            
+            data = response['data']['issues']
+            
+            issues = [Issue(**issue) for issue in data['nodes']]
+            issues_list = IssueList(
+                items=issues,
+                cursor=data['pageInfo']['endCursor']
+            )
+            
+            return self.prepare_response(issues_list, "LinearIssueCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise ValueError(f"Search failed: {str(e)}")
 
     def filter_issues(self, filters: IssueFilter, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         # Convert filters to Linear's GraphQL format
@@ -95,17 +111,22 @@ class LinearService:
             raise ValueError(f"Error filtering issues: {str(e)}")
 
     def create_issue(self, issue_create: IssueCreate) -> ApiResponse:
+        # Convert label names to IDs
+        issue_data = issue_create.dict(exclude_none=True)
+        
+        # Transform field names for Linear API
+        issue_data['teamId'] = issue_data.pop('team_id')
+        if 'assignee_id' in issue_data:
+            issue_data['assigneeId'] = issue_data.pop('assignee_id')
+        if 'project_id' in issue_data:
+            issue_data['projectId'] = issue_data.pop('project_id')
+        if 'state_id' in issue_data:
+            issue_data['stateId'] = issue_data.pop('state_id')
+        if 'labels' in issue_data:
+            # Convert label names to IDs (implementation needed)
+            issue_data['labelIds'] = self._convert_label_names_to_ids(issue_data.pop('labels'))
+            
         try:
-            issue_data = issue_create.dict(exclude_none=True)
-            
-            issue_data['teamId'] = issue_data.pop('team_id')
-            if 'assignee_id' in issue_data:
-                issue_data['assigneeId'] = issue_data.pop('assignee_id')
-            if 'project_id' in issue_data:
-                issue_data['projectId'] = issue_data.pop('project_id')
-            if 'state_id' in issue_data:
-                issue_data['stateId'] = issue_data.pop('state_id')
-            
             response = self.client.create_issue(issue_data)
             
             if 'errors' in response:
@@ -115,6 +136,37 @@ class LinearService:
             return self.prepare_response(issue, "LinearIssueCard")
         except Exception as e:
             raise
+
+    def _convert_label_names_to_ids(self, label_names: List[str]) -> List[str]:
+        """Convert label names to their Linear IDs (case-insensitive)"""
+        all_labels = []
+        cursor = None
+        
+        # Paginate through all labels
+        while True:
+            response = self.client.list_labels(cursor=cursor)
+            data = response.get('data', {}).get('issueLabels', {})
+            
+            if not data:
+                break
+                
+            batch = data.get('nodes', [])
+            all_labels.extend([(label['id'], label['name']) for label in batch])
+            
+            if data.get('pageInfo', {}).get('hasNextPage'):
+                cursor = data['pageInfo'].get('endCursor')
+            else:
+                break
+
+        # Create case-insensitive mapping while preserving original case matches
+        lower_to_original = {name.lower(): (id, name) for id, name in all_labels}
+        
+        # Match input names case-insensitively but preserve input order
+        return [
+            lower_to_original[name.lower()][0]  # Get ID from tuple
+            for name in label_names
+            if name.lower() in lower_to_original
+        ]
 
     def update_issue(self, issue_id: str, issue_update: IssueUpdate) -> ApiResponse:
         try:
@@ -169,7 +221,7 @@ class LinearService:
     def get_project(self, project_id: str) -> ApiResponse:
         response = self.client.get_project(project_id)
         project = Project(**response['data']['project'])
-        return self.prepare_response(project, None)
+        return self.prepare_response(project, "LinearProjectCard")
 
     def list_users(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         response = self.client.list_users(cursor, max_results)
@@ -223,3 +275,26 @@ class LinearService:
         )
         
         return self.prepare_response(states_list, "LinearWorkflowStateList")
+
+    def list_labels(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
+        response = self.client.list_labels(cursor, max_results)
+        if 'errors' in response:
+            raise ValueError(f"GraphQL Error: {response['errors']}")
+        
+        data = response['data']['issueLabels']
+        
+        labels = [
+            LabelListItem(
+                id=label['id'],
+                name=label['name'],
+                color=label.get('color')
+            ) for label in data['nodes']
+        ]
+
+        label_list = LabelList(
+            items=labels,
+            cursor=data['pageInfo']['endCursor']
+        )
+
+        # Convert to dict for serialization
+        return self.prepare_response(label_list.dict(), "LinearLabelList")

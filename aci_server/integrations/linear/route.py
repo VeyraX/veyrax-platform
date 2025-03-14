@@ -9,7 +9,8 @@ from .schema import (
     ListIssuesResponse, SearchIssuesResponse, FilterIssuesResponse,
     CreateIssueResponse, UpdateIssueResponse, CommentIssueResponse,
     ListProjectsResponse, GetProjectResponse, ListUsersResponse,
-    ListTeamsResponse, GetTeamResponse, ListWorkflowStatesResponse
+    ListTeamsResponse, GetTeamResponse, ListWorkflowStatesResponse,
+    ListLabelsParams, ListLabelsResponse
 )
 
 from .service import LinearService
@@ -258,6 +259,25 @@ async def list_workflow_states(
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListWorkflowStatesParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/list_labels", response_model=ApiResponse)
+@schema(input_schema_class=ListLabelsParams, output_schema_class=ListLabelsResponse, examples=examples["/linear/list_labels"])
+async def list_labels(
+    params: Dict[str, Any] = Body(...),
+    service: LinearService = Depends(get_linear_service)
+):
+    try:
+        validated_params = ListLabelsParams(**params)
+        return service.list_labels(
+            validated_params.cursor,
+            validated_params.max_results
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ListLabelsParams'))
     except Exception as e:
         import traceback
         traceback.print_exc()

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, UUID4
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
@@ -81,7 +81,7 @@ class ProjectList(BaseModel):
 
 class IssueCreate(BaseModel):
     title: str
-    team_id: str
+    team_id: str = Field(..., format="uuid")
     description: Optional[str] = None
     assignee_id: Optional[str] = None
     state_id: Optional[str] = None
@@ -200,7 +200,7 @@ class ListProjectsParams(BaseModel):
     max_results: Optional[int] = 50
 
 class GetProjectParams(BaseModel):
-    project_id: str
+    project_id: str = Field(..., format="uuid")
 
 class ListUsersParams(BaseModel):
     cursor: Optional[str] = None
@@ -211,7 +211,7 @@ class ListTeamsParams(BaseModel):
     max_results: Optional[int] = 50
 
 class GetTeamParams(BaseModel):
-    team_id: str
+    team_id: str = Field(..., format="uuid")
 
 class ListWorkflowStatesParams(BaseModel):
     cursor: Optional[str] = None
@@ -280,4 +280,23 @@ class ProjectCreate(BaseModel):
         populate_by_name = True
         alias_generator = lambda x: ''.join(word.capitalize() if i else word for i, word in enumerate(x.split('_')))
         extra = "forbid"
+
+# Add to parameter classes
+class ListLabelsParams(BaseModel):
+    cursor: Optional[str] = None
+    max_results: Optional[int] = 50
+
+# Add to response schema classes
+class LabelListItem(BaseModel):
+    id: str
+    name: str
+    color: Optional[str] = None
+
+class LabelList(BaseModel):
+    items: List[LabelListItem]
+    cursor: Optional[str] = None
+
+class ListLabelsResponse(BaseModel):
+    data: LabelList
+    message: Optional[str] = None
 

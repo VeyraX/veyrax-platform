@@ -16,8 +16,17 @@ class LinearClient:
             json={"query": query, "variables": variables or {}},
             headers=self.headers
         )
-        response.raise_for_status()
-        return response.json()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            # Add detailed error logging
+            raise ValueError(f"HTTP Error: {e}\nResponse: {response.text}") from e
+        
+        result = response.json()
+        if 'errors' in result:
+            errors = "\n".join([e['message'] for e in result['errors']])
+            raise ValueError(f"GraphQL Errors: {errors}")
+        return result
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
@@ -50,28 +59,44 @@ class LinearClient:
 
     def search_issues(self, search_term: str, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
-        query SearchIssues($search: String!, $cursor: String, $first: Int!) {
-            issueSearch(query: $search, first: $first, after: $cursor) {
+        query SearchIssues($searchTerm: String!, $cursor: String, $first: Int!) {
+            issues(
+                first: $first
+                after: $cursor
+                orderBy: updatedAt
+                filter: {
+                    or: [
+                        { title: { containsIgnoreCase: $searchTerm } }
+                        { description: { containsIgnoreCase: $searchTerm } }
+                        { id: { eq: $searchTerm } }
+                    ]
+                }
+            ) {
                 nodes {
-                    id 
-                    title 
+                    id
+                    title
                     description
                     identifier
                     state { id name }
                     priority
                     assignee { id name email }
                     creator { id name email }
-                    createdAt 
+                    createdAt
                     updatedAt
-                    labels { nodes { name } }
-                    project { id }
-                    team { id key }
+                    url
                 }
-                pageInfo { hasNextPage endCursor }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
             }
         }
         """
-        return self.execute_query(query, {"search": search_term, "cursor": cursor, "first": max_results})
+        return self.execute_query(query, {
+            "searchTerm": search_term,
+            "cursor": cursor,
+            "first": max_results
+        })
 
     def filter_issues(self, graphql_filters: dict, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
@@ -263,4 +288,29 @@ class LinearClient:
         }
         """
         return self.execute_query(query, {"cursor": cursor, "first": max_results})
+
+    def list_labels(self, cursor: Optional[str] = None, max_results: int = 100) -> dict:
+        """List all labels in the Linear workspace"""
+        query = """
+        query Labels($cursor: String, $first: Int!) {
+            issueLabels(
+                first: $first
+                after: $cursor
+                orderBy: updatedAt
+            ) {
+                nodes {
+                    id
+                    name
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+        """
+        return self.execute_query(query, {
+            "cursor": cursor,
+            "first": max_results
+        })
 

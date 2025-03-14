@@ -785,4 +785,4 @@ routes:
             "component": {
               "name": "JiraTransitionsList"
             }
-          } 
+          }
