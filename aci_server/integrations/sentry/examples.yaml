@@ -220,6 +220,31 @@ routes:
             }
           }
 
+  - endpoint: /sentry/create_service_hook
+    examples:
+      - scenario: "Create Service Hook"
+        description: "Creates a new service hook for a project"
+        input_json: |
+          {
+            "project_slug": "api-service",
+            "url": "https://webhook.example.com/sentry-notifications",
+            "events": ["event.alert", "event.created", "event.resolved"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "HOOK-456",
+              "url": "https://webhook.example.com/sentry-notifications",
+              "events": ["event.alert", "event.created", "event.resolved"],
+              "dateCreated": "2023-05-25T15:30:00Z",
+              "status": "active"
+            },
+            "message": "Service hook created successfully",
+            "component": {
+              "name": "SentryServiceHookDetails"
+            }
+          }
+
   - endpoint: /sentry/get_dsn
     examples:
       - scenario: "Get Project DSN"

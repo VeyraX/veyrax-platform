@@ -719,4 +719,70 @@ routes:
               }
             ],
             "message": null
+          }
+
+  - endpoint: /jira/get_transitions
+    examples:
+      - scenario: "Get Available Issue Transitions"
+        description: "Retrieves all available status transitions for a specific issue"
+        input_json: |
+          {
+            "issue_id": "PROJ-123"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "31",
+                "name": "Start Progress",
+                "to_status": {
+                  "id": "2",
+                  "name": "In Progress",
+                  "description": "Issues currently being worked on",
+                  "category": {
+                    "id": 4,
+                    "key": "indeterminate",
+                    "name": "In Progress",
+                    "colorName": "yellow"
+                  }
+                },
+                "is_available": true
+              },
+              {
+                "id": "41",
+                "name": "Done",
+                "to_status": {
+                  "id": "3",
+                  "name": "Done",
+                  "description": "Issues that have been completed",
+                  "category": {
+                    "id": 3,
+                    "key": "done",
+                    "name": "Done",
+                    "colorName": "green"
+                  }
+                },
+                "is_available": false
+              },
+              {
+                "id": "11",
+                "name": "To Do",
+                "to_status": {
+                  "id": "1",
+                  "name": "To Do",
+                  "description": "Issues that are ready to be worked on",
+                  "category": {
+                    "id": 2,
+                    "key": "new",
+                    "name": "To Do",
+                    "colorName": "blue"
+                  }
+                },
+                "is_available": true
+              }
+            ],
+            "message": null,
+            "component": {
+              "name": "JiraTransitionsList"
+            }
           } 
