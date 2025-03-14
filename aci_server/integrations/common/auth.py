@@ -330,6 +330,53 @@ class SlackTokenRefresher(BaseTokenRefresher):
         except Exception as e:
             raise ValueError(f"Failed to refresh Slack token: {str(e)}")
 
+class SentryTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            install_id = token_data.get('raw_token_data', {}).get('installation_id')
+            if not install_id:
+                raise ValueError("Missing installation_id in token data")
+
+            refresh_token = token_data.get('refresh_token')
+            if not refresh_token:
+                raise ValueError("Missing refresh token")
+
+            token_url = f"https://sentry.io/api/0/sentry-app-installations/{install_id}/authorizations/"
+            payload = {
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token,
+                'client_id': os.getenv('SENTRY_INTEGRATION_CLIENT_ID'),
+                'client_secret': os.getenv('SENTRY_INTEGRATION_CLIENT_SECRET'),
+            }
+
+            response = requests.post(token_url, json=payload)
+            response.raise_for_status()
+            new_tokens = response.json()
+
+            from datetime import datetime
+
+            expires_at_str = new_tokens['expiresAt'].replace('Z', '+00:00')
+            expires_at_dt = datetime.fromisoformat(expires_at_str)
+            expires_at = int(expires_at_dt.timestamp())
+
+            new_token_data = {
+                'access_token': new_tokens['token'],
+                'refresh_token': new_tokens['refreshToken'],
+                'expires_at': expires_at,
+                'scopes': token_data.get('scopes'),
+                'raw_token_data': {
+                    **token_data.get('raw_token_data', {}),
+                    'installation_id': install_id
+                }
+            }
+            
+            await TokenService.update_token(request, token_data, new_token_data)
+            
+            return new_token_data
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Sentry token refresh failed: {str(e)}")
+
 class AsanaTokenRefresher(BaseTokenRefresher):
     @staticmethod
     async def refresh(request: Request, token_data: dict) -> dict:
@@ -430,6 +477,7 @@ class TokenRefresherFactory:
         'slack': SlackTokenRefresher,
         'asana': AsanaTokenRefresher,
         'figma': FigmaTokenRefresher,
+        "sentry": SentryTokenRefresher,
     }
 
     @classmethod

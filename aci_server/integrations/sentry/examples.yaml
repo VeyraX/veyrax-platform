@@ -1,0 +1,256 @@
+routes:
+  - endpoint: /sentry/list_teams
+    examples:
+      - scenario: "List Organization Teams"
+        description: "Retrieves all teams in the current organization"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "teams": [
+                {
+                  "id": "12345",
+                  "slug": "frontend",
+                  "name": "Frontend Team",
+                  "dateCreated": "2023-01-15T09:30:00Z",
+                  "isMember": true,
+                  "memberCount": 5
+                },
+                {
+                  "id": "67890",
+                  "slug": "backend",
+                  "name": "Backend Team",
+                  "dateCreated": "2023-02-20T14:15:00Z",
+                  "isMember": false,
+                  "memberCount": 3
+                }
+              ],
+              "cursor": null
+            },
+            "message": null,
+            "component": {
+              "name": "SentryTeamList"
+            }
+          }
+
+  - endpoint: /sentry/create_team
+    examples:
+      - scenario: "Create New Team"
+        description: "Creates a new team in the organization"
+        input_json: |
+          {
+            "name": "Mobile Team",
+            "slug": "mobile"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "54321",
+              "slug": "mobile",
+              "name": "Mobile Team",
+              "dateCreated": "2023-05-01T10:00:00Z",
+              "isMember": true,
+              "memberCount": 0
+            },
+            "message": "Team created successfully",
+            "component": {
+              "name": "SentryTeamCard"
+            }
+          }
+
+  - endpoint: /sentry/list_projects
+    examples:
+      - scenario: "List Organization Projects"
+        description: "Retrieves all projects in the organization"
+        input_json: |
+          {
+            "cursor": "2023-01-01"
+          }
+        output_json: |
+          {
+            "data": {
+              "projects": [
+                {
+                  "id": "98765",
+                  "slug": "web-app",
+                  "name": "Web Application",
+                  "platform": "JavaScript",
+                  "dateCreated": "2023-03-10T08:45:00Z",
+                  "status": "active"
+                },
+                {
+                  "id": "43210",
+                  "slug": "api-service",
+                  "name": "API Service",
+                  "platform": "Python",
+                  "dateCreated": "2023-04-05T11:20:00Z",
+                  "status": "active"
+                }
+              ],
+              "cursor": "2023-04-05"
+            },
+            "message": null,
+            "component": {
+              "name": "SentryProjectList"
+            }
+          }
+
+  - endpoint: /sentry/list_issues
+    examples:
+      - scenario: "List Project Issues"
+        description: "Retrieves recent issues for a project"
+        input_json: |
+          {
+            "project_slug": "web-app",
+            "status": "unresolved"
+          }
+        output_json: |
+          {
+            "data": {
+              "issues": [
+                {
+                  "id": "ISSUE-123",
+                  "shortId": "WEB-42",
+                  "title": "NullPointerException in UserController",
+                  "status": "unresolved",
+                  "culprit": "app/controllers/user_controller.rb:42",
+                  "count": "1.2k",
+                  "userCount": 342
+                },
+                {
+                  "id": "ISSUE-456",
+                  "shortId": "WEB-87",
+                  "title": "Database Connection Timeout",
+                  "status": "unresolved",
+                  "culprit": "lib/database.rb:15",
+                  "count": "845",
+                  "userCount": 215
+                }
+              ],
+              "cursor": "next-page-cursor"
+            },
+            "message": null,
+            "component": {
+              "name": "SentryIssueList"
+            }
+          }
+
+  - endpoint: /sentry/list_releases
+    examples:
+      - scenario: "List Project Releases"
+        description: "Retrieves recent releases for a project"
+        input_json: |
+          {
+            "query": "version~v2.*"
+          }
+        output_json: |
+          {
+            "data": {
+              "releases": [
+                {
+                  "version": "v2.1.0",
+                  "dateCreated": "2023-05-15T09:30:00Z",
+                  "newGroups": 12
+                },
+                {
+                  "version": "v2.0.1",
+                  "dateCreated": "2023-05-10T14:00:00Z",
+                  "newGroups": 5
+                }
+              ],
+              "cursor": null
+            },
+            "message": null,
+            "component": {
+              "name": "SentryReleaseList"
+            }
+          }
+
+  - endpoint: /sentry/create_alert_rule
+    examples:
+      - scenario: "Create New Alert Rule"
+        description: "Creates a new alert rule for a project"
+        input_json: |
+          {
+            "project_slug": "web-app",
+            "name": "High Error Rate",
+            "conditions": [{"type": "error_rate", "threshold": "5%"}],
+            "actions": [{"type": "email", "targets": ["team@example.com"]}]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "ALERT-789",
+              "name": "High Error Rate",
+              "conditions": [{"type": "error_rate", "threshold": "5%"}],
+              "actions": [{"type": "email", "targets": ["team@example.com"]}],
+              "dateCreated": "2023-05-20T16:45:00Z"
+            },
+            "message": "Alert rule created",
+            "component": {
+              "name": "SentryAlertRuleDetails"
+            }
+          }
+
+  - endpoint: /sentry/list_service_hooks
+    examples:
+      - scenario: "List Service Hooks"
+        description: "Retrieves configured service hooks for a project"
+        input_json: |
+          {
+            "project_slug": "api-service"
+          }
+        output_json: |
+          {
+            "data": {
+              "hooks": [
+                {
+                  "id": "HOOK-123",
+                  "url": "https://api.example.com/webhook",
+                  "events": ["event.created", "event.resolved"],
+                  "dateCreated": "2023-04-01T12:00:00Z"
+                }
+              ],
+              "cursor": null
+            },
+            "message": null,
+            "component": {
+              "name": "SentryServiceHookList"
+            }
+          }
+
+  - endpoint: /sentry/get_dsn
+    examples:
+      - scenario: "Get Project DSN"
+        description: "Retrieves DSN for a project; SENTRY_URL is a dns secret."
+        input_json: |
+          {
+            "project_slug": "web-app"
+          }
+        output_json: |
+          {
+            "data": {
+              "project_slug": "web-app",
+              "id": "4509393808055296",
+              "dsn": {
+                "public": "https://public@org.ingest.sentry.io/12345",
+                "secret": "https://secret@org.ingest.sentry.io/12345",
+                "csp": "https://sentry.io/api/12345/security/?sentry_key=public",
+                "security": "https://sentry.io/api/12345/security/?sentry_key=public",
+                "minidump": "https://sentry.io/api/12345/minidump/?sentry_key=public",
+                "cdn": "https://js.sentry-cdn.com/public.min.js",
+                "curl": "curl -X POST -H 'Content-Type: application/json' -d '...' https://sentry.io/api/12345/store/",
+                "meta": {
+                  "public_key": "public",
+                  "secret_key": "secret",
+                  "host": "sentry.io",
+                  "project_id": "12345"
+                }
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "SentryDsnDisplay"
+            }
+          }

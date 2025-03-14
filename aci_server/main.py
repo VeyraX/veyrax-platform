@@ -34,9 +34,12 @@ from integrations.exa.route import router as exa_router
 from integrations.asana.route import router as asana_router
 from integrations.trello.route import router as trello_router
 from integrations.figma.route import router as figma_router
+from integrations.sentry.route import router as sentry_router
+
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
+
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -88,7 +91,8 @@ INTEGRATION_ROUTERS = {
     "tavily": tavily_router,
     "asana": asana_router,
     "trello": trello_router,
-    "figma": figma_router
+    "figma": figma_router,
+    "sentry": sentry_router
 }
 
 app = FastAPI()

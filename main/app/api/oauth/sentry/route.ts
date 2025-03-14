@@ -1,0 +1,41 @@
+import { createClient } from '@/lib/utils/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // We don't need to extract useExternalInstall since we're always using external install
+    const { scopes } = await request.json();
+    
+    const { data: provider } = await supabase
+        .from('providers')
+        .select('id')
+        .eq('provider_tag', 'sentry')
+        .single();
+
+    if (!provider) {
+        return NextResponse.json({ error: 'Provider not found' }, { status: 404 });
+    }
+
+    // Always use the external installation URL for public integrations
+    const integrationSlug = process.env.SENTRY_INTEGRATION_SLUG || 'veyrax';
+    const externalInstallUrl = `https://sentry.io/sentry-apps/${integrationSlug}/external-install/`;
+    
+    // Store the provider_id and scopes in state for the callback
+    const state = Buffer.from(JSON.stringify({
+        provider_id: provider.id,
+        scopes
+    })).toString('base64');
+    
+    // Add state as a query parameter to track the installation
+    const urlWithState = `${externalInstallUrl}?state=${state}`;
+    
+    return NextResponse.json({ url: urlWithState });
+}
+
+export { POST as GET }; 
