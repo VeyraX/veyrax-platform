@@ -4,9 +4,11 @@ import { encrypt } from '@/lib/utils/encryption';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
+    console.log("[sentry] searchParams: ", searchParams);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const installationId = searchParams.get('installationId');
+    const orgSlug = searchParams.get('orgSlug');
     
     // For public integrations, we must have both code, state and installationId
     if (!code || !state || !installationId) {
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
     console.log('Sentry callback received:', { 
         code: 'present', 
         state: 'present',
-        installationId
+        searchParams
     });
 
     const supabase = await createClient();
@@ -111,7 +113,7 @@ export async function GET(request: NextRequest) {
         const encryptedRefreshToken = refreshToken ? encrypt(refreshToken) : null;
         
         // Store the installation ID
-        const additionalData = { installation_id: installationId };
+        const additionalData = { installation_id: installationId, org_slug: orgSlug };
         
         const encryptedTokenData = {
             ...tokens,
