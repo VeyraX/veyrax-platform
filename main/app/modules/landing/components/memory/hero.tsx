@@ -127,7 +127,7 @@ export const Hero = () => {
               <div className="flex flex-row items-center gap-4 w-full max-w-md justify-center">
                 <Link href="/register">
                   <Button className="gap-2">
-                    Get Access <MoveRight className="w-4 h-4" />
+                    Register <MoveRight className="w-4 h-4" />
                   </Button>
                 </Link>
                 
