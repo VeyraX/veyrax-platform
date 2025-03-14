@@ -218,4 +218,39 @@ routes:
             "component": {
               "name": "SentryServiceHookList"
             }
-          } 
+          }
+
+  - endpoint: /sentry/get_dsn
+    examples:
+      - scenario: "Get Project DSN"
+        description: "Retrieves DSN for a project; SENTRY_URL is a dns secret."
+        input_json: |
+          {
+            "project_slug": "web-app"
+          }
+        output_json: |
+          {
+            "data": {
+              "project_slug": "web-app",
+              "id": "4509393808055296",
+              "dsn": {
+                "public": "https://public@org.ingest.sentry.io/12345",
+                "secret": "https://secret@org.ingest.sentry.io/12345",
+                "csp": "https://sentry.io/api/12345/security/?sentry_key=public",
+                "security": "https://sentry.io/api/12345/security/?sentry_key=public",
+                "minidump": "https://sentry.io/api/12345/minidump/?sentry_key=public",
+                "cdn": "https://js.sentry-cdn.com/public.min.js",
+                "curl": "curl -X POST -H 'Content-Type: application/json' -d '...' https://sentry.io/api/12345/store/",
+                "meta": {
+                  "public_key": "public",
+                  "secret_key": "secret",
+                  "host": "sentry.io",
+                  "project_id": "12345"
+                }
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "SentryDsnDisplay"
+            }
+          }

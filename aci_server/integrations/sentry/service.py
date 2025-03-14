@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any, Union, List
-import json
+
 import os
 from .client import SentryClient
 from .schema import (
@@ -7,9 +7,9 @@ from .schema import (
     ProjectList, Project, IssueList, Issue, EventList, Event,
     ReleaseList, Release, AlertRuleList, AlertRule,
     UserFeedbackList, UserFeedback, ServiceHookList, ServiceHook,
-    ApiResponse
+    ApiResponse, Dsn, DsnResponse
 )
-import logging
+
 from ..common.component_handler import load_components, prepare_components_auto
 
 class SentryService:
@@ -424,5 +424,33 @@ class SentryService:
             status=response.get("status", "active")
         )
         return self.prepare_response(hook, "SentryServiceHookDetails")
+
+    def get_project_dsn(self, project_slug: str) -> ApiResponse:
+        dsn_data = self.client.get_project_dsn(project_slug)
+        if not dsn_data:
+            raise ValueError("No DSN found for project")
+        
+        # Get first key's DSN information
+        key_data = dsn_data[0]
+        dsn = Dsn(
+            public=key_data["dsn"]["public"],
+            secret=key_data["dsn"].get("secret"),
+            csp=key_data["dsn"].get("csp"),
+            minidump=key_data["dsn"].get("minidump"),
+            security=key_data["dsn"].get("security"),
+            cdn=key_data["dsn"].get("cdn"),
+            curl=key_data["dsn"].get("curl"),
+            meta=key_data["dsn"].get("meta")
+        )
+        
+        return self.prepare_response(
+            DsnResponse(
+                project_slug=project_slug,
+                dsn=dsn,
+                id=key_data["id"]
+            ),
+            "SentryDsnDisplay"
+        )
+
     
 

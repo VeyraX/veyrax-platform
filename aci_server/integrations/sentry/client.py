@@ -130,3 +130,12 @@ class SentryClient:
                          headers=self.headers,
                          json=data)
         )
+
+    def get_project_dsn(self, project_slug: str) -> Dict:
+        return self._handle_response(
+            requests.get(
+                f"{self.BASE_URL}/projects/{self.org_slug}/{project_slug}/keys/",
+                headers=self.headers
+            )
+        )
+

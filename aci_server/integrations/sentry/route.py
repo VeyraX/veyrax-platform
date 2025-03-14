@@ -2,17 +2,16 @@ from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from typing import Dict, Any
 from .service import SentryService
 from .schema import (
-    OrganizationListResponse, TeamListResponse, TeamResponse, UserTeamsResponse,
+    TeamListResponse, TeamResponse, UserTeamsResponse,
     ProjectListResponse, ProjectResponse, IssueListResponse, IssueResponse,
     EventListResponse, ReleaseListResponse, ReleaseResponse, 
     AlertRuleListResponse, AlertRuleResponse, UserFeedbackListResponse,
-    ServiceHookListResponse, ServiceHookResponse,
-    ListOrganizationsParams, ListTeamsParams, CreateTeamParams, ListUserTeamsParams,
+    ServiceHookListResponse, ServiceHookResponse, ListTeamsParams, CreateTeamParams, ListUserTeamsParams,
     ListProjectsParams, CreateProjectParams, ListIssuesParams, GetIssueDetailsParams,
     ListIssueEventsParams, ListReleasesParams, CreateReleaseParams,
     ListAlertRulesParams, CreateAlertRuleParams, ListUserFeedbackParams,
     ListServiceHooksParams, CreateServiceHookParams,
-    ApiResponse
+    ApiResponse, DsnResponse, GetDsnParams
 )
 from ..common.auth import TokenService, TokenRefresherFactory
 from ..common.utils import format_validation_error
@@ -328,3 +327,22 @@ async def create_service_hook(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_dsn", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetDsnParams,
+    output_schema_class=DsnResponse,
+    examples=examples["/sentry/get_dsn"]
+)
+async def get_dsn(
+    params: Dict[str, Any] = Body(...),
+    service: SentryService = Depends(get_sentry_service)
+):
+    try:
+        validated_params = GetDsnParams(**params)
+        return service.get_project_dsn(validated_params.project_slug)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetDsnParams'))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

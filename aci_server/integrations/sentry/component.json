@@ -75,5 +75,43 @@
                 "newGroups": 12
             }
         }
+    },
+    {
+        "name": "SentryDsnDisplay",
+        "version": "1.0.0",
+        "description": "Displays project DSN details",
+        "related_endpoints": ["get_dsn"],
+        "component": {
+            "jsx": "function(props) {\n  function DsnDisplay(props) {\n    return React.createElement('div', { style: { \n      padding: '16px',\n      backgroundColor: '#f8fafc',\n      borderRadius: '8px'\n    } },\n      React.createElement('h3', null, 'Project DSN'),\n      React.createElement('div', { style: { marginTop: '12px' } },\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'Public: '),\n          React.createElement('code', null, props.data.dsn.public)\n        ),\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'Secret: '),\n          React.createElement('code', null, props.data.dsn.secret)\n        ),\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'CSP: '),\n          React.createElement('code', null, props.data.dsn.csp)\n        )\n      )\n    );\n  }\n  return DsnDisplay(props);\n}"
+        },
+        "exampleProps": {
+            "data": {
+                "project_slug": "web-app",
+                "id": "4509393808055296",
+                "dsn": {
+                    "public": "https://public@org.ingest.sentry.io/12345",
+                    "secret": "https://secret@org.ingest.sentry.io/12345",
+                    "csp": "https://sentry.io/api/12345/security/?sentry_key=public",
+                    "minidump": "https://sentry.io/api/12345/minidump/?sentry_key=public",
+                    "cdn": "https://js.sentry-cdn.com/public.min.js"
+                }
+            }
+        }
+    },
+    {
+        "name": "SentryIntegrationCredentials",
+        "version": "1.0.0",
+        "description": "Displays integration client ID and configuration details",
+        "related_endpoints": ["get_integration_credentials"],
+        "component": {
+            "jsx": "function(props) {\n  function IntegrationCredentials(props) {\n    return React.createElement('div', { style: { padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' } },\n      React.createElement('h3', null, 'Integration Credentials'),\n      React.createElement('div', { style: { marginTop: '12px' } },\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'Client ID: '),\n          React.createElement('code', null, props.data.client_id)\n        ),\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'Service Type: '),\n          React.createElement('code', null, props.data.service_type)\n        ),\n        React.createElement('div', { style: { marginBottom: '8px' } },\n          React.createElement('strong', null, 'Config URL: '),\n          React.createElement('a', { href: props.data.config_url, target: '_blank' }, props.data.config_url)\n        )\n      )\n    );\n  }\n  return IntegrationCredentials(props);\n}"
+        },
+        "exampleProps": {
+            "data": {
+                "client_id": "abc123-sentry-client-id",
+                "service_type": "sentry",
+                "config_url": "https://sentry.io/api/0/organizations/my-org/auth-providers/sentry/"
+            }
+        }
     }
 ]

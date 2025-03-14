@@ -111,6 +111,21 @@ class ServiceHook(BaseModel):
     dateCreated: str
     status: str
 
+class Dsn(BaseModel):
+    public: str
+    secret: Optional[str] = None
+    csp: Optional[str] = None
+    minidump: Optional[str] = None
+    security: Optional[str] = None
+    cdn: Optional[str] = None
+    curl: Optional[str] = None
+    meta: Optional[Dict[str, Any]] = Field(None, alias="meta")
+
+class DsnResponse(BaseModel):
+    project_slug: str
+    dsn: Dsn
+    key_id: str = Field(..., alias="id")
+
 # Collection Models
 class OrganizationList(BaseModel):
     organizations: List[Organization]
@@ -149,6 +164,9 @@ class ListOrganizationsParams(BaseModel):
 
 class ListTeamsParams(BaseModel):
     cursor: Optional[str] = None
+
+class GetDsnParams(BaseModel):
+    project_slug: str
 
 class CreateTeamParams(BaseModel):
     name: Optional[str] = None
@@ -286,7 +304,7 @@ class ApiResponse(BaseModel):
     data: Union[Organization, OrganizationList, Team, TeamList, Project, ProjectList, 
                 Issue, IssueList, Event, EventList, Release, ReleaseList, 
                 AlertRule, AlertRuleList, UserFeedback, UserFeedbackList, 
-                ServiceHook, ServiceHookList]
+                ServiceHook, ServiceHookList, DsnResponse]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 class OrganizationListResponse(BaseModel):
