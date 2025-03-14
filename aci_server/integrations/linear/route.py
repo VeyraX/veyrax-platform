@@ -22,7 +22,7 @@ from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/linear", tags=["linear"])
 
-examples = ExamplesLoader()  # Will automatically use /integrations/linear directory
+examples = ExamplesLoader() 
 
 async def get_linear_service(request: FastAPIRequest) -> LinearService:
     try:

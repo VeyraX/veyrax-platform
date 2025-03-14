@@ -330,16 +330,106 @@ class SlackTokenRefresher(BaseTokenRefresher):
         except Exception as e:
             raise ValueError(f"Failed to refresh Slack token: {str(e)}")
 
+class AsanaTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            refresh_token = token_data.get('refresh_token')
+            if not refresh_token:
+                raise ValueError("No refresh token available")
+                
+            client_id = os.getenv('ASANA_CLIENT_ID')
+            client_secret = os.getenv('ASANA_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                raise ValueError("Missing Asana client credentials")
+                
+            token_url = "https://app.asana.com/-/oauth_token"
+            payload = {
+                'grant_type': 'refresh_token',
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'refresh_token': refresh_token
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(token_url, data=payload) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise ValueError(f"Failed to refresh token: {error_text}")
+                        
+                    token_response = await response.json()
+                    
+            new_token_data = {
+                'access_token': token_response.get('access_token'),
+                'refresh_token': token_response.get('refresh_token', refresh_token),
+                'expires_in': token_response.get('expires_in', 3600),
+                'token_type': token_response.get('token_type', 'bearer'),
+                'expires_at': int(time.time()) + token_response.get('expires_in', 3600),
+                'raw_token_data': token_response
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+            
+        except Exception as e:
+            print(f"Error refreshing Asana token: {str(e)}")
+            raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+
+class FigmaTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            refresh_token = token_data.get('refresh_token')
+            if not refresh_token:
+                raise ValueError("No refresh token available")
+                
+            client_id = os.getenv('FIGMA_CLIENT_ID')
+            client_secret = os.getenv('FIGMA_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                raise ValueError("Missing Figma client credentials")
+                
+            token_url = "https://www.figma.com/api/oauth/token"
+            payload = {
+                'grant_type': 'refresh_token',
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'refresh_token': refresh_token
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(token_url, data=payload) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise ValueError(f"Failed to refresh token: {error_text}")
+                        
+                    token_response = await response.json()
+                    
+            new_token_data = {
+                'access_token': token_response.get('access_token'),
+                'refresh_token': token_response.get('refresh_token', refresh_token),
+                'expires_in': token_response.get('expires_in', 3600),
+                'token_type': token_response.get('token_type', 'bearer'),
+                'expires_at': int(time.time()) + token_response.get('expires_in', 3600),
+                'raw_token_data': token_response
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+            
+        except Exception as e:
+            print(f"Error refreshing Figma token: {str(e)}")
+            raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+
 class TokenRefresherFactory:
     _refreshers = {
-        "gmail": GoogleTokenRefresher,
-        "google_calendar": GoogleTokenRefresher,
-        "google_drive": GoogleTokenRefresher,
-        "confluence": ConfluenceTokenRefresher,
-        "jira": JiraTokenRefresher,
-        "outlook": OutlookTokenRefresher,
-        "dropbox": DropboxTokenRefresher,
-        "slack": SlackTokenRefresher,
+        'google': GoogleTokenRefresher,
+        'confluence': ConfluenceTokenRefresher,
+        'jira': JiraTokenRefresher,
+        'outlook': OutlookTokenRefresher,
+        'dropbox': DropboxTokenRefresher,
+        'slack': SlackTokenRefresher,
+        'asana': AsanaTokenRefresher,
+        'figma': FigmaTokenRefresher,
     }
 
     @classmethod

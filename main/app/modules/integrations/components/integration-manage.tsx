@@ -31,11 +31,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   });
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [shouldCloseAfterUpdate, setShouldCloseAfterUpdate] = useState(true);
+  const [apiKeyChanged, setApiKeyChanged] = useState(false);
 
   useEffect(() => {
     if (open) {
       if (provider.auth_method === 'api_key') {
         fetchApiKey();
+        setApiKeyChanged(false);
       } else if (provider.auth_method === 'db_access') {
         fetchDbCredentials();
       }
@@ -96,6 +98,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   const handleSaveApiKey = async () => {
     setIsSaving(true);
     try {
+      if (!apiKeyChanged) {
+        onUpdate();
+        onClose();
+        return;
+      }
+      console.log("api key changed", apiKeyChanged);
+      console.log("api key", apiKey);
       await enableApiKeyProvider(provider.id, apiKey.trim());
       onUpdate();
       onClose();
@@ -287,7 +296,10 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                       id="apiKey"
                       type="password"
                       value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
+                      onChange={(e) => {
+                        setApiKey(e.target.value);
+                        setApiKeyChanged(true);
+                      }}
                       placeholder={apiKey ? "••••••••••••••••••••••" : "Enter your API key"}
                       className="pr-10"
                       disabled={isLoading}

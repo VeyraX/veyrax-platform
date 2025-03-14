@@ -1,0 +1,589 @@
+routes:
+  - endpoint: /figma/get_file
+    examples:
+      - scenario: "Get Figma File"
+        description: "Retrieve a complete Figma file with all its contents"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5"
+          }
+        output_json: |
+          {
+            "data": {
+              "key": "FP8DuLSYjG9AoQBJcGYJD5",
+              "name": "Design System",
+              "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+              "last_modified": "2024-03-15T10:30:00Z",
+              "version": "123456789",
+              "document": {
+                "id": "0:1",
+                "name": "Document",
+                "type": "DOCUMENT",
+                "children": [
+                  {
+                    "id": "1:2",
+                    "name": "Page 1",
+                    "type": "CANVAS"
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "FigmaFileDetail"
+            }
+          }
+
+  - endpoint: /figma/get_file_nodes
+    examples:
+      - scenario: "Get Specific Nodes"
+        description: "Retrieve specific nodes from a Figma file"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5",
+            "node_ids": ["1:2", "1:3"]
+          }
+        output_json: |
+          {
+            "data": {
+              "nodes": {
+                "1:2": {
+                  "document": {
+                    "id": "1:2",
+                    "name": "Button Component",
+                    "type": "COMPONENT",
+                    "absoluteBoundingBox": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 200,
+                      "height": 50
+                    }
+                  }
+                },
+                "1:3": {
+                  "document": {
+                    "id": "1:3",
+                    "name": "Card Component",
+                    "type": "COMPONENT",
+                    "absoluteBoundingBox": {
+                      "x": 0,
+                      "y": 100,
+                      "width": 300,
+                      "height": 200
+                    }
+                  }
+                }
+              }
+            },
+            "component": {
+              "name": "FigmaNodeList"
+            }
+          }
+
+  - endpoint: /figma/get_image
+    examples:
+      - scenario: "Export Node as Image"
+        description: "Export specific nodes as images"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5",
+            "node_ids": ["1:2"],
+            "format": "png",
+            "scale": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "1:2": "https://s3-alpha.figma.com/img/1234/5678/abcdef1234567890.png"
+            },
+            "component": {
+              "name": "FigmaImageList"
+            }
+          }
+
+  - endpoint: /figma/get_file_components
+    examples:
+      - scenario: "Get File Components"
+        description: "Retrieve all components in a Figma file"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "key": "12345:67",
+                  "name": "Primary Button",
+                  "description": "Main call-to-action button",
+                  "node_id": "1:2",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                },
+                {
+                  "key": "12345:68",
+                  "name": "Secondary Button",
+                  "description": "Alternative action button",
+                  "node_id": "1:3",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "FigmaComponentList"
+            }
+          }
+
+  - endpoint: /figma/get_styles
+    examples:
+      - scenario: "Get File Styles"
+        description: "Retrieve all styles in a Figma file"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "key": "S:12345,67",
+                  "name": "Primary Color",
+                  "description": "Brand primary color",
+                  "style_type": "FILL",
+                  "node_id": "S:123",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                },
+                {
+                  "key": "S:12345,68",
+                  "name": "Heading 1",
+                  "description": "Main heading style",
+                  "style_type": "TEXT",
+                  "node_id": "S:124",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "FigmaStyleList"
+            }
+          }
+  - endpoint: /figma/get_team_projects
+    examples:
+      - scenario: "Get Team Projects"
+        description: "Retrieve all projects for a team"
+        input_json: |
+          {
+            "team_id": "12345"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "12345",
+                "name": "Website Redesign",
+                "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                "last_modified": "2024-03-15T10:30:00Z"
+              },
+              {
+                "id": "12346",
+                "name": "Mobile App",
+                "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12346-abcdef.png",
+                "last_modified": "2024-03-14T15:45:00Z"
+              }
+            ],
+            "component": {
+              "name": "FigmaProjectList"
+            }
+          }
+
+  - endpoint: /figma/get_project_files
+    examples:
+      - scenario: "Get Project Files"
+        description: "Retrieve all files in a project"
+        input_json: |
+          {
+            "project_id": "12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "key": "FP8DuLSYjG9AoQBJcGYJD5",
+                  "name": "Design System",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "last_modified": "2024-03-15T10:30:00Z"
+                },
+                {
+                  "key": "FP8DuLSYjG9AoQBJcGYJE6",
+                  "name": "Homepage Design",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12346-abcdef.png",
+                  "last_modified": "2024-03-14T15:45:00Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "FigmaFileList"
+            }
+          }
+
+
+  - endpoint: /figma/get_all_nodes
+    examples:
+      - scenario: "Get All Nodes"
+        description: "Retrieve all nodes from a Figma file by recursively traversing the document structure"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5"
+          }
+        output_json: |
+          {
+            "data": {
+              "nodes": {
+                "0:1": {
+                  "document": {
+                    "id": "0:1",
+                    "name": "Document",
+                    "type": "DOCUMENT",
+                    "children": [
+                      {
+                        "id": "1:2",
+                        "name": "Page 1",
+                        "type": "CANVAS"
+                      }
+                    ]
+                  }
+                },
+                "1:2": {
+                  "document": {
+                    "id": "1:2",
+                    "name": "Page 1",
+                    "type": "CANVAS",
+                    "children": [
+                      {
+                        "id": "2:3",
+                        "name": "Frame 1",
+                        "type": "FRAME"
+                      }
+                    ]
+                  }
+                },
+                "2:3": {
+                  "document": {
+                    "id": "2:3",
+                    "name": "Frame 1",
+                    "type": "FRAME",
+                    "absoluteBoundingBox": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 400,
+                      "height": 300
+                    },
+                    "children": [
+                      {
+                        "id": "3:4",
+                        "name": "Text",
+                        "type": "TEXT"
+                      },
+                      {
+                        "id": "3:5",
+                        "name": "Rectangle",
+                        "type": "RECTANGLE"
+                      }
+                    ]
+                  }
+                },
+                "3:4": {
+                  "document": {
+                    "id": "3:4",
+                    "name": "Text",
+                    "type": "TEXT",
+                    "characters": "Hello World",
+                    "style": {
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": 400
+                    },
+                    "absoluteBoundingBox": {
+                      "x": 20,
+                      "y": 20,
+                      "width": 120,
+                      "height": 30
+                    }
+                  }
+                },
+                "3:5": {
+                  "document": {
+                    "id": "3:5",
+                    "name": "Rectangle",
+                    "type": "RECTANGLE",
+                    "absoluteBoundingBox": {
+                      "x": 20,
+                      "y": 60,
+                      "width": 200,
+                      "height": 100
+                    },
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "color": {
+                          "r": 0.2,
+                          "g": 0.4,
+                          "b": 0.8,
+                          "a": 1
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "component": {
+              "name": "FigmaNodeList"
+            }
+          }
+
+  - endpoint: /figma/get_me
+    examples:
+      - scenario: "Get Current User"
+        description: "Retrieve information about the currently authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "id": "12345",
+              "handle": "designer123",
+              "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png",
+              "email": "designer@example.com"
+            },
+            "component": {
+              "name": "FigmaUserDetail"
+            }
+          }
+
+  - endpoint: /figma/get_component_sets
+    examples:
+      - scenario: "Get Component Sets"
+        description: "Retrieve all component sets in a Figma file"
+        input_json: |
+          {
+            "file_key": "FP8DuLSYjG9AoQBJcGYJD5"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "component_sets": [
+                  {
+                    "key": "CS:12345:67",
+                    "name": "Button Variants",
+                    "description": "All button variants",
+                    "node_id": "CS:123",
+                    "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                    "created_at": "2024-01-15T10:30:00Z",
+                    "updated_at": "2024-03-15T10:30:00Z",
+                    "user": {
+                      "id": "12345",
+                      "handle": "designer123",
+                      "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                    }
+                  },
+                  {
+                    "key": "CS:12345:68",
+                    "name": "Input Field Variants",
+                    "description": "All input field variants",
+                    "node_id": "CS:124",
+                    "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12346-abcdef.png",
+                    "created_at": "2024-01-16T10:30:00Z",
+                    "updated_at": "2024-03-16T10:30:00Z",
+                    "user": {
+                      "id": "12345",
+                      "handle": "designer123",
+                      "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                    }
+                  }
+                ]
+              },
+              "cursor": null
+            },
+            "component": {
+              "name": "FigmaComponentSetList"
+            }
+          }
+
+  - endpoint: /figma/get_team_components
+    examples:
+      - scenario: "Get Team Components"
+        description: "Retrieve all components for a team"
+        input_json: |
+          {
+            "team_id": "12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "key": "12345:67",
+                  "name": "Primary Button",
+                  "description": "Main call-to-action button",
+                  "node_id": "1:2",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                },
+                {
+                  "key": "12345:68",
+                  "name": "Secondary Button",
+                  "description": "Alternative action button",
+                  "node_id": "1:3",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                }
+              ],
+              "cursor": null
+            },
+            "component": {
+              "name": "FigmaComponentList"
+            }
+          }
+
+  - endpoint: /figma/get_team_component_sets
+    examples:
+      - scenario: "Get Team Component Sets"
+        description: "Retrieve all component sets for a team"
+        input_json: |
+          {
+            "team_id": "12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "component_sets": [
+                  {
+                    "key": "CS:12345:67",
+                    "name": "Button Variants",
+                    "description": "All button variants",
+                    "node_id": "CS:123",
+                    "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                    "created_at": "2024-01-15T10:30:00Z",
+                    "updated_at": "2024-03-15T10:30:00Z",
+                    "user": {
+                      "id": "12345",
+                      "handle": "designer123",
+                      "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                    }
+                  },
+                  {
+                    "key": "CS:12345:68",
+                    "name": "Input Field Variants",
+                    "description": "All input field variants",
+                    "node_id": "CS:124",
+                    "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12346-abcdef.png",
+                    "created_at": "2024-01-16T10:30:00Z",
+                    "updated_at": "2024-03-16T10:30:00Z",
+                    "user": {
+                      "id": "12345",
+                      "handle": "designer123",
+                      "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                    }
+                  }
+                ]
+              },
+              "cursor": null
+            },
+            "component": {
+              "name": "FigmaComponentSetList"
+            }
+          }
+
+  - endpoint: /figma/get_team_styles
+    examples:
+      - scenario: "Get Team Styles"
+        description: "Retrieve all styles for a team"
+        input_json: |
+          {
+            "team_id": "12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "key": "S:12345,67",
+                  "name": "Primary Color",
+                  "description": "Brand primary color",
+                  "style_type": "FILL",
+                  "node_id": "S:123",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                },
+                {
+                  "key": "S:12345,68",
+                  "name": "Heading 1",
+                  "description": "Main heading style",
+                  "style_type": "TEXT",
+                  "node_id": "S:124",
+                  "thumbnail_url": "https://s3-alpha.figma.com/thumbnails/12345-abcdef.png",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "updated_at": "2024-03-15T10:30:00Z",
+                  "user": {
+                    "id": "12345",
+                    "handle": "designer123",
+                    "img_url": "https://s3-alpha.figma.com/profile/12345-abcdef.png"
+                  }
+                }
+              ],
+              "cursor": null
+            },
+            "component": {
+              "name": "FigmaStyleList"
+            }
+          }

@@ -1,0 +1,766 @@
+routes:
+  - endpoint: /asana/get_tasks
+    examples:
+      - scenario: "Get Workspace Tasks"
+        description: "Retrieve tasks from workspace with optional filtering"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "project_id": "67890",
+            "assignee": "5555",
+            "completed_since": "2024-01-01",
+            "limit": 10,
+            "offset": null
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "1111",
+                  "name": "Complete project proposal",
+                  "completed": false,
+                  "due_on": "2024-03-31",
+                  "notes": "Include all requirements and cost estimates",
+                  "assignee": {
+                    "gid": "5555",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "workspace": {
+                    "gid": "12345",
+                    "name": "Marketing Team"
+                  },
+                  "projects": [
+                    {
+                      "gid": "67890",
+                      "name": "Q1 Planning"
+                    }
+                  ]
+                }
+              ],
+              "offset": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+            },
+            "component": {
+              "name": "AsanaTaskList"
+            }
+          }
+
+  - endpoint: /asana/get_task
+    examples:
+      - scenario: "Get Task Details"
+        description: "Retrieve detailed information for a specific task"
+        input_json: |
+          {
+            "task_id": "1111"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "1111",
+              "name": "Complete project proposal",
+              "completed": false,
+              "due_on": "2024-03-31",
+              "notes": "Include all requirements and cost estimates",
+              "assignee": {
+                "gid": "5555",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "gid": "12345",
+                "name": "Marketing Team"
+              },
+              "projects": [
+                {
+                  "gid": "67890",
+                  "name": "Q1 Planning"
+                }
+              ]
+            },
+            "component": {
+              "name": "AsanaTaskDetail"
+            }
+          }
+
+  - endpoint: /asana/create_task
+    examples:
+      - scenario: "Create New Task"
+        description: "Create a new task in a project"
+        input_json: |
+          {
+            "task": {
+              "name": "Review client feedback",
+              "notes": "Address all points in the latest client email",
+              "due_on": "2024-03-15",
+              "workspace": "12345",
+              "projects": ["67890"],
+              "assignee": "5555"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "2222",
+              "name": "Review client feedback",
+              "completed": false,
+              "due_on": "2024-03-15",
+              "notes": "Address all points in the latest client email",
+              "assignee": {
+                "gid": "5555",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "gid": "12345",
+                "name": "Marketing Team"
+              },
+              "projects": [
+                {
+                  "gid": "67890",
+                  "name": "Q1 Planning"
+                }
+              ]
+            },
+            "component": {
+              "name": "AsanaTaskDetail"
+            }
+          }
+
+  - endpoint: /asana/update_task
+    examples:
+      - scenario: "Update Task Status"
+        description: "Mark a task as completed"
+        input_json: |
+          {
+            "task_id": "1111",
+            "task_update": {
+              "completed": true
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "1111",
+              "name": "Complete project proposal",
+              "completed": true,
+              "due_on": "2023-12-31",
+              "notes": "Include all requirements and cost estimates"
+            },
+            "component": {
+              "name": "AsanaTaskDetail"
+            }
+          }
+
+  - endpoint: /asana/delete_task
+    examples:
+      - scenario: "Delete Task"
+        description: "Remove a task that is no longer needed"
+        input_json: |
+          {
+            "task_id": "1111"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "1111"
+            }
+          }
+
+  - endpoint: /asana/get_subtasks
+    examples:
+      - scenario: "Get Task Subtasks"
+        description: "Retrieve all subtasks for a parent task"
+        input_json: |
+          {
+            "task_id": "1111"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "3333",
+                  "name": "Research competitors",
+                  "completed": true,
+                  "parent": "1111"
+                },
+                {
+                  "gid": "4444",
+                  "name": "Draft cost estimates",
+                  "completed": false,
+                  "parent": "1111"
+                }
+              ],
+              "offset": null
+            },
+            "component": {
+              "name": "AsanaTaskList"
+            }
+          }
+
+  - endpoint: /asana/create_subtask
+    examples:
+      - scenario: "Create Subtask"
+        description: "Add a subtask to an existing task"
+        input_json: |
+          {
+            "parent_task_id": "1111",
+            "subtask": {
+              "name": "Prepare presentation slides",
+              "notes": "Include key points and visuals",
+              "due_on": "2023-12-15"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "5555",
+              "name": "Prepare presentation slides",
+              "completed": false,
+              "due_on": "2023-12-15",
+              "notes": "Include key points and visuals",
+              "parent": "1111"
+            },
+            "component": {
+              "name": "AsanaTaskDetail"
+            }
+          }
+
+  - endpoint: /asana/get_workspaces
+    examples:
+      - scenario: "Get All Workspaces"
+        description: "Retrieve all workspaces accessible to the user"
+        input_json: |
+          {
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "12345",
+                  "name": "Marketing Team",
+                  "is_organization": true
+                },
+                {
+                  "gid": "67890",
+                  "name": "Product Development",
+                  "is_organization": true
+                }
+              ],
+              "offset": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+            },
+            "component": {
+              "name": "AsanaWorkspaceList"
+            }
+          }
+
+  - endpoint: /asana/get_workspace
+    examples:
+      - scenario: "Get Workspace Details"
+        description: "Retrieve details for a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "12345",
+              "name": "Marketing Team",
+              "is_organization": true
+            },
+            "component": {
+              "name": "AsanaWorkspaceDetail"
+            }
+          }
+
+  - endpoint: /asana/get_projects
+    examples:
+      - scenario: "Get Workspace Projects"
+        description: "Retrieve all projects from a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "archived": false,
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "gid": "67890",
+                "name": "Website Redesign",
+                "notes": "Complete overhaul of company website",
+                "archived": false
+              },
+              {
+                "gid": "54321",
+                "name": "Q4 Marketing Campaign",
+                "notes": "Holiday season promotional activities",
+                "archived": false
+              }
+            ],
+            "component": {
+              "name": "AsanaProjectList"
+            }
+          }
+
+  - endpoint: /asana/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieve details for a specific project"
+        input_json: |
+          {
+            "project_id": "67890"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "67890",
+              "name": "Website Redesign",
+              "notes": "Complete overhaul of company website",
+              "archived": false,
+              "due_date": "2023-12-31",
+              "owner": {
+                "gid": "5555",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              }
+            },
+            "component": {
+              "name": "AsanaProjectDetail"
+            }
+          }
+
+  - endpoint: /asana/get_tags
+    examples:
+      - scenario: "Get Workspace Tags"
+        description: "Retrieve all tags from a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "gid": "11111",
+                "name": "Urgent",
+                "color": "red"
+              },
+              {
+                "gid": "22222",
+                "name": "In Progress",
+                "color": "yellow"
+              }
+            ],
+            "component": {
+              "name": "AsanaTagList"
+            }
+          }
+
+  - endpoint: /asana/get_tag
+    examples:
+      - scenario: "Get Tag Details"
+        description: "Retrieve details for a specific tag"
+        input_json: |
+          {
+            "tag_id": "11111"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "11111",
+              "name": "Urgent",
+              "color": "red",
+              "workspace": {
+                "gid": "12345",
+                "name": "Marketing Team"
+              }
+            },
+            "component": {
+              "name": "AsanaTagDetail"
+            }
+          }
+
+  - endpoint: /asana/get_teams
+    examples:
+      - scenario: "Get Workspace Teams"
+        description: "Retrieve all teams from a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "gid": "33333",
+                "name": "Design Team",
+                "description": "UI/UX designers and graphic artists"
+              },
+              {
+                "gid": "44444",
+                "name": "Development Team",
+                "description": "Frontend and backend developers"
+              }
+            ],
+            "component": {
+              "name": "AsanaTeamList"
+            }
+          }
+
+  - endpoint: /asana/get_team
+    examples:
+      - scenario: "Get Team Details"
+        description: "Retrieve details for a specific team"
+        input_json: |
+          {
+            "team_id": "33333"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "33333",
+              "name": "Design Team",
+              "description": "UI/UX designers and graphic artists"
+            },
+            "component": {
+              "name": "AsanaTeamDetail"
+            }
+          }
+
+  - endpoint: /asana/get_users
+    examples:
+      - scenario: "Get Workspace Users"
+        description: "Retrieve all users from a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "5555",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                },
+                {
+                  "gid": "6666",
+                  "name": "Jane Smith",
+                  "email": "jane.smith@example.com"
+                }
+              ],
+              "offset": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+            },
+            "component": {
+              "name": "AsanaUserList"
+            }
+          }
+
+  - endpoint: /asana/get_user
+    examples:
+      - scenario: "Get User Details"
+        description: "Retrieve details for a specific user"
+        input_json: |
+          {
+            "user_id": "5555"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "5555",
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "photo": {
+                "image_128x128": "https://example.com/photos/128/john_doe.jpg"
+              }
+            },
+            "component": {
+              "name": "AsanaUserDetail"
+            }
+          }
+
+  - endpoint: /asana/get_goals
+    examples:
+      - scenario: "Get Workspace Goals"
+        description: "Retrieve goals with optional filtering"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "time_period_id": "period123",
+            "is_workspace_level": true,
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "77777",
+                  "name": "Increase website traffic",
+                  "due_on": "2024-12-31",
+                  "status": "on_track",
+                  "owner": {
+                    "gid": "5555",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "metric": {
+                    "current_number_value": 80000,
+                    "target_number_value": 100000,
+                    "unit": "visitors"
+                  }
+                }
+              ],
+              "offset": null
+            },
+            "component": {
+              "name": "AsanaGoalList"
+            }
+          }
+
+  - endpoint: /asana/get_goal
+    examples:
+      - scenario: "Get Goal Details"
+        description: "Retrieve details for a specific goal"
+        input_json: |
+          {
+            "goal_id": "77777"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "77777",
+              "name": "Increase website traffic",
+              "due_on": "2023-12-31",
+              "notes": "Target 20% increase in organic traffic",
+              "status": "on_track",
+              "is_workspace_level": true,
+              "metric": {
+                "gid": "99999",
+                "name": "Monthly visitors",
+                "current_number_value": 80000,
+                "target_number_value": 100000,
+                "unit": "visitors"
+              }
+            },
+            "component": {
+              "name": "AsanaGoalDetail"
+            }
+          }
+
+  - endpoint: /asana/create_goal
+    examples:
+      - scenario: "Create New Goal"
+        description: "Create a new goal in a workspace"
+        input_json: |
+          {
+            "goal": {
+              "name": "Launch mobile app",
+              "notes": "Complete development and release to app stores",
+              "due_on": "2023-06-30",
+              "workspace": "12345",
+              "owner": "5555",
+              "time_period": "123456"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "101010",
+              "name": "Launch mobile app",
+              "due_on": "2023-06-30",
+              "notes": "Complete development and release to app stores",
+              "status": "on_track",
+              "is_workspace_level": true
+            },
+            "component": {
+              "name": "AsanaGoalDetail"
+            }
+          }
+
+  - endpoint: /asana/update_goal
+    examples:
+      - scenario: "Update Goal Status"
+        description: "Change the status of an existing goal"
+        input_json: |
+          {
+            "goal_id": "77777",
+            "goal_update": {
+              "status": "at_risk",
+              "notes": "Facing technical challenges with API integration"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "77777",
+              "name": "Increase website traffic",
+              "due_on": "2023-12-31",
+              "notes": "Facing technical challenges with API integration",
+              "status": "at_risk",
+              "is_workspace_level": true
+            },
+            "component": {
+              "name": "AsanaGoalDetail"
+            }
+          }
+
+  - endpoint: /asana/get_sections
+    examples:
+      - scenario: "Get Project Sections"
+        description: "Retrieve all sections from a project"
+        input_json: |
+          {
+            "project_id": "67890"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "111222",
+                  "name": "To Do",
+                  "project": {
+                    "gid": "67890",
+                    "name": "Q1 Planning"
+                  }
+                },
+                {
+                  "gid": "333444",
+                  "name": "In Progress",
+                  "project": {
+                    "gid": "67890",
+                    "name": "Q1 Planning"
+                  }
+                }
+              ],
+              "offset": null
+            },
+            "component": {
+              "name": "AsanaSectionList"
+            }
+          }
+
+  - endpoint: /asana/get_section
+    examples:
+      - scenario: "Get Section Details"
+        description: "Retrieve details for a specific section"
+        input_json: |
+          {
+            "section_id": "333444"
+          }
+        output_json: |
+          {
+            "data": {
+              "gid": "333444",
+              "name": "In Progress",
+              "project": {
+                "gid": "67890",
+                "name": "Website Redesign"
+              },
+              "created_at": "2023-01-15T10:00:00Z"
+            },
+            "component": {
+              "name": "AsanaSectionDetail"
+            }
+          }
+
+  - endpoint: /asana/get_section_tasks
+    examples:
+      - scenario: "Get Tasks in Section"
+        description: "Retrieve all tasks from a specific section (e.g., 'In Progress' column)"
+        input_json: |
+          {
+            "section_id": "333444",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "123456",
+                  "name": "Design homepage mockup",
+                  "completed": false,
+                  "due_on": "2023-12-20",
+                  "notes": "Focus on mobile-first approach",
+                  "assignee": {
+                    "gid": "5555",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "projects": [
+                    {
+                      "gid": "67890",
+                      "name": "Website Redesign"
+                    }
+                  ]
+                },
+                {
+                  "gid": "789012",
+                  "name": "Implement navigation menu",
+                  "completed": false,
+                  "due_on": "2023-12-22",
+                  "notes": "Include responsive behavior",
+                  "assignee": {
+                    "gid": "6666",
+                    "name": "Jane Smith",
+                    "email": "jane.smith@example.com"
+                  },
+                  "projects": [
+                    {
+                      "gid": "67890",
+                      "name": "Website Redesign"
+                    }
+                  ]
+                }
+              ],
+              "offset": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+            },
+            "component": {
+              "name": "AsanaTaskList"
+            }
+          }
+
+  - endpoint: /asana/get_time_periods
+    examples:
+      - scenario: "Get Time Periods"
+        description: "Retrieve time periods for a workspace"
+        input_json: |
+          {
+            "workspace_id": "12345",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "gid": "period123",
+                  "name": "Q1 2024",
+                  "start_on": "2024-01-01",
+                  "end_on": "2024-03-31"
+                },
+                {
+                  "gid": "period124",
+                  "name": "Q2 2024",
+                  "start_on": "2024-04-01",
+                  "end_on": "2024-06-30"
+                }
+              ],
+              "offset": null
+            },
+            "component": {
+              "name": "AsanaTimePeriodList"
+            }
+          }
