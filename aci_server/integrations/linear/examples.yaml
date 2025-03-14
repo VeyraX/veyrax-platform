@@ -759,4 +759,42 @@ routes:
                 "name": "LinearWorkflowStateList"
               }
             ]
+          }
+
+  - endpoint: /linear/list_labels
+    examples:
+      - scenario: "List Linear Labels"
+        description: "Retrieves a paginated list of available labels"
+        input_json: |
+          {
+            "cursor": null,
+            "max_results": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "label-123",
+                  "name": "bug",
+                  "color": "#FF0000"
+                },
+                {
+                  "id": "label-456",
+                  "name": "feature",
+                  "color": "#00FF00"
+                },
+                {
+                  "id": "label-789",
+                  "name": "urgent",
+                  "color": "#FFA500"
+                }
+              ],
+              "cursor": "cursor-for-next-page"
+            },
+            "component": [
+              {
+                "name": "LinearLabelList"
+              }
+            ]
           } 

@@ -29,7 +29,7 @@ async def get_weather_service(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Weather service: {str(e)}")
 
 @router.post("/forecast", response_model=ApiResponse)
-@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse, examples=examples["/openweather/forecast"])
+@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse, examples=examples["/weather/forecast"])
 async def get_weather_forecast(
     params: Dict[str, Any] = Body(...),
     service: WeatherService = Depends(get_weather_service)

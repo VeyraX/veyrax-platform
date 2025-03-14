@@ -4,7 +4,6 @@ import { encrypt } from '@/lib/utils/encryption';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
-    console.log("[sentry] searchParams: ", searchParams);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const installationId = searchParams.get('installationId');
@@ -59,8 +58,6 @@ export async function GET(request: NextRequest) {
             client_id: process.env.SENTRY_INTEGRATION_CLIENT_ID,
             client_secret: process.env.SENTRY_INTEGRATION_CLIENT_SECRET,
         };
-
-        console.log('Exchanging code for token at:', tokenUrl);
         
         // Exchange the authorization code for an access token
         const tokenResponse = await fetch(tokenUrl, {
@@ -76,8 +73,6 @@ export async function GET(request: NextRequest) {
         }
 
         const tokens = await tokenResponse.json();
-        console.log('Tokens:', tokens);
-        console.log('Token exchange successful');
 
         // For public integrations, the token field names are different from standard OAuth
         const accessToken = tokens.token;

@@ -63,3 +63,6 @@ venv/
 
 
 /certbot
+*.swp
+.env*
+*.env*
