@@ -194,4 +194,4 @@ class ApiResponse(BaseModel):
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
         None,
         description="UI components configuration for rendering results"
-    ) 
+    )

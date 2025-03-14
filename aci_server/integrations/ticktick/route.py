@@ -19,13 +19,19 @@ examples = ExamplesLoader()
 async def get_ticktick_service(request: FastAPIRequest) -> TickTickService:
     try:
         token_data = await TokenService.get_user_token(request, 'ticktick')
-        if TokenService.is_token_expired(token_data):
-            refresher = TokenRefresherFactory.get_refresher('ticktick')
-            token_data = await refresher.refresh(request, token_data)
+        if not token_data or not token_data.get('access_token'):
+            raise HTTPException(
+                status_code=401,
+                detail="No TickTick token data found"
+            )
+            
         client = TickTickClient(token_data['access_token'])
         return TickTickService(client)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Service initialization failed: {str(e)}")
+        raise HTTPException(
+            status_code=401,
+            detail=f"Failed to initialize TickTick service: {str(e)}"
+        )
 
 @router.post("/tasks-get", response_model=ApiResponse)
 @schema(input_schema_class=GetTaskParams, output_schema_class=ApiResponse, examples=examples["/ticktick/tasks-get"])

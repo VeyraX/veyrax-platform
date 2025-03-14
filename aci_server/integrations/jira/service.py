@@ -116,10 +116,9 @@ class JiraService:
             issue_key = response['key']
             self.client.transition_issue(issue_key, issue_create.status_id)
         
-        # Get the issue data and return it properly
         issue_data = self.get_issue(response['id'])
         
-        return issue_data  # The get_issue method already calls prepare_response
+        return issue_data
 
     def _get_allowed_transitions(self, issue_id: str) -> List[Dict[str, Any]]:
         response = self.client.get_transitions(issue_id)

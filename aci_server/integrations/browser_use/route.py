@@ -188,3 +188,19 @@ async def ping(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key", "")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = BrowserUseClient(api_key)
+        response = client.me()
+        
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}

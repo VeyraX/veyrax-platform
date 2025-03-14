@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection } from "../api/api.integrations";
+import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection, validateApiKey } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, RefreshCw } from "lucide-react";
+import { HelpCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
+  const [originalApiKey, setOriginalApiKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [dbConfig, setDbConfig] = useState({
@@ -31,11 +32,15 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   });
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [shouldCloseAfterUpdate, setShouldCloseAfterUpdate] = useState(true);
+  const [apiKeyChanged, setApiKeyChanged] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       if (provider.auth_method === 'api_key') {
         fetchApiKey();
+        setApiKeyChanged(false);
       } else if (provider.auth_method === 'db_access') {
         fetchDbCredentials();
       }
@@ -49,6 +54,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     try {
       const key = await getUserApiKey(provider.id);
       setApiKey(key || "");
+      setOriginalApiKey(key || "");
     } catch (error) {
       console.error('Failed to fetch API key:', error);
     } finally {
@@ -94,15 +100,36 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   };
 
   const handleSaveApiKey = async () => {
-    setIsSaving(true);
+    if (apiKey === originalApiKey) {
+      onClose();
+      return;
+    }
+
+    if (!apiKey.trim()) {
+      setValidationError("API key is required");
+      return;
+    }
+
+    setIsValidating(true);
+    setValidationError(null);
+
     try {
-      await enableApiKeyProvider(provider.id, apiKey.trim());
+      const validationResult = await validateApiKey(provider.provider_tag, apiKey);
+      
+      if (!validationResult.valid) {
+        setValidationError(validationResult.message);
+        setIsValidating(false);
+        return;
+      }
+
+      await enableApiKeyProvider(provider.id, apiKey);
       onUpdate();
       onClose();
     } catch (error) {
-      console.error('Failed to save API key:', error);
+      console.error("Error saving API key:", error);
+      setValidationError(error instanceof Error ? error.message : "Failed to save API key");
     } finally {
-      setIsSaving(false);
+      setIsValidating(false);
     }
   };
 
@@ -277,33 +304,29 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
           {provider.auth_method === 'api_key' && (
             <div className="space-y-4">
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{validationError}</span>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="apiKey" className="text-sm font-medium">API Key</Label>
                 </div>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="apiKey"
-                      type="password"
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder={apiKey ? "••••••••••••••••••••••" : "Enter your API key"}
-                      className="pr-10"
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleSaveApiKey} 
-                    disabled={isLoading || isSaving}
-                  >
-                    {isSaving ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Save"
-                    )}
-                  </Button>
-                </div>
+                <Input
+                  id="apiKey"
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => {
+                    setApiKey(e.target.value);
+                    setApiKeyChanged(e.target.value !== originalApiKey);
+                    setValidationError(null);
+                  }}
+                  placeholder="Enter your API key"
+                  className="w-full"
+                  disabled={isValidating}
+                />
               </div>
             </div>
           )}
@@ -328,6 +351,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             provider.auth_method === 'oauth' || 
             provider.auth_method === 'db_access' || 
             provider.auth_method === 'none' || 
+            provider.auth_method === 'api_key' ||
             (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax')
           ) && (
             <div className="flex gap-2">
@@ -349,6 +373,21 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                 <RefreshCw className="h-4 w-4 animate-spin" />
               ) : (
                 "Save Connection"
+              )}
+            </Button>
+          )}
+          
+          {provider.auth_method === 'api_key' && (
+            <Button 
+              onClick={handleSaveApiKey} 
+              disabled={!apiKey.trim() || isValidating || !apiKeyChanged}
+            >
+              {isValidating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                "Save API Key"
               )}
             </Button>
           )}

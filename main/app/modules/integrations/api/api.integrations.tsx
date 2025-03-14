@@ -637,3 +637,31 @@ export const upsertIntegrationRequest = async (integrationName: string): Promise
     throw error;
   }
 };
+
+export const validateApiKey = async (providerId: string, apiKey: string): Promise<{valid: boolean, message: string}> => {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    console.log(apiKey);
+    const response = await fetch(`${baseUrl}/${providerId}/validate_key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ api_key: apiKey }),
+    });
+
+    const data = await response.json();
+    
+    console.log(data);
+    return {
+      valid: data.valid,
+      message: data.message || 'API key validation completed'
+    };
+  } catch (error) {
+    console.error('Error validating API key:', error);
+    return { 
+      valid: false, 
+      message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
+    };
+  }
+};

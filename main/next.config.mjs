@@ -3,6 +3,9 @@ import {withSentryConfig} from '@sentry/nextjs';
 const nextConfig = {
     experimental: {
         instrumentationHook: true,
+    },
+    images: {
+        domains: ['figma-alpha-api.s3.us-west-2.amazonaws.com'],
     }
 };
 
