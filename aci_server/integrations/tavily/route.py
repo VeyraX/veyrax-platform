@@ -57,4 +57,20 @@ async def extract(
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ExtractParams'))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = TavilyClient(api_key=api_key)
+        test_params = {"query": "test", "max_results": 1}
+        test_response = client.search(test_params)
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}

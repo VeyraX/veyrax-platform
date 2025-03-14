@@ -91,4 +91,21 @@ async def news_search(
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'NewsSearchParams'))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key", "")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = BraveClient(api_key)
+        test_params = {"q": "test", "count": 1}
+        client.web_search(test_params)
+        
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}

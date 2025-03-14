@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-router = APIRouter(prefix="/weather", tags=["weather"])
+router = APIRouter(prefix="/openweather", tags=["openweather"])
 
 examples = ExamplesLoader()  # Will automatically use /integrations/openweather directory
 
@@ -29,7 +29,7 @@ async def get_weather_service(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to initialize Weather service: {str(e)}")
 
 @router.post("/forecast", response_model=ApiResponse)
-@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse, examples=examples["/weather/forecast"])
+@schema(input_schema_class=GetWeatherForecastParams, output_schema_class=GetWeatherForecastResponse, examples=examples["/openweather/forecast"])
 async def get_weather_forecast(
     params: Dict[str, Any] = Body(...),
     service: WeatherService = Depends(get_weather_service)
@@ -46,3 +46,19 @@ async def get_weather_forecast(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key", "")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = WeatherClient(api_key)
+        response = client.get_weather_by_city("London", "GB")
+        
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}

@@ -1,5 +1,5 @@
 routes:
-  - endpoint: "/browser-use/run_task"
+  - endpoint: /browser-use/run_task
     examples:
       - scenario: "Search for information"
         description: "Start a browser task to search for information on Google"
@@ -17,7 +17,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/stop_task"
+  - endpoint: /browser-use/stop_task
     examples:
       - scenario: "Stop a running task"
         description: "Stop a browser automation task that is currently running"
@@ -34,7 +34,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/pause_task"
+  - endpoint: /browser-use/pause_task
     examples:
       - scenario: "Pause a running task"
         description: "Temporarily pause a browser automation task"
@@ -51,7 +51,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/resume_task"
+  - endpoint: /browser-use/resume_task
     examples:
       - scenario: "Resume a paused task"
         description: "Resume a previously paused browser automation task"
@@ -68,7 +68,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/get_task"
+  - endpoint: /browser-use/get_task
     examples:
       - scenario: "Get task details"
         description: "Retrieve detailed information about a specific task"
@@ -96,7 +96,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/get_task_status"
+  - endpoint: /browser-use/get_task_status
     examples:
       - scenario: "Check task status"
         description: "Check the current status of a browser automation task"
@@ -111,7 +111,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/get_task_media"
+  - endpoint: /browser-use/get_task_media
     examples:
       - scenario: "Get task media"
         description: "Retrieve media files (screenshots, recordings) from a completed task"
@@ -128,7 +128,7 @@ routes:
           "message": "Task media retrieved successfully"
         }
 
-  - endpoint: "/browser-use/list_tasks"
+  - endpoint: /browser-use/list_tasks
     examples:
       - scenario: "List all tasks"
         description: "Retrieve a list of all browser automation tasks"
@@ -178,7 +178,7 @@ routes:
           }
         }
 
-  - endpoint: "/browser-use/check_balance"
+  - endpoint: /browser-use/check_balance
     examples:
       - scenario: "Check account balance"
         description: "Check the remaining API credits in your account"
@@ -190,7 +190,7 @@ routes:
           "message": "Balance retrieved successfully"
         }
 
-  - endpoint: "/browser-use/me"
+  - endpoint: /browser-use/me
     examples:
       - scenario: "Verify API key"
         description: "Verify that your API key is valid"
@@ -200,7 +200,7 @@ routes:
           "message": "API key is valid"
         }
 
-  - endpoint: "/browser-use/ping"
+  - endpoint: /browser-use/ping
     examples:
       - scenario: "Check API availability"
         description: "Check if the Browser Use API is available"
@@ -212,3 +212,4 @@ routes:
           },
           "message": "API is available"
         }
+      
