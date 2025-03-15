@@ -197,22 +197,16 @@ class DriveService:
         }
 
     async def upload_file_from_url(self, file_url, filename, parent_id=None):
-        """Download file from URL and upload to Google Drive"""
         try:
-            # Download file from URL
             response = requests.get(file_url, stream=True)
-            response.raise_for_status()  # Raise an exception for HTTP errors
+            response.raise_for_status()
             
-            # Get content type from response headers
             content_type = response.headers.get('Content-Type', 'application/octet-stream')
             
-            # Create a BytesIO object from the response content
             file_obj = BytesIO(response.content)
             
-            # Make sure we're at the beginning of the file
             file_obj.seek(0)
             
-            # Upload the file and get its data
             file_data = self.client.upload_file(
                 name=filename,
                 file_content=file_obj,
@@ -220,10 +214,8 @@ class DriveService:
                 parent_id=parent_id
             )
             
-            # Get the complete file object and prepare a proper response
             file_obj = self.get_file(file_data['id']).data
             
-            # Return a properly formatted response
             return self.prepare_response(file_obj, "GoogleDriveFileCard")
             
         except Exception as e:
@@ -232,36 +224,63 @@ class DriveService:
             raise HTTPException(status_code=400, detail=f"Failed to upload file from URL: {str(e)}")
 
     async def upload_file_from_base64(self, filename, file_base64, content_type, parent_id=None):
-        """Decode base64 file and upload to Google Drive"""
         try:
-            # Remove data URL prefix if present
             if ',' in file_base64:
                 file_base64 = file_base64.split(',', 1)[1]
             
-            # Clean any whitespace that might be present in the base64 string
             file_base64 = file_base64.strip()
             
-            # Decode base64 to binary
+            is_google_format = content_type.startswith('application/vnd.google-apps.')
+            
+            upload_mime_type = content_type
+            if is_google_format:
+                if content_type == 'application/vnd.google-apps.document':
+                    upload_mime_type = 'text/plain'
+                elif content_type == 'application/vnd.google-apps.spreadsheet':
+                    upload_mime_type = 'text/csv'
+                elif content_type == 'application/vnd.google-apps.presentation':
+                    upload_mime_type = 'text/plain'
+                else:
+                    upload_mime_type = 'text/plain'
+                    
+                try:
+                    import json
+                    import base64 as b64
+                    decoded_content = b64.b64decode(file_base64).decode('utf-8')
+                    json_data = json.loads(decoded_content)
+                    
+                    if isinstance(json_data, dict) and 'content' in json_data:
+                        file_content = json_data['content'].encode('utf-8')
+                        file_base64 = b64.b64encode(file_content).decode('utf-8')
+                        
+                        if 'title' in json_data and filename.endswith('.gdoc'):
+                            filename = json_data['title'] + '.txt'
+                except:
+                    pass
+            
             file_content = base64.b64decode(file_base64)
-            
-            # Create a BytesIO object
             file_obj = BytesIO(file_content)
-            
-            # Make sure we're at the beginning of the file
             file_obj.seek(0)
             
-            # Upload the file and get its data
             file_data = self.client.upload_file(
                 name=filename,
                 file_content=file_obj,
-                mime_type=content_type,
+                mime_type=upload_mime_type,
                 parent_id=parent_id
             )
             
-            # Get the complete file object and prepare a proper response
+            if is_google_format and content_type != upload_mime_type:
+                try:
+                    file_data = self.client.service.files().update(
+                        fileId=file_data['id'],
+                        body={'mimeType': content_type},
+                        fields='id, name, mimeType, parents, size'
+                    ).execute()
+                except Exception as e:
+                    pass
+            
             file_obj = self.get_file(file_data['id']).data
             
-            # Return a properly formatted response
             return self.prepare_response(file_obj, "GoogleDriveFileCard")
             
         except Exception as e:
@@ -274,13 +293,11 @@ class DriveService:
             perm_type = PermissionType(permission['type'])
             perm_role = PermissionRole(permission['role'])
             
-            # Build base permission
             permission_body = {
                 'type': perm_type.value,
                 'role': perm_role.value
             }
             
-            # Add type-specific fields
             extra_params = {}
             if perm_type in [PermissionType.USER, PermissionType.GROUP]:
                 permission_body['emailAddress'] = permission['email']
@@ -288,13 +305,11 @@ class DriveService:
             elif perm_type == PermissionType.DOMAIN:
                 permission_body['domain'] = permission['domain']
             
-            # Create the permission
             created_perm = self.client.create_permission(
                 file_id=file_id,
                 permission={**permission_body, **extra_params}
             )
             
-            # Convert to PermissionResponse
             perm_response = PermissionResponse(
                 id=created_perm['id'],
                 role=PermissionRole(created_perm['role']),
