@@ -276,7 +276,6 @@ class SentryService:
         response = self.client.list_releases(query_params)
         releases = []
         for release_data in response:
-            print("[service] release_data: ", release_data)
             release = Release(
                 id=str(release_data["id"]),
                 version=release_data["version"],

@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from db.supabase import get_supabase
@@ -115,6 +115,22 @@ for router in INTEGRATION_ROUTERS.values():
 async def root():
     return {"message": "Hello World"}
 
+
+## healthcheck route
+@app.head("/")
+async def root_head():
+    try:
+        tools = await get_tools()
+        if not tools.get("tools"):
+            return Response(status_code=503, content="No tools configured")
+            
+        return Response(status_code=200)
+    except Exception as e:
+        return Response(
+            status_code=500,
+            content=f"Tools check failed: {str(e)}"
+        )
+
 @app.get("/tools")
 async def get_tools():
     tools = {}
@@ -122,6 +138,7 @@ async def get_tools():
         tools[name] = get_router_tools(router)
     
     return {"tools": tools}
+
 
 def find_route_by_tool_and_method(tool: str, method: str):
     if tool not in INTEGRATION_ROUTERS:
@@ -250,8 +267,6 @@ async def get_user_tools(request: Request):
             .select('provider_id') \
             .eq('user_id', user_id) \
             .execute()
-        print(user_id)
-        print(user_providers.data)
             
         if not user_providers.data:
             tools_response = {"tools": {}}

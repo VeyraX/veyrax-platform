@@ -41,7 +41,6 @@ class FirecrawlClient:
         return self._make_request('POST', '/map', json=params)
     
     def extract(self, **params) -> Dict[str, Any]:
-        print(params)
         return self._make_request('POST', '/extract', json=params)
     
     def get_extract_status(self, extract_id: str) -> Dict[str, Any]:

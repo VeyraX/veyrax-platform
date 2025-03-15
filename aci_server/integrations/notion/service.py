@@ -80,8 +80,6 @@ class NotionService:
         response = self.client.search_pages(query="", **search_params)
         response = self._handle_notion_response(response)
         
-        # For debugging
-        print(f"Notion API response: {response}")
         
         databases = []
         for db in response.get('results', []):
@@ -341,8 +339,6 @@ class NotionService:
             
             response = self.client.create_database(payload)
             
-            print(f"Notion API response for database creation: {response}")
-            
             if 'object' in response and response['object'] == 'error':
                 raise HTTPException(
                     status_code=response.get('status', 500),
@@ -432,8 +428,6 @@ class NotionService:
             formatted_block_id = self.format_page_id(block_id)
             
             response = self.client.append_block_children(formatted_block_id, children)
-            
-            print(f"Notion API response for append block children: {response}")
             
             if 'object' in response and response['object'] == 'error':
                 raise HTTPException(
@@ -674,7 +668,6 @@ class NotionService:
                 next_cursor=response.get('next_cursor')
             )
 
-            print(f"User list: {user_list}")
             
             return self.prepare_response(user_list, "NotionUserList")
         except requests.exceptions.RequestException as e:
