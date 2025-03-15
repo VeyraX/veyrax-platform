@@ -44,9 +44,9 @@ class JiraService:
         
         if filters:
             if filters.project_id:
-                jql_parts.append(f'project = {filters.project_id}')
+                jql_parts.append(f'project = "{filters.project_id}"')
             if filters.status_id:
-                jql_parts.append(f'status = {filters.status_id}')
+                jql_parts.append(f'status = "{filters.status_id}"')
             if filters.assignee:
                 jql_parts.append(f'assignee = "{filters.assignee}"')
             if filters.created_after:
@@ -54,7 +54,7 @@ class JiraService:
             if filters.created_before:
                 jql_parts.append(f'created <= "{filters.created_before.strftime("%Y-%m-%d")}"')
             if filters.priority_id:
-                jql_parts.append(f'priority = {filters.priority_id}')
+                jql_parts.append(f'priority = "{filters.priority_id}"')
         
         jql = ' AND '.join(jql_parts) if jql_parts else "order by created DESC"
         max_results = filters.max_results if filters and filters.max_results else 50
