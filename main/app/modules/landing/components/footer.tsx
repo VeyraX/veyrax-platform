@@ -34,6 +34,7 @@ export const Footer = () => {
               ACI
             </a>
             <a href="/marketplace" className="transition-colors hover:text-gray-300">Marketplace</a>
+            <a href="https://status.aci.so" className="transition-colors hover:text-gray-300">Status</a>
             <a href="mailto:korzhov.work2019@gmail.com" className="transition-colors hover:text-gray-300">Contacts</a>
           </nav>
           <div className="mb-8 flex space-x-4">

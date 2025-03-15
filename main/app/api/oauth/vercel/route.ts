@@ -1,0 +1,36 @@
+import { createClient } from '@/lib/utils/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { scopes } = await request.json();
+    
+    const { data: provider } = await supabase
+        .from('providers')
+        .select('id')
+        .eq('provider_tag', 'vercel')
+        .single();
+
+    if (!provider) {
+        return NextResponse.json({ error: 'Provider not found' }, { status: 404 });
+    }
+
+    const state = Buffer.from(JSON.stringify({
+        provider_id: provider.id,
+        scopes
+    })).toString('base64');
+
+    const authUrl = `https://vercel.com/integrations/${process.env.VERCEL_INTEGRATION_SLUG}/new?` +
+        `state=${state}&` +
+        `scope=${encodeURIComponent(scopes.join(','))}`;
+
+    return NextResponse.json({ url: authUrl });
+}
+
+export { POST as GET };
