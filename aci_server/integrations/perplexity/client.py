@@ -13,7 +13,6 @@ class PerplexityClient:
             "Content-Type": "application/json"
         }
         response = requests.post(self.base_url, json=kwargs, headers=headers)
-        print("Response content:", response.content)
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:

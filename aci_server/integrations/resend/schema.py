@@ -17,7 +17,7 @@ class EmailAttachment(BaseModel):
 
 # Input schemas
 class SendEmailParams(BaseModel):
-    from_email: str = Field(..., alias="from")
+    from_email: str = Field(..., alias="from", description="Email address of the sender (that avaliable in Resend account), you MUST check avalaible domain before sending email to ensure it's valid")
     to: Union[str, List[str]]
     subject: str
     html: Optional[str] = None

@@ -74,6 +74,9 @@ class Project(BaseModel):
     createdAt: datetime = Field(alias="created_at")
     updatedAt: datetime = Field(alias="updated_at")
     lead: Optional[User] = None
+    
+    class Config:
+        populate_by_name = True
 
 class ProjectList(BaseModel):
     items: List[Project]

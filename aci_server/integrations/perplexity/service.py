@@ -3,6 +3,8 @@ from .client import PerplexityClient
 from .schema import CompletionRequest, CompletionResponse, ApiResponse
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import json
+from requests.exceptions import HTTPError
 
 class PerplexityService:
     def __init__(self, client: PerplexityClient):
@@ -23,6 +25,18 @@ class PerplexityService:
         if isinstance(request_data.get('response_format'), str):
             request_data['response_format'] = {'type': request_data['response_format']}
         
-        response = self.client.create_completion(**request_data)
-        completion_response = CompletionResponse(**response)
-        return self.prepare_response(completion_response, "PerplexityResponseView")
+        try:
+            response = self.client.create_completion(**request_data)
+            
+            if not response:
+                raise ValueError("Empty response received from Perplexity API")
+                
+            completion_response = CompletionResponse(**response)
+            return self.prepare_response(completion_response, "PerplexityResponseView")
+            
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON response from Perplexity API: {str(e)}")
+        except HTTPError as e:
+            raise
+        except Exception as e:
+            raise ValueError(f"Error processing Perplexity API response: {str(e)}")

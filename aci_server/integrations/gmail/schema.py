@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
@@ -32,9 +32,9 @@ class DraftBase(BaseModel):
     snippet: str
 
 class DraftMessage(BaseModel):
-    recipient: str
-    subject: str
-    body: str
+    recipient: str = Field(..., description="Email address of the recipient (e.g. example@gmail.com)")
+    subject: str = Field(..., description="Subject line of the email")
+    body: str = Field(..., description="Content of the email message")
     
 class DraftResponse(BaseModel):
     draft_id: str
@@ -75,7 +75,7 @@ class DeleteMessageParams(BaseModel):
     message_id: str
     
 class SendMessageParams(BaseModel):
-    message_id: str
+    message_id: str = Field(..., description="ID of the message to send, you can only send draft message. First create draft message using /create_draft route and then use this route to send it. You MUST use message_id, not draft_id")
     
 class GetDraftsParams(BaseModel):
     pageToken: Optional[str] = None
