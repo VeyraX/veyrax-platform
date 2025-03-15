@@ -94,41 +94,41 @@ class CommentList(BaseModel):
 
 # Input schemas
 class GetFileParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")
 
 class GetFileNodesParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")
     node_ids: List[str]
 
 class GetImageParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")
     node_ids: List[str]
     format: Optional[str] = "png"
     scale: Optional[float] = 1
 
 class GetFileComponentsParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")
 
 class GetComponentSetsParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")
 
 class GetStylesParams(BaseModel):
-    file_key: str
+    file_key: str = Field(..., description="You need manually get the file key from the figma file url")    
 
 class GetTeamProjectsParams(BaseModel):
-    team_id: str
+    team_id: str = Field(..., description="You need manually get the team id from the figma team url")
 
 class GetTeamComponentsParams(BaseModel):
-    team_id: str
+    team_id: str = Field(..., description="You need manually get the team id from the figma team url")
 
 class GetTeamComponentSetsParams(BaseModel):
-    team_id: str
+    team_id: str = Field(..., description="You need manually get the team id from the figma team url")
 
 class GetTeamStylesParams(BaseModel):
-    team_id: str
+    team_id: str = Field(..., description="You need manually get the team id from the figma team url")
 
 class GetProjectFilesParams(BaseModel):
-    project_id: str
+    project_id: str = Field(..., description="You need manually get the project id from the figma project url") 
     branch_name: Optional[str] = None
 
 # Output schemas
