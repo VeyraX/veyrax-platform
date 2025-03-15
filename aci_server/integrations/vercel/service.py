@@ -53,41 +53,89 @@ class VercelService:
         return ApiResponse(data=deployment)
 
     def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
-        params_dict = params.dict(exclude_none=True)
+        """Create a new deployment with all required parameters.
         
-        data = {}
-        for key, value in params_dict.items():
-            if key in ["team_id", "slug"]:
-                continue 
+        This method handles both Git-based deployments and file-based deployments,
+        properly formatting all parameters according to Vercel API requirements.
+        """
+        # Convert Pydantic model to dict and exclude None values
+        data = params.dict(exclude_none=True, by_alias=False)
+        
+        # Convert snake_case to camelCase for all top-level keys
+        formatted_data = {}
+        for key, value in data.items():
+            # Skip team_id and slug as they are query parameters
+            if key in ['team_id', 'slug']:
+                continue
             
-            if isinstance(value, dict):
-                camel_case_dict = {}
-                for k, v in value.items():
-                    parts = k.split('_')
-                    camel_k = parts[0] + ''.join(x.title() for x in parts[1:])
-                    camel_case_dict[camel_k] = v
-                
-                if key == "git_source":
-                    data["gitSource"] = camel_case_dict
-                else:
-                    parts = key.split('_')
-                    camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                    data[camel_key] = camel_case_dict
+            # Convert snake_case to camelCase
+            parts = key.split('_')
+            camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+            
+            # Handle nested objects that need special formatting
+            if camel_key == 'gitMetadata' and value:
+                formatted_data[camel_key] = self._format_git_metadata(value)
+            elif camel_key == 'gitSource' and value:
+                formatted_data[camel_key] = self._format_git_source(value)
+            elif camel_key == 'projectSettings' and value:
+                formatted_data[camel_key] = self._format_project_settings(value)
+            elif camel_key == 'files' and value:
+                formatted_data[camel_key] = self._format_files(value)
             else:
-                parts = key.split('_')
-                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                data[camel_key] = value
+                formatted_data[camel_key] = value
         
         query_params = {}
         if params.team_id:
             query_params["teamId"] = params.team_id
         if params.slug:
             query_params["slug"] = params.slug
+        if params.force_new:
+            query_params["forceNew"] = "1"
+        if params.skip_auto_detection_confirmation:
+            query_params["skipAutoDetectionConfirmation"] = "1"
         
-        response = self.client.create_deployment(data)
+        response = self.client.create_deployment(formatted_data)
         
-        deployment = self._convert_to_deployment_response(response)
-        return ApiResponse(data=deployment)
+        return ApiResponse(data=self._convert_to_deployment_response(response))
+
+    def _format_git_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Format git metadata to camelCase for Vercel API."""
+        formatted = {}
+        for key, value in metadata.items():
+            parts = key.split('_')
+            camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+            formatted[camel_key] = value
+        return formatted
+
+    def _format_git_source(self, source: Dict[str, Any]) -> Dict[str, Any]:
+        """Format git source to camelCase for Vercel API."""
+        formatted = {}
+        for key, value in source.items():
+            parts = key.split('_')
+            camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+            formatted[camel_key] = value
+        return formatted
+
+    def _format_project_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
+        """Format project settings to camelCase for Vercel API."""
+        formatted = {}
+        for key, value in settings.items():
+            parts = key.split('_')
+            camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+            formatted[camel_key] = value
+        return formatted
+
+    def _format_files(self, files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Format files array for Vercel API."""
+        formatted_files = []
+        for file in files:
+            formatted_file = {}
+            for key, value in file.items():
+                parts = key.split('_')
+                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+                formatted_file[camel_key] = value
+            formatted_files.append(formatted_file)
+        return formatted_files
 
     def delete_deployment(self, deployment_id: str, params: Optional[DeleteDeploymentParams] = None) -> ApiResponse:
         params_dict = params.dict(exclude_none=True) if params else {}

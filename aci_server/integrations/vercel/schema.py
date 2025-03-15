@@ -137,8 +137,8 @@ class CreateDeploymentParams(TeamParams):
         None,
         description="The target project identifier in which the deployment will be created"
     )
-    project_settings: ProjectSettings = Field(
-        ...,
+    project_settings: Optional[ProjectSettings] = Field(
+        None,
         description="Project settings that will be applied to the deployment"
     )
     target: Optional[str] = Field(
@@ -155,7 +155,7 @@ class CreateDeploymentParams(TeamParams):
     )
     skip_auto_detection_confirmation: Optional[bool] = Field(
         None,
-        description="Allows to skip framework detection so the API would not fail to ask for confirmation"
+        description="Skip the auto-detection confirmation prompt"
     )
 
 # Delete Deployment Parameters

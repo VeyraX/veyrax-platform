@@ -41,6 +41,7 @@ class VercelClient:
             headers=self.headers,
             json=data
         )
+        print(response.json())
         response.raise_for_status()
         return response.json()
 
