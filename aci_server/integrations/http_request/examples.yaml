@@ -1,0 +1,52 @@
+routes:
+  - endpoint: /http-request/execute_request
+    examples:
+      - scenario: "Execute POST Request with Body"
+        description: "Execute a POST request with JSON body"
+        input_json: |
+          {
+            "request": {
+              "name": "Create Resource",
+              "method": "POST",
+              "url": "https://api.example.com/resources",
+              "headers": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "API-Key",
+                  "value": "{{API_KEY}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\"name\": \"{{RESOURCE_NAME}}\", \"type\": \"test\"}"
+              }
+            },
+            "environment": {
+              "API_KEY": "your-api-key",
+              "RESOURCE_NAME": "Test Resource"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "Create Resource",
+              "status": "Created",
+              "code": 201,
+              "headers": {
+                "content-type": "application/json",
+                "location": "/resources/123"
+              },
+              "body": {
+                "id": "123",
+                "name": "Test Resource",
+                "type": "test",
+                "created_at": "2024-03-15T12:00:00Z"
+              }
+            },
+            "component": {
+              "name": "HttpRequestResponse"
+            }
+          }

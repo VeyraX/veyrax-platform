@@ -279,7 +279,7 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
           </div>
         </div>
 
-        {/* Add documentation block for database providers */}
+        {/* Database documentation block */}
         {['snowflake', 'clickhouse', 'postgres', 'postgresql'].includes(provider.provider_tag.toLowerCase()) && (
           <div className="border border-border rounded-lg p-6 mb-8 bg-card flex justify-between items-center">
             <span className="text-foreground font-medium">How-To Documentation</span>
@@ -287,6 +287,21 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
               variant="link"
               size="sm"
               onClick={() => window.open(`https://docs.veyrax.com/integrations/${provider.provider_tag.toLowerCase()}`, '_blank')}
+              className="flex items-center gap-2 text-primary"
+            >
+              <ArrowUpRightIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* HTTP Request documentation block */}
+        {provider.provider_tag.toLowerCase() === 'http-request' && (
+          <div className="border border-border rounded-lg p-6 mb-8 bg-card flex justify-between items-center">
+            <span className="text-foreground font-medium">How to Use for Local Development</span>
+            <Button 
+              variant="link"
+              size="sm"
+              onClick={() => window.open('https://docs.veyrax.com/http-request-tool', '_blank')}
               className="flex items-center gap-2 text-primary"
             >
               <ArrowUpRightIcon className="h-4 w-4" />

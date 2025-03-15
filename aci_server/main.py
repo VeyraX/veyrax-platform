@@ -35,7 +35,7 @@ from integrations.asana.route import router as asana_router
 from integrations.trello.route import router as trello_router
 from integrations.figma.route import router as figma_router
 from integrations.sentry.route import router as sentry_router
-
+from integrations.http_request.route import router as http_request_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -92,7 +92,8 @@ INTEGRATION_ROUTERS = {
     "asana": asana_router,
     "trello": trello_router,
     "figma": figma_router,
-    "sentry": sentry_router
+    "sentry": sentry_router,
+    "http-request": http_request_router
 }
 
 app = FastAPI()
