@@ -28,7 +28,6 @@ async def get_gmail_service(request: FastAPIRequest):
     token_data = await TokenService.get_user_token(request, 'gmail')
     
     if TokenService.is_token_expired(token_data):
-        print('refreshing token')
         try:
             token_data = await GoogleTokenRefresher.refresh(request, token_data)
             print(f"new token data: {token_data}")

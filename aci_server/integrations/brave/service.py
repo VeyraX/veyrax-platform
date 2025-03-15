@@ -31,9 +31,7 @@ class BraveService:
     def web_search(self, params: WebSearchParams) -> ApiResponse:
         """Perform a web search and format response"""
         processed_params = self._process_web_params(params)
-        print("web_search processed_params", processed_params)
         response = self.client.web_search(processed_params)
-        print("web_search response", response)
         validated = WebSearchApiResponse(**response)
         return self.prepare_response(validated, None)
 

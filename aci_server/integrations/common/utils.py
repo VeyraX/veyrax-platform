@@ -26,8 +26,12 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         
         
         tool_schema = get_openai_function_schemas(route)
-        examples = route.endpoint.examples()
-        tool_schema["examples"] = examples
+        try:
+            examples = route.endpoint.examples()
+            tool_schema["examples"] = examples
+        except Exception as e:
+            print(f"Error getting examples for {route.path}: {e}")
+            tool_schema["examples"] = []
         
         tools.append(tool_schema)
 

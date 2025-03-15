@@ -249,8 +249,6 @@ async def get_user_tools(request: Request):
             .select('provider_id') \
             .eq('user_id', user_id) \
             .execute()
-        print(user_id)
-        print(user_providers.data)
             
         if not user_providers.data:
             tools_response = {"tools": {}}
