@@ -13,7 +13,7 @@ export interface Provider {
   output_schema?: string | object;
   created_at?: string | number;
   is_enabled?: boolean;
-  ui_component?: string | object;
+  ui_component?: string | object
 }
 
 export interface DbConfig {

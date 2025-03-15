@@ -21,7 +21,9 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
     try {
       const data = await getIntegrationsData()
       
-      const sortedData = [...data].sort((a, b) => {
+      const filteredData = data.filter(integration => integration.is_enabled !== false);
+      
+      const sortedData = [...filteredData].sort((a, b) => {
         if (a.provider_tag === 'integration-request') return -1;
         if (b.provider_tag === 'integration-request') return 1;
         return a.name.localeCompare(b.name);
