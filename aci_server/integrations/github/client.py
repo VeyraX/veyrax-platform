@@ -84,6 +84,45 @@ class GitHubClient:
         endpoint = f"/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
         return self._make_request("POST", endpoint, data=data)
 
+    def create_repository_from_template(self, template_owner: str, template_repo: str, data: dict) -> Dict[str, Any]:
+        """Create a repository using a template."""
+        endpoint = f"/repos/{template_owner}/{template_repo}/generate"
+        return self._make_request("POST", endpoint, data=data)
+
+    def get_git_tree(self, owner: str, repo: str, tree_sha: str, recursive: bool = False) -> Dict[str, Any]:
+        endpoint = f"/repos/{owner}/{repo}/git/trees/{tree_sha}"
+        return self._make_request("GET", endpoint, params={"recursive": "1" if recursive else "0"})
+
+    def get_repository_contents(self, owner: str, repo: str, path: str, ref: Optional[str] = None) -> Dict[str, Any]:
+        """Get repository contents (file or directory)"""
+        endpoint = f"/repos/{owner}/{repo}/contents/{path}"
+        params = {"ref": ref} if ref else None
+        return self._make_request("GET", endpoint, params=params)
+
+    def create_blob(self, owner: str, repo: str, content: str, encoding: str = "utf-8") -> Dict[str, Any]:
+        """Create a new blob."""
+        endpoint = f"/repos/{owner}/{repo}/git/blobs"
+        data = {
+            "content": content,
+            "encoding": encoding
+        }
+        return self._make_request("POST", endpoint, data=data)
+
+    def get_blob(self, owner: str, repo: str, file_sha: str) -> Dict[str, Any]:
+        """Get a blob by SHA."""
+        endpoint = f"/repos/{owner}/{repo}/git/blobs/{file_sha}"
+        return self._make_request("GET", endpoint)
+
+    def update_file(self, owner: str, repo: str, path: str, data: dict) -> Dict[str, Any]:
+        """Create or update a file"""
+        endpoint = f"/repos/{owner}/{repo}/contents/{path}"
+        return self._make_request("PUT", endpoint, data=data)
+
+    def delete_file(self, owner: str, repo: str, path: str, data: dict) -> Dict[str, Any]:
+        """Delete a file from repository"""
+        endpoint = f"/repos/{owner}/{repo}/contents/{path}"
+        return self._make_request("DELETE", endpoint, data=data)
+
     def _make_request(self, method, endpoint, params=None, data=None):
         """Make a request to the GitHub API."""
         url = f"{self.BASE_URL}{endpoint}"

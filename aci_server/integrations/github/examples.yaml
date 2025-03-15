@@ -977,3 +977,414 @@ routes:
               "name": "GitHubPullRequestReviewCard"
             }
           }
+
+  - endpoint: /github/create_repository_from_template
+    examples:
+      - scenario: "Create a new repository from a template"
+        description: "Creates a new repository from a template"
+        input_json: |
+          {
+            "template_owner": "github",
+            "template_repo": "template-repo",
+            "name": "new-repo-from-template",
+            "description": "Repository created from template",
+            "private": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": 1296269,
+              "name": "new-repo-from-template",
+              "full_name": "octocat/new-repo-from-template",
+              "description": "Repository created from template",
+              "html_url": "https://github.com/octocat/new-repo-from-template",
+              "private": false,
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "html_url": "https://github.com/octocat"
+              },
+              "stargazers_count": 0,
+              "forks_count": 0,
+              "open_issues_count": 0,
+              "created_at": "2023-01-01T00:00:00Z",
+              "updated_at": "2023-01-01T00:00:00Z",
+              "topics": ["template-generated"],
+              "is_template": false
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubRepositoryCard",
+              "props": {
+                "data": {
+                  "id": 1296269,
+                  "name": "new-repo-from-template",
+                  "full_name": "octocat/new-repo-from-template",
+                  "description": "Repository created from template",
+                  "html_url": "https://github.com/octocat/new-repo-from-template",
+                  "stargazers_count": 0,
+                  "forks_count": 0,
+                  "open_issues_count": 0,
+                  "owner": {
+                    "login": "octocat"
+                  },
+                  "topics": ["template-generated"],
+                  "is_template": false
+                }
+              }
+            }
+          }
+
+  - endpoint: /github/get_git_tree
+    examples:
+      - scenario: "Get a git tree structure"
+        description: "Retrieves a git tree structure"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "tree_sha": "main",
+            "recursive": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "sha": "9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+              "truncated": false,
+              "tree": [
+                {
+                  "path": "README.md",
+                  "mode": "100644",
+                  "type": "blob",
+                  "sha": "980a0d5f19a64b4b30a87d4206aade58726b60e3",
+                  "size": 128
+                },
+                {
+                  "path": "src",
+                  "mode": "040000",
+                  "type": "tree",
+                  "sha": "fc6274d15fa3ae2ab983129fb037999f264ba9a7"
+                }
+              ]
+            },
+            "component": {
+              "name": "GitHubGitTreeComponent",
+              "props": {
+                "data": {
+                  "sha": "9fb037...",
+                  "tree": [
+                    {
+                      "path": "README.md",
+                      "type": "blob",
+                      "size": 128
+                    },
+                    {
+                      "path": "src",
+                      "type": "tree"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+
+  - endpoint: /github/get_contents
+    examples:
+      - scenario: "Get file with decoded content"
+        description: "Retrieves a file's content with automatic base64 decoding"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "README.md",
+            "ref": "main"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "type": "file",
+              "name": "README.md",
+              "path": "README.md",
+              "content": "# Hello World\nThis is a decoded example file",
+              "encoding": "utf-8",
+              "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+              "size": 5362,
+              "html_url": "https://github.com/octocat/Hello-World/blob/main/README.md"
+            },
+            "component": {
+              "name": "GitHubFileViewer",
+              "props": {
+                "content": "# Hello World\nThis is a decoded example file"
+              }
+            }
+          }
+
+      - scenario: "Get raw file without decoding"
+        description: "Retrieves file content without automatic decoding"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "README.md",
+            "decode_content": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "type": "file",
+              "name": "README.md",
+              "path": "README.md",
+              "content": "SGVsbG8gV29ybGQK",
+              "encoding": "base64",
+              "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+              "size": 5362,
+              "html_url": "https://github.com/octocat/Hello-World/blob/main/README.md"
+            }
+          }
+
+  - endpoint: /github/create_blob
+    examples:
+      - scenario: "Create a new blob"
+        description: "Creates a new git blob with specified content"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "content": "Blob content here",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+              "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15"
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubBlobComponent",
+              "props": {
+                "data": {
+                  "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+                  "content": "Blob content here"
+                }
+              }
+            }
+          }
+
+  - endpoint: /github/get_blob
+    examples:
+      - scenario: "Get blob content with decoding"
+        description: "Retrieves and decodes base64 blob content"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "file_sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+            "auto_decode": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "content": "QmxvYiBjb250ZW50IGhlcmU=",
+              "encoding": "base64",
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+              "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+              "decoded_content": "Blob content here"
+            },
+            "message": null,
+            "component": {
+              "name": "GitHubBlobComponent",
+              "props": {
+                "data": {
+                  "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+                  "content": "Blob content here",
+                  "encoding": "base64"
+                }
+              }
+            }
+          }
+
+  - endpoint: /github/update_file
+    examples:
+      - scenario: "Create new file with raw content"
+        description: "Creates a new file with UTF-8 content"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "src/app/page.tsx",
+            "message": "Add initial page component",
+            "content": "export default function Page() {\n  return <div>Hello World</div>\n}",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "content": {
+                "name": "page.tsx",
+                "path": "src/app/page.tsx",
+                "sha": "95b966ae1c166bd92f8ae7d1c620e8654d006965",
+                "size": 67,
+                "url": "https://api.github.com/repos/octocat/Hello-World/contents/src/app/page.tsx",
+                "html_url": "https://github.com/octocat/Hello-World/blob/main/src/app/page.tsx",
+                "git_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/95b966ae1c166bd92f8ae7d1c620e8654d006965",
+                "encoding": "base64"
+              },
+              "commit": {
+                "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+                "message": "Add initial page component"
+              }
+            },
+            "component": {
+              "name": "GitHubFileUpdateComponent",
+              "props": {
+                "data": {
+                  "path": "src/app/page.tsx",
+                  "sha": "95b966ae1c166bd92f8ae7d1c620e8654d006965",
+                  "message": "Add initial page component"
+                }
+              }
+            }
+          }
+
+      - scenario: "Update existing file with base64 content"
+        description: "Updates an existing file with base64 encoded content"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "src/app/page.tsx",
+            "message": "Update page component",
+            "content": "ZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUGFnZSgpIHsKICByZXR1cm4gPGRpdj5IZWxsbyBXb3JsZCE8L2Rpdj4KfQ==",
+            "encoding": "base64",
+            "sha": "95b966ae1c166bd92f8ae7d1c620e8654d006965"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "content": {
+                "name": "page.tsx",
+                "path": "src/app/page.tsx",
+                "sha": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+                "size": 72,
+                "url": "https://api.github.com/repos/octocat/Hello-World/contents/src/app/page.tsx",
+                "html_url": "https://github.com/octocat/Hello-World/blob/main/src/app/page.tsx",
+                "git_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+                "encoding": "base64"
+              },
+              "commit": {
+                "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+                "message": "Update page component"
+              }
+            },
+            "component": {
+              "name": "GitHubFileUpdateComponent",
+              "props": {
+                "data": {
+                  "path": "src/app/page.tsx",
+                  "sha": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+                  "message": "Update page component"
+                }
+              }
+            }
+          }
+
+  - endpoint: /github/delete_file
+    examples:
+      - scenario: "Delete a file from repository"
+        description: "Deletes a file from a GitHub repository"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "src/app/old_file.ts",
+            "message": "Remove deprecated file",
+            "sha": "95b966ae1c166bd92f8ae7d1c620e8654d006965"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "commit": {
+                "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+                "message": "Remove deprecated file"
+              }
+            },
+            "message": "File deleted successfully",
+            "component": {
+              "name": "GitHubFileUpdateComponent"
+            }
+          }
+
+  - endpoint: /github/get_git_tree
+    examples:
+      - scenario: "Get recursive directory structure"
+        description: "Retrieves full recursive directory structure for main branch"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "tree_sha": "main",
+            "recursive": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "sha": "9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+              "truncated": false,
+              "tree": [
+                {
+                  "path": "src/app/main.ts",
+                  "mode": "100644",
+                  "type": "blob",
+                  "sha": "980a0d5f19a64b4b30a87d4206aade58726b60e3",
+                  "size": 1024
+                },
+                {
+                  "path": "src/utils",
+                  "mode": "040000",
+                  "type": "tree",
+                  "sha": "fc6274d15fa3ae2ab983129fb037999f264ba9a7"
+                }
+              ]
+            },
+            "component": {
+              "name": "GitHubGitTreeComponent"
+            }
+          }
+
+  - endpoint: /github/create_blob
+    examples:
+      - scenario: "Create new text blob"
+        description: "Creates a new UTF-8 encoded blob with simple content"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "content": "This is a new blob content",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+              "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15"
+            },
+            "message": "Blob created successfully",
+            "component": {
+              "name": "GitHubBlobComponent"
+            }
+          }

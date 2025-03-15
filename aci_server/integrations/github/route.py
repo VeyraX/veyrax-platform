@@ -1,7 +1,7 @@
 import os
 import yaml
 import pickle
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import ValidationError
 from starlette.requests import Request as FastAPIRequest
@@ -14,14 +14,19 @@ from .schema import (
     ApiResponse, GetRepositoriesParams, GetRepositoryParams, 
     GetIssuesParams, GetIssueParams, GetPullRequestsParams, 
     GetPullRequestParams, GetCommitParams, StarRepositoryParams, 
-    UnstarRepositoryParams, RepositoriesResponse, RepositoryResponse,
+    UnstarRepositoryParams, GetGitTreeParams, GetRepositoryContentsParams,
+    RepositoriesResponse, RepositoryResponse,
     IssuesResponse, IssueResponse, PullRequestsResponse, 
     PullRequestResponse, CommitResponse, StarResponse, UnstarResponse,
     GetCommitsParams, CommitsResponse, CreatePullRequestParams, 
     UpdatePullRequestParams, MergePullRequestParams, GetPullRequestReviewsParams,
     CreatePullRequestReviewParams, PullRequestReviewsResponse, 
     PullRequestReviewResponse, CreatePullRequestResponse, UpdatePullRequestResponse,
-    MergePullRequestResponse
+    MergePullRequestResponse, CreateRepositoryFromTemplateParams, CreateRepositoryFromTemplateResponse,
+    GitTreeSchema, GitTreeEntry, GitTreeList, RepositoryContentSchema, RepositoryContentList,
+    CreateBlobParams, CreateBlobResponse, GetBlobParams, GetBlobResponse,
+    UpdateFileParams, FileUpdateResponse, GetRepositoryContentParams, RepositoryContentResponse,
+    DeleteFileParams
 )
 from ..common.examples_handler import ExamplesLoader
 router = APIRouter(prefix="/github", tags=["github"])
@@ -295,4 +300,193 @@ async def create_pull_request_review(
     except Exception as e:
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create_repository_from_template", response_model=ApiResponse)
+@schema(
+    input_schema_class=CreateRepositoryFromTemplateParams,
+    output_schema_class=CreateRepositoryFromTemplateResponse,
+    examples=examples["/create_repository_from_template"]
+)
+async def create_repository_from_template(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = CreateRepositoryFromTemplateParams(**params)
+        return service.create_repository_from_template(
+            template_owner=validated_params.template_owner,
+            template_repo=validated_params.template_repo,
+            owner=validated_params.owner,
+            name=validated_params.name,
+            description=validated_params.description,
+            include_all_branches=validated_params.include_all_branches,
+            private=validated_params.private
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateRepositoryFromTemplateParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_git_tree", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetGitTreeParams,
+    output_schema_class=GitTreeSchema,
+    examples=examples["/github/git_tree"]
+)
+async def get_git_tree(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = GetGitTreeParams(**params)
+        return service.get_git_tree(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetGitTreeParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_repository_contents", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetRepositoryContentsParams,
+    output_schema_class=RepositoryContentSchema,
+    examples=examples["/github/repository_contents"]
+)
+async def get_repository_contents(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = GetRepositoryContentsParams(**params)
+        return service.get_repository_contents(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoryContentsParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/create_blob", response_model=ApiResponse)
+@schema(
+    input_schema_class=CreateBlobParams,
+    output_schema_class=CreateBlobResponse,
+    examples=examples["/github/create_blob"]
+)
+async def create_blob(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = CreateBlobParams(**params)
+        return service.create_blob(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateBlobParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_blob", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetBlobParams,
+    output_schema_class=GetBlobResponse,
+    examples=examples["/github/get_blob"]
+)
+async def get_blob(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = GetBlobParams(**params)
+        return service.get_blob(**validated_params.dict())
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetBlobParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/update_file", response_model=ApiResponse)
+@schema(
+    input_schema_class=UpdateFileParams,
+    output_schema_class=FileUpdateResponse,
+    examples=examples["/github/update_file"]
+)
+async def update_file(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = UpdateFileParams(**params)
+        return service.update_file(
+            owner=validated_params.owner,
+            repo=validated_params.repo,
+            path=validated_params.path,
+            message=validated_params.message,
+            content=validated_params.content,
+            encoding=validated_params.encoding,
+            sha=validated_params.sha,
+            branch=validated_params.branch
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdateFileParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get_contents", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetRepositoryContentParams,
+    output_schema_class=RepositoryContentResponse,
+    examples=examples["/github/get_contents"]
+)
+async def get_contents(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = GetRepositoryContentParams(**params)
+        return service.get_repository_contents(
+            owner=validated_params.owner,
+            repo=validated_params.repo,
+            path=validated_params.path,
+            ref=validated_params.ref,
+            decode_content=validated_params.decode_content
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoryContentParams'))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/delete_file", response_model=ApiResponse)
+@schema(
+    input_schema_class=DeleteFileParams,
+    output_schema_class=FileUpdateResponse,
+    examples=examples["/github/delete_file"]
+)
+async def delete_file(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = DeleteFileParams(**params)
+        return service.delete_file(
+            owner=validated_params.owner,
+            repo=validated_params.repo,
+            path=validated_params.path,
+            message=validated_params.message,
+            sha=validated_params.sha,
+            branch=validated_params.branch,
+            committer=validated_params.committer,
+            author=validated_params.author
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
