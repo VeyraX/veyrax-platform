@@ -56,9 +56,7 @@ async def image_search(
     service: BraveService = Depends(get_brave_service)
 ):
     try:
-        print("image_search params", params)
         validated_params = ImageSearchParams(**params)
-        print("image_search validated_params", validated_params)
         return service.image_search(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'ImageSearchParams'))
