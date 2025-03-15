@@ -26,7 +26,7 @@ from .schema import (
     GitTreeSchema, GitTreeEntry, GitTreeList, RepositoryContentSchema, RepositoryContentList,
     CreateBlobParams, CreateBlobResponse, GetBlobParams, GetBlobResponse,
     UpdateFileParams, FileUpdateResponse, GetRepositoryContentParams, RepositoryContentResponse,
-    DeleteFileParams
+    DeleteFileParams, CreateFileParams
 )
 from ..common.examples_handler import ExamplesLoader
 router = APIRouter(prefix="/github", tags=["github"])
@@ -440,6 +440,7 @@ async def update_file(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/get_contents", response_model=ApiResponse)
 @schema(
     input_schema_class=GetRepositoryContentParams,
@@ -489,4 +490,33 @@ async def delete_file(
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/create_file", response_model=ApiResponse)
+@schema(
+    input_schema_class=CreateFileParams,
+    output_schema_class=FileUpdateResponse,
+    examples=examples["/github/create_file"]
+)
+async def create_file(
+    params: Dict[str, Any] = Body(...),
+    service: GitHubService = Depends(get_github_service)
+):
+    try:
+        validated_params = CreateFileParams(**params)
+        return service.update_file(
+            owner=validated_params.owner,
+            repo=validated_params.repo,
+            path=validated_params.path,
+            message=validated_params.message,
+            content=validated_params.content,
+            encoding=validated_params.encoding,
+            sha=None,
+            branch=validated_params.branch
+        )
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFileParams'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
