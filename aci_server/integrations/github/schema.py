@@ -105,12 +105,6 @@ class PullRequestReviewList(BaseModel):
     next_page: Optional[int] = None
 
 
-class ApiResponse(BaseModel):
-    data: Optional[Union[RepositorySchema, RepositoryList, IssueSchema, IssueList, 
-                         PullRequestSchema, PullRequestList, CommitSchema, CommitList,
-                         PullRequestReviewSchema, PullRequestReviewList]] = None
-    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
-    message: Optional[str] = None
 
 
 # Input schemas
@@ -236,6 +230,17 @@ class CreatePullRequestReviewParams(BaseModel):
     comments: Optional[List[Dict[str, Any]]] = None
 
 
+# Input schema
+class CreateRepositoryFromTemplateParams(BaseModel):
+    template_owner: str
+    template_repo: str
+    owner: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+    include_all_branches: Optional[bool] = False
+    private: Optional[bool] = False
+
+
 # Output schemas
 class RepositoriesResponse(BaseModel):
     data: RepositoryList
@@ -310,3 +315,193 @@ class UpdatePullRequestResponse(BaseModel):
 class MergePullRequestResponse(BaseModel):
     message: str
     data: Optional[Dict[str, Any]] = None
+
+
+class CreateRepositoryFromTemplateResponse(BaseModel):
+    data: RepositorySchema
+    message: Optional[str] = None
+
+
+class GitTreeEntry(BaseModel):
+    path: str
+    mode: str
+    type: str  # blob, tree, commit
+    sha: str
+    size: Optional[int] = None
+    url: Optional[str] = None
+
+
+class GitTreeSchema(BaseModel):
+    sha: str
+    url: str
+    tree: List[GitTreeEntry]
+    truncated: bool
+
+
+class GitTreeList(BaseModel):
+    trees: List[GitTreeSchema]
+    next_page: Optional[int] = None
+
+
+class RepositoryContentSchema(BaseModel):
+    type: str  # file, dir, symlink, submodule
+    encoding: Optional[str] = None
+    size: int
+    name: str
+    path: str
+    content: Optional[str] = None
+    sha: str
+    url: str
+    git_url: Optional[str] = None
+    html_url: Optional[str] = None
+    download_url: Optional[str] = None
+    _links: Dict[str, Any]
+
+
+class RepositoryContentList(BaseModel):
+    contents: List[RepositoryContentSchema]
+    next_page: Optional[int] = None
+
+
+# Input schemas
+class GetGitTreeParams(BaseModel):
+    owner: str
+    repo: str
+    tree_sha: str
+    recursive: bool = False
+
+
+class GetRepositoryContentsParams(BaseModel):
+    owner: str
+    repo: str
+    path: str
+    ref: Optional[str] = None
+    decode_content: Optional[bool] = Field(
+        True, 
+        description="Whether to automatically decode base64 content"
+    )
+
+
+class GitTreeResponse(BaseModel):
+    data: GitTreeSchema
+    message: Optional[str] = None
+
+
+class RepositoryContentResponse(BaseModel):
+    data: Union[RepositoryContentSchema, RepositoryContentList]
+    message: Optional[str] = None
+
+
+# Add to Input schemas section
+class CreateBlobParams(BaseModel):
+    owner: str
+    repo: str
+    content: str
+    encoding: Optional[str] = "utf-8"
+
+class GetBlobParams(BaseModel):
+    owner: str
+    repo: str
+    file_sha: str
+    auto_decode: Optional[bool] = Field(
+        True, 
+        description="Whether to automatically decode base64 content. Only applies when encoding is base64"
+    )
+
+# Add to Output schemas section
+class CreateBlobResponse(BaseModel):
+    url: str
+    sha: str
+
+class GetBlobResponse(BaseModel):
+    content: str
+    encoding: str
+    url: str
+    sha: str
+    decoded_content: Optional[str] = Field(
+        None,
+        description="Automatically decoded content when auto_decode=true and encoding is base64"
+    )
+
+
+class CommitAuthor(BaseModel):
+    name: str
+    email: str
+    date: str
+
+class CommitTree(BaseModel):
+    sha: str
+    url: str
+
+class CommitParent(BaseModel):
+    sha: str
+    url: str
+    html_url: str
+
+class CommitVerification(BaseModel):
+    verified: bool
+    reason: str
+    signature: Optional[str] = None
+    payload: Optional[str] = None
+
+class CommitDetail(BaseModel):
+    author: CommitAuthor
+    committer: CommitAuthor
+    message: str
+    tree: CommitTree
+    url: str
+    comment_count: Optional[int] = Field(0)
+    verification: CommitVerification
+
+class FileUpdateResponse(BaseModel):
+    content: Optional[Dict[str, Any]] = None
+    commit: CommitDetail
+    message: Optional[str] = None
+
+
+
+# Update ApiResponse model
+class ApiResponse(BaseModel):
+    data: Optional[Union[RepositorySchema, RepositoryList, IssueSchema, IssueList, 
+                         PullRequestSchema, PullRequestList, CommitSchema, CommitList,
+                         PullRequestReviewSchema, PullRequestReviewList, GitTreeSchema, GitTreeList,
+                         RepositoryContentSchema, RepositoryContentList, CreateBlobResponse, GetBlobResponse, FileUpdateResponse]] = None
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+    message: Optional[str] = None
+
+class UpdateFileParams(BaseModel):
+    owner: str
+    repo: str
+    path: str
+    message: str
+    content: str
+    encoding: Optional[str] = Field("utf-8", description="Input encoding: 'utf-8' or 'base64'")
+    sha: Optional[str] = Field(None, description="Required for updates, omit for new files")
+    branch: Optional[str] = None
+
+# Add to Input schemas section
+class GetRepositoryContentParams(BaseModel):
+    owner: str
+    repo: str
+    path: str
+    ref: Optional[str] = None
+    decode_content: Optional[bool] = Field(
+        True, 
+        description="Whether to automatically decode base64 content"
+    )
+
+class DeleteFileParams(BaseModel):
+    owner: str
+    repo: str
+    path: str
+    message: str
+    sha: str
+    branch: Optional[str] = None
+    committer: Optional[Dict[str, str]] = Field(
+        None,
+        description="Committer information (name and email)"
+    )
+    author: Optional[Dict[str, str]] = Field(
+        None,
+        description="Author information (name and email)"
+    )

@@ -2,12 +2,16 @@ import json
 import os
 from typing import Dict, Any, List, Optional, Union
 import requests
+import base64
+import binascii
 
 from .client import GitHubClient
 from .schema import (
     RepositorySchema, RepositoryList, IssueSchema, IssueList,
     PullRequestSchema, PullRequestList, CommitSchema, ApiResponse, CommitList,
-    PullRequestReviewSchema, PullRequestReviewList
+    PullRequestReviewSchema, PullRequestReviewList, GitTreeSchema, GitTreeList,
+    RepositoryContentSchema, RepositoryContentList, CreateBlobResponse, GetBlobResponse,
+    FileUpdateResponse
 )
 from ..common.component_handler import prepare_components_auto, load_components
 
@@ -306,3 +310,144 @@ class GitHubService:
             import traceback
             traceback.print_exc()
             return ApiResponse(message=f"Error creating pull request review: {str(e.response.json())}")
+
+    def create_repository_from_template(self, template_owner: str, template_repo: str, 
+                                       owner: Optional[str], name: str, 
+                                       description: Optional[str] = None,
+                                       include_all_branches: bool = False,
+                                       private: bool = False) -> ApiResponse:
+        try:
+            data = {
+                "owner": owner,
+                "name": name,
+                "description": description,
+                "include_all_branches": include_all_branches,
+                "private": private
+            }
+            # Remove None values
+            data = {k: v for k, v in data.items() if v is not None}
+            
+            response = self.client.create_repository_from_template(
+                template_owner=template_owner,
+                template_repo=template_repo,
+                data=data
+            )
+            
+            repository = RepositorySchema(**response)
+            return self.prepare_response(repository, "GitHubRepositoryCard")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            
+            error_message = str(e)
+            if "422 Client Error" in error_message:
+                return ApiResponse(message="Template repository not found or insufficient permissions")
+            
+            return ApiResponse(message=f"Error creating repository: {str(e)}")
+
+    def get_git_tree(self, owner: str, repo: str, tree_sha: str, recursive: bool = False) -> ApiResponse:
+        try:
+            response = self.client.get_git_tree(owner, repo, tree_sha, recursive)
+            tree = GitTreeSchema(**response)
+            return self.prepare_response(tree, "GitHubGitTreeComponent")
+        except Exception as e:
+            return ApiResponse(message=f"Error getting git tree: {str(e)}")
+
+    def get_repository_contents(self, owner: str, repo: str, path: str, ref: Optional[str] = None, decode_content: bool = False) -> ApiResponse:
+        try:
+            response = self.client.get_repository_contents(owner, repo, path, ref)
+            
+            def process_content(item):
+                if decode_content and item.get("type") == "file" and item.get("encoding") == "base64":
+                    try:
+                        decoded = base64.b64decode(item["content"]).decode("utf-8")
+                        item["content"] = decoded
+                        item["encoding"] = "utf-8"
+                    except (binascii.Error, UnicodeDecodeError) as e:
+                        raise ValueError(f"Failed to decode content: {str(e)}")
+                return item
+
+            if isinstance(response, list):
+                contents = [RepositoryContentSchema(**process_content(item)) for item in response]
+                return self.prepare_response(RepositoryContentList(contents=contents), "GitHubRepositoryContentComponent")
+            
+            content = RepositoryContentSchema(**process_content(response))
+            return self.prepare_response(content, "GitHubRepositoryContentComponent")
+        
+        except Exception as e:
+            return ApiResponse(message=f"Error getting contents: {str(e)}")
+
+    def create_blob(self, owner: str, repo: str, content: str, encoding: str = "utf-8") -> ApiResponse:
+        try:
+            response = self.client.create_blob(owner, repo, content, encoding)
+            return self.prepare_response(CreateBlobResponse(**response), "GitHubBlobComponent")
+        except Exception as e:
+            return ApiResponse(message=f"Error creating blob: {str(e)}")
+
+    def get_blob(self, owner: str, repo: str, file_sha: str, auto_decode: bool = False) -> ApiResponse:
+        try:
+            response = self.client.get_blob(owner, repo, file_sha)
+            print("Get blob response:", response)
+            blob_data = GetBlobResponse(**response)
+            
+            if auto_decode and blob_data.encoding == "base64":
+                try:
+                    decoded_content = base64.b64decode(blob_data.content).decode('utf-8')
+                    blob_data.decoded_content = decoded_content
+                except (binascii.Error, UnicodeDecodeError) as e:
+                    return ApiResponse(
+                        message=f"Error decoding blob content: {str(e)}",
+                        data=blob_data
+                    )
+            
+            return self.prepare_response(blob_data, "GitHubBlobComponent")
+        except Exception as e:
+            return ApiResponse(message=f"Error getting blob: {str(e)}")
+
+    def update_file(self, owner: str, repo: str, path: str, message: str, 
+                   content: str, encoding: str = "utf-8", 
+                   sha: Optional[str] = None, branch: Optional[str] = None) -> ApiResponse:
+        try:
+            # Handle encoding
+            if encoding == "utf-8":
+                content_b64 = base64.b64encode(content.encode()).decode()
+            elif encoding == "base64":
+                content_b64 = content  # Assume content is already properly encoded
+                # Validate base64
+                try:
+                    base64.b64decode(content_b64, validate=True)
+                except binascii.Error as e:
+                    return ApiResponse(message=f"Invalid base64 content: {str(e)}")
+            else:
+                return ApiResponse(message=f"Unsupported encoding: {encoding}")
+
+            data = {
+                "message": message,
+                "content": content_b64,
+                "sha": sha,
+                "branch": branch
+            }
+            data = {k: v for k, v in data.items() if v is not None}
+
+            response = self.client.update_file(owner, repo, path, data)
+            return self.prepare_response(FileUpdateResponse(**response), "GitHubFileUpdateComponent")
+        except Exception as e:
+            return ApiResponse(message=f"Error updating file: {str(e)}")
+
+    def delete_file(self, owner: str, repo: str, path: str, message: str, sha: str,
+                   branch: Optional[str] = None, committer: Optional[Dict[str, str]] = None,
+                   author: Optional[Dict[str, str]] = None) -> ApiResponse:
+        try:
+            data = {
+                "message": message,
+                "sha": sha,
+                "branch": branch,
+                "committer": committer,
+                "author": author
+            }
+            data = {k: v for k, v in data.items() if v is not None}
+            
+            response = self.client.delete_file(owner, repo, path, data)
+            return self.prepare_response(FileUpdateResponse(**response), "GitHubFileUpdateComponent")
+        except Exception as e:
+            return ApiResponse(message=f"Error deleting file: {str(e)}")
