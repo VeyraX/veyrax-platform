@@ -1388,3 +1388,57 @@ routes:
               "name": "GitHubBlobComponent"
             }
           }
+
+  - endpoint: /github/create_file
+    examples:
+      - scenario: "Create a new file"
+        description: "Creates a new file in the repository without needing SHA"
+        input_json: |
+          {
+            "owner": "octocat",
+            "repo": "Hello-World",
+            "path": "src/app/new_feature.ts",
+            "message": "Add new feature implementation",
+            "content": "export function newFeature() {\n  console.log('New feature!')\n}",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "content": {
+                "name": "new_feature.ts",
+                "path": "src/app/new_feature.ts",
+                "sha": "88a0d5f19a64b4b30a87d4206aade58726b60e4a",
+                "size": 67,
+                "url": "https://api.github.com/repos/octocat/Hello-World/contents/src/app/new_feature.ts",
+                "html_url": "https://github.com/octocat/Hello-World/blob/main/src/app/new_feature.ts",
+                "git_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/88a0d5f19a64b4b30a87d4206aade58726b60e4a",
+                "encoding": "base64"
+              },
+              "commit": {
+                "sha": "7638417db6d59f3c431d3e1f261cc637155684ce",
+                "message": "Add new feature implementation",
+                "author": {
+                  "name": "Octocat",
+                  "email": "octocat@github.com",
+                  "date": "2023-05-01T10:00:00Z"
+                },
+                "committer": {
+                  "name": "Octocat",
+                  "email": "octocat@github.com",
+                  "date": "2023-05-01T10:00:00Z"
+                }
+              }
+            },
+            "component": {
+              "name": "GitHubFileUpdateComponent",
+              "props": {
+                "data": {
+                  "path": "src/app/new_feature.ts",
+                  "sha": "88a0d5f19a64b4b30a87d4206aade58726b60e4a",
+                  "message": "Add new feature implementation"
+                }
+              }
+            }
+          }

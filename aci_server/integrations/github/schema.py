@@ -469,6 +469,15 @@ class ApiResponse(BaseModel):
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
     message: Optional[str] = None
 
+class CreateFileParams(BaseModel):
+    owner: str
+    repo: str
+    path: str
+    message: str
+    content: str
+    encoding: Optional[str] = Field("utf-8", description="Input encoding: 'utf-8' or 'base64'")
+    branch: Optional[str] = None
+
 class UpdateFileParams(BaseModel):
     owner: str
     repo: str
@@ -476,7 +485,7 @@ class UpdateFileParams(BaseModel):
     message: str
     content: str
     encoding: Optional[str] = Field("utf-8", description="Input encoding: 'utf-8' or 'base64'")
-    sha: Optional[str] = Field(None, description="Required for updates, omit for new files")
+    sha: str = Field(..., description="Required for updates")
     branch: Optional[str] = None
 
 # Add to Input schemas section
