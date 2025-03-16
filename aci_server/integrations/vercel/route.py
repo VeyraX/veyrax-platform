@@ -9,9 +9,9 @@ from .schema import (
     GetProjectDomainsParams, VerifyProjectDomainParams, UpdateProjectParams,
     GetProjectEnvVarsParams, CreateDeploymentParams,
     DeploymentListResponse, DeploymentResponse, DeleteDeploymentResponse,
-    DeploymentResponse, DeploymentEventResponse, AddDomainResponse, ProjectResponse,
+    DeploymentResponse, DeploymentEventListResponse, AddDomainResponse, ProjectResponse,
     CreateEnvVarsResponse, EnvVarResponse, ProjectDomainResponse, ProjectDomainsResponse, ProjectListResponse,
-    DeleteProjectResponse
+    DeleteProjectResponse, EnvVarListResponse
 )
 from .service import VercelService
 from .client import VercelClient
@@ -112,7 +112,7 @@ async def cancel_deployment(
 @router.post("/get_deployment_events", response_model=ApiResponse)
 @schema(
     input_schema_class=GetDeploymentEventsParams, 
-    output_schema_class=List[DeploymentEventResponse],
+    output_schema_class=DeploymentEventListResponse,
     examples=examples["/vercel/get_deployment_events"]
 )
 async def get_deployment_events(
@@ -219,7 +219,7 @@ async def get_project_domain(
 @router.post("/remove_env_var", response_model=ApiResponse)
 @schema(
     input_schema_class=RemoveEnvVarParams, 
-    output_schema_class=List[EnvVarResponse],
+    output_schema_class=EnvVarListResponse,
     examples=examples["/vercel/remove_env_var"]
 )
 async def remove_env_var(
@@ -284,7 +284,7 @@ async def update_project(
 @router.post("/get_project_env_vars", response_model=ApiResponse)
 @schema(
     input_schema_class=GetProjectEnvVarsParams, 
-    output_schema_class=List[EnvVarResponse],
+    output_schema_class=EnvVarListResponse,
     examples=examples["/vercel/get_project_env_vars"]
 )
 async def get_project_env_vars(
