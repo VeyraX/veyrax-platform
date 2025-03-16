@@ -53,37 +53,34 @@ class VercelService:
         return ApiResponse(data=deployment)
 
     def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
-        """Create a new deployment with all required parameters.
-        
-        This method handles both Git-based deployments and file-based deployments,
-        properly formatting all parameters according to Vercel API requirements.
-        """
-        # Convert Pydantic model to dict and exclude None values
-        data = params.dict(exclude_none=True, by_alias=False)
-        
-        # Convert snake_case to camelCase for all top-level keys
+        """Create a new deployment with simplified parameters."""
         formatted_data = {}
-        for key, value in data.items():
-            # Skip team_id and slug as they are query parameters
-            if key in ['team_id', 'slug']:
-                continue
-            
-            # Convert snake_case to camelCase
-            parts = key.split('_')
-            camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-            
-            # Handle nested objects that need special formatting
-            if camel_key == 'gitMetadata' and value:
-                formatted_data[camel_key] = self._format_git_metadata(value)
-            elif camel_key == 'gitSource' and value:
-                formatted_data[camel_key] = self._format_git_source(value)
-            elif camel_key == 'projectSettings' and value:
-                formatted_data[camel_key] = self._format_project_settings(value)
-            elif camel_key == 'files' and value:
-                formatted_data[camel_key] = self._format_files(value)
-            else:
-                formatted_data[camel_key] = value
+        data = params.dict(exclude_none=True)
         
+        # Basic parameters
+        formatted_data["name"] = data.get("name")
+        
+        if "project" in data:
+            formatted_data["project"] = data.get("project")
+        
+        if "target" in data:
+            formatted_data["target"] = data.get("target")
+        
+        # Handle git source
+        if "git_source" in data and data["git_source"]:
+            git_source = data["git_source"]
+            formatted_data["gitSource"] = {
+                "type": git_source.get("type"),
+                "repoId": git_source.get("repo_id")
+            }
+            
+            if git_source.get("ref"):
+                formatted_data["gitSource"]["ref"] = git_source.get("ref")
+            
+            if git_source.get("sha"):
+                formatted_data["gitSource"]["sha"] = git_source.get("sha")
+        
+        # Query parameters
         query_params = {}
         if params.team_id:
             query_params["teamId"] = params.team_id

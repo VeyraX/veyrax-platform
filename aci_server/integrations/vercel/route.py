@@ -82,6 +82,15 @@ async def create_deployment(
     service: VercelService = Depends(get_vercel_service)
 ):
     try:
+        # Check if parameters are nested under a 'parameters' key
+        if "parameters" in params and isinstance(params["parameters"], dict):
+            params = params["parameters"]
+            
+        # If git_source contains 'repo' instead of 'repo_id', fix it
+        if "git_source" in params and isinstance(params["git_source"], dict):
+            if "repo" in params["git_source"] and "repo_id" not in params["git_source"]:
+                params["git_source"]["repo_id"] = params["git_source"].pop("repo")
+        
         validated_params = CreateDeploymentParams(**params)
         return service.create_deployment(validated_params)
     except ValidationError as e:

@@ -73,7 +73,7 @@ class GitMetadata(BaseModel):
 
 class GitSource(BaseModel):
     type: Literal["github", "gitlab", "bitbucket"] = Field(..., description="Git provider type")
-    repo_id: Optional[str] = Field(None, description="Repository ID")
+    repo_id: str = Field(..., description="Repository ID or name (e.g. 'username/repo-name')")
     ref: Optional[str] = Field(None, description="Git reference (branch, tag)")
     sha: Optional[str] = Field(None, description="Commit SHA")
 
@@ -101,62 +101,12 @@ class UploadedFile(BaseModel):
     size: int = Field(..., description="File size in bytes")
 
 class CreateDeploymentParams(TeamParams):
-    custom_environment_slug_or_id: Optional[str] = Field(
-        None,
-        description="Deploy to a custom environment, which will override the default environment"
-    )
-    deployment_id: Optional[str] = Field(
-        None,
-        description="An deployment id for an existing deployment to redeploy"
-    )
-    files: Optional[List[Union[InlinedFile, UploadedFile]]] = Field(
-        None,
-        description="A list of objects with the files to be deployed"
-    )
-    git_metadata: Optional[GitMetadata] = Field(
-        None,
-        description="Populates initial git metadata for different git providers"
-    )
-    git_source: Optional[GitSource] = Field(
-        None,
-        description="Defines the Git Repository source to be deployed"
-    )
-    meta: Optional[Dict[str, Any]] = Field(
-        None,
-        description="An object containing the deployment's metadata"
-    )
-    monorepo_manager: Optional[str] = Field(
-        None,
-        description="The monorepo manager that is being used for this deployment"
-    )
-    name: str = Field(
-        ...,
-        description="A string with the project name used in the deployment URL"
-    )
-    project: Optional[str] = Field(
-        None,
-        description="The target project identifier in which the deployment will be created"
-    )
-    project_settings: Optional[ProjectSettings] = Field(
-        None,
-        description="Project settings that will be applied to the deployment"
-    )
-    target: Optional[str] = Field(
-        None,
-        description="Either not defined, staging, production, or a custom environment identifier"
-    )
-    with_latest_commit: Optional[bool] = Field(
-        None,
-        description="When true and deploymentId is passed in, the sha from the previous deployment's gitSource is removed"
-    )
-    force_new: Optional[bool] = Field(
-        None,
-        description="Forces a new deployment even if there is a previous similar deployment"
-    )
-    skip_auto_detection_confirmation: Optional[bool] = Field(
-        None,
-        description="Skip the auto-detection confirmation prompt"
-    )
+    name: str = Field(..., description="Project name used in the deployment URL")
+    project: Optional[str] = Field(None, description="The target project identifier")
+    target: Optional[str] = Field(None, description="Environment target (production, preview, etc.)")
+    git_source: Optional[GitSource] = Field(None, description="Git repository source")
+    force_new: Optional[bool] = Field(False, description="Force a new deployment")
+    skip_auto_detection_confirmation: Optional[bool] = Field(False, description="Skip auto detection confirmation")
 
 # Delete Deployment Parameters
 class DeleteDeploymentParams(TeamParams):
