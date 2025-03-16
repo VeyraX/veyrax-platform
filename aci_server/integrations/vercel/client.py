@@ -229,16 +229,26 @@ class VercelClient:
 
     def create_deployment(self, data: Dict[str, Any], params: Dict[str, Any] = None) -> Dict[str, Any]:
         """Create a new deployment"""
+        print(data)
         response = requests.post(
             f"{self.BASE_URL}/v13/deployments",
             headers=self.headers,
             json=data,
             params=self._clean_params(params or {})
         )
-        print(response.json())
-        response.raise_for_status()
-        print(response.json())
-        return response.json()
+        
+        response_data = response.json()
+        
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if response_data and "error" in response_data:
+                error_info = response_data["error"]
+                error_message = f"{e} - {error_info.get('code', '')}: {error_info.get('message', '')}"
+                raise requests.exceptions.HTTPError(error_message, response=response)
+            raise
+            
+        return response_data
 
     def _clean_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Clean parameters for API requests"""

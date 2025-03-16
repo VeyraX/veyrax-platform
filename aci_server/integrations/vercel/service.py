@@ -635,85 +635,67 @@ class VercelService:
         return ApiResponse(data=env_vars)
 
     def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
-
+        """Create a new deployment"""
+        # Simplified data structure with only essential fields
+        data = {
+            "name": params.name,
+            "files": []  # Add empty files array to satisfy API requirement
+        }
+        
+        # Add project if provided
+        if params.project:
+            data["project"] = params.project
+        
+        # Add target if provided
+        if params.target:
+            data["target"] = params.target
+        
+        # Handle GitHub deployment - this is the most common use case
+        if params.git_source:
+            # Format gitSource properly - this is critical for GitHub repos
+            data["gitSource"] = {
+                "type": params.git_source.type,
+                "repoId": str(params.git_source.repo_id),  # Ensure repoId is a string
+                "ref": params.git_source.ref  # Branch or tag is required
+            }
+            
+            # Add SHA if provided
+            if params.git_source.sha:
+                data["gitSource"]["sha"] = params.git_source.sha
+        
+        # Query parameters
         query_params = {}
         if params.team_id:
             query_params["teamId"] = params.team_id
         if params.slug:
             query_params["slug"] = params.slug
-        if params.force_new is not None:
-            query_params["forceNew"] = params.force_new
-        if params.skip_auto_detection_confirmation is not None:
-            query_params["skipAutoDetectionConfirmation"] = params.skip_auto_detection_confirmation
         
-        data = {}
+        # Always add these for better UX
+        query_params["forceNew"] = "1"
+        query_params["skipAutoDetectionConfirmation"] = "1"
         
-        data["name"] = params.name
-        
-        if params.files:
-            files_data = []
-            for file in params.files:
-                if isinstance(file, dict):
-                    files_data.append(file)
-                elif hasattr(file, 'dict'):
-                    file_dict = file.dict(exclude_none=True)
-                    formatted_file = {}
-                    for key, value in file_dict.items():
-                        parts = key.split('_')
-                        camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                        formatted_file[camel_key] = value
-                    files_data.append(formatted_file)
-            data["files"] = files_data
-        else:
-            data["files"] = []
-        
-        if params.deployment_id:
-            data["deploymentId"] = params.deployment_id
-        
-        if params.project:
-            data["project"] = params.project
-        
-        if params.target:
-            data["target"] = params.target
-        
-        if params.meta:
-            data["meta"] = params.meta
-        
-        if params.git_metadata:
-            git_metadata = {}
-            for key, value in params.git_metadata.dict(exclude_none=True).items():
-                parts = key.split('_')
-                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                git_metadata[camel_key] = value
-            data["gitMetadata"] = git_metadata
-        
-        if params.git_source:
-            git_source = {}
-            for key, value in params.git_source.dict(exclude_none=True).items():
-                parts = key.split('_')
-                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                git_source[camel_key] = value
-            data["gitSource"] = git_source
-        
-        if params.project_settings:
-            project_settings = {}
-            for key, value in params.project_settings.dict(exclude_none=True).items():
-                parts = key.split('_')
-                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
-                project_settings[camel_key] = value
-            data["projectSettings"] = project_settings
-        
-        if params.custom_environment_slug_or_id:
-            data["customEnvironmentSlugOrId"] = params.custom_environment_slug_or_id
-        
-        if params.monorepo_manager is not None:
-            data["monorepoManager"] = params.monorepo_manager
-        
-        if params.with_latest_commit is not None:
-            data["withLatestCommit"] = params.with_latest_commit
-        
-        response = self.client.create_deployment(data, query_params)
-        
-        deployment = self._convert_to_deployment_response(response)
-        
-        return ApiResponse(data=deployment)
+        try:
+            print(f"Sending deployment request with data: {data}")
+            response = self.client.create_deployment(data, query_params)
+            
+            # Ensure response is a dictionary before processing
+            if not isinstance(response, dict):
+                return ApiResponse(data={"error": "Invalid response format from Vercel API"})
+            
+            # Convert the response to a DeploymentResponse object
+            deployment = self._convert_to_deployment_response(response)
+            return ApiResponse(data=deployment)
+        except Exception as e:
+            # Provide a clearer error message with troubleshooting tips
+            error_msg = str(e)
+            if "incorrect_git_source_info" in error_msg or "can't be found" in error_msg:
+                return ApiResponse(data={
+                    "error": f"Deployment failed: {error_msg}",
+                    "troubleshooting": [
+                        "Check that the repository name is exactly correct (case-sensitive)",
+                        "Verify that your Vercel account has access to this repository",
+                        "Ensure the repository exists and is public or properly connected to Vercel",
+                        "Try using the repository ID number instead of the name if available"
+                    ]
+                })
+            return ApiResponse(data={"error": f"Deployment failed: {error_msg}"})
