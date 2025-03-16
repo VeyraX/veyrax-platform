@@ -35,16 +35,6 @@ class VercelClient:
         response.raise_for_status()
         return response.json()
 
-    def create_deployment(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        response = requests.post(
-            f"{self.BASE_URL}/v13/deployments",
-            headers=self.headers,
-            json=data
-        )
-        print(response.json())
-        response.raise_for_status()
-        return response.json()
-
     def delete_deployment(self, deployment_id: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         """Delete a deployment by ID"""
         response = requests.delete(
@@ -235,6 +225,19 @@ class VercelClient:
             params=self._clean_params(params or {})
         )
         response.raise_for_status()
+        return response.json()
+
+    def create_deployment(self, data: Dict[str, Any], params: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Create a new deployment"""
+        response = requests.post(
+            f"{self.BASE_URL}/v13/deployments",
+            headers=self.headers,
+            json=data,
+            params=self._clean_params(params or {})
+        )
+        print(response.json())
+        response.raise_for_status()
+        print(response.json())
         return response.json()
 
     def _clean_params(self, params: Dict[str, Any]) -> Dict[str, Any]:

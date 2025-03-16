@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request as FastAPIRequest, Body
 from typing import Optional, Dict, Any
 from .schema import (
-    ListDeploymentsParams, GetDeploymentParams, CreateDeploymentParams,
+    ListDeploymentsParams, GetDeploymentParams,
     DeleteDeploymentParams, CancelDeploymentParams, GetDeploymentFilesParams,
     GetDeploymentEventsParams, ApiResponse, AddDomainToProjectParams, CreateProjectParams,
     CreateEnvVarsParams, DeleteProjectParams, EditEnvVarParams, GetProjectParams,
     GetProjectDomainParams, RemoveEnvVarParams, ListProjectsParams,
     GetProjectDomainsParams, VerifyProjectDomainParams, UpdateProjectParams,
-    GetProjectEnvVarsParams
+    GetProjectEnvVarsParams, CreateDeploymentParams
 )
 from .service import VercelService
 from .client import VercelClient
@@ -68,31 +68,6 @@ async def get_deployment(
             validated_params.id_or_url,
             validated_params
         )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/create_deployment", response_model=ApiResponse)
-@schema(input_schema_class=CreateDeploymentParams, examples=examples["/vercel/create_deployment"])
-async def create_deployment(
-    params: Dict[str, Any] = Body(...),
-    service: VercelService = Depends(get_vercel_service)
-):
-    try:
-        # Check if parameters are nested under a 'parameters' key
-        if "parameters" in params and isinstance(params["parameters"], dict):
-            params = params["parameters"]
-            
-        # If git_source contains 'repo' instead of 'repo_id', fix it
-        if "git_source" in params and isinstance(params["git_source"], dict):
-            if "repo" in params["git_source"] and "repo_id" not in params["git_source"]:
-                params["git_source"]["repo_id"] = params["git_source"].pop("repo")
-        
-        validated_params = CreateDeploymentParams(**params)
-        return service.create_deployment(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -377,6 +352,22 @@ async def get_project_env_vars(
     try:
         validated_params = GetProjectEnvVarsParams(**params)
         return service.get_project_env_vars(validated_params)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/create_deployment", response_model=ApiResponse)
+@schema(input_schema_class=CreateDeploymentParams, examples=examples["/vercel/create_deployment"])
+async def create_deployment(
+    params: Dict[str, Any] = Body(...),
+    service: VercelService = Depends(get_vercel_service)
+):
+    try:
+        validated_params = CreateDeploymentParams(**params)
+        return service.create_deployment(validated_params)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

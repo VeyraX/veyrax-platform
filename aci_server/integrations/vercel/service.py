@@ -3,14 +3,14 @@ from .client import VercelClient
 from .schema import (
     DeploymentResponse, DeploymentListResponse, DeleteDeploymentResponse,
     DeploymentFileResponse, ApiResponse, ListDeploymentsParams, GetDeploymentParams,
-    CreateDeploymentParams, DeleteDeploymentParams, CancelDeploymentParams,
+    DeleteDeploymentParams, CancelDeploymentParams,
     GetDeploymentFilesParams, GetDeploymentEventsParams, DeploymentEventResponse,
     AddDomainToProjectParams, CreateProjectParams, CreateEnvVarsParams, DeleteProjectParams,
     AddDomainResponse, EnvVarCreatedResponse, EnvVarErrorResponse, CreateEnvVarsResponse,
     EditEnvVarParams, GetProjectParams, GetProjectDomainParams, RemoveEnvVarParams,
     ListProjectsParams, EnvVarResponse, ProjectDomainResponse, GetProjectDomainsParams,
     VerifyProjectDomainParams, UpdateProjectParams, ProjectDomainsResponse,
-    GetProjectEnvVarsParams
+    GetProjectEnvVarsParams, CreateDeploymentParams, InlinedFile, UploadedFile, GitMetadata, GitSource, ProjectSettings
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -51,49 +51,6 @@ class VercelService:
         
         deployment = self._convert_to_deployment_response(response)
         return ApiResponse(data=deployment)
-
-    def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
-        """Create a new deployment with simplified parameters."""
-        formatted_data = {}
-        data = params.dict(exclude_none=True)
-        
-        # Basic parameters
-        formatted_data["name"] = data.get("name")
-        
-        if "project" in data:
-            formatted_data["project"] = data.get("project")
-        
-        if "target" in data:
-            formatted_data["target"] = data.get("target")
-        
-        # Handle git source
-        if "git_source" in data and data["git_source"]:
-            git_source = data["git_source"]
-            formatted_data["gitSource"] = {
-                "type": git_source.get("type"),
-                "repoId": git_source.get("repo_id")
-            }
-            
-            if git_source.get("ref"):
-                formatted_data["gitSource"]["ref"] = git_source.get("ref")
-            
-            if git_source.get("sha"):
-                formatted_data["gitSource"]["sha"] = git_source.get("sha")
-        
-        # Query parameters
-        query_params = {}
-        if params.team_id:
-            query_params["teamId"] = params.team_id
-        if params.slug:
-            query_params["slug"] = params.slug
-        if params.force_new:
-            query_params["forceNew"] = "1"
-        if params.skip_auto_detection_confirmation:
-            query_params["skipAutoDetectionConfirmation"] = "1"
-        
-        response = self.client.create_deployment(formatted_data)
-        
-        return ApiResponse(data=self._convert_to_deployment_response(response))
 
     def _format_git_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Format git metadata to camelCase for Vercel API."""
@@ -676,3 +633,87 @@ class VercelService:
             env_vars.append(env_var)
         
         return ApiResponse(data=env_vars)
+
+    def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
+
+        query_params = {}
+        if params.team_id:
+            query_params["teamId"] = params.team_id
+        if params.slug:
+            query_params["slug"] = params.slug
+        if params.force_new is not None:
+            query_params["forceNew"] = params.force_new
+        if params.skip_auto_detection_confirmation is not None:
+            query_params["skipAutoDetectionConfirmation"] = params.skip_auto_detection_confirmation
+        
+        data = {}
+        
+        data["name"] = params.name
+        
+        if params.files:
+            files_data = []
+            for file in params.files:
+                if isinstance(file, dict):
+                    files_data.append(file)
+                elif hasattr(file, 'dict'):
+                    file_dict = file.dict(exclude_none=True)
+                    formatted_file = {}
+                    for key, value in file_dict.items():
+                        parts = key.split('_')
+                        camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+                        formatted_file[camel_key] = value
+                    files_data.append(formatted_file)
+            data["files"] = files_data
+        else:
+            data["files"] = []
+        
+        if params.deployment_id:
+            data["deploymentId"] = params.deployment_id
+        
+        if params.project:
+            data["project"] = params.project
+        
+        if params.target:
+            data["target"] = params.target
+        
+        if params.meta:
+            data["meta"] = params.meta
+        
+        if params.git_metadata:
+            git_metadata = {}
+            for key, value in params.git_metadata.dict(exclude_none=True).items():
+                parts = key.split('_')
+                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+                git_metadata[camel_key] = value
+            data["gitMetadata"] = git_metadata
+        
+        if params.git_source:
+            git_source = {}
+            for key, value in params.git_source.dict(exclude_none=True).items():
+                parts = key.split('_')
+                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+                git_source[camel_key] = value
+            data["gitSource"] = git_source
+        
+        if params.project_settings:
+            project_settings = {}
+            for key, value in params.project_settings.dict(exclude_none=True).items():
+                parts = key.split('_')
+                camel_key = parts[0] + ''.join(x.title() for x in parts[1:])
+                project_settings[camel_key] = value
+            data["projectSettings"] = project_settings
+        
+        if params.custom_environment_slug_or_id:
+            data["customEnvironmentSlugOrId"] = params.custom_environment_slug_or_id
+        
+        if params.monorepo_manager is not None:
+            data["monorepoManager"] = params.monorepo_manager
+        
+        if params.with_latest_commit is not None:
+            data["withLatestCommit"] = params.with_latest_commit
+        
+        response = self.client.create_deployment(data, query_params)
+        
+        deployment = self._convert_to_deployment_response(response)
+        
+        return ApiResponse(data=deployment)

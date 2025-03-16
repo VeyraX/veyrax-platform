@@ -72,49 +72,6 @@ routes:
               githubCommitRef: "main"
               githubCommitSha: "abc123def456"
 
-  - endpoint: "/vercel/create_deployment"
-    examples:
-      - scenario: "Create a new deployment"
-        description: "Create a new deployment for a project"
-        input_json:
-          name: "my-project"
-          target: "production"
-          project: "prj_123456"
-          git_source:
-            type: "github"
-            repo_id: "123456789"
-            ref: "main"
-          project_settings:
-            framework: "nextjs"
-            build_command: "next build"
-            dev_command: "next dev --port $PORT"
-            install_command: null
-            output_directory: null
-            root_directory: null
-        output_json:
-          data:
-            id: "dpl_123456789"
-            name: "my-project"
-            url: "https://my-project-123abc.vercel.app"
-            created_at: 1623766800000
-            creator:
-              uid: "usr_123456"
-              username: "johndoe"
-              avatar: "https://avatars.githubusercontent.com/u/12345678"
-            project:
-              id: "prj_123456"
-              name: "my-project"
-              framework: "nextjs"
-            target: "production"
-            ready_state: "INITIALIZING"
-            state: "INITIALIZING"
-            type: "LAMBDAS"
-            git_source:
-              type: "github"
-              repo_id: "123456789"
-              ref: "main"
-              sha: "abc123def456"
-
   - endpoint: "/vercel/delete_deployment"
     examples:
       - scenario: "Delete a deployment"
@@ -537,3 +494,58 @@ routes:
               git_branch: null
               comment: "Database connection string"
               custom_environment_ids: null
+
+  - endpoint: "/vercel/create_deployment"
+    examples:
+      - scenario: "Create a new deployment"
+        description: "Create a new deployment with project settings and files"
+        input_json:
+          name: "my-instant-deployment"
+          project: "my-deployment-project"
+          target: "production"
+          files:
+            - file: "index.html"
+              data: "PGh0bWw+SGVsbG8gV29ybGQ8L2h0bWw+"
+              encoding: "base64"
+          project_settings:
+            framework: "nextjs"
+            node_version: "18.x"
+          meta:
+            description: "Test deployment"
+        output_json:
+          data:
+            id: "dpl_123456789"
+            name: "my-instant-deployment"
+            url: "https://my-instant-deployment-123abc.vercel.app"
+            created_at: 1623766800000
+            ready_state: "READY"
+            state: "READY"
+            type: "LAMBDAS"
+            meta:
+              description: "Test deployment"
+      
+      - scenario: "Create a Git-based deployment"
+        description: "Create a new deployment from a Git repository"
+        input_json:
+          name: "git-deployment"
+          git_source:
+            type: "github"
+            repo_id: "username/repo-name"
+            ref: "main"
+          target: "production"
+          project_settings:
+            framework: "nextjs"
+            root_directory: "apps/web"
+        output_json:
+          data:
+            id: "dpl_987654321"
+            name: "git-deployment"
+            url: "https://git-deployment-456def.vercel.app"
+            created_at: 1623766800000
+            ready_state: "BUILDING"
+            state: "BUILDING"
+            type: "LAMBDAS"
+            git_source:
+              type: "github"
+              repo_id: "username/repo-name"
+              ref: "main"
