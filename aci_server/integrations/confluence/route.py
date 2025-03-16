@@ -106,10 +106,13 @@ async def create_page(
         return service.create_page(validated_params.page)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePageParams'))
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 @router.post("/update_page", response_model=ApiResponse)
 @schema(input_schema_class=UpdatePageParams, output_schema_class=UpdatePageResponse, examples=examples["/confluence/update_page"])
