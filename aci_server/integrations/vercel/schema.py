@@ -115,7 +115,7 @@ class CreateDeploymentParams(TeamParams):
     )
     git_source: Optional[GitSource] = Field(
         None,
-        description="Defines the Git Repository source to be deployed"
+        description="Defines the Git Repository source to be deployed. Repo ID is numbers, real repo id like 949230384... NOT username/repo-name"
     )
     force_new: Optional[bool] = Field(
         True,
