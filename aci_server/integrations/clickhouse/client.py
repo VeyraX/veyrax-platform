@@ -40,27 +40,20 @@ class ClickHouseClient:
         self.client = None
 
     def execute_query(self, query: str) -> List[Dict[str, Any]]:
-        try:
-            self.connect()
-            print(f"Executing query: {query}")
-            
-            result, columns = self.client.execute(
-                query, 
-                {}, 
-                with_column_types=True
-            )
-            
-            column_names = [col[0] for col in columns]
-            rows = []
-            for row in result:
-                rows.append(dict(zip(column_names, row)))
-            
-            return rows
-        except Exception as e:
-            error_msg = f"Query execution failed: {str(e)}"
-            raise Exception(error_msg)
-        finally:
-            pass
+        self.connect()
+        
+        result, columns = self.client.execute(
+            query, 
+            {}, 
+            with_column_types=True
+        )
+        
+        column_names = [col[0] for col in columns]
+        rows = []
+        for row in result:
+            rows.append(dict(zip(column_names, row)))
+        
+        return rows
 
     def get_tables(self) -> List[Dict[str, Any]]:
         database = self.connection_params.get('dbname', 'default')

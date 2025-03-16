@@ -16,11 +16,7 @@ class LinearClient:
             json={"query": query, "variables": variables or {}},
             headers=self.headers
         )
-        try:
-            response.raise_for_status()
-        except requests.HTTPError as e:
-            # Add detailed error logging
-            raise ValueError(f"HTTP Error: {e}\nResponse: {response.text}") from e
+        response.raise_for_status()
         
         result = response.json()
         if 'errors' in result:

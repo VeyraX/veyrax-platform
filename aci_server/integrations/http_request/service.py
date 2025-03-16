@@ -23,29 +23,25 @@ class HttpService:
 
     def execute_single_request(self, params: SingleRequestParams) -> ApiResponse:
         """Execute a single HTTP request"""
-        try:
-            request_data = {
-                "name": params.request.name,
-                "method": params.request.method,
-                "url": params.request.url if isinstance(params.request.url, str) else params.request.url.dict(exclude_none=True),
-                "headers": [h.dict(exclude_none=True) for h in params.request.headers] if params.request.headers else [],
-                "body": params.request.body.dict(exclude_none=True) if params.request.body else None,
-            }
+        request_data = {
+            "name": params.request.name,
+            "method": params.request.method,
+            "url": params.request.url if isinstance(params.request.url, str) else params.request.url.dict(exclude_none=True),
+            "headers": [h.dict(exclude_none=True) for h in params.request.headers] if params.request.headers else [],
+            "body": params.request.body.dict(exclude_none=True) if params.request.body else None,
+        }
 
-            response = self.client.execute_request(
-                request_data=request_data,
-                environment=params.environment
-            )
-            
-            request_response = RequestResponse(
-                name=params.request.name,
-                status=response["status"],
-                code=response["code"],
-                body=response["data"],
-                headers=response["headers"]
-            )
-            
-            return self.prepare_response(request_response, "HttpRequestResponse")
-                
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to execute request: {str(e)}")
+        response = self.client.execute_request(
+            request_data=request_data,
+            environment=params.environment
+        )
+        
+        request_response = RequestResponse(
+            name=params.request.name,
+            status=response["status"],
+            code=response["code"],
+            body=response["data"],
+            headers=response["headers"]
+        )
+        
+        return self.prepare_response(request_response, "HttpRequestResponse")

@@ -6,7 +6,7 @@ from .client import PerplexityClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
-from ..common.utils import format_validation_error
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
 from ..common.examples_handler import ExamplesLoader
 import os
 from requests import HTTPError
@@ -19,7 +19,9 @@ async def get_perplexity_service(request: Request):
     try:
         api_key = await validate_provider_api_key(request, "perplexity")
         client = PerplexityClient(api_key)
-        return PerplexityService(client)
+        service = PerplexityService(client)
+        apply_error_handler_to_service(service)
+        return service
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to initialize Perplexity service: {str(e)}")
 
@@ -29,17 +31,8 @@ async def create_completion(
     params: Dict[str, Any] = Body(...),
     service: PerplexityService = Depends(get_perplexity_service)
 ):
-    try:
-        validated_params = CompletionRequest(**params)
-        return service.create_completion(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CompletionRequest'))
-    except HTTPError as e:
-        raise HTTPException(status_code=500, detail=f"Perplexity API Error: {str(e)}")
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CompletionRequest(**params)
+    return service.create_completion(validated_params)
 
 @router.post("/validate_key")
 async def validate_key(
@@ -59,3 +52,5 @@ async def validate_key(
         return {"valid": True, "message": "API key is valid"}
     except Exception as e:
         return {"valid": False, "message": f"Invalid API key"}
+
+apply_error_handler_to_router(router)

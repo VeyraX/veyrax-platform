@@ -49,62 +49,47 @@ class TrelloService:
 
     def get_cards(self, board_id: str, list_id: Optional[str] = None, 
                  limit: Optional[int] = None) -> ApiResponse:
-        try:
-            response = self.client.get_cards(
-                board_id=board_id,
-                list_id=list_id,
-                limit=limit
-            )
-            
-            cards = [self._convert_to_card(card) for card in response]
-            
-            card_list = CardList(
-                items=cards
-            )
-            
-            return self.prepare_response(card_list, "TrelloCardList")
-        except Exception as e:
-            raise ValueError(f"Error getting cards: {str(e)}")
+        response = self.client.get_cards(
+            board_id=board_id,
+            list_id=list_id,
+            limit=limit
+        )
+        
+        cards = [self._convert_to_card(card) for card in response]
+        
+        card_list = CardList(
+            items=cards
+        )
+        
+        return self.prepare_response(card_list, "TrelloCardList")
 
     def get_card(self, card_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_card(card_id)
-            card = self._convert_to_card(response)
-            return self.prepare_response(card, "TrelloCardDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting card: {str(e)}")
+        response = self.client.get_card(card_id)
+        card = self._convert_to_card(response)
+        return self.prepare_response(card, "TrelloCardDetail")
 
     def create_card(self, list_id: str, name: str, desc: Optional[str] = None, 
                    pos: Optional[str] = "bottom", due: Optional[str] = None,
                    label_ids: Optional[List[str]] = None) -> ApiResponse:
-        try:
-            response = self.client.create_card(
-                list_id=list_id,
-                name=name,
-                desc=desc,
-                pos=pos,
-                due=due,
-                label_ids=label_ids
-            )
-            card = self._convert_to_card(response)
-            return self.prepare_response(card, "TrelloCardDetail")
-        except Exception as e:
-            raise ValueError(f"Error creating card: {str(e)}")
+        response = self.client.create_card(
+            list_id=list_id,
+            name=name,
+            desc=desc,
+            pos=pos,
+            due=due,
+            label_ids=label_ids
+        )
+        card = self._convert_to_card(response)
+        return self.prepare_response(card, "TrelloCardDetail")
 
     def update_card(self, card_id: str, card_update: Dict[str, Any]) -> ApiResponse:
-        try:
-            response = self.client.update_card(card_id, card_update)
-            card = self._convert_to_card(response)
-            return self.prepare_response(card, "TrelloCardDetail")
-        except Exception as e:
-            raise ValueError(f"Error updating card: {str(e)}")
+        response = self.client.update_card(card_id, card_update)
+        card = self._convert_to_card(response)
+        return self.prepare_response(card, "TrelloCardDetail")
 
     def delete_card(self, card_id: str) -> ApiResponse:
-        try:
-            response = self.client.delete_card(card_id)
-            return self.prepare_response(response, None)
-        except Exception as e:
-            raise ValueError(f"Error deleting card: {str(e)}")
+        response = self.client.delete_card(card_id)
+        return self.prepare_response(response, None)
 
     def _convert_to_board(self, board_data: Dict[str, Any]) -> Board:
         return Board(
@@ -117,20 +102,14 @@ class TrelloService:
         )
 
     def get_boards(self, member_id: str = "me") -> ApiResponse:
-        try:
-            response = self.client.get_boards(member_id)
-            boards = [self._convert_to_board(board) for board in response]
-            return self.prepare_response(boards, "TrelloBoardList")
-        except Exception as e:
-            raise ValueError(f"Error getting boards: {str(e)}")
+        response = self.client.get_boards(member_id)
+        boards = [self._convert_to_board(board) for board in response]
+        return self.prepare_response(boards, "TrelloBoardList")
 
     def get_board(self, board_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_board(board_id)
-            board = self._convert_to_board(response)
-            return self.prepare_response(board, "TrelloBoardDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting board: {str(e)}")
+        response = self.client.get_board(board_id)
+        board = self._convert_to_board(response)
+        return self.prepare_response(board, "TrelloBoardDetail")
 
     def _convert_to_list(self, list_data: Dict[str, Any]) -> TrelloList:
         return TrelloList(
@@ -142,20 +121,14 @@ class TrelloService:
         )
 
     def get_lists(self, board_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_lists(board_id)
-            lists = [self._convert_to_list(list_data) for list_data in response]
-            return self.prepare_response(lists, "TrelloListList")
-        except Exception as e:
-            raise ValueError(f"Error getting lists: {str(e)}")
+        response = self.client.get_lists(board_id)
+        lists = [self._convert_to_list(list_data) for list_data in response]
+        return self.prepare_response(lists, "TrelloListList")
 
     def get_list(self, list_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_list(list_id)
-            trello_list = self._convert_to_list(response)
-            return self.prepare_response(trello_list, "TrelloListDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting list: {str(e)}")
+        response = self.client.get_list(list_id)
+        trello_list = self._convert_to_list(response)
+        return self.prepare_response(trello_list, "TrelloListDetail")
 
     def _convert_to_checklist_item(self, item_data: Dict[str, Any]) -> ChecklistItem:
         return ChecklistItem(
@@ -178,28 +151,19 @@ class TrelloService:
         )
 
     def get_card_checklists(self, card_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_card_checklists(card_id)
-            checklists = [self._convert_to_checklist(checklist) for checklist in response]
-            return self.prepare_response(checklists, "TrelloChecklistList")
-        except Exception as e:
-            raise ValueError(f"Error getting checklists: {str(e)}")
+        response = self.client.get_card_checklists(card_id)
+        checklists = [self._convert_to_checklist(checklist) for checklist in response]
+        return self.prepare_response(checklists, "TrelloChecklistList")
 
     def create_checklist(self, card_id: str, name: str) -> ApiResponse:
-        try:
-            response = self.client.create_checklist(card_id, name)
-            checklist = self._convert_to_checklist(response)
-            return self.prepare_response(checklist, "TrelloChecklistDetail")
-        except Exception as e:
-            raise ValueError(f"Error creating checklist: {str(e)}")
+        response = self.client.create_checklist(card_id, name)
+        checklist = self._convert_to_checklist(response)
+        return self.prepare_response(checklist, "TrelloChecklistDetail")
 
     def create_checklist_item(self, checklist_id: str, name: str, checked: bool = False) -> ApiResponse:
-        try:
-            response = self.client.create_checklist_item(checklist_id, name, checked)
-            item = self._convert_to_checklist_item(response)
-            return self.prepare_response(item, None)
-        except Exception as e:
-            raise ValueError(f"Error creating checklist item: {str(e)}")
+        response = self.client.create_checklist_item(checklist_id, name, checked)
+        item = self._convert_to_checklist_item(response)
+        return self.prepare_response(item, None)
 
     def _convert_to_organization(self, org_data: Dict[str, Any]) -> Organization:
         return Organization(
@@ -220,33 +184,21 @@ class TrelloService:
         )
 
     def get_organizations(self, member_id: str = "me") -> ApiResponse:
-        try:
-            response = self.client.get_organizations(member_id)
-            organizations = [self._convert_to_organization(org) for org in response]
-            return self.prepare_response(organizations, "TrelloOrganizationList")
-        except Exception as e:
-            raise ValueError(f"Error getting organizations: {str(e)}")
+        response = self.client.get_organizations(member_id)
+        organizations = [self._convert_to_organization(org) for org in response]
+        return self.prepare_response(organizations, "TrelloOrganizationList")
 
     def get_organization(self, org_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_organization(org_id)
-            organization = self._convert_to_organization(response)
-            return self.prepare_response(organization, "TrelloOrganizationDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting organization: {str(e)}")
+        response = self.client.get_organization(org_id)
+        organization = self._convert_to_organization(response)
+        return self.prepare_response(organization, "TrelloOrganizationDetail")
     
     def get_organization_boards(self, org_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_organization_boards(org_id)
-            boards = [self._convert_to_board(board) for board in response]
-            return self.prepare_response(boards, "TrelloBoardList")
-        except Exception as e:
-            raise ValueError(f"Error getting organization boards: {str(e)}")
+        response = self.client.get_organization_boards(org_id)
+        boards = [self._convert_to_board(board) for board in response]
+        return self.prepare_response(boards, "TrelloBoardList")
     
     def get_organization_members(self, org_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_organization_members(org_id)
-            members = [self._convert_to_member(member) for member in response]
-            return self.prepare_response(members, "TrelloMemberList")
-        except Exception as e:
-            raise ValueError(f"Error getting organization members: {str(e)}")
+        response = self.client.get_organization_members(org_id)
+        members = [self._convert_to_member(member) for member in response]
+        return self.prepare_response(members, "TrelloMemberList")

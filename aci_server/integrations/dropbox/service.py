@@ -76,13 +76,9 @@ class DropboxService:
         return self.prepare_response(file, "DropboxFileCard")
 
     def download_file(self, path: str) -> Tuple[bytes, DropboxFile]:
-        try:
-            content, metadata = self.client.download_file(path)
-            dropbox_file = self._convert_to_dropbox_file(metadata)
-            return content, dropbox_file
-        except Exception as e:
-            print(f"Download error in service: {str(e)}")
-            raise
+        content, metadata = self.client.download_file(path)
+        dropbox_file = self._convert_to_dropbox_file(metadata)
+        return content, dropbox_file
 
     def delete_file(self, path: str) -> ApiResponse:
         response = self.client.delete_file(path)
@@ -90,17 +86,13 @@ class DropboxService:
         return self.prepare_response(file, "DropboxFileCard")
 
     def move_file(self, from_path: str, to_path: str) -> ApiResponse:
-        try:
-            response = self.client.move_file(from_path, to_path)
-            if "metadata" not in response:
-                print(f"Unexpected response structure: {response}")
-                file = self._convert_to_dropbox_file(response)
-            else:
-                file = self._convert_to_dropbox_file(response["metadata"])
-            return self.prepare_response(file, "DropboxFileCard")
-        except Exception as e:
-            print(f"Move file error: {str(e)}")
-            raise
+        response = self.client.move_file(from_path, to_path)
+        if "metadata" not in response:
+            print(f"Unexpected response structure: {response}")
+            file = self._convert_to_dropbox_file(response)
+        else:
+            file = self._convert_to_dropbox_file(response["metadata"])
+        return self.prepare_response(file, "DropboxFileCard")
 
     def upload_file_b64(self, path: str, file_content_b64: str, mode: str = "add") -> ApiResponse:
         file_content = base64.b64decode(file_content_b64)
@@ -150,6 +142,7 @@ class DropboxService:
         }
 
     def create_shared_link(self, path: str, settings: Optional[Dict[str, Any]] = None) -> ApiResponse:
+        # Special case handling for shared links that might already exist
         try:
             response = self.client.create_shared_link(path, settings)
             
@@ -164,7 +157,6 @@ class DropboxService:
             
             return self.prepare_response(file, "DropboxFileCard")
         except Exception as e:
-            print(f"Create shared link error: {str(e)}")
             # If the link already exists, try to extract the existing link
             if "shared_link_already_exists" in str(e) and hasattr(e, "response"):
                 try:
@@ -180,75 +172,41 @@ class DropboxService:
 
     def search_files(self, query: str, path: str = "", max_results: int = 20, 
                     filename_only: bool = False, file_status: str = "active") -> ApiResponse:
-        """
-        Search for files and folders in Dropbox.
+        response = self.client.search_files(
+            query=query,
+            path=path,
+            max_results=max_results,
+            filename_only=filename_only,
+            file_status=file_status
+        )
         
-        Args:
-            query: The string to search for
-            path: The path in the user's Dropbox to search
-            max_results: Maximum number of results to return
-            filename_only: Whether to search only the filename
-            file_status: Filter results by file status
-            
-        Returns:
-            ApiResponse containing search results
-        """
-        try:
-            response = self.client.search_files(
-                query=query,
-                path=path,
-                max_results=max_results,
-                filename_only=filename_only,
-                file_status=file_status
-            )
-            
-            # Extract files from the matches
-            files = []
-            for match in response.get("matches", []):
-                metadata = match.get("metadata", {}).get("metadata", {})
-                if metadata:
-                    files.append(self._convert_to_dropbox_file(metadata))
-            
-            # Create a SearchResult object
-            search_result = SearchResult(
-                files=files,
-                cursor=response.get("cursor"),
-                has_more=response.get("has_more", False)
-            )
-            
-            return self.prepare_response(search_result, "DropboxFileList")
-        except Exception as e:
-            print(f"Search files error: {str(e)}")
-            raise
+        files = []
+        for match in response.get("matches", []):
+            metadata = match.get("metadata", {}).get("metadata", {})
+            if metadata:
+                files.append(self._convert_to_dropbox_file(metadata))
+        
+        search_result = SearchResult(
+            files=files,
+            cursor=response.get("cursor"),
+            has_more=response.get("has_more", False)
+        )
+        
+        return self.prepare_response(search_result, "DropboxFileList")
     
     def search_continue(self, cursor: str) -> ApiResponse:
-        """
-        Continue a search with the cursor from a previous search.
+        response = self.client.search_continue(cursor)
         
-        Args:
-            cursor: The cursor returned from a previous search
-            
-        Returns:
-            ApiResponse containing the next page of search results
-        """
-        try:
-            response = self.client.search_continue(cursor)
-            
-            # Extract files from the matches
-            files = []
-            for match in response.get("matches", []):
-                metadata = match.get("metadata", {}).get("metadata", {})
-                if metadata:
-                    files.append(self._convert_to_dropbox_file(metadata))
-            
-            # Create a SearchResult object
-            search_result = SearchResult(
-                files=files,
-                cursor=response.get("cursor"),
-                has_more=response.get("has_more", False)
-            )
-            
-            return self.prepare_response(search_result, "DropboxFileList")
-        except Exception as e:
-            print(f"Search continue error: {str(e)}")
-            raise
+        files = []
+        for match in response.get("matches", []):
+            metadata = match.get("metadata", {}).get("metadata", {})
+            if metadata:
+                files.append(self._convert_to_dropbox_file(metadata))
+        
+        search_result = SearchResult(
+            files=files,
+            cursor=response.get("cursor"),
+            has_more=response.get("has_more", False)
+        )
+        
+        return self.prepare_response(search_result, "DropboxFileList")

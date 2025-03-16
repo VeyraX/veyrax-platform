@@ -25,18 +25,10 @@ class PerplexityService:
         if isinstance(request_data.get('response_format'), str):
             request_data['response_format'] = {'type': request_data['response_format']}
         
-        try:
-            response = self.client.create_completion(**request_data)
+        response = self.client.create_completion(**request_data)
+        
+        if not response:
+            raise ValueError("Empty response received from Perplexity API")
             
-            if not response:
-                raise ValueError("Empty response received from Perplexity API")
-                
-            completion_response = CompletionResponse(**response)
-            return self.prepare_response(completion_response, "PerplexityResponseView")
-            
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON response from Perplexity API: {str(e)}")
-        except HTTPError as e:
-            raise
-        except Exception as e:
-            raise ValueError(f"Error processing Perplexity API response: {str(e)}")
+        completion_response = CompletionResponse(**response)
+        return self.prepare_response(completion_response, "PerplexityResponseView")

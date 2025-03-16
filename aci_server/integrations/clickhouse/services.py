@@ -24,67 +24,58 @@ class ClickHouseService:
         return ApiResponse(data=data, component=components)
 
     def execute_query(self, query: str, limit: Optional[int] = None) -> ApiResponse:
-        try:
-            if limit is not None:
-                if "LIMIT" not in query.upper():
-                    query = f"{query} LIMIT {limit}"
-            
-            results = self.client.execute_query(query)
-            
-            query_result = QueryResult(
-                rows=results,
-                row_count=len(results),
-                query=query
-            )
-            
-            return ApiResponse(data=query_result)
-        except Exception as e:
-            return ApiResponse(message=f"Error executing query: {str(e)}")
+        if limit is not None:
+            if "LIMIT" not in query.upper():
+                query = f"{query} LIMIT {limit}"
+        
+        results = self.client.execute_query(query)
+        
+        query_result = QueryResult(
+            rows=results,
+            row_count=len(results),
+            query=query
+        )
+        
+        return ApiResponse(data=query_result)
 
     def get_tables(self) -> ApiResponse:
-        try:
-            tables_data = self.client.get_tables()
-            
-            tables = []
-            for table_data in tables_data:
-                tables.append(TableInfo(name=table_data['name']))
-            
-            database = self.client.connection_params.get('database', 'default')
-            table_list = TableList(
-                tables=tables,
-                database=database
-            )
-            
-            return ApiResponse(data=table_list)
-        except Exception as e:
-            return ApiResponse(message=f"Error retrieving tables: {str(e)}")
+        tables_data = self.client.get_tables()
+        
+        tables = []
+        for table_data in tables_data:
+            tables.append(TableInfo(name=table_data['name']))
+        
+        database = self.client.connection_params.get('database', 'default')
+        table_list = TableList(
+            tables=tables,
+            database=database
+        )
+        
+        return ApiResponse(data=table_list)
 
     def get_columns(self, table_name: str) -> ApiResponse:
-        try:
-            columns_data = self.client.get_columns(table_name)
-            
-            columns = []
-            for column_data in columns_data:
-                columns.append(ColumnInfo(
-                    name=column_data['name'],
-                    type=column_data['type'],
-                    default_type=column_data.get('default_type'),
-                    default_expression=column_data.get('default_expression'),
-                    comment=column_data.get('comment'),
-                    codec_expression=column_data.get('codec_expression'),
-                    ttl_expression=column_data.get('ttl_expression')
-                ))
-            
-            database = self.client.connection_params.get('database', 'default')
-            column_list = ColumnList(
-                columns=columns,
-                table_name=table_name,
-                database=database
-            )
-            
-            return ApiResponse(data=column_list)
-        except Exception as e:
-            return ApiResponse(message=f"Error retrieving columns: {str(e)}")
+        columns_data = self.client.get_columns(table_name)
+        
+        columns = []
+        for column_data in columns_data:
+            columns.append(ColumnInfo(
+                name=column_data['name'],
+                type=column_data['type'],
+                default_type=column_data.get('default_type'),
+                default_expression=column_data.get('default_expression'),
+                comment=column_data.get('comment'),
+                codec_expression=column_data.get('codec_expression'),
+                ttl_expression=column_data.get('ttl_expression')
+            ))
+        
+        database = self.client.connection_params.get('database', 'default')
+        column_list = ColumnList(
+            columns=columns,
+            table_name=table_name,
+            database=database
+        )
+        
+        return ApiResponse(data=column_list)
 
     def test_connection(self) -> ApiResponse:
         try:

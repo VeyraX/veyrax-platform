@@ -218,7 +218,6 @@ class OutlookService:
         # Handle location as string
         location = None
         if item.get('location'):
-            # Try different location formats
             if isinstance(item['location'], str):
                 location = item['location']
             else:

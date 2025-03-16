@@ -3,11 +3,10 @@ import yaml
 import pickle
 from typing import Dict, Any, Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException
-from pydantic import ValidationError
 from starlette.requests import Request as FastAPIRequest
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import format_validation_error
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
 from .client import GitHubClient
 from .service import GitHubService
 from .schema import (
@@ -36,17 +35,23 @@ examples = ExamplesLoader()
 async def get_github_service(request: FastAPIRequest):
     try:
         token_data = await TokenService.get_user_token(request, 'github')
-        
-        if TokenService.is_token_expired(token_data):
-            try:
-                token_data = await TokenService.refresh_token(request, token_data)
-            except Exception as e:
-                raise HTTPException(status_code=401, detail="Failed to refresh token")
-        
+        if not token_data or not token_data.get('access_token'):
+            raise HTTPException(
+                status_code=401,
+                detail="No GitHub token data found"
+            )
+            
         client = GitHubClient(token_data['access_token'])
-        return GitHubService(client)
+        service = GitHubService(client)
+        
+        apply_error_handler_to_service(service)
+        
+        return service
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to initialize GitHub service: {str(e)}")
+        raise HTTPException(
+            status_code=401,
+            detail=f"Failed to initialize GitHub service: {str(e)}"
+        )
 
 
 @router.post("/get_repositories", response_model=ApiResponse)
@@ -55,15 +60,8 @@ async def get_repositories(
     params: Dict[str, Any] = Body({}),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetRepositoriesParams(**params)
-        return service.get_repositories(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoriesParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetRepositoriesParams(**params)
+    return service.get_repositories(**validated_params.dict(exclude_unset=True))
 
 
 @router.post("/get_repository", response_model=ApiResponse)
@@ -72,15 +70,8 @@ async def get_repository(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetRepositoryParams(**params)
-        return service.get_repository(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoryParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetRepositoryParams(**params)
+    return service.get_repository(**validated_params.dict())
 
 
 @router.post("/get_issues", response_model=ApiResponse)
@@ -89,15 +80,8 @@ async def get_issues(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetIssuesParams(**params)
-        return service.get_issues(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetIssuesParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetIssuesParams(**params)
+    return service.get_issues(**validated_params.dict())
 
 
 @router.post("/get_issue", response_model=ApiResponse)
@@ -106,15 +90,8 @@ async def get_issue(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetIssueParams(**params)
-        return service.get_issue(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetIssueParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetIssueParams(**params)
+    return service.get_issue(**validated_params.dict())
 
 
 @router.post("/get_pull_requests", response_model=ApiResponse)
@@ -123,15 +100,8 @@ async def get_pull_requests(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetPullRequestsParams(**params)
-        return service.get_pull_requests(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPullRequestsParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetPullRequestsParams(**params)
+    return service.get_pull_requests(**validated_params.dict())
 
 
 @router.post("/get_pull_request", response_model=ApiResponse)
@@ -140,15 +110,8 @@ async def get_pull_request(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetPullRequestParams(**params)
-        return service.get_pull_request(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPullRequestParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetPullRequestParams(**params)
+    return service.get_pull_request(**validated_params.dict())
 
 @router.post("/get_commits", response_model=ApiResponse)
 @schema(input_schema_class=GetCommitsParams, output_schema_class=CommitsResponse, examples=examples["/github/commits"])
@@ -156,15 +119,8 @@ async def get_commits(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetCommitsParams(**params)
-        return service.get_commits(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetCommitsParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetCommitsParams(**params)
+    return service.get_commits(**validated_params.dict())
 
 
 @router.post("/get_commit", response_model=ApiResponse)
@@ -173,15 +129,8 @@ async def get_commit(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetCommitParams(**params)
-        return service.get_commit(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetCommitParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetCommitParams(**params)
+    return service.get_commit(**validated_params.dict())
 
 
 @router.post("/star_repository", response_model=ApiResponse)
@@ -190,15 +139,8 @@ async def star_repository(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = StarRepositoryParams(**params)
-        return service.star_repository(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'StarRepositoryParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = StarRepositoryParams(**params)
+    return service.star_repository(**validated_params.dict())
 
 
 @router.post("/unstar_repository", response_model=ApiResponse)
@@ -207,15 +149,8 @@ async def unstar_repository(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = UnstarRepositoryParams(**params)
-        return service.unstar_repository(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UnstarRepositoryParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = UnstarRepositoryParams(**params)
+    return service.unstar_repository(**validated_params.dict())
 
 
 @router.post("/create_pull_request", response_model=ApiResponse)
@@ -224,15 +159,8 @@ async def create_pull_request(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = CreatePullRequestParams(**params)
-        return service.create_pull_request(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePullRequestParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CreatePullRequestParams(**params)
+    return service.create_pull_request(**validated_params.dict())
 
 
 @router.post("/update_pull_request", response_model=ApiResponse)
@@ -241,15 +169,8 @@ async def update_pull_request(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = UpdatePullRequestParams(**params)
-        return service.update_pull_request(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdatePullRequestParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = UpdatePullRequestParams(**params)
+    return service.update_pull_request(**validated_params.dict())
 
 
 @router.post("/merge_pull_request", response_model=ApiResponse)
@@ -258,15 +179,8 @@ async def merge_pull_request(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = MergePullRequestParams(**params)
-        return service.merge_pull_request(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'MergePullRequestParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = MergePullRequestParams(**params)
+    return service.merge_pull_request(**validated_params.dict())
 
 
 @router.post("/get_pull_request_reviews", response_model=ApiResponse)
@@ -275,15 +189,8 @@ async def get_pull_request_reviews(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetPullRequestReviewsParams(**params)
-        return service.get_pull_request_reviews(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetPullRequestReviewsParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetPullRequestReviewsParams(**params)
+    return service.get_pull_request_reviews(**validated_params.dict())
 
 
 @router.post("/create_pull_request_review", response_model=ApiResponse)
@@ -292,15 +199,8 @@ async def create_pull_request_review(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = CreatePullRequestReviewParams(**params)
-        return service.create_pull_request_review(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreatePullRequestReviewParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CreatePullRequestReviewParams(**params)
+    return service.create_pull_request_review(**validated_params.dict())
 
 
 @router.post("/create_repository_from_template", response_model=ApiResponse)
@@ -313,23 +213,16 @@ async def create_repository_from_template(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = CreateRepositoryFromTemplateParams(**params)
-        return service.create_repository_from_template(
-            template_owner=validated_params.template_owner,
-            template_repo=validated_params.template_repo,
-            owner=validated_params.owner,
-            name=validated_params.name,
-            description=validated_params.description,
-            include_all_branches=validated_params.include_all_branches,
-            private=validated_params.private
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateRepositoryFromTemplateParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CreateRepositoryFromTemplateParams(**params)
+    return service.create_repository_from_template(
+        template_owner=validated_params.template_owner,
+        template_repo=validated_params.template_repo,
+        owner=validated_params.owner,
+        name=validated_params.name,
+        description=validated_params.description,
+        include_all_branches=validated_params.include_all_branches,
+        private=validated_params.private
+    )
 
 @router.post("/get_git_tree", response_model=ApiResponse)
 @schema(
@@ -341,15 +234,8 @@ async def get_git_tree(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetGitTreeParams(**params)
-        return service.get_git_tree(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetGitTreeParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetGitTreeParams(**params)
+    return service.get_git_tree(**validated_params.dict())
 
 @router.post("/get_repository_contents", response_model=ApiResponse)
 @schema(
@@ -361,15 +247,8 @@ async def get_repository_contents(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetRepositoryContentsParams(**params)
-        return service.get_repository_contents(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoryContentsParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetRepositoryContentsParams(**params)
+    return service.get_repository_contents(**validated_params.dict())
 
 @router.post("/create_blob", response_model=ApiResponse)
 @schema(
@@ -381,15 +260,8 @@ async def create_blob(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = CreateBlobParams(**params)
-        return service.create_blob(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateBlobParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CreateBlobParams(**params)
+    return service.create_blob(**validated_params.dict())
 
 @router.post("/get_blob", response_model=ApiResponse)
 @schema(
@@ -401,15 +273,8 @@ async def get_blob(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetBlobParams(**params)
-        return service.get_blob(**validated_params.dict())
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetBlobParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetBlobParams(**params)
+    return service.get_blob(**validated_params.dict())
 
 @router.post("/update_file", response_model=ApiResponse)
 @schema(
@@ -421,24 +286,17 @@ async def update_file(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = UpdateFileParams(**params)
-        return service.update_file(
-            owner=validated_params.owner,
-            repo=validated_params.repo,
-            path=validated_params.path,
-            message=validated_params.message,
-            content=validated_params.content,
-            encoding=validated_params.encoding,
-            sha=validated_params.sha,
-            branch=validated_params.branch
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'UpdateFileParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = UpdateFileParams(**params)
+    return service.update_file(
+        owner=validated_params.owner,
+        repo=validated_params.repo,
+        path=validated_params.path,
+        message=validated_params.message,
+        content=validated_params.content,
+        encoding=validated_params.encoding,
+        sha=validated_params.sha,
+        branch=validated_params.branch
+    )
 
 
 @router.post("/get_contents", response_model=ApiResponse)
@@ -451,19 +309,14 @@ async def get_contents(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = GetRepositoryContentParams(**params)
-        return service.get_repository_contents(
-            owner=validated_params.owner,
-            repo=validated_params.repo,
-            path=validated_params.path,
-            ref=validated_params.ref,
-            decode_content=validated_params.decode_content
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetRepositoryContentParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetRepositoryContentParams(**params)
+    return service.get_repository_contents(
+        owner=validated_params.owner,
+        repo=validated_params.repo,
+        path=validated_params.path,
+        ref=validated_params.ref,
+        decode_content=validated_params.decode_content
+    )
 
 @router.post("/delete_file", response_model=ApiResponse)
 @schema(
@@ -475,22 +328,17 @@ async def delete_file(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = DeleteFileParams(**params)
-        return service.delete_file(
-            owner=validated_params.owner,
-            repo=validated_params.repo,
-            path=validated_params.path,
-            message=validated_params.message,
-            sha=validated_params.sha,
-            branch=validated_params.branch,
-            committer=validated_params.committer,
-            author=validated_params.author
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'DeleteFileParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = DeleteFileParams(**params)
+    return service.delete_file(
+        owner=validated_params.owner,
+        repo=validated_params.repo,
+        path=validated_params.path,
+        message=validated_params.message,
+        sha=validated_params.sha,
+        branch=validated_params.branch,
+        committer=validated_params.committer,
+        author=validated_params.author
+    )
 
 @router.post("/create_file", response_model=ApiResponse)
 @schema(
@@ -502,21 +350,16 @@ async def create_file(
     params: Dict[str, Any] = Body(...),
     service: GitHubService = Depends(get_github_service)
 ):
-    try:
-        validated_params = CreateFileParams(**params)
-        return service.update_file(
-            owner=validated_params.owner,
-            repo=validated_params.repo,
-            path=validated_params.path,
-            message=validated_params.message,
-            content=validated_params.content,
-            encoding=validated_params.encoding,
-            sha=None,
-            branch=validated_params.branch
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'CreateFileParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = CreateFileParams(**params)
+    return service.update_file(
+        owner=validated_params.owner,
+        repo=validated_params.repo,
+        path=validated_params.path,
+        message=validated_params.message,
+        content=validated_params.content,
+        encoding=validated_params.encoding,
+        sha=None,
+        branch=validated_params.branch
+    )
+
+apply_error_handler_to_router(router)

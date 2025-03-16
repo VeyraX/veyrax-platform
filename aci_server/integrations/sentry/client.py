@@ -13,11 +13,7 @@ class SentryClient:
         }
 
     def _handle_response(self, response: requests.Response) -> Dict:
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            error_detail = response.json()
-            raise Exception(f"Sentry API Error {response.status_code}: {error_detail}")
+        response.raise_for_status()
         return response.json()
 
     # Organization and Team Management

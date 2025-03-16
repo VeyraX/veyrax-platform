@@ -9,7 +9,6 @@ class VercelClient:
         self._initialize_client()
 
     def _initialize_client(self):
-        """Initialize client with proper headers"""
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -46,7 +45,6 @@ class VercelClient:
         return response.json()
 
     def cancel_deployment(self, deployment_id: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Cancel a deployment which is currently building"""
         response = requests.patch(
             f"{self.BASE_URL}/v12/deployments/{deployment_id}/cancel",
             headers=self.headers,
@@ -117,10 +115,6 @@ class VercelClient:
             params=self._clean_params(params or {})
         )
         print(response.json())
-        
-        # Instead of raising an exception, return the error response
-        if response.status_code == 400 and "error" in response.json():
-            return response.json()
         
         response.raise_for_status()
         return response.json()
@@ -197,7 +191,6 @@ class VercelClient:
         return response.json()
 
     def verify_project_domain(self, project_id_or_name: str, domain: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Verify a project domain"""
         response = requests.post(
             f"{self.BASE_URL}/v9/projects/{project_id_or_name}/domains/{domain}/verify",
             headers=self.headers,
@@ -228,8 +221,6 @@ class VercelClient:
         return response.json()
 
     def create_deployment(self, data: Dict[str, Any], params: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Create a new deployment"""
-        print(data)
         response = requests.post(
             f"{self.BASE_URL}/v13/deployments",
             headers=self.headers,
@@ -238,20 +229,10 @@ class VercelClient:
         )
         
         response_data = response.json()
-        
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            if response_data and "error" in response_data:
-                error_info = response_data["error"]
-                error_message = f"{e} - {error_info.get('code', '')}: {error_info.get('message', '')}"
-                raise requests.exceptions.HTTPError(error_message, response=response)
-            raise
-            
+        response.raise_for_status()
         return response_data
 
     def _clean_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Clean parameters for API requests"""
         cleaned = {}
         for k, v in params.items():
             if v is None:

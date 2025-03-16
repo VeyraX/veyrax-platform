@@ -100,20 +100,13 @@ class DropboxClient:
             "allow_ownership_transfer": False
         }
         
-        try:
-            response = requests.post(endpoint, headers=self.headers, json=data)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Dropbox API Error: {str(e)}")
-            if hasattr(e.response, 'json'):
-                print(f"Response: {e.response.json()}")
-            raise
+        response = requests.post(endpoint, headers=self.headers, json=data)
+        response.raise_for_status()
+        return response.json()
 
     def create_shared_link(self, path: str, settings: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         endpoint = f"{self.BASE_URL}/sharing/create_shared_link_with_settings"
         
-        # Default settings if none provided
         if settings is None:
             settings = {
                 "requested_visibility": RequestedVisibility.PUBLIC.value,
@@ -122,7 +115,6 @@ class DropboxClient:
                 "allow_download": True
             }
         
-        # Convert enum values to strings if they're passed as enums
         if settings and isinstance(settings, dict):
             for key in ["requested_visibility", "audience", "access"]:
                 if key in settings and hasattr(settings[key], "value"):
@@ -136,19 +128,6 @@ class DropboxClient:
 
     def search_files(self, query: str, path: str = "", max_results: int = 20, 
                     filename_only: bool = False, file_status: str = "active") -> Dict[str, Any]:
-        """
-        Search for files and folders in Dropbox.
-        
-        Args:
-            query: The string to search for
-            path: The path in the user's Dropbox to search. Should be a folder
-            max_results: Maximum number of results to return (max 1000)
-            filename_only: Whether to search only the filename (not the content)
-            file_status: Filter results by file status (active, deleted)
-            
-        Returns:
-            Dict containing search results
-        """
         endpoint = f"{self.BASE_URL}/files/search_v2"
         
         data = {
@@ -169,15 +148,6 @@ class DropboxClient:
         return response.json()
         
     def search_continue(self, cursor: str) -> Dict[str, Any]:
-        """
-        Continue a search with the cursor from a previous search.
-        
-        Args:
-            cursor: The cursor returned from a previous search
-            
-        Returns:
-            Dict containing the next page of search results
-        """
         endpoint = f"{self.BASE_URL}/files/search/continue_v2"
         
         data = {
