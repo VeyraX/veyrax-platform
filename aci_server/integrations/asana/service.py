@@ -23,167 +23,133 @@ class AsanaService:
         return ApiResponse(data=data, component=components)
 
     def _convert_to_task(self, task_data: Dict[str, Any]) -> Task:
-        try:
-            assignee = None
-            if isinstance(task_data.get('assignee'), dict) and task_data['assignee'].get('gid'):
-                assignee = User(
-                    gid=task_data['assignee'].get('gid'),
-                    name=task_data['assignee'].get('name', ''), 
-                    email=task_data['assignee'].get('email')
-                )
-            
-            workspace = None
-            workspace_data = task_data.get('workspace', {})
-            if isinstance(workspace_data, dict) and workspace_data.get('gid') and workspace_data.get('name'):
-                workspace = Workspace(
-                    gid=workspace_data['gid'],
-                    name=workspace_data['name']
-                )
-            
-            projects = []
-            if isinstance(task_data.get('projects'), list):
-                for p in task_data['projects']:
-                    if isinstance(p, dict) and p.get('gid') and p.get('name'):
-                        projects.append(Project(
-                            gid=p['gid'],
-                            name=p['name']
-                        ))
-            
-            return Task(
-                gid=task_data.get('gid', ''), 
-                name=task_data.get('name', ''),
-                completed=task_data.get('completed', False),
-                due_on=task_data.get('due_on'),
-                notes=task_data.get('notes'),
-                assignee=assignee,
-                workspace=workspace,
-                projects=projects or None,  # Convert empty list to None
-                parent=task_data.get('parent', {}).get('gid') if isinstance(task_data.get('parent'), dict) else None,
-                created_at=task_data.get('created_at'),
-                modified_at=task_data.get('modified_at')
+        assignee = None
+        if isinstance(task_data.get('assignee'), dict) and task_data['assignee'].get('gid'):
+            assignee = User(
+                gid=task_data['assignee'].get('gid'),
+                name=task_data['assignee'].get('name', ''), 
+                email=task_data['assignee'].get('email')
             )
-        except Exception as e:
-            print(f"Error converting task data: {task_data}")
-            raise ValueError(f"Failed to convert task data: {str(e)}")
+        
+        workspace = None
+        workspace_data = task_data.get('workspace', {})
+        if isinstance(workspace_data, dict) and workspace_data.get('gid') and workspace_data.get('name'):
+            workspace = Workspace(
+                gid=workspace_data['gid'],
+                name=workspace_data['name']
+            )
+        
+        projects = []
+        if isinstance(task_data.get('projects'), list):
+            for p in task_data['projects']:
+                if isinstance(p, dict) and p.get('gid') and p.get('name'):
+                    projects.append(Project(
+                        gid=p['gid'],
+                        name=p['name']
+                    ))
+        
+        return Task(
+            gid=task_data.get('gid', ''), 
+            name=task_data.get('name', ''),
+            completed=task_data.get('completed', False),
+            due_on=task_data.get('due_on'),
+            notes=task_data.get('notes'),
+            assignee=assignee,
+            workspace=workspace,
+            projects=projects or None,  # Convert empty list to None
+            parent=task_data.get('parent', {}).get('gid') if isinstance(task_data.get('parent'), dict) else None,
+            created_at=task_data.get('created_at'),
+            modified_at=task_data.get('modified_at')
+        )
 
     def get_tasks(self, workspace_id: str, project_id: Optional[str] = None, 
                  assignee: Optional[str] = None, completed_since: Optional[str] = None, 
                  limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_tasks(
-                workspace_id=workspace_id,
-                project_id=project_id,
-                assignee=assignee,
-                completed_since=completed_since,
-                limit=limit,
-                offset=offset
-            )
-            
-            tasks = [self._convert_to_task(task) for task in response.get('data', [])]
-            
-            task_list = TaskList(
-                items=tasks,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(task_list, "AsanaTaskList")
-        except Exception as e:
-            raise ValueError(f"Error getting tasks: {str(e)}")
+        response = self.client.get_tasks(
+            workspace_id=workspace_id,
+            project_id=project_id,
+            assignee=assignee,
+            completed_since=completed_since,
+            limit=limit,
+            offset=offset
+        )
+        
+        tasks = [self._convert_to_task(task) for task in response.get('data', [])]
+        
+        task_list = TaskList(
+            items=tasks,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(task_list, "AsanaTaskList")
 
     def get_task(self, task_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_task(task_id)
-            task = self._convert_to_task(response.get('data', {}))
-            return self.prepare_response(task, "AsanaTaskDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting task: {str(e)}")
+        response = self.client.get_task(task_id)
+        task = self._convert_to_task(response.get('data', {}))
+        return self.prepare_response(task, "AsanaTaskDetail")
 
     def create_task(self, task_data: Dict[str, Any]) -> ApiResponse:
-        try:
-            response = self.client.create_task(task_data)
-            task = self._convert_to_task(response.get('data', {}))
-            return self.prepare_response(task, "AsanaTaskDetail")
-        except Exception as e:
-            raise ValueError(f"Error creating task: {str(e)}")
+        response = self.client.create_task(task_data)
+        task = self._convert_to_task(response.get('data', {}))
+        return self.prepare_response(task, "AsanaTaskDetail")
 
     def update_task(self, task_id: str, task_update: Dict[str, Any]) -> ApiResponse:
-        try:
-            response = self.client.update_task(task_id, task_update)
-            task = self._convert_to_task(response.get('data', {}))
-            return self.prepare_response(task, "AsanaTaskDetail")
-        except Exception as e:
-            raise ValueError(f"Error updating task: {str(e)}")
+        response = self.client.update_task(task_id, task_update)
+        task = self._convert_to_task(response.get('data', {}))
+        return self.prepare_response(task, "AsanaTaskDetail")
 
     def delete_task(self, task_id: str) -> ApiResponse:
-        try:
-            response = self.client.delete_task(task_id)
-            return self.prepare_response(response.get('data', {}), None)
-        except Exception as e:
-            raise ValueError(f"Error deleting task: {str(e)}")
+        response = self.client.delete_task(task_id)
+        return self.prepare_response(response.get('data', {}), None)
 
     def get_subtasks(self, task_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_subtasks(task_id)
-            subtasks = [self._convert_to_task(task) for task in response.get('data', [])]
-            
-            task_list = TaskList(
-                items=subtasks,
-                offset=None  # Subtasks endpoint doesn't support pagination in the same way
-            )
-            
-            return self.prepare_response(task_list, "AsanaTaskList")
-        except Exception as e:
-            raise ValueError(f"Error getting subtasks: {str(e)}")
+        response = self.client.get_subtasks(task_id)
+        subtasks = [self._convert_to_task(task) for task in response.get('data', [])]
+        
+        task_list = TaskList(
+            items=subtasks,
+            offset=None  # Subtasks endpoint doesn't support pagination in the same way
+        )
+        
+        return self.prepare_response(task_list, "AsanaTaskList")
 
     def create_subtask(self, parent_task_id: str, subtask_data: Dict[str, Any]) -> ApiResponse:
-        try:
-            response = self.client.create_subtask(parent_task_id, subtask_data)
-            subtask = self._convert_to_task(response.get('data', {}))
-            return self.prepare_response(subtask, "AsanaTaskDetail")
-        except Exception as e:
-            raise ValueError(f"Error creating subtask: {str(e)}")
+        response = self.client.create_subtask(parent_task_id, subtask_data)
+        subtask = self._convert_to_task(response.get('data', {}))
+        return self.prepare_response(subtask, "AsanaTaskDetail")
 
     def get_workspaces(self, limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_workspaces(
-                limit=limit,
-                offset=offset
-            )
-            
-            workspaces = [self._convert_to_workspace(workspace) for workspace in response.get('data', [])]
-            
-            workspace_list = WorkspaceList(
-                items=workspaces,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(workspace_list, "AsanaWorkspaceList")
-        except Exception as e:
-            raise ValueError(f"Error getting workspaces: {str(e)}")
+        response = self.client.get_workspaces(
+            limit=limit,
+            offset=offset
+        )
+        
+        workspaces = [self._convert_to_workspace(workspace) for workspace in response.get('data', [])]
+        
+        workspace_list = WorkspaceList(
+            items=workspaces,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(workspace_list, "AsanaWorkspaceList")
 
     def get_workspace(self, workspace_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_workspace(workspace_id)
-            workspace = self._convert_to_workspace(response.get('data', {}))
-            return self.prepare_response(workspace, "AsanaWorkspaceDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting workspace: {str(e)}")
+        response = self.client.get_workspace(workspace_id)
+        workspace = self._convert_to_workspace(response.get('data', {}))
+        return self.prepare_response(workspace, "AsanaWorkspaceDetail")
 
     def get_projects(self, workspace_id: Optional[str] = None, team_id: Optional[str] = None, 
                     archived: Optional[bool] = None, limit: int = 20, 
                     offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_projects(
-                workspace_id=workspace_id,
-                team_id=team_id,
-                archived=archived,
-                limit=limit,
-                offset=offset
-            )
-            projects = [self._convert_to_project(p) for p in response.get('data', [])]
-            return self.prepare_response(projects, "AsanaProjectList")
-        except Exception as e:
-            raise ValueError(f"Error getting projects: {str(e)}")
+        response = self.client.get_projects(
+            workspace_id=workspace_id,
+            team_id=team_id,
+            archived=archived,
+            limit=limit,
+            offset=offset
+        )
+        projects = [self._convert_to_project(p) for p in response.get('data', [])]
+        return self.prepare_response(projects, "AsanaProjectList")
 
     def _convert_to_goal(self, goal_data: Dict[str, Any]) -> Goal:
         owner = None
@@ -256,100 +222,76 @@ class AsanaService:
                  owner_id: Optional[str] = None, is_workspace_level: Optional[bool] = None,
                  limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
         """Get goals with optional filtering."""
-        try:
-            response = self.client.get_goals(
-                workspace_id=workspace_id,
-                time_period_id=time_period_id,
-                owner_id=owner_id,
-                is_workspace_level=is_workspace_level,
-                limit=limit,
-                offset=offset
-            )
-            
-            goals = [self._convert_to_goal(goal) for goal in response.get('data', [])]
-            
-            goal_list = GoalList(
-                items=goals,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(goal_list, "AsanaGoalList")
-        except Exception as e:
-            raise ValueError(f"Error getting goals: {str(e)}")
+        response = self.client.get_goals(
+            workspace_id=workspace_id,
+            time_period_id=time_period_id,
+            owner_id=owner_id,
+            is_workspace_level=is_workspace_level,
+            limit=limit,
+            offset=offset
+        )
+        
+        goals = [self._convert_to_goal(goal) for goal in response.get('data', [])]
+        
+        goal_list = GoalList(
+            items=goals,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(goal_list, "AsanaGoalList")
 
     def get_goal(self, goal_id: str) -> ApiResponse:
         """Get a specific goal by ID."""
-        try:
-            response = self.client.get_goal(goal_id)
-            goal = self._convert_to_goal(response.get('data', {}))
-            return self.prepare_response(goal, "AsanaGoalDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting goal: {str(e)}")
+        response = self.client.get_goal(goal_id)
+        goal = self._convert_to_goal(response.get('data', {}))
+        return self.prepare_response(goal, "AsanaGoalDetail")
 
     def create_goal(self, goal_data: Dict[str, Any]) -> ApiResponse:
         """Create a new goal."""
-        try:
-            response = self.client.create_goal(goal_data)
-            goal = self._convert_to_goal(response.get('data', {}))
-            return self.prepare_response(goal, "AsanaGoalDetail")
-        except Exception as e:
-            raise ValueError(f"Error creating goal: {str(e)}")
+        response = self.client.create_goal(goal_data)
+        goal = self._convert_to_goal(response.get('data', {}))
+        return self.prepare_response(goal, "AsanaGoalDetail")
 
     def update_goal(self, goal_id: str, goal_update: Dict[str, Any]) -> ApiResponse:
         """Update an existing goal."""
-        try:
-            response = self.client.update_goal(goal_id, goal_update)
-            goal = self._convert_to_goal(response.get('data', {}))
-            return self.prepare_response(goal, "AsanaGoalDetail")
-        except Exception as e:
-            raise ValueError(f"Error updating goal: {str(e)}")
+        response = self.client.update_goal(goal_id, goal_update)
+        goal = self._convert_to_goal(response.get('data', {}))
+        return self.prepare_response(goal, "AsanaGoalDetail")
 
     def create_goal_metric(self, goal_id: str, metric_data: Dict[str, Any]) -> ApiResponse:
         """Create a metric for a goal."""
-        try:
-            response = self.client.create_goal_metric(goal_id, metric_data)
-            metric = self._convert_to_goal_metric(response.get('data', {}))
-            return self.prepare_response(metric, None)
-        except Exception as e:
-            raise ValueError(f"Error creating goal metric: {str(e)}")
+        response = self.client.create_goal_metric(goal_id, metric_data)
+        metric = self._convert_to_goal_metric(response.get('data', {}))
+        return self.prepare_response(metric, None)
 
     def update_goal_metric(self, goal_metric_id: str, metric_update: Dict[str, Any]) -> ApiResponse:
         """Update a goal metric."""
-        try:
-            response = self.client.update_goal_metric(goal_metric_id, metric_update)
-            metric = self._convert_to_goal_metric(response.get('data', {}))
-            return self.prepare_response(metric, None)
-        except Exception as e:
-            raise ValueError(f"Error updating goal metric: {str(e)}")
+        response = self.client.update_goal_metric(goal_metric_id, metric_update)
+        metric = self._convert_to_goal_metric(response.get('data', {}))
+        return self.prepare_response(metric, None)
 
     def get_users(self, workspace_id: Optional[str] = None, team_id: Optional[str] = None,
                  limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_users(
-                workspace_id=workspace_id,
-                team_id=team_id,
-                limit=limit,
-                offset=offset
-            )
-            
-            users = [self._convert_to_user(user) for user in response.get('data', [])]
-            
-            user_list = UserList(
-                items=users,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(user_list, "AsanaUserList")
-        except Exception as e:
-            raise ValueError(f"Error getting users: {str(e)}")
+        response = self.client.get_users(
+            workspace_id=workspace_id,
+            team_id=team_id,
+            limit=limit,
+            offset=offset
+        )
+        
+        users = [self._convert_to_user(user) for user in response.get('data', [])]
+        
+        user_list = UserList(
+            items=users,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(user_list, "AsanaUserList")
 
     def get_user(self, user_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_user(user_id)
-            user = self._convert_to_user(response.get('data', {}))
-            return self.prepare_response(user, "AsanaUserDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting user: {str(e)}")
+        response = self.client.get_user(user_id)
+        user = self._convert_to_user(response.get('data', {}))
+        return self.prepare_response(user, "AsanaUserDetail")
 
     def _convert_to_user(self, user_data: Dict[str, Any]) -> User:
         return User(
@@ -380,40 +322,31 @@ class AsanaService:
         )
 
     def get_sections(self, project_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_sections(project_id)
-            sections = [self._convert_to_section(section) for section in response.get('data', [])]
-            
-            section_list = SectionList(
-                items=sections,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(section_list, "AsanaSectionList")
-        except Exception as e:
-            raise ValueError(f"Error getting sections: {str(e)}")
+        response = self.client.get_sections(project_id)
+        sections = [self._convert_to_section(section) for section in response.get('data', [])]
+        
+        section_list = SectionList(
+            items=sections,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(section_list, "AsanaSectionList")
 
     def get_section(self, section_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_section(section_id)
-            section = self._convert_to_section(response.get('data', {}))
-            return self.prepare_response(section, "AsanaSectionDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting section: {str(e)}")
+        response = self.client.get_section(section_id)
+        section = self._convert_to_section(response.get('data', {}))
+        return self.prepare_response(section, "AsanaSectionDetail")
 
     def get_section_tasks(self, section_id: str, limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_section_tasks(section_id, limit, offset)
-            tasks = [self._convert_to_task(task) for task in response.get('data', [])]
-            
-            task_list = TaskList(
-                items=tasks,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
-            )
-            
-            return self.prepare_response(task_list, "AsanaTaskList")
-        except Exception as e:
-            raise ValueError(f"Error getting section tasks: {str(e)}")
+        response = self.client.get_section_tasks(section_id, limit, offset)
+        tasks = [self._convert_to_task(task) for task in response.get('data', [])]
+        
+        task_list = TaskList(
+            items=tasks,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(task_list, "AsanaTaskList")
 
     def _convert_to_project(self, project_data: Dict[str, Any]) -> Project:
         owner = None
@@ -454,12 +387,9 @@ class AsanaService:
         )
 
     def get_project(self, project_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_project(project_id)
-            project = self._convert_to_project(response.get('data', {}))
-            return self.prepare_response(project, "AsanaProjectDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting project: {str(e)}")
+        response = self.client.get_project(project_id)
+        project = self._convert_to_project(response.get('data', {}))
+        return self.prepare_response(project, "AsanaProjectDetail")
 
     def _convert_to_tag(self, tag_data: Dict[str, Any]) -> Tag:
         workspace = None
@@ -478,24 +408,18 @@ class AsanaService:
 
     def get_tags(self, workspace_id: Optional[str] = None, limit: int = 20, 
                  offset: Optional[str] = None) -> ApiResponse:
-        try:
-            response = self.client.get_tags(
-                workspace_id=workspace_id,
-                limit=limit,
-                offset=offset
-            )
-            tags = [self._convert_to_tag(tag) for tag in response.get('data', [])]
-            return self.prepare_response(tags, "AsanaTagList")
-        except Exception as e:
-            raise ValueError(f"Error getting tags: {str(e)}")
+        response = self.client.get_tags(
+            workspace_id=workspace_id,
+            limit=limit,
+            offset=offset
+        )
+        tags = [self._convert_to_tag(tag) for tag in response.get('data', [])]
+        return self.prepare_response(tags, "AsanaTagList")
 
     def get_tag(self, tag_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_tag(tag_id)
-            tag = self._convert_to_tag(response.get('data', {}))
-            return self.prepare_response(tag, "AsanaTagDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting tag: {str(e)}")
+        response = self.client.get_tag(tag_id)
+        tag = self._convert_to_tag(response.get('data', {}))
+        return self.prepare_response(tag, "AsanaTagDetail")
 
     def _convert_to_team(self, team_data: Dict[str, Any]) -> Team:
         return Team(
@@ -506,55 +430,46 @@ class AsanaService:
 
     def get_teams(self, workspace_id: str, limit: int = 20, 
                   offset: Optional[str] = None) -> ApiResponse:
+        response = self.client.get_teams(
+            workspace_id=workspace_id,
+            limit=limit,
+            offset=offset
+        )
+        teams = [self._convert_to_team(team) for team in response.get('data', [])]
+        return self.prepare_response(teams, "AsanaTeamList")
+
+    def get_team(self, team_id: str) -> ApiResponse:
+        response = self.client.get_team(team_id)
+        team = self._convert_to_team(response.get('data', {}))
+        return self.prepare_response(team, "AsanaTeamDetail")
+
+    def get_time_periods(self, workspace_id: str, limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
         try:
-            response = self.client.get_teams(
+            response = self.client.get_time_periods(
                 workspace_id=workspace_id,
                 limit=limit,
                 offset=offset
             )
-            teams = [self._convert_to_team(team) for team in response.get('data', [])]
-            return self.prepare_response(teams, "AsanaTeamList")
-        except Exception as e:
-            raise ValueError(f"Error getting teams: {str(e)}")
-
-    def get_team(self, team_id: str) -> ApiResponse:
-        try:
-            response = self.client.get_team(team_id)
-            team = self._convert_to_team(response.get('data', {}))
-            return self.prepare_response(team, "AsanaTeamDetail")
-        except Exception as e:
-            raise ValueError(f"Error getting team: {str(e)}")
-
-    def get_time_periods(self, workspace_id: str, limit: int = 20, offset: Optional[str] = None) -> ApiResponse:
-        try:
-            try:
-                response = self.client.get_time_periods(
-                    workspace_id=workspace_id,
-                    limit=limit,
-                    offset=offset
-                )
-            except Exception:
-                response = self.client.get_goal_time_periods(
-                    workspace_id=workspace_id,
-                    limit=limit,
-                    offset=offset
-                )
-            
-            time_periods = []
-            for period_data in response.get('data', []):
-                if period_data.get('gid'):
-                    time_periods.append(TimePeriod(
-                        gid=period_data['gid'],
-                        name=period_data.get('name', ''),
-                        start_on=period_data.get('start_on'),
-                        end_on=period_data.get('end_on')
-                    ))
-            
-            period_list = TimePeriodList(
-                items=time_periods,
-                offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        except Exception:
+            response = self.client.get_goal_time_periods(
+                workspace_id=workspace_id,
+                limit=limit,
+                offset=offset
             )
-            
-            return self.prepare_response(period_list, "AsanaTimePeriodList")
-        except Exception as e:
-            raise ValueError(f"Error getting time periods: {str(e)}")
+        
+        time_periods = []
+        for period_data in response.get('data', []):
+            if period_data.get('gid'):
+                time_periods.append(TimePeriod(
+                    gid=period_data['gid'],
+                    name=period_data.get('name', ''),
+                    start_on=period_data.get('start_on'),
+                    end_on=period_data.get('end_on')
+                ))
+        
+        period_list = TimePeriodList(
+            items=time_periods,
+            offset=response.get('next_page', {}).get('offset') if response.get('next_page') else None
+        )
+        
+        return self.prepare_response(period_list, "AsanaTimePeriodList")

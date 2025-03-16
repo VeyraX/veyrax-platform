@@ -59,7 +59,6 @@ class SnowflakeClient:
         
         query = f"SHOW TABLES IN {database}.{schema}"
             
-            
         return self.execute_query(query)
 
     def get_columns(self, table_name: str) -> List[Dict[str, Any]]:

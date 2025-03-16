@@ -3,295 +3,424 @@ routes:
     examples:
       - scenario: "Get Cards from Board"
         description: "Retrieve all cards from a specific board"
-        input_json:
-          board_id: "60d21b4c80ebf333ddc2d931"
-        output_json:
-          data:
-            items:
-              - id: "60d21b4c80ebf333ddc2d935"
-                name: "Implement API Authentication"
-                desc: "Add OAuth2 authentication to the API endpoints"
-                idBoard: "60d21b4c80ebf333ddc2d931"
-                idList: "60d21b4c80ebf333ddc2d932"
-                due: "2023-07-15T12:00:00Z"
-                labels:
-                  - id: "60d21b4c80ebf333ddc2d940"
-                    name: "Backend"
-                    color: "green"
-              - id: "60d21b4c80ebf333ddc2d936"
-                name: "Design User Dashboard"
-                desc: "Create wireframes for the user dashboard"
-                idBoard: "60d21b4c80ebf333ddc2d931"
-                idList: "60d21b4c80ebf333ddc2d933"
-                due: "2023-07-20T12:00:00Z"
-                labels:
-                  - id: "60d21b4c80ebf333ddc2d941"
-                    name: "Frontend"
-                    color: "blue"
+        input_json: |
+          {
+            "board_id": "60d21b4c80ebf333ddc2d931"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "60d21b4c80ebf333ddc2d935",
+                  "name": "Implement API Authentication",
+                  "desc": "Add OAuth2 authentication to the API endpoints",
+                  "idBoard": "60d21b4c80ebf333ddc2d931",
+                  "idList": "60d21b4c80ebf333ddc2d932",
+                  "due": "2023-07-15T12:00:00Z",
+                  "labels": [
+                    {
+                      "id": "60d21b4c80ebf333ddc2d940",
+                      "name": "Backend",
+                      "color": "green"
+                    }
+                  ]
+                },
+                {
+                  "id": "60d21b4c80ebf333ddc2d936",
+                  "name": "Design User Dashboard",
+                  "desc": "Create wireframes for the user dashboard",
+                  "idBoard": "60d21b4c80ebf333ddc2d931",
+                  "idList": "60d21b4c80ebf333ddc2d933",
+                  "due": "2023-07-20T12:00:00Z",
+                  "labels": [
+                    {
+                      "id": "60d21b4c80ebf333ddc2d941",
+                      "name": "Frontend",
+                      "color": "blue"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
 
   - endpoint: "/trello/get_card"
     examples:
       - scenario: "Get Card Details"
         description: "Retrieve details for a specific card"
-        input_json:
-          card_id: "60d21b4c80ebf333ddc2d935"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d935"
-            name: "Implement API Authentication"
-            desc: "Add OAuth2 authentication to the API endpoints"
-            idBoard: "60d21b4c80ebf333ddc2d931"
-            idList: "60d21b4c80ebf333ddc2d932"
-            due: "2023-07-15T12:00:00Z"
-            labels:
-              - id: "60d21b4c80ebf333ddc2d940"
-                name: "Backend"
-                color: "green"
-            url: "https://trello.com/c/abc123/implement-api-authentication"
-            shortUrl: "https://trello.com/c/abc123"
+        input_json: |
+          {
+            "card_id": "60d21b4c80ebf333ddc2d935"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d935",
+              "name": "Implement API Authentication",
+              "desc": "Add OAuth2 authentication to the API endpoints",
+              "idBoard": "60d21b4c80ebf333ddc2d931",
+              "idList": "60d21b4c80ebf333ddc2d932",
+              "due": "2023-07-15T12:00:00Z",
+              "labels": [
+                {
+                  "id": "60d21b4c80ebf333ddc2d940",
+                  "name": "Backend",
+                  "color": "green"
+                }
+              ],
+              "url": "https://trello.com/c/abc123/implement-api-authentication",
+              "shortUrl": "https://trello.com/c/abc123"
+            }
+          }
 
   - endpoint: "/trello/create_card"
     examples:
       - scenario: "Create Detailed Card"
         description: "Create a card with all available fields"
-        input_json:
-          list_id: "60d21b4c80ebf333ddc2d932"
-          name: "Deploy to Production"
-          desc: "Follow deployment checklist and coordinate with DevOps team"
-          due: "2023-07-25T16:00:00Z"
-          label_ids: ["60d21b4c80ebf333ddc2d940", "60d21b4c80ebf333ddc2d942"]
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d938"
-            name: "Deploy to Production"
-            desc: "Follow deployment checklist and coordinate with DevOps team"
-            idBoard: "60d21b4c80ebf333ddc2d931"
-            idList: "60d21b4c80ebf333ddc2d932"
-            due: "2023-07-25T16:00:00Z"
-            labels:
-              - id: "60d21b4c80ebf333ddc2d940"
-                name: "Backend"
-                color: "green"
-              - id: "60d21b4c80ebf333ddc2d942"
-                name: "DevOps"
-                color: "orange"
+        input_json: |
+          {
+            "list_id": "60d21b4c80ebf333ddc2d932",
+            "name": "Deploy to Production",
+            "desc": "Follow deployment checklist and coordinate with DevOps team",
+            "due": "2023-07-25T16:00:00Z",
+            "label_ids": ["60d21b4c80ebf333ddc2d940", "60d21b4c80ebf333ddc2d942"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d938",
+              "name": "Deploy to Production",
+              "desc": "Follow deployment checklist and coordinate with DevOps team",
+              "idBoard": "60d21b4c80ebf333ddc2d931",
+              "idList": "60d21b4c80ebf333ddc2d932",
+              "due": "2023-07-25T16:00:00Z",
+              "labels": [
+                {
+                  "id": "60d21b4c80ebf333ddc2d940",
+                  "name": "Backend",
+                  "color": "green"
+                },
+                {
+                  "id": "60d21b4c80ebf333ddc2d942",
+                  "name": "DevOps",
+                  "color": "orange"
+                }
+              ]
+            }
+          }
 
   - endpoint: "/trello/update_card"
     examples:
       - scenario: "Update Card Name and Description"
         description: "Modify card name and description"
-        input_json:
-          card_id: "60d21b4c80ebf333ddc2d935"
-          card_update:
-            name: "Implement OAuth2 Authentication"
-            desc: "Add OAuth2 authentication to all API endpoints and document the process"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d935"
-            name: "Implement OAuth2 Authentication"
-            desc: "Add OAuth2 authentication to all API endpoints and document the process"
-            idBoard: "60d21b4c80ebf333ddc2d931"
-            idList: "60d21b4c80ebf333ddc2d932"
+        input_json: |
+          {
+            "card_id": "60d21b4c80ebf333ddc2d935",
+            "card_update": {
+              "name": "Implement OAuth2 Authentication",
+              "desc": "Add OAuth2 authentication to all API endpoints and document the process"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d935",
+              "name": "Implement OAuth2 Authentication",
+              "desc": "Add OAuth2 authentication to all API endpoints and document the process",
+              "idBoard": "60d21b4c80ebf333ddc2d931",
+              "idList": "60d21b4c80ebf333ddc2d932"
+            }
+          }
 
   - endpoint: "/trello/delete_card"
     examples:
       - scenario: "Delete Card"
         description: "Delete (archive) a card"
-        input_json:
-          card_id: "60d21b4c80ebf333ddc2d935"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d935"
-            closed: true
+        input_json: |
+          {
+            "card_id": "60d21b4c80ebf333ddc2d935"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d935",
+              "closed": true
+            }
+          }
 
   - endpoint: "/trello/get_boards"
     examples:
       - scenario: "Get User Boards"
         description: "Retrieve all boards for the authenticated user"
-        input_json: {}
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d931"
-              name: "Project Alpha"
-              desc: "Main development board for Project Alpha"
-              url: "https://trello.com/b/abc123/project-alpha"
-              shortUrl: "https://trello.com/b/abc123"
-            - id: "60d21b4c80ebf333ddc2d950"
-              name: "Marketing Campaigns"
-              desc: "Board for tracking marketing initiatives"
-              url: "https://trello.com/b/def456/marketing-campaigns"
-              shortUrl: "https://trello.com/b/def456"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d931",
+                "name": "Project Alpha",
+                "desc": "Main development board for Project Alpha",
+                "url": "https://trello.com/b/abc123/project-alpha",
+                "shortUrl": "https://trello.com/b/abc123"
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d950",
+                "name": "Marketing Campaigns",
+                "desc": "Board for tracking marketing initiatives",
+                "url": "https://trello.com/b/def456/marketing-campaigns",
+                "shortUrl": "https://trello.com/b/def456"
+              }
+            ]
+          }
 
   - endpoint: "/trello/get_board"
     examples:
       - scenario: "Get Board Details"
         description: "Retrieve details for a specific board"
-        input_json:
-          board_id: "60d21b4c80ebf333ddc2d931"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d931"
-            name: "Project Alpha"
-            desc: "Main development board for Project Alpha"
-            closed: false
-            url: "https://trello.com/b/abc123/project-alpha"
-            shortUrl: "https://trello.com/b/abc123"
+        input_json: |
+          {
+            "board_id": "60d21b4c80ebf333ddc2d931"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d931",
+              "name": "Project Alpha",
+              "desc": "Main development board for Project Alpha",
+              "closed": false,
+              "url": "https://trello.com/b/abc123/project-alpha",
+              "shortUrl": "https://trello.com/b/abc123"
+            }
+          }
 
   - endpoint: "/trello/get_lists"
     examples:
       - scenario: "Get Board Lists"
         description: "Retrieve all lists on a board"
-        input_json:
-          board_id: "60d21b4c80ebf333ddc2d931"
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d932"
-              name: "To Do"
-              closed: false
-              idBoard: "60d21b4c80ebf333ddc2d931"
-              pos: 16384
-            - id: "60d21b4c80ebf333ddc2d933"
-              name: "In Progress"
-              closed: false
-              idBoard: "60d21b4c80ebf333ddc2d931"
-              pos: 32768
-            - id: "60d21b4c80ebf333ddc2d934"
-              name: "Done"
-              closed: false
-              idBoard: "60d21b4c80ebf333ddc2d931"
-              pos: 49152
+        input_json: |
+          {
+            "board_id": "60d21b4c80ebf333ddc2d931"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d932",
+                "name": "To Do",
+                "closed": false,
+                "idBoard": "60d21b4c80ebf333ddc2d931",
+                "pos": 16384
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d933",
+                "name": "In Progress",
+                "closed": false,
+                "idBoard": "60d21b4c80ebf333ddc2d931",
+                "pos": 32768
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d934",
+                "name": "Done",
+                "closed": false,
+                "idBoard": "60d21b4c80ebf333ddc2d931",
+                "pos": 49152
+              }
+            ]
+          }
 
   - endpoint: "/trello/get_list"
     examples:
       - scenario: "Get List Details"
         description: "Retrieve details for a specific list"
-        input_json:
-          list_id: "60d21b4c80ebf333ddc2d932"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d932"
-            name: "To Do"
-            closed: false
-            idBoard: "60d21b4c80ebf333ddc2d931"
-            pos: 16384
+        input_json: |
+          {
+            "list_id": "60d21b4c80ebf333ddc2d932"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d932",
+              "name": "To Do",
+              "closed": false,
+              "idBoard": "60d21b4c80ebf333ddc2d931",
+              "pos": 16384
+            }
+          }
 
   - endpoint: "/trello/get_card_checklists"
     examples:
       - scenario: "Get Card Checklists"
         description: "Retrieve all checklists on a card"
-        input_json:
-          card_id: "60d21b4c80ebf333ddc2d935"
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d960"
-              name: "Authentication Implementation Steps"
-              checkItems:
-                - id: "60d21b4c80ebf333ddc2d961"
-                  name: "Research OAuth2 libraries"
-                  state: "complete"
-                  pos: 16384
-                - id: "60d21b4c80ebf333ddc2d962"
-                  name: "Implement token generation"
-                  state: "incomplete"
-                  pos: 32768
-                - id: "60d21b4c80ebf333ddc2d963"
-                  name: "Add token validation middleware"
-                  state: "incomplete"
-                  pos: 49152
+        input_json: |
+          {
+            "card_id": "60d21b4c80ebf333ddc2d935"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d960",
+                "name": "Authentication Implementation Steps",
+                "checkItems": [
+                  {
+                    "id": "60d21b4c80ebf333ddc2d961",
+                    "name": "Research OAuth2 libraries",
+                    "state": "complete",
+                    "pos": 16384
+                  },
+                  {
+                    "id": "60d21b4c80ebf333ddc2d962",
+                    "name": "Implement token generation",
+                    "state": "incomplete",
+                    "pos": 32768
+                  },
+                  {
+                    "id": "60d21b4c80ebf333ddc2d963",
+                    "name": "Add token validation middleware",
+                    "state": "incomplete",
+                    "pos": 49152
+                  }
+                ]
+              }
+            ]
+          }
 
   - endpoint: "/trello/create_checklist"
     examples:
       - scenario: "Create Checklist"
         description: "Create a new checklist on a card"
-        input_json:
-          card_id: "60d21b4c80ebf333ddc2d935"
-          name: "Testing Checklist"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d965"
-            name: "Testing Checklist"
-            checkItems: []
+        input_json: |
+          {
+            "card_id": "60d21b4c80ebf333ddc2d935",
+            "name": "Testing Checklist"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d965",
+              "name": "Testing Checklist",
+              "checkItems": []
+            }
+          }
 
   - endpoint: "/trello/create_checklist_item"
     examples:
       - scenario: "Create Checklist Item"
         description: "Add a new item to a checklist"
-        input_json:
-          checklist_id: "60d21b4c80ebf333ddc2d965"
-          name: "Write unit tests"
-          checked: false
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d966"
-            name: "Write unit tests"
-            state: "incomplete"
-            pos: 16384
+        input_json: |
+          {
+            "checklist_id": "60d21b4c80ebf333ddc2d965",
+            "name": "Write unit tests",
+            "checked": false
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d966",
+              "name": "Write unit tests",
+              "state": "incomplete",
+              "pos": 16384
+            }
+          }
 
   - endpoint: "/trello/get_organizations"
     examples:
       - scenario: "Get User Organizations"
         description: "Retrieve all organizations for the authenticated user"
-        input_json: {}
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d970"
-              name: "acme-corp"
-              displayName: "Acme Corporation"
-              desc: "Organization for Acme Corp teams"
-              url: "https://trello.com/acme-corp"
-            - id: "60d21b4c80ebf333ddc2d971"
-              name: "personal-workspace"
-              displayName: "Personal Workspace"
-              desc: "Personal projects and tasks"
-              url: "https://trello.com/personal-workspace"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d970",
+                "name": "acme-corp",
+                "displayName": "Acme Corporation",
+                "desc": "Organization for Acme Corp teams",
+                "url": "https://trello.com/acme-corp"
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d971",
+                "name": "personal-workspace",
+                "displayName": "Personal Workspace",
+                "desc": "Personal projects and tasks",
+                "url": "https://trello.com/personal-workspace"
+              }
+            ]
+          }
 
   - endpoint: "/trello/get_organization"
     examples:
       - scenario: "Get Organization Details"
         description: "Retrieve details for a specific organization"
-        input_json:
-          org_id: "60d21b4c80ebf333ddc2d970"
-        output_json:
-          data:
-            id: "60d21b4c80ebf333ddc2d970"
-            name: "acme-corp"
-            displayName: "Acme Corporation"
-            desc: "Organization for Acme Corp teams"
-            url: "https://trello.com/acme-corp"
-            website: "https://acme-corp.example.com"
+        input_json: |
+          {
+            "org_id": "60d21b4c80ebf333ddc2d970"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "60d21b4c80ebf333ddc2d970",
+              "name": "acme-corp",
+              "displayName": "Acme Corporation",
+              "desc": "Organization for Acme Corp teams",
+              "url": "https://trello.com/acme-corp",
+              "website": "https://acme-corp.example.com"
+            }
+          }
 
   - endpoint: "/trello/get_organization_boards"
     examples:
       - scenario: "Get Organization Boards"
         description: "Retrieve all boards in an organization"
-        input_json:
-          org_id: "60d21b4c80ebf333ddc2d970"
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d931"
-              name: "Project Alpha"
-              desc: "Main development board for Project Alpha"
-              url: "https://trello.com/b/abc123/project-alpha"
-              shortUrl: "https://trello.com/b/abc123"
-            - id: "60d21b4c80ebf333ddc2d975"
-              name: "Project Beta"
-              desc: "Development board for Project Beta"
-              url: "https://trello.com/b/ghi789/project-beta"
-              shortUrl: "https://trello.com/b/ghi789"
+        input_json: |
+          {
+            "org_id": "60d21b4c80ebf333ddc2d970"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d931",
+                "name": "Project Alpha",
+                "desc": "Main development board for Project Alpha",
+                "url": "https://trello.com/b/abc123/project-alpha",
+                "shortUrl": "https://trello.com/b/abc123"
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d975",
+                "name": "Project Beta",
+                "desc": "Development board for Project Beta",
+                "url": "https://trello.com/b/ghi789/project-beta",
+                "shortUrl": "https://trello.com/b/ghi789"
+              }
+            ]
+          }
 
   - endpoint: "/trello/get_organization_members"
     examples:
       - scenario: "Get Organization Members"
         description: "Retrieve all members of an organization"
-        input_json:
-          org_id: "60d21b4c80ebf333ddc2d970"
-        output_json:
-          data:
-            - id: "60d21b4c80ebf333ddc2d980"
-              username: "johndoe"
-              fullName: "John Doe"
-              avatarUrl: "https://trello-members.s3.amazonaws.com/60d21b4c80ebf333ddc2d980/avatar.png"
-            - id: "60d21b4c80ebf333ddc2d981"
-              username: "janedoe"
-              fullName: "Jane Doe"
-              avatarUrl: "https://trello-members.s3.amazonaws.com/60d21b4c80ebf333ddc2d981/avatar.png"
+        input_json: |
+          {
+            "org_id": "60d21b4c80ebf333ddc2d970"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "60d21b4c80ebf333ddc2d980",
+                "username": "johndoe",
+                "fullName": "John Doe",
+                "avatarUrl": "https://trello-members.s3.amazonaws.com/60d21b4c80ebf333ddc2d980/avatar.png"
+              },
+              {
+                "id": "60d21b4c80ebf333ddc2d981",
+                "username": "janedoe",
+                "fullName": "Jane Doe",
+                "avatarUrl": "https://trello-members.s3.amazonaws.com/60d21b4c80ebf333ddc2d981/avatar.png"
+              }
+            ]
+          }

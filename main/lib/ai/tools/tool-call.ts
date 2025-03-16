@@ -32,6 +32,8 @@ export const tool_call = tool({
         body: JSON.stringify(params),
         credentials: 'include'
       });
+      console.log('params', params);
+      console.log('response.ok', response.ok);
       
       if (!response.ok) {
         const errorText = await response.text();

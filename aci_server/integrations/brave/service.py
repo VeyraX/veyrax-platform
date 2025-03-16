@@ -80,14 +80,11 @@ class BraveService:
         return None
 
     def _calculate_aspect_ratio(self, width: Optional[str], height: Optional[str]) -> Optional[float]:
-        try:
-            w = self._get_pixel_value(width)
-            h = self._get_pixel_value(height)
-            if w and h and h != 0:
-                return round(w / h, 2)
-            return None
-        except (TypeError, ValueError):
-            return None
+        w = self._get_pixel_value(width)
+        h = self._get_pixel_value(height)
+        if w and h and h != 0:
+            return round(w / h, 2)
+        return None
 
     def video_search(self, params: VideoSearchParams) -> ApiResponse:
         """Perform video search and format response"""
@@ -113,25 +110,19 @@ class BraveService:
     def _convert_duration(self, seconds: Optional[int]) -> Optional[str]:
         if not seconds:
             return None
-        try:
-            return f"{seconds // 3600:02}:{(seconds % 3600) // 60:02}:{seconds % 60:02}"
-        except TypeError:
-            return None
+        return f"{seconds // 3600:02}:{(seconds % 3600) // 60:02}:{seconds % 60:02}"
 
     def _parse_views(self, view_data: Optional[Any]) -> Optional[int]:
         """Handle multiple view count formats from API"""
         if not view_data:
             return None
         
-        try:
-            if isinstance(view_data, int):
-                return view_data
-            if isinstance(view_data, str):
-                return int(view_data.replace(',', '').replace(' views', ''))
-            if isinstance(view_data, dict):
-                return int(view_data.get('count', 0))
-        except (ValueError, TypeError):
-            pass
+        if isinstance(view_data, int):
+            return view_data
+        if isinstance(view_data, str):
+            return int(view_data.replace(',', '').replace(' views', ''))
+        if isinstance(view_data, dict):
+            return int(view_data.get('count', 0))
         return None
 
     def news_search(self, params: NewsSearchParams) -> ApiResponse:
@@ -172,17 +163,11 @@ class BraveService:
         return params_dict
 
     def _convert_date_to_freshness(self, date_str: str) -> str:
-        """Convert date formats to Brave's freshness codes while preserving ranges"""
-        try:
-            # Handle date ranges first (YYYY-MM-DDtoYYYY-MM-DD)
-            if 'to' in date_str:
-                return date_str
-            
-            # Handle single date formats
-            if len(date_str) == 7:  # YYYY-MM
-                return "pm"
-            elif len(date_str) == 10:  # YYYY-MM-DD
-                return "pd"
-        except ValueError:
-            pass
+        if 'to' in date_str:
+            return date_str
+        
+        if len(date_str) == 7:
+            return "pm"
+        elif len(date_str) == 10:
+            return "pd"
         return date_str 

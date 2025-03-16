@@ -30,71 +30,62 @@ class PostgreSQLService:
         return ApiResponse(data=data, component=components)
 
     def execute_query(self, query: str, limit: Optional[int] = None) -> ApiResponse:
-        try:
-            if limit is not None:
-                if "LIMIT" not in query.upper():
-                    query = f"{query} LIMIT {limit}"
-            
-            results = self.client.execute_query(query)
-            
-            query_result = QueryResult(
-                rows=results,
-                row_count=len(results),
-                query=query
-            )
-            
-            return self.prepare_response(query_result, "PostgreSQLQueryResultTable")
-        except Exception as e:
-            return ApiResponse(message=f"Error executing query: {str(e)}")
+        if limit is not None:
+            if "LIMIT" not in query.upper():
+                query = f"{query} LIMIT {limit}"
+        
+        results = self.client.execute_query(query)
+        
+        query_result = QueryResult(
+            rows=results,
+            row_count=len(results),
+            query=query
+        )
+        
+        return self.prepare_response(query_result, "PostgreSQLQueryResultTable")
 
     def get_tables(self) -> ApiResponse:
-        try:
-            tables_data = self.client.get_tables()
-            
-            tables = []
-            for table_data in tables_data:
-                tables.append(TableInfo(
-                    table_name=table_data['table_name'],
-                    table_type=table_data['table_type'],
-                    table_description=table_data['table_description']
-                ))
-            
-            schema = self.client.schema
-            
-            table_list = TableList(
-                tables=tables,
-                schema=schema
-            )
-            
-            return self.prepare_response(table_list, "PostgreSQLTableList")
-        except Exception as e:
-            return ApiResponse(message=f"Error retrieving tables: {str(e)}")
+        tables_data = self.client.get_tables()
+        
+        tables = []
+        for table_data in tables_data:
+            tables.append(TableInfo(
+                table_name=table_data['table_name'],
+                table_type=table_data['table_type'],
+                table_description=table_data['table_description']
+            ))
+        
+        schema = self.client.schema
+        
+        table_list = TableList(
+            tables=tables,
+            schema=schema
+        )
+        
+        return self.prepare_response(table_list, "PostgreSQLTableList")
 
     def get_columns(self, table_name: str) -> ApiResponse:
-        try:
-            columns_data = self.client.get_columns(table_name)
-            
-            columns = []
-            for column_data in columns_data:
-                columns.append(ColumnInfo(
-                    column_name=column_data['column_name'],
-                    data_type=column_data['data_type'],
-                    is_nullable=column_data['is_nullable'],
-                    column_default=column_data['column_default'],
-                    column_description=column_data['column_description']
-                ))
-            
-            schema = self.client.schema
-            
-            column_list = ColumnList(
-                columns=columns,
-                table_name=table_name,
-                schema=schema
-            )
-            
-            return self.prepare_response(column_list, "PostgreSQLColumnList")
-        except Exception as e:
-            return ApiResponse(message=f"Error retrieving columns: {str(e)}")
+        columns_data = self.client.get_columns(table_name)
+        
+        columns = []
+        for column_data in columns_data:
+            columns.append(ColumnInfo(
+                column_name=column_data['column_name'],
+                data_type=column_data['data_type'],
+                is_nullable=column_data['is_nullable'],
+                column_default=column_data['column_default'],
+                column_description=column_data['column_description']
+            ))
+        
+        schema = self.client.schema
+        
+        column_list = ColumnList(
+            columns=columns,
+            table_name=table_name,
+            schema=schema
+        )
+        
+        return self.prepare_response(column_list, "PostgreSQLColumnList")
 
     def test_connection(self) -> ApiResponse:
         try:

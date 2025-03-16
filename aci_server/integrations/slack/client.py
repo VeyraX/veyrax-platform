@@ -67,7 +67,4 @@ class SlackClient:
         return self.client.conversations_open(users=[user_id])
 
     def join_channel(self, channel: str) -> Dict[str, Any]:
-        try:
-            return self.client.conversations_join(channel=channel)
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        return self.client.conversations_join(channel=channel)

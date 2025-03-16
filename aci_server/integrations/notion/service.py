@@ -153,43 +153,39 @@ class NotionService:
         return self.prepare_response(page_list, "NotionPageCard")
 
     def get_page(self, page_id: str) -> ApiResponse:
-        try:
-            # Format the page ID to ensure it has the correct format
-            formatted_page_id = self.format_page_id(page_id)
-            
-            response = self.client.get_page(formatted_page_id)
-            validated_response = self._handle_notion_response(response)
-            
-            blocks_response = self.client.get_block_children(formatted_page_id)
-            validated_blocks = self._handle_notion_response(blocks_response)
-            
-            title = ""
-            properties = validated_response.get('properties', {})
-            title_prop = properties.get('Name') or properties.get('Title')
-            if title_prop and title_prop.get('title'):
-                title = " ".join(
-                    text.get('plain_text', '')
-                    for text in title_prop['title']
-                )
-            
-            page = Page(
-                id=validated_response.get('id'),
-                title=title,
-                properties=properties,
-                created_time=validated_response.get('created_time'),
-                last_edited_time=validated_response.get('last_edited_time'),
-                url=validated_response.get('url'),
-                parent=validated_response.get('parent')
+        # Format the page ID to ensure it has the correct format
+        formatted_page_id = self.format_page_id(page_id)
+        
+        response = self.client.get_page(formatted_page_id)
+        validated_response = self._handle_notion_response(response)
+        
+        blocks_response = self.client.get_block_children(formatted_page_id)
+        validated_blocks = self._handle_notion_response(blocks_response)
+        
+        title = ""
+        properties = validated_response.get('properties', {})
+        title_prop = properties.get('Name') or properties.get('Title')
+        if title_prop and title_prop.get('title'):
+            title = " ".join(
+                text.get('plain_text', '')
+                for text in title_prop['title']
             )
-            
-            return self.prepare_response(page, "NotionPageCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        
+        page = Page(
+            id=validated_response.get('id'),
+            title=title,
+            properties=properties,
+            created_time=validated_response.get('created_time'),
+            last_edited_time=validated_response.get('last_edited_time'),
+            url=validated_response.get('url'),
+            parent=validated_response.get('parent')
+        )
+        
+        return self.prepare_response(page, "NotionPageCard")
         
     def _find_database_blocks(self, children: Optional[List[Dict[str, Any]]] = None):
         if children is None:
             return [], None, []
-
 
         new_children = []
         database_block = None
@@ -205,165 +201,157 @@ class NotionService:
         return new_children, database_block, rest_children
 
     def create_page(self, page_data: PageCreate) -> ApiResponse:
-        try:            
-            # Process properties to handle people properties correctly
-            processed_properties = {}
-            for prop_name, prop_value in page_data.properties.items():
-                if isinstance(prop_value, dict) and 'people' in prop_value:
-                    # Handle people property
-                    people_list = prop_value.get('people', [])
-                    processed_people = []
-                    
-                    for person in people_list:
-                        if isinstance(person, dict) and 'id' in person:
-                            # If it's already a properly formatted person object, use it
-                            processed_people.append({"id": person['id']})
-                        elif isinstance(person, dict) and 'object' in person and person.get('object') == 'user':
-                            # If it's a user object with an ID, extract the ID
-                            user_id = person.get('id')
-                            if user_id:
-                                processed_people.append({"id": user_id})
-                    
-                    processed_properties[prop_name] = {
-                        'people': processed_people
+        # Process properties to handle people properties correctly
+        processed_properties = {}
+        for prop_name, prop_value in page_data.properties.items():
+            if isinstance(prop_value, dict) and 'people' in prop_value:
+                # Handle people property
+                people_list = prop_value.get('people', [])
+                processed_people = []
+                
+                for person in people_list:
+                    if isinstance(person, dict) and 'id' in person:
+                        # If it's already a properly formatted person object, use it
+                        processed_people.append({"id": person['id']})
+                    elif isinstance(person, dict) and 'object' in person and person.get('object') == 'user':
+                        # If it's a user object with an ID, extract the ID
+                        user_id = person.get('id')
+                        if user_id:
+                            processed_people.append({"id": user_id})
+                
+                processed_properties[prop_name] = {
+                    'people': processed_people
+                }
+            else:
+                processed_properties[prop_name] = prop_value
+        
+        # Create the page
+        payload = {
+            "parent": page_data.parent.dict(),
+            "properties": processed_properties
+        }
+
+        new_children, database_block, rest_children = self._find_database_blocks(page_data.children)
+        
+        payload["children"] = new_children
+        
+        response = self.client.create_page(payload)
+
+        page_id = response.get('id')
+
+        if database_block:
+            database = database_block.get("database", {})
+
+            # Convert properties to ensure compatibility with Notion API
+            properties = database.get("properties", {})
+            modified_properties = {}
+            
+            # Convert status properties to select properties (Notion API limitation)
+            for prop_name, prop_value in properties.items():
+                if "status" in prop_value:
+                    # Convert status to select
+                    modified_properties[prop_name] = {
+                        "select": {
+                            "options": prop_value.get("status", {}).get("options", [])
+                        }
                     }
                 else:
-                    processed_properties[prop_name] = prop_value
+                    modified_properties[prop_name] = prop_value
             
-            # Create the page
-            payload = {
-                "parent": page_data.parent.dict(),
-                "properties": processed_properties
+            transformed_obj = {
+                "parent": {
+                    "type": "page_id",
+                    "page_id": page_id
+                },
+                "is_inline": True,
+                "title": database.get("title", []),
+                "properties": modified_properties
             }
+        
+            db = self.client.create_database(transformed_obj)
 
-
-            new_children, database_block, rest_children = self._find_database_blocks(page_data.children)
-
-            
-            payload["children"] = new_children
-            
-            response = self.client.create_page(payload)
-
-            page_id = response.get('id')
-
-            if database_block:
-                database = database_block.get("database", {})
-    
-                # Convert properties to ensure compatibility with Notion API
-                properties = database.get("properties", {})
-                modified_properties = {}
-                
-                # Convert status properties to select properties (Notion API limitation)
-                for prop_name, prop_value in properties.items():
-                    if "status" in prop_value:
-                        # Convert status to select
-                        modified_properties[prop_name] = {
-                            "select": {
-                                "options": prop_value.get("status", {}).get("options", [])
-                            }
-                        }
-                    else:
-                        modified_properties[prop_name] = prop_value
-                
-                transformed_obj = {
-                    "parent": {
-                        "type": "page_id",
-                        "page_id": page_id
-                    },
-                    "is_inline": True,
-                    "title": database.get("title", []),
-                    "properties": modified_properties
-                }
-            
-                db = self.client.create_database(transformed_obj)
-
-            if len(rest_children) > 0:
-                self.client.append_block_children(page_id, rest_children)
-            
-            if 'object' in response and response['object'] == 'error':
-                raise HTTPException(
-                    status_code=response.get('status', 500),
-                    detail=response.get('message', 'Failed to create page in Notion')
-                )
-                
-            # Extract the title from properties
-            title = self._extract_title(response.get('properties', {}))
-            
-            # Get the properties
-            properties = response.get('properties', {})
-            
-            # Create a Page object
-            page = Page(
-                id=response.get('id'),
-                title=title,
-                properties=properties,
-                created_time=response.get('created_time'),
-                last_edited_time=response.get('last_edited_time'),
-                url=response.get('url'),
-                parent=response.get('parent')
+        if len(rest_children) > 0:
+            self.client.append_block_children(page_id, rest_children)
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', 'Failed to create page in Notion')
             )
             
-            # Wrap the page in a PageList to make it compatible with the NotionPageCard component
-            page_list = PageList(items=[page], next_cursor=None)
-            
-            return self.prepare_response(page_list, "NotionPageCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        # Extract the title from properties
+        title = self._extract_title(response.get('properties', {}))
+        
+        # Get the properties
+        properties = response.get('properties', {})
+        
+        # Create a Page object
+        page = Page(
+            id=response.get('id'),
+            title=title,
+            properties=properties,
+            created_time=response.get('created_time'),
+            last_edited_time=response.get('last_edited_time'),
+            url=response.get('url'),
+            parent=response.get('parent')
+        )
+        
+        # Wrap the page in a PageList to make it compatible with the NotionPageCard component
+        page_list = PageList(items=[page], next_cursor=None)
+        
+        return self.prepare_response(page_list, "NotionPageCard")
 
     def create_database(self, database_data: DatabaseCreate) -> ApiResponse:
-        try:
-            # Process properties to replace status properties with select properties
-            processed_properties = {}
-            for prop_name, prop_value in database_data.properties.items():
-                # If it's a status property, replace it with a select property
-                if isinstance(prop_value, dict) and 'status' in prop_value:
-                    # Convert status to select
-                    select_options = []
-                    if 'options' in prop_value.get('status', {}):
-                        select_options = prop_value['status']['options']
-                    
-                    processed_properties[prop_name] = {
-                        'select': {
-                            'options': select_options
-                        }
+        # Process properties to replace status properties with select properties
+        processed_properties = {}
+        for prop_name, prop_value in database_data.properties.items():
+            # If it's a status property, replace it with a select property
+            if isinstance(prop_value, dict) and 'status' in prop_value:
+                # Convert status to select
+                select_options = []
+                if 'options' in prop_value.get('status', {}):
+                    select_options = prop_value['status']['options']
+                
+                processed_properties[prop_name] = {
+                    'select': {
+                        'options': select_options
                     }
-                else:
-                    processed_properties[prop_name] = prop_value
-            
-            payload = {
-                "parent": database_data.parent.dict(),
-                "title": database_data.title,
-                "properties": processed_properties,
-                "is_inline": database_data.is_inline
-            }
-            
-            response = self.client.create_database(payload)
-            
-            if 'object' in response and response['object'] == 'error':
-                raise HTTPException(
-                    status_code=response.get('status', 500),
-                    detail=response.get('message', 'Failed to create database in Notion')
-                )
-            
-            # Extract the title
-            title = " ".join(
-                text.get("plain_text", "")
-                for text in response.get('title', [])
+                }
+            else:
+                processed_properties[prop_name] = prop_value
+        
+        payload = {
+            "parent": database_data.parent.dict(),
+            "title": database_data.title,
+            "properties": processed_properties,
+            "is_inline": database_data.is_inline
+        }
+        
+        response = self.client.create_database(payload)
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', 'Failed to create database in Notion')
             )
-            
-            # Create a Database object
-            database = Database(
-                id=response.get('id'),
-                title=title,
-                properties=response.get('properties'),
-                url=response.get('url'),
-                created_time=response.get('created_time'),
-                last_edited_time=response.get('last_edited_time')
-            )
-            
-            return self.prepare_response(database, "NotionDatabaseCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        
+        # Extract the title
+        title = " ".join(
+            text.get("plain_text", "")
+            for text in response.get('title', [])
+        )
+        
+        # Create a Database object
+        database = Database(
+            id=response.get('id'),
+            title=title,
+            properties=response.get('properties'),
+            url=response.get('url'),
+            created_time=response.get('created_time'),
+            last_edited_time=response.get('last_edited_time')
+        )
+        
+        return self.prepare_response(database, "NotionDatabaseCard")
 
     def _extract_title(self, properties: dict) -> str:
         title_prop = properties.get("Name", properties.get("Title", {}))
@@ -378,39 +366,36 @@ class NotionService:
         return ""
 
     def update_page(self, page_id: str, page_data: PageUpdate) -> ApiResponse:
-        try:
-            # Format the page ID to ensure it has the correct format
-            formatted_page_id = self.format_page_id(page_id)
-            
-            payload = {
-                "properties": page_data.properties
-            }
-            
-            response = self.client.update_page(formatted_page_id, payload)
-            
-            if 'object' in response and response['object'] == 'error':
-                raise HTTPException(
-                    status_code=response.get('status', 500),
-                    detail=response.get('message', 'Failed to update page in Notion')
-                )
-                
-            # Extract the title from properties
-            title = self._extract_title(response.get('properties', {}))
-            
-            # Create a Page object
-            page = Page(
-                id=response.get('id'),
-                title=title,
-                properties=response.get('properties', {}),
-                created_time=response.get('created_time'),
-                last_edited_time=response.get('last_edited_time'),
-                url=response.get('url'),
-                parent=response.get('parent')
+        # Format the page ID to ensure it has the correct format
+        formatted_page_id = self.format_page_id(page_id)
+        
+        payload = {
+            "properties": page_data.properties
+        }
+        
+        response = self.client.update_page(formatted_page_id, payload)
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', 'Failed to update page in Notion')
             )
             
-            return self.prepare_response(page, "NotionPageCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        # Extract the title from properties
+        title = self._extract_title(response.get('properties', {}))
+        
+        # Create a Page object
+        page = Page(
+            id=response.get('id'),
+            title=title,
+            properties=response.get('properties', {}),
+            created_time=response.get('created_time'),
+            last_edited_time=response.get('last_edited_time'),
+            url=response.get('url'),
+            parent=response.get('parent')
+        )
+        
+        return self.prepare_response(page, "NotionPageCard")
 
     def append_block_children(self, block_id: str, children: List[Dict[str, Any]]) -> ApiResponse:
         """
@@ -423,69 +408,53 @@ class NotionService:
         Returns:
             The response from the Notion API
         """
-        try:
-            # Format the block ID to ensure it has the correct format
-            formatted_block_id = self.format_page_id(block_id)
-            
-            response = self.client.append_block_children(formatted_block_id, children)
-            
-            if 'object' in response and response['object'] == 'error':
-                raise HTTPException(
-                    status_code=response.get('status', 500),
-                    detail=response.get('message', 'Failed to append blocks in Notion')
-                )
-            
-            # Create a custom response that matches the ApiResponse model
-            # We'll use a Page object with the block_id as the page ID
-            page = Page(
-                id=formatted_block_id,
-                title="Block updated",
-                properties={},
-                url=f"https://www.notion.so/{formatted_block_id.replace('-', '')}"
+        # Format the block ID to ensure it has the correct format
+        formatted_block_id = self.format_page_id(block_id)
+        
+        response = self.client.append_block_children(formatted_block_id, children)
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', 'Failed to append blocks in Notion')
             )
-            
-            return self.prepare_response(page, "NotionPageCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        
+        # Create a custom response that matches the ApiResponse model
+        # We'll use a Page object with the block_id as the page ID
+        page = Page(
+            id=formatted_block_id,
+            title="Block updated",
+            properties={},
+            url=f"https://www.notion.so/{formatted_block_id.replace('-', '')}"
+        )
+        
+        return self.prepare_response(page, "NotionPageCard")
 
     def create_page_with_database(self, page_data: PageCreate, database_id: str) -> ApiResponse:
-        """
-        Create a page and append a database reference to it.
+        # Format the database ID to ensure it has the correct format
+        formatted_database_id = self.format_page_id(database_id)
         
-        Args:
-            page_data: The page data to create
-            database_id: The ID of the database to reference
-            
-        Returns:
-            The created page with the database reference
-        """
-        try:
-            # Format the database ID to ensure it has the correct format
-            formatted_database_id = self.format_page_id(database_id)
-            
-            # Create the page first
-            page_response = self.create_page(page_data)
-            
-            # Get the page ID from the response
-            page_id = page_response.data.items[0].id
-            
-            # Create the database reference block
-            database_block = {
-                "object": "block",
-                "type": "link_to_page",
-                "link_to_page": {
-                    "type": "database_id",
-                    "database_id": formatted_database_id
-                }
+        # Create the page first
+        page_response = self.create_page(page_data)
+        
+        # Get the page ID from the response
+        page_id = page_response.data.items[0].id
+        
+        # Create the database reference block
+        database_block = {
+            "object": "block",
+            "type": "link_to_page",
+            "link_to_page": {
+                "type": "database_id",
+                "database_id": formatted_database_id
             }
-            
-            # Append the database reference to the page
-            self.client.append_block_children(page_id, [database_block])
-            
-            # Return the original page response
-            return page_response
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        }
+        
+        # Append the database reference to the page
+        self.client.append_block_children(page_id, [database_block])
+        
+        # Return the original page response
+        return page_response
 
     def get_database(self, database_id: str) -> ApiResponse:
         """Get database details including its schema"""
@@ -562,162 +531,123 @@ class NotionService:
         return self.prepare_response(page_list, "NotionPageCard")
 
     def search(self, filters: Optional[PageFilters] = None, start_cursor: Optional[str] = None) -> ApiResponse:
-        try:
-            # Set up search parameters
-            search_params = {}
-            
-            if filters:
-                if filters.query:
-                    search_params["query"] = filters.query
-                if filters.sort_direction:
-                    search_params["sort"] = {
-                        "direction": filters.sort_direction,
-                        "timestamp": "last_edited_time"
-                    }
-                if filters.max_results:
-                    search_params["page_size"] = min(filters.max_results, 100)
-            
-            if start_cursor:
-                search_params["start_cursor"] = start_cursor
-            
-            # Execute the search
-            response = self.client.search_pages(**search_params)
-            
-            # Process the results
-            items = []
-            for item in response.get('results', []):
-                if item.get('object') == 'page':
-                    # Extract title from properties
-                    title = ""
-                    properties = item.get('properties', {})
-                    title_prop = properties.get('Name') or properties.get('Title')
-                    if title_prop and title_prop.get('title'):
-                        title = " ".join(
-                            text.get('plain_text', '')
-                            for text in title_prop['title']
-                        )
-                    
-                    items.append(Page(
-                        id=item.get('id'),
-                        title=title,
-                        properties=properties,
-                        created_time=item.get('created_time'),
-                        last_edited_time=item.get('last_edited_time'),
-                        url=item.get('url'),
-                        parent=item.get('parent')
-                    ))
-                elif item.get('object') == 'database':
-                    # Extract title from title array
+        # Set up search parameters
+        search_params = {}
+        
+        if filters:
+            if filters.query:
+                search_params["query"] = filters.query
+            if filters.sort_direction:
+                search_params["sort"] = {
+                    "direction": filters.sort_direction,
+                    "timestamp": "last_edited_time"
+                }
+            if filters.max_results:
+                search_params["page_size"] = min(filters.max_results, 100)
+        
+        if start_cursor:
+            search_params["start_cursor"] = start_cursor
+        
+        # Execute the search
+        response = self.client.search_pages(**search_params)
+        
+        # Process the results
+        items = []
+        for item in response.get('results', []):
+            if item.get('object') == 'page':
+                # Extract title from properties
+                title = ""
+                properties = item.get('properties', {})
+                title_prop = properties.get('Name') or properties.get('Title')
+                if title_prop and title_prop.get('title'):
                     title = " ".join(
                         text.get('plain_text', '')
-                        for text in item.get('title', [])
+                        for text in title_prop['title']
                     )
-                    
-                    items.append(Database(
-                        id=item.get('id'),
-                        title=title,
-                        properties=item.get('properties'),
-                        url=item.get('url'),
-                        created_time=item.get('created_time'),
-                        last_edited_time=item.get('last_edited_time')
-                    ))
-            
-            search_result = SearchResult(
-                items=items,
-                next_cursor=response.get('next_cursor')
-            )
-            
-            return self.prepare_response(search_result, "NotionPageCard")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+                
+                items.append(Page(
+                    id=item.get('id'),
+                    title=title,
+                    properties=properties,
+                    created_time=item.get('created_time'),
+                    last_edited_time=item.get('last_edited_time'),
+                    url=item.get('url'),
+                    parent=item.get('parent')
+                ))
+            elif item.get('object') == 'database':
+                # Extract title from title array
+                title = " ".join(
+                    text.get('plain_text', '')
+                    for text in item.get('title', [])
+                )
+                
+                items.append(Database(
+                    id=item.get('id'),
+                    title=title,
+                    properties=item.get('properties'),
+                    url=item.get('url'),
+                    created_time=item.get('created_time'),
+                    last_edited_time=item.get('last_edited_time')
+                ))
+        
+        search_result = SearchResult(
+            items=items,
+            next_cursor=response.get('next_cursor')
+        )
+        
+        return self.prepare_response(search_result, "NotionPageCard")
 
     def get_users(self, start_cursor: Optional[str] = None, page_size: Optional[int] = None) -> ApiResponse:
-        """
-        Get a list of all users in the workspace.
+        params = {}
+        if start_cursor:
+            params["start_cursor"] = start_cursor
+        if page_size:
+            params["page_size"] = min(page_size, 100)
+            
+        # Pass the params to the client method
+        response = self.client.get_users(**params)
         
-        Args:
-            start_cursor: Pagination cursor
-            page_size: Number of results to return
-            
-        Returns:
-            ApiResponse containing a list of users
-        """
-        try:
-            params = {}
-            if start_cursor:
-                params["start_cursor"] = start_cursor
-            if page_size:
-                params["page_size"] = min(page_size, 100)
-                
-            # Pass the params to the client method
-            response = self.client.get_users(**params)
-            
-            users = []
-            for user in response.get('results', []):
-                users.append(NotionUser(
-                    id=user.get('id'),
-                    name=user.get('name'),
-                    avatar_url=user.get('avatar_url'),
-                    type=user.get('type'),
-                    person=user.get('person'),
-                    bot=user.get('bot')
-                ))
-            
-            user_list = UserList(
-                items=users,
-                next_cursor=response.get('next_cursor')
-            )
-
-            
-            return self.prepare_response(user_list, "NotionUserList")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        users = []
+        for user in response.get('results', []):
+            users.append(NotionUser(
+                id=user.get('id'),
+                name=user.get('name'),
+                avatar_url=user.get('avatar_url'),
+                type=user.get('type'),
+                person=user.get('person'),
+                bot=user.get('bot')
+            ))
+        
+        user_list = UserList(
+            items=users,
+            next_cursor=response.get('next_cursor')
+        )
+        
+        return self.prepare_response(user_list, "NotionUserList")
             
     def get_user(self, user_id: str) -> ApiResponse:
-        """
-        Get a specific user by ID.
+        formatted_user_id = self.format_page_id(user_id)
         
-        Args:
-            user_id: The ID of the user to retrieve
-            
-        Returns:
-            ApiResponse containing the user details
-        """
-        try:
-            # Format the user ID to ensure it has the correct format
-            formatted_user_id = self.format_page_id(user_id)
-            
-            response = self.client.get_user(formatted_user_id)
-            
-            if 'object' in response and response['object'] == 'error':
-                raise HTTPException(
-                    status_code=response.get('status', 500),
-                    detail=response.get('message', 'Failed to get user from Notion')
-                )
-            
-            user = NotionUser(
-                id=response.get('id'),
-                name=response.get('name'),
-                avatar_url=response.get('avatar_url'),
-                type=response.get('type'),
-                person=response.get('person'),
-                bot=response.get('bot')
+        response = self.client.get_user(formatted_user_id)
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', 'Failed to get user from Notion')
             )
-            
-            return self.prepare_response(user, "NotionUser")
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        
+        user = NotionUser(
+            id=response.get('id'),
+            name=response.get('name'),
+            avatar_url=response.get('avatar_url'),
+            type=response.get('type'),
+            person=response.get('person'),
+            bot=response.get('bot')
+        )
+        
+        return self.prepare_response(user, "NotionUser")
             
     def format_people_property(self, user_ids: List[str]) -> List[Dict[str, Any]]:
-        """
-        Format user IDs into the proper format for the people property.
-        
-        Args:
-            user_ids: List of user IDs
-            
-        Returns:
-            List of properly formatted user objects for the people property
-        """
         people = []
         for user_id in user_ids:
             # Format the user ID to ensure it has the correct format

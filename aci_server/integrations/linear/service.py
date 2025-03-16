@@ -23,54 +23,45 @@ class LinearService:
         return ApiResponse(data=data, component=components)
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
-        try:
-            response = self.client.list_issues(cursor, max_results)
-            
-            if not response or 'data' not in response or 'issues' not in response['data']:
-                raise ValueError("Invalid response format from Linear API")
-            
-            data = response['data']['issues']
-            if not data or 'nodes' not in data or 'pageInfo' not in data:
-                raise ValueError("Missing required fields in Linear API response")
-            
-            issues = [Issue(**issue) for issue in data['nodes']]
-            issues_list = IssueList(
-                items=issues,
-                cursor=data['pageInfo'].get('endCursor')
-            )
-            
-            return self.prepare_response(issues_list, "LinearIssueCard")
-        except Exception as e:
-            raise
+        response = self.client.list_issues(cursor, max_results)
+        
+        if not response or 'data' not in response or 'issues' not in response['data']:
+            raise ValueError("Invalid response format from Linear API")
+        
+        data = response['data']['issues']
+        if not data or 'nodes' not in data or 'pageInfo' not in data:
+            raise ValueError("Missing required fields in Linear API response")
+        
+        issues = [Issue(**issue) for issue in data['nodes']]
+        issues_list = IssueList(
+            items=issues,
+            cursor=data['pageInfo'].get('endCursor')
+        )
+        
+        return self.prepare_response(issues_list, "LinearIssueCard")
 
     def search_issues(self, query: str, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
-        try:
-            # Check if query matches ID format (Linear IDs are UUIDs)
-            search_id = query if len(query) == 36 and '-' in query else None
-            
-            response = self.client.search_issues(
-                search_text=query,
-                search_id=search_id,
-                cursor=cursor,
-                max_results=max_results
-            )
-            
-            if not response or 'data' not in response or 'issues' not in response['data']:
-                raise ValueError("Invalid response format from Linear API")
-            
-            data = response['data']['issues']
-            
-            issues = [Issue(**issue) for issue in data['nodes']]
-            issues_list = IssueList(
-                items=issues,
-                cursor=data['pageInfo']['endCursor']
-            )
-            
-            return self.prepare_response(issues_list, "LinearIssueCard")
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            raise ValueError(f"Search failed: {str(e)}")
+        # Check if query matches ID format (Linear IDs are UUIDs)
+        search_id = query if len(query) == 36 and '-' in query else None
+        
+        response = self.client.search_issues(
+            search_term=query,
+            cursor=cursor,
+            max_results=max_results
+        )
+        
+        if not response or 'data' not in response or 'issues' not in response['data']:
+            raise ValueError("Invalid response format from Linear API")
+        
+        data = response['data']['issues']
+        
+        issues = [Issue(**issue) for issue in data['nodes']]
+        issues_list = IssueList(
+            items=issues,
+            cursor=data['pageInfo']['endCursor']
+        )
+        
+        return self.prepare_response(issues_list, "LinearIssueCard")
 
     def filter_issues(self, filters: IssueFilter, cursor: Optional[str] = None, max_results: int = 50) -> ApiResponse:
         # Convert filters to Linear's GraphQL format
@@ -93,22 +84,19 @@ class LinearService:
         if filter_dict.get('created_before'):
             graphql_filters['createdAt'] = {'lt': filter_dict['created_before'].isoformat()}
 
-        try:
-            response = self.client.filter_issues(graphql_filters, cursor, max_results)
-            if 'errors' in response:
-                raise ValueError(f"GraphQL Error: {response['errors']}")
-            
-            data = response['data']['issues']
-            
-            issues = [Issue(**issue) for issue in data['nodes']]
-            issues_list = IssueList(
-                items=issues,
-                cursor=data['pageInfo']['endCursor']
-            )
-            
-            return self.prepare_response(issues_list, "LinearIssueCard")
-        except Exception as e:
-            raise ValueError(f"Error filtering issues: {str(e)}")
+        response = self.client.filter_issues(graphql_filters, cursor, max_results)
+        if 'errors' in response:
+            raise ValueError(f"GraphQL Error: {response['errors']}")
+        
+        data = response['data']['issues']
+        
+        issues = [Issue(**issue) for issue in data['nodes']]
+        issues_list = IssueList(
+            items=issues,
+            cursor=data['pageInfo']['endCursor']
+        )
+        
+        return self.prepare_response(issues_list, "LinearIssueCard")
 
     def create_issue(self, issue_create: IssueCreate) -> ApiResponse:
         # Convert label names to IDs
@@ -126,16 +114,13 @@ class LinearService:
             # Convert label names to IDs (implementation needed)
             issue_data['labelIds'] = self._convert_label_names_to_ids(issue_data.pop('labels'))
             
-        try:
-            response = self.client.create_issue(issue_data)
+        response = self.client.create_issue(issue_data)
+        
+        if 'errors' in response:
+            raise ValueError(f"GraphQL Error: {response['errors']}")
             
-            if 'errors' in response:
-                raise ValueError(f"GraphQL Error: {response['errors']}")
-                
-            issue = Issue(**response['data']['issueCreate']['issue'])
-            return self.prepare_response(issue, "LinearIssueCard")
-        except Exception as e:
-            raise
+        issue = Issue(**response['data']['issueCreate']['issue'])
+        return self.prepare_response(issue, "LinearIssueCard")
 
     def _convert_label_names_to_ids(self, label_names: List[str]) -> List[str]:
         """Convert label names to their Linear IDs (case-insensitive)"""
@@ -169,30 +154,26 @@ class LinearService:
         ]
 
     def update_issue(self, issue_id: str, issue_update: IssueUpdate) -> ApiResponse:
-        try:
-            update_data = issue_update.dict(exclude_none=True)
-            
-            field_mappings = {
-                'assignee_id': 'assigneeId',
-                'project_id': 'projectId',
-                'state_id': 'stateId'
-            }
-            
-            transformed_data = {}
-            for key, value in update_data.items():
-                new_key = field_mappings.get(key, key)
-                transformed_data[new_key] = value
-            
-            response = self.client.update_issue(issue_id, transformed_data)
-            
-            if 'errors' in response:
-                raise ValueError(f"GraphQL Error: {response['errors']}")
-            
-            issue = Issue(**response['data']['issueUpdate']['issue'])
-            return self.prepare_response(issue, "LinearIssueCard")
+        update_data = issue_update.dict(exclude_none=True)
         
-        except Exception as e:
-            raise
+        field_mappings = {
+            'assignee_id': 'assigneeId',
+            'project_id': 'projectId',
+            'state_id': 'stateId'
+        }
+        
+        transformed_data = {}
+        for key, value in update_data.items():
+            new_key = field_mappings.get(key, key)
+            transformed_data[new_key] = value
+        
+        response = self.client.update_issue(issue_id, transformed_data)
+        
+        if 'errors' in response:
+            raise ValueError(f"GraphQL Error: {response['errors']}")
+        
+        issue = Issue(**response['data']['issueUpdate']['issue'])
+        return self.prepare_response(issue, "LinearIssueCard")
 
     def comment_issue(self, issue_id: str, comment: CommentCreate) -> ApiResponse:
         response = self.client.create_comment(issue_id, comment.body)

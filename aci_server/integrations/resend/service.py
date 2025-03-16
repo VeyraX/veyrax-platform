@@ -224,8 +224,6 @@ class ResendService:
 
         audience_response = Audience(**response)
 
-        
-        
         return self.prepare_response(audience_response, "ResendAudienceCard")
 
     def delete_audience(self, audience_id: str) -> ApiResponse:
@@ -238,7 +236,6 @@ class ResendService:
         """List all audiences."""
         response = self.client.list_audiences()
         
-        # Create proper Audience instances with URL
         audience_list = [
             Audience(
                 **audience_data,

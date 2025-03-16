@@ -133,29 +133,6 @@ class GitHubClient:
             params=params,
             json=data
         )
-        
-        if response.status_code == 204:
-            return {}
-        
-        if not response.ok:
-            error_detail = response.text
-            try:
-                error_json = response.json()
-                if isinstance(error_json, dict):
-                    error_detail = error_json.get('errorMessages', [])
-                    if not error_detail and 'errors' in error_json:
-                        error_detail = error_json['errors']
-            except:
-                pass
-            
-            error_msg = f"{response.status_code} {response.reason} for url: {url}"
-            if error_detail:
-                error_msg += f" - Details: {error_detail}"
-
-            if response.status_code == 404:
-                error_msg += ' \n Note: maybe you need to check user/repository existence and permissions'
-
-            raise requests.exceptions.HTTPError(error_msg, response=response)
             
         response.raise_for_status()
-        return response.json() if response.content else {}
+        return response.json()

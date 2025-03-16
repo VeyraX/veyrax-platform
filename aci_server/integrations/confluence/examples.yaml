@@ -1,5 +1,5 @@
 routes:
-  - endpoint: /confluence/spaces
+  - endpoint: /confluence/get_spaces
     examples:
       - scenario: "List Available Spaces"
         description: "Retrieves a list of all accessible Confluence spaces"
@@ -29,7 +29,7 @@ routes:
             }
           }
 
-  - endpoint: /confluence/pages
+  - endpoint: /confluence/get_pages
     examples:
       - scenario: "List Pages"
         description: "Retrieves a list of pages with optional filtering"

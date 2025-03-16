@@ -1,6 +1,7 @@
 ---
 description: Writing new integrations for tools.
 globs: 
+alwaysApply: false
 ---
 # Integration Guide: Key Concepts and Best Practices
 
@@ -49,36 +50,35 @@ async def get_messages(
     params: Dict[str, Any] = Body(...),
     service: ExampleService = Depends(get_example_service)
 ):
-    try:
-        validated_params = GetMessagesParams(**params)
-        return service.get_messages(
-            validated_params.next_link, 
-            validated_params.filters
-        )
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'GetMessagesParams'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = GetMessagesParams(**params)
+    return service.get_messages(
+        validated_params.next_link, 
+        validated_params.filters
+    )
 ```
 
-### 2. Consistent Error Handling
+### 2. Centralized Error Handling
 
-Always separate validation errors from other exceptions:
+Instead of handling errors in each endpoint, use centralized error handlers:
 
 ```python
-try:
-    # Code that might raise an error
-except ValidationError as e:
-    # Validation errors - 400 Bad Request
-    raise HTTPException(status_code=400, detail=format_validation_error(e, 'SchemaClassName'))
-except Exception as e:
-    # Other errors - 500 Internal Server Error
-    import traceback
-    traceback.print_exc()
-    raise HTTPException(status_code=500, detail=str(e))
+# Apply error handlers to both service and router
+apply_error_handler_to_service(service)
+apply_error_handler_to_router(router)
 ```
+
+This approach:
+1. Ensures consistent error handling across all endpoints
+2. Reduces code duplication
+3. Properly formats all errors according to API standards
+4. Separates business logic from error handling concerns
+
+The error handlers automatically catch:
+- Validation errors (400 Bad Request)
+- Authentication errors (401 Unauthorized)
+- Permission errors (403 Forbidden)
+- Not found errors (404 Not Found)
+- Other exceptions (500 Internal Server Error)
 
 ### 3. Service Initialization with Error Handling
 
@@ -94,7 +94,12 @@ async def get_example_service(request: FastAPIRequest):
                 raise HTTPException(status_code=401, detail="Failed to refresh token")
         
         client = ExampleClient(token_data['access_token'])
-        return ExampleService(client)
+        service = ExampleService(client)
+        
+        # Apply error handler to service
+        apply_error_handler_to_service(service)
+        
+        return service
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
 ```
@@ -190,11 +195,8 @@ async def get_weather(params: Dict[str, Any]):
 @router.post("/weather")
 @schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
 async def get_weather(params: Dict[str, Any]):
-    try:
-        validated_params = WeatherParams(**params)  # Unpacking all parameters at once
-        return service.get_weather(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'WeatherParams'))
+    validated_params = WeatherParams(**params)  # Unpacking all parameters at once
+    return service.get_weather(validated_params)
 ```
 
 The `**params` syntax unpacks the dictionary and passes all key-value pairs as keyword arguments to the model constructor. This approach:
@@ -241,21 +243,33 @@ This approach significantly reduces code verbosity and makes it more maintainabl
 
 ## Common Issues and Solutions
 
-### 1. Inconsistent Error Handling
+### 1. Manual Error Handling in Routes
 
-**Problem**: Different integrations handle errors differently.
+**Problem**: Handling errors directly in each route function.
 
-**Solution**: Standardize error handling:
+**Solution**: Use centralized error handlers:
 
 ```python
-try:
-    # Code
-except ValidationError as e:
-    raise HTTPException(status_code=400, detail=format_validation_error(e, 'SchemaClassName'))
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-    raise HTTPException(status_code=500, detail=str(e))
+# Bad - repeating error handling in each route
+@router.post("/get_weather")
+async def get_weather(params: Dict[str, Any]):
+    try:
+        validated_params = WeatherParams(**params)
+        return service.get_weather(validated_params)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Good - centralized error handling
+@router.post("/get_weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
+async def get_weather(params: Dict[str, Any]):
+    validated_params = WeatherParams(**params)
+    return service.get_weather(validated_params)
+
+# At the end of the route file
+apply_error_handler_to_router(router)
 ```
 
 ### 2. Lack of Input or Output Validation
@@ -330,7 +344,7 @@ async def get_messages(params: Dict[str, Any], service: Service):
 By following these principles, you'll create integrations that are:
 
 1. Easy to maintain and extend
-2. Have consistent error handling
+2. Have consistent error handling through centralized handlers
 3. Clearly separate responsibilities between layers
 4. Provide robust input and output validation
 5. Return standardized responses
