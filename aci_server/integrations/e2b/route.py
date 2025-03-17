@@ -33,6 +33,21 @@ async def get_e2b_service(request: Request):
     except Exception as e:
         raise HTTPException(500, f"Failed to initialize E2B service: {str(e)}")
 
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = E2BClient(api_key=api_key)
+        test_response = client.list_sandboxes({})
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}
+
 @router.post("/create_sandbox", response_model=E2BBaseResponse)
 @schema(
     input_schema_class=SandboxCreateRequest,
