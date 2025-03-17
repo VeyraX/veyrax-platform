@@ -10,7 +10,6 @@ class ResendClient:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
-        print(self.api_key)
 
     def send_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """Send a single email through Resend API."""

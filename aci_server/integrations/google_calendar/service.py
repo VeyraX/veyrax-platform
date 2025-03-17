@@ -16,7 +16,6 @@ class CalendarService:
         
     def prepare_response(self, data: Union[Event, EventList, CalendarList], component_name: str = None) -> ApiResponse:
         tool_name = "google-calendar"
-        print
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
@@ -116,7 +115,7 @@ class CalendarService:
             dt = datetime.fromisoformat(date_str)
             return dt.isoformat() + 'Z'
         
-        except ValueError as e:
+        except ValueError:
             try:
                 dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
                 return dt.strftime('%Y-%m-%dT%H:%M:%SZ')

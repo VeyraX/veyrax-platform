@@ -26,16 +26,9 @@ class TickTickService:
         return self.prepare_response(TaskResponse(**response), "TickTickTaskCard")
 
     def create_task(self, task_data: TaskCreate) -> ApiResponse:
-        try:
-            clean_data = task_data.dict(by_alias=True, exclude_none=True)
-            created_task = self.client.create_task(clean_data)
-            return self.prepare_response(TaskResponse(**created_task), "TickTickTaskCard")
-        except ValueError as e:
-            return ApiResponse(
-                data={"error": str(e)},
-                message="Task creation failed",
-                status_code=400
-            )
+        clean_data = task_data.dict(by_alias=True, exclude_none=True)
+        created_task = self.client.create_task(clean_data)
+        return self.prepare_response(TaskResponse(**created_task), "TickTickTaskCard")
 
     def update_task(self, task_id: str, task_data: TaskUpdate) -> ApiResponse:
         update_data = task_data.dict(by_alias=True, exclude_none=True)

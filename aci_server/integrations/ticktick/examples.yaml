@@ -3,138 +3,206 @@ routes:
     examples:
       - scenario: "Get Task Details"
         description: "Retrieve details for a specific task"
-        input_json:
-          project_id: "6226ff9877acee87727f6bca"
-          task_id: "63b7bebb91c0a5474805fcd4"
-        output_json:
-          data:
-            id: "63b7bebb91c0a5474805fcd4"
-            title: "Complete API Integration"
-            projectId: "6226ff9877acee87727f6bca"
-            status: 0
-            priority: 3
+        input_json: |
+          {
+            "project_id": "6226ff9877acee87727f6bca",
+            "task_id": "63b7bebb91c0a5474805fcd4"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "63b7bebb91c0a5474805fcd4",
+              "title": "Complete API Integration",
+              "projectId": "6226ff9877acee87727f6bca",
+              "status": 0,
+              "priority": 3
+            }
+          }
 
   - endpoint: "/ticktick/tasks-create"
     examples:
       - scenario: "Create Basic Task"
         description: "Create a new task with minimal required fields"
-        input_json:
-          title: "Review Documentation"
-          projectId: "6226ff9877acee87727f6bca"
-        output_json:
-          data:
-            id: "64ca1f8b91c0a5474806acb2"
-            title: "Review Documentation"
-            projectId: "6226ff9877acee87727f6bca"
-            status: 0
+        input_json: |
+          {
+            "title": "Review Documentation",
+            "projectId": "6226ff9877acee87727f6bca"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "64ca1f8b91c0a5474806acb2",
+              "title": "Review Documentation",
+              "projectId": "6226ff9877acee87727f6bca",
+              "status": 0
+            }
+          }
 
       - scenario: "Create Full Task"
         description: "Create task with all available fields"
-        input_json:
-          title: "Server Deployment"
-          projectId: "6226ff9877acee87727f6bca"
-          dueDate: "2024-03-15T12:00:00Z"
-          priority: 5
-          reminders: ["TRIGGER:P0DT1H0M0S"]
-          items:
-            - title: "Prepare deployment package"
-            - title: "Notify stakeholders"
+        input_json: |
+          {
+            "title": "Server Deployment",
+            "projectId": "6226ff9877acee87727f6bca",
+            "dueDate": "2024-03-15T12:00:00Z",
+            "priority": 5,
+            "reminders": ["TRIGGER:P0DT1H0M0S"],
+            "items": [
+              {"title": "Prepare deployment package"},
+              {"title": "Notify stakeholders"}
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "64ca1f8b91c0a5474806acb3",
+              "title": "Server Deployment",
+              "projectId": "6226ff9877acee87727f6bca",
+              "dueDate": "2024-03-15T12:00:00Z",
+              "priority": 5,
+              "status": 0
+            }
+          }
 
   - endpoint: "/ticktick/tasks-update"
     examples:
       - scenario: "Update Task Priority"
         description: "Modify task priority level"
-        input_json:
-          id: "63b7bebb91c0a5474805fcd4"
-          projectId: "6226ff9877acee87727f6bca"
-          priority: 5
-        output_json:
-          data:
-            id: "63b7bebb91c0a5474805fcd4"
-            priority: 5
+        input_json: |
+          {
+            "id": "63b7bebb91c0a5474805fcd4",
+            "projectId": "6226ff9877acee87727f6bca",
+            "priority": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "63b7bebb91c0a5474805fcd4",
+              "priority": 5
+            }
+          }
 
   - endpoint: "/ticktick/tasks-complete"
     examples:
       - scenario: "Complete Task"
         description: "Mark a task as completed"
-        input_json:
-          project_id: "6226ff9877acee87727f6bca"
-          task_id: "63b7bebb91c0a5474805fcd4"
-        output_json:
-          data:
-            status: "completed"
-            task_id: "63b7bebb91c0a5474805fcd4"
+        input_json: |
+          {
+            "project_id": "6226ff9877acee87727f6bca",
+            "task_id": "63b7bebb91c0a5474805fcd4"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "task_id": "63b7bebb91c0a5474805fcd4"
+            }
+          }
 
   - endpoint: "/ticktick/projects-list"
     examples:
       - scenario: "List All Projects"
         description: "Retrieve all user projects"
-        input_json: {}
-        output_json:
-          data:
-            items:
-              - id: "6226ff9877acee87727f6bca"
-                name: "Work Projects"
-                color: "#F18181"
-              - id: "6436176a47fd2e05f26ef56e"
-                name: "Personal Tasks"
-                color: "#7CD4FD"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "6226ff9877acee87727f6bca",
+                  "name": "Work Projects",
+                  "color": "#F18181"
+                },
+                {
+                  "id": "6436176a47fd2e05f26ef56e",
+                  "name": "Personal Tasks",
+                  "color": "#7CD4FD"
+                }
+              ]
+            }
+          }
 
   - endpoint: "/ticktick/projects-get"
     examples:
       - scenario: "Get Project Details"
         description: "Retrieve details for a specific project"
-        input_json:
-          project_id: "6226ff9877acee87727f6bca"
-        output_json:
-          data:
-            id: "6226ff9877acee87727f6bca"
-            name: "Work Projects"
-            viewMode: "list"
-            closed: false
+        input_json: |
+          {
+            "project_id": "6226ff9877acee87727f6bca"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "6226ff9877acee87727f6bca",
+              "name": "Work Projects",
+              "viewMode": "list",
+              "closed": false
+            }
+          }
 
   - endpoint: "/ticktick/projects-create"
     examples:
       - scenario: "Create New Project"
         description: "Create a new task project"
-        input_json:
-          name: "Q4 Initiatives"
-          color: "#FBBF24"
-          viewMode: "kanban"
-        output_json:
-          data:
-            id: "64ca1f8b91c0a5474806acb3"
-            name: "Q4 Initiatives"
-            color: "#FBBF24"
+        input_json: |
+          {
+            "name": "Q4 Initiatives",
+            "color": "#FBBF24",
+            "viewMode": "kanban"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "64ca1f8b91c0a5474806acb3",
+              "name": "Q4 Initiatives",
+              "color": "#FBBF24"
+            }
+          }
 
   - endpoint: "/ticktick/projects-update"
     examples:
       - scenario: "Update Project Color"
         description: "Modify project color scheme"
-        input_json:
-          id: "6226ff9877acee87727f6bca"
-          color: "#A3E635"
-        output_json:
-          data:
-            id: "6226ff9877acee87727f6bca"
-            color: "#A3E635"
+        input_json: |
+          {
+            "id": "6226ff9877acee87727f6bca",
+            "color": "#A3E635"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "6226ff9877acee87727f6bca",
+              "color": "#A3E635"
+            }
+          }
 
   - endpoint: "/ticktick/tasks-list"
     examples:
       - scenario: "List Project Tasks"
         description: "Retrieve all tasks in a specific project"
-        input_json:
-          project_id: "6226ff9877acee87727f6bca"
-        output_json:
-          data:
-            items:
-              - id: "63b7bebb91c0a5474805fcd4"
-                title: "Complete API Integration"
-                projectId: "6226ff9877acee87727f6bca"
-                status: 0
-                priority: 3
-              - id: "64ca1f8b91c0a5474806acb2"
-                title: "Review Documentation"
-                projectId: "6226ff9877acee87727f6bca"
-                status: 0
-                priority: 1 
+        input_json: |
+          {
+            "project_id": "6226ff9877acee87727f6bca"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "63b7bebb91c0a5474805fcd4",
+                  "title": "Complete API Integration",
+                  "projectId": "6226ff9877acee87727f6bca",
+                  "status": 0,
+                  "priority": 3
+                },
+                {
+                  "id": "64ca1f8b91c0a5474806acb2",
+                  "title": "Review Documentation",
+                  "projectId": "6226ff9877acee87727f6bca",
+                  "status": 0,
+                  "priority": 1
+                }
+              ]
+            }
+          } 

@@ -55,17 +55,6 @@ class FirecrawlClient:
     def _make_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         url = f"{self.BASE_URL}{endpoint}"
         
-        try:
-            response = self.session.request(method, url, **kwargs)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code
-            try:
-                error_detail = e.response.json().get('error', str(e))
-            except:
-                error_detail = str(e)
-                
-            raise HTTPException(status_code=status_code, detail=error_detail)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"API request failed: {str(e)}")
+        response = self.session.request(method, url, **kwargs)
+        response.raise_for_status()     
+        return response.json()

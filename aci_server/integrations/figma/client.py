@@ -20,7 +20,6 @@ class FigmaClient:
             params=params,
             json=data
         )
-        
         response.raise_for_status()
         return response.json()
 

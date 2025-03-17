@@ -75,36 +75,30 @@ class DriveClient:
         ).execute()
 
     def move_file(self, file_id: str, new_parent_id: str) -> Dict[str, Any]:
-        try:
-            file = self.service.files().get(
-                fileId=file_id,
-                fields='parents,permissions',
-                supportsAllDrives=True
-            ).execute()
-            
-            previous_parents = file.get('parents', [])
-            
-            if not any(p.get('role') in ['owner', 'writer'] for p in file.get('permissions', [])):
-                raise PermissionError(f"No write access for file {file_id}")
+        file = self.service.files().get(
+            fileId=file_id,
+            fields='parents,permissions',
+            supportsAllDrives=True
+        ).execute()
+        
+        previous_parents = file.get('parents', [])
+        
+        if not any(p.get('role') in ['owner', 'writer'] for p in file.get('permissions', [])):
+            raise PermissionError(f"No write access for file {file_id}")
 
-            params = {
-                'fileId': file_id,
-                'fields': 'id, name, mimeType, parents, createdTime, modifiedTime, size',
-                'supportsAllDrives': True,
-                'addParents': new_parent_id,
-                'removeParents': ','.join(previous_parents) if previous_parents else None
-            }
+        params = {
+            'fileId': file_id,
+            'fields': 'id, name, mimeType, parents, createdTime, modifiedTime, size',
+            'supportsAllDrives': True,
+            'addParents': new_parent_id,
+            'removeParents': ','.join(previous_parents) if previous_parents else None
+        }
 
-            if not previous_parents:
-                del params['removeParents']
-                params['body'] = {'parents': [new_parent_id]}
+        if not previous_parents:
+            del params['removeParents']
+            params['body'] = {'parents': [new_parent_id]}
 
-            return self.service.files().update(**params).execute()
-
-        except Exception as e:
-            if "cannotAddParent" in str(e):
-                raise Exception("Domain policy prevents adding parents. Verify Google Workspace settings.")
-            raise
+        return self.service.files().update(**params).execute()
 
     def read_file(self, file_id: str) -> tuple[bytes, str]:
         file = self.service.files().get(fileId=file_id, fields='mimeType').execute()
@@ -116,13 +110,9 @@ class DriveClient:
         return file_content, mime_type
 
     def create_permission(self, file_id: str, permission: Dict[str, Any]) -> Dict[str, Any]:
-        # Extract notification parameters only if they exist
         email_message = permission.pop('emailMessage', None)
         
-        # Prepare optional parameters
         optional_params = {}
-        # if send_notification is not None:
-        #     optional_params['sendEmailNotification'] = send_notification
         if email_message is not None:
             optional_params['emailMessage'] = email_message
         
@@ -147,17 +137,6 @@ class DriveClient:
         ).execute()
 
     def copy_file(self, file_id: str, name: Optional[str] = None, parent_id: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Create a copy of a file.
-        
-        Args:
-            file_id: The ID of the file to copy
-            name: Optional new name for the copy
-            parent_id: Optional ID of the parent folder for the copy
-            
-        Returns:
-            Dict containing the copied file's metadata
-        """
         body = {}
         if name:
             body['name'] = name

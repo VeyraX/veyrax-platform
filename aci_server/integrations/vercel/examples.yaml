@@ -3,549 +3,664 @@ routes:
     examples:
       - scenario: "List all deployments"
         description: "List all deployments for the authenticated user or team"
-        input_json:
-          app: null
-          limit: 10
-          target: null
-          state: null
-        output_json:
-          data:
-            deployments:
-              - id: "dpl_123456789"
-                name: "my-project"
-                url: "https://my-project-123abc.vercel.app"
-                created_at: 1623766800000
-                ready_state: "READY"
-                state: "READY"
-                type: "LAMBDAS"
-                meta:
-                  githubCommitRef: "main"
-              - id: "dpl_987654321"
-                name: "my-project"
-                url: "https://my-project-456def.vercel.app"
-                created_at: 1623680400000
-                ready_state: "READY"
-                state: "READY"
-                type: "LAMBDAS"
-                meta:
-                  githubCommitRef: "feature/new-feature"
-            pagination:
-              count: 2
-              next: null
-              prev: null
+        input_json: |
+          {
+            "app": null,
+            "limit": 10,
+            "target": null,
+            "state": null
+          }
+        output_json: |
+          {
+            "data": {
+              "deployments": [
+                {
+                  "id": "dpl_123456789",
+                  "name": "my-project",
+                  "url": "https://my-project-123abc.vercel.app",
+                  "created_at": 1623766800000,
+                  "ready_state": "READY",
+                  "state": "READY",
+                  "type": "LAMBDAS",
+                  "meta": {
+                    "githubCommitRef": "main"
+                  }
+                },
+                {
+                  "id": "dpl_987654321",
+                  "name": "my-project",
+                  "url": "https://my-project-456def.vercel.app",
+                  "created_at": 1623680400000,
+                  "ready_state": "READY",
+                  "state": "READY",
+                  "type": "LAMBDAS",
+                  "meta": {
+                    "githubCommitRef": "feature/new-feature"
+                  }
+                }
+              ],
+              "pagination": {
+                "count": 2,
+                "next": null,
+                "prev": null
+              }
+            }
+          }
 
   - endpoint: "/vercel/get_deployment"
     examples:
       - scenario: "Get deployment by ID"
         description: "Get details of a specific deployment by its ID"
-        input_json:
-          id_or_url: "dpl_123456789"
-          with_git_repo_info: true
-        output_json:
-          data:
-            id: "dpl_123456789"
-            name: "my-project"
-            url: "https://my-project-123abc.vercel.app"
-            created_at: 1623766800000
-            creator:
-              uid: "usr_123456"
-              username: "johndoe"
-              avatar: "https://avatars.githubusercontent.com/u/12345678"
-            team:
-              id: "team_123456"
-              name: "My Team"
-              slug: "my-team"
-            project:
-              id: "prj_123456"
-              name: "my-project"
-              framework: "nextjs"
-            target: "production"
-            ready_state: "READY"
-            state: "READY"
-            type: "LAMBDAS"
-            git_source:
-              type: "github"
-              repo_id: "123456789"
-              ref: "main"
-              sha: "abc123def456"
-            meta:
-              githubCommitRef: "main"
-              githubCommitSha: "abc123def456"
+        input_json: |
+          {
+            "id_or_url": "dpl_123456789",
+            "with_git_repo_info": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dpl_123456789",
+              "name": "my-project",
+              "url": "https://my-project-123abc.vercel.app",
+              "created_at": 1623766800000,
+              "creator": {
+                "uid": "usr_123456",
+                "username": "johndoe",
+                "avatar": "https://avatars.githubusercontent.com/u/12345678"
+              },
+              "team": {
+                "id": "team_123456",
+                "name": "My Team",
+                "slug": "my-team"
+              },
+              "project": {
+                "id": "prj_123456",
+                "name": "my-project",
+                "framework": "nextjs"
+              },
+              "target": "production",
+              "ready_state": "READY",
+              "state": "READY",
+              "type": "LAMBDAS",
+              "git_source": {
+                "type": "github",
+                "repo_id": "123456789",
+                "ref": "main",
+                "sha": "abc123def456"
+              },
+              "meta": {
+                "githubCommitRef": "main",
+                "githubCommitSha": "abc123def456"
+              }
+            }
+          }
 
   - endpoint: "/vercel/delete_deployment"
     examples:
       - scenario: "Delete a deployment"
         description: "Delete a deployment by its ID"
-        input_json:
-          deployment_id: "dpl_123456789"
-        output_json:
-          data:
-            uid: "dpl_123456789"
-            state: "DELETED"
+        input_json: |
+          {
+            "deployment_id": "dpl_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "uid": "dpl_123456789",
+              "state": "DELETED"
+            }
+          }
 
   - endpoint: "/vercel/cancel_deployment"
     examples:
       - scenario: "Cancel a deployment"
         description: "Cancel a deployment that is currently building"
-        input_json:
-          deployment_id: "dpl_123456789"
-        output_json:
-          data:
-            id: "dpl_123456789"
-            name: "my-project"
-            url: "https://my-project-123abc.vercel.app"
-            created_at: 1623766800000
-            ready_state: "CANCELED"
-            state: "CANCELED"
-            type: "LAMBDAS"
-
-  - endpoint: "/vercel/get_deployment_files"
-    examples:
-      - scenario: "Get deployment files"
-        description: "List files for a specific deployment"
-        input_json:
-          deployment_id: "dpl_123456789"
-        output_json:
-          data:
-            - name: "public"
-              type: "directory"
-              uid: "dir_123456"
-              children:
-                - name: "index.html"
-                  type: "file"
-                  uid: "file_123456"
-                  content_type: "text/html"
-                  mode: 33188
-                - name: "styles.css"
-                  type: "file"
-                  uid: "file_789012"
-                  content_type: "text/css"
-                  mode: 33188
-            - name: "api"
-              type: "directory"
-              uid: "dir_789012"
-              children:
-                - name: "hello.js"
-                  type: "file"
-                  uid: "file_345678"
-                  content_type: "application/javascript"
-                  mode: 33188
+        input_json: |
+          {
+            "deployment_id": "dpl_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dpl_123456789",
+              "name": "my-project",
+              "url": "https://my-project-123abc.vercel.app",
+              "created_at": 1623766800000,
+              "ready_state": "CANCELED",
+              "state": "CANCELED",
+              "type": "LAMBDAS"
+            }
+          }
 
   - endpoint: "/vercel/get_deployment_events"
     examples:
       - scenario: "Get deployment events"
         description: "Get the build logs of a deployment by deployment ID"
-        input_json:
-          id_or_url: "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc"
-          limit: 100
-          direction: "forward"
-        output_json:
-          data:
-            - type: "stdout"
-              created: 1742052693881
-              date: 1742052693881
-              deploymentId: "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc"
-              id: "1742052693881042452941000001"
-              text: "ƒ (Dynamic) server-rendered on demand"
-              serial: "1742052693881042452941000001"
-              info:
-                type: "build"
-                name: "bld_ly69x8uno"
-                entrypoint: "."
-            - type: "stdout"
-              created: 1742052694180
-              date: 1742052694180
-              deploymentId: "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc"
-              id: "1742052694180042452941000000"
-              text: "Traced Next.js server files in: 113.356ms"
-              serial: "1742052694180042452941000000"
-              info:
-                type: "build"
-                name: "bld_ly69x8uno"
-                entrypoint: "."
+        input_json: |
+          {
+            "id_or_url": "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc",
+            "limit": 100,
+            "direction": "forward"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "type": "stdout",
+                "created": 1742052693881,
+                "date": 1742052693881,
+                "deploymentId": "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc",
+                "id": "1742052693881042452941000001",
+                "text": "ƒ (Dynamic) server-rendered on demand",
+                "serial": "1742052693881042452941000001",
+                "info": {
+                  "type": "build",
+                  "name": "bld_ly69x8uno",
+                  "entrypoint": "."
+                }
+              },
+              {
+                "type": "stdout",
+                "created": 1742052694180,
+                "date": 1742052694180,
+                "deploymentId": "dpl_4Dqbs2TMvRqpTGZHbxP7BGvvetmc",
+                "id": "1742052694180042452941000000",
+                "text": "Traced Next.js server files in: 113.356ms",
+                "serial": "1742052694180042452941000000",
+                "info": {
+                  "type": "build",
+                  "name": "bld_ly69x8uno",
+                  "entrypoint": "."
+                }
+              }
+            ]
+          }
 
   - endpoint: "/vercel/add_domain_to_project"
     examples:
       - scenario: "Add domain to project"
         description: "Add a domain to a Vercel project"
-        input_json:
-          project_id_or_name: "my-project"
-          name: "www.example.com"
-          git_branch: null
-          custom_environment_id: null
-          redirect: "foobar.com"
-          redirect_status_code: 307
-        output_json:
-          data:
-            name: "www.example.com"
-            apex_name: "example.com"
-            project_id: "prj_123456"
-            redirect: "foobar.com"
-            redirect_status_code: 307
-            git_branch: null
-            custom_environment_id: null
-            updated_at: 1623766800000
-            created_at: 1623766800000
-            verified: true
-            verification:
-              - type: "TXT"
-                domain: "_vercel.example.com"
-                value: "txt-verification-value"
-                reason: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "name": "www.example.com",
+            "git_branch": null,
+            "custom_environment_id": null,
+            "redirect": "foobar.com",
+            "redirect_status_code": 307
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "www.example.com",
+              "apex_name": "example.com",
+              "project_id": "prj_123456",
+              "redirect": "foobar.com",
+              "redirect_status_code": 307,
+              "git_branch": null,
+              "custom_environment_id": null,
+              "updated_at": 1623766800000,
+              "created_at": 1623766800000,
+              "verified": true,
+              "verification": [
+                {
+                  "type": "TXT",
+                  "domain": "_vercel.example.com",
+                  "value": "txt-verification-value",
+                  "reason": null
+                }
+              ]
+            }
+          }
 
   - endpoint: "/vercel/create_project"
     examples:
       - scenario: "Create a new project"
         description: "Create a new Vercel project with basic configuration"
-        input_json:
-          name: "my-new-project"
-          framework: "nextjs"
-          git_repository:
-            repo: "username/repo-name"
-            type: "github"
-          root_directory: null
-          build_command: null
-          dev_command: null
-          install_command: null
-          output_directory: null
-        output_json:
-          data:
-            id: "prj_123456"
-            name: "my-new-project"
-            accountId: "team_123456"
-            createdAt: 1623766800000
-            updatedAt: 1623766800000
-            framework: "nextjs"
-            rootDirectory: null
-            buildCommand: null
-            devCommand: null
-            installCommand: null
-            outputDirectory: null
+        input_json: |
+          {
+            "name": "my-new-project",
+            "framework": "nextjs",
+            "git_repository": {
+              "repo": "username/repo-name",
+              "type": "github"
+            },
+            "root_directory": null,
+            "build_command": null,
+            "dev_command": null,
+            "install_command": null,
+            "output_directory": null
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "prj_123456",
+              "name": "my-new-project",
+              "account_id": "team_123456",
+              "created_at": 1623766800000,
+              "updated_at": 1623766800000,
+              "framework": "nextjs",
+              "rootDirectory": null,
+              "buildCommand": null,
+              "devCommand": null,
+              "installCommand": null,
+              "outputDirectory": null
+            }
+          }
+      
+      - scenario: "Create a project with error"
+        description: "Example of error response when creating a project"
+        input_json: |
+          {
+            "name": "invalid-project",
+            "framework": "nextjs",
+            "git_repository": {
+              "repo": "nonexistent/repo",
+              "type": "github"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "error",
+              "message": "Failed to create project: Repository not found or access denied",
+              "details": {
+                "project_name": "invalid-project"
+              }
+            }
+          }
 
   - endpoint: "/vercel/create_env_vars"
     examples:
       - scenario: "Create environment variable"
         description: "Create a new environment variable for a project"
-        input_json:
-          project_id_or_name: "my-project"
-          env_vars:
-            key: "API_URL"
-            value: "https://api.example.com"
-            type: "plain"
-            target: ["production", "preview"]
-            git_branch: null
-            comment: "API endpoint URL"
-        output_json:
-          data:
-            created:
-              target: ["production", "preview"]
-              type: "plain"
-              id: "env_123456"
-              key: "API_URL"
-              value: "https://api.example.com"
-              created_at: 1623766800000
-              updated_at: 1623766800000
-              git_branch: null
-              comment: "API endpoint URL"
-              system: false
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "env_vars": {
+              "key": "API_URL",
+              "value": "https://api.example.com",
+              "type": "plain",
+              "target": ["production", "preview"],
+              "git_branch": null,
+              "comment": "API endpoint URL"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "created": {
+                "target": ["production", "preview"],
+                "type": "plain",
+                "id": "env_123456",
+                "key": "API_URL",
+                "value": "https://api.example.com",
+                "created_at": 1623766800000,
+                "updated_at": 1623766800000,
+                "git_branch": null,
+                "comment": "API endpoint URL",
+                "system": false
+              },
+              "failed": null
+            }
+          }
 
   - endpoint: "/vercel/delete_project"
     examples:
       - scenario: "Delete a project"
         description: "Delete a Vercel project by ID or name"
-        input_json:
-          project_id_or_name: "my-project"
-        output_json:
-          data:
-            status: "success"
-            message: "Project deleted successfully"
+        input_json: |
+          {
+            "project_id_or_name": "my-project"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "success",
+              "message": "Project 'my-project' deleted successfully"
+            }
+          }
 
   - endpoint: "/vercel/edit_env_var"
     examples:
       - scenario: "Edit environment variable"
         description: "Edit an existing environment variable for a project"
-        input_json:
-          project_id_or_name: "my-project"
-          env_var_id: "env_123456"
-          key: "API_URL"
-          value: "https://updated-api.example.com"
-          type: "plain"
-          target: ["production", "preview"]
-          comment: "Updated API endpoint URL"
-        output_json:
-          data:
-            target: ["production", "preview"]
-            type: "plain"
-            id: "env_123456"
-            key: "API_URL"
-            value: "https://updated-api.example.com"
-            created_at: 1623766800000
-            updated_at: 1623866800000
-            git_branch: null
-            comment: "Updated API endpoint URL"
-            custom_environment_ids: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "env_var_id": "env_123456",
+            "key": "API_URL",
+            "value": "https://updated-api.example.com",
+            "type": "plain",
+            "target": ["production", "preview"],
+            "comment": "Updated API endpoint URL"
+          }
+        output_json: |
+          {
+            "data": {
+              "target": ["production", "preview"],
+              "type": "plain",
+              "id": "env_123456",
+              "key": "API_URL",
+              "value": "https://updated-api.example.com",
+              "created_at": 1623766800000,
+              "updated_at": 1623866800000,
+              "git_branch": null,
+              "comment": "Updated API endpoint URL",
+              "custom_environment_ids": null
+            }
+          }
 
   - endpoint: "/vercel/get_project"
     examples:
       - scenario: "Get project details"
         description: "Get details of a specific project by ID or name"
-        input_json:
-          project_id_or_name: "my-project"
-        output_json:
-          data:
-            id: "prj_123456"
-            name: "my-project"
-            accountId: "team_123456"
-            createdAt: 1623766800000
-            updatedAt: 1623866800000
-            framework: "nextjs"
-            buildCommand: null
-            devCommand: null
-            installCommand: null
-            outputDirectory: null
-            rootDirectory: null
-            publicSource: null
-            serverlessFunctionRegion: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "prj_123456",
+              "name": "my-project",
+              "account_id": "team_123456",
+              "created_at": 1623766800000,
+              "updated_at": 1623866800000,
+              "framework": "nextjs",
+              "git": {
+                "type": "github",
+                "repo": "username/my-project",
+                "repo_id": "123456789",
+                "provider_repo_id": "987654321",
+                "org": "username",
+                "owner": "username",
+                "slug": "my-project",
+                "private": false,
+                "branch": "main"
+              }
+            }
+          }
 
   - endpoint: "/vercel/get_project_domain"
     examples:
       - scenario: "Get project domain"
         description: "Get details of a specific domain for a project"
-        input_json:
-          project_id_or_name: "my-project"
-          domain: "www.example.com"
-        output_json:
-          data:
-            name: "www.example.com"
-            apex_name: "example.com"
-            project_id: "prj_123456"
-            redirect: null
-            redirect_status_code: null
-            git_branch: null
-            custom_environment_id: null
-            updated_at: 1623766800000
-            created_at: 1623766800000
-            verified: true
-            verification:
-              - type: "TXT"
-                domain: "_vercel.example.com"
-                value: "txt-verification-value"
-                reason: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "domain": "www.example.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "www.example.com",
+              "apex_name": "example.com",
+              "project_id": "prj_123456",
+              "redirect": null,
+              "redirect_status_code": null,
+              "git_branch": null,
+              "custom_environment_id": null,
+              "updated_at": 1623766800000,
+              "created_at": 1623766800000,
+              "verified": true,
+              "verification": [
+                {
+                  "type": "TXT",
+                  "domain": "_vercel.example.com",
+                  "value": "txt-verification-value",
+                  "reason": null
+                }
+              ]
+            }
+          }
 
   - endpoint: "/vercel/remove_env_var"
     examples:
       - scenario: "Remove environment variable"
         description: "Remove an environment variable from a project"
-        input_json:
-          project_id_or_name: "my-project"
-          env_var_id: "env_123456"
-        output_json:
-          data:
-            - target: ["production"]
-              type: "plain"
-              id: "env_789012"
-              key: "DATABASE_URL"
-              value: "postgres://user:pass@host:5432/db"
-              created_at: 1623766800000
-              updated_at: 1623766800000
-              git_branch: null
-              comment: "Database connection string"
-              custom_environment_ids: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "env_var_id": "env_123456"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "target": ["production"],
+                "type": "plain",
+                "id": "env_789012",
+                "key": "DATABASE_URL",
+                "value": "postgres://user:pass@host:5432/db",
+                "created_at": 1623766800000,
+                "updated_at": 1623766800000,
+                "git_branch": null,
+                "comment": "Database connection string",
+                "custom_environment_ids": null
+              }
+            ]
+          }
+
 
   - endpoint: "/vercel/list_projects"
     examples:
       - scenario: "List all projects"
         description: "List all projects for the authenticated user or team"
-        input_json:
-          limit: 10
-        output_json:
-          data:
-            projects:
-              - id: "prj_123456"
-                name: "my-project"
-                accountId: "team_123456"
-                createdAt: 1623766800000
-                updatedAt: 1623866800000
-                framework: "nextjs"
-              - id: "prj_789012"
-                name: "another-project"
-                accountId: "team_123456"
-                createdAt: 1623756800000
-                updatedAt: 1623856800000
-                framework: "svelte"
-            pagination:
-              count: 2
-              next: null
-              prev: null
+        input_json: |
+          {
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "projects": [
+                {
+                  "id": "prj_123456",
+                  "name": "my-project",
+                  "accountId": "team_123456",
+                  "createdAt": 1623766800000,
+                  "updatedAt": 1623866800000,
+                  "framework": "nextjs"
+                },
+                {
+                  "id": "prj_789012",
+                  "name": "another-project",
+                  "accountId": "team_123456",
+                  "createdAt": 1623756800000,
+                  "updatedAt": 1623856800000,
+                  "framework": "svelte"
+                }
+              ],
+              "pagination": {
+                "count": 2,
+                "next": null,
+                "prev": null
+              }
+            }
+          }
 
   - endpoint: "/vercel/get_project_domains"
     examples:
       - scenario: "List project domains"
         description: "Retrieve the domains associated with a given project"
-        input_json:
-          project_id_or_name: "my-project"
-          limit: 10
-          verified: true
-        output_json:
-          data:
-            domains:
-              - name: "www.example.com"
-                apex_name: "example.com"
-                project_id: "prj_123456"
-                redirect: null
-                redirect_status_code: null
-                git_branch: null
-                custom_environment_id: null
-                updated_at: 1623766800000
-                created_at: 1623766800000
-                verified: true
-                verification:
-                  - type: "TXT"
-                    domain: "_vercel.example.com"
-                    value: "txt-verification-value"
-                    reason: null
-              - name: "api.example.com"
-                apex_name: "example.com"
-                project_id: "prj_123456"
-                redirect: null
-                redirect_status_code: null
-                git_branch: null
-                custom_environment_id: null
-                updated_at: 1623766800000
-                created_at: 1623766800000
-                verified: true
-                verification:
-                  - type: "TXT"
-                    domain: "_vercel.api.example.com"
-                    value: "txt-verification-value"
-                    reason: null
-            pagination:
-              count: 2
-              next: null
-              prev: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "limit": 10,
+            "verified": true
+          }
+        output_json: |
+          {
+            "data": {
+              "domains": [
+                {
+                  "name": "www.example.com",
+                  "apex_name": "example.com",
+                  "project_id": "prj_123456",
+                  "redirect": null,
+                  "redirect_status_code": null,
+                  "git_branch": null,
+                  "custom_environment_id": null,
+                  "updated_at": 1623766800000,
+                  "created_at": 1623766800000,
+                  "verified": true,
+                  "verification": [
+                    {
+                      "type": "TXT",
+                      "domain": "_vercel.example.com",
+                      "value": "txt-verification-value",
+                      "reason": null
+                    }
+                  ]
+                },
+                {
+                  "name": "api.example.com",
+                  "apex_name": "example.com",
+                  "project_id": "prj_123456",
+                  "redirect": null,
+                  "redirect_status_code": null,
+                  "git_branch": null,
+                  "custom_environment_id": null,
+                  "updated_at": 1623766800000,
+                  "created_at": 1623766800000,
+                  "verified": true,
+                  "verification": [
+                    {
+                      "type": "TXT",
+                      "domain": "_vercel.api.example.com",
+                      "value": "txt-verification-value",
+                      "reason": null
+                    }
+                  ]
+                }
+              ],
+              "pagination": {
+                "count": 2,
+                "next": null,
+                "prev": null
+              }
+            }
+          }
 
   - endpoint: "/vercel/verify_project_domain"
     examples:
       - scenario: "Verify project domain"
         description: "Verify a project domain with DNS verification"
-        input_json:
-          project_id_or_name: "my-project"
-          domain: "www.example.com"
-        output_json:
-          data:
-            name: "www.example.com"
-            apex_name: "example.com"
-            project_id: "prj_123456"
-            redirect: null
-            redirect_status_code: null
-            git_branch: null
-            custom_environment_id: null
-            updated_at: 1623766800000
-            created_at: 1623766800000
-            verified: true
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "domain": "www.example.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "www.example.com",
+              "apex_name": "example.com",
+              "project_id": "prj_123456",
+              "redirect": null,
+              "redirect_status_code": null,
+              "git_branch": null,
+              "custom_environment_id": null,
+              "updated_at": 1623766800000,
+              "created_at": 1623766800000,
+              "verified": true
+            }
+          }
 
   - endpoint: "/vercel/update_project"
     examples:
       - scenario: "Update project"
         description: "Update an existing project's configuration"
-        input_json:
-          project_id_or_name: "my-project"
-          name: "updated-project-name"
-          framework: "nextjs"
-          node_version: "18.x"
-          public_source: true
-        output_json:
-          data:
-            id: "prj_123456"
-            name: "updated-project-name"
-            accountId: "team_123456"
-            createdAt: 1623766800000
-            updatedAt: 1623866800000
-            framework: "nextjs"
-            nodeVersion: "18.x"
-            publicSource: true
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "name": "updated-project-name",
+            "framework": "nextjs",
+            "node_version": "18.x",
+            "public_source": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "prj_123456",
+              "name": "updated-project-name",
+              "accountId": "team_123456",
+              "createdAt": 1623766800000,
+              "updatedAt": 1623866800000,
+              "framework": "nextjs",
+              "nodeVersion": "18.x",
+              "publicSource": true
+            }
+          }
 
   - endpoint: "/vercel/get_project_env_vars"
     examples:
       - scenario: "Get project environment variables"
         description: "Retrieve all environment variables for a specific project"
-        input_json:
-          project_id_or_name: "my-project"
-          decrypt: true
-        output_json:
-          data:
-            - target: ["production", "preview"]
-              type: "plain"
-              id: "env_123456"
-              key: "API_URL"
-              value: "https://api.example.com"
-              created_at: 1623766800000
-              updated_at: 1623766800000
-              git_branch: null
-              comment: "API endpoint URL"
-              custom_environment_ids: null
-            - target: ["development"]
-              type: "secret"
-              id: "env_789012"
-              key: "DATABASE_URL"
-              value: "postgres://user:pass@host:5432/db"
-              created_at: 1623766800000
-              updated_at: 1623766800000
-              git_branch: null
-              comment: "Database connection string"
-              custom_environment_ids: null
+        input_json: |
+          {
+            "project_id_or_name": "my-project",
+            "decrypt": true
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "target": ["production", "preview"],
+                "type": "plain",
+                "id": "env_123456",
+                "key": "API_URL",
+                "value": "https://api.example.com",
+                "created_at": 1623766800000,
+                "updated_at": 1623766800000,
+                "git_branch": null,
+                "comment": "API endpoint URL",
+                "custom_environment_ids": null
+              },
+              {
+                "target": ["development"],
+                "type": "secret",
+                "id": "env_789012",
+                "key": "DATABASE_URL",
+                "value": "postgres://user:pass@host:5432/db",
+                "created_at": 1623766800000,
+                "updated_at": 1623766800000,
+                "git_branch": null,
+                "comment": "Database connection string",
+                "custom_environment_ids": null
+              }
+            ]
+          }
 
   - endpoint: "/vercel/create_deployment"
     examples:
-      - scenario: "Create a new deployment"
-        description: "Create a new deployment with project settings and files"
-        input_json:
-          name: "my-instant-deployment"
-          project: "my-deployment-project"
-          target: "production"
-          files:
-            - file: "index.html"
-              data: "PGh0bWw+SGVsbG8gV29ybGQ8L2h0bWw+"
-              encoding: "base64"
-          project_settings:
-            framework: "nextjs"
-            node_version: "18.x"
-          meta:
-            description: "Test deployment"
-        output_json:
-          data:
-            id: "dpl_123456789"
-            name: "my-instant-deployment"
-            url: "https://my-instant-deployment-123abc.vercel.app"
-            created_at: 1623766800000
-            ready_state: "READY"
-            state: "READY"
-            type: "LAMBDAS"
-            meta:
-              description: "Test deployment"
-      
       - scenario: "Create a Git-based deployment"
         description: "Create a new deployment from a Git repository"
-        input_json:
-          name: "git-deployment"
-          git_source:
-            type: "github"
-            repo_id: "username/repo-name"
-            ref: "main"
-          target: "production"
-          project_settings:
-            framework: "nextjs"
-            root_directory: "apps/web"
-        output_json:
-          data:
-            id: "dpl_987654321"
-            name: "git-deployment"
-            url: "https://git-deployment-456def.vercel.app"
-            created_at: 1623766800000
-            ready_state: "BUILDING"
-            state: "BUILDING"
-            type: "LAMBDAS"
-            git_source:
-              type: "github"
-              repo_id: "username/repo-name"
-              ref: "main"
+        input_json: |
+          {
+            "name": "next-js-template-clone",
+            "target": "production",
+            "git_source": {
+              "type": "github",
+              "repo_id": "949230384",
+              "ref": "main"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dpl_987654321",
+              "name": "next-js-template-clone",
+              "url": "https://next-js-template-clone-456def.vercel.app",
+              "created_at": 1623766800000,
+              "ready_state": "BUILDING",
+              "state": "BUILDING",
+              "type": "LAMBDAS",
+              "git_source": {
+                "type": "github",
+                "repo_id": "949230384",
+                "ref": "main"
+              }
+            }
+          }

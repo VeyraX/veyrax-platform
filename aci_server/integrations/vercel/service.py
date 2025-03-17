@@ -3,17 +3,20 @@ from .client import VercelClient
 from .schema import (
     DeploymentResponse, DeploymentListResponse, DeleteDeploymentResponse,
     DeploymentFileResponse, ApiResponse, ListDeploymentsParams, GetDeploymentParams,
-    DeleteDeploymentParams, CancelDeploymentParams,
-    GetDeploymentFilesParams, GetDeploymentEventsParams, DeploymentEventResponse,
+    DeleteDeploymentParams, CancelDeploymentParams,GetDeploymentEventsParams, DeploymentEventResponse,
     AddDomainToProjectParams, CreateProjectParams, CreateEnvVarsParams, DeleteProjectParams,
     AddDomainResponse, EnvVarCreatedResponse, EnvVarErrorResponse, CreateEnvVarsResponse,
     EditEnvVarParams, GetProjectParams, GetProjectDomainParams, RemoveEnvVarParams,
     ListProjectsParams, EnvVarResponse, ProjectDomainResponse, GetProjectDomainsParams,
     VerifyProjectDomainParams, UpdateProjectParams, ProjectDomainsResponse,
-    GetProjectEnvVarsParams, CreateDeploymentParams, InlinedFile, UploadedFile, GitMetadata, GitSource, ProjectSettings
+    GetProjectEnvVarsParams, CreateDeploymentParams,
+    ProjectResponse, ProjectListResponse, DeploymentResponse, DeploymentGitSource, Creator, Team, ProjectInfo,
+    DeleteProjectResponse, ProjectGitRepository, DeploymentEventListResponse, DeploymentFileListResponse,
+    EnvVarListResponse
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import time
 
 class VercelService:
     def __init__(self, client: VercelClient):
@@ -53,7 +56,6 @@ class VercelService:
         return ApiResponse(data=deployment)
 
     def _format_git_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """Format git metadata to camelCase for Vercel API."""
         formatted = {}
         for key, value in metadata.items():
             parts = key.split('_')
@@ -62,7 +64,6 @@ class VercelService:
         return formatted
 
     def _format_git_source(self, source: Dict[str, Any]) -> Dict[str, Any]:
-        """Format git source to camelCase for Vercel API."""
         formatted = {}
         for key, value in source.items():
             parts = key.split('_')
@@ -71,7 +72,6 @@ class VercelService:
         return formatted
 
     def _format_project_settings(self, settings: Dict[str, Any]) -> Dict[str, Any]:
-        """Format project settings to camelCase for Vercel API."""
         formatted = {}
         for key, value in settings.items():
             parts = key.split('_')
@@ -80,7 +80,6 @@ class VercelService:
         return formatted
 
     def _format_files(self, files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Format files array for Vercel API."""
         formatted_files = []
         for file in files:
             formatted_file = {}
@@ -104,30 +103,13 @@ class VercelService:
 
     def cancel_deployment(self, deployment_id: str, params: Optional[CancelDeploymentParams] = None) -> ApiResponse:
         params_dict = params.dict(exclude_none=True) if params else {}
+        if 'deployment_id' in params_dict:
+            del params_dict['deployment_id']
         response = self.client.cancel_deployment(deployment_id, params_dict)
         
-        deployment = self._convert_to_deployment_response(response)
-        return ApiResponse(data=deployment)
-
-    def get_deployment_files(self, deployment_id: str, params: Optional[GetDeploymentFilesParams] = None) -> ApiResponse:
-        """List deployment files"""
-        params_dict = params.dict(exclude_none=True) if params else {}
-        response = self.client.get_deployment_files(deployment_id, params_dict)
+        deployment_response = self._convert_to_deployment_response(response)
         
-        files = []
-        for item in response:
-            file = DeploymentFileResponse(
-                name=item.get('name', ''),
-                type=item.get('type', ''),
-                uid=item.get('uid', ''),
-                children=item.get('children'),
-                content_type=item.get('contentType'),
-                mode=item.get('mode'),
-                symlink=item.get('symlink')
-            )
-            files.append(file)
-            
-        return ApiResponse(data=files)
+        return ApiResponse(data=deployment_response)
 
     def get_deployment_events(self, id_or_url: str, params: Optional[GetDeploymentEventsParams] = None) -> ApiResponse:
         params_dict = params.dict(exclude_none=True) if params else {}
@@ -159,59 +141,7 @@ class VercelService:
             event = DeploymentEventResponse(**event_data)
             events.append(event)
             
-        return ApiResponse(data=events)
-
-    def _convert_to_deployment_response(self, item: Dict[str, Any]) -> DeploymentResponse:
-        creator = None
-        if 'creator' in item:
-            creator = {
-                'uid': item['creator'].get('uid'),
-                'username': item['creator'].get('username'),
-                'avatar': item['creator'].get('avatar')
-            }
-        
-        team = None
-        if 'team' in item:
-            team = {
-                'id': item['team'].get('id'),
-                'name': item['team'].get('name'),
-                'slug': item['team'].get('slug'),
-                'avatar': item['team'].get('avatar')
-            }
-        
-        project = None
-        if 'project' in item:
-            project = {
-                'id': item['project'].get('id'),
-                'name': item['project'].get('name'),
-                'framework': item['project'].get('framework')
-            }
-        
-        git_source = None
-        if 'gitSource' in item:
-            git_source = {
-                'type': item['gitSource'].get('type', ''),
-                'repo_id': item['gitSource'].get('repoId'),
-                'ref': item['gitSource'].get('ref'),
-                'sha': item['gitSource'].get('sha'),
-                'pr_id': item['gitSource'].get('prId')
-            }
-        
-        return DeploymentResponse(
-            id=item.get('id', ''),
-            name=item.get('name', ''),
-            url=item.get('url'),
-            created_at=item.get('createdAt'),
-            creator=creator,
-            team=team,
-            project=project,
-            target=item.get('target'),
-            ready_state=item.get('readyState', ''),
-            state=item.get('state'),
-            type=item.get('type', ''),
-            git_source=git_source,
-            meta=item.get('meta')
-        )
+        return ApiResponse(data=DeploymentEventListResponse(events=events))
 
     def add_domain_to_project(self, params: AddDomainToProjectParams) -> ApiResponse:
         project_id_or_name = params.project_id_or_name
@@ -257,6 +187,7 @@ class VercelService:
         return ApiResponse(data=domain_response)
 
     def create_project(self, params: CreateProjectParams) -> ApiResponse:
+        """Create a new project"""
         params_dict = params.dict(exclude_none=True)
         
         query_params = {}
@@ -278,7 +209,9 @@ class VercelService:
         
         response = self.client.create_project(data, query_params)
         
-        return ApiResponse(data=response)
+        # Преобразуем ответ в ProjectResponse
+        project = self._convert_to_project_response(response)
+        return ApiResponse(data=project)
 
     def create_env_vars(self, params: CreateEnvVarsParams) -> ApiResponse:
         project_id_or_name = params.project_id_or_name
@@ -313,13 +246,16 @@ class VercelService:
         
         response = self.client.create_env_vars(project_id_or_name, data, query_params)
         
-        # Parse response
-        result = CreateEnvVarsResponse()
+        # Преобразуем ответ в CreateEnvVarsResponse
+        created = None
         if "created" in response:
-            result.created = EnvVarCreatedResponse(**response["created"])
-        if "failed" in response:
-            result.failed = [EnvVarErrorResponse(error=item) for item in response["failed"]]
+            created = EnvVarCreatedResponse(**response["created"])
         
+        failed = None
+        if "failed" in response and response["failed"]:
+            failed = [EnvVarErrorResponse(error=item) for item in response["failed"]]
+        
+        result = CreateEnvVarsResponse(created=created, failed=failed)
         return ApiResponse(data=result)
 
     def delete_project(self, params: DeleteProjectParams) -> ApiResponse:
@@ -334,7 +270,12 @@ class VercelService:
         
         self.client.delete_project(project_id_or_name, query_params)
         
-        return ApiResponse(data={"status": "success", "message": "Project deleted successfully"})
+        # Возвращаем структурированный ответ
+        result = DeleteProjectResponse(
+            status="success", 
+            message=f"Project '{project_id_or_name}' deleted successfully"
+        )
+        return ApiResponse(data=result)
 
     def edit_env_var(self, params: EditEnvVarParams) -> ApiResponse:
         """Edit an environment variable for a project"""
@@ -380,8 +321,8 @@ class VercelService:
             query_params["slug"] = params.slug
         
         response = self.client.get_project(project_id_or_name, query_params)
-        
-        return ApiResponse(data=response)
+        project = self._convert_to_project_response(response)
+        return ApiResponse(data=project)
     
     def get_project_domain(self, params: GetProjectDomainParams) -> ApiResponse:
         """Get a project domain by project ID/name and domain name"""
@@ -427,26 +368,25 @@ class VercelService:
         
         response = self.client.remove_env_var(project_id_or_name, env_var_id, query_params)
         
-        if not response:
-            return ApiResponse(data={"status": "success", "message": "Environment variable removed successfully"})
+        env_vars = []
         
         if isinstance(response, list):
-            env_vars = []
             for item in response:
                 env_var = self._convert_to_env_var_response(item)
                 env_vars.append(env_var)
-            return ApiResponse(data=env_vars)
+        elif isinstance(response, dict) and "envs" in response:
+            for item in response.get("envs", []):
+                env_var = self._convert_to_env_var_response(item)
+                env_vars.append(env_var)
+        elif not response:
+            # If response is empty, return empty list
+            pass
+        else:
+            # Log unexpected response format
+            import logging
+            logging.warning(f"Unexpected response format from remove_env_var: {response}")
         
-        if isinstance(response, dict):
-            if "envs" in response:
-                env_vars = []
-                for item in response.get("envs", []):
-                    env_var = self._convert_to_env_var_response(item)
-                    env_vars.append(env_var)
-                return ApiResponse(data=env_vars)
-            return ApiResponse(data=response)
-        
-        return ApiResponse(data={"status": "success", "message": "Environment variable removed", "response": str(response)})
+        return ApiResponse(data=EnvVarListResponse(env_vars=env_vars))
     
     def list_projects(self, params: Optional[ListProjectsParams] = None) -> ApiResponse:
         """Retrieve a list of projects"""
@@ -473,9 +413,10 @@ class VercelService:
                     params_dict[key] = value
         
         response = self.client.list_projects(params_dict)
-        
-        return ApiResponse(data=response)
     
+        project_list = self._convert_to_project_list_response(response)
+        return ApiResponse(data=project_list)
+
     def _convert_to_env_var_response(self, item: Dict[str, Any]) -> EnvVarResponse:
         """Convert API response to EnvVarResponse model"""
         return EnvVarResponse(
@@ -547,10 +488,7 @@ class VercelService:
             pagination=response.get("pagination")
         )
         
-        return ApiResponse(data={
-            "domains": [domain.dict() for domain in domains],
-            "pagination": response.get("pagination")
-        })
+        return ApiResponse(data=domains_response)
 
     def verify_project_domain(self, params: VerifyProjectDomainParams) -> ApiResponse:
         """Verify a project domain"""
@@ -607,8 +545,8 @@ class VercelService:
             data[camel_key] = value
         
         response = self.client.update_project(project_id_or_name, data, query_params)
-        
-        return ApiResponse(data=response)
+        project = self._convert_to_project_response(response)
+        return ApiResponse(data=project)
 
     def get_project_env_vars(self, params: GetProjectEnvVarsParams) -> ApiResponse:
         project_id_or_name = params.project_id_or_name
@@ -632,7 +570,7 @@ class VercelService:
             env_var = self._convert_to_env_var_response(item)
             env_vars.append(env_var)
         
-        return ApiResponse(data=env_vars)
+        return ApiResponse(data=EnvVarListResponse(env_vars=env_vars))
 
     def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
         """Create a new deployment"""
@@ -674,28 +612,134 @@ class VercelService:
         query_params["forceNew"] = "1"
         query_params["skipAutoDetectionConfirmation"] = "1"
         
-        try:
-            print(f"Sending deployment request with data: {data}")
-            response = self.client.create_deployment(data, query_params)
-            
-            # Ensure response is a dictionary before processing
-            if not isinstance(response, dict):
-                return ApiResponse(data={"error": "Invalid response format from Vercel API"})
-            
-            # Convert the response to a DeploymentResponse object
-            deployment = self._convert_to_deployment_response(response)
-            return ApiResponse(data=deployment)
-        except Exception as e:
-            # Provide a clearer error message with troubleshooting tips
-            error_msg = str(e)
-            if "incorrect_git_source_info" in error_msg or "can't be found" in error_msg:
-                return ApiResponse(data={
-                    "error": f"Deployment failed: {error_msg}",
-                    "troubleshooting": [
-                        "Check that the repository name is exactly correct (case-sensitive)",
-                        "Verify that your Vercel account has access to this repository",
-                        "Ensure the repository exists and is public or properly connected to Vercel",
-                        "Try using the repository ID number instead of the name if available"
-                    ]
-                })
-            return ApiResponse(data={"error": f"Deployment failed: {error_msg}"})
+        response = self.client.create_deployment(data, query_params)
+        
+        deployment = self._convert_to_deployment_response(response)
+        
+        return ApiResponse(data=deployment)
+
+    def _convert_to_project_response(self, item: Dict[str, Any]) -> ProjectResponse:
+        git_info = None
+        if "link" in item and item["link"] and "type" in item["link"]:
+            git_info = ProjectGitRepository(
+                type=item["link"].get("type", ""),
+                repo=item["link"].get("repo", ""),
+                repo_id=item["link"].get("repoId", ""),
+                provider_repo_id=item["link"].get("providerRepoId", ""),
+                org=item["link"].get("org", ""),
+                owner=item["link"].get("owner", ""),
+                slug=item["link"].get("slug", ""),
+                private=item["link"].get("private", False),
+                branch=item["link"].get("sourceless", {}).get("defaultBranch", "")
+            )
+        
+        return ProjectResponse(
+            id=item.get("id", ""),
+            name=item.get("name", ""),
+            account_id=item.get("accountId", ""),
+            created_at=item.get("createdAt", 0),
+            updated_at=item.get("updatedAt", 0),
+            framework=item.get("framework"),
+            git=git_info 
+        )
+
+    def _convert_to_project_list_response(self, response: Dict[str, Any]) -> ProjectListResponse:
+        """Convert API response to ProjectListResponse model"""
+        projects = []
+        
+        # Ensure 'projects' key exists and is a list
+        if "projects" in response and isinstance(response["projects"], list):
+            for item in response["projects"]:
+                # Skip any non-dictionary items
+                if not isinstance(item, dict):
+                    continue
+                    
+                try:
+                    project = self._convert_to_project_response(item)
+                    projects.append(project)
+                except Exception as e:
+                    # Log the error but continue processing other projects
+                    import logging
+                    logging.warning(f"Error converting project: {str(e)}")
+        
+        # Ensure pagination is a dictionary
+        pagination = None
+        if "pagination" in response and isinstance(response["pagination"], dict):
+            pagination = response["pagination"]
+        
+        return ProjectListResponse(
+            projects=projects,
+            pagination=pagination
+        )
+
+    def _convert_to_domain_response(self, item: Dict[str, Any]) -> ProjectDomainResponse:
+        return ProjectDomainResponse(
+            name=item.get("name", ""),
+            apex_name=item.get("apexName", ""),
+            project_id=item.get("projectId", ""),
+            redirect=item.get("redirect"),
+            redirect_status_code=item.get("redirectStatusCode"),
+            git_branch=item.get("gitBranch"),
+            custom_environment_id=item.get("customEnvironmentId"),
+            updated_at=item.get("updatedAt", 0),
+            created_at=item.get("createdAt", 0),
+            verified=item.get("verified", False),
+            verification=item.get("verification", [])
+        )
+    
+    def _convert_to_deployment_response(self, item: Dict[str, Any]) -> DeploymentResponse:
+        # Проверяем наличие ID и используем uid как запасной вариант
+        deployment_id = item.get('id', '')
+        if not deployment_id and 'uid' in item:
+            deployment_id = item.get('uid', '')
+        
+        creator = None
+        if 'creator' in item:
+            creator = Creator(
+                uid=item['creator'].get('uid'),
+                username=item['creator'].get('username'),
+                avatar=item['creator'].get('avatar')
+            )
+        
+        team = None
+        if 'team' in item:
+            team = Team(
+                id=item['team'].get('id'),
+                name=item['team'].get('name'),
+                slug=item['team'].get('slug'),
+                avatar=item['team'].get('avatar')
+            )
+        
+        project = None
+        if 'project' in item:
+            project = ProjectInfo(
+                id=item['project'].get('id'),
+                name=item['project'].get('name'),
+                framework=item['project'].get('framework')
+            )
+        
+        git_source = None
+        if 'gitSource' in item:
+            git_source = DeploymentGitSource(
+                type=item['gitSource'].get('type', ''),
+                repo_id=item['gitSource'].get('repoId'),
+                ref=item['gitSource'].get('ref'),
+                sha=item['gitSource'].get('sha'),
+                pr_id=item['gitSource'].get('prId')
+            )
+        
+        return DeploymentResponse(
+            id=deployment_id,
+            name=item.get('name', ''),
+            url=item.get('url'),
+            created_at=item.get('createdAt'),
+            creator=creator,
+            team=team,
+            project=project,
+            target=item.get('target'),
+            ready_state=item.get('readyState', ''),
+            state=item.get('state'),
+            type=item.get('type', ''),
+            git_source=git_source,
+            meta=item.get('meta')
+        )

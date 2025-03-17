@@ -28,5 +28,4 @@ async def get_user_memories(user_id: str, limit: Optional[int] = None) -> Dict[s
         return memories_by_tool
         
     except Exception as e:
-        print(f"Error retrieving user memories: {str(e)}")
         return {}

@@ -197,168 +197,144 @@ class DriveService:
         }
 
     async def upload_file_from_url(self, file_url, filename, parent_id=None):
-        try:
-            response = requests.get(file_url, stream=True)
-            response.raise_for_status()
-            
-            content_type = response.headers.get('Content-Type', 'application/octet-stream')
-            
-            file_obj = BytesIO(response.content)
-            
-            file_obj.seek(0)
-            
-            file_data = self.client.upload_file(
-                name=filename,
-                file_content=file_obj,
-                mime_type=content_type,
-                parent_id=parent_id
-            )
-            
-            file_obj = self.get_file(file_data['id']).data
-            
-            return self.prepare_response(file_obj, "GoogleDriveFileCard")
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            raise HTTPException(status_code=400, detail=f"Failed to upload file from URL: {str(e)}")
+        response = requests.get(file_url, stream=True)
+        response.raise_for_status()
+        
+        content_type = response.headers.get('Content-Type', 'application/octet-stream')
+        
+        file_obj = BytesIO(response.content)
+        
+        file_obj.seek(0)
+        
+        file_data = self.client.upload_file(
+            name=filename,
+            file_content=file_obj,
+            mime_type=content_type,
+            parent_id=parent_id
+        )
+        
+        file_obj = self.get_file(file_data['id']).data
+        
+        return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     async def upload_file_from_base64(self, filename, file_base64, content_type, parent_id=None):
-        try:
-            if ',' in file_base64:
-                file_base64 = file_base64.split(',', 1)[1]
-            
-            file_base64 = file_base64.strip()
-            
-            is_google_format = content_type.startswith('application/vnd.google-apps.')
-            
-            upload_mime_type = content_type
-            if is_google_format:
-                if content_type == 'application/vnd.google-apps.document':
-                    upload_mime_type = 'text/plain'
-                elif content_type == 'application/vnd.google-apps.spreadsheet':
-                    upload_mime_type = 'text/csv'
-                elif content_type == 'application/vnd.google-apps.presentation':
-                    upload_mime_type = 'text/plain'
-                else:
-                    upload_mime_type = 'text/plain'
+        if ',' in file_base64:
+            file_base64 = file_base64.split(',', 1)[1]
+        
+        file_base64 = file_base64.strip()
+        
+        is_google_format = content_type.startswith('application/vnd.google-apps.')
+        
+        upload_mime_type = content_type
+        if is_google_format:
+            if content_type == 'application/vnd.google-apps.document':
+                upload_mime_type = 'text/plain'
+            elif content_type == 'application/vnd.google-apps.spreadsheet':
+                upload_mime_type = 'text/csv'
+            elif content_type == 'application/vnd.google-apps.presentation':
+                upload_mime_type = 'text/plain'
+            else:
+                upload_mime_type = 'text/plain'
+                
+            try:
+                import json
+                import base64 as b64
+                decoded_content = b64.b64decode(file_base64).decode('utf-8')
+                json_data = json.loads(decoded_content)
+                
+                if isinstance(json_data, dict) and 'content' in json_data:
+                    file_content = json_data['content'].encode('utf-8')
+                    file_base64 = b64.b64encode(file_content).decode('utf-8')
                     
-                try:
-                    import json
-                    import base64 as b64
-                    decoded_content = b64.b64decode(file_base64).decode('utf-8')
-                    json_data = json.loads(decoded_content)
-                    
-                    if isinstance(json_data, dict) and 'content' in json_data:
-                        file_content = json_data['content'].encode('utf-8')
-                        file_base64 = b64.b64encode(file_content).decode('utf-8')
-                        
-                        if 'title' in json_data and filename.endswith('.gdoc'):
-                            filename = json_data['title'] + '.txt'
-                except:
-                    pass
-            
-            file_content = base64.b64decode(file_base64)
-            file_obj = BytesIO(file_content)
-            file_obj.seek(0)
-            
-            file_data = self.client.upload_file(
-                name=filename,
-                file_content=file_obj,
-                mime_type=upload_mime_type,
-                parent_id=parent_id
-            )
-            
-            if is_google_format and content_type != upload_mime_type:
-                try:
-                    file_data = self.client.service.files().update(
-                        fileId=file_data['id'],
-                        body={'mimeType': content_type},
-                        fields='id, name, mimeType, parents, size'
-                    ).execute()
-                except Exception as e:
-                    pass
-            
-            file_obj = self.get_file(file_data['id']).data
-            
-            return self.prepare_response(file_obj, "GoogleDriveFileCard")
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            raise HTTPException(status_code=400, detail=f"Failed to decode base64 file: {str(e)}")
+                    if 'title' in json_data and filename.endswith('.gdoc'):
+                        filename = json_data['title'] + '.txt'
+            except:
+                pass
+        
+        file_content = base64.b64decode(file_base64)
+        file_obj = BytesIO(file_content)
+        file_obj.seek(0)
+        
+        file_data = self.client.upload_file(
+            name=filename,
+            file_content=file_obj,
+            mime_type=upload_mime_type,
+            parent_id=parent_id
+        )
+        
+        if is_google_format and content_type != upload_mime_type:
+            try:
+                file_data = self.client.service.files().update(
+                    fileId=file_data['id'],
+                    body={'mimeType': content_type},
+                    fields='id, name, mimeType, parents, size'
+                ).execute()
+            except Exception:
+                pass
+        
+        file_obj = self.get_file(file_data['id']).data
+        
+        return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     def set_permission(self, file_id: str, permission: Dict[str, Any]) -> ApiResponse:
-        try:
-            perm_type = PermissionType(permission['type'])
-            perm_role = PermissionRole(permission['role'])
-            
-            permission_body = {
-                'type': perm_type.value,
-                'role': perm_role.value
-            }
-            
-            extra_params = {}
-            if perm_type in [PermissionType.USER, PermissionType.GROUP]:
-                permission_body['emailAddress'] = permission['email']
-                extra_params['emailMessage'] = permission.get('email_message')
-            elif perm_type == PermissionType.DOMAIN:
-                permission_body['domain'] = permission['domain']
-            
-            created_perm = self.client.create_permission(
-                file_id=file_id,
-                permission={**permission_body, **extra_params}
-            )
-            
-            perm_response = PermissionResponse(
-                id=created_perm['id'],
-                role=PermissionRole(created_perm['role']),
-                type=PermissionType(created_perm['type']),
-                email_address=created_perm.get('emailAddress')
-            )
-            
-            return self.prepare_response(perm_response, "GoogleDrivePermissionCard")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Permission setting failed: {str(e)}")
+        perm_type = PermissionType(permission['type'])
+        perm_role = PermissionRole(permission['role'])
+        
+        permission_body = {
+            'type': perm_type.value,
+            'role': perm_role.value
+        }
+        
+        extra_params = {}
+        if perm_type in [PermissionType.USER, PermissionType.GROUP]:
+            permission_body['emailAddress'] = permission['email']
+            extra_params['emailMessage'] = permission.get('email_message')
+        elif perm_type == PermissionType.DOMAIN:
+            permission_body['domain'] = permission['domain']
+        
+        created_perm = self.client.create_permission(
+            file_id=file_id,
+            permission={**permission_body, **extra_params}
+        )
+        
+        perm_response = PermissionResponse(
+            id=created_perm['id'],
+            role=PermissionRole(created_perm['role']),
+            type=PermissionType(created_perm['type']),
+            email_address=created_perm.get('emailAddress')
+        )
+        
+        return self.prepare_response(perm_response, "GoogleDrivePermissionCard")
 
     def list_permissions(self, file_id: str) -> ApiResponse:
-        try:
-            permissions = self.client.list_permissions(file_id)
-            perm_responses = [
-                PermissionResponse(
-                    id=p['id'],
-                    role=PermissionRole(p['role']),
-                    type=PermissionType(p['type']),
-                    email_address=p.get('emailAddress')
-                ) for p in permissions
-            ]
-            return self.prepare_response(perm_responses, "GoogleDrivePermissionList")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to list permissions: {str(e)}")
+        permissions = self.client.list_permissions(file_id)
+        perm_responses = [
+            PermissionResponse(
+                id=p['id'],
+                role=PermissionRole(p['role']),
+                type=PermissionType(p['type']),
+                email_address=p.get('emailAddress')
+            ) for p in permissions
+        ]
+        return self.prepare_response(perm_responses, "GoogleDrivePermissionList")
 
     def delete_permission(self, file_id: str, permission_id: str) -> None:
-        try:
-            self.client.delete_permission(file_id, permission_id)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Permission deletion failed: {str(e)}")
+        self.client.delete_permission(file_id, permission_id)
 
     def copy_file(self, file_id: str, name: Optional[str] = None, parent_id: Optional[str] = None) -> ApiResponse:
-        try:
-            file_data = self.client.copy_file(file_id, name, parent_id)
-            file_obj = DriveFile(
-                id=file_data['id'],
-                name=file_data['name'],
-                mime_type=file_data['mimeType'],
-                parent_ids=file_data.get('parents'),
-                created_time=parser.parse(file_data['createdTime']),
-                modified_time=parser.parse(file_data['modifiedTime']),
-                size=file_data.get('size'),
-                web_view_link=file_data.get('webViewLink'),
-                web_content_link=file_data.get('webContentLink')
-            )
-            return self.prepare_response(file_obj, "GoogleDriveFileCard")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to copy file: {str(e)}")
+        file_data = self.client.copy_file(file_id, name, parent_id)
+        file_obj = DriveFile(
+            id=file_data['id'],
+            name=file_data['name'],
+            mime_type=file_data['mimeType'],
+            parent_ids=file_data.get('parents'),
+            created_time=parser.parse(file_data['createdTime']),
+            modified_time=parser.parse(file_data['modifiedTime']),
+            size=file_data.get('size'),
+            web_view_link=file_data.get('webViewLink'),
+            web_content_link=file_data.get('webContentLink')
+        )
+        return self.prepare_response(file_obj, "GoogleDriveFileCard")
 
     GOOGLE_MIME_TYPES = {
         'application/vnd.google-apps.document': 'application/pdf',

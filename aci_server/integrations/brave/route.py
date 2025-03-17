@@ -11,8 +11,7 @@ from .service import BraveService
 from .client import BraveClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from pydantic import ValidationError
-from ..common.utils import format_validation_error
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
 from ..common.examples_handler import ExamplesLoader
 from fastapi import Request
 
@@ -23,7 +22,9 @@ examples = ExamplesLoader()
 async def get_brave_service(request: Request):
     try:
         api_key = await validate_provider_api_key(request, "brave")
-        return BraveService(BraveClient(api_key))
+        service = BraveService(BraveClient(api_key))
+        apply_error_handler_to_service(service)
+        return service
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Brave service initialization failed: {str(e)}")
 
@@ -37,13 +38,8 @@ async def web_search(
     params: Dict[str, Any] = Body(...),
     service: BraveService = Depends(get_brave_service),
 ):
-    try:
-        validated_params = WebSearchParams(**params)
-        return service.web_search(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'WebSearchParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = WebSearchParams(**params)
+    return service.web_search(validated_params)
 
 @router.post("/images_search", response_model=ApiResponse)
 @schema(
@@ -55,13 +51,8 @@ async def image_search(
     params: Dict[str, Any] = Body(...),
     service: BraveService = Depends(get_brave_service)
 ):
-    try:
-        validated_params = ImageSearchParams(**params)
-        return service.image_search(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'ImageSearchParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = ImageSearchParams(**params)
+    return service.image_search(validated_params)
 
 @router.post("/videos_search", response_model=ApiResponse)
 @schema(input_schema_class=VideoSearchParams, output_schema_class=ApiResponse, examples=examples["/brave/videos_search"])
@@ -69,13 +60,8 @@ async def video_search(
     params: Dict[str, Any] = Body(...),
     service: BraveService = Depends(get_brave_service)
 ):
-    try:
-        validated_params = VideoSearchParams(**params)
-        return service.video_search(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'VideoSearchParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = VideoSearchParams(**params)
+    return service.video_search(validated_params)
 
 @router.post("/news_search", response_model=ApiResponse)
 @schema(input_schema_class=NewsSearchParams, output_schema_class=ApiResponse, examples=examples["/brave/news_search"])
@@ -83,13 +69,8 @@ async def news_search(
     params: Dict[str, Any] = Body(...),
     service: BraveService = Depends(get_brave_service)
 ):
-    try:
-        validated_params = NewsSearchParams(**params)
-        return service.news_search(validated_params)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=format_validation_error(e, 'NewsSearchParams'))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    validated_params = NewsSearchParams(**params)
+    return service.news_search(validated_params)
 
 @router.post("/validate_key")
 async def validate_key(
@@ -107,3 +88,5 @@ async def validate_key(
         return {"valid": True, "message": "API key is valid"}
     except Exception as e:
         return {"valid": False, "message": f"Invalid API key"}
+
+apply_error_handler_to_router(router)
