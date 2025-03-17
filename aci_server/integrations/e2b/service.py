@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 from .client import E2BClient
 from .schema import (
     SandboxCreateRequest,
@@ -23,10 +23,30 @@ from .schema import (
     FileOperationResponse,
     FileResponse
 )
+import os
+from ..common.component_handler import load_components, prepare_components_auto
 
 class E2BService:
     def __init__(self, client: E2BClient):
         self.client = client
+        self.components_data = self._load_components()
+
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+
+    def prepare_response(self, data: Dict, component_name: str = None) -> Dict:
+        tool_name = "e2b"
+        components = prepare_components_auto(
+            data, 
+            component_name,
+            self.components_data,
+            tool_name
+        )
+        return {
+            "data": data,
+            "component": components
+        }
 
     def create_sandbox(self, request: SandboxCreateRequest) -> SandboxResponse:
         sandbox = self.client.create_sandbox(
@@ -39,10 +59,7 @@ class E2BService:
             "timeout": request.timeout,
             "metadata": request.metadata
         }
-        return SandboxResponse(
-            data=data,
-            component=None
-        )
+        return self.prepare_response(data, "E2BSandboxView")
     
     def _serialize_sandbox(self, sandbox: Dict) -> SandboxInfo:
         return SandboxInfo(
@@ -99,10 +116,7 @@ class E2BService:
             "status": result["status"]
         }
         
-        return SandboxResponse(
-            data=data,
-            component=None
-        )
+        return self.prepare_response(data, "E2BSandboxView")
     
     def resume_sandbox(self, request: SandboxResumeRequest) -> SandboxResponse:
         """Resume a previously paused sandbox"""
@@ -120,11 +134,7 @@ class E2BService:
         if "error" in result:
             message = f"Error resuming sandbox: {result['error']}"
         
-        return SandboxResponse(
-            data=data,
-            component={"name": "E2BSandboxView"},
-            message=message
-        )
+        return self.prepare_response(data, None)
 
     def run_code(self, request: CodeExecutionRequest) -> CodeExecutionResponse:
         # Execute code with specified language and optional commands
@@ -176,9 +186,9 @@ class E2BService:
     
     def get_host(self, request: GetHostRequest) -> GetHostResponse:
         host = self.client.get_host(request.sandbox_id, request.port)
-        return GetHostResponse(
+        return self.prepare_response(
             data=host,
-            component=None
+            component_name="E2BHostView"
         )
 
     def upload_file(self, request: FileUploadRequest) -> FileOperationResponse:
