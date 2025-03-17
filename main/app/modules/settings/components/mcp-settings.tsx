@@ -32,9 +32,15 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
         `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` : 
         `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\":\\"VEYRAX_API_KEY\\"}"`
     },
-    claude: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude`,
-    windsurf: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf`,
-    cline: `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline`,
+    claude: apiKey ? 
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` :
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude`,
+    windsurf: apiKey ? 
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` :
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf`,
+    cline: apiKey ? 
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline --config "{\\"VEYRAX_API_KEY\\":\\"${apiKey.api_key}\\"}"` :
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline`,
   }
 
   const handleCopyCommand = (command: string) => {
