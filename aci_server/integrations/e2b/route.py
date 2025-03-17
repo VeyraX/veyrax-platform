@@ -88,6 +88,7 @@ async def run_command(
     validated = SandboxRunCommandRequest(**params)
     return service.run_command(validated)
 
+@router.post("/get_host", response_model=GetHostResponse)
 @schema(
     input_schema_class=GetHostRequest,
     output_schema_class=GetHostResponse,

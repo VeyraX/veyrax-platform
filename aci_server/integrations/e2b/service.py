@@ -15,7 +15,9 @@ from .schema import (
     FileListRequest,
     FileListResponse,
     CodeExecutionResult,
-    SandboxInfo
+    SandboxInfo,
+    GetHostRequest,
+    GetHostResponse
 )
 
 class E2BService:
@@ -166,3 +168,10 @@ class E2BService:
 
     def kill_sandbox(self, sandbox_id: str) -> Dict:
         return self.client.kill_sandbox(sandbox_id)
+    
+    def get_host(self, request: GetHostRequest) -> GetHostResponse:
+        host = self.client.get_host(request.sandbox_id, request.port)
+        return GetHostResponse(
+            data=host,
+            component=None
+        )
