@@ -24,8 +24,6 @@ export async function POST(req: Request) {
     
     const customSystemPrompt = `${main_system_prompt}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
 
-    console.log("system prompt", customSystemPrompt);
-
     const result = streamText({
       model: openai('gpt-4o'),
       messages,
