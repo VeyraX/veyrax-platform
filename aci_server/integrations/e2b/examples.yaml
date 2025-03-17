@@ -482,3 +482,103 @@ routes:
             },
             "component": null
           }
+
+  - endpoint: /e2b/get_host
+    examples:
+      - scenario: "Get Host for Web Service"
+        description: "Get the external host for accessing a service running on a specific port"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "port": 3000
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": "https://sandbox-abc123-3000.e2b.dev",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+      
+      - scenario: "Get Host for Custom Port"
+        description: "Get the external host for a custom port"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-def456",
+            "port": 8080
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": "https://sandbox-def456-8080.e2b.dev",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+      
+      - scenario: "Get Host Error"
+        description: "Error when requesting host for a non-existent sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent",
+            "port": 3000
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": null,
+            "message": "Error getting host: Sandbox not found",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+
+  - endpoint: /e2b/kill_sandbox
+    examples:
+      - scenario: "Kill Active Sandbox"
+        description: "Immediately terminate a running sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "component": null
+          }
+      
+      - scenario: "Kill Non-existent Sandbox"
+        description: "Attempt to kill a sandbox that doesn't exist"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "error"
+            },
+            "message": "Error terminating sandbox: Sandbox not found",
+            "component": null
+          }
+      
+      - scenario: "Kill Already Terminated Sandbox"
+        description: "Attempt to kill a sandbox that's already been terminated"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-terminated"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "message": "Sandbox was already terminated",
+            "component": null
+          }

@@ -150,7 +150,7 @@ class E2BClient:
         sandbox = Sandbox(api_key=self.api_key, sandbox_id=sandbox_id)
         
         host = sandbox.get_host(port) 
-        return host
+        return "https://" + host
 
     def kill_sandbox(self, sandbox_id: str) -> Dict:
         sandbox = Sandbox(api_key=self.api_key, sandbox_id=sandbox_id)

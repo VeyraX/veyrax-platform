@@ -67,7 +67,8 @@ class E2BService:
         """Run a shell command in the sandbox"""
         result = self.client.run_command(
             sandbox_id=request.sandbox_id,
-            command=request.command
+            command=request.command,
+            background=request.background
         )
         
         # Create CommandExecutionResult

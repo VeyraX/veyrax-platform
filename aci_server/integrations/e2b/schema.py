@@ -13,6 +13,7 @@ class SandboxListRequest(BaseModel):
 class SandboxRunCommandRequest(BaseModel):
     sandbox_id: str = Field(..., description="ID of active sandbox")
     command: str = Field(..., description="Command to run")
+    background: bool = Field(False, description="Run command in background")
 
 class SandboxPauseRequest(BaseModel):
     sandbox_id: str = Field(..., description="ID of active sandbox to pause")

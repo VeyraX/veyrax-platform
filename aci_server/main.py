@@ -255,8 +255,8 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
-    if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
-        return await get_dev_user_tools(request)
+    # if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
+    #     return await get_dev_user_tools(request)
     
     try:
         user_id = await get_user_from_request(request)
