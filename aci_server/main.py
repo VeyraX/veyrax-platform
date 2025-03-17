@@ -40,7 +40,7 @@ from integrations.vercel.route import router as vercel_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
-
+from integrations.e2b.route import router as e2b_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -95,7 +95,8 @@ INTEGRATION_ROUTERS = {
     "figma": figma_router,
     "sentry": sentry_router,
     "http-request": http_request_router,
-    "vercel": vercel_router
+    "vercel": vercel_router,
+    "e2b": e2b_router
 }
 
 app = FastAPI()
