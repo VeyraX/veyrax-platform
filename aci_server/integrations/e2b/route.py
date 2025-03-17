@@ -43,9 +43,10 @@ async def validate_key(
             return {"valid": False, "message": "API key is required"}
         
         client = E2BClient(api_key=api_key)
-        test_response = client.list_sandboxes({})
+        test_response = client.list_sandboxes()
         return {"valid": True, "message": "API key is valid"}
     except Exception as e:
+        print("validate_key error", e)
         return {"valid": False, "message": f"Invalid API key"}
 
 @router.post("/create_sandbox", response_model=E2BBaseResponse)
