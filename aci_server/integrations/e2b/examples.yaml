@@ -582,3 +582,144 @@ routes:
             "message": "Sandbox was already terminated",
             "component": null
           }
+
+  - endpoint: /e2b/upload_file
+    examples:
+      - scenario: "Upload Text File"
+        description: "Upload a text file to the sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/example.txt",
+            "content": "This is the content of my text file",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/example.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "File uploaded successfully"
+            },
+            "message": "File upload operation completed",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Upload Binary File"
+        description: "Upload a binary file to the sandbox using base64 encoding"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/image.png",
+            "content": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA50lEQVQ4jZ2TMQrCQBBF30YCKQSvYCF4Ao9gYeEFPIOtjYKFhXiHdBYeQPAMgljoNawUsRFmIRt3J9n4YWB25/+fYXZXee+ZqBXQB1ogEI6AHOgBh5D/UQLi2QGlIC8C7RnwtAC5CuMywHtBPgU2I4CmsCsFOgEuo9TbClKngL0g+yCI65QimPJ9M+AutAoBXK2zN8iv0Pl/AM65GJgBB6vQBWSxkU2RjcDVOj8ZQeh3F02ATVSvcpQDPeAszEA+WuVp5SQ7OWtCdAXfXsNdC+QDYM6PVvPfy2QDrIEGsJR4BRyBzPrvAB+62UVxxKqVNgAAAABJRU5ErkJggg==",
+            "encoding": "base64"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/image.png",
+              "content": "",
+              "encoding": "base64",
+              "message": "File uploaded successfully"
+            },
+            "message": "File upload operation completed",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Upload Error"
+        description: "Error when uploading to an invalid path"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/root/protected.txt",
+            "content": "This is a test",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/root/protected.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "Error uploading file: Permission denied"
+            },
+            "message": "Error uploading file: Permission denied",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+
+  - endpoint: /e2b/download_file
+    examples:
+      - scenario: "Download Text File"
+        description: "Download a text file from the sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/example.txt",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/example.txt",
+              "content": "This is the content of my text file",
+              "encoding": "utf-8"
+            },
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Download Binary File"
+        description: "Download a binary file from the sandbox as base64"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/image.png",
+            "encoding": "base64"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/image.png",
+              "content": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA50lEQVQ4jZ2TMQrCQBBF30YCKQSvYCF4Ao9gYeEFPIOtjYKFhXiHdBYeQPAMgljoNawUsRFmIRt3J9n4YWB25/+fYXZXee+ZqBXQB1ogEI6AHOgBh5D/UQLi2QGlIC8C7RnwtAC5CuMywHtBPgU2I4CmsCsFOgEuo9TbClKngL0g+yCI65QimPJ9M+AutAoBXK2zN8iv0Pl/AM65GJgBB6vQBWSxkU2RjcDVOj8ZQeh3F02ATVSvcpQDPeAszEA+WuVp5SQ7OWtCdAXfXsNdC+QDYM6PVvPfy2QDrIEGsJR4BRyBzPrvAB+62UVxxKqVNgAAAABJRU5ErkJggg==",
+              "encoding": "base64"
+            },
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Download Error"
+        description: "Error when downloading a non-existent file"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/missing.txt",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/missing.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "Error downloading file: File not found"
+            },
+            "message": "Error downloading file: File not found",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
