@@ -410,8 +410,6 @@ class AsanaTokenRefresher(BaseTokenRefresher):
             new_token_data = {
                 'access_token': token_response.get('access_token'),
                 'refresh_token': token_response.get('refresh_token', refresh_token),
-                'expires_in': token_response.get('expires_in', 3600),
-                'token_type': token_response.get('token_type', 'bearer'),
                 'expires_at': int(time.time()) + token_response.get('expires_in', 3600),
                 'raw_token_data': token_response
             }
@@ -455,8 +453,6 @@ class FigmaTokenRefresher(BaseTokenRefresher):
             new_token_data = {
                 'access_token': token_response.get('access_token'),
                 'refresh_token': token_response.get('refresh_token', refresh_token),
-                'expires_in': token_response.get('expires_in', 3600),
-                'token_type': token_response.get('token_type', 'bearer'),
                 'expires_at': int(time.time()) + token_response.get('expires_in', 3600),
                 'raw_token_data': token_response
             }
