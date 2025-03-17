@@ -1,5 +1,5 @@
 ---
-description: Writing new integrations for tools.
+description: Writing new integrations for tools
 globs: 
 alwaysApply: false
 ---
@@ -12,6 +12,7 @@ The integration layer follows a clear three-tier architecture:
 1. **Route** - handling HTTP requests, input validation
 2. **Service** - business logic, data transformation
 3. **Client** - low-level API interaction
+4. **Schema** - models 
 
 ### Example Integration Structure
 integrations/
@@ -238,6 +239,38 @@ def _convert_to_message(self, response):
             
     return Message(**processed_data)
 ```
+### 8. Examples Format and String Comments
+
+#### 8.1 Proper Examples Format
+
+Always use the direct reference to the examples loader with the endpoint path:
+
+```python
+# Correct way to reference examples
+@router.post("/images_search", response_model=ApiResponse)
+@schema(
+    input_schema_class=ImagesSearchParams, 
+    output_schema_class=ImagesSearchResponse,
+    examples=examples["/brave/images_search"]  # Direct reference to examples
+)
+async def images_search(
+    params: Dict[str, Any] = Body(...),
+    service: BraveService = Depends(get_brave_service)
+):
+    validated_params = ImagesSearchParams(**params)
+    return service.images_search(validated_params)
+```
+
+#### 8.2 No Comments and No Docstrings
+
+Never add comments and documentation strings:
+
+```python
+# Correct - clean function.
+def get_user_info(self, user_id: str):
+    return self.client.get_user(user_id)
+```
+
 
 This approach significantly reduces code verbosity and makes it more maintainable, especially when dealing with models that have many fields.
 
@@ -351,3 +384,7 @@ By following these principles, you'll create integrations that are:
 6. Enable automatic schema extraction for documentation
 
 This significantly simplifies working with the code and reduces the number of potential errors.
+
+
+
+

@@ -76,4 +76,3 @@ def prepare_components_auto(data: Any, component_name: str, components: List[Dic
     else:
         component = create_component(component_def, data)
         return wrap_component_with_tool(component, tool_name)
-
