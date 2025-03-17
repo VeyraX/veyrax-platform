@@ -17,7 +17,11 @@ from .schema import (
     CodeExecutionResult,
     SandboxInfo,
     GetHostRequest,
-    GetHostResponse
+    GetHostResponse,
+    FileUploadRequest,
+    FileDownloadRequest,
+    FileOperationResponse,
+    FileResponse
 )
 
 class E2BService:
@@ -175,4 +179,47 @@ class E2BService:
         return GetHostResponse(
             data=host,
             component=None
+        )
+
+    def upload_file(self, request: FileUploadRequest) -> FileOperationResponse:
+        """Upload a file to the specified sandbox"""
+        result = self.client.upload_file(
+            sandbox_id=request.sandbox_id,
+            path=request.path,
+            content=request.content,
+            encoding=request.encoding
+        )
+        
+        response_data = FileResponse(
+            content="",  # We don't need to return the content in the upload response
+            encoding=request.encoding,
+            path=request.path,
+            message=result.get("message")
+        )
+        
+        return FileOperationResponse(
+            data=response_data,
+            component={"name": "E2BFileOperationView"},
+            message="File upload operation completed" if result.get("success", False) else result.get("message")
+        )
+    
+    def download_file(self, request: FileDownloadRequest) -> FileOperationResponse:
+        """Download a file from the specified sandbox"""
+        result = self.client.download_file(
+            sandbox_id=request.sandbox_id,
+            path=request.path,
+            encoding=request.encoding
+        )
+        
+        response_data = FileResponse(
+            content=result.get("content", ""),
+            encoding=result.get("encoding", request.encoding),
+            path=request.path,
+            message=result.get("message")
+        )
+        
+        return FileOperationResponse(
+            data=response_data,
+            component={"name": "E2BFileOperationView"},
+            message=result.get("message") if not result.get("success", True) else None
         )

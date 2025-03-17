@@ -156,3 +156,76 @@ class E2BClient:
         sandbox = Sandbox(api_key=self.api_key, sandbox_id=sandbox_id)
         sandbox.kill()
         return {"message": "Sandbox terminated"}
+
+    def upload_file(self, sandbox_id: str, path: str, content: str, encoding: str = "utf-8") -> Dict:
+        """
+        Upload a file to the specified path in the sandbox
+        
+        Args:
+            sandbox_id: ID of the sandbox
+            path: Destination path in the sandbox
+            content: File content as string or base64 encoded string
+            encoding: 'utf-8' or 'base64'
+            
+        Returns:
+            Dict with the result of the operation
+        """
+        try:
+            # Reconnect to the sandbox
+            sandbox = Sandbox(api_key=self.api_key, sandbox_id=sandbox_id)
+            
+            # Convert content to bytes based on encoding
+            file_bytes = None
+            if encoding.lower() == "base64":
+                file_bytes = base64.b64decode(content)
+            else:
+                file_bytes = content.encode("utf-8")
+            
+            # Upload the file to the sandbox
+            sandbox.files.write(path, file_bytes)
+            
+            return {
+                "path": path,
+                "success": True,
+                "message": "File uploaded successfully"
+            }
+        except Exception as e:
+            return {
+                "path": path,
+                "success": False,
+                "message": f"Error uploading file: {str(e)}"
+            }
+    
+    def download_file(self, sandbox_id: str, path: str, encoding: str = "utf-8") -> Dict:
+       
+        try:
+            # Reconnect to the sandbox
+            sandbox = Sandbox(api_key=self.api_key, sandbox_id=sandbox_id)
+            
+            # Download the file content as bytes
+            file_content = sandbox.files.read(path)
+            
+            # If the user wants base64, encode the (already string) content to bytes, 
+            # then base64-encode it, then convert back to a string.
+            if encoding.lower() == "base64":
+                encoded_bytes = base64.b64encode(file_content.encode("utf-8"))
+                content = encoded_bytes.decode("utf-8")
+            else:
+                # Default or "utf-8": simply return the string content as-is
+                content = file_content
+
+            return {
+                "path": path,
+                "content": content,
+                "encoding": encoding,
+                "success": True
+            }
+            
+        except Exception as e:
+            return {
+                "path": path,
+                "content": "",
+                "encoding": encoding,
+                "success": False,
+                "message": f"Error downloading file: {str(e)}"
+            }

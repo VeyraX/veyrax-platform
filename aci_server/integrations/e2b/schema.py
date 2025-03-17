@@ -100,10 +100,23 @@ class GetHostRequest(BaseModel):
     sandbox_id: str = Field(..., description="ID of active sandbox")
     port: int = Field(..., description="Port to get host for")
 
-class GetHostResponse(E2BBaseResponse):
-    data: str
+class FileUploadRequest(BaseModel):
+    sandbox_id: str = Field(..., description="ID of active sandbox")
+    path: str = Field(..., description="Path where to upload the file in the sandbox")
+    content: str = Field(..., description="File content as string or base64 encoded")
+    encoding: str = Field("utf-8", description="Encoding of the content: 'utf-8' or 'base64'")
+
+class FileDownloadRequest(BaseModel):
+    sandbox_id: str = Field(..., description="ID of active sandbox")
+    path: str = Field(..., description="Path of the file to download from the sandbox")
+    encoding: str = Field("utf-8", description="Desired encoding of the response: 'utf-8' or 'base64'")
+
+class FileResponse(BaseModel):
+    content: str
+    encoding: str
+    path: str
     message: Optional[str] = None
 
-class GetHostRequest(BaseModel):
-    sandbox_id: str = Field(..., description="ID of active sandbox")
-    port: int = Field(..., description="Port to get host for")
+class FileOperationResponse(E2BBaseResponse):
+    data: FileResponse
+    message: Optional[str] = None

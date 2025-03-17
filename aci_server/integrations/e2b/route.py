@@ -11,7 +11,10 @@ from .schema import (
     FileListRequest,
     GetHostRequest,
     GetHostResponse,
-    E2BBaseResponse 
+    E2BBaseResponse,
+    FileUploadRequest,
+    FileDownloadRequest,
+    FileOperationResponse
 )
 from .service import E2BService
 from .client import E2BClient
@@ -141,6 +144,31 @@ async def run_code(
     validated = CodeExecutionRequest(**params)
     return service.run_code(validated)
 
+@router.post("/upload_file", response_model=FileOperationResponse)
+@schema(
+    input_schema_class=FileUploadRequest,
+    output_schema_class=FileOperationResponse,
+    examples=examples["/e2b/upload_file"]
+)
+async def upload_file(
+    params: Dict[str, Any] = Body(...),
+    service: E2BService = Depends(get_e2b_service)
+):
+    validated = FileUploadRequest(**params)
+    return service.upload_file(validated)
+
+@router.post("/download_file", response_model=FileOperationResponse)
+@schema(
+    input_schema_class=FileDownloadRequest,
+    output_schema_class=FileOperationResponse,
+    examples=examples["/e2b/download_file"]
+)
+async def download_file(
+    params: Dict[str, Any] = Body(...),
+    service: E2BService = Depends(get_e2b_service)
+):
+    validated = FileDownloadRequest(**params)
+    return service.download_file(validated)
 
 @router.post("/kill_sandbox", response_model=E2BBaseResponse)
 @schema(
