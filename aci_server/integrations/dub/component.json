@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Dub",
+      "version": "1.0.0",
+      "description": "A React component for displaying Dub links",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

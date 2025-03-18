@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.requests import Request as FastAPIRequest
 from typing import Dict, Any
 from .schema import (
@@ -28,6 +28,7 @@ async def get_readwise_service(request: FastAPIRequest):
         
         return service
     except Exception as e:
+        print(f"Error initializing Readwise service: {str(e)}")
         raise HTTPException(
             status_code=401,
             detail=f"Failed to initialize Readwise service: {str(e)}"
@@ -37,7 +38,7 @@ async def get_readwise_service(request: FastAPIRequest):
 @schema(
     input_schema_class=SaveDocumentParams,
     output_schema_class=ApiResponse,
-    examples=["/readwise/save"]
+    examples=examples["/readwise/save"]
 )
 async def save_document(
     params: Dict[str, Any] = Body(...),
@@ -50,7 +51,7 @@ async def save_document(
 @schema(
     input_schema_class=ListDocumentsParams,
     output_schema_class=ApiResponse,
-    examples=["/readwise/list"]
+    examples=examples["/readwise/list"]
 )
 async def list_documents(
     params: Dict[str, Any] = Body(...),
@@ -59,37 +60,38 @@ async def list_documents(
     validated_params = ListDocumentsParams(**params)
     return service.list_documents(validated_params)
 
-@router.patch("/update/{document_id}", response_model=ApiResponse)
+@router.post("/update", response_model=ApiResponse)
 @schema(
     input_schema_class=UpdateDocumentParams,
     output_schema_class=ApiResponse,
-    examples=["/readwise/update"]
+    examples=examples["/readwise/update"]
 )
 async def update_document(
-    document_id: str = Path(..., description="ID of the document to update"),
     params: Dict[str, Any] = Body(...),
     service: ReadwiseService = Depends(get_readwise_service)
 ):
     validated_params = UpdateDocumentParams(**params)
-    return service.update_document(document_id, validated_params)
+    return service.update_document(validated_params.document_id, validated_params)
 
-@router.delete("/delete/{document_id}", response_model=ApiResponse)
+@router.post("/delete", response_model=ApiResponse)
 @schema(
+    input_schema_class=DeleteDocumentParams,
     output_schema_class=ApiResponse,
-    examples=["/readwise/delete"]
+    examples=examples["/readwise/delete"]
 )
 async def delete_document(
-    document_id: str = Path(..., description="ID of the document to delete"),
+    params: Dict[str, Any] = Body(...),
     service: ReadwiseService = Depends(get_readwise_service)
 ):
-    return service.delete_document(document_id)
+    validated_params = DeleteDocumentParams(**params)
+    return service.delete_document(validated_params.document_id)
 
 @router.post("/validate_key")
 async def validate_key(
     params: Dict[str, Any] = Body(...),
 ):
     try:
-        api_key = params.get("api_key")
+        api_key = params.get("api_key", "")
         if not api_key:
             return {"valid": False, "message": "API key is required"}
         

@@ -24,8 +24,7 @@ examples = ExamplesLoader()
 
 async def get_postman_service(request: FastAPIRequest) -> PostmanService:
     try:
-        #api_key = await validate_provider_api_key(request, "postman")
-        api_key = "***REMOVED***"
+        api_key = await validate_provider_api_key(request, "postman")
         client = PostmanClient(api_key)
         service = PostmanService(client)
         

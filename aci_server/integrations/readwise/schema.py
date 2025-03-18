@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, validator
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
@@ -46,6 +46,7 @@ class ListDocumentsParams(BaseModel):
     withHtmlContent: Optional[bool] = Field(None, description="Include HTML content in response")
 
 class UpdateDocumentParams(BaseModel):
+    document_id: str = Field(..., description="ID of the document to update")
     title: Optional[str] = Field(None, description="The document's title")
     author: Optional[str] = Field(None, description="The document's author")
     summary: Optional[str] = Field(None, description="Summary of the document")
@@ -76,7 +77,7 @@ class Document(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     notes: Optional[str] = None
-    published_date: Optional[str] = None
+    published_date: Optional[Union[str, int]] = None
     summary: Optional[str] = None
     image_url: Optional[str] = None
     parent_id: Optional[str] = None
@@ -86,6 +87,14 @@ class Document(BaseModel):
     saved_at: Optional[str] = None
     last_moved_at: Optional[str] = None
     html_content: Optional[str] = None
+    
+    @validator('published_date', pre=True)
+    def validate_published_date(cls, v):
+        if isinstance(v, int):
+            timestamp_seconds = v / 1000
+            dt = datetime.fromtimestamp(timestamp_seconds)
+            return dt.strftime('%Y-%m-%d')
+        return v
     
     class Config:
         extra = 'allow'
@@ -98,6 +107,10 @@ class DocumentListResponse(BaseModel):
     class Config:
         extra = 'allow'
 
+class DeleteResponse(BaseModel):
+    success: bool
+    message: str
+
 class ApiResponse(BaseModel):
-    data: Union[DocumentResponse, DocumentListResponse, Document]
+    data: Union[DocumentResponse, DocumentListResponse, Document, DeleteResponse, Dict[str, Any]]
     component: Optional[Dict[str, Any]] = None

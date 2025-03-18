@@ -20,7 +20,6 @@ class ReadwiseClient:
         return response.status_code == 204
 
     def save_document(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Save a new document to Reader"""
         response = requests.post(
             f"{self.BASE_URL}/save/",
             headers=self.headers,

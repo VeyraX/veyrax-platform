@@ -1,5 +1,5 @@
 routes:
-  - endpoint: "/postman/get_collections"
+  - endpoint: /postman/get_collections
     examples:
       - scenario: "List all collections"
         description: "Get all collections for the authenticated user"
@@ -39,7 +39,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/get_collection"
+  - endpoint: /postman/get_collection
     examples:
       - scenario: "Get collection by ID"
         description: "Get details of a specific collection by its ID"
@@ -133,7 +133,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/update_collection"
+  - endpoint: /postman/update_collection
     examples:
       - scenario: "Update a collection"
         description: "Update an existing collection with new data"
@@ -186,7 +186,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/delete_collection"
+  - endpoint: /postman/delete_collection
     examples:
       - scenario: "Delete a collection"
         description: "Delete a collection by its ID"
@@ -203,7 +203,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/create_collection"
+  - endpoint: /postman/create_collection
     examples:
       - scenario: "Create a new collection"
         description: "Create a new Postman collection"
@@ -255,7 +255,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/get_environments"
+  - endpoint: /postman/get_environments
     examples:
       - scenario: "List all environments"
         description: "Get all environments for the authenticated user"
@@ -317,7 +317,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/get_environment"
+  - endpoint: /postman/get_environment
     examples:
       - scenario: "Get environment by ID"
         description: "Get details of a specific environment by its ID"
@@ -355,7 +355,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/create_environment"
+  - endpoint: /postman/create_environment
     examples:
       - scenario: "Create a new environment"
         description: "Create a new Postman environment"
@@ -408,7 +408,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/update_environment"
+  - endpoint: /postman/update_environment
     examples:
       - scenario: "Update an environment"
         description: "Update an existing environment with new data"
@@ -532,7 +532,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/get_workspaces"
+  - endpoint: /postman/get_workspaces
     examples:
       - scenario: "List all workspaces"
         description: "Get all workspaces for the authenticated user"
@@ -564,7 +564,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/get_workspace"
+  - endpoint: /postman/get_workspace
     examples:
       - scenario: "Get workspace by ID"
         description: "Get details of a specific workspace by its ID"
@@ -587,7 +587,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/create_workspace"
+  - endpoint: /postman/create_workspace
     examples:
       - scenario: "Create a new workspace"
         description: "Create a new Postman workspace"
@@ -613,7 +613,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/update_workspace"
+  - endpoint: /postman/update_workspace
     examples:
       - scenario: "Update a workspace"
         description: "Update an existing workspace with new data"
@@ -639,7 +639,7 @@ routes:
             }
           }
 
-  - endpoint: "/postman/delete_workspace"
+  - endpoint: /postman/delete_workspace
     examples:
       - scenario: "Delete a workspace"
         description: "Delete a workspace by its ID"

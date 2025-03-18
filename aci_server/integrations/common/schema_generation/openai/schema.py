@@ -70,9 +70,23 @@ def create_simplified_output_schema(schema_class: Type[BaseModel]) -> Dict[str, 
         "properties": {}
     }
     
-    def simplify_schema(schema_part):
+    # Keep track of processed schemas to avoid circular references
+    seen_refs = set()
+    
+    def simplify_schema(schema_part, depth=0):
+        # Add recursion protection
+        if depth > 15:  # Limit recursion depth
+            return {"type": "object"}
+            
         if not isinstance(schema_part, dict):
             return schema_part
+            
+        # Handle circular references with $ref
+        if "$ref" in schema_part:
+            ref = schema_part["$ref"]
+            if ref in seen_refs:
+                return {"type": "object"}  # Return a simple type instead of recursing
+            seen_refs.add(ref)
             
         result = {}
         
@@ -82,23 +96,23 @@ def create_simplified_output_schema(schema_class: Type[BaseModel]) -> Dict[str, 
             if schema_part["type"] == "object" and "properties" in schema_part:
                 result["properties"] = {}
                 for prop_name, prop_schema in schema_part["properties"].items():
-                    result["properties"][prop_name] = simplify_schema(prop_schema)
+                    result["properties"][prop_name] = simplify_schema(prop_schema, depth + 1)
             
             elif schema_part["type"] == "array" and "items" in schema_part:
-                result["items"] = simplify_schema(schema_part["items"])
+                result["items"] = simplify_schema(schema_part["items"], depth + 1)
         
         elif any(key in schema_part for key in ["anyOf", "oneOf", "allOf"]):
             for key in ["anyOf", "oneOf", "allOf"]:
                 if key in schema_part:
                     if schema_part[key] and len(schema_part[key]) > 0:
-                        return simplify_schema(schema_part[key][0])
+                        return simplify_schema(schema_part[key][0], depth + 1)
         
         elif "$ref" in schema_part:
             ref = schema_part["$ref"]
             if ref.startswith("#/$defs/"):
                 ref_name = ref.split("/")[-1]
                 if "$defs" in schema and ref_name in schema["$defs"]:
-                    return simplify_schema(schema["$defs"][ref_name])
+                    return simplify_schema(schema["$defs"][ref_name], depth + 1)
         
         return result or schema_part
     

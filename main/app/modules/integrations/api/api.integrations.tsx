@@ -28,6 +28,12 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       ?.filter(k => k.api_key && k.api_key.trim() !== '')
       .map(k => k.provider_id)
   )
+  
+  const { data: popularProviders } = await supabase
+    .from('popular_providers_view')
+    .select('*')
+  
+  const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
 
   const result = providers?.map((provider: Provider) => {
     const isConnected = connectedProviderIds.has(provider.id);
@@ -35,10 +41,13 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     const isReallyConnected = provider.auth_method === 'api_key' 
       ? providersWithApiKeys.has(provider.id) 
       : isConnected;
+    
+    const isPopular = popularProviderIds.has(provider.id);
 
     return {
       ...provider,
       connected: isReallyConnected,
+      isPopular,
       hasIndex: false,
       indexStatus: null,
       lastSyncDate: null,
@@ -642,6 +651,7 @@ export const validateApiKey = async (providerId: string, apiKey: string): Promis
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
     console.log(apiKey);
+
     const response = await fetch(`${baseUrl}/${providerId}/validate_key`, {
       method: 'POST',
       headers: {
@@ -649,6 +659,14 @@ export const validateApiKey = async (providerId: string, apiKey: string): Promis
       },
       body: JSON.stringify({ api_key: apiKey }),
     });
+
+    if (!response.ok) {
+      console.error('API validation response not OK:', response.status, response.statusText);
+      return { 
+        valid: false, 
+        message: `API validation failed: ${response.status} ${response.statusText}` 
+      };
+    }
 
     const data = await response.json();
     
