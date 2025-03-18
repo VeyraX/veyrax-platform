@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Readwise",
+      "version": "1.0.0",
+      "description": "A React component for displaying Readwise documents",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

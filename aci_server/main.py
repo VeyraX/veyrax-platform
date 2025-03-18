@@ -37,6 +37,11 @@ from integrations.figma.route import router as figma_router
 from integrations.sentry.route import router as sentry_router
 from integrations.http_request.route import router as http_request_router
 from integrations.vercel.route import router as vercel_router
+from integrations.hacker_news.route import router as hacker_news_router
+from integrations.readwise.route import router as readwise_router
+from integrations.postman.route import router as postman_router
+from integrations.svgl.route import router as svgl_router
+from integrations.dub.route import router as dub_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -96,6 +101,11 @@ INTEGRATION_ROUTERS = {
     "sentry": sentry_router,
     "http-request": http_request_router,
     "vercel": vercel_router,
+    "hacker-news": hacker_news_router,
+    "postman": postman_router,
+    "readwise": readwise_router,
+    "svgl": svgl_router,
+    "dub": dub_router
     "e2b": e2b_router
 }
 

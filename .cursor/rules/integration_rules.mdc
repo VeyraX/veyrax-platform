@@ -1,5 +1,5 @@
 ---
-description: Writing new integrations for tools.
+description: Writing new integrations for tools
 globs: 
 alwaysApply: false
 ---
@@ -12,6 +12,7 @@ The integration layer follows a clear three-tier architecture:
 1. **Route** - handling HTTP requests, input validation
 2. **Service** - business logic, data transformation
 3. **Client** - low-level API interaction
+4. **Schema** - models 
 
 ### Example Integration Structure
 integrations/
@@ -238,6 +239,38 @@ def _convert_to_message(self, response):
             
     return Message(**processed_data)
 ```
+### 8. Examples Format and String Comments
+
+#### 8.1 Proper Examples Format
+
+Always use the direct reference to the examples loader with the endpoint path:
+
+```python
+# Correct way to reference examples
+@router.post("/images_search", response_model=ApiResponse)
+@schema(
+    input_schema_class=ImagesSearchParams, 
+    output_schema_class=ImagesSearchResponse,
+    examples=examples["/brave/images_search"]  # Direct reference to examples
+)
+async def images_search(
+    params: Dict[str, Any] = Body(...),
+    service: BraveService = Depends(get_brave_service)
+):
+    validated_params = ImagesSearchParams(**params)
+    return service.images_search(validated_params)
+```
+
+#### 8.2 No Comments and No Docstrings
+
+Never add comments and documentation strings:
+
+```python
+# Correct - clean function.
+def get_user_info(self, user_id: str):
+    return self.client.get_user(user_id)
+```
+
 
 This approach significantly reduces code verbosity and makes it more maintainable, especially when dealing with models that have many fields.
 
@@ -339,6 +372,85 @@ async def get_messages(params: Dict[str, Any], service: Service):
     return service.get_messages(validated_params.next_link, validated_params.filters)
 ```
 
+### 4. Standardized Response Format
+
+Use a unified response format for all integrations:
+
+```python
+# schema.py
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, Event, EventList]  # Define all possible data types
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
+        None,
+        description="UI components configuration for rendering results"
+    )
+
+# Output schema for specific endpoints
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+# service.py
+def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+    tool_name = "example"
+    components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+    return ApiResponse(data=data, component=components)
+```
+
+Important rules for ApiResponse:
+1. The `data` field must use a Union of all possible response types for that integration
+2. The `component` field must support both single component (Dict) and multiple components (List[Dict])
+3. Always use Field() with description for component to maintain consistent documentation
+4. Make sure all possible return types are properly typed in the Union
+
+### 9. Consistent API Structure
+
+All integrations should follow consistent patterns:
+
+1. Use POST methods for all operations (even for read operations)
+2. Avoid dynamic URL parameters - pass all parameters in the request body
+3. Ensure all route paths follow the same pattern: `/integration_name/operation_name` 
+4. For validation endpoints, use a simple dictionary response with `valid` and `message` fields
+
+Example of good API design:
+
+```python
+# Good - POST with body parameters
+@router.post("/get_item", response_model=ApiResponse)
+@schema(input_schema_class=GetItemParams, output_schema_class=GetItemResponse)
+async def get_item(params: Dict[str, Any] = Body(...)):
+    validated_params = GetItemParams(**params)  # Contains item_id in the body
+    return service.get_item(validated_params.item_id)
+
+# Bad - GET with path parameters
+@router.get("/get_item/{item_id}", response_model=ApiResponse)
+async def get_item(item_id: str):
+    return service.get_item(item_id)
+
+# Good validation endpoint
+@router.post("/validate_key")
+async def validate_key(params: Dict[str, Any] = Body(...)):
+    try:
+        api_key = params.get("api_key", "")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = ExampleClient(api_key)
+        # Test the API key with a simple operation
+        client.test_connection()
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}
+```
+
+
+
+This updated section should be added to your integration_rules.mdc document to ensure consistent implementation of ApiResponse and API structure across all integrations.
+
 ## Conclusion
 
 By following these principles, you'll create integrations that are:
@@ -351,3 +463,7 @@ By following these principles, you'll create integrations that are:
 6. Enable automatic schema extraction for documentation
 
 This significantly simplifies working with the code and reduces the number of potential errors.
+
+
+
+

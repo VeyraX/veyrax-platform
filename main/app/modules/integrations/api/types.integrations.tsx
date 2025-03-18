@@ -13,7 +13,8 @@ export interface Provider {
   output_schema?: string | object;
   created_at?: string | number;
   is_enabled?: boolean;
-  ui_component?: string | object
+  ui_component?: string | object;
+  categories?: string;
 }
 
 export interface DbConfig {
@@ -38,11 +39,13 @@ export interface UserDbAccess {
 
 export interface IntegrationCardProps extends Provider {
   connected: boolean;
+  isPopular?: boolean;
   hasIndex: false;
   indexStatus: null;
   lastSyncDate?: null;
   processedEntities?: null;
   onConnectionChange?: () => void;
+  isPublic?: boolean;
   onShowSettings?: (provider: Provider) => void;
 }
 

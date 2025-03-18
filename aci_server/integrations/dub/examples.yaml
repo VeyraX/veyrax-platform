@@ -1,0 +1,848 @@
+routes:
+  - endpoint: /dub/create_link
+    examples:
+      - scenario: "Create a Short Link"
+        description: "Creates a new short link with a destination URL"
+        input_json: |
+          {
+            "url": "https://example.com/very/long/path/to/resource",
+            "domain": "dub.sh",
+            "key": "example-page",
+            "title": "Example Page",
+            "description": "This is an example page"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "clj8xesfd000tmlj9cba9b3k8",
+              "domain": "dub.sh",
+              "key": "example-page",
+              "url": "https://example.com/very/long/path/to/resource",
+              "title": "Example Page",
+              "description": "This is an example page",
+              "shortLink": "dub.sh/example-page",
+              "clicks": 0,
+              "createdAt": "2023-08-01T12:30:45Z",
+              "updatedAt": "2023-08-01T12:30:45Z"
+            },
+            "component": {
+              "name": "DubLinkCard"
+            }
+          }
+
+  - endpoint: /dub/update_link
+    examples:
+      - scenario: "Update an Existing Link"
+        description: "Updates the properties of an existing short link"
+        input_json: |
+          {
+            "link_id": "clj8xesfd000tmlj9cba9b3k8",
+            "url": "https://example.com/updated/path",
+            "title": "Updated Example Page",
+            "description": "This is an updated example page"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "clj8xesfd000tmlj9cba9b3k8",
+              "domain": "dub.sh",
+              "key": "example-page",
+              "url": "https://example.com/updated/path",
+              "title": "Updated Example Page",
+              "description": "This is an updated example page",
+              "shortLink": "dub.sh/example-page",
+              "clicks": 5,
+              "createdAt": "2023-08-01T12:30:45Z",
+              "updatedAt": "2023-08-02T15:45:22Z"
+            },
+            "component": {
+              "name": "DubLinkCard"
+            }
+          }
+
+  - endpoint: /dub/upsert_link
+    examples:
+      - scenario: "Create or Update a Link"
+        description: "Creates a new link or updates an existing one with the same key"
+        input_json: |
+          {
+            "domain": "dub.sh",
+            "key": "upsert-example",
+            "url": "https://example.com/upsert/example"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "clj8xesfd000tmlj9cxyz123",
+              "domain": "dub.sh",
+              "key": "upsert-example",
+              "url": "https://example.com/upsert/example",
+              "shortLink": "dub.sh/upsert-example",
+              "clicks": 0,
+              "createdAt": "2023-08-03T10:15:30Z",
+              "updatedAt": "2023-08-03T10:15:30Z"
+            },
+            "component": {
+              "name": "DubLinkCard"
+            }
+          }
+
+  - endpoint: /dub/delete_link
+    examples:
+      - scenario: "Delete a Link"
+        description: "Deletes an existing short link"
+        input_json: |
+          {
+            "link_id": "clj8xesfd000tmlj9cba9b3k8"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "clj8xesfd000tmlj9cba9b3k8",
+              "domain": "dub.sh",
+              "key": "example-page",
+              "url": "https://example.com/updated/path",
+              "shortLink": "dub.sh/example-page"
+            },
+            "component": {
+              "name": "DubLinkCard"
+            }
+          }
+
+  - endpoint: /dub/get_link
+    examples:
+      - scenario: "Get Link Information"
+        description: "Retrieves information about a specific short link"
+        input_json: |
+          {
+            "link_id": "clj8xesfd000tmlj9cxyz123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "clj8xesfd000tmlj9cxyz123",
+              "domain": "dub.sh",
+              "key": "upsert-example",
+              "url": "https://example.com/upsert/example",
+              "shortLink": "dub.sh/upsert-example",
+              "clicks": 12,
+              "lastClicked": "2023-08-04T09:32:18Z",
+              "createdAt": "2023-08-03T10:15:30Z",
+              "updatedAt": "2023-08-03T10:15:30Z"
+            },
+            "component": {
+              "name": "DubLinkCard"
+            }
+          }
+
+  - endpoint: /dub/get_links
+    examples:
+      - scenario: "Get All Links"
+        description: "Retrieves a list of all short links in the workspace"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "clj8xesfd000tmlj9cba9b3k8",
+                  "domain": "dub.sh",
+                  "key": "example-page",
+                  "url": "https://example.com/updated/path",
+                  "title": "Updated Example Page",
+                  "description": "This is an updated example page",
+                  "shortLink": "dub.sh/example-page",
+                  "clicks": 5,
+                  "lastClicked": "2023-08-02T14:20:15Z",
+                  "createdAt": "2023-08-01T12:30:45Z",
+                  "updatedAt": "2023-08-02T15:45:22Z"
+                },
+                {
+                  "id": "clj8xesfd000tmlj9cxyz123",
+                  "domain": "dub.sh",
+                  "key": "upsert-example",
+                  "url": "https://example.com/upsert/example",
+                  "shortLink": "dub.sh/upsert-example",
+                  "clicks": 12,
+                  "lastClicked": "2023-08-04T09:32:18Z",
+                  "createdAt": "2023-08-03T10:15:30Z",
+                  "updatedAt": "2023-08-03T10:15:30Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubLinksCard"
+            }
+          }
+
+  - endpoint: /dub/get_links_count
+    examples:
+      - scenario: "Get Link Count"
+        description: "Retrieves the total number of links in the workspace"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "count": 25
+            },
+            "component": {
+              "name": "DubLinksCountCard"
+            }
+          }
+
+  - endpoint: /dub/bulk_create_links
+    examples:
+      - scenario: "Bulk Create Links"
+        description: "Creates multiple short links in a single request"
+        input_json: |
+          {
+            "links": [
+              {
+                "url": "https://example.com/page1",
+                "domain": "dub.sh",
+                "key": "page1"
+              },
+              {
+                "url": "https://example.com/page2",
+                "domain": "dub.sh",
+                "key": "page2"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "clk1abcde000tmlj9123456",
+                  "domain": "dub.sh",
+                  "key": "page1",
+                  "url": "https://example.com/page1",
+                  "shortLink": "dub.sh/page1",
+                  "createdAt": "2023-08-05T11:22:33Z"
+                },
+                {
+                  "id": "clk1fghij000tmlj9789012",
+                  "domain": "dub.sh",
+                  "key": "page2",
+                  "url": "https://example.com/page2",
+                  "shortLink": "dub.sh/page2",
+                  "createdAt": "2023-08-05T11:22:33Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubLinksCard"
+            }
+          }
+
+  - endpoint: /dub/bulk_update_links
+    examples:
+      - scenario: "Bulk Update Links"
+        description: "Updates multiple short links with the same data in a single request"
+        input_json: |
+          {
+            "data": {
+              "title": "Updated Title",
+              "description": "Updated description for all links"
+            },
+            "linkIds": [
+              "clk1abcde000tmlj9123456",
+              "clk1fghij000tmlj9789012"
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "clk1abcde000tmlj9123456",
+                  "domain": "dub.sh",
+                  "key": "page1",
+                  "url": "https://example.com/page1",
+                  "title": "Updated Title",
+                  "description": "Updated description for all links",
+                  "shortLink": "dub.sh/page1",
+                  "updatedAt": "2023-08-05T12:33:44Z"
+                },
+                {
+                  "id": "clk1fghij000tmlj9789012",
+                  "domain": "dub.sh",
+                  "key": "page2",
+                  "url": "https://example.com/page2",
+                  "title": "Updated Title",
+                  "description": "Updated description for all links",
+                  "shortLink": "dub.sh/page2",
+                  "updatedAt": "2023-08-05T12:33:44Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubLinksCard"
+            }
+          }
+
+  - endpoint: /dub/bulk_delete_links
+    examples:
+      - scenario: "Bulk Delete Links"
+        description: "Deletes multiple short links in a single request"
+        input_json: |
+          {
+            "link_ids": [
+              "clk1abcde000tmlj9123456",
+              "clk1fghij000tmlj9789012"
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "deletedCount": 2
+            },
+            "component": {
+              "name": "DubDeleteResult"
+            }
+          }
+
+  - endpoint: /dub/get_qr_code
+    examples:
+      - scenario: "Generate QR Code"
+        description: "Generates a QR code for a specific short link"
+        input_json: |
+          {
+            "link_id": "clj8xesfd000tmlj9cxyz123"
+          }
+        output_json: |
+          {
+            "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAYAAAB1PADUAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgA...truncated for brevity...",
+            "component": {
+              "name": "DubQRCode"
+            }
+          }
+
+  - endpoint: /dub/get_analytics
+    examples:
+      - scenario: "Get Link Analytics"
+        description: "Retrieves analytics data for links in the workspace"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "clicks": 2543,
+              "leads": 128,
+              "sales": 45,
+              "saleAmount": 12350
+            },
+            "component": {
+              "name": "DubAnalytics"
+            }
+          }
+
+  - endpoint: /dub/get_events
+    examples:
+      - scenario: "Get Link Events"
+        description: "Retrieves click and conversion events for links"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "event": "click",
+                  "timestamp": "2023-08-05T14:22:15Z",
+                  "click_id": "clk5abcde000zzz123456",
+                  "link_id": "clj8xesfd000tmlj9cba9b3k8",
+                  "domain": "dub.sh",
+                  "key": "example-page",
+                  "url": "https://example.com/updated/path",
+                  "country": "US",
+                  "city": "San Francisco",
+                  "device": "desktop",
+                  "browser": "Chrome",
+                  "os": "macOS"
+                },
+                {
+                  "event": "click",
+                  "timestamp": "2023-08-05T14:18:33Z",
+                  "click_id": "clk5fghij000zzz789012",
+                  "link_id": "clj8xesfd000tmlj9cxyz123",
+                  "domain": "dub.sh",
+                  "key": "upsert-example",
+                  "url": "https://example.com/upsert/example",
+                  "country": "UK",
+                  "city": "London",
+                  "device": "mobile",
+                  "browser": "Safari",
+                  "os": "iOS"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubEvents"
+            }
+          }
+          
+  - endpoint: /dub/track_lead
+    examples:
+      - scenario: "Track Lead Conversion"
+        description: "Tracks a lead conversion from a link click"
+        input_json: |
+          {
+            "click": {
+              "id": "clk5abcde000zzz123456"
+            },
+            "customer": {
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "avatar": "https://example.com/avatars/johndoe.jpg",
+              "externalId": "cust_123456"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "click_id": "clk5abcde000zzz123456",
+              "customer_id": "cust_jd123456"
+            },
+            "component": {
+              "name": "DubTrackingResult"
+            }
+          }
+
+  - endpoint: /dub/track_sale
+    examples:
+      - scenario: "Track Sale Conversion"
+        description: "Tracks a sale conversion with revenue information"
+        input_json: |
+          {
+            "eventName": "purchase",
+            "customer": {
+              "id": "cust_jd123456",
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "avatar": "https://example.com/avatars/johndoe.jpg",
+              "externalId": "cust_123456"
+            },
+            "sale": {
+              "amount": 99,
+              "currency": "USD",
+              "paymentProcessor": "stripe",
+              "invoiceId": "inv_12345",
+              "metadata": {
+                "plan": "premium",
+                "term": "annual"
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "customer_id": "cust_jd123456",
+              "sale_id": "sale_abc123"
+            },
+            "component": {
+              "name": "DubTrackingResult"
+            }
+          }
+
+  - endpoint: /dub/get_customer
+    examples:
+      - scenario: "Get Customer Details"
+        description: "Retrieves details about a specific customer"
+        input_json: |
+          {
+            "customer_id": "cust_jd123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "cust_jd123456",
+              "externalId": "cust_123456",
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "avatar": "https://example.com/avatars/johndoe.jpg",
+              "country": "US",
+              "createdAt": "2023-08-01T15:30:45Z",
+              "link": {
+                "id": "clj8xesfd000tmlj9cba9b3k8",
+                "domain": "dub.sh",
+                "key": "example-page",
+                "shortLink": "dub.sh/example-page",
+                "programId": "prog_12345"
+              },
+              "partner": {
+                "id": "part_67890",
+                "name": "Partner Co.",
+                "email": "partner@example.com",
+                "image": "https://example.com/partners/partnerco.jpg"
+              }
+            },
+            "component": {
+              "name": "DubCustomerCard"
+            }
+          }
+
+  - endpoint: /dub/get_customers
+    examples:
+      - scenario: "List All Customers"
+        description: "Retrieves a list of all customers"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "cust_jd123456",
+                  "externalId": "cust_123456",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "avatar": "https://example.com/avatars/johndoe.jpg",
+                  "country": "US",
+                  "createdAt": "2023-08-01T15:30:45Z"
+                },
+                {
+                  "id": "cust_js789012",
+                  "externalId": "cust_789012",
+                  "name": "Jane Smith",
+                  "email": "jane.smith@example.com",
+                  "avatar": "https://example.com/avatars/janesmith.jpg",
+                  "country": "CA",
+                  "createdAt": "2023-08-02T10:15:22Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubCustomersCard"
+            }
+          }
+
+  - endpoint: /dub/update_customer
+    examples:
+      - scenario: "Update Customer Information"
+        description: "Updates details for an existing customer"
+        input_json: |
+          {
+            "customer_id": "cust_jd123456",
+            "name": "John D. Doe",
+            "email": "john.d.doe@example.com",
+            "avatar": "https://example.com/avatars/johnd.jpg"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "cust_jd123456",
+              "externalId": "cust_123456",
+              "name": "John D. Doe",
+              "email": "john.d.doe@example.com",
+              "avatar": "https://example.com/avatars/johnd.jpg",
+              "country": "US",
+              "createdAt": "2023-08-01T15:30:45Z",
+              "link": {
+                "id": "clj8xesfd000tmlj9cba9b3k8",
+                "domain": "dub.sh",
+                "key": "example-page",
+                "shortLink": "dub.sh/example-page"
+              }
+            },
+            "component": {
+              "name": "DubCustomerCard"
+            }
+          }
+
+  - endpoint: /dub/delete_customer
+    examples:
+      - scenario: "Delete Customer"
+        description: "Deletes a customer record"
+        input_json: |
+          {
+            "customer_id": "cust_js789012"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "cust_js789012",
+              "deleted": true
+            },
+            "component": {
+              "name": "DubDeleteResult"
+            }
+          }
+
+  - endpoint: /dub/create_tag
+    examples:
+      - scenario: "Create Tag"
+        description: "Creates a new tag for categorizing links"
+        input_json: |
+          {
+            "name": "Campaign Q3",
+            "color": "blue"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "tag_abcdef123456",
+              "name": "Campaign Q3",
+              "color": "blue"
+            },
+            "component": {
+              "name": "DubTagCard"
+            }
+          }
+
+  - endpoint: /dub/get_tags
+    examples:
+      - scenario: "List All Tags"
+        description: "Retrieves a list of all tags"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "tag_abcdef123456",
+                  "name": "Campaign Q3",
+                  "color": "blue"
+                },
+                {
+                  "id": "tag_ghijkl789012",
+                  "name": "Social Media",
+                  "color": "green"
+                },
+                {
+                  "id": "tag_mnopqr345678",
+                  "name": "Newsletter",
+                  "color": "orange"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubTagsCard"
+            }
+          }
+
+  - endpoint: /dub/update_tag
+    examples:
+      - scenario: "Update Tag"
+        description: "Updates an existing tag"
+        input_json: |
+          {
+            "tag_id": "tag_abcdef123456",
+            "name": "Q3 Marketing Campaign",
+            "color": "purple"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "tag_abcdef123456",
+              "name": "Q3 Marketing Campaign",
+              "color": "purple"
+            },
+            "component": {
+              "name": "DubTagCard"
+            }
+          }
+
+  - endpoint: /dub/create_domain
+    examples:
+      - scenario: "Add Custom Domain"
+        description: "Adds a new custom domain for short links"
+        input_json: |
+          {
+            "slug": "example.com",
+            "verified": false,
+            "placeholder": "https://example.com/go/to/link",
+            "expiredUrl": "https://example.com/expired-link",
+            "notFoundUrl": "https://example.com/404"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dom_abcdef123456",
+              "slug": "example.com",
+              "verified": false,
+              "primary": false,
+              "placeholder": "https://example.com/go/to/link",
+              "expiredUrl": "https://example.com/expired-link",
+              "notFoundUrl": "https://example.com/404",
+              "createdAt": "2023-08-10T09:15:30Z",
+              "updatedAt": "2023-08-10T09:15:30Z"
+            },
+            "component": {
+              "name": "DubDomainCard"
+            }
+          }
+
+  - endpoint: /dub/update_domain
+    examples:
+      - scenario: "Update Domain Settings"
+        description: "Updates settings for an existing domain"
+        input_json: |
+          {
+            "domain_slug": "example.com",
+            "primary": true,
+            "placeholder": "https://example.com/redirect",
+            "expiredUrl": "https://example.com/expired",
+            "notFoundUrl": "https://example.com/not-found"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dom_abcdef123456",
+              "slug": "example.com",
+              "verified": true,
+              "primary": true,
+              "placeholder": "https://example.com/redirect",
+              "expiredUrl": "https://example.com/expired",
+              "notFoundUrl": "https://example.com/not-found",
+              "createdAt": "2023-08-10T09:15:30Z",
+              "updatedAt": "2023-08-10T11:22:45Z"
+            },
+            "component": {
+              "name": "DubDomainCard"
+            }
+          }
+
+  - endpoint: /dub/delete_domain
+    examples:
+      - scenario: "Remove Domain"
+        description: "Removes a domain from the workspace"
+        input_json: |
+          {
+            "domain_slug": "old-domain.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "slug": "old-domain.com",
+              "deleted": true
+            },
+            "component": {
+              "name": "DubDeleteResult"
+            }
+          }
+
+  - endpoint: /dub/get_domains
+    examples:
+      - scenario: "List All Domains"
+        description: "Retrieves a list of all domains in the workspace"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "dom_abcdef123456",
+                  "slug": "example.com",
+                  "verified": true,
+                  "primary": true,
+                  "placeholder": "https://example.com/redirect",
+                  "expiredUrl": "https://example.com/expired",
+                  "notFoundUrl": "https://example.com/not-found",
+                  "createdAt": "2023-08-10T09:15:30Z",
+                  "updatedAt": "2023-08-10T11:22:45Z"
+                },
+                {
+                  "id": "dom_ghijkl789012",
+                  "slug": "brand.com",
+                  "verified": true,
+                  "primary": false,
+                  "placeholder": "https://brand.com/default",
+                  "createdAt": "2023-08-01T10:11:12Z",
+                  "updatedAt": "2023-08-01T10:15:22Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "DubDomainsCard"
+            }
+          }
+
+  - endpoint: /dub/get_workspace
+    examples:
+      - scenario: "Get Workspace Details"
+        description: "Retrieves details about the current workspace"
+        input_json: |
+          {
+            "id_or_slug": "my-workspace"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "ws_abcdef123456",
+              "name": "My Workspace",
+              "slug": "my-workspace",
+              "plan": "pro",
+              "totalLinks": 157,
+              "usage": 1243,
+              "usageLimit": 5000,
+              "linksUsage": 157,
+              "linksLimit": 1000,
+              "domainsLimit": 10,
+              "tagsLimit": 50,
+              "usersLimit": 5,
+              "createdAt": "2023-01-15T10:00:00Z",
+              "users": [
+                {
+                  "role": "owner"
+                },
+                {
+                  "role": "member"
+                }
+              ],
+              "domains": [
+                {
+                  "slug": "example.com",
+                  "primary": true,
+                  "verified": true
+                },
+                {
+                  "slug": "brand.com",
+                  "primary": false,
+                  "verified": true
+                }
+              ]
+            },
+            "component": {
+              "name": "DubWorkspaceCard"
+            }
+          }
+
+  - endpoint: /dub/update_workspace
+    examples:
+      - scenario: "Update Workspace Settings"
+        description: "Updates settings for the workspace"
+        input_json: |
+          {
+            "id_or_slug": "my-workspace",
+            "name": "Marketing Team",
+            "slug": "marketing"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "ws_abcdef123456",
+              "name": "Marketing Team",
+              "slug": "marketing",
+              "plan": "pro",
+              "totalLinks": 157,
+              "usage": 1243,
+              "usageLimit": 5000,
+              "linksUsage": 157,
+              "linksLimit": 1000,
+              "domainsLimit": 10,
+              "tagsLimit": 50,
+              "usersLimit": 5,
+              "createdAt": "2023-01-15T10:00:00Z"
+            },
+            "component": {
+              "name": "DubWorkspaceCard"
+            }
+          }

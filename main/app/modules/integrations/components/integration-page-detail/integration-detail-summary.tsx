@@ -27,6 +27,11 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
   const [showManage, setShowManage] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Parse categories string into an array
+  const categories = provider.categories 
+    ? provider.categories.split(',').map(category => category.trim())
+    : [];
+
   useEffect(() => {
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -161,7 +166,9 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
               </div>
             )}
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{provider.name}</h1>
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-3xl font-bold text-foreground">{provider.name}</h1>
+              </div>
               <p className="text-muted-foreground mt-4">{provider.description}</p>
             </div>
           </div>

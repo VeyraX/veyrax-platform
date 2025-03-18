@@ -1,0 +1,284 @@
+routes:
+  - endpoint: /hacker-news/top_stories
+    examples:
+      - scenario: "Get Top Stories"
+        description: "Retrieve the current top stories from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Stable Diffusion 3",
+                  "url": "https://stability.ai/news/stable-diffusion-3",
+                  "by": "minimaxir",
+                  "score": 1278,
+                  "time": 1710960489,
+                  "descendants": 559,
+                  "kids": [36661435, 36661434, 36661432],
+                  "type": "story"
+                }
+              ],
+              "total": 500,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/new_stories
+    examples:
+      - scenario: "Get New Stories"
+        description: "Retrieve the newest stories from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Stable Diffusion 3",
+                  "url": "https://stability.ai/news/stable-diffusion-3",
+                  "by": "minimaxir",
+                  "score": 1278,
+                  "time": 1710960489,
+                  "descendants": 559,
+                  "kids": [36661435, 36661434, 36661432],
+                  "type": "story"
+                }
+              ],
+              "total": 500,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/best_stories
+    examples:
+      - scenario: "Get Best Stories"
+        description: "Retrieve the best stories from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Stable Diffusion 3",
+                  "url": "https://stability.ai/news/stable-diffusion-3",
+                  "by": "minimaxir",
+                  "score": 1278,
+                  "time": 1710960489,
+                  "descendants": 559,
+                  "kids": [36661435, 36661434, 36661432],
+                  "type": "story"
+                }
+              ],
+              "total": 500,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/ask_stories
+    examples:
+      - scenario: "Get Ask HN Stories"
+        description: "Retrieve Ask HN stories from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Ask HN: How do you manage your personal knowledge base?",
+                  "text": "I'm curious what tools and methods people use to organize their personal knowledge...",
+                  "by": "curious_user",
+                  "score": 125,
+                  "time": 1710960489,
+                  "descendants": 89,
+                  "kids": [36661435, 36661434, 36661432],
+                  "type": "story"
+                }
+              ],
+              "total": 200,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/show_stories
+    examples:
+      - scenario: "Get Show HN Stories"
+        description: "Retrieve Show HN stories from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Show HN: I built a tool to visualize sorting algorithms",
+                  "url": "https://example.com/sorting-visualizer",
+                  "by": "dev_user",
+                  "score": 89,
+                  "time": 1710960489,
+                  "descendants": 32,
+                  "kids": [36661435, 36661434, 36661432],
+                  "type": "story"
+                }
+              ],
+              "total": 200,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/job_stories
+    examples:
+      - scenario: "Get Job Stories"
+        description: "Retrieve job postings from Hacker News"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "stories": [
+                {
+                  "id": 36661302,
+                  "title": "Company X is hiring senior engineers",
+                  "url": "https://example.com/jobs",
+                  "by": "hiring_manager",
+                  "score": 12,
+                  "time": 1710960489,
+                  "type": "job"
+                }
+              ],
+              "total": 50,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "HackerNewsStoryListCard"
+            }
+          }
+
+  - endpoint: /hacker-news/item
+    examples:
+      - scenario: "Get Story Details"
+        description: "Retrieve details of a specific story"
+        input_json: |
+          {
+            "item_id": 8863
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 8863,
+              "title": "My YC app: Dropbox - Throw away your USB drive",
+              "url": "http://www.getdropbox.com/u/2/screencast.html",
+              "by": "dhouston",
+              "score": 111,
+              "time": 1175714200,
+              "descendants": 71,
+              "kids": [8952, 8876, 8862],
+              "type": "story"
+            },
+            "component": {
+              "name": "HackerNewsStoryCard"
+            }
+          }
+
+  - endpoint: /hacker-news/user
+    examples:
+      - scenario: "Get User Profile"
+        description: "Retrieve details of a specific user"
+        input_json: |
+          {
+            "username": "dang"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "dang",
+              "created": 1190398535,
+              "karma": 22627,
+              "about": "I work on Hacker News.",
+              "submitted": [36661302, 36661301, 36661300]
+            },
+            "component": {
+              "name": "HackerNewsUserCard"
+            }
+          }
+
+  - endpoint: /hacker-news/comments
+    examples:
+      - scenario: "Get Story Comments"
+        description: "Retrieve comments for a specific story"
+        input_json: |
+          {
+            "story_id": 8863,
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "comments": [
+                {
+                  "id": 8952,
+                  "text": "This is a great idea. I'm surprised nobody has done this before.",
+                  "by": "user1",
+                  "time": 1175715270,
+                  "kids": [8953, 8954],
+                  "parent": 8863,
+                  "type": "comment"
+                }
+              ],
+              "total": 71,
+              "offset": 0,
+              "limit": 10,
+              "story_id": 8863
+            },
+            "component": {
+              "name": "HackerNewsCommentListCard"
+            }
+          }

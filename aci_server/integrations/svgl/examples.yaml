@@ -1,0 +1,122 @@
+routes:
+  - endpoint: /svgl/get_svgs
+    examples:
+      - scenario: "Get All SVGs"
+        description: "Retrieves all SVGs from the SVGL repository"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": 0,
+                  "title": "Discord",
+                  "category": "Software",
+                  "route": "https://svgl.app/discord.svg",
+                  "url": "https://discord.com/"
+                },
+                {
+                  "id": 1,
+                  "title": "React",
+                  "category": "Library",
+                  "route": "https://svgl.app/react.svg",
+                  "url": "https://reactjs.org/"
+                }
+              ]
+            },
+            "component": {
+              "name": "SvglIconsGrid"
+            }
+          }
+
+  - endpoint: /svgl/get_svg_by_category
+    examples:
+      - scenario: "Get SVGs by Category"
+        description: "Retrieves SVGs filtered by a specific category"
+        input_json: |
+          {
+            "category": "Software"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": 0,
+                  "title": "Discord",
+                  "category": "Software",
+                  "route": "https://svgl.app/discord.svg",
+                  "url": "https://discord.com/"
+                },
+                {
+                  "id": 4,
+                  "title": "Slack",
+                  "category": "Software",
+                  "route": "https://svgl.app/slack.svg",
+                  "url": "https://slack.com/"
+                }
+              ]
+            },
+            "component": {
+              "name": "SvglIconsGrid"
+            }
+          }
+
+  - endpoint: /svgl/get_categories
+    examples:
+      - scenario: "Get All Categories"
+        description: "Retrieves all available categories with counts"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "category": "Software",
+                  "total": 97
+                },
+                {
+                  "category": "Library",
+                  "total": 25
+                },
+                {
+                  "category": "Framework",
+                  "total": 18
+                }
+              ]
+            },
+            "component": {
+              "name": "SvglCategoriesCard"
+            }
+          }
+
+  - endpoint: /svgl/search_svgs
+    examples:
+      - scenario: "Search SVGs by Name"
+        description: "Search for SVGs matching a specific query"
+        input_json: |
+          {
+            "query": "axiom"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": 267,
+                  "title": "Axiom",
+                  "category": "Software",
+                  "route": {
+                    "light": "https://svgl.app/axiom-light.svg",
+                    "dark": "https://svgl.app/axiom-dark.svg"
+                  },
+                  "url": "https://axiom.co/"
+                }
+              ]
+            },
+            "component": {
+              "name": "SvglIconsGrid"
+            }
+          }

@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Svg",
+      "version": "1.0.0",
+      "description": "A React component for displaying SVG icons",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

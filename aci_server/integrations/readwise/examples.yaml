@@ -1,0 +1,113 @@
+routes:
+  - endpoint: /readwise/save
+    examples:
+      - scenario: "Save a new document"
+        description: "Save an interesting article about AI to Readwise Reader"
+        input_json: |
+          {
+            "url": "https://openai.com/blog/chatgpt",
+            "title": "Introducing ChatGPT",
+            "author": "OpenAI Team",
+            "summary": "OpenAI introduces ChatGPT, a conversational AI model that can help with various tasks including answering questions, drafting emails, and writing code.",
+            "tags": ["AI", "Machine Learning", "NLP"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "01hxtz9p2y48kj3mqf7gdcr5v6",
+              "url": "https://read.readwise.io/new/read/01hxtz9p2y48kj3mqf7gdcr5v6"
+            },
+            "component": {
+              "name": "ReadwiseDocumentCard"
+            }
+          }
+
+  - endpoint: /readwise/list
+    examples:
+      - scenario: "List documents"
+        description: "List recently added AI-related articles"
+        input_json: |
+          {
+            "location": "new",
+            "category": "article",
+            "withHtmlContent": true,
+            "query": "AI",
+            "limit": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "nextPageCursor": "01gm6kjza7vd609yepjrmcgz8a",
+              "results": [
+                {
+                  "id": "01hxtz9p2y48kj3mqf7gdcr5v6",
+                  "url": "https://read.readwise.io/new/read/01hxtz9p2y48kj3mqf7gdcr5v6",
+                  "source_url": "https://openai.com/blog/chatgpt",
+                  "title": "Introducing ChatGPT",
+                  "author": "OpenAI Team",
+                  "source": "Manual Import",
+                  "category": "article",
+                  "location": "new",
+                  "tags": ["AI", "Machine Learning", "NLP"],
+                  "site_name": "OpenAI Blog",
+                  "word_count": 1255,
+                  "created_at": "2023-09-15T14:28:51.618751+00:00",
+                  "updated_at": "2023-09-15T14:28:55.453827+00:00",
+                  "notes": "",
+                  "published_date": "2022-11-30",
+                  "summary": "OpenAI introduces ChatGPT, a conversational AI model that can help with various tasks including answering questions, drafting emails, and writing code.",
+                  "image_url": "https://openai.com/content/images/2022/11/ChatGPT-Diagram.png",
+                  "parent_id": null,
+                  "reading_progress": 0.25,
+                  "html_content": "<div><p>We've trained a model called ChatGPT which interacts in a conversational way...</p></div>"
+                }
+              ]
+            },
+            "component": {
+              "name": "ReadwiseDocumentListCard"
+            }
+          }
+
+  - endpoint: /readwise/update
+    examples:
+      - scenario: "Update a document"
+        description: "Update tags and add notes to an AI article"
+        input_json: |
+          {
+            "document_id": "01hxtz9p2y48kj3mqf7gdcr5v6",
+            "title": "Introducing ChatGPT - A Breakthrough in Conversational AI",
+            "location": "later",
+            "tags": ["AI", "Machine Learning", "NLP", "Must Read"],
+            "notes": "This is a groundbreaking paper that describes the technology behind ChatGPT. Need to review the technical aspects in more detail."
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "01hxtz9p2y48kj3mqf7gdcr5v6",
+              "url": "https://read.readwise.io/new/read/01hxtz9p2y48kj3mqf7gdcr5v6",
+              "title": "Introducing ChatGPT - A Breakthrough in Conversational AI",
+              "location": "later",
+              "tags": ["AI", "Machine Learning", "NLP", "Must Read"],
+              "notes": "This is a groundbreaking paper that describes the technology behind ChatGPT. Need to review the technical aspects in more detail."
+            },
+            "component": {
+              "name": "ReadwiseDocumentCard"
+            }
+          }
+
+  - endpoint: /readwise/delete
+    examples:
+      - scenario: "Delete a document"
+        description: "Delete a specific document from Readwise Reader"
+        input_json: |
+          {
+            "document_id": "01hxtz9p2y48kj3mqf7gdcr5v6"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Document '01hxtz9p2y48kj3mqf7gdcr5v6' deleted successfully"
+            }
+          }

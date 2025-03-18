@@ -1,0 +1,657 @@
+routes:
+  - endpoint: /postman/get_collections
+    examples:
+      - scenario: "List all collections"
+        description: "Get all collections for the authenticated user"
+        input_json: |
+          {
+            "workspace_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "collections": [
+                {
+                  "id": "12345678-1234-1234-1234-123456789012",
+                  "name": "My API Collection",
+                  "uid": "12345678",
+                  "owner": "12345678",
+                  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                  "description": "A collection of API endpoints",
+                  "forkLabel": null,
+                  "isPublic": false,
+                  "createdAt": "2023-01-01T00:00:00.000Z",
+                  "updatedAt": "2023-01-02T00:00:00.000Z"
+                },
+                {
+                  "id": "87654321-4321-4321-4321-210987654321",
+                  "name": "Another Collection",
+                  "uid": "87654321",
+                  "owner": "12345678",
+                  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                  "description": "Another collection of API endpoints",
+                  "forkLabel": null,
+                  "isPublic": false,
+                  "createdAt": "2023-01-03T00:00:00.000Z",
+                  "updatedAt": "2023-01-04T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /postman/get_collection
+    examples:
+      - scenario: "Get collection by ID"
+        description: "Get details of a specific collection by its ID"
+        input_json: |
+          {
+            "collection_id": "12345678-1234-1234-1234-123456789012",
+            "workspace_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "collection": {
+                "info": {
+                  "id": "12345678-1234-1234-1234-123456789012",
+                  "name": "My API Collection",
+                  "uid": "12345678",
+                  "owner": "12345678",
+                  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                  "description": "A collection of API endpoints",
+                  "forkLabel": null,
+                  "isPublic": false,
+                  "createdAt": "2023-01-01T00:00:00.000Z",
+                  "updatedAt": "2023-01-02T00:00:00.000Z"
+                },
+                "item": [
+                  {
+                    "id": "item-1",
+                    "name": "Get Users",
+                    "description": "Get a list of users",
+                    "request": {
+                      "method": "GET",
+                      "url": {
+                        "raw": "https://api.example.com/users",
+                        "protocol": "https",
+                        "host": ["api", "example", "com"],
+                        "path": ["users"]
+                      },
+                      "header": []
+                    },
+                    "response": []
+                  },
+                  {
+                    "id": "folder-1",
+                    "name": "User Management",
+                    "item": [
+                      {
+                        "id": "item-2",
+                        "name": "Create User",
+                        "request": {
+                          "method": "POST",
+                          "url": {
+                            "raw": "https://api.example.com/users",
+                            "protocol": "https",
+                            "host": ["api", "example", "com"],
+                            "path": ["users"]
+                          },
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}"
+                          }
+                        },
+                        "response": []
+                      }
+                    ]
+                  }
+                ],
+                "variable": [
+                  {
+                    "key": "baseUrl",
+                    "value": "https://api.example.com"
+                  }
+                ],
+                "event": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{authToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+
+  - endpoint: /postman/update_collection
+    examples:
+      - scenario: "Update a collection"
+        description: "Update an existing collection with new data"
+        input_json: |
+          {
+            "collection_id": "12345678-1234-1234-1234-123456789012",
+            "collection": {
+              "info": {
+                "name": "Updated API Collection",
+                "description": "Updated collection description",
+                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+              },
+              "item": [
+                {
+                  "name": "Get Users",
+                  "request": {
+                    "method": "GET",
+                    "url": {
+                      "raw": "https://api.example.com/users",
+                      "protocol": "https",
+                      "host": ["api", "example", "com"],
+                      "path": ["users"]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "collection": {
+                "info": {
+                  "id": "12345678-1234-1234-1234-123456789012",
+                  "name": "Updated API Collection",
+                  "uid": "12345678",
+                  "owner": null,
+                  "schema": null,
+                  "description": null,
+                  "forkLabel": null,
+                  "isPublic": null,
+                  "createdAt": null,
+                  "updatedAt": null
+                },
+                "item": [],
+                "variable": null,
+                "event": null,
+                "auth": null
+              }
+            }
+          }
+
+  - endpoint: /postman/delete_collection
+    examples:
+      - scenario: "Delete a collection"
+        description: "Delete a collection by its ID"
+        input_json: |
+          {
+            "collection_id": "12345678-1234-1234-1234-123456789012"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "12345678-1234-1234-1234-123456789012",
+              "uid": "12345678",
+              "name": "My API Collection"
+            }
+          }
+
+  - endpoint: /postman/create_collection
+    examples:
+      - scenario: "Create a new collection"
+        description: "Create a new Postman collection"
+        input_json: |
+          {
+            "collection": {
+              "info": {
+                "name": "New API Collection",
+                "description": "A new collection of API endpoints",
+                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+              },
+              "item": [
+                {
+                  "name": "Get Users",
+                  "request": {
+                    "method": "GET",
+                    "url": {
+                      "raw": "https://api.example.com/users",
+                      "protocol": "https",
+                      "host": ["api", "example", "com"],
+                      "path": ["users"]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "collection": {
+                "info": {
+                  "id": "c33cdbe9-707f-4e16-b41b-0370756bd462",
+                  "name": "New API Collection",
+                  "uid": "31963804-c33cdbe9-707f-4e16-b41b-0370756bd462",
+                  "owner": null,
+                  "schema": null,
+                  "description": null,
+                  "forkLabel": null,
+                  "isPublic": null,
+                  "createdAt": null,
+                  "updatedAt": null
+                },
+                "item": [],
+                "variable": null,
+                "event": null,
+                "auth": null
+              }
+            }
+          }
+
+  - endpoint: /postman/get_environments
+    examples:
+      - scenario: "List all environments"
+        description: "Get all environments for the authenticated user"
+        input_json: |
+          {
+            "workspace_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "environments": [
+                {
+                  "id": "12345678-1234-1234-1234-123456789012",
+                  "name": "Development Environment",
+                  "uid": "12345678",
+                  "owner": "12345678",
+                  "values": [
+                    {
+                      "key": "baseUrl",
+                      "value": "https://dev-api.example.com",
+                      "enabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "apiKey",
+                      "value": "dev-api-key",
+                      "enabled": true,
+                      "type": "secret"
+                    }
+                  ],
+                  "isPublic": false,
+                  "createdAt": "2023-01-01T00:00:00.000Z",
+                  "updatedAt": "2023-01-02T00:00:00.000Z"
+                },
+                {
+                  "id": "87654321-4321-4321-4321-210987654321",
+                  "name": "Production Environment",
+                  "uid": "87654321",
+                  "owner": "12345678",
+                  "values": [
+                    {
+                      "key": "baseUrl",
+                      "value": "https://api.example.com",
+                      "enabled": true,
+                      "type": "default"
+                    },
+                    {
+                      "key": "apiKey",
+                      "value": "prod-api-key",
+                      "enabled": true,
+                      "type": "secret"
+                    }
+                  ],
+                  "isPublic": false,
+                  "createdAt": "2023-01-03T00:00:00.000Z",
+                  "updatedAt": "2023-01-04T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /postman/get_environment
+    examples:
+      - scenario: "Get environment by ID"
+        description: "Get details of a specific environment by its ID"
+        input_json: |
+          {
+            "environment_id": "12345678-1234-1234-1234-123456789012",
+            "workspace_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "environment": {
+                "id": "12345678-1234-1234-1234-123456789012",
+                "name": "Development Environment",
+                "uid": "12345678",
+                "owner": "12345678",
+                "values": [
+                  {
+                    "key": "baseUrl",
+                    "value": "https://dev-api.example.com",
+                    "enabled": true,
+                    "type": "default"
+                  },
+                  {
+                    "key": "apiKey",
+                    "value": "dev-api-key",
+                    "enabled": true,
+                    "type": "secret"
+                  }
+                ],
+                "isPublic": false,
+                "createdAt": "2023-01-01T00:00:00.000Z",
+                "updatedAt": "2023-01-02T00:00:00.000Z"
+              }
+            }
+          }
+
+  - endpoint: /postman/create_environment
+    examples:
+      - scenario: "Create a new environment"
+        description: "Create a new Postman environment"
+        input_json: |
+          {
+            "environment": {
+              "name": "New Environment",
+              "values": [
+                {
+                  "key": "baseUrl",
+                  "value": "https://new-api.example.com",
+                  "enabled": true,
+                  "type": "default"
+                },
+                {
+                  "key": "apiKey",
+                  "value": "new-api-key",
+                  "enabled": true,
+                  "type": "secret"
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "environment": {
+                "id": "c33cdbe9-707f-4e16-b41b-0370756bd462",
+                "name": "New Environment",
+                "uid": "31963804-c33cdbe9-707f-4e16-b41b-0370756bd462",
+                "owner": null,
+                "values": [
+                  {
+                    "key": "baseUrl",
+                    "value": "https://new-api.example.com",
+                    "enabled": true,
+                    "type": "default"
+                  },
+                  {
+                    "key": "apiKey",
+                    "value": "new-api-key",
+                    "enabled": true,
+                    "type": "secret"
+                  }
+                ],
+                "isPublic": null,
+                "createdAt": null,
+                "updatedAt": null
+              }
+            }
+          }
+
+  - endpoint: /postman/update_environment
+    examples:
+      - scenario: "Update an environment"
+        description: "Update an existing environment with new data"
+        input_json: |
+          {
+            "environment_id": "12345678-1234-1234-1234-123456789012",
+            "environment": {
+              "name": "Updated Environment",
+              "values": [
+                {
+                  "key": "baseUrl",
+                  "value": "https://updated-api.example.com",
+                  "enabled": true,
+                  "type": "default"
+                },
+                {
+                  "key": "apiKey",
+                  "value": "updated-api-key",
+                  "enabled": true,
+                  "type": "secret"
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "environment": {
+                "id": "12345678-1234-1234-1234-123456789012",
+                "name": "Updated Environment",
+                "uid": "12345678",
+                "owner": null,
+                "values": [
+                  {
+                    "key": "baseUrl",
+                    "value": "https://updated-api.example.com",
+                    "enabled": true,
+                    "type": "default"
+                  },
+                  {
+                    "key": "apiKey",
+                    "value": "updated-api-key",
+                    "enabled": true,
+                    "type": "secret"
+                  }
+                ],
+                "isPublic": null,
+                "createdAt": null,
+                "updatedAt": null
+              }
+            }
+          }
+
+  - endpoint: "/postman/delete_environment"
+    examples:
+      - scenario: "Delete an environment"
+        description: "Delete an environment by its ID"
+        input_json: |
+          {
+            "environment_id": "12345678-1234-1234-1234-123456789012"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "12345678-1234-1234-1234-123456789012",
+              "uid": "12345678",
+              "name": "Development Environment"
+            }
+          }
+
+  - endpoint: "/postman/fork_collection"
+    examples:
+      - scenario: "Fork a public collection"
+        description: "Fork the Salesforce Platform APIs collection to your workspace"
+        input_json: |
+          {
+            "collection_id": "12345678-b32utmu-salesforce-platform-apis",
+            "label": "My Salesforce APIs",
+            "workspace": "your-workspace-id"
+          }
+        output_json: |
+          {
+            "data": {
+              "collection": {
+                "info": {
+                  "id": "98765432-1234-5678-9012-345678901234",
+                  "name": "Salesforce Platform APIs",
+                  "uid": "98765432",
+                  "owner": "12345678",
+                  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                  "description": "A collection of Salesforce Platform API endpoints",
+                  "forkLabel": "My Salesforce APIs",
+                  "isPublic": false,
+                  "createdAt": "2023-05-15T10:30:00.000Z",
+                  "updatedAt": "2023-05-15T10:30:00.000Z"
+                },
+                "item": [
+                  {
+                    "id": "folder-1",
+                    "name": "REST API",
+                    "item": []
+                  },
+                  {
+                    "id": "folder-2",
+                    "name": "SOAP API",
+                    "item": []
+                  },
+                  {
+                    "id": "folder-3",
+                    "name": "Bulk API",
+                    "item": []
+                  }
+                ],
+                "variable": [],
+                "event": [],
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": []
+                }
+              }
+            }
+          }
+
+  - endpoint: /postman/get_workspaces
+    examples:
+      - scenario: "List all workspaces"
+        description: "Get all workspaces for the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "workspaces": [
+                {
+                  "id": "12345678-1234-1234-1234-123456789012",
+                  "name": "My Personal Workspace",
+                  "type": "personal",
+                  "description": "My personal workspace for API development",
+                  "visibility": "personal",
+                  "createdAt": "2023-01-01T00:00:00.000Z",
+                  "updatedAt": "2023-01-02T00:00:00.000Z"
+                },
+                {
+                  "id": "87654321-4321-4321-4321-210987654321",
+                  "name": "Team Workspace",
+                  "type": "team",
+                  "description": "Shared workspace for team collaboration",
+                  "visibility": "team",
+                  "createdAt": "2023-01-03T00:00:00.000Z",
+                  "updatedAt": "2023-01-04T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /postman/get_workspace
+    examples:
+      - scenario: "Get workspace by ID"
+        description: "Get details of a specific workspace by its ID"
+        input_json: |
+          {
+            "workspace_id": "12345678-1234-1234-1234-123456789012"
+          }
+        output_json: |
+          {
+            "data": {
+              "workspace": {
+                "id": "12345678-1234-1234-1234-123456789012",
+                "name": "My Personal Workspace",
+                "type": "personal",
+                "description": "My personal workspace for API development",
+                "visibility": "personal",
+                "createdAt": "2023-01-01T00:00:00.000Z",
+                "updatedAt": "2023-01-02T00:00:00.000Z"
+              }
+            }
+          }
+
+  - endpoint: /postman/create_workspace
+    examples:
+      - scenario: "Create a new workspace"
+        description: "Create a new Postman workspace"
+        input_json: |
+          {
+            "name": "New Project Workspace",
+            "type": "personal",
+            "description": "A workspace for my new API project",
+            "visibility": "personal"
+          }
+        output_json: |
+          {
+            "data": {
+              "workspace": {
+                "id": "c33cdbe9-707f-4e16-b41b-0370756bd462",
+                "name": "New Project Workspace",
+                "type": "personal",
+                "description": "A workspace for my new API project",
+                "visibility": "personal",
+                "createdAt": "2023-05-15T10:30:00.000Z",
+                "updatedAt": "2023-05-15T10:30:00.000Z"
+              }
+            }
+          }
+
+  - endpoint: /postman/update_workspace
+    examples:
+      - scenario: "Update a workspace"
+        description: "Update an existing workspace with new data"
+        input_json: |
+          {
+            "workspace_id": "12345678-1234-1234-1234-123456789012",
+            "name": "Updated Project Workspace",
+            "description": "Updated workspace description",
+            "visibility": "team"
+          }
+        output_json: |
+          {
+            "data": {
+              "workspace": {
+                "id": "12345678-1234-1234-1234-123456789012",
+                "name": "Updated Project Workspace",
+                "type": "personal",
+                "description": "Updated workspace description",
+                "visibility": "team",
+                "createdAt": "2023-01-01T00:00:00.000Z",
+                "updatedAt": "2023-05-15T11:30:00.000Z"
+              }
+            }
+          }
+
+  - endpoint: /postman/delete_workspace
+    examples:
+      - scenario: "Delete a workspace"
+        description: "Delete a workspace by its ID"
+        input_json: |
+          {
+            "workspace_id": "12345678-1234-1234-1234-123456789012"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "12345678-1234-1234-1234-123456789012",
+              "uid": null,
+              "name": "My Project Workspace"
+            }
+          }
