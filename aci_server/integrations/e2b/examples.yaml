@@ -1,0 +1,725 @@
+routes:
+  - endpoint: /e2b/create_sandbox
+    examples:
+      - scenario: "Create Basic Sandbox"
+        description: "Create a new sandbox with default timeout"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-abc123",
+              "timeout": 300,
+              "created_at": "2023-08-15T10:00:00Z",
+              "status": "active"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+
+      - scenario: "Create Custom Sandbox"
+        description: "Create sandbox with extended timeout"
+        input_json: |
+          {
+            "timeout": 600
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-def456",
+              "timeout": 600,
+              "created_at": "2023-08-15T10:00:00Z",
+              "status": "active"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+          
+      - scenario: "Create Sandbox with Metadata"
+        description: "Create sandbox with metadata for identification"
+        input_json: |
+          {
+            "timeout": 300,
+            "metadata": {
+              "env": "dev",
+              "app": "my-app",
+              "user_id": "123"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-ghi789",
+              "timeout": 300,
+              "metadata": {
+                "env": "dev",
+                "app": "my-app",
+                "user_id": "123"
+              },
+              "created_at": "2023-08-15T10:00:00Z",
+              "status": "active"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+
+  - endpoint: /e2b/list_sandboxes
+    examples:
+      - scenario: "List All Sandboxes"
+        description: "List all running sandboxes without filters"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": [
+              {
+                "id": "sandbox-abc123",
+                "metadata": {
+                  "env": "dev",
+                  "app": "my-app"
+                },
+                "started_at": "2023-08-15T10:00:00Z",
+                "template_id": "base"
+              },
+              {
+                "id": "sandbox-def456",
+                "metadata": {
+                  "env": "prod",
+                  "app": "other-app"
+                },
+                "started_at": "2023-08-15T11:00:00Z",
+                "template_id": "base"
+              }
+            ],
+            "component": {
+              "name": "E2BSandboxListView"
+            }
+          }
+      
+      - scenario: "List Filtered Sandboxes"
+        description: "List sandboxes filtered by metadata"
+        input_json: |
+          {
+            "filters": {
+              "env": "dev",
+              "user_id": "123"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": [
+              {
+                "id": "sandbox-abc123",
+                "metadata": {
+                  "env": "dev",
+                  "app": "my-app",
+                  "user_id": "123"
+                },
+                "started_at": "2023-08-15T10:00:00Z",
+                "template_id": "base"
+              }
+            ],
+            "component": {
+              "name": "E2BSandboxListView"
+            }
+          }
+      
+      - scenario: "No Matching Sandboxes"
+        description: "List sandboxes with filters that don't match any sandbox"
+        input_json: |
+          {
+            "filters": {
+              "env": "staging"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": [],
+            "component": {
+              "name": "E2BSandboxListView"
+            }
+          }
+
+  - endpoint: /e2b/run_command
+    examples:
+      - scenario: "Run Simple Command"
+        description: "Execute a simple shell command in the sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "command": "echo $E2B_SANDBOX"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": "sandbox-abc123",
+              "stderr": "",
+              "exit_code": 0,
+              "error": null
+            },
+            "component": {
+              "name": "E2BCommandExecutionView"
+            }
+          }
+      
+      - scenario: "Run Command with Arguments"
+        description: "Execute a command with arguments"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "command": "ls -la /home"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": "total 8\ndrwxr-xr-x 2 root root 4096 Jan 1 00:00 .\ndrwxr-xr-x 18 root root 4096 Jan 1 00:00 ..",
+              "stderr": "",
+              "exit_code": 0,
+              "error": null
+            },
+            "component": {
+              "name": "E2BCommandExecutionView"
+            }
+          }
+      
+      - scenario: "Run Command with Custom Timeout"
+        description: "Execute a command with a custom timeout"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "command": "sleep 2 && echo 'Done'",
+            "timeout": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": "Done",
+              "stderr": "",
+              "exit_code": 0,
+              "error": null
+            },
+            "component": {
+              "name": "E2BCommandExecutionView"
+            }
+          }
+      
+      - scenario: "Run Command with Error"
+        description: "Execute a command that results in an error"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "command": "cat /nonexistent/file"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": "",
+              "stderr": "cat: /nonexistent/file: No such file or directory",
+              "exit_code": 1,
+              "error": null
+            },
+            "message": null,
+            "component": {
+              "name": "E2BCommandExecutionView"
+            }
+          }
+
+  - endpoint: /e2b/pause_sandbox
+    examples:
+      - scenario: "Pause Active Sandbox"
+        description: "Pause a sandbox to save its state for later resumption"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-abc123",
+              "timeout": 0,
+              "status": "paused"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+      
+      - scenario: "Pause Error"
+        description: "Error when trying to pause a non-existent sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-nonexistent",
+              "timeout": 0,
+              "status": "error"
+            },
+            "message": "Error pausing sandbox: Sandbox not found",
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+
+  - endpoint: /e2b/resume_sandbox
+    examples:
+      - scenario: "Resume Paused Sandbox"
+        description: "Resume a previously paused sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "timeout": 300
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-abc123",
+              "timeout": 300,
+              "status": "active"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+      
+      - scenario: "Resume with Custom Timeout"
+        description: "Resume a sandbox with extended timeout"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-def456",
+            "timeout": 600
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-def456",
+              "timeout": 600,
+              "status": "active"
+            },
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+      
+      - scenario: "Resume Error"
+        description: "Error when trying to resume a non-existent sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent",
+            "timeout": 300
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "sandbox-nonexistent",
+              "timeout": 300,
+              "status": "error"
+            },
+            "message": "Error resuming sandbox: Sandbox not found or has been deleted (paused for more than 30 days)",
+            "component": {
+              "name": "E2BSandboxView"
+            }
+          }
+
+  - endpoint: /e2b/run_code
+    examples:
+      - scenario: "Successful Code Execution"
+        description: "Execute simple Python code"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "code": "print('Hello World!')"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "logs": "Hello World!",
+              "error": null,
+              "exit_code": 0
+            },
+            "component": {
+              "name": "E2BCodeExecutionView"
+            }
+          }
+
+      - scenario: "Failed Code Execution"
+        description: "Execute code with syntax error"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "code": "print('Missing quote)"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "logs": null,
+              "error": "SyntaxError: unterminated string literal",
+              "exit_code": 1
+            },
+            "component": {
+              "name": "E2BCodeExecutionView"
+            }
+          }
+      
+      - scenario: "Code Execution with Different Language"
+        description: "Execute JavaScript code"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "code": "console.log('Hello from JavaScript');",
+            "language": "js"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": "Hello from JavaScript",
+              "stderr": "",
+              "error": null,
+              "exit_code": 0
+            },
+            "component": {
+              "name": "E2BCodeExecutionView"
+            }
+          }
+      
+      - scenario: "Code Execution with Commands"
+        description: "Execute code after running shell commands"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "code": "import cowsay\ncowsay.cow('Moo!')",
+            "commands": ["pip install cowsay"]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "stdout": " _____ \n< Moo! >\n ----- \n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||\n",
+              "stderr": "",
+              "error": null,
+              "exit_code": 0
+            },
+            "component": {
+              "name": "E2BCodeExecutionView"
+            }
+          }
+
+  - endpoint: /e2b/list_files
+    examples:
+      - scenario: "List Root Directory"
+        description: "List files in sandbox root"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/",
+              "files": [
+                {"name": "home", "is_dir": true, "size": null},
+                {"name": "main.py", "is_dir": false, "size": 1024}
+              ]
+            },
+            "component": {
+              "name": "E2BFileListView"
+            }
+          }
+
+  - endpoint: /e2b/terminate_sandbox
+    examples:
+      - scenario: "Terminate Active Sandbox"
+        description: "Terminate a running sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "component": null
+          }
+      
+      - scenario: "Terminate Paused Sandbox"
+        description: "Terminate a paused sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-def456"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "component": null
+          }
+
+  - endpoint: /e2b/get_host
+    examples:
+      - scenario: "Get Host for Web Service"
+        description: "Get the external host for accessing a service running on a specific port"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "port": 3000
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": "https://sandbox-abc123-3000.e2b.dev",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+      
+      - scenario: "Get Host for Custom Port"
+        description: "Get the external host for a custom port"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-def456",
+            "port": 8080
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": "https://sandbox-def456-8080.e2b.dev",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+      
+      - scenario: "Get Host Error"
+        description: "Error when requesting host for a non-existent sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent",
+            "port": 3000
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": null,
+            "message": "Error getting host: Sandbox not found",
+            "component": {
+              "name": "E2BHostView"
+            }
+          }
+
+  - endpoint: /e2b/kill_sandbox
+    examples:
+      - scenario: "Kill Active Sandbox"
+        description: "Immediately terminate a running sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "component": null
+          }
+      
+      - scenario: "Kill Non-existent Sandbox"
+        description: "Attempt to kill a sandbox that doesn't exist"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-nonexistent"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "error"
+            },
+            "message": "Error terminating sandbox: Sandbox not found",
+            "component": null
+          }
+      
+      - scenario: "Kill Already Terminated Sandbox"
+        description: "Attempt to kill a sandbox that's already been terminated"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-terminated"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "terminated"
+            },
+            "message": "Sandbox was already terminated",
+            "component": null
+          }
+
+  - endpoint: /e2b/upload_file
+    examples:
+      - scenario: "Upload Text File"
+        description: "Upload a text file to the sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/example.txt",
+            "content": "This is the content of my text file",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/example.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "File uploaded successfully"
+            },
+            "message": "File upload operation completed",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Upload Binary File"
+        description: "Upload a binary file to the sandbox using base64 encoding"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/image.png",
+            "content": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA50lEQVQ4jZ2TMQrCQBBF30YCKQSvYCF4Ao9gYeEFPIOtjYKFhXiHdBYeQPAMgljoNawUsRFmIRt3J9n4YWB25/+fYXZXee+ZqBXQB1ogEI6AHOgBh5D/UQLi2QGlIC8C7RnwtAC5CuMywHtBPgU2I4CmsCsFOgEuo9TbClKngL0g+yCI65QimPJ9M+AutAoBXK2zN8iv0Pl/AM65GJgBB6vQBWSxkU2RjcDVOj8ZQeh3F02ATVSvcpQDPeAszEA+WuVp5SQ7OWtCdAXfXsNdC+QDYM6PVvPfy2QDrIEGsJR4BRyBzPrvAB+62UVxxKqVNgAAAABJRU5ErkJggg==",
+            "encoding": "base64"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/image.png",
+              "content": "",
+              "encoding": "base64",
+              "message": "File uploaded successfully"
+            },
+            "message": "File upload operation completed",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Upload Error"
+        description: "Error when uploading to an invalid path"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/root/protected.txt",
+            "content": "This is a test",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/root/protected.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "Error uploading file: Permission denied"
+            },
+            "message": "Error uploading file: Permission denied",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+
+  - endpoint: /e2b/download_file
+    examples:
+      - scenario: "Download Text File"
+        description: "Download a text file from the sandbox"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/example.txt",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/example.txt",
+              "content": "This is the content of my text file",
+              "encoding": "utf-8"
+            },
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Download Binary File"
+        description: "Download a binary file from the sandbox as base64"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/image.png",
+            "encoding": "base64"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/image.png",
+              "content": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA50lEQVQ4jZ2TMQrCQBBF30YCKQSvYCF4Ao9gYeEFPIOtjYKFhXiHdBYeQPAMgljoNawUsRFmIRt3J9n4YWB25/+fYXZXee+ZqBXQB1ogEI6AHOgBh5D/UQLi2QGlIC8C7RnwtAC5CuMywHtBPgU2I4CmsCsFOgEuo9TbClKngL0g+yCI65QimPJ9M+AutAoBXK2zN8iv0Pl/AM65GJgBB6vQBWSxkU2RjcDVOj8ZQeh3F02ATVSvcpQDPeAszEA+WuVp5SQ7OWtCdAXfXsNdC+QDYM6PVvPfy2QDrIEGsJR4BRyBzPrvAB+62UVxxKqVNgAAAABJRU5ErkJggg==",
+              "encoding": "base64"
+            },
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }
+      
+      - scenario: "Download Error"
+        description: "Error when downloading a non-existent file"
+        input_json: |
+          {
+            "sandbox_id": "sandbox-abc123",
+            "path": "/home/user/missing.txt",
+            "encoding": "utf-8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "path": "/home/user/missing.txt",
+              "content": "",
+              "encoding": "utf-8",
+              "message": "Error downloading file: File not found"
+            },
+            "message": "Error downloading file: File not found",
+            "component": {
+              "name": "E2BFileOperationView"
+            }
+          }

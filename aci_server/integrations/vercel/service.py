@@ -9,9 +9,10 @@ from .schema import (
     EditEnvVarParams, GetProjectParams, GetProjectDomainParams, RemoveEnvVarParams,
     ListProjectsParams, EnvVarResponse, ProjectDomainResponse, GetProjectDomainsParams,
     VerifyProjectDomainParams, UpdateProjectParams, ProjectDomainsResponse,
-    GetProjectEnvVarsParams, CreateDeploymentParams, InlinedFile, UploadedFile, GitMetadata, GitSource, ProjectSettings,
+    GetProjectEnvVarsParams, CreateDeploymentParams,
     ProjectResponse, ProjectListResponse, DeploymentResponse, DeploymentGitSource, Creator, Team, ProjectInfo,
-    DeleteProjectResponse, StatusMessageResponse, ProjectGitRepository
+    DeleteProjectResponse, ProjectGitRepository, DeploymentEventListResponse, DeploymentFileListResponse,
+    EnvVarListResponse
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -140,7 +141,7 @@ class VercelService:
             event = DeploymentEventResponse(**event_data)
             events.append(event)
             
-        return ApiResponse(data=events)
+        return ApiResponse(data=DeploymentEventListResponse(events=events))
 
     def add_domain_to_project(self, params: AddDomainToProjectParams) -> ApiResponse:
         project_id_or_name = params.project_id_or_name
@@ -367,7 +368,6 @@ class VercelService:
         
         response = self.client.remove_env_var(project_id_or_name, env_var_id, query_params)
         
-        # Стандартизируем ответ - всегда возвращаем список переменных окружения
         env_vars = []
         
         if isinstance(response, list):
@@ -379,14 +379,14 @@ class VercelService:
                 env_var = self._convert_to_env_var_response(item)
                 env_vars.append(env_var)
         elif not response:
-            # Если ответ пустой, возвращаем пустой список
+            # If response is empty, return empty list
             pass
         else:
-            # Логируем неожиданный формат ответа
+            # Log unexpected response format
             import logging
             logging.warning(f"Unexpected response format from remove_env_var: {response}")
         
-        return ApiResponse(data=env_vars)
+        return ApiResponse(data=EnvVarListResponse(env_vars=env_vars))
     
     def list_projects(self, params: Optional[ListProjectsParams] = None) -> ApiResponse:
         """Retrieve a list of projects"""
@@ -570,7 +570,7 @@ class VercelService:
             env_var = self._convert_to_env_var_response(item)
             env_vars.append(env_var)
         
-        return ApiResponse(data=env_vars)
+        return ApiResponse(data=EnvVarListResponse(env_vars=env_vars))
 
     def create_deployment(self, params: CreateDeploymentParams) -> ApiResponse:
         """Create a new deployment"""

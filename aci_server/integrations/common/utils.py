@@ -33,7 +33,8 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
             examples = route.endpoint.examples()
             tool_schema["examples"] = examples
         except Exception as e:
-            print(f"Error getting examples for {route.path}: {e}")
+            if "validate_key" not in route.path:  # validate_key doesn't have examples
+                print(f"Error getting examples for {route.path}: {e}")
             tool_schema["examples"] = []
         
         tools.append(tool_schema)

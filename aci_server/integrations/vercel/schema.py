@@ -441,19 +441,31 @@ class StatusMessageResponse(BaseModel):
     message: str
     details: Optional[Dict[str, Any]] = None
 
+class DeploymentEventListResponse(BaseModel):
+    events: List[DeploymentEventResponse]
+    pagination: Optional[Dict[str, Any]] = None
+
+class DeploymentFileListResponse(BaseModel):
+    files: List[DeploymentFileResponse]
+    pagination: Optional[Dict[str, Any]] = None
+
+class EnvVarListResponse(BaseModel):
+    env_vars: List[EnvVarResponse]
+    pagination: Optional[Dict[str, Any]] = None
+
 class ApiResponse(BaseModel):
     data: Union[
         DeploymentResponse,
         DeploymentListResponse,
         DeleteDeploymentResponse,
-        List[DeploymentFileResponse],
-        List[DeploymentEventResponse],
+        DeploymentFileListResponse,
+        DeploymentEventListResponse,
         AddDomainResponse,
         ProjectResponse,
         ProjectListResponse,
         CreateEnvVarsResponse,
         EnvVarResponse,
-        List[EnvVarResponse],
+        EnvVarListResponse,
         ProjectDomainResponse,
         ProjectDomainsResponse,
         DeleteProjectResponse,

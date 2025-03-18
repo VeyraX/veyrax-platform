@@ -45,7 +45,7 @@ from integrations.dub.route import router as dub_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
-
+from integrations.e2b.route import router as e2b_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -106,6 +106,7 @@ INTEGRATION_ROUTERS = {
     "readwise": readwise_router,
     "svgl": svgl_router,
     "dub": dub_router
+    "e2b": e2b_router
 }
 
 app = FastAPI()
@@ -264,8 +265,8 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
-    if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
-        return await get_dev_user_tools(request)
+    # if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
+    #     return await get_dev_user_tools(request)
     
     try:
         user_id = await get_user_from_request(request)
