@@ -47,6 +47,8 @@ import os
 import json
 import inspect
 import sentry_sdk
+import random
+import time
 
 
 load_dotenv()
@@ -123,11 +125,29 @@ async def root():
 @app.head("/")
 async def root_head():
     try:
-        tools = await get_tools()
-        if not tools.get("tools"):
-            return Response(status_code=503, content="No tools configured")
+        start_time = time.time()
+        
+        # Take 3 random tools to check
+        sample_tools = list(INTEGRATION_ROUTERS.keys())
+        sample_tools = random.sample(sample_tools, 3)
+        
+        timings = {}
+        for name in sample_tools:
+            tool_start = time.time()
+            router = INTEGRATION_ROUTERS[name]
+            _ = get_router_tools(router)
+            tool_end = time.time()
+            timings[name] = round(tool_end - tool_start, 3)
             
-        return Response(status_code=200)
+        total_time = round(time.time() - start_time, 3)
+        
+        return Response(
+            status_code=200,
+            headers={
+                "X-Healthcheck-Time": str(total_time),
+                "X-Healthcheck-Tools": str(timings)
+            }
+        )
     except Exception as e:
         return Response(
             status_code=500,
