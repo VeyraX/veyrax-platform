@@ -49,7 +49,7 @@ const items = [
       {
         title: "Join Discord",
         action: "discord",
-        url: "https://discord.gg/7XjRRZjC"
+        url: "https://discord.gg/s8FPCADUTd"
       },
     ],
   },
