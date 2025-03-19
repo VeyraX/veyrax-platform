@@ -16,7 +16,7 @@ import os
 from google.oauth2.credentials import Credentials
 from ..common.auth import TokenService, GoogleTokenRefresher
 from ..common.input_schema_decorator import schema, output_schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 
@@ -44,6 +44,7 @@ async def get_drive_service(request: FastAPIRequest):
         )
         
         client = DriveClient(creds)
+        apply_error_handler_to_client(client)
         service = DriveService(client)
         apply_error_handler_to_service(service)
         return service

@@ -28,6 +28,7 @@ from .schema import (
     DeleteFileParams, CreateFileParams
 )
 from ..common.examples_handler import ExamplesLoader
+from ..common.utils import apply_error_handler_to_client
 router = APIRouter(prefix="/github", tags=["github"])
 
 examples = ExamplesLoader()
@@ -42,6 +43,7 @@ async def get_github_service(request: FastAPIRequest):
             )
             
         client = GitHubClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = GitHubService(client)
         
         apply_error_handler_to_service(service)

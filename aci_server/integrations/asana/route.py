@@ -19,7 +19,7 @@ from .service import AsanaService
 from .client import AsanaClient
 from ..common.auth import TokenService, AsanaTokenRefresher
 from ..common.input_schema_decorator import schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/asana", tags=["asana"])
@@ -40,7 +40,9 @@ async def get_asana_service(request: FastAPIRequest) -> AsanaService:
         client = AsanaClient(access_token)
         service = AsanaService(client)
         
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
+        
         
         return service
     except Exception as e:

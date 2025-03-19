@@ -11,7 +11,7 @@ from .service import BraveService
 from .client import BraveClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 from fastapi import Request
 
@@ -82,6 +82,7 @@ async def validate_key(
             return {"valid": False, "message": "API key is required"}
         
         client = BraveClient(api_key)
+        apply_error_handler_to_client(client)
         test_params = {"q": "test", "count": 1}
         client.web_search(test_params)
         

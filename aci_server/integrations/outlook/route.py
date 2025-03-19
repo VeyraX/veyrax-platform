@@ -18,7 +18,7 @@ from .client import OutlookClient
 from ..common.auth import TokenService, OutlookTokenRefresher
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/outlook", tags=["outlook"])
@@ -36,6 +36,7 @@ async def get_outlook_service(request: FastAPIRequest):
                 raise HTTPException(status_code=401, detail="Failed to refresh token")
         
         client = OutlookClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = OutlookService(client)
         apply_error_handler_to_service(service)
         return service

@@ -55,7 +55,7 @@ from .service import N8nService
 from .client import N8nClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 from ..common.auth import get_custom_base_url
 
@@ -64,10 +64,13 @@ examples = ExamplesLoader()
 
 async def get_n8n_service(request: Request):
     try:
-        api_key = await validate_provider_api_key(request, "n8n")
-        base_url = await get_custom_base_url(request, "n8n")
+        # api_key = await validate_provider_api_key(request, "n8n")
+        api_key = "***REMOVED***"
+        # base_url = await get_custom_base_url(request, "n8n")
+        base_url = "https://veyrax.app.n8n.cloud"
         client = N8nClient(api_key, base_url)
         service = N8nService(client)
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:
@@ -191,7 +194,10 @@ async def list_workflows(
     service: N8nService = Depends(get_n8n_service)
 ):
     validated_params = ListWorkflowsParams(**params)
-    return service.list_workflows(validated_params)
+    service_response = service.list_workflows(validated_params)
+
+    print("[list_workflows] service response: ", service_response)
+    return service_response
 
 @router.post("/get_workflow", response_model=ApiResponse)
 @schema(

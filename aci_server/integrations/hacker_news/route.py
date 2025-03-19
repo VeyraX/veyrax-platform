@@ -11,7 +11,7 @@ from .schema import (
 from .service import HackerNewsService
 from .client import HackerNewsClient
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/hacker-news", tags=["hacker-news"])
@@ -20,6 +20,7 @@ examples = ExamplesLoader()
 async def get_hacker_news_service(request: Request = None):
     try:
         client = HackerNewsClient()
+        apply_error_handler_to_client(client)
         service = HackerNewsService(client)
         apply_error_handler_to_service(service)
         return service

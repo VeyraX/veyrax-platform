@@ -7,11 +7,12 @@ from .schema import (
     ColumnInfo, DetailedTableInfo, ApiResponse, TestConnectionResult
 )
 from ..common.component_handler import prepare_components_auto, load_components
-
+from ..common.utils import apply_error_handler_to_client
 
 class SnowflakeService:
     def __init__(self, connection_params: Dict[str, Any]):
         self.client = SnowflakeClient(connection_params)
+        apply_error_handler_to_client(self.client)
         self.connection_params = connection_params
         self.components_data = self._load_components()
 

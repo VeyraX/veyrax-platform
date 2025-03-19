@@ -16,7 +16,7 @@ from .client import PostmanClient
 from ..common.input_schema_decorator import schema
 from ..common.examples_handler import ExamplesLoader
 from ..common.auth import validate_provider_api_key
-from ..common.utils import apply_error_handler_to_router, apply_error_handler_to_service
+from ..common.utils import apply_error_handler_to_router, apply_error_handler_to_service, apply_error_handler_to_client
 
 router = APIRouter(prefix="/postman", tags=["postman"])
 
@@ -27,7 +27,7 @@ async def get_postman_service(request: FastAPIRequest) -> PostmanService:
         api_key = await validate_provider_api_key(request, "postman")
         client = PostmanClient(api_key)
         service = PostmanService(client)
-        
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
         
         return service

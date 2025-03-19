@@ -33,7 +33,7 @@ class N8nClient:
         response.raise_for_status()
         return response.json()
     
-    def create_users(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_users(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Create multiple users"""
         response = requests.post(
             f"{self.base_url}/users",
@@ -55,9 +55,9 @@ class N8nClient:
     def update_user_role(self, user_id: str, role: str) -> Dict[str, Any]:
         """Update a user's global role"""
         response = requests.patch(
-            f"{self.base_url}/users/{user_id}",
+            f"{self.base_url}/users/{user_id}/role",
             headers=self.headers,
-            json={"role": role}
+            json={"newRoleName": role}
         )
         response.raise_for_status()
         return response.json()
@@ -157,7 +157,7 @@ class N8nClient:
     def activate_workflow(self, workflow_id: str, active: bool) -> Dict[str, Any]:
         """Activate or deactivate a workflow using the activate endpoint"""
         data = {"active": active}
-        response = requests.patch(
+        response = requests.post(
             f"{self.base_url}/workflows/{workflow_id}/activate",
             headers=self.headers,
             json=data

@@ -172,7 +172,7 @@ routes:
         output_json: |
           {
             "data": {
-              "data": [
+              "items": [
                 {
                   "id": "exec1",
                   "finished": true,

@@ -17,7 +17,7 @@ from .service import FigmaService
 from .client import FigmaClient
 from ..common.auth import TokenService, FigmaTokenRefresher
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/figma", tags=["figma"])
@@ -36,6 +36,7 @@ async def get_figma_service(request: FastAPIRequest) -> FigmaService:
         
         access_token = token_data['access_token']
         client = FigmaClient(access_token)
+        apply_error_handler_to_client(client)
         service = FigmaService(client)
         
         apply_error_handler_to_service(service)

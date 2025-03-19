@@ -17,7 +17,7 @@ from .schema import (
 )
 from ..common.auth import TokenService, JiraTokenRefresher
 from ..common.input_schema_decorator import schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/jira", tags=["jira"])
@@ -35,6 +35,7 @@ async def get_jira_service(request: FastAPIRequest):
                 raise HTTPException(status_code=401, detail="Failed to refresh token")
         
         client = JiraClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = JiraService(client)
         apply_error_handler_to_service(service)
         return service

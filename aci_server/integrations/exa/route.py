@@ -11,7 +11,7 @@ from .service import ExaService
 from .client import ExaClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/exa", tags=["exa"])
@@ -21,6 +21,7 @@ async def get_exa_service(request: FastAPIRequest):
     try:
         api_key = await validate_provider_api_key(request, "exa")
         client = ExaClient(api_key)
+        apply_error_handler_to_client(client)
         service = ExaService(client)
         
         apply_error_handler_to_service(service)

@@ -49,7 +49,10 @@ from .schema import (
     CreateProjectParams,
     UpdateProjectParams,
     DeleteProjectParams,
-    ListProjectsParams
+    ListProjectsParams,
+    Node,
+    Connection,
+    ConnectionMain
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -77,7 +80,7 @@ class N8nService:
         # Always normalize to our standard response format
         users = response.get("data", []) if isinstance(response, dict) else response
         users_list = UsersList(
-            data=[User(**user) for user in users],
+            items=[User(**user) for user in users],
             nextCursor=response.get("nextCursor") if isinstance(response, dict) else None
         )
             
@@ -93,11 +96,17 @@ class N8nService:
     def create_users(self, params: CreateUsersParams) -> ApiResponse:
         """Create multiple users"""
         params_dict = params.model_dump(exclude_none=True)
-        response = self.client.create_users(params_dict)
+        params_array = params_dict.get("users", [])
+        response = self.client.create_users(params_array)
         
-        # Normalize response to UsersList regardless of single or multiple users
-        users = [response] if not isinstance(response, list) else response
-        users_list = UsersList(data=[User(**user) for user in users])
+        users = []
+        for item in response:
+            if "user" in item:
+                users.append(item["user"])
+        
+        users_list = UsersList(
+            items=[User(**user) for user in users]
+        )
         return self.prepare_response(users_list, "N8nUsersList")
     
     def delete_user(self, params: DeleteUserParams) -> ApiResponse:
@@ -112,6 +121,7 @@ class N8nService:
         user_id = params.id
         role = params.role
         response = self.client.update_user_role(user_id, role)
+        print("update_user_role response: ", response)
         validated = User(**response)
         return self.prepare_response(validated, "N8nUserCard")
     
@@ -124,7 +134,7 @@ class N8nService:
         
         executions = response.get("data", [])
         executions_list = ExecutionsList(
-            data=[Execution(**execution) for execution in executions],
+            items=[Execution(**execution) for execution in executions],
             nextCursor=response.get("nextCursor")
         )
             
@@ -150,12 +160,41 @@ class N8nService:
         cursor = params.cursor
         tags = params.tags
         active = params.active
-        response = self.client.list_workflows(cursor, tags, active)
+        response = self.client.list_workflows(cursor, tags, active)        
+        # Extract workflows from the response data field
+        workflows = response.get("data", [])
         
-        workflows = response.get("data", []) if isinstance(response, dict) else response
+        # Transform workflow data to match our schema
+        transformed_workflows = []
+        for workflow in workflows:
+            # Remove fields that aren't in our schema
+            workflow_data = {
+                "id": workflow.get("id"),
+                "name": workflow.get("name"),
+                "active": workflow.get("active"),
+                "createdAt": workflow.get("createdAt"),
+                "updatedAt": workflow.get("updatedAt"),
+                "nodes": [Node(**node) for node in workflow.get("nodes", [])],
+                "connections": {
+                    outer_k: {
+                        inner_k: ConnectionMain([
+                            [Connection(**c) for c in conn_list]
+                            for conn_list in inner_v
+                        ])
+                        for inner_k, inner_v in outer_v.items()
+                    }
+                    for outer_k, outer_v in workflow.get("connections", {}).items()
+                },
+                "settings": workflow.get("settings"),
+                "staticData": workflow.get("staticData"),
+                "tags": workflow.get("tags", [])
+            }
+            transformed_workflows.append(workflow_data)
+
+
         workflows_list = WorkflowsList(
-            data=[Workflow(**workflow) for workflow in workflows],
-            nextCursor=response.get("nextCursor") if isinstance(response, dict) else None
+            items=[Workflow(**workflow) for workflow in transformed_workflows],
+            nextCursor=response.get("nextCursor")
         )
             
         return self.prepare_response(workflows_list, "N8nWorkflowsList")
@@ -209,7 +248,7 @@ class N8nService:
         """List all workflow tags"""
         response = self.client.list_tags()
         tags = [Tag(**tag) for tag in response]
-        tags_list = TagsList(tags=tags)
+        tags_list = TagsList(items=tags)
         return self.prepare_response(tags_list, "N8nTagsList")
 
     def deactivate_workflow(self, params: GetWorkflowParams) -> ApiResponse:
@@ -228,7 +267,7 @@ class N8nService:
         
         credentials = response.get("data", []) if isinstance(response, dict) else response
         credentials_list = CredentialsList(
-            data=[Credential(**credential) for credential in credentials],
+            items=[Credential(**credential) for credential in credentials],
             nextCursor=response.get("nextCursor") if isinstance(response, dict) else None
         )
             
@@ -295,7 +334,7 @@ class N8nService:
         
         variables = response.get("data", []) if isinstance(response, dict) else response
         variables_list = VariablesList(
-            data=[Variable(**variable) for variable in variables],
+            items=[Variable(**variable) for variable in variables],
             nextCursor=response.get("nextCursor") if isinstance(response, dict) else None
         )
             
@@ -324,7 +363,7 @@ class N8nService:
         
         projects = response.get("data", []) if isinstance(response, dict) else response
         projects_list = ProjectsList(
-            data=[Project(**project) for project in projects],
+            items=[Project(**project) for project in projects],
             nextCursor=response.get("nextCursor") if isinstance(response, dict) else None
         )
             

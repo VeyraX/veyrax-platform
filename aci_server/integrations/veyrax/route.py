@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional
 from pydantic import ValidationError
 
 from integrations.common.auth import get_user_from_request
-from integrations.common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from integrations.common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from integrations.common.examples_handler import ExamplesLoader
 from integrations.common.input_schema_decorator import schema
 from integrations.veyrax.schema import (
@@ -22,6 +22,7 @@ async def get_veyrax_memory_service(request: FastAPIRequest):
     try:
         user_id = await get_user_from_request(request)
         client = VeyraxMemoryClient(user_id)
+        apply_error_handler_to_client(client)
         service = VeyraxMemoryService(client)
         apply_error_handler_to_service(service)
         return service

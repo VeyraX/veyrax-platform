@@ -33,7 +33,7 @@ class ListUsersMeta(BaseModel):
     nextCursor: Optional[str] = Field(None, description="Make the same query with the new cursor to get more results")
 
 class UsersList(BaseModel):
-    data: List[User]
+    items: List[User]
     nextCursor: Optional[str] = Field(None, description="Cursor for pagination")
 
 # Execution schemas
@@ -61,7 +61,7 @@ class DeleteExecutionParams(BaseModel):
     id: Union[int, str] = Field(..., description="The ID of the execution to delete")
 
 class ExecutionsList(BaseModel):
-    data: List[Execution]
+    items: List[Execution]
     nextCursor: Optional[str] = Field(None, description="Cursor for pagination")
 
 # Success response for delete operations
@@ -93,7 +93,7 @@ class Node(BaseModel):
     notesInFlow: Optional[bool] = None
     notes: Optional[str] = None
     type: str
-    typeVersion: int
+    typeVersion: float
     executeOnce: Optional[bool] = None
     alwaysOutputData: Optional[bool] = None
     retryOnFail: Optional[bool] = None
@@ -113,7 +113,7 @@ class Connection(BaseModel):
     index: int
 
 class ConnectionMain(RootModel):
-    root: List[Connection]
+    root: List[List[Connection]]
     
     def model_dump(self, *args, **kwargs):
         return self.root
@@ -146,13 +146,13 @@ class Workflow(BaseModel):
     createdAt: Optional[str] = None
     updatedAt: Optional[str] = None
     nodes: List[Node]
-    connections: Dict[str, List[Connection]]
+    connections: Dict[str, Dict[str, ConnectionMain]]
     settings: Optional[WorkflowSettings] = None
     staticData: Optional[StaticData] = None
     tags: Optional[List[Tag]] = None
 
 class WorkflowsList(BaseModel):
-    data: List[Workflow]
+    items: List[Workflow]
     nextCursor: Optional[str] = None
 
 # Workflow operation params
@@ -184,7 +184,7 @@ class CopyWorkflowParams(BaseModel):
     destinationProjectId: Optional[str] = Field(None, description="The ID of the project to copy to")
 
 class TagsList(BaseModel):
-    tags: List[Tag]
+    items: List[Tag]
 
 # Credential schemas
 class CredentialData(RootModel):
@@ -210,7 +210,7 @@ class Credential(BaseModel):
     # data field is omitted in response for security reasons
 
 class CredentialsList(BaseModel):
-    data: List[Credential]
+    items: List[Credential]
     nextCursor: Optional[str] = None
 
 class ListCredentialsParams(BaseModel):
@@ -264,7 +264,7 @@ class DeleteVariableParams(BaseModel):
     id: str = Field(..., description="The ID of the variable to delete")
 
 class VariablesList(BaseModel):
-    data: List[Variable]
+    items: List[Variable]
     nextCursor: Optional[str] = None
 
 class ListVariablesParams(BaseModel):
@@ -289,16 +289,18 @@ class DeleteProjectParams(BaseModel):
     id: str = Field(..., description="The ID of the project to delete")
 
 class ProjectsList(BaseModel):
-    data: List[Project]
+    items: List[Project]
     nextCursor: Optional[str] = None
 
 class ListProjectsParams(BaseModel):
     cursor: Optional[str] = Field(None, description="Use if a previous request returned a cursor. Will page through results")
     limit: Optional[int] = Field(100, description="The maximum number of items to return (max 250)")
 
+
 # Update the API Response model to include new types
 class ApiResponse(BaseModel):
     data: Union[
+        Dict[str, Any],
         User,
         UsersList,
         Execution,
@@ -315,8 +317,7 @@ class ApiResponse(BaseModel):
         Project,
         ProjectsList,
         PullResult,
-        SuccessResponse,
-        Dict[str, Any]
+        SuccessResponse
     ]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
         None,

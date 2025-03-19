@@ -14,7 +14,7 @@ from .schema import (
     ApiResponse, DsnResponse, GetDsnParams
 )
 from ..common.auth import TokenService, TokenRefresherFactory
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from .client import SentryClient
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
@@ -33,6 +33,7 @@ async def get_sentry_service(request: Request):
             await TokenService.update_token(request, token_data)
         
         client = SentryClient(token_data['access_token'], token_data.get('raw_token_data',{}).get('org_slug', ""))
+        apply_error_handler_to_client(client)
         service = SentryService(client)
         apply_error_handler_to_service(service)
         return service
