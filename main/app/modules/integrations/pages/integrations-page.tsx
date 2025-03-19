@@ -153,8 +153,8 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
               />
             </div>
             
-            <ScrollArea className="w-full pb-2">
-              <div className="flex gap-3">
+            <div className="w-full overflow-x-auto scrollbar-hide pb-4">
+              <div className="flex gap-3 marker:min-w-max">
                 {categories.map(category => (
                   <Button
                     key={category}
@@ -167,7 +167,7 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
