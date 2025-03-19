@@ -24,7 +24,7 @@ from .schema import (
 )
 from ..common.auth import TokenService, ConfluenceTokenRefresher
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/confluence", tags=["confluence"])
@@ -42,6 +42,7 @@ async def get_confluence_service(request: FastAPIRequest):
                 raise HTTPException(status_code=401, detail="Failed to refresh token")
         
         client = ConfluenceClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = ConfluenceService(client)
         
         apply_error_handler_to_service(service)

@@ -16,9 +16,7 @@ from .service import TrelloService
 from .client import TrelloClient
 from ..common.auth import TokenService
 from ..common.input_schema_decorator import schema
-from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
-import os
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/trello", tags=["trello"])
@@ -42,8 +40,10 @@ async def get_trello_service(request: FastAPIRequest) -> TrelloService:
             )
             
         client = TrelloClient(token)
+        apply_error_handler_to_client(client)
         service = TrelloService(client)
         apply_error_handler_to_service(service)
+        
         return service
     except Exception as e:
         raise HTTPException(

@@ -6,7 +6,7 @@ from .schema import (
     QueryResult, TableList, TableInfo, ColumnList, ColumnInfo, ApiResponse, TestConnectionResult
 )
 from ..common.component_handler import prepare_components_auto, load_components
-
+from ..common.utils import apply_error_handler_to_client
 
 class PostgreSQLService:
     def __init__(self, client_or_params: Union[PostgreSQLClient, Dict[str, Any]]):
@@ -14,6 +14,8 @@ class PostgreSQLService:
             self.client = PostgreSQLClient(client_or_params)
         else:
             self.client = client_or_params
+
+        apply_error_handler_to_client(self.client)
         
         self.components_data = self._load_components()
         self.connection_params = self.client.connection_params.copy()

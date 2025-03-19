@@ -4,7 +4,7 @@ export interface Provider {
   description: string;
   logo_url?: string;
   provider_tag: string;
-  auth_method: 'oauth' | 'api_key' | 'db_access' | 'none';
+  auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none';
   scopes?: {
     scope: string;
     scope_name: string;
@@ -133,4 +133,9 @@ export interface ParameterObject {
   refName: string | null;
   default?: string;
   nestedParams?: ParameterObject[];
+}
+
+export interface ApiKeyWithBaseConfig {
+  api_key: string;
+  base_url: string;
 }

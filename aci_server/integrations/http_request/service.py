@@ -6,10 +6,11 @@ from .schema import (
 import os
 from ..common.component_handler import load_components, prepare_components_auto
 from fastapi import HTTPException
-
+from ..common.utils import apply_error_handler_to_client
 class HttpService:
     def __init__(self):
         self.client = HttpClient()
+        apply_error_handler_to_client(self.client)
         self.components_data = self._load_components()
 
     def _load_components(self):

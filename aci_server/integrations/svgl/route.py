@@ -9,7 +9,7 @@ from .schema import (
 from .service import SvglService
 from .client import SvglClient
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/svgl", tags=["svgl"])
@@ -17,7 +17,9 @@ examples = ExamplesLoader()
 
 async def get_svgl_service(request: Request):
     try:
-        service = SvglService(SvglClient())
+        client = SvglClient()
+        apply_error_handler_to_client(client)
+        service = SvglService(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:

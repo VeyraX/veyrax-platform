@@ -15,7 +15,7 @@ from .client import SlackClient
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.auth import TokenService, SlackTokenRefresher
 from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 import os
 
@@ -31,6 +31,7 @@ async def get_slack_service(request: FastAPIRequest):
             token_data = await SlackTokenRefresher.refresh(request, token_data)
         
         client = SlackClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = SlackService(client)
         apply_error_handler_to_service(service)
         return service

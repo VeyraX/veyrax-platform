@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection, validateApiKey } from "../api/api.integrations";
+import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection, validateApiKey, enableApiKeyWithBaseProvider, getProviderBaseUrl } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -35,12 +35,18 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   const [apiKeyChanged, setApiKeyChanged] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [baseUrl, setBaseUrl] = useState<string>("");
+  const [originalBaseUrl, setOriginalBaseUrl] = useState<string>("");
 
   useEffect(() => {
     if (open) {
-      if (provider.auth_method === 'api_key') {
+      if (provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') {
         fetchApiKey();
         setApiKeyChanged(false);
+        
+        if (provider.auth_method === 'api_key_with_base') {
+          fetchBaseUrl();
+        }
       } else if (provider.auth_method === 'db_access') {
         fetchDbCredentials();
       }
@@ -48,7 +54,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   }, [open, provider.id, provider.auth_method]);
 
   const fetchApiKey = async () => {
-    if (provider.auth_method !== 'api_key') return;
+    if (provider.auth_method !== 'api_key' && provider.auth_method !== 'api_key_with_base') return;
     
     setIsLoading(true);
     try {
@@ -99,37 +105,91 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     }
   };
 
-  const handleSaveApiKey = async () => {
-    if (apiKey === originalApiKey) {
-      onClose();
-      return;
-    }
-
-    if (!apiKey.trim()) {
-      setValidationError("API key is required");
-      return;
-    }
-
-    setIsValidating(true);
-    setValidationError(null);
-
+  const fetchBaseUrl = async () => {
+    if (provider.auth_method !== 'api_key_with_base') return;
+    
+    setIsLoading(true);
     try {
-      const validationResult = await validateApiKey(provider.provider_tag, apiKey);
-      
-      if (!validationResult.valid) {
-        setValidationError(validationResult.message);
-        setIsValidating(false);
+      const url = await getProviderBaseUrl(provider.id);
+      setBaseUrl(url || "");
+      setOriginalBaseUrl(url || "");
+    } catch (error) {
+      console.error('Failed to fetch base URL:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveApiKey = async () => {
+    if (provider.auth_method === 'api_key') {
+      if (apiKey === originalApiKey) {
+        onClose();
         return;
       }
 
-      await enableApiKeyProvider(provider.id, apiKey);
-      onUpdate();
-      onClose();
-    } catch (error) {
-      console.error("Error saving API key:", error);
-      setValidationError(error instanceof Error ? error.message : "Failed to save API key");
-    } finally {
-      setIsValidating(false);
+      if (!apiKey.trim()) {
+        setValidationError("API key is required");
+        return;
+      }
+
+      setIsValidating(true);
+      setValidationError(null);
+
+      try {
+        const validationResult = await validateApiKey(provider.provider_tag, apiKey);
+        
+        if (!validationResult.valid) {
+          setValidationError(validationResult.message);
+          setIsValidating(false);
+          return;
+        }
+
+        await enableApiKeyProvider(provider.id, apiKey);
+        onUpdate();
+        onClose();
+      } catch (error) {
+        console.error("Error saving API key:", error);
+        setValidationError(error instanceof Error ? error.message : "Failed to save API key");
+      } finally {
+        setIsValidating(false);
+      }
+    } else if (provider.auth_method === 'api_key_with_base') {
+      if (apiKey === originalApiKey && baseUrl === originalBaseUrl) {
+        onClose();
+        return;
+      }
+
+      if (!apiKey.trim()) {
+        setValidationError("API key is required");
+        return;
+      }
+
+      if (!baseUrl.trim()) {
+        setValidationError("Base URL is required");
+        return;
+      }
+
+      setIsValidating(true);
+      setValidationError(null);
+
+      try {
+        const validationResult = await validateApiKey(provider.provider_tag, apiKey, baseUrl);
+        
+        if (!validationResult.valid) {
+          setValidationError(validationResult.message);
+          setIsValidating(false);
+          return;
+        }
+
+        await enableApiKeyWithBaseProvider(provider.id, apiKey, baseUrl);
+        onUpdate();
+        onClose();
+      } catch (error) {
+        console.error("Error saving API key with base URL:", error);
+        setValidationError(error instanceof Error ? error.message : "Failed to save configuration");
+      } finally {
+        setIsValidating(false);
+      }
     }
   };
 
@@ -302,7 +362,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             />
           )}
 
-          {provider.auth_method === 'api_key' && (
+          {(provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') && (
             <div className="space-y-4">
               {validationError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -320,7 +380,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                   value={apiKey}
                   onChange={(e) => {
                     setApiKey(e.target.value);
-                    setApiKeyChanged(e.target.value !== originalApiKey);
+                    setApiKeyChanged(e.target.value !== originalApiKey || baseUrl !== originalBaseUrl);
                     setValidationError(null);
                   }}
                   placeholder="Enter your API key"
@@ -328,6 +388,27 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                   disabled={isValidating}
                 />
               </div>
+              
+              {provider.auth_method === 'api_key_with_base' && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="baseUrl" className="text-sm font-medium">Base URL</Label>
+                  </div>
+                  <Input
+                    id="baseUrl"
+                    type="text"
+                    value={baseUrl}
+                    onChange={(e) => {
+                      setBaseUrl(e.target.value);
+                      setApiKeyChanged(apiKey !== originalApiKey || e.target.value !== originalBaseUrl);
+                      setValidationError(null);
+                    }}
+                    placeholder="Enter the base URL (e.g., https://example.com/api)"
+                    className="w-full"
+                    disabled={isValidating}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -352,6 +433,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             provider.auth_method === 'db_access' || 
             provider.auth_method === 'none' || 
             provider.auth_method === 'api_key' ||
+            provider.auth_method === 'api_key_with_base' ||
             (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax')
           ) && (
             <div className="flex gap-2">
@@ -377,17 +459,20 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             </Button>
           )}
           
-          {provider.auth_method === 'api_key' && (
+          {(provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') && (
             <Button 
               onClick={handleSaveApiKey} 
-              disabled={!apiKey.trim() || isValidating || !apiKeyChanged}
+              disabled={
+                (provider.auth_method === 'api_key' && (!apiKey.trim() || isValidating || !apiKeyChanged)) ||
+                (provider.auth_method === 'api_key_with_base' && (!apiKey.trim() || !baseUrl.trim() || isValidating || !apiKeyChanged))
+              }
             >
               {isValidating ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin" />
                 </>
               ) : (
-                "Save API Key"
+                "Save Configuration"
               )}
             </Button>
           )}

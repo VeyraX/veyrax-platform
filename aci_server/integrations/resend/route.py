@@ -25,7 +25,7 @@ import os
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/resend", tags=["resend"])
@@ -37,6 +37,7 @@ async def get_resend_service(request: FastAPIRequest):
         api_key = await validate_provider_api_key(request, "resend")
         client = ResendClient(api_key)
         service = ResendService(client)
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:

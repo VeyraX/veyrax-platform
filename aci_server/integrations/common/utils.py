@@ -13,6 +13,7 @@ from db.supabase import get_supabase
 import requests
 import functools
 import traceback
+import sentry_sdk
 
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     """
@@ -84,24 +85,44 @@ def handle_api_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            response = func(*args, **kwargs)
+            return response
         except requests.exceptions.HTTPError as e:
-            try:
-                return {"data": e.response.json(), "component": None}
-            except:
-                return {"data": {"error": e.response.text or str(e)}, "component": None}
+            raise ClientNonCriticalError(e.response.text or str(e), e.response.json())
         except Exception as e:
-            return {"data": {"error": str(e)}, "component": None}
+            print(f"Unexpected Error in {func.__name__}:", str(e))
+            print(traceback.format_exc())
+            raise ClientUnknowError(str(e), {})
     
     return wrapper
+
+class ServiceValidationError(Exception):
+    def __init__(self, message: str, errors: dict):
+        self.message = message
+        self.errors = errors
+        super().__init__(self.message)
+
+class ClientNonCriticalError(Exception):
+    def __init__(self, message: str, errors: dict):
+        self.message = message
+        self.errors = errors
+        super().__init__(self.message)
+
+class ClientUnknowError(Exception):
+    def __init__(self, message: str, errors: dict):
+        self.message = message
+        self.errors = errors
+        super().__init__(self.message)
 
 def apply_error_handler_to_router(router: APIRouter):
     def route_error_handler(endpoint):
         @functools.wraps(endpoint)
         async def wrapper(*args, **kwargs):
             try:
-                return await endpoint(*args, **kwargs)
+                endpoint_response = await endpoint(*args, **kwargs)
+                return endpoint_response
             except ValidationError as e:
+                print("[route_error_handler] ValidationError: ", e)
                 errors = e.errors()
                 error_details = []
                 
@@ -138,8 +159,12 @@ def apply_error_handler_to_router(router: APIRouter):
                     },
                     "component": None
                 }
+            except ServiceValidationError as e:
+                print("[route_error_handler] ServiceValidationError: ", e)
+                raise HTTPException(status_code=422, detail=str(e))
                 
             except Exception as e:
+                print("[route_error_handler] unhandled exception: ", e)
                 if not isinstance(e, requests.exceptions.HTTPError):
                     traceback.print_exc()
                     return {
@@ -158,11 +183,47 @@ def apply_error_handler_to_router(router: APIRouter):
             original_endpoint = route.endpoint
             route.endpoint = route_error_handler(original_endpoint)
 
+
+def handle_service_error(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except requests.exceptions.HTTPError as e:
+            try:
+                return {"data": e.response.json(), "component": None}
+            except:
+                return {"data": {"error": e.response.text or str(e)}, "component": None}
+        
+        except ClientNonCriticalError as e:
+            return {"data": {"error": e.message, "errors": e.errors}, "component": None}
+
+        except ValidationError as e:
+            sentry_sdk.capture_exception(e)
+            raise ServiceValidationError(e.errors(), "Validation error in service")
+
+        except Exception as e:
+            print(f"[handle_service_error] Unexpected Error in {func.__name__}:", str(e))
+            print(traceback.format_exc())
+            
+            return {"data": {"error": str(e)}, "component": None}
+    return wrapper
+
+
 def apply_error_handler_to_service(service):
     for method_name in dir(service):
         if not method_name.startswith('_') and callable(getattr(service, method_name)):
             original_method = getattr(service, method_name)
             if hasattr(original_method, '__self__') and original_method.__self__ is service:
-                setattr(service, method_name, handle_api_error(original_method))
+                setattr(service, method_name, handle_service_error(original_method))
     
     return service
+
+
+def apply_error_handler_to_client(client):
+    for method_name in dir(client):
+        if not method_name.startswith('_') and callable(getattr(client, method_name)):
+            original_method = getattr(client, method_name)
+            if hasattr(original_method, '__self__') and original_method.__self__ is client:
+                setattr(client, method_name, handle_api_error(original_method))
+    return client

@@ -516,6 +516,41 @@ async def get_user_from_request(request: Request) -> str:
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
 
+async def get_custom_base_url(request: Request, provider_tag: str) -> str:
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        provider_res = supabase.table('providers') \
+            .select('id') \
+            .eq('provider_tag', provider_tag) \
+            .execute()
+        
+        if not provider_res.data:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        provider_id = provider_res.data[0]['id']
+
+        base_url_res = supabase.table('users_provider_api_keys') \
+            .select('raw_data') \
+            .eq('user_id', user_id) \
+            .eq('provider_id', provider_id) \
+            .execute()
+        
+        if not base_url_res.data:
+            return None 
+            
+        raw_data = base_url_res.data[0].get('raw_data', {})
+        raw_data = json.loads(raw_data)
+                
+        base_url = raw_data.get('base_url')
+        
+        return base_url     
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get custom base URL: {str(e)}")
+
 async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
     try:
         user_id = await get_user_from_request(request)

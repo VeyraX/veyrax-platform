@@ -9,7 +9,7 @@ from .schema import (
 )
 from ..common.auth import TokenService, TokenRefresherFactory
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from pydantic import ValidationError
 from ..common.examples_handler import ExamplesLoader
 
@@ -26,6 +26,7 @@ async def get_ticktick_service(request: FastAPIRequest) -> TickTickService:
             )
             
         client = TickTickClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = TickTickService(client)
         apply_error_handler_to_service(service)
         return service

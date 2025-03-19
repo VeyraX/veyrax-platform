@@ -45,6 +45,7 @@ from integrations.dub.route import router as dub_router
 from integrations.e2b.route import router as e2b_router
 from integrations.motion.route import router as motion_router
 from integrations.coda.route import router as coda_router
+from integrations.n8n.route import router as n8n_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -112,7 +113,8 @@ INTEGRATION_ROUTERS = {
     "dub": dub_router,
     "e2b": e2b_router,
     "motion": motion_router,
-    "coda": coda_router
+    "coda": coda_router,
+    "n8n": n8n_router
 }
 
 app = FastAPI()
@@ -291,8 +293,8 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
-    # if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
-    #     return await get_dev_user_tools(request)
+    if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
+        return await get_dev_user_tools(request)
     
     try:
         user_id = await get_user_from_request(request)

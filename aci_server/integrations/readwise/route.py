@@ -12,7 +12,7 @@ from .service import ReadwiseService
 from .client import ReadwiseClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/readwise", tags=["readwise"])
@@ -23,7 +23,7 @@ async def get_readwise_service(request: FastAPIRequest):
         api_key = await validate_provider_api_key(request, "readwise")
         client = ReadwiseClient(api_key)
         service = ReadwiseService(client)
-        
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
         
         return service

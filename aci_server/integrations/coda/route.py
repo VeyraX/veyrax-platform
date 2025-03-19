@@ -49,7 +49,7 @@ from .service import CodaService
 from .client import CodaClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/coda", tags=["coda"])
@@ -58,7 +58,9 @@ examples = ExamplesLoader()
 async def get_coda_service(request: Request):
     try:
         api_key = await validate_provider_api_key(request, "coda")
-        service = CodaService(CodaClient(api_key))
+        client = CodaClient(api_key)
+        apply_error_handler_to_client(client)
+        service = CodaService(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:

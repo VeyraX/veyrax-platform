@@ -11,7 +11,7 @@ from .client import BrowserUseClient
 import os
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/browser-use", tags=["browser-use"])
@@ -22,6 +22,7 @@ async def get_browser_use_service(request: FastAPIRequest):
     try:
         api_key = await validate_provider_api_key(request, "browser-use")
         client = BrowserUseClient(api_key)
+        apply_error_handler_to_client(client)
         service = BrowserUseService(client)
         
         apply_error_handler_to_service(service)
@@ -134,6 +135,7 @@ async def validate_key(
             return {"valid": False, "message": "API key is required"}
         
         client = BrowserUseClient(api_key)
+        apply_error_handler_to_client(client)
         response = client.me()
         
         return {"valid": True, "message": "API key is valid"}

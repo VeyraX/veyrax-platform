@@ -41,7 +41,7 @@ from .service import MotionService
 from .client import MotionClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
-from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 from fastapi import Request
 
@@ -50,9 +50,11 @@ examples = ExamplesLoader()
 
 async def get_motion_service(request: Request):
     try:
-        #api_key = await validate_provider_api_key(request, "motion")
-        api_key = "***REMOVED***"
-        service = MotionService(MotionClient(api_key))
+        api_key = await validate_provider_api_key(request, "motion")
+        client = MotionClient(api_key)
+        apply_error_handler_to_client(client)
+
+        service = MotionService(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:

@@ -8,7 +8,7 @@ from .service import WeatherService
 from .client import WeatherClient
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema, input_schema, output_schema
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from pydantic import ValidationError
 from ..common.examples_handler import ExamplesLoader
 import os
@@ -24,6 +24,7 @@ async def get_weather_service(request: Request):
     try:
         api_key = await validate_provider_api_key(request, "openweather")
         client = WeatherClient(api_key)
+        apply_error_handler_to_client(client)
         service = WeatherService(client)
         apply_error_handler_to_service(service)
         return service

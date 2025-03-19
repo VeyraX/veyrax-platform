@@ -21,7 +21,7 @@ from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
 from ..common.examples_handler import ExamplesLoader
 from ..common.auth import TokenService
-from ..common.utils import handle_api_error, apply_error_handler_to_router, apply_error_handler_to_service
+from ..common.utils import apply_error_handler_to_router, apply_error_handler_to_service, apply_error_handler_to_client
 
 router = APIRouter(prefix="/vercel", tags=["vercel"])
 
@@ -37,6 +37,7 @@ async def get_vercel_service(request: FastAPIRequest) -> VercelService:
             )
             
         client = VercelClient(token_data['access_token'])
+        apply_error_handler_to_client(client)
         service = VercelService(client)
         
         apply_error_handler_to_service(service)

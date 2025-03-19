@@ -163,4 +163,3 @@ async def delete_index_data(
             status_code=500,
             detail=f"Error deleting vectors: {str(e)}"
         )
-

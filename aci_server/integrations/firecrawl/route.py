@@ -33,7 +33,7 @@ from .schema import (
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/firecrawl", tags=["firecrawl"])
@@ -46,6 +46,7 @@ async def get_firecrawl_service(request: FastAPIRequest):
         client = FirecrawlClient(api_key)
         service = FirecrawlService(client)
         
+        apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
         
         return service

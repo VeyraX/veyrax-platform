@@ -13,10 +13,11 @@ from .schema import (
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
-
+from ..common.utils import apply_error_handler_to_client
 class BraveService:
     def __init__(self, client: BraveClient):
         self.client = client
+        apply_error_handler_to_client(client)
         self.components_data = self._load_components()
 
     def _load_components(self):

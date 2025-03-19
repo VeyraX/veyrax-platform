@@ -7,10 +7,11 @@ from ..common.component_handler import load_components, prepare_components_auto
 import base64
 from ..common.file_reader import read_file_content
 from ..common.file_utils import get_mime_type_from_extension
-
+from ..common.utils import apply_error_handler_to_client
 class DropboxService:
     def __init__(self, access_token: str):
         self.client = DropboxClient(access_token)
+        apply_error_handler_to_client(self.client)
         self.components_data = self._load_components()
 
     def _load_components(self):

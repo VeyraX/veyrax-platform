@@ -7,11 +7,12 @@ from .schema import (
     ColumnList, ColumnInfo, ApiResponse, TestConnectionResult
 )
 from ..common.component_handler import prepare_components_auto, load_components
-
+from ..common.utils import apply_error_handler_to_client
 
 class ClickHouseService:
     def __init__(self, connection_params: Dict[str, Any]):
         self.client = ClickHouseClient(connection_params)
+        apply_error_handler_to_client(self.client)
         self.components_data = self._load_components()
 
     def _load_components(self):
