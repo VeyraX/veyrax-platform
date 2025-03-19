@@ -17,12 +17,20 @@ def normalize_provider_tag(tag):
         return tag.replace("-", "_")
     return tag.replace("_", "-")
 
-async def update_provider_data():
+async def update_provider_data(provider_tag_filter=None):
     supabase = get_supabase()
     
-    response = supabase.table("providers").select("*").execute()
-    providers = response.data
+    query = supabase.table("providers").select("*")
+    if provider_tag_filter:
+        query = query.eq("provider_tag", provider_tag_filter)
     
+    response = query.execute()
+    providers = response.data
+
+    if provider_tag_filter and not providers:
+        print(f"No provider found with tag: {provider_tag_filter}")
+        return
+
     for provider in providers:
         provider_tag = provider["provider_tag"]
         print(f"Updating provider {provider['name']} with tag {provider_tag}")
@@ -32,8 +40,6 @@ async def update_provider_data():
             router_key = normalize_provider_tag(provider_tag)
         
         if router_key in INTEGRATION_ROUTERS:
-            if provider_tag != "coda" and provider_tag != "motion":
-                continue
             try:
                 router = INTEGRATION_ROUTERS[router_key]
                 print(f"Router: {router}")
@@ -208,4 +214,5 @@ async def update_provider_data():
             print(f"Provider {provider['name']} with tag {provider_tag} not found in INTEGRATION_ROUTERS")
 
 if __name__ == "__main__":
-    asyncio.run(update_provider_data())
+    tag_filter = sys.argv[1] if len(sys.argv) > 1 else None
+    asyncio.run(update_provider_data(tag_filter))
