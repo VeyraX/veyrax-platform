@@ -770,6 +770,25 @@ class GetArticleCommentsResponse(BaseModel):
     data: Optional[ArticleCommentsData] = None
 
 
+class SearchLocationsParams(BaseModel):
+    keyword: str = Field(..., description="Search keyword for locations")
+
+
+class LocationItem(BaseModel):
+    id: str = Field(..., description="Location ID")
+    name: str = Field(..., description="Location name")
+
+
+class LocationsData(BaseModel):
+    items: List[LocationItem] = Field(default_factory=list, description="List of locations")
+
+
+class SearchLocationsResponse(BaseModel):
+    success: Optional[bool] = None
+    message: Optional[str] = None
+    data: Optional[LocationsData] = None
+
+
 class ApiResponse(BaseModel):
     data: Union[
         Dict[str, Any],
@@ -790,7 +809,8 @@ class ApiResponse(BaseModel):
         SearchPostsResponse,
         GetPostResponse,
         GetArticleResponse,
-        GetArticleCommentsResponse
+        GetArticleCommentsResponse,
+        SearchLocationsResponse
     ]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
         None,

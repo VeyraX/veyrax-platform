@@ -39,7 +39,9 @@ from .schema import (
     GetArticleParams,
     GetArticleResponse,
     GetArticleCommentsParams,
-    GetArticleCommentsResponse
+    GetArticleCommentsResponse,
+    SearchLocationsParams,
+    SearchLocationsResponse
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -302,3 +304,14 @@ class LinkedInService:
         article_comments_response = GetArticleCommentsResponse(**response)
         
         return self.prepare_response(article_comments_response, None)
+
+    def search_locations(self, params: SearchLocationsParams) -> ApiResponse:
+        """Search for LinkedIn locations"""
+        response = self.client.search_locations(
+            keyword=params.keyword
+        )
+        
+        # Transform response data to match our schema
+        locations_response = SearchLocationsResponse(**response)
+        
+        return self.prepare_response(locations_response, None)
