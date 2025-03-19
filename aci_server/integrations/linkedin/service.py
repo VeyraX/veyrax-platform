@@ -206,10 +206,15 @@ class LinkedInService:
         return self.prepare_response(employees_count_response, None)
 
     def search_jobs(self, params: SearchJobsParams) -> ApiResponse:
-        """Search for jobs on LinkedIn"""
+
+        if 'urn:li:geo:' in params.locationId:
+            location_id = params.locationId.split('urn:li:geo:')[1]
+        else:
+            location_id = params.locationId
+        
         response = self.client.search_jobs(
             keywords=params.keywords,
-            location_id=params.locationId,
+            location_id=location_id,
             date_posted=params.datePosted,
             sort=params.sort
         )

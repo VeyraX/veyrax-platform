@@ -438,7 +438,7 @@ class CompanyEmployeesCountResponse(BaseModel):
 
 class SearchJobsParams(BaseModel):
     keywords: str = Field(..., description="Search keywords for jobs")
-    locationId: str = Field(..., description="Location ID for job search")
+    locationId: str = Field(..., description="Location ID for job search in the format 102277331")
     datePosted: str = Field("anyTime", description="Filter for job posting date (e.g. 'anyTime')")
     sort: str = Field("mostRelevant", description="Sort order for results (e.g. 'mostRelevant')")
 
