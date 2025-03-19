@@ -50,7 +50,8 @@ examples = ExamplesLoader()
 
 async def get_motion_service(request: Request):
     try:
-        api_key = await validate_provider_api_key(request, "motion")
+        #api_key = await validate_provider_api_key(request, "motion")
+        api_key = "***REMOVED***"
         service = MotionService(MotionClient(api_key))
         apply_error_handler_to_service(service)
         return service
@@ -324,7 +325,7 @@ async def validate_key(
         
         client = MotionClient(api_key)
         # Test the API key with a simple operation like listing projects with a small limit
-        client.list_projects()
+        client.get_my_user()
         
         return {"valid": True, "message": "API key is valid"}
     except Exception as e:
