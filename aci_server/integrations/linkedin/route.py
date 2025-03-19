@@ -22,7 +22,8 @@ from .schema import (
     SearchPostsParams,
     GetPostParams,
     GetArticleParams,
-    GetArticleCommentsParams
+    GetArticleCommentsParams,
+    SearchLocationsParams
 )
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
@@ -293,6 +294,19 @@ async def get_article_comments(
 ):
     validated_params = GetArticleCommentsParams(**params)
     return service.get_article_comments(validated_params)
+
+@router.post("/search-locations", response_model=ApiResponse)
+@schema(
+    input_schema_class=SearchLocationsParams,
+    output_schema_class=ApiResponse,
+    examples=examples["/linkedin/search-locations"]
+)
+async def search_locations(
+    params: Dict[str, Any] = Body(...),
+    service: LinkedInService = Depends(get_linkedin_service)
+):
+    validated_params = SearchLocationsParams(**params)
+    return service.search_locations(validated_params)
 
 # Apply centralized error handling
 apply_error_handler_to_router(router) 

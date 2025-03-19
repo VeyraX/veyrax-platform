@@ -349,3 +349,19 @@ class LinkedInClient:
         )
         response.raise_for_status()
         return response.json()
+
+    def search_locations(self, keyword: str) -> Dict[str, Any]:
+        """Search for LinkedIn locations"""
+        url = f"{self.BASE_URL}/search-locations"
+        
+        params = {
+            "keyword": keyword
+        }
+        
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=params
+        )
+        response.raise_for_status()
+        return response.json()

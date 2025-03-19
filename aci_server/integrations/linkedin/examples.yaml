@@ -1133,3 +1133,31 @@ routes:
             },
             "component": null
           }
+  - endpoint: /linkedin/search-locations
+    examples:
+      - scenario: "Search LinkedIn Locations"
+        description: "Search for locations on LinkedIn based on a keyword"
+        input_json: |
+          {
+            "keyword": "berlin"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Locations found successfully",
+              "data": {
+                "items": [
+                  {
+                    "id": "103644278",
+                    "name": "Berlin, Germany"
+                  },
+                  {
+                    "id": "106967825",
+                    "name": "Berlin, New Hampshire, United States"
+                  }
+                ]
+              }
+            },
+            "component": null
+          }
