@@ -67,7 +67,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
       return;
     }
     
-    if (props.auth_method === 'api_key' || props.auth_method === 'db_access') {
+    if (props.auth_method === 'api_key' || props.auth_method === 'api_key_with_base' || props.auth_method === 'db_access') {
       setShowManage(true);
     } else if (props.auth_method === 'none') {
       setIsConnecting(true);
@@ -211,6 +211,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
 
       {!isPublic && (
         (props.auth_method === 'api_key' || 
+         props.auth_method === 'api_key_with_base' ||
          props.auth_method === 'db_access' || 
          (props.provider_tag && props.provider_tag.toLowerCase() === 'veyrax') ||
          (props.auth_method === 'none' && props.connected)) && (

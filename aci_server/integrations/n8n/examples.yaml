@@ -1,0 +1,1294 @@
+routes:
+  # Users routes
+  - endpoint: /n8n/list_users
+    examples:
+      - scenario: "List All Users"
+        description: "Retrieve a list of all n8n users"
+        input_json: |
+          {
+            "cursor": null
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "user1",
+                  "email": "admin@example.com",
+                  "firstName": "Admin",
+                  "lastName": "User",
+                  "isPending": false,
+                  "role": "global:owner",
+                  "createdAt": "2023-01-15T10:00:00Z",
+                  "updatedAt": "2023-05-20T14:35:12Z"
+                },
+                {
+                  "id": "user2",
+                  "email": "editor@example.com",
+                  "firstName": "Editor",
+                  "lastName": "User",
+                  "isPending": false,
+                  "role": "global:member",
+                  "createdAt": "2023-02-10T11:20:00Z",
+                  "updatedAt": "2023-04-15T09:30:45Z"
+                }
+              ],
+              "nextCursor": "nextUserPageCursor123"
+            },
+            "component": {
+              "name": "N8nUsersList"
+            }
+          }
+
+  - endpoint: /n8n/get_user
+    examples:
+      - scenario: "Get User Details"
+        description: "Retrieve details of a specific user by ID"
+        input_json: |
+          {
+            "id": "user1"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "user1",
+              "email": "admin@example.com",
+              "firstName": "Admin",
+              "lastName": "User",
+              "isPending": false,
+              "role": "global:owner",
+              "createdAt": "2023-01-15T10:00:00Z",
+              "updatedAt": "2023-05-20T14:35:12Z"
+            },
+            "component": {
+              "name": "N8nUserCard"
+            }
+          }
+
+  - endpoint: /n8n/create_users
+    examples:
+      - scenario: "Create New Users"
+        description: "Create multiple new users"
+        input_json: |
+          {
+            "users": [
+              {
+                "email": "newuser@example.com",
+                "firstName": "New",
+                "lastName": "User",
+                "role": "global:member"
+              },
+              {
+                "email": "another@example.com",
+                "firstName": "Another",
+                "lastName": "User",
+                "role": "global:member"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "user3",
+                  "email": "newuser@example.com",
+                  "firstName": "New",
+                  "lastName": "User",
+                  "isPending": true,
+                  "role": "global:member",
+                  "createdAt": "2023-06-22T10:15:30Z",
+                  "updatedAt": "2023-06-22T10:15:30Z"
+                },
+                {
+                  "id": "user4",
+                  "email": "another@example.com",
+                  "firstName": "Another",
+                  "lastName": "User",
+                  "isPending": true,
+                  "role": "global:member",
+                  "createdAt": "2023-06-22T10:15:30Z",
+                  "updatedAt": "2023-06-22T10:15:30Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "N8nUsersList"
+            }
+          }
+
+  - endpoint: /n8n/delete_user
+    examples:
+      - scenario: "Delete User"
+        description: "Delete a user by ID"
+        input_json: |
+          {
+            "id": "user2"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  - endpoint: /n8n/update_user_role
+    examples:
+      - scenario: "Update User Role"
+        description: "Update a user's global role"
+        input_json: |
+          {
+            "id": "user3",
+            "role": "global:admin"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "user3",
+              "email": "newuser@example.com",
+              "firstName": "New",
+              "lastName": "User",
+              "isPending": false,
+              "role": "global:admin",
+              "createdAt": "2023-06-22T10:15:30Z",
+              "updatedAt": "2023-06-22T11:20:15Z"
+            },
+            "component": {
+              "name": "N8nUserCard"
+            }
+          }
+
+  # Executions routes
+  - endpoint: /n8n/list_executions
+    examples:
+      - scenario: "List Workflow Executions"
+        description: "Retrieve execution history for a workflow"
+        input_json: |
+          {
+            "cursor": null,
+            "workflowId": "1"
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "exec1",
+                  "finished": true,
+                  "mode": "manual",
+                  "startedAt": "2023-06-20T15:30:22Z",
+                  "stoppedAt": "2023-06-20T15:30:45Z",
+                  "workflowId": "1",
+                  "data": {
+                    "resultData": {
+                      "runData": {
+                        "node1": [
+                          {
+                            "data": {
+                              "subject": "Important Message",
+                              "from": "sender@example.com"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "exec2",
+                  "finished": true,
+                  "mode": "manual",
+                  "startedAt": "2023-06-21T09:15:10Z",
+                  "stoppedAt": "2023-06-21T09:15:25Z",
+                  "workflowId": "1",
+                  "data": {
+                    "resultData": {
+                      "runData": {
+                        "node1": [
+                          {
+                            "data": {
+                              "subject": "Another Message",
+                              "from": "other@example.com"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ],
+              "nextCursor": "nextExecPageCursor123"
+            },
+            "component": {
+              "name": "N8nExecutionsList"
+            }
+          }
+
+  - endpoint: /n8n/get_execution
+    examples:
+      - scenario: "Get Execution Details"
+        description: "Retrieve details of a specific execution by ID"
+        input_json: |
+          {
+            "id": "exec1"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "exec1",
+              "finished": true,
+              "mode": "manual",
+              "startedAt": "2023-06-20T15:30:22Z",
+              "stoppedAt": "2023-06-20T15:30:45Z",
+              "workflowId": "1",
+              "data": {
+                "resultData": {
+                  "runData": {
+                    "node1": [
+                      {
+                        "data": {
+                          "subject": "Important Message",
+                          "from": "sender@example.com"
+                        }
+                      }
+                    ],
+                    "node2": [
+                      {
+                        "data": {
+                          "processedContent": "Processed message content",
+                          "tags": ["important", "inbox"]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "component": {
+              "name": "N8nExecutionCard"
+            }
+          }
+
+  - endpoint: /n8n/delete_execution
+    examples:
+      - scenario: "Delete Execution"
+        description: "Delete an execution by ID"
+        input_json: |
+          {
+            "id": "exec2"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  # Workflows routes
+  - endpoint: /n8n/list_workflows
+    examples:
+      - scenario: "List All Workflows"
+        description: "Retrieve a list of all workflows"
+        input_json: |
+          {
+            "cursor": null,
+            "tags": null,
+            "active": null
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "1",
+                  "name": "Email Processing Workflow",
+                  "active": true,
+                  "createdAt": "2023-05-15T14:30:00Z",
+                  "updatedAt": "2023-06-20T09:45:22Z",
+                  "nodes": [
+                    {
+                      "id": "node1",
+                      "name": "Gmail Trigger",
+                      "type": "n8n-nodes-base.gmail",
+                      "typeVersion": 1,
+                      "position": [100, 200]
+                    },
+                    {
+                      "id": "node2",
+                      "name": "Process Content",
+                      "type": "n8n-nodes-base.function",
+                      "typeVersion": 1,
+                      "position": [300, 200]
+                    }
+                  ],
+                  "connections": {
+                    "node1": [
+                      {
+                        "node": "node2",
+                        "type": "main",
+                        "index": 0
+                      }
+                    ]
+                  },
+                  "tags": [
+                    {
+                      "id": "tag1",
+                      "name": "email"
+                    }
+                  ]
+                },
+                {
+                  "id": "2",
+                  "name": "Data Integration",
+                  "active": false,
+                  "createdAt": "2023-06-01T10:20:00Z",
+                  "updatedAt": "2023-06-15T13:30:45Z",
+                  "nodes": [
+                    {
+                      "id": "node1",
+                      "name": "Cron Trigger",
+                      "type": "n8n-nodes-base.cron",
+                      "typeVersion": 1,
+                      "position": [100, 200]
+                    }
+                  ],
+                  "connections": {}
+                }
+              ],
+              "nextCursor": "nextPageCursor123"
+            },
+            "component": {
+              "name": "N8nWorkflowsList"
+            }
+          }
+
+  - endpoint: /n8n/get_workflow
+    examples:
+      - scenario: "Get Workflow Details"
+        description: "Retrieve details of a specific workflow by ID"
+        input_json: |
+          {
+            "id": "1"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "1",
+              "name": "Email Processing Workflow",
+              "active": true,
+              "createdAt": "2023-05-15T14:30:00Z",
+              "updatedAt": "2023-06-20T09:45:22Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Gmail Trigger",
+                  "type": "n8n-nodes-base.gmail",
+                  "typeVersion": 1,
+                  "position": [100, 200]
+                },
+                {
+                  "id": "node2",
+                  "name": "Process Content",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [300, 200]
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              },
+              "tags": [
+                {
+                  "id": "tag1",
+                  "name": "email"
+                }
+              ]
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  - endpoint: /n8n/create_workflow
+    examples:
+      - scenario: "Create New Workflow"
+        description: "Create a new workflow with specified nodes and connections"
+        input_json: |
+          {
+            "workflow": {
+              "name": "Data Synchronization",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Schedule Trigger",
+                  "type": "n8n-nodes-base.cron",
+                  "typeVersion": 1,
+                  "position": [100, 200],
+                  "parameters": {
+                    "triggerTimes": {
+                      "item": [
+                        {
+                          "mode": "everyDay"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "node2",
+                  "name": "HTTP Request",
+                  "type": "n8n-nodes-base.httpRequest",
+                  "typeVersion": 1,
+                  "position": [300, 200],
+                  "parameters": {
+                    "url": "https://api.example.com/data",
+                    "method": "GET",
+                    "authentication": "none"
+                  }
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "3",
+              "name": "Data Synchronization",
+              "active": false,
+              "createdAt": "2023-06-22T09:15:45Z",
+              "updatedAt": "2023-06-22T09:15:45Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Schedule Trigger",
+                  "type": "n8n-nodes-base.cron",
+                  "typeVersion": 1,
+                  "position": [100, 200],
+                  "parameters": {
+                    "triggerTimes": {
+                      "item": [
+                        {
+                          "mode": "everyDay"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "node2",
+                  "name": "HTTP Request",
+                  "type": "n8n-nodes-base.httpRequest",
+                  "typeVersion": 1,
+                  "position": [300, 200],
+                  "parameters": {
+                    "url": "https://api.example.com/data",
+                    "method": "GET",
+                    "authentication": "none"
+                  }
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  - endpoint: /n8n/update_workflow
+    examples:
+      - scenario: "Update Existing Workflow"
+        description: "Update the properties and structure of an existing workflow"
+        input_json: |
+          {
+            "id": "3",
+            "workflow": {
+              "name": "Enhanced Data Synchronization",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Schedule Trigger",
+                  "type": "n8n-nodes-base.cron",
+                  "typeVersion": 1,
+                  "position": [100, 200],
+                  "parameters": {
+                    "triggerTimes": {
+                      "item": [
+                        {
+                          "mode": "everyDay"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "node2",
+                  "name": "HTTP Request",
+                  "type": "n8n-nodes-base.httpRequest",
+                  "typeVersion": 1,
+                  "position": [300, 200],
+                  "parameters": {
+                    "url": "https://api.example.com/data",
+                    "method": "GET",
+                    "authentication": "none"
+                  }
+                },
+                {
+                  "id": "node3",
+                  "name": "Data Processing",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [500, 200],
+                  "parameters": {
+                    "functionCode": "return {json: {processed: true, data: $input.all()[0].json}};"
+                  }
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ],
+                "node2": [
+                  {
+                    "node": "node3",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "3",
+              "name": "Enhanced Data Synchronization",
+              "active": false,
+              "createdAt": "2023-06-22T09:15:45Z",
+              "updatedAt": "2023-06-22T10:30:15Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Schedule Trigger",
+                  "type": "n8n-nodes-base.cron",
+                  "typeVersion": 1,
+                  "position": [100, 200],
+                  "parameters": {
+                    "triggerTimes": {
+                      "item": [
+                        {
+                          "mode": "everyDay"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "node2",
+                  "name": "HTTP Request",
+                  "type": "n8n-nodes-base.httpRequest",
+                  "typeVersion": 1,
+                  "position": [300, 200],
+                  "parameters": {
+                    "url": "https://api.example.com/data",
+                    "method": "GET",
+                    "authentication": "none"
+                  }
+                },
+                {
+                  "id": "node3",
+                  "name": "Data Processing",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [500, 200],
+                  "parameters": {
+                    "functionCode": "return {json: {processed: true, data: $input.all()[0].json}};"
+                  }
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ],
+                "node2": [
+                  {
+                    "node": "node3",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  - endpoint: /n8n/delete_workflow
+    examples:
+      - scenario: "Delete Workflow"
+        description: "Delete a workflow by ID"
+        input_json: |
+          {
+            "id": "2"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  - endpoint: /n8n/activate_workflow
+    examples:
+      - scenario: "Activate a Workflow"
+        description: "Activate an existing workflow by ID"
+        input_json: |
+          {
+            "id": "3",
+            "active": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "3",
+              "name": "Enhanced Data Synchronization",
+              "active": true,
+              "createdAt": "2023-06-22T09:15:45Z",
+              "updatedAt": "2023-06-22T11:05:20Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Schedule Trigger",
+                  "type": "n8n-nodes-base.cron",
+                  "typeVersion": 1,
+                  "position": [100, 200],
+                  "parameters": {
+                    "triggerTimes": {
+                      "item": [
+                        {
+                          "mode": "everyDay"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "id": "node2",
+                  "name": "HTTP Request",
+                  "type": "n8n-nodes-base.httpRequest",
+                  "typeVersion": 1,
+                  "position": [300, 200],
+                  "parameters": {
+                    "url": "https://api.example.com/data",
+                    "method": "GET",
+                    "authentication": "none"
+                  }
+                },
+                {
+                  "id": "node3",
+                  "name": "Data Processing",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [500, 200],
+                  "parameters": {
+                    "functionCode": "return {json: {processed: true, data: $input.all()[0].json}};"
+                  }
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ],
+                "node2": [
+                  {
+                    "node": "node3",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  - endpoint: /n8n/copy_workflow
+    examples:
+      - scenario: "Copy a Workflow"
+        description: "Create a copy of an existing workflow"
+        input_json: |
+          {
+            "id": "1",
+            "destinationProjectId": "proj1"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "4",
+              "name": "Email Processing Workflow (copy)",
+              "active": false,
+              "createdAt": "2023-06-22T11:30:45Z",
+              "updatedAt": "2023-06-22T11:30:45Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Gmail Trigger",
+                  "type": "n8n-nodes-base.gmail",
+                  "typeVersion": 1,
+                  "position": [100, 200]
+                },
+                {
+                  "id": "node2",
+                  "name": "Process Content",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [300, 200]
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              },
+              "tags": [
+                {
+                  "id": "tag1",
+                  "name": "email"
+                }
+              ]
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  - endpoint: /n8n/list_tags
+    examples:
+      - scenario: "List All Tags"
+        description: "Retrieve a list of all workflow tags"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "tags": [
+                {
+                  "id": "tag1",
+                  "name": "email",
+                  "createdAt": "2023-05-10T09:30:00Z",
+                  "updatedAt": "2023-05-10T09:30:00Z"
+                },
+                {
+                  "id": "tag2",
+                  "name": "data-processing",
+                  "createdAt": "2023-05-15T14:20:30Z",
+                  "updatedAt": "2023-05-15T14:20:30Z"
+                },
+                {
+                  "id": "tag3",
+                  "name": "integration",
+                  "createdAt": "2023-06-01T11:45:15Z",
+                  "updatedAt": "2023-06-01T11:45:15Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "N8nTagsList"
+            }
+          }
+
+  - endpoint: /n8n/deactivate_workflow
+    examples:
+      - scenario: "Deactivate a Workflow"
+        description: "Deactivate an active workflow by ID"
+        input_json: |
+          {
+            "id": "1"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "1",
+              "name": "Email Processing Workflow",
+              "active": false,
+              "createdAt": "2023-05-15T14:30:00Z",
+              "updatedAt": "2023-06-22T12:05:30Z",
+              "nodes": [
+                {
+                  "id": "node1",
+                  "name": "Gmail Trigger",
+                  "type": "n8n-nodes-base.gmail",
+                  "typeVersion": 1,
+                  "position": [100, 200]
+                },
+                {
+                  "id": "node2",
+                  "name": "Process Content",
+                  "type": "n8n-nodes-base.function",
+                  "typeVersion": 1,
+                  "position": [300, 200]
+                }
+              ],
+              "connections": {
+                "node1": [
+                  {
+                    "node": "node2",
+                    "type": "main",
+                    "index": 0
+                  }
+                ]
+              },
+              "tags": [
+                {
+                  "id": "tag1",
+                  "name": "email"
+                }
+              ]
+            },
+            "component": {
+              "name": "N8nWorkflowCard"
+            }
+          }
+
+  # Credential routes
+  - endpoint: /n8n/list_credentials
+    examples:
+      - scenario: "List API Credentials"
+        description: "Retrieve a list of stored API credentials"
+        input_json: |
+          {
+            "cursor": null,
+            "type": null
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "cred1",
+                  "name": "Gmail Account",
+                  "type": "googleApi",
+                  "createdAt": "2023-03-15T09:20:00Z",
+                  "updatedAt": "2023-03-15T09:20:00Z"
+                },
+                {
+                  "id": "cred2",
+                  "name": "Slack Workspace",
+                  "type": "slackApi",
+                  "createdAt": "2023-04-10T14:30:00Z",
+                  "updatedAt": "2023-05-05T11:15:22Z"
+                }
+              ],
+              "nextCursor": "nextCredPageCursor123"
+            },
+            "component": {
+              "name": "N8nCredentialsList"
+            }
+          }
+
+  - endpoint: /n8n/create_credential
+    examples:
+      - scenario: "Create New API Credential"
+        description: "Create a new API credential for a service"
+        input_json: |
+          {
+            "name": "AWS Access",
+            "type": "aws",
+            "data": {
+              "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+              "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+              "region": "us-west-2"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "cred3",
+              "name": "AWS Access",
+              "type": "aws",
+              "createdAt": "2023-06-22T13:10:45Z",
+              "updatedAt": "2023-06-22T13:10:45Z"
+            },
+            "component": {
+              "name": "N8nCredentialCard"
+            }
+          }
+
+  - endpoint: /n8n/delete_credential
+    examples:
+      - scenario: "Delete Credential"
+        description: "Delete a credential by ID"
+        input_json: |
+          {
+            "id": "cred2"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  - endpoint: /n8n/get_credential_type
+    examples:
+      - scenario: "Get Credential Type Schema"
+        description: "Retrieve the schema for a specific credential type"
+        input_json: |
+          {
+            "type": "aws"
+          }
+        output_json: |
+          {
+            "data": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "accessKeyId": {
+                  "type": "string",
+                  "description": "AWS Access Key ID"
+                },
+                "secretAccessKey": {
+                  "type": "string",
+                  "description": "AWS Secret Access Key",
+                  "typeOptions": {
+                    "password": true
+                  }
+                },
+                "region": {
+                  "type": "string",
+                  "description": "AWS Region",
+                  "default": "us-east-1"
+                }
+              },
+              "required": [
+                "accessKeyId",
+                "secretAccessKey"
+              ]
+            },
+            "component": null
+          }
+
+  # Additional Tag routes
+  - endpoint: /n8n/create_tag
+    examples:
+      - scenario: "Create New Tag"
+        description: "Create a new workflow tag"
+        input_json: |
+          {
+            "name": "automation"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "tag4",
+              "name": "automation",
+              "createdAt": "2023-06-22T14:05:30Z",
+              "updatedAt": "2023-06-22T14:05:30Z"
+            },
+            "component": {
+              "name": "N8nTagCard"
+            }
+          }
+
+  - endpoint: /n8n/delete_tag
+    examples:
+      - scenario: "Delete Tag"
+        description: "Delete a tag by ID"
+        input_json: |
+          {
+            "id": "tag3"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  - endpoint: /n8n/update_tag
+    examples:
+      - scenario: "Update Tag Name"
+        description: "Update an existing tag's name"
+        input_json: |
+          {
+            "id": "tag2",
+            "name": "data-transform"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "tag2",
+              "name": "data-transform",
+              "createdAt": "2023-05-15T14:20:30Z",
+              "updatedAt": "2023-06-22T14:15:10Z"
+            },
+            "component": {
+              "name": "N8nTagCard"
+            }
+          }
+
+  # Source Control routes
+  - endpoint: /n8n/pull_from_source_control
+    examples:
+      - scenario: "Pull Changes from Repository"
+        description: "Pull latest changes from the connected source control repository"
+        input_json: |
+          {
+            "force": false,
+            "variables": {
+              "ENVIRONMENT": "production"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "variables": {
+                "updated": ["API_ENDPOINT", "NOTIFICATION_EMAIL"],
+                "created": ["NEW_FEATURE_FLAG"]
+              },
+              "credentials": [
+                {
+                  "name": "Updated AWS Credentials",
+                  "action": "updated"
+                }
+              ],
+              "workflows": [
+                {
+                  "name": "User Onboarding Process",
+                  "action": "updated"
+                },
+                {
+                  "name": "Error Notification System",
+                  "action": "created"
+                }
+              ],
+              "tags": {
+                "created": ["notification", "error-handling"],
+                "deleted": []
+              }
+            },
+            "component": {
+              "name": "N8nPullResult"
+            }
+          }
+
+  # Variable routes
+  - endpoint: /n8n/list_variables
+    examples:
+      - scenario: "List Environment Variables"
+        description: "Retrieve a list of all environment variables"
+        input_json: |
+          {
+            "cursor": null,
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "var1",
+                  "key": "API_ENDPOINT",
+                  "value": "https://api.example.com/v1",
+                  "createdAt": "2023-06-01T10:15:30Z",
+                  "updatedAt": "2023-06-15T09:20:45Z"
+                },
+                {
+                  "id": "var2",
+                  "key": "NOTIFICATION_EMAIL",
+                  "value": "alerts@example.com",
+                  "createdAt": "2023-06-05T14:25:10Z",
+                  "updatedAt": "2023-06-05T14:25:10Z"
+                },
+                {
+                  "id": "var3",
+                  "key": "NEW_FEATURE_FLAG",
+                  "value": "true",
+                  "createdAt": "2023-06-22T15:10:45Z",
+                  "updatedAt": "2023-06-22T15:10:45Z"
+                }
+              ],
+              "nextCursor": "nextVarPageCursor123"
+            },
+            "component": {
+              "name": "N8nVariablesList"
+            }
+          }
+
+  - endpoint: /n8n/create_variable
+    examples:
+      - scenario: "Create Environment Variable"
+        description: "Create a new environment variable"
+        input_json: |
+          {
+            "key": "DEBUG_MODE",
+            "value": "false"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "var4",
+              "key": "DEBUG_MODE",
+              "value": "false",
+              "createdAt": "2023-06-22T15:30:20Z",
+              "updatedAt": "2023-06-22T15:30:20Z"
+            },
+            "component": {
+              "name": "N8nVariableCard"
+            }
+          }
+
+  - endpoint: /n8n/delete_variable
+    examples:
+      - scenario: "Delete Environment Variable"
+        description: "Delete an environment variable by ID"
+        input_json: |
+          {
+            "id": "var3"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  # Project routes
+  - endpoint: /n8n/list_projects
+    examples:
+      - scenario: "List All Projects"
+        description: "Retrieve a list of all n8n projects"
+        input_json: |
+          {
+            "cursor": null,
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "data": [
+                {
+                  "id": "proj1",
+                  "name": "Marketing Automation",
+                  "createdAt": "2023-01-20T10:30:00Z",
+                  "updatedAt": "2023-04-15T14:20:30Z"
+                },
+                {
+                  "id": "proj2",
+                  "name": "Data Integration",
+                  "createdAt": "2023-02-05T09:15:00Z",
+                  "updatedAt": "2023-05-10T11:45:15Z"
+                },
+                {
+                  "id": "proj3",
+                  "name": "Customer Support",
+                  "createdAt": "2023-03-15T13:40:20Z",
+                  "updatedAt": "2023-06-01T15:25:10Z"
+                }
+              ],
+              "nextCursor": "nextProjPageCursor123"
+            },
+            "component": {
+              "name": "N8nProjectsList"
+            }
+          }
+
+  - endpoint: /n8n/create_project
+    examples:
+      - scenario: "Create New Project"
+        description: "Create a new n8n project"
+        input_json: |
+          {
+            "name": "Product Development"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "proj4",
+              "name": "Product Development",
+              "createdAt": "2023-06-22T16:15:30Z",
+              "updatedAt": "2023-06-22T16:15:30Z"
+            },
+            "component": {
+              "name": "N8nProjectCard"
+            }
+          }
+
+  - endpoint: /n8n/update_project
+    examples:
+      - scenario: "Update Project Name"
+        description: "Update an existing project's name"
+        input_json: |
+          {
+            "id": "proj3",
+            "name": "Customer Experience"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }
+
+  - endpoint: /n8n/delete_project
+    examples:
+      - scenario: "Delete Project"
+        description: "Delete a project by ID"
+        input_json: |
+          {
+            "id": "proj2"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            },
+            "component": null
+          }

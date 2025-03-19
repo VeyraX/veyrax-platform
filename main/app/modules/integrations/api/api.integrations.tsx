@@ -647,17 +647,112 @@ export const upsertIntegrationRequest = async (integrationName: string): Promise
   }
 };
 
-export const validateApiKey = async (providerId: string, apiKey: string): Promise<{valid: boolean, message: string}> => {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    console.log(apiKey);
+export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: string, baseUrl: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!apiKey || !baseUrl) {
+    await disconnectProvider(providerId);
+    return;
+  }
+  
+  const { error: providerError } = await supabase
+    .from('users_providers')
+    .upsert({
+      user_id: user?.id,
+      provider_id: providerId
+    }, {
+      onConflict: 'provider_id,user_id'
+    });
 
-    const response = await fetch(`${baseUrl}/${providerId}/validate_key`, {
+  if (providerError) throw providerError;
+  
+  const response = await fetch('/api/encrypt', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ apiKey })
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to encrypt API key');
+  }
+  
+  const { encryptedKey } = await response.json();
+  
+  const raw_data = JSON.stringify({ base_url: baseUrl });
+  
+  const { data: existingKey } = await supabase
+    .from('users_provider_api_keys')
+    .select('id')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
+    .single();
+  
+  let apiKeyError;
+  
+  if (existingKey) {
+    const { error } = await supabase
+      .from('users_provider_api_keys')
+      .update({ 
+        api_key: encryptedKey,
+        raw_data: raw_data
+      })
+      .eq('id', existingKey.id);
+    
+    apiKeyError = error;
+  } else {
+    const { error } = await supabase
+      .from('users_provider_api_keys')
+      .insert({
+        user_id: user?.id,
+        provider_id: providerId,
+        api_key: encryptedKey,
+        raw_data: raw_data
+      });
+    
+    apiKeyError = error;
+  }
+
+  if (apiKeyError) throw apiKeyError;
+}
+
+export const getProviderBaseUrl = async (providerId: string): Promise<string | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data, error } = await supabase
+    .from('users_provider_api_keys')
+    .select('raw_data')
+    .eq('user_id', user?.id)
+    .eq('provider_id', providerId)
+    .single();
+  
+  if (error || !data || !data.raw_data) return null;
+  
+  try {
+    const rawData = JSON.parse(data.raw_data);
+    return rawData.base_url || null;
+  } catch (error) {
+    console.error('Error parsing raw_data:', error);
+    return null;
+  }
+}
+
+export const validateApiKey = async (providerId: string, apiKey: string, baseUrl?: string): Promise<{valid: boolean, message: string}> => {
+  try {
+    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    
+    const requestBody: any = { api_key: apiKey };
+    if (baseUrl) {
+      requestBody.base_url = baseUrl;
+    }
+
+    const response = await fetch(`${baseApiUrl}/${providerId}/validate_key`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ api_key: apiKey }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -670,7 +765,6 @@ export const validateApiKey = async (providerId: string, apiKey: string): Promis
 
     const data = await response.json();
     
-    console.log(data);
     return {
       valid: data.valid,
       message: data.message || 'API key validation completed'
