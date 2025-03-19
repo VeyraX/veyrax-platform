@@ -1,0 +1,962 @@
+routes:
+  - endpoint: /motion/create_comment
+    examples:
+      - scenario: "Create Task Comment"
+        description: "Create a new comment on an existing task"
+        input_json: |
+          {
+            "taskId": "task_1234567890",
+            "content": "This is a test comment with **bold text** and *italics*."
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "comment_1234567890",
+              "taskId": "task_1234567890",
+              "content": "<p>This is a test comment with <strong>bold text</strong> and <em>italics</em>.</p>",
+              "createdAt": "2024-03-20T14:30:00.000Z",
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              }
+            },
+            "component": {
+              "name": "MotionCommentCard"
+            }
+          }
+
+  - endpoint: /motion/get_comments
+    examples:
+      - scenario: "Get Task Comments"
+        description: "Retrieve all comments for a specific task"
+        input_json: |
+          {
+            "taskId": "task_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": "cursor_abcdefg",
+                "pageSize": 2
+              },
+              "comments": [
+                {
+                  "id": "comment_1234567890",
+                  "taskId": "task_1234567890",
+                  "content": "<p>This is the first comment.</p>",
+                  "createdAt": "2024-03-20T14:30:00.000Z",
+                  "creator": {
+                    "id": "user_1234567890",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  }
+                },
+                {
+                  "id": "comment_0987654321",
+                  "taskId": "task_1234567890",
+                  "content": "<p>This is a reply to the first comment.</p>",
+                  "createdAt": "2024-03-20T15:00:00.000Z",
+                  "creator": {
+                    "id": "user_0987654321",
+                    "name": "Jane Smith",
+                    "email": "jane.smith@example.com"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionCommentsList"
+            }
+          }
+
+  - endpoint: /motion/create_project
+    examples:
+      - scenario: "Create New Project"
+        description: "Create a new project in a workspace"
+        input_json: |
+          {
+            "name": "New Marketing Campaign",
+            "workspaceId": "workspace_1234567890",
+            "description": "<p>This project will focus on the Q2 marketing campaign.</p>",
+            "dueDate": "2024-06-30T23:59:59.999Z",
+            "labels": ["marketing", "q2"],
+            "priority": "HIGH"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "project_1234567890",
+              "name": "New Marketing Campaign",
+              "description": "<p>This project will focus on the Q2 marketing campaign.</p>",
+              "workspaceId": "workspace_1234567890",
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              }
+            },
+            "component": {
+              "name": "MotionProjectCard"
+            }
+          }
+
+  - endpoint: /motion/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieve details for a specific project"
+        input_json: |
+          {
+            "id": "project_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "project_1234567890",
+              "name": "Marketing Campaign",
+              "description": "<p>Q2 marketing campaign for product launch.</p>",
+              "workspaceId": "workspace_1234567890",
+              "status": {
+                "name": "In Progress",
+                "isDefaultStatus": false,
+                "isResolvedStatus": false
+              }
+            },
+            "component": {
+              "name": "MotionProjectCard"
+            }
+          }
+
+  - endpoint: /motion/list_projects
+    examples:
+      - scenario: "List Workspace Projects"
+        description: "List all projects in a workspace"
+        input_json: |
+          {
+            "workspaceId": "workspace_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": "cursor_abcdefg",
+                "pageSize": 2
+              },
+              "projects": [
+                {
+                  "id": "project_1234567890",
+                  "name": "Marketing Campaign",
+                  "description": "<p>Q2 marketing campaign for product launch.</p>",
+                  "workspaceId": "workspace_1234567890",
+                  "status": {
+                    "name": "In Progress",
+                    "isDefaultStatus": false,
+                    "isResolvedStatus": false
+                  }
+                },
+                {
+                  "id": "project_0987654321",
+                  "name": "Website Redesign",
+                  "description": "<p>Update the company website with new branding.</p>",
+                  "workspaceId": "workspace_1234567890",
+                  "status": {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionProjectsList"
+            }
+          }
+
+  - endpoint: /motion/create_recurring_task
+    examples:
+      - scenario: "Create Weekly Recurring Task"
+        description: "Create a new weekly recurring task"
+        input_json: |
+          {
+            "frequency": "weekly_any_day",
+            "deadlineType": "SOFT",
+            "duration": 60,
+            "startingOn": "2024-03-25",
+            "idealTime": "10:00 am",
+            "schedule": "Work Hours",
+            "name": "Weekly Team Sync",
+            "workspaceId": "workspace_1234567890",
+            "description": "<p>Regular team sync meeting to discuss progress and blockers.</p>",
+            "priority": "MEDIUM",
+            "assigneeId": "user_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "recurring_task_1234567890",
+              "name": "Weekly Team Sync",
+              "description": "<p>Regular team sync meeting to discuss progress and blockers.</p>",
+              "workspace": {
+                "id": "workspace_1234567890",
+                "name": "Marketing Team",
+                "teamId": "team_1234567890",
+                "type": "team",
+                "labels": [
+                  {
+                    "name": "priority"
+                  },
+                  {
+                    "name": "meeting"
+                  }
+                ],
+                "statuses": [
+                  {
+                    "name": "Not Started", 
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  },
+                  {
+                    "name": "In Progress",
+                    "isDefaultStatus": false,
+                    "isResolvedStatus": false
+                  }
+                ]
+              },
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "assignee": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              },
+              "priority": "MEDIUM",
+              "labels": [
+                {
+                  "name": "meeting"
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionRecurringTaskCard"
+            }
+          }
+          
+  - endpoint: /motion/delete_recurring_task
+    examples:
+      - scenario: "Delete Recurring Task"
+        description: "Delete a recurring task by ID"
+        input_json: |
+          {
+            "id": "recurring_task_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /motion/list_recurring_tasks
+    examples:
+      - scenario: "List Recurring Tasks"
+        description: "List all recurring tasks in a workspace"
+        input_json: |
+          {
+            "workspaceId": "workspace_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": null,
+                "pageSize": 2
+              },
+              "tasks": [
+                {
+                  "id": "recurring_task_1234567890",
+                  "name": "Weekly Team Sync",
+                  "description": "<p>Regular team sync meeting to discuss progress and blockers.</p>",
+                  "workspace": {
+                    "id": "workspace_1234567890",
+                    "name": "Marketing Team",
+                    "teamId": "team_1234567890",
+                    "type": "team",
+                    "labels": [],
+                    "statuses": []
+                  },
+                  "creator": {
+                    "id": "user_1234567890",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "assignee": {
+                    "id": "user_1234567890",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "status": {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  },
+                  "priority": "MEDIUM",
+                  "labels": []
+                },
+                {
+                  "id": "recurring_task_0987654321",
+                  "name": "Monthly Report",
+                  "description": "<p>Generate monthly analytics report.</p>",
+                  "workspace": {
+                    "id": "workspace_1234567890",
+                    "name": "Marketing Team",
+                    "teamId": "team_1234567890",
+                    "type": "team",
+                    "labels": [],
+                    "statuses": []
+                  },
+                  "creator": {
+                    "id": "user_1234567890",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "assignee": {
+                    "id": "user_0987654321",
+                    "name": "Jane Smith",
+                    "email": "jane.smith@example.com"
+                  },
+                  "status": {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  },
+                  "priority": "HIGH",
+                  "labels": []
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionRecurringTasksList"
+            }
+          }
+
+  - endpoint: /motion/get_schedules
+    examples:
+      - scenario: "Get User Schedules"
+        description: "Retrieve all schedules for the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "schedules": [
+                {
+                  "name": "Work Hours",
+                  "isDefaultTimezone": true,
+                  "timezone": "America/New_York",
+                  "schedule": {
+                    "monday": [
+                      {
+                        "start": "09:00",
+                        "end": "17:00"
+                      }
+                    ],
+                    "tuesday": [
+                      {
+                        "start": "09:00",
+                        "end": "17:00"
+                      }
+                    ],
+                    "wednesday": [
+                      {
+                        "start": "09:00",
+                        "end": "17:00"
+                      }
+                    ],
+                    "thursday": [
+                      {
+                        "start": "09:00",
+                        "end": "17:00"
+                      }
+                    ],
+                    "friday": [
+                      {
+                        "start": "09:00",
+                        "end": "17:00"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "Focus Time",
+                  "isDefaultTimezone": true,
+                  "timezone": "America/New_York",
+                  "schedule": {
+                    "monday": [
+                      {
+                        "start": "13:00",
+                        "end": "16:00"
+                      }
+                    ],
+                    "wednesday": [
+                      {
+                        "start": "13:00",
+                        "end": "16:00"
+                      }
+                    ],
+                    "friday": [
+                      {
+                        "start": "13:00",
+                        "end": "16:00"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionSchedulesList"
+            }
+          }
+
+  - endpoint: /motion/get_statuses
+    examples:
+      - scenario: "Get Workspace Statuses"
+        description: "Retrieve all statuses for a specific workspace"
+        input_json: |
+          {
+            "workspaceId": "workspace_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "statuses": [
+                {
+                  "name": "Not Started",
+                  "isDefaultStatus": true,
+                  "isResolvedStatus": false
+                },
+                {
+                  "name": "In Progress",
+                  "isDefaultStatus": false,
+                  "isResolvedStatus": false
+                },
+                {
+                  "name": "Review",
+                  "isDefaultStatus": false,
+                  "isResolvedStatus": false
+                },
+                {
+                  "name": "Completed",
+                  "isDefaultStatus": false,
+                  "isResolvedStatus": true
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionStatusesList"
+            }
+          }
+
+  - endpoint: /motion/list_users
+    examples:
+      - scenario: "List Workspace Users"
+        description: "Retrieve all users in a specific workspace"
+        input_json: |
+          {
+            "workspaceId": "workspace_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": null,
+                "pageSize": 2
+              },
+              "users": [
+                {
+                  "id": "user_1234567890",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                },
+                {
+                  "id": "user_0987654321",
+                  "name": "Jane Smith",
+                  "email": "jane.smith@example.com"
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionUsersList"
+            }
+          }
+
+  - endpoint: /motion/get_my_user
+    examples:
+      - scenario: "Get Current User"
+        description: "Retrieve information about the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "id": "user_1234567890",
+              "name": "John Doe",
+              "email": "john.doe@example.com"
+            },
+            "component": {
+              "name": "MotionUserCard"
+            }
+          }
+
+  - endpoint: /motion/list_workspaces
+    examples:
+      - scenario: "List User Workspaces"
+        description: "Retrieve all workspaces the user is a part of"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": null,
+                "pageSize": 2
+              },
+              "workspaces": [
+                {
+                  "id": "workspace_1234567890",
+                  "name": "Marketing Team",
+                  "teamId": "team_1234567890",
+                  "type": "team",
+                  "labels": [
+                    {
+                      "name": "priority"
+                    },
+                    {
+                      "name": "bug"
+                    }
+                  ],
+                  "statuses": [
+                    {
+                      "name": "Not Started",
+                      "isDefaultStatus": true,
+                      "isResolvedStatus": false
+                    },
+                    {
+                      "name": "Completed",
+                      "isDefaultStatus": false,
+                      "isResolvedStatus": true
+                    }
+                  ]
+                },
+                {
+                  "id": "workspace_0987654321",
+                  "name": "Personal",
+                  "teamId": "team_0987654321",
+                  "type": "individual",
+                  "labels": [],
+                  "statuses": []
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionWorkspacesList"
+            }
+          }
+
+  - endpoint: /motion/create_task
+    examples:
+      - scenario: "Create Basic Task"
+        description: "Create a new task in a workspace"
+        input_json: |
+          {
+            "name": "Prepare Q2 Report",
+            "workspaceId": "workspace_1234567890",
+            "description": "Create quarterly report with **key metrics** and *growth analysis*.",
+            "priority": "HIGH",
+            "labels": ["reports", "quarterly"],
+            "assigneeId": "user_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "task_1234567890",
+              "name": "Prepare Q2 Report",
+              "description": "<p>Create quarterly report with <strong>key metrics</strong> and <em>growth analysis</em>.</p>",
+              "duration": "NONE",
+              "deadlineType": "SOFT",
+              "completed": false,
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "id": "workspace_1234567890",
+                "name": "Marketing Team",
+                "teamId": "team_1234567890",
+                "type": "team",
+                "labels": [
+                  {
+                    "name": "reports"
+                  },
+                  {
+                    "name": "quarterly"
+                  }
+                ],
+                "statuses": [
+                  {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  }
+                ]
+              },
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              },
+              "priority": "HIGH",
+              "labels": [
+                {
+                  "name": "reports"
+                },
+                {
+                  "name": "quarterly"
+                }
+              ],
+              "assignees": [
+                {
+                  "id": "user_1234567890",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                }
+              ],
+              "createdTime": "2024-03-21T10:00:00.000Z",
+              "schedulingIssue": false
+            },
+            "component": {
+              "name": "MotionTaskCard"
+            }
+          }
+          
+  - endpoint: /motion/delete_task
+    examples:
+      - scenario: "Delete Task"
+        description: "Delete a task by ID"
+        input_json: |
+          {
+            "id": "task_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+          
+  - endpoint: /motion/get_task
+    examples:
+      - scenario: "Get Task Details"
+        description: "Retrieve details for a specific task"
+        input_json: |
+          {
+            "id": "task_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "task_1234567890",
+              "name": "Prepare Q2 Report",
+              "description": "<p>Create quarterly report with <strong>key metrics</strong> and <em>growth analysis</em>.</p>",
+              "duration": "NONE",
+              "deadlineType": "SOFT",
+              "completed": false,
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "id": "workspace_1234567890",
+                "name": "Marketing Team",
+                "teamId": "team_1234567890",
+                "type": "team",
+                "labels": [
+                  {
+                    "name": "reports"
+                  },
+                  {
+                    "name": "quarterly"
+                  }
+                ],
+                "statuses": [
+                  {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  }
+                ]
+              },
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              },
+              "priority": "HIGH",
+              "labels": [
+                {
+                  "name": "reports"
+                },
+                {
+                  "name": "quarterly"
+                }
+              ],
+              "assignees": [
+                {
+                  "id": "user_1234567890",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                }
+              ],
+              "createdTime": "2024-03-21T10:00:00.000Z",
+              "schedulingIssue": false
+            },
+            "component": {
+              "name": "MotionTaskCard"
+            }
+          }
+          
+  - endpoint: /motion/list_tasks
+    examples:
+      - scenario: "List Workspace Tasks"
+        description: "List all tasks in a workspace"
+        input_json: |
+          {
+            "workspaceId": "workspace_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "meta": {
+                "nextCursor": "cursor_abcdefg",
+                "pageSize": 2
+              },
+              "tasks": [
+                {
+                  "id": "task_1234567890",
+                  "name": "Prepare Q2 Report",
+                  "description": "<p>Create quarterly report with <strong>key metrics</strong> and <em>growth analysis</em>.</p>",
+                  "duration": "NONE",
+                  "deadlineType": "SOFT",
+                  "completed": false,
+                  "creator": {
+                    "id": "user_1234567890",
+                    "name": "John Doe",
+                    "email": "john.doe@example.com"
+                  },
+                  "workspace": {
+                    "id": "workspace_1234567890",
+                    "name": "Marketing Team",
+                    "teamId": "team_1234567890",
+                    "type": "team",
+                    "labels": [],
+                    "statuses": []
+                  },
+                  "status": {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  },
+                  "priority": "HIGH",
+                  "labels": [],
+                  "assignees": [],
+                  "createdTime": "2024-03-21T10:00:00.000Z",
+                  "schedulingIssue": false
+                },
+                {
+                  "id": "task_0987654321",
+                  "name": "Design New Landing Page",
+                  "description": "<p>Create design mockups for the new product landing page.</p>",
+                  "duration": 120,
+                  "deadlineType": "SOFT",
+                  "completed": false,
+                  "creator": {
+                    "id": "user_0987654321",
+                    "name": "Jane Smith",
+                    "email": "jane.smith@example.com"
+                  },
+                  "workspace": {
+                    "id": "workspace_1234567890",
+                    "name": "Marketing Team",
+                    "teamId": "team_1234567890",
+                    "type": "team",
+                    "labels": [],
+                    "statuses": []
+                  },
+                  "status": {
+                    "name": "In Progress",
+                    "isDefaultStatus": false,
+                    "isResolvedStatus": false
+                  },
+                  "priority": "MEDIUM",
+                  "labels": [],
+                  "assignees": [],
+                  "createdTime": "2024-03-20T14:00:00.000Z",
+                  "schedulingIssue": false
+                }
+              ]
+            },
+            "component": {
+              "name": "MotionTasksList"
+            }
+          }
+          
+  - endpoint: /motion/move_task
+    examples:
+      - scenario: "Move Task to Different Workspace"
+        description: "Move a task to a different workspace"
+        input_json: |
+          {
+            "id": "task_1234567890",
+            "workspaceId": "workspace_0987654321"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "task_1234567890",
+              "name": "Prepare Q2 Report",
+              "description": "<p>Create quarterly report with <strong>key metrics</strong> and <em>growth analysis</em>.</p>",
+              "duration": "NONE",
+              "deadlineType": "SOFT",
+              "completed": false,
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "id": "workspace_0987654321",
+                "name": "Personal",
+                "teamId": "team_0987654321",
+                "type": "individual",
+                "labels": [],
+                "statuses": [
+                  {
+                    "name": "Not Started",
+                    "isDefaultStatus": true,
+                    "isResolvedStatus": false
+                  }
+                ]
+              },
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              },
+              "priority": "HIGH",
+              "labels": [],
+              "assignees": [
+                {
+                  "id": "user_1234567890",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                }
+              ],
+              "createdTime": "2024-03-21T10:00:00.000Z",
+              "schedulingIssue": false
+            },
+            "component": {
+              "name": "MotionTaskCard"
+            }
+          }
+          
+  - endpoint: /motion/unassign_task
+    examples:
+      - scenario: "Unassign Task"
+        description: "Remove the assignee from a task"
+        input_json: |
+          {
+            "id": "task_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+          
+  - endpoint: /motion/update_task
+    examples:
+      - scenario: "Update Task Details"
+        description: "Update various properties of a task"
+        input_json: |
+          {
+            "id": "task_1234567890",
+            "name": "Updated Report Title",
+            "description": "Updated description with **new requirements**",
+            "priority": "MEDIUM",
+            "labels": ["reports", "quarterly", "updated"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "task_1234567890",
+              "name": "Updated Report Title",
+              "description": "<p>Updated description with <strong>new requirements</strong></p>",
+              "duration": "NONE",
+              "deadlineType": "SOFT",
+              "completed": false,
+              "creator": {
+                "id": "user_1234567890",
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+              },
+              "workspace": {
+                "id": "workspace_1234567890",
+                "name": "Marketing Team",
+                "teamId": "team_1234567890",
+                "type": "team",
+                "labels": [],
+                "statuses": []
+              },
+              "status": {
+                "name": "Not Started",
+                "isDefaultStatus": true,
+                "isResolvedStatus": false
+              },
+              "priority": "MEDIUM",
+              "labels": [
+                {
+                  "name": "reports"
+                },
+                {
+                  "name": "quarterly"
+                },
+                {
+                  "name": "updated"
+                }
+              ],
+              "assignees": [
+                {
+                  "id": "user_1234567890",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com"
+                }
+              ],
+              "createdTime": "2024-03-21T10:00:00.000Z",
+              "schedulingIssue": false
+            },
+            "component": {
+              "name": "MotionTaskCard"
+            }
+          }

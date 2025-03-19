@@ -1,0 +1,923 @@
+routes:
+  - endpoint: /coda/list_docs
+    examples:
+      - scenario: "List All Docs"
+        description: "Retrieve a list of all accessible Coda docs"
+        input_json: |
+          {
+            "limit": 10,
+            "page_token": null,
+            "is_owner": true,
+            "query": null
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "doc_1234567890",
+                  "type": "doc",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890",
+                  "name": "Project Tracker",
+                  "created_at": "2024-03-15T09:30:00.000Z",
+                  "updated_at": "2024-03-20T14:45:00.000Z"
+                },
+                {
+                  "id": "doc_0987654321",
+                  "type": "doc",
+                  "href": "https://coda.io/apis/v1/docs/doc_0987654321",
+                  "browser_link": "https://coda.io/d/_ddoc_0987654321",
+                  "name": "Marketing Campaign",
+                  "created_at": "2024-03-10T11:20:00.000Z",
+                  "updated_at": "2024-03-19T16:15:00.000Z"
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs",
+              "next_page_token": "token_abcdef123456"
+            },
+            "component": {
+              "name": "CodaDocList"
+            }
+          }
+
+  - endpoint: /coda/get_doc
+    examples:
+      - scenario: "Get Doc Details"
+        description: "Retrieve details for a specific doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "doc_1234567890",
+              "type": "doc",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890",
+              "browser_link": "https://coda.io/d/_ddoc_1234567890",
+              "name": "Project Tracker",
+              "created_at": "2024-03-15T09:30:00.000Z",
+              "updated_at": "2024-03-20T14:45:00.000Z",
+              "icon": {
+                "name": "clipboard",
+                "type": "emoji"
+              },
+              "workspace": {
+                "id": "ws-abcdef123456",
+                "type": "workspace",
+                "name": "My Workspace"
+              }
+            },
+            "component": {
+              "name": "CodaDocDetail"
+            }
+          }
+
+  - endpoint: /coda/list_pages
+    examples:
+      - scenario: "List Doc Pages"
+        description: "Retrieve a list of all pages in a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "limit": 10,
+            "include_hidden": false
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "page-1234567890",
+                  "type": "page",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-1234567890",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_ppage-1234567890",
+                  "name": "Overview",
+                  "subtitle": "Project overview and goals",
+                  "content_type": "canvas",
+                  "is_hidden": false
+                },
+                {
+                  "id": "page-0987654321",
+                  "type": "page",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_ppage-0987654321",
+                  "name": "Tasks",
+                  "subtitle": "Project tasks and assignments",
+                  "content_type": "canvas",
+                  "is_hidden": false
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages",
+              "next_page_token": null
+            },
+            "component": {
+              "name": "CodaPageList"
+            }
+          }
+
+  - endpoint: /coda/get_page
+    examples:
+      - scenario: "Get Page Details"
+        description: "Retrieve details for a specific page"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "page_id": "page-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "page-1234567890",
+              "type": "page",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-1234567890",
+              "browser_link": "https://coda.io/d/_ddoc_1234567890#_ppage-1234567890",
+              "name": "Overview",
+              "subtitle": "Project overview and goals",
+              "icon": {
+                "name": "target",
+                "type": "emoji"
+              },
+              "content_type": "canvas",
+              "is_hidden": false,
+              "created_at": "2024-03-15T09:35:00.000Z",
+              "updated_at": "2024-03-20T14:50:00.000Z"
+            },
+            "component": {
+              "name": "CodaPageDetail"
+            }
+          }
+
+  - endpoint: /coda/create_page
+    examples:
+      - scenario: "Create New Page"
+        description: "Create a new page in a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "name": "Resources",
+            "subtitle": "Project resources and links",
+            "icon_name": "bookmark"
+          }
+        output_json: |
+          {
+            "data": {
+              "request_id": "req-abcdef123456",
+              "id": "page-2468135790"
+            },
+            "component": {
+              "name": "CodaActionResponse"
+            }
+          }
+
+  - endpoint: /coda/update_page
+    examples:
+      - scenario: "Update Page Details"
+        description: "Update details for an existing page"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "page_id": "page-1234567890",
+            "name": "Project Overview",
+            "subtitle": "Updated project overview and objectives",
+            "icon_name": "star"
+          }
+        output_json: |
+          {
+            "data": {
+              "request_id": "req-abcdef789012",
+              "id": "page-1234567890"
+            },
+            "component": {
+              "name": "CodaActionResponse"
+            }
+          }
+
+  - endpoint: /coda/delete_page
+    examples:
+      - scenario: "Delete Page"
+        description: "Delete a page from a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "page_id": "page-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "request_id": "req-abcdef246810",
+              "id": "page-1234567890"
+            },
+            "component": {
+              "name": "CodaActionResponse"
+            }
+          }
+
+  - endpoint: /coda/export_page
+    examples:
+      - scenario: "Export Page as PDF"
+        description: "Export a page in PDF format"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "page_id": "page-1234567890",
+            "output_format": "pdf"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "export-abcdef123456",
+              "status": "pending",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-1234567890/export/export-abcdef123456"
+            },
+            "component": {
+              "name": "CodaExportStatus"
+            }
+          }
+
+  - endpoint: /coda/get_export_status
+    examples:
+      - scenario: "Check Export Status"
+        description: "Check the status of a page export"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "page_id": "page-1234567890",
+            "request_id": "export-abcdef123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "export-abcdef123456",
+              "status": "completed",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-1234567890/export/export-abcdef123456",
+              "download_link": "https://coda.io/apis/v1/exports/export-abcdef123456"
+            },
+            "component": {
+              "name": "CodaExportStatus"
+            }
+          }
+
+  - endpoint: /coda/list_tables
+    examples:
+      - scenario: "List Doc Tables"
+        description: "List all tables in a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "table-1234567890",
+                  "type": "table",
+                  "tableType": "table",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_ttable-1234567890",
+                  "name": "Tasks",
+                  "parent": {
+                    "id": "page-0987654321",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                    "name": "Tasks"
+                  },
+                  "rowCount": 24
+                },
+                {
+                  "id": "table-0987654321",
+                  "type": "table",
+                  "tableType": "table",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-0987654321",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_ttable-0987654321",
+                  "name": "Team Members",
+                  "parent": {
+                    "id": "page-1234567890",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-1234567890",
+                    "name": "Overview"
+                  },
+                  "rowCount": 5
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables",
+              "next_page_token": null
+            },
+            "component": {
+              "name": "CodaTableList"
+            }
+          }
+
+  - endpoint: /coda/get_table
+    examples:
+      - scenario: "Get Table Details"
+        description: "Get details for a specific table"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "table-1234567890",
+              "type": "table",
+              "tableType": "table",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890",
+              "browser_link": "https://coda.io/d/_ddoc_1234567890#_ttable-1234567890",
+              "name": "Tasks",
+              "parent": {
+                "id": "page-0987654321",
+                "type": "page",
+                "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                "name": "Tasks"
+              },
+              "rowCount": 24,
+              "sorts": [
+                {
+                  "column": "c-task_due_date",
+                  "direction": "ascending"
+                }
+              ],
+              "layout": "default",
+              "createdAt": "2024-03-15T10:00:00.000Z",
+              "updatedAt": "2024-03-20T15:30:00.000Z"
+            },
+            "component": {
+              "name": "CodaTableDetail"
+            }
+          }
+
+  - endpoint: /coda/list_columns
+    examples:
+      - scenario: "List Table Columns"
+        description: "List all columns in a table"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "limit": 10,
+            "visible_only": true
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "c-task_name",
+                  "type": "column",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_name",
+                  "name": "Task Name",
+                  "display": true,
+                  "calculated": false,
+                  "format": {
+                    "type": "text",
+                    "isArray": false
+                  }
+                },
+                {
+                  "id": "c-task_description",
+                  "type": "column",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_description",
+                  "name": "Description",
+                  "display": true,
+                  "calculated": false,
+                  "format": {
+                    "type": "text",
+                    "isArray": false
+                  }
+                },
+                {
+                  "id": "c-task_status",
+                  "type": "column",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_status",
+                  "name": "Status",
+                  "display": true,
+                  "calculated": false,
+                  "format": {
+                    "type": "selectList",
+                    "isArray": false
+                  }
+                },
+                {
+                  "id": "c-task_due_date",
+                  "type": "column",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_due_date",
+                  "name": "Due Date",
+                  "display": true,
+                  "calculated": false,
+                  "format": {
+                    "type": "date",
+                    "isArray": false
+                  }
+                },
+                {
+                  "id": "c-task_assigned_to",
+                  "type": "column",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_assigned_to",
+                  "name": "Assigned To",
+                  "display": true,
+                  "calculated": false,
+                  "format": {
+                    "type": "person",
+                    "isArray": true
+                  }
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns",
+              "nextPageToken": null
+            },
+            "component": {
+              "name": "CodaColumnList"
+            }
+          }
+
+  - endpoint: /coda/get_column
+    examples:
+      - scenario: "Get Column Details"
+        description: "Get details for a specific column"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "column_id": "c-task_status"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "c-task_status",
+              "type": "column",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/columns/c-task_status",
+              "name": "Status",
+              "display": true,
+              "calculated": false,
+              "format": {
+                "type": "selectList",
+                "isArray": false,
+                "label": "Status"
+              },
+              "parent": {
+                "id": "table-1234567890",
+                "type": "table",
+                "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890",
+                "name": "Tasks"
+              }
+            },
+            "component": {
+              "name": "CodaColumnDetail"
+            }
+          }
+
+  - endpoint: /coda/list_rows
+    examples:
+      - scenario: "List Table Rows"
+        description: "List all rows in a table"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "limit": 5,
+            "useColumnNames": true,
+            "valueFormat": "rich"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "row-1234567890",
+                  "type": "row",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/rows/row-1234567890",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_rrow-1234567890",
+                  "name": "Design website mockups",
+                  "index": 0,
+                  "createdAt": "2024-03-15T11:00:00.000Z",
+                  "updatedAt": "2024-03-20T16:00:00.000Z",
+                  "values": {
+                    "Task Name": "Design website mockups",
+                    "Description": "Create initial mockups for the homepage and key product pages",
+                    "Status": "In Progress",
+                    "Due Date": "2024-04-10",
+                    "Assigned To": [
+                      {
+                        "name": "Alice Johnson",
+                        "email": "alice@example.com"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "row-0987654321",
+                  "type": "row",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/rows/row-0987654321",
+                  "browser_link": "https://coda.io/d/_ddoc_1234567890#_rrow-0987654321",
+                  "name": "Write product descriptions",
+                  "index": 1,
+                  "createdAt": "2024-03-15T11:10:00.000Z",
+                  "updatedAt": "2024-03-20T16:10:00.000Z",
+                  "values": {
+                    "Task Name": "Write product descriptions",
+                    "Description": "Create compelling product descriptions for all new items",
+                    "Status": "Not Started",
+                    "Due Date": "2024-04-15",
+                    "Assigned To": [
+                      {
+                        "name": "Bob Smith",
+                        "email": "bob@example.com"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/rows",
+              "nextPageToken": "token_abcdef123456"
+            },
+            "component": {
+              "name": "CodaRowList"
+            }
+          }
+
+  - endpoint: /coda/get_row
+    examples:
+      - scenario: "Get Row Details"
+        description: "Get details for a specific row"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "row_id": "row-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "row-1234567890",
+              "type": "row",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890/rows/row-1234567890",
+              "browser_link": "https://coda.io/d/_ddoc_1234567890#_rrow-1234567890",
+              "name": "Design website mockups",
+              "index": 0,
+              "createdAt": "2024-03-15T11:00:00.000Z",
+              "updatedAt": "2024-03-20T16:00:00.000Z",
+              "values": {
+                "c-task_name": "Design website mockups",
+                "c-task_description": "Create initial mockups for the homepage and key product pages",
+                "c-task_status": "In Progress",
+                "c-task_due_date": "2024-04-10",
+                "c-task_assigned_to": [
+                  {
+                    "name": "Alice Johnson",
+                    "email": "alice@example.com"
+                  }
+                ]
+              },
+              "parent": {
+                "id": "table-1234567890",
+                "type": "table",
+                "href": "https://coda.io/apis/v1/docs/doc_1234567890/tables/table-1234567890",
+                "name": "Tasks"
+              }
+            },
+            "component": {
+              "name": "CodaRowDetail"
+            }
+          }
+
+  - endpoint: /coda/create_rows
+    examples:
+      - scenario: "Create New Row"
+        description: "Add a new row to a table"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "column": "c-task_name",
+                    "value": "Create social media assets"
+                  },
+                  {
+                    "column": "c-task_description",
+                    "value": "Design assets for Facebook, Twitter, and Instagram campaigns"
+                  },
+                  {
+                    "column": "c-task_status",
+                    "value": "Not Started"
+                  },
+                  {
+                    "column": "c-task_due_date",
+                    "value": "2024-04-20"
+                  },
+                  {
+                    "column": "c-task_assigned_to",
+                    "value": [
+                      {
+                        "name": "Alice Johnson",
+                        "email": "alice@example.com"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "req-abcdef123456",
+              "addedRowIds": [
+                "row-9876543210"
+              ]
+            },
+            "component": {
+              "name": "CodaRowActionResponse"
+            }
+          }
+
+  - endpoint: /coda/update_row
+    examples:
+      - scenario: "Update Single Row"
+        description: "Update values in a specific row"
+        input_json: |
+          {
+            "doc_id": "20oG-BgPpN",
+            "table_id": "grid-_jPzADMbIX",
+            "row_id": "i-h99iVyjk-e",
+            "row": {
+              "cells": [
+                {
+                  "column": "c-e4qZlyF1R6",
+                  "value": "Updated via single row API"
+                },
+                {
+                  "column": "c-0mkoPMms-5",
+                  "value": "Using the proper API call"
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "req-abcdef789012",
+              "id": "i-h99iVyjk-e"
+            },
+            "component": {
+              "name": "CodaRowActionResponse"
+            }
+          }
+
+  - endpoint: /coda/delete_rows
+    examples:
+      - scenario: "Delete Multiple Rows"
+        description: "Delete multiple rows from a table"
+        input_json: |
+          {
+            "doc_id": "20oG-BgPpN",
+            "table_id": "grid-_jPzADMbIX",
+            "row_ids": [
+              "i-uh2UWPVfpz",
+              "i-aMPlIS9LL8"
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "req-abcdef246810",
+              "rowIds": [
+                "i-uh2UWPVfpz",
+                "i-aMPlIS9LL8"
+              ]
+            },
+            "component": {
+              "name": "CodaRowActionResponse"
+            }
+          }
+
+  - endpoint: /coda/delete_row
+    examples:
+      - scenario: "Delete Single Row"
+        description: "Delete a single row from a table"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "row_id": "row-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "req-abcdef975310",
+              "rowId": "row-1234567890"
+            },
+            "component": {
+              "name": "CodaRowActionResponse"
+            }
+          }
+
+  - endpoint: /coda/push_button
+    examples:
+      - scenario: "Trigger Button Column"
+        description: "Trigger an action from a button column in a row"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "table_id": "table-1234567890",
+            "row_id": "row-0987654321",
+            "column_id": "c-task_complete_button"
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "req-abcdef654321",
+              "rowId": "row-0987654321",
+              "columnId": "c-task_complete_button"
+            },
+            "component": {
+              "name": "CodaButtonPushResponse"
+            }
+          }
+
+  - endpoint: /coda/list_formulas
+    examples:
+      - scenario: "List Doc Formulas"
+        description: "List all formulas in a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "formula-1234567890",
+                  "type": "formula",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/formulas/formula-1234567890",
+                  "name": "OverdueTasksCount",
+                  "parent": {
+                    "id": "page-0987654321",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                    "name": "Tasks"
+                  },
+                  "value": 3
+                },
+                {
+                  "id": "formula-0987654321",
+                  "type": "formula",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/formulas/formula-0987654321",
+                  "name": "CompletionPercentage",
+                  "parent": {
+                    "id": "page-0987654321",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                    "name": "Tasks"
+                  },
+                  "value": 42.5
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/formulas",
+              "nextPageToken": null
+            },
+            "component": {
+              "name": "CodaFormulaList"
+            }
+          }
+
+  - endpoint: /coda/get_formula
+    examples:
+      - scenario: "Get Formula Details"
+        description: "Get details and current value of a specific formula"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "formula_id": "formula-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "formula-1234567890",
+              "type": "formula",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/formulas/formula-1234567890",
+              "name": "OverdueTasksCount",
+              "parent": {
+                "id": "page-0987654321",
+                "type": "page",
+                "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                "name": "Tasks"
+              },
+              "value": 3
+            },
+            "component": {
+              "name": "CodaFormulaDetail"
+            }
+          }
+
+  - endpoint: /coda/list_controls
+    examples:
+      - scenario: "List Doc Controls"
+        description: "List all controls in a doc"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "control-1234567890",
+                  "type": "control",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/controls/control-1234567890",
+                  "name": "Date Filter",
+                  "parent": {
+                    "id": "page-0987654321",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                    "name": "Tasks"
+                  }
+                },
+                {
+                  "id": "control-0987654321",
+                  "type": "control",
+                  "href": "https://coda.io/apis/v1/docs/doc_1234567890/controls/control-0987654321",
+                  "name": "Status Filter",
+                  "parent": {
+                    "id": "page-0987654321",
+                    "type": "page",
+                    "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                    "name": "Tasks"
+                  }
+                }
+              ],
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/controls",
+              "nextPageToken": null
+            },
+            "component": {
+              "name": "CodaControlList"
+            }
+          }
+
+  - endpoint: /coda/get_control
+    examples:
+      - scenario: "Get Control Details"
+        description: "Get details for a specific control"
+        input_json: |
+          {
+            "doc_id": "doc_1234567890",
+            "control_id": "control-1234567890"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "control-1234567890",
+              "type": "control",
+              "href": "https://coda.io/apis/v1/docs/doc_1234567890/controls/control-1234567890",
+              "name": "Date Filter",
+              "parent": {
+                "id": "page-0987654321",
+                "type": "page",
+                "href": "https://coda.io/apis/v1/docs/doc_1234567890/pages/page-0987654321",
+                "name": "Tasks"
+              }
+            },
+            "component": {
+              "name": "CodaControlDetail"
+            }
+          }
+
+  - endpoint: /coda/whoami
+    examples:
+      - scenario: "Get User Information"
+        description: "Get information about the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "name": "John Doe",
+              "loginId": "john.doe@example.com",
+              "type": "user",
+              "pictureLink": "https://coda.io/avatar/johndoe.jpg",
+              "scoped": false,
+              "tokenName": "My API Token",
+              "href": "https://coda.io/apis/v1/whoami",
+              "workspace": {
+                "id": "ws-abcdef123456",
+                "type": "workspace",
+                "organizationId": "org-123456abcdef",
+                "browserLink": "https://coda.io/ws-abcdef123456",
+                "name": "My Workspace"
+              }
+            },
+            "component": {
+              "name": "CodaUserInfo"
+            }
+          }

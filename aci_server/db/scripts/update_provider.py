@@ -25,14 +25,18 @@ async def update_provider_data():
     
     for provider in providers:
         provider_tag = provider["provider_tag"]
+        print(f"Updating provider {provider['name']} with tag {provider_tag}")
         router_key = provider_tag
         
         if router_key not in INTEGRATION_ROUTERS:
             router_key = normalize_provider_tag(provider_tag)
         
         if router_key in INTEGRATION_ROUTERS:
+            if provider_tag != "coda" and provider_tag != "motion":
+                continue
             try:
                 router = INTEGRATION_ROUTERS[router_key]
+                print(f"Router: {router}")
                 full_tool_spec = get_router_tools(router)
                 
                 print(f"Full tool spec for {provider['name']}:")

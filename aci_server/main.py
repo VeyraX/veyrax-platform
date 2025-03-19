@@ -42,10 +42,12 @@ from integrations.readwise.route import router as readwise_router
 from integrations.postman.route import router as postman_router
 from integrations.svgl.route import router as svgl_router
 from integrations.dub.route import router as dub_router
+from integrations.e2b.route import router as e2b_router
+from integrations.motion.route import router as motion_router
+from integrations.coda.route import router as coda_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
-from integrations.e2b.route import router as e2b_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -108,7 +110,9 @@ INTEGRATION_ROUTERS = {
     "readwise": readwise_router,
     "svgl": svgl_router,
     "dub": dub_router,
-    "e2b": e2b_router
+    "e2b": e2b_router,
+    "motion": motion_router,
+    "coda": coda_router
 }
 
 app = FastAPI()
