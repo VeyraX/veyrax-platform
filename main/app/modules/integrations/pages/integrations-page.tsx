@@ -29,7 +29,9 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
     try {
       const data = await getIntegrationsData()
       
-      const filteredData = data.filter(integration => integration.is_enabled !== false);
+      const filteredData = process.env.NODE_ENV === 'development' 
+        ? data 
+        : data.filter(integration => integration.is_enabled !== false);
       
       const sortedData = [...filteredData].sort((a, b) => {
         if (a.provider_tag === 'integration-request') return -1;

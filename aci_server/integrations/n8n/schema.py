@@ -145,6 +145,7 @@ class Workflow(BaseModel):
     active: Optional[bool] = None
     createdAt: Optional[str] = None
     updatedAt: Optional[str] = None
+    url: Optional[str] = None
     nodes: List[Node]
     connections: Dict[str, Dict[str, ConnectionMain]]
     settings: Optional[WorkflowSettings] = None
@@ -185,7 +186,7 @@ class CopyWorkflowParams(BaseModel):
 
 class TagsList(BaseModel):
     items: List[Tag]
-
+    nextCursor: Optional[str] = None
 # Credential schemas
 class CredentialData(RootModel):
     root: Dict[str, Any]

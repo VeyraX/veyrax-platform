@@ -64,10 +64,8 @@ examples = ExamplesLoader()
 
 async def get_n8n_service(request: Request):
     try:
-        # api_key = await validate_provider_api_key(request, "n8n")
-        api_key = "***REMOVED***"
-        # base_url = await get_custom_base_url(request, "n8n")
-        base_url = "https://veyrax.app.n8n.cloud"
+        api_key = await validate_provider_api_key(request, "n8n")
+        base_url = await get_custom_base_url(request, "n8n")
         client = N8nClient(api_key, base_url)
         service = N8nService(client)
         apply_error_handler_to_client(client)
@@ -302,19 +300,6 @@ async def deactivate_workflow(
     validated_params = GetWorkflowParams(**params)
     return service.deactivate_workflow(validated_params)
 
-# Credential routes
-@router.post("/list_credentials", response_model=ApiResponse)
-@schema(
-    input_schema_class=ListCredentialsParams,
-    output_schema_class=CredentialsList,
-    examples=examples["/n8n/list_credentials"]
-)
-async def list_credentials(
-    params: Dict[str, Any] = Body(...),
-    service: N8nService = Depends(get_n8n_service)
-):
-    validated_params = ListCredentialsParams(**params)
-    return service.list_credentials(validated_params)
 
 @router.post("/create_credential", response_model=ApiResponse)
 @schema(

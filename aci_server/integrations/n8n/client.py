@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional, List, Union
 class N8nClient:
     def __init__(self, api_key: str, base_url: str):
         self.api_key = api_key
+        self.raw_base_url = base_url
         self.base_url = base_url + "/api/v1"
         self.headers = {
             "X-N8N-API-KEY": api_key,
@@ -197,22 +198,6 @@ class N8nClient:
         response.raise_for_status()
         return response.json()
 
-    # Credential endpoints
-    def list_credentials(self, cursor: Optional[str] = None, cred_type: Optional[str] = None) -> Dict[str, Any]:
-        """Get all credentials"""
-        params = {}
-        if cursor:
-            params["cursor"] = cursor
-        if cred_type:
-            params["type"] = cred_type
-            
-        response = requests.get(
-            f"{self.base_url}/credentials",
-            headers=self.headers,
-            params=params
-        )
-        response.raise_for_status()
-        return response.json()
     
     def create_credential(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new credential"""
@@ -360,3 +345,14 @@ class N8nClient:
         )
         response.raise_for_status()
         return {"success": True} if not response.content else response.json()
+
+
+    def get_workflow_url(self, workflow_id: str) -> str:
+        """Get the URL of a workflow"""
+        return f"{self.raw_base_url}/workflow/{workflow_id}"
+    
+    def get_webhook_url(self, webhook_id: str, test: bool = False) -> str:
+        if test:
+            return f"{self.raw_base_url}/webhook-test/{webhook_id}"
+        else:
+            return f"{self.raw_base_url}/webhook/{webhook_id}"

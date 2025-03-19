@@ -85,9 +85,7 @@ def handle_api_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            print("[handle_api_error] calling func: ", func.__name__)
             response = func(*args, **kwargs)
-            print("[handle_api_error] all good, response: ", response)
             return response
         except requests.exceptions.HTTPError as e:
             raise ClientNonCriticalError(e.response.text or str(e), e.response.json())
@@ -190,10 +188,7 @@ def handle_service_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            print("[handle_service_error] calling func: ", func.__name__)
-            response = func(*args, **kwargs)
-            print("[handle_service_error] all good, response: ", response)
-            return response
+            return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
             try:
                 return {"data": e.response.json(), "component": None}
@@ -204,9 +199,7 @@ def handle_service_error(func):
             return {"data": {"error": e.message, "errors": e.errors}, "component": None}
 
         except ValidationError as e:
-            print("[handle_service_error] ValidationError in service: ", e)
-            print(traceback.format_exc())
-            sentry_sdk.capture_exception(e)  # Add Sentry error capture, cause we will not show that error to user
+            sentry_sdk.capture_exception(e)
             raise ServiceValidationError(e.errors(), "Validation error in service")
 
         except Exception as e:

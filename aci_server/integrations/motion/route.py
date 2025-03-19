@@ -50,11 +50,10 @@ examples = ExamplesLoader()
 
 async def get_motion_service(request: Request):
     try:
-        #api_key = await validate_provider_api_key(request, "motion")
-        api_key = "***REMOVED***"
+        api_key = await validate_provider_api_key(request, "motion")
         client = MotionClient(api_key)
         apply_error_handler_to_client(client)
-        
+
         service = MotionService(client)
         apply_error_handler_to_service(service)
         return service

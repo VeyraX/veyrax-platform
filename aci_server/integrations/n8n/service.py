@@ -153,6 +153,17 @@ class N8nService:
         self.client.delete_execution(execution_id)
         success_response = SuccessResponse(success=True)
         return self.prepare_response(success_response, None)
+    
+    def _create_node_from_n8n_node(self, n8n_node: Dict[str, Any]) -> Node:
+        if n8n_node.get("type") == "n8n-nodes-base.webhook":
+            webhook_id = n8n_node.get("webhookId")
+            test_webhook_url = self.client.get_webhook_url(webhook_id, test=True)
+            prod_webhook_url = self.client.get_webhook_url(webhook_id, test=False)
+            n8n_node['parameters']['testUrl'] = test_webhook_url
+            n8n_node['parameters']['prodUrl'] = prod_webhook_url
+
+
+        return Node(**n8n_node)
         
     # Workflow operations
     def list_workflows(self, params: ListWorkflowsParams) -> ApiResponse:
@@ -174,7 +185,8 @@ class N8nService:
                 "active": workflow.get("active"),
                 "createdAt": workflow.get("createdAt"),
                 "updatedAt": workflow.get("updatedAt"),
-                "nodes": [Node(**node) for node in workflow.get("nodes", [])],
+                "url": self.client.get_workflow_url(workflow.get("id")),
+                "nodes": [self._create_node_from_n8n_node(node) for node in workflow.get("nodes", [])],
                 "connections": {
                     outer_k: {
                         inner_k: ConnectionMain([
@@ -203,7 +215,9 @@ class N8nService:
         """Get a workflow by ID"""
         workflow_id = params.id
         response = self.client.get_workflow(workflow_id)
+        response["nodes"] = [self._create_node_from_n8n_node(node) for node in response.get("nodes", [])]
         validated = Workflow(**response)
+        validated.url = self.client.get_workflow_url(workflow_id)
         return self.prepare_response(validated, "N8nWorkflowCard")
     
     def create_workflow(self, params: CreateWorkflowParams) -> ApiResponse:
@@ -211,6 +225,7 @@ class N8nService:
         workflow_data = params.workflow
         response = self.client.create_workflow(workflow_data)
         validated = Workflow(**response)
+        validated.url = self.client.get_workflow_url(workflow_id)
         return self.prepare_response(validated, "N8nWorkflowCard")
     
     def update_workflow(self, params: UpdateWorkflowParams) -> ApiResponse:
@@ -219,6 +234,7 @@ class N8nService:
         workflow_data = params.workflow
         response = self.client.update_workflow(workflow_id, workflow_data)
         validated = Workflow(**response)
+        validated.url = self.client.get_workflow_url(workflow_id)
         return self.prepare_response(validated, "N8nWorkflowCard")
     
     def delete_workflow(self, params: DeleteWorkflowParams) -> ApiResponse:
@@ -247,8 +263,8 @@ class N8nService:
     def list_tags(self) -> ApiResponse:
         """List all workflow tags"""
         response = self.client.list_tags()
-        tags = [Tag(**tag) for tag in response]
-        tags_list = TagsList(items=tags)
+        tags = [Tag(**tag) for tag in response.get("data", [])]
+        tags_list = TagsList(items=tags, nextCursor=response.get("nextCursor"))
         return self.prepare_response(tags_list, "N8nTagsList")
 
     def deactivate_workflow(self, params: GetWorkflowParams) -> ApiResponse:
