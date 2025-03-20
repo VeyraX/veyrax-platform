@@ -1,0 +1,447 @@
+routes:
+  - endpoint: /browserbase/get_session
+    examples:
+      - scenario: "Get Session Details"
+        description: "Retrieve details about a browser session by ID"
+        input_json: |
+          {
+            "id": "session123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "session123",
+              "status": "active",
+              "created_at": "2023-10-01T12:00:00Z",
+              "browser": {
+                "name": "chrome",
+                "version": "95.0"
+              },
+              "configuration": {
+                "resolution": "1920x1080",
+                "timezone": "UTC",
+                "language": "en-US"
+              },
+              "links": {
+                "websocket": "wss://api.browserbase.com/v1/sessions/session123/ws",
+                "screenshot": "https://api.browserbase.com/v1/sessions/session123/screenshot"
+              }
+            },
+            "message": null
+          }
+
+  - endpoint: /browserbase/create_session
+    examples:
+      - scenario: "Create New Session"
+        description: "Start a new browser session with specified configuration"
+        input_json: |
+          {
+            "projectId": "project123",
+            "browserSettings": {
+              "context": {
+                "id": "context123",
+                "persist": true
+              },
+              "fingerprint": {
+                "browsers": ["chrome"],
+                "devices": ["desktop"],
+                "locales": ["en-US"],
+                "operatingSystems": ["windows"]
+              },
+              "viewport": {
+                "width": 1920,
+                "height": 1080
+              },
+              "recordSession": true
+            },
+            "timeout": 10800,
+            "keepAlive": true,
+            "region": "us-west-2"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "session456",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T05:31:56Z",
+              "projectId": "project123",
+              "startedAt": "2023-11-07T05:31:56Z",
+              "expiresAt": "2023-11-07T08:31:56Z",
+              "status": "RUNNING",
+              "proxyBytes": 0,
+              "avgCpuUsage": 0,
+              "memoryUsage": 0,
+              "keepAlive": true,
+              "contextId": "context123",
+              "region": "us-west-2",
+              "userMetadata": {},
+              "connectUrl": "wss://connect.browserbase.com/session456",
+              "seleniumRemoteUrl": "http://selenium.browserbase.com/session456",
+              "signingKey": "signing_key_123"
+            }
+          }
+
+  - endpoint: /browserbase/update_session
+    examples:
+      - scenario: "Release Session"
+        description: "Request release of a browser session"
+        input_json: |
+          {
+            "id": "session456",
+            "status": "REQUEST_RELEASE"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "session456",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T06:45:12Z",
+              "projectId": "project123",
+              "startedAt": "2023-11-07T05:31:56Z",
+              "endedAt": "2023-11-07T06:45:12Z",
+              "expiresAt": "2023-11-07T08:31:56Z",
+              "status": "ENDED",
+              "proxyBytes": 1024,
+              "avgCpuUsage": 5,
+              "memoryUsage": 256,
+              "keepAlive": false,
+              "contextId": "context123",
+              "region": "us-west-2",
+              "userMetadata": {}
+            }
+          }
+
+  - endpoint: /browserbase/list_sessions
+    examples:
+      - scenario: "List Active Sessions"
+        description: "Get a list of all running browser sessions"
+        input_json: |
+          {
+            "status": "RUNNING"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "session123",
+                "createdAt": "2023-11-07T05:31:56Z",
+                "updatedAt": "2023-11-07T05:31:56Z",
+                "projectId": "project123",
+                "startedAt": "2023-11-07T05:31:56Z",
+                "expiresAt": "2023-11-07T08:31:56Z",
+                "status": "RUNNING",
+                "proxyBytes": 512,
+                "avgCpuUsage": 10,
+                "memoryUsage": 128,
+                "keepAlive": true,
+                "contextId": "context456",
+                "region": "us-west-2",
+                "userMetadata": {
+                  "purpose": "automated testing"
+                }
+              },
+              {
+                "id": "session789",
+                "createdAt": "2023-11-07T06:15:23Z",
+                "updatedAt": "2023-11-07T06:15:23Z",
+                "projectId": "project123",
+                "startedAt": "2023-11-07T06:15:23Z",
+                "expiresAt": "2023-11-07T09:15:23Z",
+                "status": "RUNNING",
+                "proxyBytes": 256,
+                "avgCpuUsage": 8,
+                "memoryUsage": 96,
+                "keepAlive": true,
+                "contextId": "context789",
+                "region": "us-west-2",
+                "userMetadata": {
+                  "purpose": "web scraping"
+                }
+              }
+            ]
+          }
+
+  - endpoint: /browserbase/get_context
+    examples:
+      - scenario: "Get Context Details"
+        description: "Retrieve details about a browser context"
+        input_json: |
+          {
+            "id": "context123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "context123",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T05:31:56Z",
+              "projectId": "project456"
+            }
+          }
+
+  - endpoint: /browserbase/create_context
+    examples:
+      - scenario: "Create New Context"
+        description: "Create a new browser context for persistent sessions"
+        input_json: |
+          {
+            "projectId": "project123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "context456",
+              "uploadUrl": "https://upload.browserbase.com/context456",
+              "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...",
+              "cipherAlgorithm": "AES-256-CBC",
+              "initializationVectorSize": 16
+            }
+          }
+
+  - endpoint: /browserbase/delete_context
+    examples:
+      - scenario: "Delete Context"
+        description: "Remove a browser context and related data"
+        input_json: |
+          {
+            "id": "context123"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          }
+
+  - endpoint: /browserbase/session_logs
+    examples:
+      - scenario: "Retrieve Session Logs"
+        description: "Get browser session logs for debugging"
+        input_json: |
+          {
+            "id": "session123"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "method": "GET",
+                "pageId": 123,
+                "sessionId": "session123",
+                "request": {
+                  "timestamp": 1609459200000,
+                  "params": {},
+                  "rawBody": "{\"key\":\"value\"}"
+                },
+                "response": {
+                  "timestamp": 1609459201000,
+                  "result": {
+                    "status": "success"
+                  },
+                  "rawBody": "{\"status\":\"success\"}"
+                },
+                "timestamp": 1609459202000,
+                "frameId": "frame123",
+                "loaderId": "loader123"
+              }
+            ]
+          }
+
+  - endpoint: /browserbase/session_recording
+    examples:
+      - scenario: "Access Session Recording"
+        description: "Retrieve browser session recording data"
+        input_json: |
+          {
+            "id": "session123"
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "data": {},
+                "sessionId": "session123",
+                "timestamp": 1609459200000,
+                "type": 1
+              }
+            ]
+          }
+
+  - endpoint: /browserbase/session_debug
+    examples:
+      - scenario: "Get Session Debug URLs"
+        description: "Get debug information and live URLs for a session"
+        input_json: |
+          {
+            "id": "session123"
+          }
+        output_json: |
+          {
+            "data": {
+              "debuggerFullscreenUrl": "https://debugger.browserbase.com/fullscreen/session123",
+              "debuggerUrl": "https://debugger.browserbase.com/session123",
+              "pages": [
+                {
+                  "id": "page1",
+                  "url": "https://example.com",
+                  "faviconUrl": "https://example.com/favicon.ico",
+                  "title": "Example Page",
+                  "debuggerUrl": "https://debugger.browserbase.com/page1",
+                  "debuggerFullscreenUrl": "https://debugger.browserbase.com/fullscreen/page1"
+                }
+              ],
+              "wsUrl": "wss://ws.browserbase.com/session123"
+            }
+          }
+
+  - endpoint: /browserbase/session_downloads
+    examples:
+      - scenario: "Download Session Data"
+        description: "Download data from a browser session"
+        input_json: |
+          {
+            "id": "session123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "content_type": "application/zip",
+            "file": "binary data"
+          }
+
+  - endpoint: /browserbase/session_uploads
+    examples:
+      - scenario: "Upload to Session"
+        description: "Upload a file to a browser session"
+        input_json: |
+          {
+            "id": "session123",
+            "file": "base64-encoded-content-or-file-reference"
+          }
+        output_json: |
+          {
+            "data": {
+              "message": "File uploaded successfully"
+            }
+          }
+
+  - endpoint: /browserbase/list_projects
+    examples:
+      - scenario: "List All Projects"
+        description: "Retrieve all projects for the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "id": "project123",
+                "createdAt": "2023-11-07T05:31:56Z",
+                "updatedAt": "2023-11-07T05:31:56Z",
+                "name": "Project Alpha",
+                "ownerId": "owner456",
+                "defaultTimeout": 10830
+              },
+              {
+                "id": "project789",
+                "createdAt": "2023-11-07T06:00:00Z",
+                "updatedAt": "2023-11-07T06:00:00Z",
+                "name": "Project Beta",
+                "ownerId": "owner123",
+                "defaultTimeout": 7200
+              }
+            ]
+          }
+
+  - endpoint: /browserbase/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieve details about a specific project"
+        input_json: |
+          {
+            "id": "project123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "project123",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T05:31:56Z",
+              "name": "Sample Project",
+              "ownerId": "owner456",
+              "defaultTimeout": 10830
+            }
+          }
+
+  - endpoint: /browserbase/get_project_usage
+    examples:
+      - scenario: "Get Project Usage Statistics"
+        description: "Retrieve usage statistics for a specific project"
+        input_json: |
+          {
+            "id": "project123"
+          }
+        output_json: |
+          {
+            "data": {
+              "browserMinutes": 1,
+              "proxyBytes": 1
+            }
+          }
+
+  - endpoint: /browserbase/get_extension
+    examples:
+      - scenario: "Get Extension Details"
+        description: "Retrieve details about a browser extension"
+        input_json: |
+          {
+            "id": "extension123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "extension123",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T05:31:56Z",
+              "fileName": "example_extension.js",
+              "projectId": "project456"
+            }
+          }
+
+  - endpoint: /browserbase/delete_extension
+    examples:
+      - scenario: "Delete Extension"
+        description: "Remove a browser extension"
+        input_json: |
+          {
+            "id": "extension123"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          }
+
+  - endpoint: /browserbase/upload_extension
+    examples:
+      - scenario: "Upload Extension"
+        description: "Upload a new browser extension"
+        input_json: |
+          {
+            "file": "<base64-encoded-or-file-reference>",
+            "projectId": "project123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "abc123",
+              "createdAt": "2023-11-07T05:31:56Z",
+              "updatedAt": "2023-11-07T05:31:56Z",
+              "fileName": "extension.zip",
+              "projectId": "project123"
+            }
+          }
