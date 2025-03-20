@@ -193,8 +193,7 @@ async def list_workflows(
 ):
     validated_params = ListWorkflowsParams(**params)
     service_response = service.list_workflows(validated_params)
-
-    print("[list_workflows] service response: ", service_response)
+    
     return service_response
 
 @router.post("/get_workflow", response_model=ApiResponse)

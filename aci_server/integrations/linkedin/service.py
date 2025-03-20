@@ -218,6 +218,9 @@ class LinkedInService:
             date_posted=params.datePosted,
             sort=params.sort
         )
+
+        if response.get('data', None) is None:
+            response['data'] = []
         
         # Transform response data to match our schema
         search_jobs_response = SearchJobsResponse(**response)
