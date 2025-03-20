@@ -59,7 +59,6 @@ aci_server/credentials/
 *.maple
 
 # Jupyter notebooks
-*.ipynb
 venv/
 
 
