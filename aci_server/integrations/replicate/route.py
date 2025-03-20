@@ -40,7 +40,8 @@ from .schema import (
     CollectionParamsBase,
     ReadmeResponseSchema,
     AccountInfoSchema,
-    ValidateKeyResponse
+    ValidateKeyResponse,
+    SearchModelsInput
 )
 from .service import ReplicateService
 from .client import ReplicateClient
@@ -230,7 +231,7 @@ async def delete_model(
     return service.delete_model(validated_params.owner, validated_params.name)
 
 @router.post("/search_models", response_model=ApiResponse)
-@schema(input_schema_class=dict(query=str), output_schema_class=ModelListSchema, examples=examples["/replicate/search_models"])
+@schema(input_schema_class=SearchModelsInput, output_schema_class=ModelListSchema, examples=examples["/replicate/search_models"])
 async def search_models(
     params: Dict[str, Any] = Body(...),
     service: ReplicateService = Depends(get_replicate_service)

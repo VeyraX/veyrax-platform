@@ -73,6 +73,9 @@ class PredictionRequest(BaseModel):
         description="Wait for the prediction to complete. Value is in seconds. Maximum 60 seconds."
     )
 
+class SearchModelsInput(BaseModel):
+    query: str = Field(..., description="Query to search for")
+
 class DeploymentPredictionRequest(BaseModel):
     input: Dict[str, Any] = Field(description="The model's input as a JSON object")
     webhook: Optional[str] = Field(
@@ -284,6 +287,8 @@ class PredictionResponse(BaseModel):
     deployment: Optional[str] = None
     source: Optional[str] = Field(default=None, description="Source of the prediction. Valid values: web, api")
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+    artefacts_urls: Optional[List[str]] = Field(default=None, description="best visual objects for component")
 
     class Config:
         extra = "allow"

@@ -1,8 +1,4 @@
 routes:
-
-  # -------------------------------------------------------------------
-  # EXISTING EXAMPLES (unchanged from your original file)
-  # -------------------------------------------------------------------
   - endpoint: /replicate/create_prediction_by_version_id
     examples:
       - scenario: "Create a Prediction with Basic Parameters"
@@ -1557,4 +1553,3 @@ routes:
               "name": "ReplicatePredictionView"
             }
           }
-

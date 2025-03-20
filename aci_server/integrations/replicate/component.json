@@ -1,1 +1,51 @@
-[]
+[
+  {
+    "name": "ReplicatePredictionView",
+    "version": "1.0.0",
+    "description": "Displays a single prediction with visual outputs",
+    "related_endpoints": ["get_prediction"],
+    "component": {
+      "jsx": "function(props) {\n  const prediction = props.data;\n  \n  const statusColors = {\n    succeeded: '#dcfce7',\n    processing: '#e0f2fe',\n    failed: '#fee2e2',\n    starting: '#fef3c7',\n    canceled: '#e2e8f0'\n  };\n\n  const styles = {\n    card: {\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      padding: '16px',\n      marginBottom: '12px',\n      width: '100%',\n      boxSizing: 'border-box'\n    },\n    header: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center',\n      marginBottom: '12px'\n    },\n    statusBadge: {\n      padding: '4px 8px',\n      borderRadius: '20px',\n      fontSize: '12px',\n      fontWeight: '500',\n      textTransform: 'capitalize'\n    },\n    grid: {\n      display: 'grid',\n      gridTemplateColumns: prediction.artefacts_urls?.length === 1 \n        ? '1fr' \n        : 'repeat(auto-fit, minmax(200px, 1fr))',\n      gap: '12px',\n      marginTop: '16px'\n    },\n    mediaItem: {\n      position: 'relative',\n      borderRadius: '6px',\n      overflow: 'hidden',\n      background: '#f1f5f9'\n    },\n    image: {\n      width: '100%',\n      height: '200px',\n      objectFit: 'cover'\n    },\n    video: {\n      width: '100%',\n      height: '200px',\n      objectFit: 'cover'\n    },\n    meta: {\n      fontSize: '13px',\n      color: '#64748b',\n      marginTop: '8px'\n    },\n    link: {\n      color: '#3b82f6',\n      textDecoration: 'none',\n      ':hover': {\n        textDecoration: 'underline'\n      }\n    }\n  };\n\n  return React.createElement('div', { style: styles.card },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', null,\n        React.createElement('h3', { style: { margin: 0, fontSize: '16px', color: '#1e293b' } }, 'Prediction ', \n          React.createElement('a', {\n            href: `https://replicate.com/p/${prediction.id}`,\n            style: styles.link,\n            target: '_blank',\n            rel: 'noopener noreferrer'\n          }, prediction.id.slice(0, 8))\n        ),\n        React.createElement('div', { style: { ...styles.meta, marginTop: '4px' } },\n          new Date(prediction.created_at).toLocaleDateString()\n        )\n      ),\n      React.createElement('div', { \n        style: { \n          ...styles.statusBadge,\n          backgroundColor: statusColors[prediction.status] || '#e2e8f0',\n          color: '#1e293b'\n        }\n      }, prediction.status)\n    ),\n    \n    prediction.artefacts_urls && prediction.artefacts_urls.length > 0 &&\n      React.createElement('div', { style: styles.grid },\n        prediction.artefacts_urls.map((url, index) => {\n          const isVideo = url.match(/\\.(mp4|mov|webm)$/i);\n          return React.createElement('div', { key: index, style: styles.mediaItem },\n            isVideo ? \n              React.createElement('video', {\n                style: styles.video,\n                controls: true,\n                src: url\n              })\n            :\n              React.createElement('img', {\n                style: styles.image,\n                src: url,\n                alt: `Prediction output ${index + 1}`\n              })\n          );\n        })\n      )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "id": "42knjaec3nrgc0cnphg9m6xb1c",
+        "status": "succeeded",
+        "created_at": "2024-03-15T09:30:00Z",
+        "artefacts_urls": [
+          "https://example.com/output.jpg",
+          "https://example.com/animation.mp4"
+        ]
+      }
+    },
+    "schemaRef": "schema.PredictionResponse"
+  },
+  {
+    "name": "ReplicatePredictionListView",
+    "version": "1.0.0",
+    "description": "Grid view of multiple predictions with thumbnails",
+    "related_endpoints": ["list_predictions"],
+    "component": {
+      "jsx": "function(props) {\n  const predictions = props.data.results || [];\n  \n  const statusColors = {\n    succeeded: '#16a34a',\n    processing: '#2563eb',\n    failed: '#dc2626',\n    starting: '#d97706',\n    canceled: '#64748b'\n  };\n\n  const styles = {\n    container: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',\n      gap: '16px',\n      width: '100%'\n    },\n    card: {\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      border: '1px solid #e2e8f0',\n      padding: '12px',\n      transition: 'transform 0.2s',\n      ':hover': {\n        transform: 'translateY(-2px)'\n      }\n    },\n    thumbnail: {\n      width: '100%',\n      height: '160px',\n      objectFit: 'cover',\n      borderRadius: '4px',\n      marginBottom: '8px'\n    },\n    meta: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center'\n    },\n    status: {\n      fontSize: '12px',\n      fontWeight: '500',\n      textTransform: 'capitalize'\n    },\n    date: {\n      fontSize: '12px',\n      color: '#64748b'\n    },\n    link: {\n      color: '#1e293b',\n      textDecoration: 'none',\n      ':hover': {\n        textDecoration: 'underline'\n      }\n    }\n  };\n\n  return React.createElement('div', { style: styles.container },\n    predictions.map(prediction => {\n      const firstMedia = prediction.artefacts_urls?.[0];\n      return React.createElement('a', {\n        key: prediction.id,\n        href: `https://replicate.com/p/${prediction.id}`,\n        style: styles.link,\n        target: '_blank',\n        rel: 'noopener noreferrer'\n      },\n        React.createElement('div', { style: styles.card },\n          firstMedia && React.createElement('img', {\n            style: styles.thumbnail,\n            src: firstMedia,\n            alt: 'Prediction output'\n          }),\n          React.createElement('div', { style: styles.meta },\n            React.createElement('span', { \n              style: { \n                ...styles.status,\n                color: statusColors[prediction.status] || '#64748b'\n              }\n            }, prediction.status),\n            React.createElement('span', { style: styles.date },\n              new Date(prediction.created_at).toLocaleDateString('en-US', {\n                month: 'short',\n                day: 'numeric'\n              })\n            )\n          )\n        )\n      );\n    })\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "results": [
+          {
+            "id": "42knjaec3nrgc0cnphg9m6xb1c",
+            "status": "succeeded",
+            "created_at": "2024-03-15T09:30:00Z",
+            "artefacts_urls": ["https://example.com/thumbnail.jpg"]
+          },
+          {
+            "id": "58fj3kd9fhs83ncd7hgb2d4f",
+            "status": "processing",
+            "created_at": "2024-03-15T09:25:00Z",
+            "artefacts_urls": []
+          }
+        ]
+      }
+    },
+    "schemaRef": "schema.PredictionList"
+  }
+]

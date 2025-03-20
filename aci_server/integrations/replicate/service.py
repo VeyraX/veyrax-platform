@@ -92,8 +92,31 @@ class ReplicateService:
         
         if not response:
             raise ValueError("Empty response received from Replicate API")
+        
+        artefact_urls = []
+        
+        # Extract URLs from output
+        if "output" in response:
+            output = response["output"]
             
-        print('[get_prediction] response: ', response)
+            # Handle list output
+            if isinstance(output, list):
+                for item in output:
+                    if isinstance(item, str) and (item.startswith("http://") or item.startswith("https://")):
+                        # Check for image/video extensions
+                        if any(item.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.mov', '.webm']):
+                            artefact_urls.append(item)
+                        
+            # Handle dict output
+            elif isinstance(output, dict):
+                for value in output.values():
+                    if isinstance(value, str) and (value.startswith("http://") or value.startswith("https://")):
+                        # Check for image/video extensions
+                        if any(value.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.mov', '.webm']):
+                            artefact_urls.append(value)
+        
+        response["artefacts_urls"] = artefact_urls
+        
         prediction_response = PredictionResponse(**response)
         return self.prepare_response(prediction_response, "ReplicatePredictionView")
     
@@ -271,7 +294,7 @@ class ReplicateService:
         Delete a model
         """
         response = self.client.delete_model(model_owner, model_name)
-        # Return empty response with success message
+        # Return empty response with succeeess message
         return self.prepare_response({"success": True, "message": "Model deleted"})
     
     def search_models(self, query: str) -> ApiResponse:
