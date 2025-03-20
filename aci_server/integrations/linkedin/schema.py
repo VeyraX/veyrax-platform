@@ -121,7 +121,7 @@ class PersonSearchItem(BaseModel):
 
 class SearchPeopleData(BaseModel):
     total: Optional[int] = None
-    items: List[PersonSearchItem] = []
+    items: Optional[List[PersonSearchItem]] = None
 
 
 class SearchPeopleResponse(BaseModel):
