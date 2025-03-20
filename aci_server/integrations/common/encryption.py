@@ -53,10 +53,6 @@ def decrypt(encrypted_text: str) -> str:
     return decrypted.decode('utf-8')
 
 def is_encrypted(text: str) -> bool:
-    """
-    Проверяет, зашифровано ли значение.
-    Зашифрованные значения имеют формат: <iv_hex>:<encrypted_data_hex>
-    """
     if not text:
         return False
         
@@ -65,12 +61,10 @@ def is_encrypted(text: str) -> bool:
         if len(parts) != 2:
             return False
             
-        # Проверка, что первая часть - валидный hex в формате IV (16 байт = 32 символа)
         iv = parts[0]
         if len(iv) != 32 or not all(c in '0123456789abcdef' for c in iv.lower()):
             return False
             
-        # Проверка, что вторая часть - валидный hex
         encrypted = parts[1]
         if not all(c in '0123456789abcdef' for c in encrypted.lower()):
             return False
