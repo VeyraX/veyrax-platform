@@ -121,7 +121,7 @@ class PersonSearchItem(BaseModel):
 
 class SearchPeopleData(BaseModel):
     total: Optional[int] = None
-    items: List[PersonSearchItem] = []
+    items: Optional[List[PersonSearchItem]] = None
 
 
 class SearchPeopleResponse(BaseModel):
@@ -446,7 +446,7 @@ class SearchJobsParams(BaseModel):
 class SearchJobsResponse(BaseModel):
     success: Optional[bool] = None
     message: Optional[str] = None
-    data: List[Dict[str, Any]] = []
+    data: Optional[List[Dict[str, Any]]] = None
     total: Optional[int] = None
 
 
