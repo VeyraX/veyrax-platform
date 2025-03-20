@@ -46,6 +46,8 @@ from integrations.e2b.route import router as e2b_router
 from integrations.motion.route import router as motion_router
 from integrations.coda.route import router as coda_router
 from integrations.n8n.route import router as n8n_router
+from integrations.browserbase.route import router as browser_base_router
+from integrations.typeform.route import router as typeform_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
@@ -116,7 +118,9 @@ INTEGRATION_ROUTERS = {
     "motion": motion_router,
     "coda": coda_router,
     "n8n": n8n_router,
-    "linkedin": linkedin_router
+    "linkedin": linkedin_router,
+    "browserbase": browser_base_router,
+    "typeform": typeform_router
 }
 
 app = FastAPI()

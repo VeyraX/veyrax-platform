@@ -22,7 +22,9 @@ examples = ExamplesLoader()
 async def get_brave_service(request: Request):
     try:
         api_key = await validate_provider_api_key(request, "brave")
-        service = BraveService(BraveClient(api_key))
+        client = BraveClient(api_key)
+        apply_error_handler_to_client(client)
+        service = BraveService(client)
         apply_error_handler_to_service(service)
         return service
     except Exception as e:
@@ -82,7 +84,6 @@ async def validate_key(
             return {"valid": False, "message": "API key is required"}
         
         client = BraveClient(api_key)
-        apply_error_handler_to_client(client)
         test_params = {"q": "test", "count": 1}
         client.web_search(test_params)
         
