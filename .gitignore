@@ -2,6 +2,7 @@
 
 utils/*.py
 nginx/.htpasswd/
+nginx/*.log
 
 main/.env.sentry-build-plugin
 .env.sentry-build-plugin
