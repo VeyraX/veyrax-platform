@@ -1,5 +1,5 @@
 routes:
-  - endpoint: /typeform/forms
+  - endpoint: /typeform/get_forms
     examples:
       - scenario: "List All Forms"
         description: "Get a list of all forms in your Typeform account"
@@ -81,7 +81,7 @@ routes:
             }
           }
 
-  - endpoint: /typeform/form
+  - endpoint: /typeform/get_form
     examples:
       - scenario: "Get Form Details"
         description: "Retrieve detailed information about a specific form"
@@ -152,7 +152,7 @@ routes:
             }
           }
 
-  - endpoint: /typeform/form_responses
+  - endpoint: /typeform/get_form_responses
     examples:
       - scenario: "Get Form Responses"
         description: "Retrieve responses submitted to a specific form"
@@ -277,7 +277,7 @@ routes:
             }
           }
 
-  - endpoint: /typeform/webhooks
+  - endpoint: /typeform/get_webhooks
     examples:
       - scenario: "List All Webhooks"
         description: "Get all webhooks configured for a specific form"
@@ -353,7 +353,7 @@ routes:
             }
           }
 
-  - endpoint: /typeform/workspaces
+  - endpoint: /typeform/get_workspaces
     examples:
       - scenario: "List All Workspaces"
         description: "Get all workspaces in your Typeform account"

@@ -38,11 +38,11 @@ async def get_typeform_service(request: FastAPIRequest):
             detail=f"Failed to initialize Typeform service: {str(e)}"
         )
 
-@router.post("/forms", response_model=ApiResponse)
+@router.post("/get_forms", response_model=ApiResponse)
 @schema(
     input_schema_class=GetFormsParams,
     output_schema_class=GetFormsResponse,
-    examples=examples["/typeform/forms"]
+    examples=examples["/typeform/get_forms"]
 )
 async def get_forms(
     params: Dict[str, Any] = Body(...),
@@ -51,11 +51,11 @@ async def get_forms(
     validated_params = GetFormsParams(**params)
     return service.get_forms(validated_params)
 
-@router.post("/form", response_model=ApiResponse)
+@router.post("/get_form", response_model=ApiResponse)
 @schema(
     input_schema_class=GetFormParams,
     output_schema_class=GetFormResponse,
-    examples=examples["/typeform/form"]
+    examples=examples["/typeform/get_form"]
 )
 async def get_form(
     params: Dict[str, Any] = Body(...),
@@ -64,11 +64,11 @@ async def get_form(
     validated_params = GetFormParams(**params)
     return service.get_form(validated_params)
 
-@router.post("/form_responses", response_model=ApiResponse)
+@router.post("/get_form_responses", response_model=ApiResponse)
 @schema(
     input_schema_class=GetFormResponsesParams,
     output_schema_class=GetFormResponsesResponse,
-    examples=examples["/typeform/form_responses"]
+    examples=examples["/typeform/get_form_responses"]
 )
 async def get_form_responses(
     params: Dict[str, Any] = Body(...),
@@ -77,11 +77,11 @@ async def get_form_responses(
     validated_params = GetFormResponsesParams(**params)
     return service.get_form_responses(validated_params)
 
-@router.post("/webhooks", response_model=ApiResponse)
+@router.post("/get_webhooks", response_model=ApiResponse)
 @schema(
     input_schema_class=GetFormParams,
     output_schema_class=GetWebhooksResponse,
-    examples=examples["/typeform/webhooks"]
+    examples=examples["/typeform/get_webhooks"]
 )
 async def get_webhooks(
     params: Dict[str, Any] = Body(...),
@@ -94,7 +94,7 @@ async def get_webhooks(
 @schema(
     input_schema_class=CreateWebhookParams,
     output_schema_class=CreateWebhookResponse,
-    examples=examples["/typeform/create_webhook"]
+        examples=examples["/typeform/create_webhook"]
 )
 async def create_webhook(
     params: Dict[str, Any] = Body(...),
@@ -103,11 +103,11 @@ async def create_webhook(
     validated_params = CreateWebhookParams(**params)
     return service.create_webhook(validated_params)
 
-@router.post("/workspaces", response_model=ApiResponse)
+@router.post("/get_workspaces", response_model=ApiResponse)
 @schema(
     input_schema_class=GetWorkspacesParams,
     output_schema_class=GetWorkspacesResponse,
-    examples=examples["/typeform/workspaces"]
+    examples=examples["/typeform/get_workspaces"]
 )
 async def get_workspaces(
     params: Dict[str, Any] = Body(...),
