@@ -1,0 +1,1560 @@
+routes:
+
+  # -------------------------------------------------------------------
+  # EXISTING EXAMPLES (unchanged from your original file)
+  # -------------------------------------------------------------------
+  - endpoint: /replicate/create_prediction_by_version_id
+    examples:
+      - scenario: "Create a Prediction with Basic Parameters"
+        description: "Create a prediction using the minimal required parameters"
+        input_json: |
+          {
+            "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+            "input": {
+              "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+              "scheduler": "K_EULER"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "gm3qorzdhgbfurvjtvhg6dckhu",
+              "model": "stability-ai/sdxl",
+              "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+              "input": {
+                "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+                "scheduler": "K_EULER"
+              },
+              "logs": "",
+              "output": [
+                "https://replicate.delivery/pbxt/ABCdefGHI123456789/out-0.png"
+              ],
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:19:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:19:34.779176Z",
+              "completed_at": "2023-09-08T16:19:34.791859Z",
+              "metrics": {
+                "predict_time": 0.012683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu/cancel",
+                "get": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+      - scenario: "Create a Prediction with Advanced Parameters"
+        description: "Create a prediction with optional parameters like webhooks and stream"
+        input_json: |
+          {
+            "version": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+            "input": {
+              "text": "Hello world!"
+            },
+            "webhook": "https://example.com/webhook",
+            "webhook_events_filter": ["start", "completed"],
+            "stream": true,
+            "wait": 30
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "a1b2c3d4e5f6g7h8i9j0",
+              "model": "replicate/hello-world",
+              "version": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+              "input": {
+                "text": "Hello world!"
+              },
+              "logs": "",
+              "output": "hello Hello world!",
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:20:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:20:34.779176Z",
+              "completed_at": "2023-09-08T16:20:34.791859Z",
+              "metrics": {
+                "predict_time": 0.013683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0/cancel",
+                "get": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0",
+                "stream": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0/stream"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/get_prediction
+    examples:
+      - scenario: "Get a Prediction by ID"
+        description: "Retrieve details about a specific prediction"
+        input_json: |
+          {
+            "id": "gm3qorzdhgbfurvjtvhg6dckhu"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "gm3qorzdhgbfurvjtvhg6dckhu",
+              "model": "stability-ai/sdxl",
+              "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+              "input": {
+                "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+                "scheduler": "K_EULER"
+              },
+              "logs": "",
+              "output": [
+                "https://replicate.delivery/pbxt/ABCdefGHI123456789/out-0.png"
+              ],
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:19:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:19:34.779176Z",
+              "completed_at": "2023-09-08T16:19:34.791859Z",
+              "metrics": {
+                "predict_time": 0.012683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu/cancel",
+                "get": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/list_predictions
+    examples:
+      - scenario: "List All Predictions"
+        description: "List all predictions with optional filtering by creation date"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "next": "https://api.replicate.com/v1/predictions?cursor=cD0yMDIyLTAxLTIxKzIzJTNBMTglM0EyNC41MzAzNTclMkIwMCUzQTAw",
+              "previous": null,
+              "results": [
+                {
+                  "id": "gm3qorzdhgbfurvjtvhg6dckhu",
+                  "model": "stability-ai/sdxl",
+                  "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                  "input": {
+                    "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+                    "scheduler": "K_EULER"
+                  },
+                  "logs": "",
+                  "output": [
+                    "https://replicate.delivery/pbxt/ABCdefGHI123456789/out-0.png"
+                  ],
+                  "error": null,
+                  "status": "succeeded",
+                  "created_at": "2023-09-08T16:19:34.765994Z",
+                  "data_removed": false,
+                  "started_at": "2023-09-08T16:19:34.779176Z",
+                  "completed_at": "2023-09-08T16:19:34.791859Z",
+                  "metrics": {
+                    "predict_time": 0.012683
+                  },
+                  "urls": {
+                    "cancel": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu/cancel",
+                    "get": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu"
+                  }
+                },
+                {
+                  "id": "a1b2c3d4e5f6g7h8i9j0",
+                  "model": "replicate/hello-world",
+                  "version": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+                  "input": {
+                    "text": "Hello world!"
+                  },
+                  "logs": "",
+                  "output": "hello Hello world!",
+                  "error": null,
+                  "status": "succeeded",
+                  "created_at": "2023-09-08T16:20:34.765994Z",
+                  "data_removed": false,
+                  "started_at": "2023-09-08T16:20:34.779176Z",
+                  "completed_at": "2023-09-08T16:20:34.791859Z",
+                  "metrics": {
+                    "predict_time": 0.013683
+                  },
+                  "urls": {
+                    "cancel": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0/cancel",
+                    "get": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0",
+                    "stream": "https://api.replicate.com/v1/predictions/a1b2c3d4e5f6g7h8i9j0/stream"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicatePredictionList"
+            }
+          }
+
+      - scenario: "List Predictions with Date Filters"
+        description: "List predictions created within a specific date range"
+        input_json: |
+          {
+            "created_after": "2023-09-01T00:00:00Z",
+            "created_before": "2023-09-30T23:59:59Z"
+          }
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "gm3qorzdhgbfurvjtvhg6dckhu",
+                  "model": "stability-ai/sdxl",
+                  "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                  "input": {
+                    "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+                    "scheduler": "K_EULER"
+                  },
+                  "logs": "",
+                  "output": [
+                    "https://replicate.delivery/pbxt/ABCdefGHI123456789/out-0.png"
+                  ],
+                  "error": null,
+                  "status": "succeeded",
+                  "created_at": "2023-09-08T16:19:34.765994Z",
+                  "data_removed": false,
+                  "started_at": "2023-09-08T16:19:34.779176Z",
+                  "completed_at": "2023-09-08T16:19:34.791859Z",
+                  "metrics": {
+                    "predict_time": 0.012683
+                  },
+                  "urls": {
+                    "cancel": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu/cancel",
+                    "get": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicatePredictionList"
+            }
+          }
+
+  - endpoint: /replicate/cancel_prediction
+    examples:
+      - scenario: "Cancel a Running Prediction"
+        description: "Cancel a prediction that is currently running"
+        input_json: |
+          {
+            "id": "gm3qorzdhgbfurvjtvhg6dckhu"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "gm3qorzdhgbfurvjtvhg6dckhu",
+              "model": "stability-ai/sdxl",
+              "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+              "input": {
+                "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting",
+                "scheduler": "K_EULER"
+              },
+              "logs": "",
+              "output": null,
+              "error": null,
+              "status": "canceled",
+              "created_at": "2023-09-08T16:19:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:19:34.779176Z",
+              "completed_at": null,
+              "metrics": null,
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu/cancel",
+                "get": "https://api.replicate.com/v1/predictions/gm3qorzdhgbfurvjtvhg6dckhu"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_deployment_prediction
+    examples:
+      - scenario: "Create a Prediction using a Deployment"
+        description: "Create a prediction using an existing deployment"
+        input_json: |
+          {
+            "deployment_owner": "acme",
+            "deployment_name": "my-app-image-generator",
+            "input": {
+              "prompt": "A photo of a cat riding a skateboard"
+            },
+            "wait": 30
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "b1c2d3e4f5g6h7i8j9k0",
+              "model": "stability-ai/sdxl",
+              "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+              "input": {
+                "prompt": "A photo of a cat riding a skateboard"
+              },
+              "logs": "",
+              "output": [
+                "https://replicate.delivery/pbxt/ABCdefGHI123456789/out-0.png"
+              ],
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:21:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:21:34.779176Z",
+              "completed_at": "2023-09-08T16:21:54.791859Z",
+              "metrics": {
+                "predict_time": 20.012683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/b1c2d3e4f5g6h7i8j9k0/cancel",
+                "get": "https://api.replicate.com/v1/predictions/b1c2d3e4f5g6h7i8j9k0"
+              },
+              "deployment": "acme/my-app-image-generator"
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_prediction_by_model_name
+    examples:
+      - scenario: "Create a Prediction using an Official Model"
+        description: "Create a prediction using an official model"
+        input_json: |
+          {
+            "model_owner": "black-forest-labs",
+            "model_name": "flux-1.1-pro",
+            "input": {
+              "prompt": "Write a short poem about the weather."
+            },
+            "wait": 30
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "c1d2e3f4g5h6i7j8k9l0",
+              "model": "meta/meta-llama-3-70b-instruct",
+              "version": "hidden",
+              "input": {
+                "prompt": "Write a short poem about the weather."
+              },
+              "logs": "",
+              "output": "The sky's moods shift and sway,\nSunlight, clouds, then rain today.\nWinds whisper tales of change,\nAs seasons rearrange.\n\nMorning dew on grass so bright,\nStorm clouds gathering by night.\nWeather's dance, forever free,\nNature's endless symphony.",
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:22:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:22:34.779176Z",
+              "completed_at": "2023-09-08T16:22:44.791859Z",
+              "metrics": {
+                "predict_time": 10.012683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/c1d2e3f4g5h6i7j8k9l0/cancel",
+                "get": "https://api.replicate.com/v1/predictions/c1d2e3f4g5h6i7j8k9l0"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+      - scenario: "Create a Prediction with Streaming"
+        description: "Create a prediction with streaming enabled"
+        input_json: |
+          {
+            "model_owner": "meta",
+            "model_name": "meta-llama-3-70b-instruct",
+            "input": {
+              "prompt": "Write a paragraph about artificial intelligence."
+            },
+            "stream": true,
+            "wait": 30
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "d1e2f3g4h5i6j7k8l9m0",
+              "model": "meta/meta-llama-3-70b-instruct",
+              "version": "hidden",
+              "input": {
+                "prompt": "Write a paragraph about artificial intelligence."
+              },
+              "logs": "",
+              "output": "Artificial intelligence represents one of humanity's most transformative technological frontiers...",
+              "error": null,
+              "status": "succeeded",
+              "created_at": "2023-09-08T16:23:34.765994Z",
+              "data_removed": false,
+              "started_at": "2023-09-08T16:23:34.779176Z",
+              "completed_at": "2023-09-08T16:23:54.791859Z",
+              "metrics": {
+                "predict_time": 20.012683
+              },
+              "urls": {
+                "cancel": "https://api.replicate.com/v1/predictions/d1e2f3g4h5i6j7k8l9m0/cancel",
+                "get": "https://api.replicate.com/v1/predictions/d1e2f3g4h5i6j7k8l9m0",
+                "stream": "https://api.replicate.com/v1/predictions/d1e2f3g4h5i6j7k8l9m0/stream"
+              }
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/get_model
+    examples:
+      - scenario: "Get Model Details"
+        description: "Get detailed information about a specific model"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl"
+          }
+        output_json: |
+          {
+            "data": {
+              "url": "https://replicate.com/stability-ai/sdxl",
+              "owner": "stability-ai",
+              "name": "sdxl",
+              "description": "Stability AI's SDXL, a text-to-image generative AI model",
+              "visibility": "public",
+              "github_url": "https://github.com/Stability-AI/generative-models",
+              "paper_url": "https://arxiv.org/abs/2307.01952",
+              "license_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/LICENSE.md",
+              "run_count": 10000000,
+              "cover_image_url": "https://replicate.delivery/pbxt/coverimages/stability-ai/sdxl.png",
+              "default_example": {
+                "id": "1234567890",
+                "model": "stability-ai/sdxl",
+                "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                "input": {
+                  "prompt": "an astronaut riding a horse on mars, hd, dramatic lighting"
+                },
+                "output": [
+                  "https://replicate.delivery/pbxt/example/astronaut.png"
+                ],
+                "status": "succeeded",
+                "created_at": "2023-07-20T12:00:00Z",
+                "urls": {
+                  "get": "https://api.replicate.com/v1/predictions/1234567890",
+                  "cancel": "https://api.replicate.com/v1/predictions/1234567890/cancel"
+                }
+              },
+              "latest_version": {
+                "id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                "created_at": "2023-07-19T15:13:21.981654Z",
+                "cog_version": "0.8.1"
+              }
+            },
+            "component": {
+              "name": "ReplicateModelView"
+            }
+          }
+
+  - endpoint: /replicate/list_models
+    examples:
+      - scenario: "List All Models"
+        description: "List all models available to the user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "next": "https://api.replicate.com/v1/models?cursor=cD0yMDIyLTAxLTIxKzIzJTNBMTglM0EyNC41MzAzNTclMkIwMCUzQTAw",
+              "previous": null,
+              "results": [
+                {
+                  "url": "https://replicate.com/stability-ai/sdxl",
+                  "owner": "stability-ai",
+                  "name": "sdxl",
+                  "description": "Stability AI's SDXL, a text-to-image generative AI model",
+                  "visibility": "public",
+                  "github_url": "https://github.com/Stability-AI/generative-models",
+                  "paper_url": "https://arxiv.org/abs/2307.01952",
+                  "license_url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/LICENSE.md",
+                  "run_count": 10000000,
+                  "cover_image_url": "https://replicate.delivery/pbxt/coverimages/stability-ai/sdxl.png",
+                  "latest_version": {
+                    "id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                    "created_at": "2023-07-19T15:13:21.981654Z",
+                    "cog_version": "0.8.1"
+                  }
+                },
+                {
+                  "url": "https://replicate.com/meta/meta-llama-3-70b-instruct",
+                  "owner": "meta",
+                  "name": "meta-llama-3-70b-instruct",
+                  "description": "Meta's Llama 3 70B instruction-following model",
+                  "visibility": "public",
+                  "github_url": "https://github.com/meta-llama/llama",
+                  "paper_url": "https://arxiv.org/abs/2307.09288",
+                  "license_url": "https://ai.meta.com/llama/license/",
+                  "run_count": 8000000,
+                  "cover_image_url": "https://replicate.delivery/pbxt/coverimages/meta/llama3.png",
+                  "latest_version": {
+                    "id": "hidden",
+                    "created_at": "2023-05-28T12:13:21.981654Z",
+                    "cog_version": "0.7.2"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateModelList"
+            }
+          }
+
+  - endpoint: /replicate/get_deployment
+    examples:
+      - scenario: "Get Deployment Details"
+        description: "Get detailed information about a specific deployment"
+        input_json: |
+          {
+            "owner": "acme",
+            "name": "my-app-image-generator"
+          }
+        output_json: |
+          {
+            "data": {
+              "owner": "acme",
+              "name": "my-app-image-generator",
+              "current_release": {
+                "number": 1,
+                "model": "stability-ai/sdxl",
+                "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+                "created_at": "2023-08-15T14:30:00Z",
+                "created_by": {
+                  "type": "user",
+                  "username": "johndoe",
+                  "name": "John Doe",
+                  "avatar_url": "https://avatars.githubusercontent.com/u/12345678"
+                },
+                "configuration": {
+                  "hardware": "gpu-a100-large",
+                  "min_instances": 1,
+                  "max_instances": 3
+                }
+              }
+            },
+            "component": {
+              "name": "ReplicateDeploymentView"
+            }
+          }
+
+  - endpoint: /replicate/list_deployments
+    examples:
+      - scenario: "List All Deployments"
+        description: "List all deployments available to the user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "owner": "acme",
+                  "name": "my-app-image-generator",
+                  "current_release": {
+                    "number": 1,
+                    "model": "stability-ai/sdxl",
+                    "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+                    "created_at": "2023-08-15T14:30:00Z",
+                    "created_by": {
+                      "type": "user",
+                      "username": "johndoe",
+                      "name": "John Doe",
+                      "avatar_url": "https://avatars.githubusercontent.com/u/12345678"
+                    },
+                    "configuration": {
+                      "hardware": "gpu-a100-large",
+                      "min_instances": 1,
+                      "max_instances": 3
+                    }
+                  }
+                },
+                {
+                  "owner": "acme",
+                  "name": "text-generator",
+                  "current_release": {
+                    "number": 2,
+                    "model": "meta/meta-llama-3-70b-instruct",
+                    "version": "hidden",
+                    "created_at": "2023-09-01T10:15:00Z",
+                    "created_by": {
+                      "type": "user",
+                      "username": "johndoe",
+                      "name": "John Doe",
+                      "avatar_url": "https://avatars.githubusercontent.com/u/12345678"
+                    },
+                    "configuration": {
+                      "hardware": "gpu-a100-large",
+                      "min_instances": 1,
+                      "max_instances": 5
+                    }
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateDeploymentList"
+            }
+          }
+
+  - endpoint: /replicate/validate_key
+    examples:
+      - scenario: "Validate API Key"
+        description: "Check if the provided API key is valid"
+        input_json: |
+          {
+            "api_key": "r8_XXXxxxXXXxxxXXXxxxXXXxxx"
+          }
+        output_json: |
+          {
+            "valid": true,
+            "message": "API key is valid"
+          }
+
+      - scenario: "Invalid API Key"
+        description: "Response when an invalid API key is provided"
+        input_json: |
+          {
+            "api_key": "invalid_key"
+          }
+        output_json: |
+          {
+            "valid": false,
+            "message": "Invalid API key: Authentication credentials were not provided."
+          }
+
+  # -------------------------------------------------------------------
+  # NEWLY ADDED EXAMPLES (for all previously missing routes)
+  # -------------------------------------------------------------------
+
+  - endpoint: /replicate/get_account
+    examples:
+      - scenario: "Retrieve Account Information"
+        description: "Obtain details about the currently authenticated account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "type": "user",
+              "username": "janedoe",
+              "name": "Jane Doe",
+              "avatar_url": "https://avatars.githubusercontent.com/u/123456"
+            },
+            "component": {
+              "name": "ReplicateAccountView"
+            }
+          }
+
+  - endpoint: /replicate/create_deployment
+    examples:
+      - scenario: "Create a New Deployment"
+        description: "Create a deployment with specified model version and scaling configuration"
+        input_json: |
+          {
+            "name": "my-new-deployment",
+            "model": "stability-ai/sdxl",
+            "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+            "hardware": "gpu-a100-large",
+            "min_instances": 1,
+            "max_instances": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "owner": "acme",
+              "name": "my-new-deployment",
+              "current_release": {
+                "number": 1,
+                "model": "stability-ai/sdxl",
+                "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+                "configuration": {
+                  "hardware": "gpu-a100-large",
+                  "min_instances": 1,
+                  "max_instances": 2
+                },
+                "created_at": "2023-10-01T12:00:00Z",
+                "created_by": {
+                  "type": "user",
+                  "username": "janedoe"
+                }
+              }
+            },
+            "component": {
+              "name": "ReplicateDeploymentView"
+            }
+          }
+
+  - endpoint: /replicate/update_deployment
+    examples:
+      - scenario: "Update Deployment Configuration"
+        description: "Update an existing deployment to change hardware or scaling"
+        input_json: |
+          {
+            "owner": "acme",
+            "name": "my-new-deployment",
+            "hardware": "gpu-t4",
+            "min_instances": 2,
+            "max_instances": 4
+          }
+        output_json: |
+          {
+            "data": {
+              "owner": "acme",
+              "name": "my-new-deployment",
+              "current_release": {
+                "number": 2,
+                "model": "stability-ai/sdxl",
+                "version": "da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf",
+                "configuration": {
+                  "hardware": "gpu-t4",
+                  "min_instances": 2,
+                  "max_instances": 4
+                },
+                "created_at": "2023-10-05T10:15:00Z",
+                "created_by": {
+                  "type": "user",
+                  "username": "janedoe"
+                }
+              }
+            },
+            "component": {
+              "name": "ReplicateDeploymentView"
+            }
+          }
+
+  - endpoint: /replicate/delete_deployment
+    examples:
+      - scenario: "Delete a Deployment"
+        description: "Remove a deployment permanently"
+        input_json: |
+          {
+            "owner": "acme",
+            "name": "my-new-deployment"
+          }
+        output_json: |
+          {
+            "data": {
+              "owner": "acme",
+              "name": "my-new-deployment",
+              "current_release": null
+            },
+            "component": {
+              "name": "ReplicateDeploymentView"
+            }
+          }
+
+  - endpoint: /replicate/create_model
+    examples:
+      - scenario: "Create a Private Model"
+        description: "Create a new model under your organization with private visibility"
+        input_json: |
+          {
+            "owner": "acme",
+            "name": "my-custom-model",
+            "visibility": "private",
+            "hardware": "cpu-medium",
+            "description": "A custom model for internal use",
+            "github_url": "https://github.com/acme/my-custom-model"
+          }
+        output_json: |
+          {
+            "data": {
+              "url": "https://replicate.com/acme/my-custom-model",
+              "owner": "acme",
+              "name": "my-custom-model",
+              "description": "A custom model for internal use",
+              "visibility": "private",
+              "github_url": "https://github.com/acme/my-custom-model",
+              "paper_url": null,
+              "license_url": null,
+              "run_count": 0,
+              "cover_image_url": null
+            },
+            "component": {
+              "name": "ReplicateModelView"
+            }
+          }
+
+  - endpoint: /replicate/delete_model
+    examples:
+      - scenario: "Delete an Existing Model"
+        description: "Remove a model from your account or organization"
+        input_json: |
+          {
+            "owner": "acme",
+            "name": "my-custom-model"
+          }
+        output_json: |
+          {
+            "data": {
+              "url": "https://replicate.com/acme/my-custom-model",
+              "owner": "acme",
+              "name": "my-custom-model"
+            },
+            "component": {
+              "name": "ReplicateModelView"
+            }
+          }
+
+  - endpoint: /replicate/search_models
+    examples:
+      - scenario: "Search Models by Query"
+        description: "Search for models with a partial or full query string"
+        input_json: |
+          {
+            "query": "stable diffusion"
+          }
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "url": "https://replicate.com/stability-ai/sdxl",
+                  "owner": "stability-ai",
+                  "name": "sdxl",
+                  "description": "Stability AI's SDXL, a text-to-image model",
+                  "visibility": "public"
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateModelList"
+            }
+          }
+
+  - endpoint: /replicate/list_model_examples
+    examples:
+      - scenario: "List Example Predictions for a Model"
+        description: "Retrieve a list of sample predictions run on the model"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl"
+          }
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "example1",
+                  "model": "stability-ai/sdxl",
+                  "status": "succeeded",
+                  "input": {
+                    "prompt": "a bowl of fruit"
+                  },
+                  "output": [
+                    "https://replicate.delivery/pbxt/example/bowl_of_fruit.png"
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicatePredictionList"
+            }
+          }
+
+  - endpoint: /replicate/get_model_readme
+    examples:
+      - scenario: "Get Model README"
+        description: "Retrieve the README content for a specific model"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl"
+          }
+        output_json: |
+          {
+            "data": "# SDXL\n\nThis is the official Stability AI SDXL model...",
+            "component": {
+              "name": "ReplicateReadmeView"
+            }
+          }
+
+  - endpoint: /replicate/list_model_versions
+    examples:
+      - scenario: "List All Versions of a Model"
+        description: "Shows the different versions of a model"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl"
+          }
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+                  "created_at": "2023-07-19T15:13:21.981654Z",
+                  "cog_version": "0.8.1"
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateModelList"
+            }
+          }
+
+  - endpoint: /replicate/get_model_version
+    examples:
+      - scenario: "Get Details of a Specific Model Version"
+        description: "Fetch version details including creation date and Cog version"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl",
+            "version_id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+              "created_at": "2023-07-19T15:13:21.981654Z",
+              "cog_version": "0.8.1"
+            },
+            "component": {
+              "name": "ReplicateModelView"
+            }
+          }
+
+  - endpoint: /replicate/delete_model_version
+    examples:
+      - scenario: "Delete a Model Version"
+        description: "Remove a specific version from a model"
+        input_json: |
+          {
+            "owner": "stability-ai",
+            "name": "sdxl",
+            "version_id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4"
+            },
+            "component": {
+              "name": "ReplicateModelView"
+            }
+          }
+
+  - endpoint: /replicate/create_training
+    examples:
+      - scenario: "Create a New Training Job"
+        description: "Start a training process using a base model version"
+        input_json: |
+          {
+            "destination": "acme/new-trained-model",
+            "model_owner": "acme",
+            "model_name": "base-model",
+            "version_id": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+            "input": {
+              "training_data_url": "https://example.com/data.zip"
+            },
+            "webhook": "https://example.com/webhook"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "train123",
+              "model": "acme/base-model",
+              "version": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+              "input": {
+                "training_data_url": "https://example.com/data.zip"
+              },
+              "status": "starting",
+              "created_at": "2023-10-10T09:00:00Z"
+            },
+            "component": {
+              "name": "ReplicateTrainingView"
+            }
+          }
+
+  - endpoint: /replicate/list_trainings
+    examples:
+      - scenario: "List All Trainings"
+        description: "Retrieve a list of all training jobs"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "train123",
+                  "model": "acme/base-model",
+                  "status": "processing"
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateTrainingList"
+            }
+          }
+
+  - endpoint: /replicate/get_training
+    examples:
+      - scenario: "Get a Specific Training Job"
+        description: "Retrieve details of a particular training job by ID"
+        input_json: |
+          {
+            "id": "train123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "train123",
+              "model": "acme/base-model",
+              "version": "5c7d5dc6dd8bf75c1acaa8565735e7986bc5b66206b55cca93cb72c9bf15ccaa",
+              "status": "processing",
+              "created_at": "2023-10-10T09:00:00Z"
+            },
+            "component": {
+              "name": "ReplicateTrainingView"
+            }
+          }
+
+  - endpoint: /replicate/cancel_training
+    examples:
+      - scenario: "Cancel a Running Training Job"
+        description: "Stop the training process for a given job ID"
+        input_json: |
+          {
+            "id": "train123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "train123",
+              "model": "acme/base-model",
+              "status": "canceled"
+            },
+            "component": {
+              "name": "ReplicateTrainingView"
+            }
+          }
+
+  - endpoint: /replicate/list_collections
+    examples:
+      - scenario: "List All Collections"
+        description: "Retrieve a paginated list of public or user-specific collections"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "name": "Text-to-Image Favorites",
+                  "slug": "text2image-favs",
+                  "description": "A curated list of T2I models"
+                }
+              ]
+            },
+            "component": {
+              "name": "ReplicateCollectionList"
+            }
+          }
+
+  - endpoint: /replicate/get_collection
+    examples:
+      - scenario: "Get Collection Details"
+        description: "View the models or info associated with a specific collection"
+        input_json: |
+          {
+            "slug": "text2image-favs"
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "Text-to-Image Favorites",
+              "slug": "text2image-favs",
+              "description": "A curated list of T2I models"
+            },
+            "component": {
+              "name": "ReplicateCollectionView"
+            }
+          }
+
+  - endpoint: /replicate/list_hardware
+    examples:
+      - scenario: "List Hardware Options"
+        description: "Fetch possible hardware SKUs for hosting or running models"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": [
+              {
+                "name": "GPU T4",
+                "sku": "gpu-t4"
+              },
+              {
+                "name": "GPU A100 Large",
+                "sku": "gpu-a100-large"
+              }
+            ],
+            "component": {
+              "name": "ReplicateHardwareList"
+            }
+          }
+
+  - endpoint: /replicate/get_webhook_secret
+    examples:
+      - scenario: "Retrieve Webhook Secret"
+        description: "Get your account's webhook signing secret"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "key": "whsec_XXXXXXXXXXXXXX"
+            },
+            "component": {
+              "name": "ReplicateWebhookView"
+            }
+          }
+
+  - endpoint: /replicate/create_kling_prediction
+    examples:
+      - scenario: "Create a Kling Model Prediction"
+        description: "Generate an image/video sequence with the Kling model"
+        input_json: |
+          {
+            "input": {
+              "prompt": "A cosmic temple floating in the sky",
+              "duration": 5,
+              "cfg_scale": 0.7,
+              "aspect_ratio": "16:9"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "klingpred123",
+              "model": "kwaivgi/kling-v1.6-pro",
+              "input": {
+                "prompt": "A cosmic temple floating in the sky",
+                "duration": 5,
+                "cfg_scale": 0.7,
+                "aspect_ratio": "16:9"
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_flux_pro_prediction
+    examples:
+      - scenario: "Create a Flux Pro Model Prediction"
+        description: "Generate a high-quality image using Flux 1.1 Pro"
+        input_json: |
+          {
+            "input": {
+              "prompt": "A futuristic city skyline at sunset",
+              "aspect_ratio": "1:1"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "fluxpro123",
+              "model": "black-forest-labs/flux-1.1-pro",
+              "input": {
+                "prompt": "A futuristic city skyline at sunset",
+                "aspect_ratio": "1:1"
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_flux_schnell_prediction
+    examples:
+      - scenario: "Fast Generation with Flux Schnell"
+        description: "Generate an image quickly using Flux Schnell's fast mode"
+        input_json: |
+          {
+            "input": {
+              "prompt": "A cartoon dragon eating ice cream",
+              "go_fast": true,
+              "num_outputs": 1
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "schnell123",
+              "model": "black-forest-labs/flux-schnell",
+              "input": {
+                "prompt": "A cartoon dragon eating ice cream",
+                "go_fast": true,
+                "num_outputs": 1
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_minimax_video_prediction
+    examples:
+      - scenario: "Create a Minimax Video Prediction"
+        description: "Generate a short video from a text prompt"
+        input_json: |
+          {
+            "input": {
+              "prompt": "Robots dancing in a neon-lit factory"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "minimaxvid123",
+              "model": "minimax/video-01",
+              "input": {
+                "prompt": "Robots dancing in a neon-lit factory"
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_stable_diffusion_prediction
+    examples:
+      - scenario: "Stable Diffusion with Default Version"
+        description: "Use the default SDXL version to generate an image"
+        input_json: |
+          {
+            "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+            "input": {
+              "prompt": "A serene lake under a pink sky"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "sdpred123",
+              "model": "stability-ai/sdxl",
+              "version": "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
+              "input": {
+                "prompt": "A serene lake under a pink sky"
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_trellis_prediction
+    examples:
+      - scenario: "Generate a 3D Asset with Trellis"
+        description: "Create a 3D model from images using Trellis"
+        input_json: |
+          {
+            "version": "4876f2a8da1c544772dffa32e8889da4a1bab3a1f5c1937bfcfccb99ae347251",
+            "input": {
+              "images": [
+                "https://example.com/obj_front.jpg",
+                "https://example.com/obj_side.jpg"
+              ],
+              "mesh_simplify": 0.8
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "trellis123",
+              "model": "replicate/trellis",
+              "version": "4876f2a8da1c544772dffa32e8889da4a1bab3a1f5c1937bfcfccb99ae347251",
+              "input": {
+                "images": [
+                  "https://example.com/obj_front.jpg",
+                  "https://example.com/obj_side.jpg"
+                ],
+                "mesh_simplify": 0.8
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_remove_bg_prediction
+    examples:
+      - scenario: "Remove Background from an Image"
+        description: "Use the remove-bg model to remove an image background"
+        input_json: |
+          {
+            "version": "95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf1",
+            "input": {
+              "image": "https://example.com/photo.jpg"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "removebg123",
+              "model": "replicate/remove-bg",
+              "version": "95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf1",
+              "input": {
+                "image": "https://example.com/photo.jpg"
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_real_esrgan_prediction
+    examples:
+      - scenario: "Upscale an Image with Real-ESRGAN"
+        description: "Enhance and upscale an image"
+        input_json: |
+          {
+            "version": "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
+            "input": {
+              "image": "https://example.com/low_res.jpg",
+              "scale": 2
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "realesrgan123",
+              "model": "replicate/real-esrgan",
+              "version": "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
+              "input": {
+                "image": "https://example.com/low_res.jpg",
+                "scale": 2
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_logo_ai_prediction
+    examples:
+      - scenario: "Generate a Custom Logo"
+        description: "Use LogoAI model to create a new brand logo"
+        input_json: |
+          {
+            "version": "67ed00e8999fecd32035074fa0f2e9a31ee03b57a8415e6a5e2f93a242ddd8d2",
+            "input": {
+              "prompt": "Minimalist tech startup logo"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "logoai123",
+              "model": "replicate/logoai",
+              "version": "67ed00e8999fecd32035074fa0f2e9a31ee03b57a8415e6a5e2f93a242ddd8d2",
+              "input": {
+                "prompt": "Minimalist tech startup logo"
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/create_birefnet_prediction
+    examples:
+      - scenario: "Remove Background with BirefNet"
+        description: "Use BirefNet to remove an image background at high quality"
+        input_json: |
+          {
+            "version": "f74986db0355b58403ed20963af156525e2891ea3c2d499bfbfb2a28cd87c5d7",
+            "input": {
+              "image": "https://example.com/photo.jpg",
+              "resolution": "1080x1920"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "biref123",
+              "model": "replicate/birefnet",
+              "version": "f74986db0355b58403ed20963af156525e2891ea3c2d499bfbfb2a28cd87c5d7",
+              "input": {
+                "image": "https://example.com/photo.jpg",
+                "resolution": "1080x1920"
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/generate_image
+    examples:
+      - scenario: "Generate an Image (Alias Route)"
+        description: "Generate an image using Flux Pro as the underlying model"
+        input_json: |
+          {
+            "input": {
+              "prompt": "A fantasy castle on a hill",
+              "aspect_ratio": "16:9"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "fluxproalias123",
+              "model": "black-forest-labs/flux-1.1-pro",
+              "input": {
+                "prompt": "A fantasy castle on a hill",
+                "aspect_ratio": "16:9"
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/generate_video
+    examples:
+      - scenario: "Generate a Video (Alias Route)"
+        description: "Generate a short video using Minimax Video-01"
+        input_json: |
+          {
+            "input": {
+              "prompt": "A time-lapse of a flower blooming"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "minimaxvidalias123",
+              "model": "minimax/video-01",
+              "input": {
+                "prompt": "A time-lapse of a flower blooming"
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/generate_3d_asset
+    examples:
+      - scenario: "Generate a 3D Asset (Alias Route)"
+        description: "Produce a simple 3D model from images using Trellis"
+        input_json: |
+          {
+            "version": "4876f2a8da1c544772dffa32e8889da4a1bab3a1f5c1937bfcfccb99ae347251",
+            "input": {
+              "images": [
+                "https://example.com/obj_front.jpg",
+                "https://example.com/obj_side.jpg"
+              ]
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "trellisalias123",
+              "model": "replicate/trellis",
+              "version": "4876f2a8da1c544772dffa32e8889da4a1bab3a1f5c1937bfcfccb99ae347251",
+              "input": {
+                "images": [
+                  "https://example.com/obj_front.jpg",
+                  "https://example.com/obj_side.jpg"
+                ]
+              },
+              "status": "processing",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
+  - endpoint: /replicate/remove_background_best_model
+    examples:
+      - scenario: "Remove Image Background (Alias Route)"
+        description: "Remove an image background using BirefNet (best quality)"
+        input_json: |
+          {
+            "version": "f74986db0355b58403ed20963af156525e2891ea3c2d499bfbfb2a28cd87c5d7",
+            "input": {
+              "image": "https://example.com/photo.jpg"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "birefalias123",
+              "model": "replicate/birefnet",
+              "version": "f74986db0355b58403ed20963af156525e2891ea3c2d499bfbfb2a28cd87c5d7",
+              "input": {
+                "image": "https://example.com/photo.jpg"
+              },
+              "status": "starting",
+              "output": null
+            },
+            "component": {
+              "name": "ReplicatePredictionView"
+            }
+          }
+
