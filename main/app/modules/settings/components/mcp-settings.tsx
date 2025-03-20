@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { UserApiKey } from "../api/types.settings"
 import { Input } from "@/components/ui/input"
-import { Copy, Check, Clipboard } from "lucide-react"
+import { Copy, Check, Code, ArrowUpRight } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { Files, Ticket, ArrowUpRight } from "lucide-react"
+import { Files, Ticket } from "lucide-react"
 import FeedbackDialog from "@/app/modules/general/components/feedback-dialog"
+import { getOpenApiSpecAsString } from "./gpt-config"
+import { Textarea } from "@/components/ui/textarea"
 
 interface MCPSettingsProps {
   apiKey: UserApiKey | null;
@@ -19,6 +21,7 @@ interface MCPSettingsProps {
 
 export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsProps) {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
+  const [copiedSpec, setCopiedSpec] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [activeTab, setActiveTab] = useState('cursor')
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
@@ -49,12 +52,18 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
     setTimeout(() => setCopiedCommand(null), 2000)
   }
 
+  const handleCopySpec = () => {
+    navigator.clipboard.writeText(getOpenApiSpecAsString())
+    setCopiedSpec(true)
+    setTimeout(() => setCopiedSpec(false), 2000)
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">MCP Configuration</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">MCP & Plugins</h2>
         <p className="text-sm text-muted-foreground">
-          Copy and paste these commands to set up VeyraX MCP with different clients.
+          Copy and paste these commands to set up VeyraX with different clients.
         </p>
       </div>
 
@@ -96,6 +105,13 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
           <TabsTrigger 
             className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="chatgpt"
+            onClick={() => setActiveTab('chatgpt')}
+          >
+            ChatGPT
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
             value="claude"
             onClick={() => setActiveTab('claude')}
           >
@@ -117,90 +133,120 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
         </TabsList>
         
-        {Object.entries(mcpCommands).map(([key, command]) => (
-          <TabsContent key={key} value={key} className="mt-0">
-            <div className="p-6 border rounded-lg">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold capitalize">{key} Setup</h3>
-                <p className="text-sm text-muted-foreground">
-                  Configure VeyraX MCP with your API key
-                </p>
-              </div>
-              
-              {key === 'cursor' ? (
-                <>
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-2">Windows</h4>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input
-                          value={(command as {Windows: string; MacOS: string}).Windows}
-                          readOnly
-                          className="pr-10 font-mono text-sm"
-                        />
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).Windows)}
-                      >
-                        {copiedCommand === (command as {Windows: string; MacOS: string}).Windows ? 
-                          <Check className="h-4 w-4" /> : 
-                          <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">MacOS</h4>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input
-                          value={(command as {Windows: string; MacOS: string}).MacOS}
-                          readOnly
-                          className="pr-10 font-mono text-sm"
-                        />
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).MacOS)}
-                      >
-                        {copiedCommand === (command as {Windows: string; MacOS: string}).MacOS ? 
-                          <Check className="h-4 w-4" /> : 
-                          <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      value={command as string}
-                      readOnly
-                      className="pr-10 font-mono text-sm"
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => handleCopyCommand(command as string)}
-                  >
-                    {copiedCommand === command ? 
-                      <Check className="h-4 w-4" /> : 
-                      <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-              )}
-              
-              {key === 'config' && !apiKey && (
-                <p className="text-sm text-amber-500 mt-2">
-                  Note: Generate an API key first to get a valid configuration command.
-                </p>
-              )}
+        <TabsContent value="chatgpt" className="mt-0">
+          <div className="p-6 border rounded-lg">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold">ChatGPT Setup</h3>
+              <p className="text-sm text-muted-foreground">
+                Configure VeyraX with Custom GPTs and ChatGPT plugins
+              </p>
             </div>
-          </TabsContent>
-        ))}
+            
+            <div className="mb-4">
+              <div className="relative">
+                <Textarea
+                  value={getOpenApiSpecAsString()}
+                  readOnly
+                  className="font-mono text-sm h-64 resize-none"
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleCopySpec}
+                >
+                  {copiedSpec ? 
+                    <Check className="h-4 w-4" /> : 
+                    <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        {Object.entries(mcpCommands).map(([key, command]) => {
+          if (key === 'chatgpt') return null; // Skip ChatGPT here as we have a custom tab for it
+          
+          return (
+            <TabsContent key={key} value={key} className="mt-0">
+              <div className="p-6 border rounded-lg">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold capitalize">{key} Setup</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Configure VeyraX MCP with your API key
+                  </p>
+                </div>
+                
+                {key === 'cursor' ? (
+                  <>
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Windows</h4>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            value={(command as {Windows: string; MacOS: string}).Windows}
+                            readOnly
+                            className="pr-10 font-mono text-sm"
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).Windows)}
+                        >
+                          {copiedCommand === (command as {Windows: string; MacOS: string}).Windows ? 
+                            <Check className="h-4 w-4" /> : 
+                            <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">MacOS</h4>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            value={(command as {Windows: string; MacOS: string}).MacOS}
+                            readOnly
+                            className="pr-10 font-mono text-sm"
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).MacOS)}
+                        >
+                          {copiedCommand === (command as {Windows: string; MacOS: string}).MacOS ? 
+                            <Check className="h-4 w-4" /> : 
+                            <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        value={command as string}
+                        readOnly
+                        className="pr-10 font-mono text-sm"
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => handleCopyCommand(command as string)}
+                    >
+                      {copiedCommand === command ? 
+                        <Check className="h-4 w-4" /> : 
+                        <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          );
+        })}
       </Tabs>
 
       <Separator />

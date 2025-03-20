@@ -147,7 +147,7 @@ export function AccountSettingsDialog({
                 }`}
               >
                 <Terminal className="h-3.5 w-3.5" />
-                <span>MCP</span>
+                <span>MCP & Plugins</span>
               </Link>
             </nav>
           </div>
