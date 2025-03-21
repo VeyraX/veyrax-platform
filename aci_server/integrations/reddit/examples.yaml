@@ -100,7 +100,7 @@ routes:
         description: "Submit a new comment on a post"
         input_json: |
           {
-            "thing_id": "t3_abc123",
+            "parent_id": "t3_abc123",
             "text": "Thanks for sharing this information!"
           }
         output_json: |
@@ -120,37 +120,6 @@ routes:
           }
 
   - endpoint: /reddit/get_flairs
-    examples:
-      - scenario: "Get Subreddit Flairs"
-        description: "Retrieve available flairs for a subreddit"
-        input_json: |
-          {
-            "subreddit": "programming"
-          }
-        output_json: |
-          {
-            "data": {
-              "flairs": [
-                {
-                  "id": "flair123",
-                  "text": "Discussion",
-                  "type": "text",
-                  "text_color": "light",
-                  "background_color": "#0079D3"
-                },
-                {
-                  "id": "flair456",
-                  "text": "Tutorial",
-                  "type": "text",
-                  "text_color": "dark",
-                  "background_color": "#7193FF"
-                }
-              ]
-            },
-            "component": {
-              "name": "RedditFlairList"
-            }
-          }
 
   - endpoint: /reddit/edit_post
     examples:
@@ -240,13 +209,13 @@ routes:
             }
           }
 
-  - endpoint: /reddit/vote
+  - endpoint: /reddit/vote_post
     examples:
       - scenario: "Upvote Post"
         description: "Upvote a Reddit post"
         input_json: |
           {
-            "thing_id": "t3_abcdef",
+            "post_id": "abcdef",
             "direction": 1
           }
         output_json: |
@@ -255,119 +224,109 @@ routes:
               "success": true,
               "thing_id": "t3_abcdef",
               "direction": 1,
-              "message": "Successfully upvoted item"
-            },
-            "component": {
-              "name": "RedditAction"
-            }
-          }
-      - scenario: "Downvote Comment"
-        description: "Downvote a Reddit comment"
-        input_json: |
-          {
-            "thing_id": "t1_xyz789",
-            "direction": -1
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "thing_id": "t1_xyz789",
-              "direction": -1,
-              "message": "Successfully downvoted item"
-            },
-            "component": {
-              "name": "RedditAction"
-            }
-          }
-      - scenario: "Clear Vote"
-        description: "Remove your vote from a post or comment"
-        input_json: |
-          {
-            "thing_id": "t3_abcdef",
-            "direction": 0
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "thing_id": "t3_abcdef",
-              "direction": 0,
-              "message": "Successfully vote cleared item"
+              "message": "Successfully upvoted post"
             },
             "component": {
               "name": "RedditAction"
             }
           }
 
-  - endpoint: /reddit/save
+  - endpoint: /reddit/vote_comment
+    examples:
+      - scenario: "Upvote Comment"
+        description: "Upvote a Reddit comment"
+        input_json: |
+          {
+            "comment_id": "xyz789",
+            "direction": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t1_xyz789",
+              "direction": 1,
+              "message": "Successfully upvoted comment"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/save_post
     examples:
       - scenario: "Save Post"
         description: "Save a Reddit post for later viewing"
         input_json: |
           {
-            "thing_id": "t3_abcdef"
+            "post_id": "abcdef"
           }
         output_json: |
           {
             "data": {
               "success": true,
               "thing_id": "t3_abcdef",
-              "message": "Item successfully saved"
-            },
-            "component": {
-              "name": "RedditAction"
-            }
-          }
-      - scenario: "Save Comment"
-        description: "Save a Reddit comment for later reference"
-        input_json: |
-          {
-            "thing_id": "t1_xyz789"
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "thing_id": "t1_xyz789",
-              "message": "Item successfully saved"
+              "message": "Post successfully saved"
             },
             "component": {
               "name": "RedditAction"
             }
           }
 
-  - endpoint: /reddit/unsave
+  - endpoint: /reddit/save_comment
     examples:
-      - scenario: "Unsave Post"
-        description: "Unsave a previously saved Reddit post"
+      - scenario: "Save Comment"
+        description: "Save a Reddit comment for later reference"
         input_json: |
           {
-            "thing_id": "t3_abcdef"
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "thing_id": "t3_abcdef",
-              "message": "Item successfully unsaved"
-            },
-            "component": {
-              "name": "RedditAction"
-            }
-          }
-      - scenario: "Unsave Comment"
-        description: "Unsave a previously saved Reddit comment"
-        input_json: |
-          {
-            "thing_id": "t1_xyz789"
+            "comment_id": "xyz789"
           }
         output_json: |
           {
             "data": {
               "success": true,
               "thing_id": "t1_xyz789",
-              "message": "Item successfully unsaved"
+              "message": "Comment successfully saved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/unsave_post
+    examples:
+      - scenario: "Unsave Post"
+        description: "Unsave a previously saved Reddit post"
+        input_json: |
+          {
+            "post_id": "abcdef"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t3_abcdef",
+              "message": "Post successfully unsaved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/unsave_comment
+    examples:
+      - scenario: "Unsave Comment"
+        description: "Unsave a previously saved Reddit comment"
+        input_json: |
+          {
+            "comment_id": "xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t1_xyz789",
+              "message": "Comment successfully unsaved"
             },
             "component": {
               "name": "RedditAction"
@@ -375,60 +334,6 @@ routes:
           }
 
   - endpoint: /reddit/get_saved
-    examples:
-      - scenario: "Get Saved Items"
-        description: "Get user's saved posts and comments"
-        input_json: |
-          {
-            "limit": 10
-          }
-        output_json: |
-          {
-            "data": {
-              "items": [
-                {
-                  "id": "abc123",
-                  "title": "Interesting Programming Article",
-                  "author": "coder123",
-                  "subreddit": "programming",
-                  "score": 1500,
-                  "url": "https://reddit.com/r/programming/comments/abc123",
-                  "created_utc": 1647834567.0,
-                  "num_comments": 234,
-                  "is_self": true,
-                  "selftext": "This article discusses interesting programming concepts...",
-                  "permalink": "/r/programming/comments/abc123"
-                },
-                {
-                  "id": "comment789",
-                  "author": "helpful_user",
-                  "body": "This is a very informative comment worth saving",
-                  "score": 150,
-                  "created_utc": 1647834667.0,
-                  "permalink": "/r/programming/comments/abc123/comment/comment789",
-                  "parent_id": "t3_abc123"
-                }
-              ]
-            },
-            "component": {
-              "name": "RedditSavedList"
-            }
-          }
-      - scenario: "Get Saved Items (Empty)"
-        description: "Get user's saved items when none exist"
-        input_json: |
-          {
-            "limit": 25
-          }
-        output_json: |
-          {
-            "data": {
-              "items": []
-            },
-            "component": {
-              "name": "RedditSavedList"
-            }
-          }
 
   - endpoint: /reddit/get_my_info
     examples:
@@ -450,5 +355,141 @@ routes:
             },
             "component": {
               "name": "RedditUserProfile"
+            }
+          }
+
+  - endpoint: /reddit/delete_post
+    examples:
+      - scenario: "Delete Post"
+        description: "Delete a Reddit post that you authored"
+        input_json: |
+          {
+            "post_id": "abc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Post successfully deleted"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/c
+    examples:
+      - scenario: "Delete Comment"
+        description: "Delete a Reddit comment that you authored"
+        input_json: |
+          {
+            "comment_id": "xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Comment successfully deleted"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/edit_comment
+    examples:
+      - scenario: "Edit Comment Content"
+        description: "Edit the content of an existing comment"
+        input_json: |
+          {
+            "comment_id": "xyz789",
+            "text": "Updated comment with additional information..."
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "xyz789",
+              "author": "original_commenter",
+              "body": "Updated comment with additional information...",
+              "score": 52,
+              "created_utc": 1647834667.0,
+              "permalink": "/r/programming/comments/abc123/comment/xyz789",
+              "parent_id": "t3_abc123"
+            },
+            "component": {
+              "name": "RedditComment"
+            }
+          }
+
+  - endpoint: /reddit/get_comment
+    examples:
+      - scenario: "Get Comment Information"
+        description: "Retrieve information about a specific comment"
+        input_json: |
+          {
+            "comment_id": "t1_xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "xyz789",
+              "author": "helpful_user",
+              "body": "This is a detailed comment with useful information.",
+              "score": 52,
+              "created_utc": 1647834667.0,
+              "permalink": "/r/programming/comments/abc123/comment/xyz789",
+              "parent_id": "t3_abc123"
+            },
+            "component": {
+              "name": "RedditComment"
+            }
+          }
+
+  - endpoint: /reddit/get_my_subreddits
+    examples:
+      - scenario: "Get User Subscribed Subreddits"
+        description: "Retrieve the list of subreddits a user is subscribed to"
+        input_json: |
+          {
+            "limit": 100
+          }
+        output_json: |
+          {
+            "data": {
+              "subreddits": [
+                {
+                  "id": "2qh33",
+                  "display_name": "programming",
+                  "name": "t5_2qh33",
+                  "title": "Programming",
+                  "description": "Computer Programming",
+                  "subscribers": 3945000,
+                  "created_utc": 1201233600.0,
+                  "url": "/r/programming/",
+                  "over18": false,
+                  "community_icon": "https://styles.redditmedia.com/t5_2qh33/styles/communityIcon_6w1jtoxywqf21.png",
+                  "banner_img": "",
+                  "header_img": "",
+                  "icon_img": ""
+                },
+                {
+                  "id": "2qh1i",
+                  "display_name": "technology",
+                  "name": "t5_2qh1i",
+                  "title": "Technology",
+                  "description": "For all things technology",
+                  "subscribers": 12500000,
+                  "created_utc": 1201233600.0,
+                  "url": "/r/technology/",
+                  "over18": false,
+                  "community_icon": "https://styles.redditmedia.com/t5_2qh1i/styles/communityIcon_a0lvr3qyyls51.png",
+                  "banner_img": "",
+                  "header_img": "",
+                  "icon_img": ""
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditSubredditList"
             }
           }

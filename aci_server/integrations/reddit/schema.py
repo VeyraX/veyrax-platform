@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union
 
-# Input Schemas
 class SubredditPostsParams(BaseModel):
     subreddit: str = Field(..., description="Name of the subreddit")
     limit: Optional[int] = Field(25, ge=1, le=100, description="Number of posts to fetch")
@@ -9,7 +8,7 @@ class SubredditPostsParams(BaseModel):
 
 class CommentParams(BaseModel):
     text: str = Field(..., description="Comment text")
-    thing_id: str = Field(..., description="Full name of parent submission or comment")
+    parent_id: str = Field(..., description="Full ID of parent submission or comment (use t3_ prefix for posts, t1_ prefix for comments)")
 
 class PostParams(BaseModel):
     subreddit: str = Field(..., description="Subreddit to submit to")
@@ -18,18 +17,8 @@ class PostParams(BaseModel):
     url: Optional[str] = Field(None, description="URL for link posts")
     flair_id: Optional[str] = Field(None, description="Flair ID for the post")
 
-class FlairParams(BaseModel):
-    subreddit: str = Field(..., description="Subreddit to get flairs from")
-
 class CommentInfoParams(BaseModel):
     comment_id: str = Field(..., description="Full name of the comment")
-
-class DeleteParams(BaseModel):
-    thing_id: str = Field(..., description="Full name of comment/post to delete")
-
-class EditParams(BaseModel):
-    thing_id: str = Field(..., description="Full name of comment/post to edit")
-    text: str = Field(..., description="New text content")
 
 class SearchParams(BaseModel):
     query: str = Field(..., description="Search query")
@@ -78,27 +67,16 @@ class RedditComment(BaseModel):
     permalink: str
     parent_id: str
 
-class SubredditFlair(BaseModel):
-    id: str
-    text: str
-    type: str
-    text_color: str
-    background_color: str
-
 class PostList(BaseModel):
     posts: List[RedditPost]
 
 class CommentList(BaseModel):
     comments: List[RedditComment]
 
-class FlairList(BaseModel):
-    flairs: List[SubredditFlair]
-
 class ActionResponse(BaseModel):
     success: bool
     message: str
 
-# Response Schemas
 class GetSubredditPostsResponse(BaseModel):
     data: PostList
     message: Optional[str] = None
@@ -111,20 +89,90 @@ class CreatePostResponse(BaseModel):
     data: RedditPost
     message: Optional[str] = None
 
-class GetSubredditFlairsResponse(BaseModel):
-    data: FlairList
-    message: Optional[str] = None
-
 class GetCommentResponse(BaseModel):
     data: RedditComment
     message: Optional[str] = None
 
-class DeleteThingResponse(BaseModel):
-    data: ActionResponse
+class UserInfoParams(BaseModel):
+    username: str = Field(..., description="Reddit username")
+
+class VoteParams(BaseModel):
+    thing_id: str = Field(..., description="Full name of post/comment to vote on")
+    direction: int = Field(..., ge=-1, le=1, description="Vote direction: 1 (upvote), -1 (downvote), 0 (clear vote)")
+
+class SaveParams(BaseModel):
+    thing_id: str = Field(..., description="Full name of post/comment to save")
+
+class UnsaveParams(BaseModel):
+    thing_id: str = Field(..., description="Full name of post/comment to unsave")
+
+class RedditUser(BaseModel):
+    id: str
+    name: str
+    created_utc: float
+    comment_karma: int
+    link_karma: int
+    is_gold: bool
+    is_mod: bool
+    has_verified_email: bool
+
+class VoteResponse(BaseModel):
+    success: bool
+    thing_id: str
+    direction: int
+    message: str
+
+class SaveResponse(BaseModel):
+    success: bool
+    thing_id: str
+    message: str
+
+class GetUserInfoResponse(BaseModel):
+    data: RedditUser
     message: Optional[str] = None
 
-class EditThingResponse(BaseModel):
-    data: Union[RedditComment, RedditPost]
+class VotePostParams(BaseModel):
+    post_id: str = Field(..., description="ID of post to vote on")
+    direction: int = Field(..., ge=-1, le=1, description="Vote direction: 1 (upvote), -1 (downvote), 0 (clear vote)")
+
+class VoteCommentParams(BaseModel):
+    comment_id: str = Field(..., description="ID of comment to vote on")
+    direction: int = Field(..., ge=-1, le=1, description="Vote direction: 1 (upvote), -1 (downvote), 0 (clear vote)")
+
+class SavePostParams(BaseModel):
+    post_id: str = Field(..., description="ID of post to save")
+
+class SaveCommentParams(BaseModel):
+    comment_id: str = Field(..., description="ID of comment to save")
+
+class UnsavePostParams(BaseModel):
+    post_id: str = Field(..., description="ID of post to unsave")
+
+class UnsaveCommentParams(BaseModel):
+    comment_id: str = Field(..., description="ID of comment to unsave")
+
+class VotePostResponse(BaseModel):
+    data: VoteResponse
+    message: Optional[str] = None
+
+class VoteCommentResponse(BaseModel):
+    data: VoteResponse
+    message: Optional[str] = None
+
+class SavePostResponse(BaseModel):
+    data: SaveResponse
+    message: Optional[str] = None
+
+class SaveCommentResponse(BaseModel):
+    data: SaveResponse
+    message: Optional[str] = None
+
+class UnsavePostResponse(BaseModel):
+    data: SaveResponse
+    message: Optional[str] = None
+
+class UnsaveCommentResponse(BaseModel):
+    data: SaveResponse
     message: Optional[str] = None
 
 class SearchResponse(BaseModel):
@@ -151,95 +199,56 @@ class EditCommentResponse(BaseModel):
     data: RedditComment
     message: Optional[str] = None
 
-# Новые входные схемы
-class UserInfoParams(BaseModel):
-    username: str = Field(..., description="Reddit username")
-
-class VoteParams(BaseModel):
-    thing_id: str = Field(..., description="Full name of post/comment to vote on")
-    direction: int = Field(..., ge=-1, le=1, description="Vote direction: 1 (upvote), -1 (downvote), 0 (clear vote)")
-
-class SaveParams(BaseModel):
-    thing_id: str = Field(..., description="Full name of post/comment to save")
-
-class UnsaveParams(BaseModel):
-    thing_id: str = Field(..., description="Full name of post/comment to unsave")
-
-class GetSavedParams(BaseModel):
-    limit: Optional[int] = Field(25, ge=1, le=100, description="Number of saved items to fetch")
-
-# Новые модели ответов
-class RedditUser(BaseModel):
+class Subreddit(BaseModel):
     id: str
+    display_name: str
     name: str
+    title: str
+    description: Optional[str]
+    subscribers: int
     created_utc: float
-    comment_karma: int
-    link_karma: int
-    is_gold: bool
-    is_mod: bool
-    has_verified_email: bool
+    url: str
+    over18: bool
+    community_icon: Optional[str]
+    banner_img: Optional[str]
+    header_img: Optional[str]
+    icon_img: Optional[str]
 
-class VoteResponse(BaseModel):
-    success: bool
-    thing_id: str
-    direction: int
-    message: str
+class SubredditList(BaseModel):
+    subreddits: List[Subreddit]
 
-class SaveResponse(BaseModel):
-    success: bool
-    thing_id: str
-    message: str
+class GetMySubredditsParams(BaseModel):
+    limit: Optional[int] = Field(100, ge=1, le=250, description="Number of subreddits to fetch")
 
-class SavedItemsList(BaseModel):
-    items: List[Union[RedditPost, RedditComment]]
-
-# Новые схемы ответов
-class GetUserInfoResponse(BaseModel):
-    data: RedditUser
+class GetMySubredditsResponse(BaseModel):
+    data: SubredditList
     message: Optional[str] = None
 
-class VoteThingResponse(BaseModel):
-    data: VoteResponse
-    message: Optional[str] = None
-
-class SaveThingResponse(BaseModel):
-    data: SaveResponse
-    message: Optional[str] = None
-
-class UnsaveThingResponse(BaseModel):
-    data: SaveResponse
-    message: Optional[str] = None
-
-class GetSavedItemsResponse(BaseModel):
-    data: SavedItemsList
-    message: Optional[str] = None
-
-# Новая входная схема для /get_my_info
 class GetMyInfoParams(BaseModel):
-    # Пустая схема, так как эндпоинт не требует параметров
-    pass
+    pass 
 
-# Новая схема ответа
 class GetMyInfoResponse(BaseModel):
     data: RedditUser
     message: Optional[str] = None
 
-# API Response
 class ApiResponse(BaseModel):
     data: Union[
-        PostList, CommentList, FlairList, 
+        PostList, CommentList, 
         RedditPost, RedditComment, ActionResponse,
         GetSubredditPostsResponse, CreateCommentResponse,
-        CreatePostResponse, GetSubredditFlairsResponse,
-        GetCommentResponse, DeleteThingResponse,
-        EditThingResponse, SearchResponse,
+        CreatePostResponse, 
+        GetCommentResponse, 
+        SearchResponse,
         GetCommentsResponse, DeletePostResponse,
         DeleteCommentResponse, EditPostResponse,
         EditCommentResponse,
-        GetUserInfoResponse, VoteThingResponse,
-        SaveThingResponse, UnsaveThingResponse,
-        GetSavedItemsResponse,
-        RedditUser, VoteResponse, SaveResponse, SavedItemsList,
-        GetMyInfoResponse
+        GetUserInfoResponse, 
+        RedditUser, VoteResponse, SaveResponse,
+        GetMyInfoResponse,
+        VotePostResponse, VoteCommentResponse,
+        SavePostResponse, SaveCommentResponse,
+        UnsavePostResponse, UnsaveCommentResponse,
+        SubredditList,
+        GetMySubredditsResponse
     ]
     component: Optional[Dict[str, Any]] = None

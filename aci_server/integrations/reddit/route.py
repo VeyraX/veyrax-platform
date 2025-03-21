@@ -2,20 +2,23 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.requests import Request as FastAPIRequest
 from typing import Dict, Any
 from .schema import (
-    SubredditPostsParams, CommentParams, PostParams, FlairParams,
-    CommentInfoParams, DeleteParams, EditParams, SearchParams,
+    SubredditPostsParams, CommentParams, PostParams, 
+    CommentInfoParams, SearchParams,
     GetSubredditPostsResponse, CreateCommentResponse, CreatePostResponse,
-    GetSubredditFlairsResponse, GetCommentResponse, DeleteThingResponse,
-    EditThingResponse, SearchResponse,
+    GetCommentResponse,
+    SearchResponse,
     ApiResponse,
     GetCommentsParams, GetCommentsResponse,
     DeletePostParams, DeletePostResponse,
     DeleteCommentParams, DeleteCommentResponse,
     EditPostParams, EditPostResponse,
     EditCommentParams, EditCommentResponse,
-    UserInfoParams, VoteParams, SaveParams, UnsaveParams, GetSavedParams,
-    GetUserInfoResponse, VoteThingResponse, SaveThingResponse, UnsaveThingResponse, 
-    GetSavedItemsResponse, GetMyInfoParams, GetMyInfoResponse
+    UserInfoParams,
+    GetUserInfoResponse, GetMyInfoParams, GetMyInfoResponse,
+    VotePostParams, VotePostResponse, VoteCommentParams, VoteCommentResponse,
+    SavePostParams, SavePostResponse, SaveCommentParams, SaveCommentResponse,
+    UnsavePostParams, UnsavePostResponse, UnsaveCommentParams, UnsaveCommentResponse,
+    GetMySubredditsParams, GetMySubredditsResponse
 )
 from .service import RedditService
 from .client import RedditClient
@@ -82,7 +85,7 @@ async def submit_comment(
     service: RedditService = Depends(get_reddit_service)
 ):
     validated_params = CommentParams(**params)
-    return service.create_comment(validated_params.thing_id, validated_params.text)
+    return service.create_comment(validated_params.parent_id, validated_params.text)
 
 @router.post("/submit_post", response_model=ApiResponse)
 @schema(
@@ -102,19 +105,6 @@ async def submit_post(
         validated_params.url,
         validated_params.flair_id
     )
-
-@router.post("/get_flairs", response_model=ApiResponse)
-@schema(
-    input_schema_class=FlairParams, 
-    output_schema_class=GetSubredditFlairsResponse,
-    examples=examples["/reddit/get_flairs"]
-)
-async def get_flairs(
-    params: Dict[str, Any] = Body(...),
-    service: RedditService = Depends(get_reddit_service)
-):
-    validated_params = FlairParams(**params)
-    return service.get_subreddit_flairs(validated_params.subreddit)
 
 @router.post("/get_comment", response_model=ApiResponse)
 @schema(
@@ -228,58 +218,6 @@ async def get_user_info(
     validated_params = UserInfoParams(**params)
     return service.get_user_info(validated_params.username)
 
-@router.post("/vote", response_model=ApiResponse)
-@schema(
-    input_schema_class=VoteParams,
-    output_schema_class=VoteThingResponse,
-    examples=examples["/reddit/vote"]
-)
-async def vote(
-    params: Dict[str, Any] = Body(...),
-    service: RedditService = Depends(get_reddit_service)
-):
-    validated_params = VoteParams(**params)
-    return service.vote(validated_params.thing_id, validated_params.direction)
-
-@router.post("/save", response_model=ApiResponse)
-@schema(
-    input_schema_class=SaveParams,
-    output_schema_class=SaveThingResponse,
-    examples=examples["/reddit/save"]
-)
-async def save(
-    params: Dict[str, Any] = Body(...),
-    service: RedditService = Depends(get_reddit_service)
-):
-    validated_params = SaveParams(**params)
-    return service.save_thing(validated_params.thing_id)
-
-@router.post("/unsave", response_model=ApiResponse)
-@schema(
-    input_schema_class=UnsaveParams,
-    output_schema_class=UnsaveThingResponse,
-    examples=examples["/reddit/unsave"]
-)
-async def unsave(
-    params: Dict[str, Any] = Body(...),
-    service: RedditService = Depends(get_reddit_service)
-):
-    validated_params = UnsaveParams(**params)
-    return service.unsave_thing(validated_params.thing_id)
-
-@router.post("/get_saved", response_model=ApiResponse)
-@schema(
-    input_schema_class=GetSavedParams,
-    output_schema_class=GetSavedItemsResponse,
-    examples=examples["/reddit/get_saved"]
-)
-async def get_saved(
-    params: Dict[str, Any] = Body(...),
-    service: RedditService = Depends(get_reddit_service)
-):
-    validated_params = GetSavedParams(**params)
-    return service.get_saved(validated_params.limit)
-
 @router.post("/get_my_info", response_model=ApiResponse)
 @schema(
     input_schema_class=GetMyInfoParams,
@@ -291,5 +229,96 @@ async def get_my_info(
     service: RedditService = Depends(get_reddit_service)
 ):
     return service.get_my_info()
+
+@router.post("/vote_post", response_model=ApiResponse)
+@schema(
+    input_schema_class=VotePostParams,
+    output_schema_class=VotePostResponse,
+    examples=examples["/reddit/vote_post"]
+)
+async def vote_post(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = VotePostParams(**params)
+    return service.vote_post(validated_params.post_id, validated_params.direction)
+
+@router.post("/vote_comment", response_model=ApiResponse)
+@schema(
+    input_schema_class=VoteCommentParams,
+    output_schema_class=VoteCommentResponse,
+    examples=examples["/reddit/vote_comment"]
+)
+async def vote_comment(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = VoteCommentParams(**params)
+    return service.vote_comment(validated_params.comment_id, validated_params.direction)
+
+@router.post("/save_post", response_model=ApiResponse)
+@schema(
+    input_schema_class=SavePostParams,
+    output_schema_class=SavePostResponse,
+    examples=examples["/reddit/save_post"]
+)
+async def save_post(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = SavePostParams(**params)
+    return service.save_post(validated_params.post_id)
+
+@router.post("/save_comment", response_model=ApiResponse)
+@schema(
+    input_schema_class=SaveCommentParams,
+    output_schema_class=SaveCommentResponse,
+    examples=examples["/reddit/save_comment"]
+)
+async def save_comment(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = SaveCommentParams(**params)
+    return service.save_comment(validated_params.comment_id)
+
+@router.post("/unsave_post", response_model=ApiResponse)
+@schema(
+    input_schema_class=UnsavePostParams,
+    output_schema_class=UnsavePostResponse,
+    examples=examples["/reddit/unsave_post"]
+)
+async def unsave_post(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = UnsavePostParams(**params)
+    return service.unsave_post(validated_params.post_id)
+
+@router.post("/unsave_comment", response_model=ApiResponse)
+@schema(
+    input_schema_class=UnsaveCommentParams,
+    output_schema_class=UnsaveCommentResponse,
+    examples=examples["/reddit/unsave_comment"]
+)
+async def unsave_comment(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = UnsaveCommentParams(**params)
+    return service.unsave_comment(validated_params.comment_id)
+
+@router.post("/get_my_subreddits", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetMySubredditsParams,
+    output_schema_class=GetMySubredditsResponse,
+    examples=examples["/reddit/get_my_subreddits"]
+)
+async def get_my_subreddits(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = GetMySubredditsParams(**params)
+    return service.get_my_subreddits(validated_params.limit)
 
 apply_error_handler_to_router(router)

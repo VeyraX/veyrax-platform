@@ -9,7 +9,7 @@ class RedditClient:
         self.access_token = access_token
         self.headers = {
             "Authorization": f"Bearer {access_token}",
-            "User-Agent": "Veyrax/1.0",  # Reddit требует User-Agent
+            "User-Agent": "Veyrax/1.0",
             "Content-Type": "application/json"
         }
 
@@ -27,102 +27,189 @@ class RedditClient:
         data = response.json()
         return [self._format_post(post['data']) for post in data['data']['children']]
 
-    def create_comment(self, thing_id: str, text: str) -> Dict:
+    def create_comment(self, parent_id: str, text: str) -> Dict:
         endpoint = "/api/comment"
-        data = {
-            "thing_id": thing_id,
-            "text": text
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
+            "thing_id": parent_id, 
+            "text": text,
+            "api_type": "json"
         }
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data
         )
         response.raise_for_status()
         
-        return self._format_comment(response.json()['data'])
+        return self._format_comment(response.json()['json']['data']['things'][0]['data'])
 
     def create_post(self, subreddit: str, title: str, text: Optional[str] = None,
                    url: Optional[str] = None, flair_id: Optional[str] = None) -> Dict:
-        endpoint = f"/r/{subreddit}/submit"
-        data = {
+        endpoint = "/api/submit"
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
+            "sr": subreddit,
             "title": title,
             "kind": "self" if text else "link",
-            "sr": subreddit,
-            "flair_id": flair_id
+            "api_type": "json"
         }
         
         if text:
-            data["text"] = text
+            form_data["text"] = text
         if url:
-            data["url"] = url
-            
+            form_data["url"] = url
+        if flair_id:
+            form_data["flair_id"] = flair_id
+        
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data
         )
         response.raise_for_status()
-        
-        return self._format_post(response.json()['data'])
-
-    def get_subreddit_flairs(self, subreddit: str) -> List[Dict]:
-        endpoint = f"/r/{subreddit}/api/link_flair_v2"
-        
-        response = requests.get(
-            urljoin(self.BASE_URL, endpoint),
-            headers=self.headers
-        )
-        response.raise_for_status()
-        
-        return [self._format_flair(flair) for flair in response.json()]
+    
+        return response.json()
 
     def get_comment(self, comment_id: str) -> Dict:
+        if not comment_id.startswith('t1_'):
+            comment_id = f"t1_{comment_id}"
+        
         endpoint = f"/api/info"
-        params = {"id": comment_id}
+        params = {"id": comment_id, "raw_json": 1}
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
         
         response = requests.get(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
+            headers=headers,
             params=params
         )
         response.raise_for_status()
         
         data = response.json()
-        if not data['data']['children']:
+        if not data['data']['children'] or len(data['data']['children']) == 0:
             raise ValueError(f"Comment {comment_id} not found")
-            
+        
         return self._format_comment(data['data']['children'][0]['data'])
 
-    def delete_thing(self, thing_id: str) -> bool:
+    def delete_post(self, post_id: str) -> bool:
+        thing_id = f"t3_{post_id}" if not post_id.startswith('t3_') else post_id
         endpoint = "/api/del"
-        data = {"id": thing_id}
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data 
         )
         response.raise_for_status()
         
         return True
 
-    def edit_thing(self, thing_id: str, text: str) -> Dict:
+    def delete_comment(self, comment_id: str) -> bool:
+        thing_id = f"t1_{comment_id}" if not comment_id.startswith('t1_') else comment_id
+        endpoint = "/api/del"
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
+        
+        response = requests.post(
+            urljoin(self.BASE_URL, endpoint),
+            headers=headers,
+            data=form_data 
+        )
+        response.raise_for_status()
+        
+        return True
+
+    def edit_post(self, post_id: str, text: str) -> Dict:
+        thing_id = f"t3_{post_id}" if not post_id.startswith('t3_') else post_id
         endpoint = "/api/editusertext"
-        data = {
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
             "thing_id": thing_id,
-            "text": text
+            "text": text,
+            "api_type": "json"
         }
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
+            headers=headers,
+            data=form_data 
+        )
+        response.raise_for_status()
+        post_id_clean = post_id.replace('t3_', '')
+        post_endpoint = f"/api/info"
+        params = {"id": f"t3_{post_id_clean}"}
+        
+        post_response = requests.get(
+            urljoin(self.BASE_URL, post_endpoint),
             headers=self.headers,
-            json=data
+            params=params
+        )
+        post_response.raise_for_status()
+        
+        post_data = post_response.json()
+        return self._format_post(post_data['data']['children'][0]['data'])
+
+    def edit_comment(self, comment_id: str, text: str) -> Dict:
+        thing_id = f"t1_{comment_id}" if not comment_id.startswith('t1_') else comment_id
+        endpoint = "/api/editusertext"
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
+            "thing_id": thing_id,
+            "text": text,
+            "api_type": "json"
+        }
+        
+        response = requests.post(
+            urljoin(self.BASE_URL, endpoint),
+            headers=headers,
+            data=form_data 
         )
         response.raise_for_status()
         
-        return self._format_comment(response.json()['data']) if thing_id.startswith('t1_') else self._format_post(response.json()['data'])
+        comment_id_clean = comment_id.replace('t1_', '')
+        comment_endpoint = f"/api/info"
+        params = {"id": f"t1_{comment_id_clean}"}
+        
+        comment_response = requests.get(
+            urljoin(self.BASE_URL, comment_endpoint),
+            headers=self.headers,
+            params=params
+        )
+        comment_response.raise_for_status()
+        
+        comment_data = comment_response.json()
+        return self._format_comment(comment_data['data']['children'][0]['data'])
 
     def search(self, query: str, subreddit: Optional[str] = None, limit: int = 25) -> List[Dict]:
         endpoint = f"/r/{subreddit}/search" if subreddit else "/search"
@@ -207,17 +294,7 @@ class RedditClient:
             "parent_id": comment_data['parent_id']
         }
 
-    def _format_flair(self, flair_data: Dict) -> Dict:
-        return {
-            "id": flair_data['id'],
-            "text": flair_data['text'],
-            "type": flair_data['type'],
-            "text_color": flair_data['text_color'],
-            "background_color": flair_data['background_color']
-        }
-
     def get_user_info(self, username: str) -> Dict:
-        """Get information about a Reddit user."""
         endpoint = f"/user/{username}/about"
         
         response = requests.get(
@@ -228,100 +305,149 @@ class RedditClient:
         
         return self._format_user(response.json()['data'])
     
-    def vote(self, thing_id: str, direction: int) -> Dict:
-        """Vote on a post or comment.
-        
-        Args:
-            thing_id: The full name of the post/comment
-            direction: 1 (upvote), -1 (downvote), 0 (clear vote)
-        """
+    def vote_post(self, post_id: str, direction: int) -> Dict:
         endpoint = "/api/vote"
-        data = {
+        
+        thing_id = f"t3_{post_id}" if not post_id.startswith('t3_') else post_id
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
             "id": thing_id,
             "dir": direction
         }
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data
         )
+        
         response.raise_for_status()
         
         return {
-            "thing_id": thing_id,
+            "post_id": post_id,
             "direction": direction,
             "success": True
         }
-    
-    def save_thing(self, thing_id: str) -> Dict:
-        """Save a post or comment."""
+
+    def vote_comment(self, comment_id: str, direction: int) -> Dict:
+        endpoint = "/api/vote"
+        
+        thing_id = f"t1_{comment_id}" if not comment_id.startswith('t1_') else comment_id
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {
+            "id": thing_id,
+            "dir": direction
+        }
+        
+        response = requests.post(
+            urljoin(self.BASE_URL, endpoint),
+            headers=headers,
+            data=form_data
+        )
+        
+        response.raise_for_status()
+        
+        return {
+            "comment_id": comment_id,
+            "direction": direction,
+            "success": True
+        }
+
+    def save_post(self, post_id: str) -> Dict:
+        thing_id = f"t3_{post_id}" if not post_id.startswith('t3_') else post_id
         endpoint = "/api/save"
-        data = {"id": thing_id}
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data
         )
         response.raise_for_status()
         
         return {
-            "thing_id": thing_id,
+            "post_id": post_id,
             "success": True
         }
-    
-    def unsave_thing(self, thing_id: str) -> Dict:
-        """Unsave a post or comment."""
+
+    def save_comment(self, comment_id: str) -> Dict:
+        thing_id = f"t1_{comment_id}" if not comment_id.startswith('t1_') else comment_id
+        endpoint = "/api/save"
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
+        
+        response = requests.post(
+            urljoin(self.BASE_URL, endpoint),
+            headers=headers,
+            data=form_data
+        )
+        response.raise_for_status()
+        
+        return {
+            "comment_id": comment_id,
+            "success": True
+        }
+
+    def unsave_post(self, post_id: str) -> Dict:
+        """Unsave a post."""
+        thing_id = f"t3_{post_id}" if not post_id.startswith('t3_') else post_id
         endpoint = "/api/unsave"
-        data = {"id": thing_id}
+        
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
         
         response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            json=data
+            headers=headers,
+            data=form_data 
         )
         response.raise_for_status()
         
         return {
-            "thing_id": thing_id,
+            "post_id": post_id,
             "success": True
         }
-    
-    def get_saved(self, limit: int = 25) -> List[Dict]:
-        """Get saved posts and comments for current user."""
-        endpoint = "/user/me/saved"
-        params = {"limit": limit}
+
+    def unsave_comment(self, comment_id: str) -> Dict:
+        thing_id = f"t1_{comment_id}" if not comment_id.startswith('t1_') else comment_id
+        endpoint = "/api/unsave"
         
-        response = requests.get(
+        headers = dict(self.headers)
+        if 'Content-Type' in headers:
+            del headers['Content-Type']
+        
+        form_data = {"id": thing_id}
+        
+        response = requests.post(
             urljoin(self.BASE_URL, endpoint),
-            headers=self.headers,
-            params=params
+            headers=headers,
+            data=form_data
         )
         response.raise_for_status()
         
-        data = response.json()
-        results = []
-        
-        for item in data['data']['children']:
-            if item['kind'] == 't3':  # Post
-                results.append(self._format_post(item['data']))
-            elif item['kind'] == 't1':  # Comment
-                results.append(self._format_comment(item['data']))
-                
-        return results
-    
-    def _format_user(self, user_data: Dict) -> Dict:
-        """Format user data from Reddit API."""
         return {
-            "id": user_data['id'],
-            "name": user_data['name'],
-            "created_utc": user_data['created_utc'],
-            "comment_karma": user_data['comment_karma'],
-            "link_karma": user_data['link_karma'],
-            "is_gold": user_data.get('is_gold', False),
-            "is_mod": user_data.get('is_mod', False),
-            "has_verified_email": user_data.get('has_verified_email', False)
+            "comment_id": comment_id,
+            "success": True
         }
 
     def get_my_info(self) -> Dict:
@@ -335,3 +461,59 @@ class RedditClient:
         response.raise_for_status()
         
         return self._format_user(response.json())
+
+    def get_my_subreddits(self, limit: int = 100, after: Optional[str] = None) -> List[Dict]:
+        endpoint = "/subreddits/mine/subscriber"
+        params = {
+            "limit": min(limit, 100)
+        }
+        
+        if after:
+            params["after"] = after
+            
+        response = requests.get(
+            urljoin(self.BASE_URL, endpoint),
+            headers=self.headers,
+            params=params
+        )
+        response.raise_for_status()
+        
+        data = response.json()
+        subreddits = [self._format_subreddit(sub['data']) for sub in data['data']['children']]
+        
+        if 'after' in data['data'] and data['data']['after'] and limit > 100:
+            next_after = data['data']['after']
+            next_limit = limit - 100
+            more_subreddits = self.get_my_subreddits(next_limit, next_after)
+            subreddits.extend(more_subreddits)
+            
+        return subreddits
+    
+    def _format_subreddit(self, subreddit_data: Dict) -> Dict:
+        return {
+            "id": subreddit_data.get('id', ''),
+            "display_name": subreddit_data.get('display_name', ''),
+            "name": subreddit_data.get('name', ''),
+            "title": subreddit_data.get('title', ''),
+            "description": subreddit_data.get('public_description', ''),
+            "subscribers": subreddit_data.get('subscribers', 0),
+            "created_utc": subreddit_data.get('created_utc', 0),
+            "url": subreddit_data.get('url', ''),
+            "over18": subreddit_data.get('over18', False),
+            "community_icon": subreddit_data.get('community_icon', ''),
+            "banner_img": subreddit_data.get('banner_img', ''),
+            "header_img": subreddit_data.get('header_img', ''),
+            "icon_img": subreddit_data.get('icon_img', '')
+        }
+
+    def _format_user(self, user_data: Dict) -> Dict:
+        return {
+            "id": user_data['id'],
+            "name": user_data['name'],
+            "created_utc": user_data['created_utc'],
+            "comment_karma": user_data['comment_karma'],
+            "link_karma": user_data['link_karma'],
+            "is_gold": user_data.get('is_gold', False),
+            "is_mod": user_data.get('is_mod', False),
+            "has_verified_email": user_data.get('has_verified_email', False)
+        }

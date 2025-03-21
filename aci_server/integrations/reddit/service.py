@@ -1,12 +1,13 @@
 from typing import Dict, Any, List, Optional
 from .client import RedditClient
 from .schema import (
-    PostList, CommentList, FlairList, RedditPost, RedditComment, 
+    PostList, CommentList, RedditPost, RedditComment, 
     ActionResponse, ApiResponse, RedditUser, VoteResponse, SaveResponse,
-    SavedItemsList
+    SubredditList, Subreddit
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import requests
 
 class RedditService:
     def __init__(self, client: RedditClient):
@@ -27,40 +28,65 @@ class RedditService:
         data = PostList(posts=[RedditPost(**post) for post in posts])
         return self.prepare_response(data, "RedditPostList")
 
-    def create_comment(self, thing_id: str, text: str) -> ApiResponse:
-        comment = self.client.create_comment(thing_id, text)
+    def create_comment(self, parent_id: str, text: str) -> ApiResponse:
+        comment = self.client.create_comment(parent_id, text)
         data = RedditComment(**comment)
         return self.prepare_response(data, "RedditComment")
 
     def create_post(self, subreddit: str, title: str, text: Optional[str] = None,
                    url: Optional[str] = None, flair_id: Optional[str] = None) -> ApiResponse:
-        post = self.client.create_post(subreddit, title, text, url, flair_id)
-        data = RedditPost(**post)
+        raw_response = self.client.create_post(subreddit, title, text, url, flair_id)
+        
+        response_data = raw_response.get('json', {})
+        
+        post_data = response_data.get('data', {})
+        data = RedditPost(
+            id=post_data.get('id', 'unknown'),
+            title=title,
+            author="me",
+            subreddit=subreddit,
+            score=0,
+            url=post_data.get('url', url or f"https://reddit.com/r/{subreddit}"),
+            created_utc=post_data.get('created_utc', 0.0),
+            num_comments=0,
+            is_self=text is not None,
+            selftext=text or "",
+            permalink=post_data.get('permalink', f"/r/{subreddit}")
+        )
+        
         return self.prepare_response(data, "RedditPost")
-
-    def get_subreddit_flairs(self, subreddit: str) -> ApiResponse:
-        flairs = self.client.get_subreddit_flairs(subreddit)
-        data = FlairList(flairs=flairs)
-        return self.prepare_response(data, "RedditFlairList")
 
     def get_comment(self, comment_id: str) -> ApiResponse:
         comment = self.client.get_comment(comment_id)
         data = RedditComment(**comment)
         return self.prepare_response(data, "RedditComment")
 
-    def delete_thing(self, thing_id: str) -> ApiResponse:
-        success = self.client.delete_thing(thing_id)
-        data = ActionResponse(success=success, message="Successfully deleted" if success else "Failed to delete")
-        return self.prepare_response(data, "RedditAction")
+    def delete_post(self, post_id: str) -> ApiResponse:
+        success = self.client.delete_post(post_id)
+        data = ActionResponse(success=success, message="Post successfully deleted" if success else "Failed to delete post")
+        return self.prepare_response(data, "RedditDeletePost")
 
-    def edit_thing(self, thing_id: str, text: str) -> ApiResponse:
-        edited = self.client.edit_thing(thing_id, text)
-        if thing_id.startswith('t1_'):
-            data = RedditComment(**edited)
-        else:
-            data = RedditPost(**edited)
-        return self.prepare_response(data, "RedditEdit")
+    def delete_comment(self, comment_id: str) -> ApiResponse:
+        success = self.client.delete_comment(comment_id)
+        data = ActionResponse(success=success, message="Comment successfully deleted" if success else "Failed to delete comment")
+        return self.prepare_response(data, "RedditDeleteComment")
 
+    def edit_post(self, post_id: str, text: str) -> ApiResponse:
+        post_data = self.client.edit_post(post_id, text)
+        data = RedditPost(**post_data)
+        return self.prepare_response(data, "RedditPost")
+
+    def edit_comment(self, comment_id: str, text: str) -> ApiResponse:
+        edited = self.client.edit_comment(comment_id, text)
+        data = RedditComment(**edited)
+        return self.prepare_response(data, "RedditEditComment")
+
+    def get_user_info(self, username: str) -> ApiResponse:
+        """Get information about a Reddit user."""
+        user_data = self.client.get_user_info(username)
+        data = RedditUser(**user_data)
+        return self.prepare_response(data, "RedditUserProfile")
+    
     def search(self, query: str, subreddit: Optional[str] = None, limit: int = 25) -> ApiResponse:
         results = self.client.search(query, subreddit, limit)
         data = PostList(posts=[RedditPost(**post) for post in results])
@@ -71,71 +97,58 @@ class RedditService:
         data = CommentList(comments=[RedditComment(**comment) for comment in comments])
         return self.prepare_response(data, "RedditCommentList")
 
-    def delete_post(self, post_id: str) -> ApiResponse:
-        success = self.client.delete_post(post_id)
-        data = ActionResponse(success=success, message="Post successfully deleted" if success else "Failed to delete post")
-        return self.prepare_response(data, "RedditAction")
-
-    def delete_comment(self, comment_id: str) -> ApiResponse:
-        success = self.client.delete_comment(comment_id)
-        data = ActionResponse(success=success, message="Comment successfully deleted" if success else "Failed to delete comment")
-        return self.prepare_response(data, "RedditAction")
-
-    def edit_post(self, post_id: str, text: str) -> ApiResponse:
-        edited = self.client.edit_post(post_id, text)
-        data = RedditPost(**edited)
-        return self.prepare_response(data, "RedditPost")
-
-    def edit_comment(self, comment_id: str, text: str) -> ApiResponse:
-        edited = self.client.edit_comment(comment_id, text)
-        data = RedditComment(**edited)
-        return self.prepare_response(data, "RedditComment")
-
-    def get_user_info(self, username: str) -> ApiResponse:
-        """Get information about a Reddit user."""
-        user_data = self.client.get_user_info(username)
-        data = RedditUser(**user_data)
-        return self.prepare_response(data, "RedditUserProfile")
-    
-    def vote(self, thing_id: str, direction: int) -> ApiResponse:
-        """Vote on a post or comment."""
-        result = self.client.vote(thing_id, direction)
-        action_text = {1: "upvoted", -1: "downvoted", 0: "vote cleared"}
-        message = f"Successfully {action_text[direction]} item"
-        data = VoteResponse(success=result['success'], thing_id=result['thing_id'], 
-                          direction=result['direction'], message=message)
-        return self.prepare_response(data, "RedditAction")
-    
-    def save_thing(self, thing_id: str) -> ApiResponse:
-        """Save a post or comment."""
-        result = self.client.save_thing(thing_id)
-        data = SaveResponse(success=result['success'], thing_id=result['thing_id'], 
-                          message="Item successfully saved")
-        return self.prepare_response(data, "RedditAction")
-    
-    def unsave_thing(self, thing_id: str) -> ApiResponse:
-        """Unsave a post or comment."""
-        result = self.client.unsave_thing(thing_id)
-        data = SaveResponse(success=result['success'], thing_id=result['thing_id'], 
-                          message="Item successfully unsaved")
-        return self.prepare_response(data, "RedditAction")
-    
-    def get_saved(self, limit: int = 25) -> ApiResponse:
-        """Get saved posts and comments for current user."""
-        items = self.client.get_saved(limit)
-        
-        processed_items = []
-        for item in items:
-            if 'selftext' in item:  
-                processed_items.append(RedditPost(**item))
-            else:  
-                processed_items.append(RedditComment(**item))
-                
-        data = SavedItemsList(items=processed_items)
-        return self.prepare_response(data, "RedditSavedList")
-
     def get_my_info(self) -> ApiResponse:
         """Get information about the currently authenticated user."""
         user_data = self.client.get_my_info()
         data = RedditUser(**user_data)
         return self.prepare_response(data, "RedditUserProfile")
+
+    def vote_post(self, post_id: str, direction: int) -> ApiResponse:
+        result = self.client.vote_post(post_id, direction)
+        action_text = {1: "upvoted", -1: "downvoted", 0: "vote cleared"}
+        message = f"Successfully {action_text[direction]} post"
+        data = VoteResponse(success=result['success'], thing_id=f"t3_{post_id}", 
+                          direction=result['direction'], message=message)
+        return self.prepare_response(data, "RedditVotePost")
+
+    def vote_comment(self, comment_id: str, direction: int) -> ApiResponse:
+        result = self.client.vote_comment(comment_id, direction)
+        action_text = {1: "upvoted", -1: "downvoted", 0: "vote cleared"}
+        message = f"Successfully {action_text[direction]} comment"
+        data = VoteResponse(success=result['success'], thing_id=f"t1_{comment_id}", 
+                          direction=result['direction'], message=message)
+        return self.prepare_response(data, "RedditVoteComment")
+
+    def save_post(self, post_id: str) -> ApiResponse:
+        """Save a post."""
+        result = self.client.save_post(post_id)
+        data = SaveResponse(success=result['success'], thing_id=f"t3_{post_id}", 
+                          message="Post successfully saved")
+        return self.prepare_response(data, "RedditSavePost")
+
+    def save_comment(self, comment_id: str) -> ApiResponse:
+        """Save a comment."""
+        result = self.client.save_comment(comment_id)
+        data = SaveResponse(success=result['success'], thing_id=f"t1_{comment_id}", 
+                          message="Comment successfully saved")
+        return self.prepare_response(data, "RedditSaveComment")
+
+    def unsave_post(self, post_id: str) -> ApiResponse:
+        """Unsave a post."""
+        result = self.client.unsave_post(post_id)
+        data = SaveResponse(success=result['success'], thing_id=f"t3_{post_id}", 
+                          message="Post successfully unsaved")
+        return self.prepare_response(data, "RedditUnsavePost")
+
+    def unsave_comment(self, comment_id: str) -> ApiResponse:
+        """Unsave a comment."""
+        result = self.client.unsave_comment(comment_id)
+        data = SaveResponse(success=result['success'], thing_id=f"t1_{comment_id}", 
+                          message="Comment successfully unsaved")
+        return self.prepare_response(data, "RedditUnsaveComment")
+
+    def get_my_subreddits(self, limit: int = 100) -> ApiResponse:
+        """Get list of subreddits the user is subscribed to."""
+        subreddits = self.client.get_my_subreddits(limit)
+        data = SubredditList(subreddits=[Subreddit(**sub) for sub in subreddits])
+        return self.prepare_response(data, "RedditSubredditList")
