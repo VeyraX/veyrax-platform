@@ -31,7 +31,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Input
               id={key}
@@ -50,7 +49,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Input
               id={key}
@@ -69,7 +67,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Textarea
               id={key}
@@ -87,7 +84,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Select
               value={value}
@@ -119,7 +115,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
             />
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
           </div>
         );
@@ -129,7 +124,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Textarea
               id={key}
@@ -154,7 +148,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Input
               id={key}
@@ -175,7 +168,6 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           <div className="space-y-2" key={key}>
             <Label htmlFor={key}>
               {label}
-              {required && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Input
               id={key}
@@ -191,7 +183,7 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {authSchema.map(renderField)}
     </div>
   );
