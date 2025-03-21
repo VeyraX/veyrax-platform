@@ -231,6 +231,25 @@ class GetMyInfoResponse(BaseModel):
     data: RedditUser
     message: Optional[str] = None
 
+class LinkFlairParams(BaseModel):
+    subreddit: str = Field(..., description="Name of the subreddit to get flairs from")
+
+class Flair(BaseModel):
+    id: str = Field(..., description="ID of the flair")
+    text: str = Field(..., description="Display text of the flair")
+    text_editable: bool = Field(..., description="Whether the flair text can be edited")
+    css_class: Optional[str] = Field(None, description="CSS class for the flair styling")
+    background_color: Optional[str] = Field(None, description="Background color of the flair")
+    text_color: Optional[str] = Field(None, description="Text color of the flair")
+    type: Optional[str] = Field(None, description="Type of flair")
+
+class FlairList(BaseModel):
+    flairs: List[Flair]
+
+class GetLinkFlairsResponse(BaseModel):
+    data: FlairList
+    message: Optional[str] = None
+
 class ApiResponse(BaseModel):
     data: Union[
         PostList, CommentList, 
@@ -249,6 +268,8 @@ class ApiResponse(BaseModel):
         SavePostResponse, SaveCommentResponse,
         UnsavePostResponse, UnsaveCommentResponse,
         SubredditList,
-        GetMySubredditsResponse
+        GetMySubredditsResponse,
+        FlairList,
+        GetLinkFlairsResponse
     ]
     component: Optional[Dict[str, Any]] = None

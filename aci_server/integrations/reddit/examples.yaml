@@ -493,3 +493,40 @@ routes:
               "name": "RedditSubredditList"
             }
           }
+
+  - endpoint: /reddit/get_link_flairs
+    examples:
+      - scenario: "Get Link Flairs"
+        description: "Retrieve available post flairs for a subreddit"
+        input_json: |
+          {
+            "subreddit": "programming"
+          }
+        output_json: |
+          {
+            "data": {
+              "flairs": [
+                {
+                  "id": "2df389a8-3e9c-11e6-b7e0-0e82b9d0a60c",
+                  "text": "Discussion",
+                  "text_editable": false,
+                  "css_class": "discussion",
+                  "background_color": "#f5f5f5",
+                  "text_color": "#000000",
+                  "type": "text"
+                },
+                {
+                  "id": "5e28f98c-3e9c-11e6-9f0e-0e737b0d8a1e",
+                  "text": "Tutorial",
+                  "text_editable": false,
+                  "css_class": "tutorial",
+                  "background_color": "#dff0d8",
+                  "text_color": "#3c763d",
+                  "type": "text"
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditFlairList"
+            }
+          }

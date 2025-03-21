@@ -3,7 +3,7 @@ from .client import RedditClient
 from .schema import (
     PostList, CommentList, RedditPost, RedditComment, 
     ActionResponse, ApiResponse, RedditUser, VoteResponse, SaveResponse,
-    SubredditList, Subreddit
+    SubredditList, Subreddit, FlairList
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
@@ -152,3 +152,22 @@ class RedditService:
         subreddits = self.client.get_my_subreddits(limit)
         data = SubredditList(subreddits=[Subreddit(**sub) for sub in subreddits])
         return self.prepare_response(data, "RedditSubredditList")
+
+    def get_link_flairs(self, subreddit: str) -> ApiResponse:
+        """Get available link flairs for a subreddit."""
+        raw_flairs = self.client.get_link_flairs(subreddit)
+        formatted_flairs = []
+        for flair in raw_flairs:
+            formatted_flair = {
+                "id": flair.get("id", ""),
+                "text": flair.get("text", ""),
+                "text_editable": flair.get("text_editable", False),
+                "css_class": flair.get("css_class", ""),
+                "background_color": flair.get("background_color", ""),
+                "text_color": flair.get("text_color", ""),
+                "type": flair.get("type", "text")
+            }
+            formatted_flairs.append(formatted_flair)
+        
+        data = FlairList(flairs=formatted_flairs)
+        return self.prepare_response(data, "RedditFlairList")

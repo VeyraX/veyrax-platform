@@ -18,7 +18,8 @@ from .schema import (
     VotePostParams, VotePostResponse, VoteCommentParams, VoteCommentResponse,
     SavePostParams, SavePostResponse, SaveCommentParams, SaveCommentResponse,
     UnsavePostParams, UnsavePostResponse, UnsaveCommentParams, UnsaveCommentResponse,
-    GetMySubredditsParams, GetMySubredditsResponse
+    GetMySubredditsParams, GetMySubredditsResponse,
+    LinkFlairParams, GetLinkFlairsResponse
 )
 from .service import RedditService
 from .client import RedditClient
@@ -320,5 +321,18 @@ async def get_my_subreddits(
 ):
     validated_params = GetMySubredditsParams(**params)
     return service.get_my_subreddits(validated_params.limit)
+
+@router.post("/get_link_flairs", response_model=ApiResponse)
+@schema(
+    input_schema_class=LinkFlairParams,
+    output_schema_class=GetLinkFlairsResponse,
+    examples=examples["/reddit/get_link_flairs"]
+)
+async def get_link_flairs(
+    params: Dict[str, Any] = Body(...),
+    service: RedditService = Depends(get_reddit_service)
+):
+    validated_params = LinkFlairParams(**params)
+    return service.get_link_flairs(validated_params.subreddit)
 
 apply_error_handler_to_router(router)

@@ -517,3 +517,18 @@ class RedditClient:
             "is_mod": user_data.get('is_mod', False),
             "has_verified_email": user_data.get('has_verified_email', False)
         }
+
+    def get_link_flairs(self, subreddit: str) -> List[Dict]:
+        endpoint = f"/r/{subreddit}/api/link_flair_v2"
+        
+        headers = dict(self.headers)
+        if "Content-Type" in headers:
+            del headers["Content-Type"]
+        
+        response = requests.get(
+            urljoin(self.BASE_URL, endpoint),
+            headers=headers
+        )
+        
+        response.raise_for_status()
+        return response.json()
