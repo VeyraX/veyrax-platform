@@ -529,9 +529,11 @@ class AirtableTokenRefresher(BaseTokenRefresher):
             redirect_uri = f"{request.base_url}api/oauth/airtable/callback"
             
             token_url = "https://airtable.com/oauth2/v1/token"
+            client_id = os.environ.get('AIRTABLE_CLIENT_ID')
+            client_secret = os.environ.get('AIRTABLE_CLIENT_SECRET')
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": f"Basic {base64.b64encode(f'{os.environ.get('AIRTABLE_CLIENT_ID')}:{os.environ.get('AIRTABLE_CLIENT_SECRET')}'.encode()).decode()}"
+                "Authorization": f"Basic {base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode()}"
             }
             
             data = {

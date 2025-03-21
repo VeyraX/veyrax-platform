@@ -2,7 +2,6 @@ import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// Function to generate a random string for code_verifier
 function generateRandomString(length: number): string {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     let text = '';
@@ -15,7 +14,6 @@ function generateRandomString(length: number): string {
     return text;
 }
 
-// Function to create code_challenge from code_verifier
 function generateCodeChallenge(codeVerifier: string): string {
     const hash = crypto.createHash('sha256').update(codeVerifier).digest();
     return hash.toString('base64')
@@ -44,11 +42,8 @@ export async function POST(request: NextRequest) {
         if (!provider) {
             return NextResponse.json({ error: 'Provider not found' }, { status: 404 });
         }
-
-        console.log('Provider data:', provider);
-        console.log('Client ID exists:', !!process.env.AIRTABLE_CLIENT_ID);
-        console.log('Client Secret exists:', !!process.env.AIRTABLE_CLIENT_SECRET);
-        console.log('Requested scopes:', scopes);
+        
+        const clientId = process.env.AIRTABLE_CLIENT_ID || ''   ;
 
         const codeVerifier = generateRandomString(64);
         const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -61,34 +56,28 @@ export async function POST(request: NextRequest) {
 
         const redirectUri = `${request.nextUrl.origin}/api/oauth/airtable/callback`;
         
-        console.log('Request origin:', request.nextUrl.origin);
-        console.log('Redirect URI:', redirectUri);
         
         const scopeString = Array.isArray(scopes) && scopes.length > 0 
             ? scopes.join(' ') 
             : 'data.records:read data.records:write schema.bases:read';
-
-        if (!process.env.AIRTABLE_CLIENT_ID) {
-            return NextResponse.json({ error: 'Airtable CLIENT_ID not configured' }, { status: 500 });
-        }
-
-        const params = new URLSearchParams();
-        params.set('client_id', process.env.AIRTABLE_CLIENT_ID);
-        params.set('response_type', 'code');
-        params.set('redirect_uri', redirectUri);
-        params.set('state', state);
-        params.set('scope', scopeString);
-        // Add PKCE parameters
-        params.set('code_challenge', codeChallenge);
-        params.set('code_challenge_method', 'S256');
-
-        const authUrl = `https://airtable.com/oauth2/v1/authorize?${params.toString()}`;
         
-        console.log('Generated auth URL with PKCE');
+        const encodedRedirectUri = encodeURIComponent(redirectUri);
+        const encodedScope = encodeURIComponent(scopeString);
+        const encodedState = encodeURIComponent(state);
+        const encodedChallenge = encodeURIComponent(codeChallenge);
+        
+        const authUrl = `https://airtable.com/oauth2/v1/authorize?` +
+            `client_id=${encodeURIComponent(clientId)}` +
+            `&response_type=code` +
+            `&redirect_uri=${encodedRedirectUri}` +
+            `&state=${encodedState}` +
+            `&scope=${encodedScope}` +
+            `&code_challenge=${encodedChallenge}` +
+            `&code_challenge_method=S256`;
+        
         
         return NextResponse.json({ url: authUrl });
     } catch (error) {
-        console.error('OAuth URL generation error:', error);
         return NextResponse.json({ 
             error: 'Failed to generate OAuth URL', 
             message: error instanceof Error ? error.message : 'Unknown error'

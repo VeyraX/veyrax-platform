@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Airtable",
+      "version": "1.0.0",
+      "description": "A React component for displaying Airtable user lists",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

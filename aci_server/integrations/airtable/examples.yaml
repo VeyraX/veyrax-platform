@@ -256,69 +256,6 @@ routes:
             }
           }
 
-  - endpoint: /airtable/update_records
-    examples:
-      - scenario: "Upsert Records"
-        description: "Update or insert records based on field matching"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id_or_name": "tblXXXXXXXXXXXXXX",
-            "records": [
-              {
-                "fields": {
-                  "Name": "Project Alpha",
-                  "Status": "Complete",
-                  "Score": 100
-                }
-              },
-              {
-                "fields": {
-                  "Name": "Project Gamma",
-                  "Status": "New",
-                  "Score": 0,
-                  "Description": "This is a new project"
-                }
-              }
-            ],
-            "perform_upsert": {
-              "fieldsToMergeOn": ["Name"]
-            },
-            "is_patch": true
-          }
-        output_json: |
-          {
-            "data": {
-              "records": [
-                {
-                  "id": "recXXXXXXXXXXXXXX",
-                  "createdTime": "2023-05-10T15:32:42.000Z",
-                  "fields": {
-                    "Name": "Project Alpha",
-                    "Status": "Complete",
-                    "Score": 100,
-                    "Description": "This is the alpha project description"
-                  }
-                },
-                {
-                  "id": "recCCCCCCCCCCCCCC",
-                  "createdTime": "2023-05-16T14:20:10.000Z",
-                  "fields": {
-                    "Name": "Project Gamma",
-                    "Status": "New",
-                    "Score": 0,
-                    "Description": "This is a new project"
-                  }
-                }
-              ],
-              "createdRecords": ["recCCCCCCCCCCCCCC"],
-              "updatedRecords": ["recXXXXXXXXXXXXXX"]
-            },
-            "component": {
-              "name": "AirtableRecordsList"
-            }
-          }
-
   - endpoint: /airtable/delete_record
     examples:
       - scenario: "Delete Single Record"
@@ -451,89 +388,6 @@ routes:
             }
           }
 
-      - scenario: "Create Checkbox Field"
-        description: "Create a new checkbox field with custom icon and color"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id": "tblXXXXXXXXXXXXXX",
-            "name": "Task Completed",
-            "type": "checkbox",
-            "description": "Mark when the task is completed",
-            "options": {
-              "color": "greenBright",
-              "icon": "check"
-            }
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "fldEEEEEEEEEEEEEE",
-              "name": "Task Completed",
-              "type": "checkbox",
-              "description": "Mark when the task is completed",
-              "options": {
-                "color": "greenBright",
-                "icon": "check"
-              }
-            }
-          }
-
-      - scenario: "Create Single Select Field"
-        description: "Create a new single select field with predefined options"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id": "tblXXXXXXXXXXXXXX",
-            "name": "Status",
-            "type": "singleSelect",
-            "description": "Current status of the project",
-            "options": {
-              "choices": [
-                {
-                  "name": "Not Started",
-                  "color": "redBright"
-                },
-                {
-                  "name": "In Progress",
-                  "color": "yellowBright"
-                },
-                {
-                  "name": "Completed",
-                  "color": "greenBright"
-                }
-              ]
-            }
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "fldFFFFFFFFFFFFFF",
-              "name": "Status",
-              "type": "singleSelect",
-              "description": "Current status of the project",
-              "options": {
-                "choices": [
-                  {
-                    "id": "selXXXXXXXXXXXXXX",
-                    "name": "Not Started",
-                    "color": "redBright"
-                  },
-                  {
-                    "id": "selYYYYYYYYYYYYYY",
-                    "name": "In Progress",
-                    "color": "yellowBright"
-                  },
-                  {
-                    "id": "selZZZZZZZZZZZZZZ",
-                    "name": "Completed",
-                    "color": "greenBright"
-                  }
-                ]
-              }
-            }
-          }
-
   - endpoint: /airtable/update_field
     examples:
       - scenario: "Update Field Name"
@@ -555,49 +409,6 @@ routes:
             }
           }
 
-      - scenario: "Update Field Description"
-        description: "Update the description of an existing field"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id": "tblXXXXXXXXXXXXXX",
-            "column_id": "fldDDDDDDDDDDDDDD",
-            "description": "Updated description with more details about this field"
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "fldDDDDDDDDDDDDDD",
-              "name": "Renamed Text Field",
-              "type": "singleLineText",
-              "description": "Updated description with more details about this field"
-            }
-          }
-
-      - scenario: "Update Field Name and Description"
-        description: "Update both the name and description of an existing field"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id": "tblXXXXXXXXXXXXXX",
-            "column_id": "fldEEEEEEEEEEEEEE",
-            "name": "Completed Status",
-            "description": "Indicates whether the task has been completed or not"
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "fldEEEEEEEEEEEEEE",
-              "name": "Completed Status",
-              "type": "checkbox",
-              "description": "Indicates whether the task has been completed or not",
-              "options": {
-                "color": "greenBright",
-                "icon": "check"
-              }
-            }
-          }
-
   - endpoint: /airtable/create_table
     examples:
       - scenario: "Create Table with Fields"
@@ -605,20 +416,29 @@ routes:
         input_json: |
           {
             "base_id": "appXXXXXXXXXXXXXX",
-            "name": "Apartments",
-            "description": "A to-do list of places to visit",
+            "name": "Projects",
+            "description": "A list of ongoing projects",
             "fields": [
               {
-                "name": "Name",
+                "name": "Project Name",
                 "type": "singleLineText",
-                "description": "Name of the apartment"
+                "description": "Name of the project"
               },
               {
-                "name": "Address",
-                "type": "singleLineText"
+                "name": "Description",
+                "type": "multilineText"
               },
               {
-                "name": "Visited",
+                "name": "Due Date",
+                "type": "date",
+                "options": {
+                  "dateFormat": {
+                    "name": "local"
+                  }
+                }
+              },
+              {
+                "name": "Completed",
                 "type": "checkbox",
                 "options": {
                   "color": "greenBright",
@@ -631,24 +451,34 @@ routes:
           {
             "data": {
               "id": "tblXXXXXXXXXXXXXX",
-              "name": "Apartments",
-              "description": "A to-do list of places to visit",
+              "name": "Projects",
+              "description": "A list of ongoing projects",
               "primaryFieldId": "fldXXXXXXXXXXXXXX",
               "fields": [
                 {
                   "id": "fldXXXXXXXXXXXXXX",
-                  "name": "Name",
+                  "name": "Project Name",
                   "type": "singleLineText",
-                  "description": "Name of the apartment"
+                  "description": "Name of the project"
                 },
                 {
                   "id": "fldYYYYYYYYYYYYYY",
-                  "name": "Address",
-                  "type": "singleLineText"
+                  "name": "Description",
+                  "type": "multilineText"
                 },
                 {
                   "id": "fldZZZZZZZZZZZZZZ",
-                  "name": "Visited",
+                  "name": "Due Date",
+                  "type": "date",
+                  "options": {
+                    "dateFormat": {
+                      "name": "local"
+                    }
+                  }
+                },
+                {
+                  "id": "fldAAAAAAAAAAAAAA",
+                  "name": "Completed",
                   "type": "checkbox",
                   "options": {
                     "color": "greenBright",
@@ -721,104 +551,6 @@ routes:
               "name": "AirtableTableModel"
             }
           }
-      - scenario: "Update Table Name Only"
-        description: "Update just the name of an existing table"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id_or_name": "tblXXXXXXXXXXXXXX",
-            "name": "Rental Properties"
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "tblXXXXXXXXXXXXXX",
-              "name": "Rental Properties",
-              "description": "A to-do list of places to visit",
-              "primaryFieldId": "fldXXXXXXXXXXXXXX",
-              "fields": [
-                {
-                  "id": "fldXXXXXXXXXXXXXX",
-                  "name": "Name",
-                  "type": "singleLineText",
-                  "description": "Name of the apartment"
-                },
-                {
-                  "id": "fldYYYYYYYYYYYYYY",
-                  "name": "Address",
-                  "type": "singleLineText"
-                },
-                {
-                  "id": "fldZZZZZZZZZZZZZZ",
-                  "name": "Visited",
-                  "type": "checkbox",
-                  "options": {
-                    "color": "greenBright",
-                    "icon": "check"
-                  }
-                }
-              ],
-              "views": [
-                {
-                  "id": "viwXXXXXXXXXXXXXX",
-                  "name": "Grid view",
-                  "type": "grid"
-                }
-              ]
-            },
-            "component": {
-              "name": "AirtableTableModel"
-            }
-          }
-      - scenario: "Clear Table Description"
-        description: "Remove the description from an existing table"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "table_id_or_name": "tblXXXXXXXXXXXXXX",
-            "description": ""
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "tblXXXXXXXXXXXXXX",
-              "name": "Apartments",
-              "description": "",
-              "primaryFieldId": "fldXXXXXXXXXXXXXX",
-              "fields": [
-                {
-                  "id": "fldXXXXXXXXXXXXXX",
-                  "name": "Name",
-                  "type": "singleLineText",
-                  "description": "Name of the apartment"
-                },
-                {
-                  "id": "fldYYYYYYYYYYYYYY",
-                  "name": "Address",
-                  "type": "singleLineText"
-                },
-                {
-                  "id": "fldZZZZZZZZZZZZZZ",
-                  "name": "Visited",
-                  "type": "checkbox",
-                  "options": {
-                    "color": "greenBright",
-                    "icon": "check"
-                  }
-                }
-              ],
-              "views": [
-                {
-                  "id": "viwXXXXXXXXXXXXXX",
-                  "name": "Grid view",
-                  "type": "grid"
-                }
-              ]
-            },
-            "component": {
-              "name": "AirtableTableModel"
-            }
-          }
 
   - endpoint: /airtable/list_bases
     examples:
@@ -842,32 +574,6 @@ routes:
                 }
               ],
               "offset": "itr23sEjsdfEr3282/appSW9R5uCNmRmfl6"
-            },
-            "component": {
-              "name": "AirtableBasesList"
-            }
-          }
-      - scenario: "List Bases with Pagination"
-        description: "Retrieve a list of bases starting from a specific offset"
-        input_json: |
-          {
-            "offset": "itr23sEjsdfEr3282/appSW9R5uCNmRmfl6"
-          }
-        output_json: |
-          {
-            "data": {
-              "bases": [
-                {
-                  "id": "appTGDFr56hGFjksL",
-                  "name": "Customer Feedback",
-                  "permissionLevel": "read"
-                },
-                {
-                  "id": "app89dfGHJkl34mnP",
-                  "name": "Inventory Tracking",
-                  "permissionLevel": "create"
-                }
-              ]
             },
             "component": {
               "name": "AirtableBasesList"
@@ -958,59 +664,6 @@ routes:
               "name": "AirtableBaseSchema"
             }
           }
-      - scenario: "Get Base Schema with Visible Field IDs"
-        description: "Retrieve the schema with visible field IDs for grid views"
-        input_json: |
-          {
-            "base_id": "appLkNDICXNqxSDhG",
-            "include": ["visibleFieldIds"]
-          }
-        output_json: |
-          {
-            "data": {
-              "tables": [
-                {
-                  "id": "tbltp8DGLhqbUmjK1",
-                  "name": "Apartments",
-                  "description": "A to-do list of places to visit",
-                  "primaryFieldId": "fld1VnoyuotSTyxW1",
-                  "fields": [
-                    {
-                      "id": "fld1VnoyuotSTyxW1",
-                      "name": "Name",
-                      "type": "singleLineText",
-                      "description": "Name of the apartment"
-                    },
-                    {
-                      "id": "fldoi0c3GaRQJ3xnI",
-                      "name": "Address",
-                      "type": "singleLineText"
-                    },
-                    {
-                      "id": "fldumZe00w09RYTW6",
-                      "name": "Visited",
-                      "type": "checkbox",
-                      "options": {
-                        "color": "greenBright",
-                        "icon": "check"
-                      }
-                    }
-                  ],
-                  "views": [
-                    {
-                      "id": "viwQpsuEDqHFqegkp",
-                      "name": "Grid view",
-                      "type": "grid",
-                      "visibleFieldIds": ["fld1VnoyuotSTyxW1", "fldoi0c3GaRQJ3xnI", "fldumZe00w09RYTW6"]
-                    }
-                  ]
-                }
-              ]
-            },
-            "component": {
-              "name": "AirtableBaseSchema"
-            }
-          }
 
   - endpoint: /airtable/create_base
     examples:
@@ -1092,147 +745,6 @@ routes:
               "name": "AirtableBaseCreated"
             }
           }
-      - scenario: "Create Complex Base with Multiple Tables"
-        description: "Create a base with multiple tables and relationships"
-        input_json: |
-          {
-            "name": "Property Management",
-            "workspace_id": "wspmhESAta6clCCwF",
-            "tables": [
-              {
-                "name": "Properties",
-                "description": "Available properties for rent",
-                "fields": [
-                  {
-                    "name": "Property Name",
-                    "type": "singleLineText",
-                    "description": "Name or identifier of the property"
-                  },
-                  {
-                    "name": "Address",
-                    "type": "singleLineText"
-                  },
-                  {
-                    "name": "Monthly Rent",
-                    "type": "currency",
-                    "options": {
-                      "precision": 2,
-                      "symbol": "$"
-                    }
-                  },
-                  {
-                    "name": "Available",
-                    "type": "checkbox",
-                    "options": {
-                      "color": "greenBright",
-                      "icon": "check"
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "Tenants",
-                "fields": [
-                  {
-                    "name": "Name",
-                    "type": "singleLineText"
-                  },
-                  {
-                    "name": "Email",
-                    "type": "email"
-                  },
-                  {
-                    "name": "Phone",
-                    "type": "phoneNumber"
-                  }
-                ]
-              }
-            ]
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "appMNOPqrstuvwxyz",
-              "tables": [
-                {
-                  "id": "tblAbCdEfGhIjKlMn",
-                  "name": "Properties",
-                  "description": "Available properties for rent",
-                  "primaryFieldId": "fldNoPqRsTuVwXyZ",
-                  "fields": [
-                    {
-                      "id": "fldNoPqRsTuVwXyZ",
-                      "name": "Property Name",
-                      "type": "singleLineText",
-                      "description": "Name or identifier of the property"
-                    },
-                    {
-                      "id": "fld123456789abcd",
-                      "name": "Address",
-                      "type": "singleLineText"
-                    },
-                    {
-                      "id": "fldEfGhIjKlMnOpQr",
-                      "name": "Monthly Rent",
-                      "type": "currency",
-                      "options": {
-                        "precision": 2,
-                        "symbol": "$"
-                      }
-                    },
-                    {
-                      "id": "fldStUvWxYz123456",
-                      "name": "Available",
-                      "type": "checkbox",
-                      "options": {
-                        "color": "greenBright",
-                        "icon": "check"
-                      }
-                    }
-                  ],
-                  "views": [
-                    {
-                      "id": "viwAbCdEfGhIjKlMn",
-                      "name": "Grid view",
-                      "type": "grid"
-                    }
-                  ]
-                },
-                {
-                  "id": "tbl789abcdefGhIjK",
-                  "name": "Tenants",
-                  "primaryFieldId": "fld789abcdefGhIjK",
-                  "fields": [
-                    {
-                      "id": "fld789abcdefGhIjK",
-                      "name": "Name",
-                      "type": "singleLineText"
-                    },
-                    {
-                      "id": "fldLmNoPqRsTuVwXy",
-                      "name": "Email",
-                      "type": "email"
-                    },
-                    {
-                      "id": "fldZ123456789abcd",
-                      "name": "Phone",
-                      "type": "phoneNumber"
-                    }
-                  ],
-                  "views": [
-                    {
-                      "id": "viwLmNoPqRsTuVwXy",
-                      "name": "Grid view",
-                      "type": "grid"
-                    }
-                  ]
-                }
-              ]
-            },
-            "component": {
-              "name": "AirtableBaseCreated"
-            }
-          }
 
   - endpoint: /airtable/list_webhooks
     examples:
@@ -1270,26 +782,6 @@ routes:
                       }
                     }
                   }
-                },
-                {
-                  "id": "achYYYYYYYYYYYYYY",
-                  "areNotificationsEnabled": false,
-                  "cursorForNextPayload": 1,
-                  "isHookEnabled": true,
-                  "lastSuccessfulNotificationTime": null,
-                  "notificationUrl": null,
-                  "expirationTime": "2023-05-22T12:35:22.000Z",
-                  "lastNotificationResult": null,
-                  "specification": {
-                    "options": {
-                      "filters": {
-                        "dataTypes": [
-                          "tableData"
-                        ],
-                        "recordChangeScope": "tblYYYYYYYYYYYYYY"
-                      }
-                    }
-                  }
                 }
               ]
             },
@@ -1306,33 +798,6 @@ routes:
           {
             "base_id": "appXXXXXXXXXXXXXX",
             "notificationUrl": "https://example.com/webhook",
-            "specification": {
-              "options": {
-                "filters": {
-                  "dataTypes": [
-                    "tableData"
-                  ],
-                  "recordChangeScope": "tblXXXXXXXXXXXXXX"
-                }
-              }
-            }
-          }
-        output_json: |
-          {
-            "data": {
-              "id": "achXXXXXXXXXXXXXX",
-              "macSecretBase64": "someBase64MacSecret",
-              "expirationTime": "2023-05-22T12:35:22.000Z"
-            },
-            "component": {
-              "name": "AirtableWebhookCreated"
-            }
-          }
-      - scenario: "Create Webhook without Notification URL"
-        description: "Create a new webhook without notification URL (for polling)"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
             "specification": {
               "options": {
                 "filters": {
@@ -1401,60 +866,11 @@ routes:
                         "id": "usrXXXXXXXXXXXXXX",
                         "permissionLevel": "create"
                       }
-                    }
-                  },
-                  "baseTransactionNumber": 4,
-                  "payloadFormat": "v0",
-                  "timestamp": "2023-05-15T12:35:22.000Z"
-                },
-                {
-                  "actionMetadata": {
-                    "source": "client",
-                    "sourceMetadata": {
-                      "user": {
-                        "email": "user@example.com",
-                        "id": "usrXXXXXXXXXXXXXX",
-                        "permissionLevel": "create"
-                      }
-                    }
-                  },
-                  "baseTransactionNumber": 3,
-                  "payloadFormat": "v0",
-                  "timestamp": "2023-05-15T12:34:50.000Z"
-                }
-              ]
-            },
-            "component": {
-              "name": "AirtableWebhookPayloadsList"
-            }
-          }
-      - scenario: "List Webhook Payloads with Default Parameters"
-        description: "List payloads for a webhook using default cursor and limit"
-        input_json: |
-          {
-            "base_id": "appXXXXXXXXXXXXXX",
-            "webhook_id": "achXXXXXXXXXXXXXX"
-          }
-        output_json: |
-          {
-            "data": {
-              "cursor": 3,
-              "mightHaveMore": true,
-              "payloads": [
-                {
-                  "actionMetadata": {
-                    "source": "client",
-                    "sourceMetadata": {
-                      "user": {
-                        "email": "user@example.com",
-                        "id": "usrXXXXXXXXXXXXXX",
-                        "permissionLevel": "create"
-                      }
-                    }
-                  },
-                  "baseTransactionNumber": 2,
-                  "payloadFormat": "v0",
-                  "timestamp": "2023-05-15T12:32:15.000Z"
+                    },
+                    "baseTransactionNumber": 4,
+                    "payloadFormat": "v0",
+                    "timestamp": "2023-05-15T12:35:22.000Z"
+                  }
                 }
               ]
             },
@@ -1472,34 +888,8 @@ routes:
         output_json: |
           {
             "data": {
-              "id": "usrL2PNC5o3H4lBEi"
-            },
-            "component": {
-              "name": "AirtableUserInfo"
-            }
-          }
-      - scenario: "Get User Information with Email"
-        description: "Retrieve information about the authenticated user including email (when appropriate scopes are available)"
-        input_json: |
-          {}
-        output_json: |
-          {
-            "data": {
               "id": "usrL2PNC5o3H4lBEi",
-              "email": "user@example.com"
-            },
-            "component": {
-              "name": "AirtableUserInfo"
-            }
-          }
-      - scenario: "Get User Information with Scopes"
-        description: "Retrieve information about the authenticated user including OAuth scopes"
-        input_json: |
-          {}
-        output_json: |
-          {
-            "data": {
-              "id": "usrL2PNC5o3H4lBEi",
+              "email": "user@example.com",
               "scopes": ["data.records:read", "data.records:write", "user.email:read"]
             },
             "component": {
