@@ -116,7 +116,10 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
         return;
       }
       
-      if (provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') {
+      if (provider.auth_method === 'api_key' || 
+          provider.auth_method === 'api_key_with_base' || 
+          provider.auth_method === 'db_access' ||
+          provider.auth_method === 'custom') {
         setShowManage(true);
       } else if (provider.auth_method === 'none') {
         const enableNoneProvider = async () => {
@@ -333,6 +336,7 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
         (provider.auth_method === 'api_key' || 
          provider.auth_method === 'api_key_with_base' || 
          provider.auth_method === 'db_access' || 
+         provider.auth_method === 'custom' || 
          (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax') ||
          (provider.auth_method === 'none' && isConnected)) && (
           <ManageDialog
