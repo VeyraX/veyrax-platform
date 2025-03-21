@@ -124,14 +124,14 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                 }}
               />
               {!isPublic && props.connected && (
-                <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors">
+                <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors text-xs">
                   Connected
                 </Badge>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold truncate">{props.name}</h2>
-              <p className="text-muted-foreground mt-1 text-sm line-clamp-2">{props.description}</p>
+              <h2 className="text-base md:text-lg font-semibold truncate">{props.name}</h2>
+              <p className="text-muted-foreground mt-1 text-xs sm:text-sm line-clamp-2">{props.description}</p>
             </div>
           </div>
 
@@ -141,9 +141,10 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                 variant="outline"
                 size="sm"
                 onClick={handleDocsClick}
+                className="text-xs"
               >
                 Docs
-                <Files className="h-4 w-4" />
+                <Files className="h-3 w-3 ml-1" />
               </Button>
             )}
             
@@ -152,10 +153,10 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                 variant="outline"
                 size="sm"
                 onClick={handleConnect}
-                className="ml-auto"
+                className="ml-auto text-xs"
               >
                 Request
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3 w-3 ml-1" />
               </Button>
             ) : !isPublic && (
               props.connected ? (
@@ -163,9 +164,10 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                   variant="outline"
                   size="sm"
                   onClick={() => setShowManage(true)}
+                  className="text-xs"
                 >
                   Manage
-                  <ArrowUpRight className="h-4 w-4" />
+                  <ArrowUpRight className="h-3 w-3 ml-1" />
                 </Button>
               ) : (
                 <Button 
@@ -173,13 +175,14 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                   size="sm"
                   onClick={handleConnect}
                   disabled={isConnecting}
+                  className="text-xs"
                 >
                   {isConnecting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <>
                       Connect
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3 ml-1" />
                     </>
                   )}
                 </Button>
@@ -189,7 +192,6 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
         </CardContent>
       </Card>
 
-      {/* Integration Request Dialog */}
       <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>

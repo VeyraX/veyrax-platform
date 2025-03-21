@@ -1,12 +1,13 @@
 import React from 'react';
 import { Toaster } from "@/components/ui/sonner"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/modules/general/components/app-sidebar"
 import { ThemeProvider } from "@/app/providers/theme-provider"
 import { ReactQueryProvider } from "@/app/providers/react-query-provider"
+import { SidebarProvider } from "@/app/providers/sidebar-provider"
 import "@/app/globals.css"
 
-export default async function AppLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode
@@ -20,7 +21,7 @@ export default async function AppLayout({
     >
       <ReactQueryProvider>
         <div className="app-layout bg-light-special-background">
-          <SidebarProvider defaultOpen={true}>
+          <SidebarProvider>
             <AppSidebar collapsible="offcanvas" />
             <main className="flex-1 flex flex-col h-screen">
               <div className="flex-1">

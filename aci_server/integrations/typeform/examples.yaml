@@ -1,0 +1,664 @@
+routes:
+  - endpoint: /typeform/get_forms
+    examples:
+      - scenario: "List All Forms"
+        description: "Get a list of all forms in your Typeform account"
+        input_json: |
+          {
+            "page": 1,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "abcDE12345",
+                  "title": "Customer Feedback Survey",
+                  "type": "form",
+                  "settings": {
+                    "language": "en",
+                    "is_public": true
+                  },
+                  "workspace": {
+                    "id": "wsp123456",
+                    "name": "Marketing"
+                  }
+                },
+                {
+                  "id": "fghIJ67890",
+                  "title": "Job Application Form",
+                  "type": "form",
+                  "settings": {
+                    "language": "en",
+                    "is_public": true
+                  },
+                  "workspace": {
+                    "id": "wsp123456",
+                    "name": "Marketing"
+                  }
+                }
+              ],
+              "page_count": 1,
+              "page_size": 10,
+              "total_items": 2
+            },
+            "component": {
+              "name": "TypeformFormList"
+            }
+          }
+      - scenario: "Search Forms by Name"
+        description: "Find forms containing specific text in their title"
+        input_json: |
+          {
+            "search": "feedback",
+            "page_size": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "abcDE12345",
+                  "title": "Customer Feedback Survey",
+                  "type": "form",
+                  "settings": {
+                    "language": "en",
+                    "is_public": true
+                  },
+                  "workspace": {
+                    "id": "wsp123456",
+                    "name": "Marketing"
+                  }
+                }
+              ],
+              "page_count": 1,
+              "page_size": 5,
+              "total_items": 1
+            },
+            "component": {
+              "name": "TypeformFormList"
+            }
+          }
+
+  - endpoint: /typeform/get_form
+    examples:
+      - scenario: "Get Form Details"
+        description: "Retrieve detailed information about a specific form"
+        input_json: |
+          {
+            "form_id": "abcDE12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "abcDE12345",
+              "title": "Customer Feedback Survey",
+              "type": "form",
+              "settings": {
+                "language": "en",
+                "is_public": true,
+                "progress_bar": "percentage",
+                "show_progress_bar": true,
+                "show_typeform_branding": false,
+                "meta": {
+                  "allow_indexing": true
+                }
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome_screen",
+                  "title": "Welcome to our Customer Feedback Survey",
+                  "properties": {
+                    "description": "We value your feedback and would appreciate a few minutes of your time."
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "ref": "thankyou_screen",
+                  "title": "Thanks for your feedback!",
+                  "properties": {
+                    "show_button": true,
+                    "button_text": "Submit another response"
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "id": "field_1",
+                  "title": "What is your name?",
+                  "type": "short_text",
+                  "ref": "name",
+                  "properties": {}
+                },
+                {
+                  "id": "field_2",
+                  "title": "How satisfied are you with our service?",
+                  "type": "rating",
+                  "ref": "satisfaction",
+                  "properties": {
+                    "steps": 5
+                  }
+                }
+              ],
+              "workspace": {
+                "id": "wsp123456",
+                "name": "Marketing"
+              }
+            },
+            "component": {
+              "name": "TypeformFormDetail"
+            }
+          }
+
+  - endpoint: /typeform/get_form_responses
+    examples:
+      - scenario: "Get Form Responses"
+        description: "Retrieve responses submitted to a specific form"
+        input_json: |
+          {
+            "form_id": "abcDE12345",
+            "page_size": 10,
+            "completed": true
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "response_id": "resp12345",
+                  "landing_id": "land12345",
+                  "token": "token12345",
+                  "landed_at": "2023-06-15T10:30:45Z",
+                  "submitted_at": "2023-06-15T10:35:20Z",
+                  "metadata": {
+                    "user_agent": "Mozilla/5.0",
+                    "platform": "web",
+                    "referer": "https://example.com"
+                  },
+                  "answers": [
+                    {
+                      "type": "text",
+                      "text": "John Doe",
+                      "field": {
+                        "id": "field_1",
+                        "type": "short_text",
+                        "ref": "name"
+                      }
+                    },
+                    {
+                      "type": "number",
+                      "number": 4,
+                      "field": {
+                        "id": "field_2",
+                        "type": "rating",
+                        "ref": "satisfaction"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "response_id": "resp67890",
+                  "landing_id": "land67890",
+                  "token": "token67890",
+                  "landed_at": "2023-06-16T14:20:10Z",
+                  "submitted_at": "2023-06-16T14:25:45Z",
+                  "metadata": {
+                    "user_agent": "Mozilla/5.0",
+                    "platform": "web",
+                    "referer": "https://example.com"
+                  },
+                  "answers": [
+                    {
+                      "type": "text",
+                      "text": "Jane Smith",
+                      "field": {
+                        "id": "field_1",
+                        "type": "short_text",
+                        "ref": "name"
+                      }
+                    },
+                    {
+                      "type": "number",
+                      "number": 5,
+                      "field": {
+                        "id": "field_2",
+                        "type": "rating",
+                        "ref": "satisfaction"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "page_count": 1,
+              "total_items": 2
+            },
+            "component": {
+              "name": "TypeformResponseList"
+            }
+          }
+      - scenario: "Filter Responses by Date"
+        description: "Get responses submitted within a specific time period"
+        input_json: |
+          {
+            "form_id": "abcDE12345",
+            "since": "2023-06-15T00:00:00Z",
+            "until": "2023-06-16T23:59:59Z"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "response_id": "resp12345",
+                  "landing_id": "land12345",
+                  "token": "token12345",
+                  "landed_at": "2023-06-15T10:30:45Z",
+                  "submitted_at": "2023-06-15T10:35:20Z",
+                  "answers": [
+                    {
+                      "type": "text",
+                      "text": "John Doe",
+                      "field": {
+                        "id": "field_1",
+                        "type": "short_text",
+                        "ref": "name"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "page_count": 1,
+              "total_items": 1
+            },
+            "component": {
+              "name": "TypeformResponseList"
+            }
+          }
+
+  - endpoint: /typeform/get_webhooks
+    examples:
+      - scenario: "List All Webhooks"
+        description: "Get all webhooks configured for a specific form"
+        input_json: |
+          {
+            "form_id": "abcDE12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "wh12345",
+                  "form_id": "abcDE12345",
+                  "tag": "new-response-notification",
+                  "url": "https://example.com/webhooks/typeform",
+                  "enabled": true,
+                  "verify_ssl": true,
+                  "created_at": "2023-05-10T08:15:30Z",
+                  "updated_at": "2023-05-10T08:15:30Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "TypeformWebhookList"
+            }
+          }
+
+  - endpoint: /typeform/create_webhook
+    examples:
+      - scenario: "Create a New Webhook"
+        description: "Configure a new webhook to receive form submission notifications"
+        input_json: |
+          {
+            "form_id": "abcDE12345",
+            "tag": "response-notification",
+            "url": "https://example.com/webhooks/typeform-responses",
+            "enabled": true,
+            "secret": "your-webhook-secret"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "wh67890",
+              "form_id": "abcDE12345",
+              "tag": "response-notification",
+              "url": "https://example.com/webhooks/typeform-responses",
+              "enabled": true,
+              "secret": "your-webhook-secret",
+              "verify_ssl": true,
+              "created_at": "2023-06-20T11:45:30Z",
+              "updated_at": "2023-06-20T11:45:30Z"
+            },
+            "component": {
+              "name": "TypeformWebhook"
+            }
+          }
+          
+  - endpoint: /typeform/delete_webhook
+    examples:
+      - scenario: "Delete a Webhook"
+        description: "Remove a webhook configuration from a form"
+        input_json: |
+          {
+            "form_id": "abcDE12345",
+            "tag": "response-notification"
+          }
+        output_json: |
+          {
+            "data": {},
+            "component": {
+              "name": "TypeformDeleteResult"
+            }
+          }
+
+  - endpoint: /typeform/get_workspaces
+    examples:
+      - scenario: "List All Workspaces"
+        description: "Get all workspaces in your Typeform account"
+        input_json: |
+          {
+            "page": 1,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "wsp123456",
+                  "name": "Marketing",
+                  "default": true,
+                  "shared": false,
+                  "members": [
+                    {
+                      "email": "user@example.com",
+                      "role": "owner"
+                    }
+                  ]
+                },
+                {
+                  "id": "wsp789012",
+                  "name": "Sales",
+                  "default": false,
+                  "shared": true,
+                  "members": [
+                    {
+                      "email": "user@example.com",
+                      "role": "owner"
+                    },
+                    {
+                      "email": "sales@example.com",
+                      "role": "editor"
+                    }
+                  ]
+                }
+              ],
+              "page_count": 1,
+              "page_size": 10,
+              "total_items": 2
+            },
+            "component": {
+              "name": "TypeformWorkspaceList"
+            }
+          }
+
+  - endpoint: /typeform/create_workspace
+    examples:
+      - scenario: "Create a New Workspace"
+        description: "Create a new workspace for organizing forms"
+        input_json: |
+          {
+            "name": "Customer Research"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "wsp345678",
+              "name": "Customer Research",
+              "default": false,
+              "shared": false,
+              "members": [
+                {
+                  "email": "user@example.com",
+                  "role": "owner"
+                }
+              ]
+            },
+            "component": {
+              "name": "TypeformWorkspaceDetail"
+            }
+          }
+
+  - endpoint: /typeform/create_form
+    examples:
+      - scenario: "Create a New Form"
+        description: "Create a new form with basic configuration"
+        input_json: |
+          {
+            "title": "Product Feedback Survey",
+            "workspace_id": "wsp123456",
+            "settings": {
+              "language": "en",
+              "is_public": true,
+              "progress_bar": "percentage",
+              "show_progress_bar": true,
+              "show_typeform_branding": false
+            },
+            "welcome_screens": [
+              {
+                "title": "Welcome to our Product Feedback Survey",
+                "properties": {
+                  "description": "Your feedback will help us improve our product."
+                }
+              }
+            ],
+            "fields": [
+              {
+                "title": "What is your name?",
+                "type": "short_text",
+                "ref": "name",
+                "properties": {}
+              },
+              {
+                "title": "How would you rate our product?",
+                "type": "rating",
+                "ref": "product_rating",
+                "properties": {
+                  "steps": 5
+                }
+              },
+              {
+                "title": "Do you have any suggestions for improvement?",
+                "type": "long_text",
+                "ref": "suggestions",
+                "properties": {}
+              }
+            ],
+            "thankyou_screens": [
+              {
+                "title": "Thank you for your feedback!",
+                "properties": {
+                  "show_button": true,
+                  "button_text": "Submit another response"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "newFormId123",
+              "title": "Product Feedback Survey",
+              "type": "form",
+              "settings": {
+                "language": "en",
+                "is_public": true,
+                "progress_bar": "percentage",
+                "show_progress_bar": true,
+                "show_typeform_branding": false
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome_screen_1",
+                  "title": "Welcome to our Product Feedback Survey",
+                  "properties": {
+                    "description": "Your feedback will help us improve our product."
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "id": "field_1",
+                  "title": "What is your name?",
+                  "type": "short_text",
+                  "ref": "name",
+                  "properties": {}
+                },
+                {
+                  "id": "field_2",
+                  "title": "How would you rate our product?",
+                  "type": "rating",
+                  "ref": "product_rating",
+                  "properties": {
+                    "steps": 5
+                  }
+                },
+                {
+                  "id": "field_3",
+                  "title": "Do you have any suggestions for improvement?",
+                  "type": "long_text",
+                  "ref": "suggestions",
+                  "properties": {}
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "ref": "thankyou_screen_1",
+                  "title": "Thank you for your feedback!",
+                  "properties": {
+                    "show_button": true,
+                    "button_text": "Submit another response"
+                  }
+                }
+              ],
+              "workspace": {
+                "id": "wsp123456",
+                "name": "Marketing"
+              }
+            },
+            "component": {
+              "name": "TypeformFormDetail"
+            }
+          }
+
+  - endpoint: /typeform/update_form
+    examples:
+      - scenario: "Update an Existing Form"
+        description: "Modify fields and settings of an existing form"
+        input_json: |
+          {
+            "form_id": "abcDE12345",
+            "title": "Updated Customer Feedback Survey",
+            "settings": {
+              "is_public": false,
+              "show_progress_bar": false
+            },
+            "fields": [
+              {
+                "id": "field_1",
+                "title": "What is your full name?",
+                "type": "short_text",
+                "ref": "name",
+                "properties": {}
+              },
+              {
+                "id": "field_2",
+                "title": "How satisfied are you with our service?",
+                "type": "rating",
+                "ref": "satisfaction",
+                "properties": {
+                  "steps": 10
+                }
+              },
+              {
+                "title": "Would you recommend our service to others?",
+                "type": "yes_no",
+                "ref": "recommendation",
+                "properties": {}
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "abcDE12345",
+              "title": "Updated Customer Feedback Survey",
+              "type": "form",
+              "settings": {
+                "language": "en",
+                "is_public": false,
+                "progress_bar": "percentage",
+                "show_progress_bar": false,
+                "show_typeform_branding": false
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome_screen",
+                  "title": "Welcome to our Customer Feedback Survey",
+                  "properties": {
+                    "description": "We value your feedback and would appreciate a few minutes of your time."
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "id": "field_1",
+                  "title": "What is your full name?",
+                  "type": "short_text",
+                  "ref": "name",
+                  "properties": {}
+                },
+                {
+                  "id": "field_2",
+                  "title": "How satisfied are you with our service?",
+                  "type": "rating",
+                  "ref": "satisfaction",
+                  "properties": {
+                    "steps": 10
+                  }
+                },
+                {
+                  "id": "field_3",
+                  "title": "Would you recommend our service to others?",
+                  "type": "yes_no",
+                  "ref": "recommendation",
+                  "properties": {}
+                }
+              ],
+              "workspace": {
+                "id": "wsp123456",
+                "name": "Marketing"
+              }
+            },
+            "component": {
+              "name": "TypeformFormDetail"
+            }
+          }
+
+  - endpoint: /typeform/delete_form
+    examples:
+      - scenario: "Delete a Form"
+        description: "Permanently delete a form from your account"
+        input_json: |
+          {
+            "form_id": "abcDE12345"
+          }
+        output_json: |
+          {
+            "data": {},
+            "component": {
+              "name": "TypeformDeleteResult"
+            }
+          }

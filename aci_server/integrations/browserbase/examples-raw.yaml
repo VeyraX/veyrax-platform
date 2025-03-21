@@ -1,0 +1,212 @@
+---
+https://docs.browserbase.com/reference/api/overview:
+- endpoint: https://api.browserbase.com/v1/sessions/{sessionId}
+  name: Get Browser Session
+  authorization: x-bb-api-key
+  examples:
+    input_json: "{\n  \"sessionId\": \"12345\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"12345\",\n    \"status\": \"active\",\n    \"created_at\"\
+      : \"2023-10-01T12:00:00Z\",\n    \"browser\": {\n      \"name\": \"chrome\",\n      \"version\": \"95.0\"\n    },\n\
+      \    \"configuration\": {\n      \"resolution\": \"1920x1080\",\n      \"timezone\": \"UTC\",\n      \"language\": \"\
+      en-US\"\n    },\n    \"links\": {\n      \"websocket\": \"wss://api.browserbase.com/v1/sessions/12345/ws\",\n      \"\
+      screenshot\": \"https://api.browserbase.com/v1/sessions/12345/screenshot\"\n    }\n  },\n  \"message\": null\n}"
+https://docs.browserbase.com/reference/api/context:
+- endpoint: https://api.browserbase.com/v1/contexts/{id}
+  name: Get Context
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"context123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"context123\",\n    \"createdAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"updatedAt\": \"2023-11-07T05:31:56Z\",\n    \"projectId\": \"project456\"\n  }\n}"
+https://docs.browserbase.com/reference/api/session-downloads:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}/downloads
+  name: Session Downloads
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"content_type\": \"application/zip\",\n  \"file\": \"binary data\"\n}"
+https://docs.browserbase.com/reference/api/update-session:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}
+  name: Update Session
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"projectId\": \"exampleProjectId\",\n  \"status\": \"REQUEST_RELEASE\"\n}\n"
+    output_json: "{\n  \"id\": \"exampleSessionId\",\n  \"createdAt\": \"2023-11-07T05:31:56Z\",\n  \"updatedAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n  \"projectId\": \"exampleProjectId\",\n  \"startedAt\": \"2023-11-07T05:31:56Z\",\n  \"endedAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n  \"expiresAt\": \"2023-11-07T05:31:56Z\",\n  \"status\": \"RUNNING\",\n  \"proxyBytes\": 123,\n  \"avgCpuUsage\"\
+      : 123,\n  \"memoryUsage\": 123,\n  \"keepAlive\": true,\n  \"contextId\": \"exampleContextId\",\n  \"region\": \"us-west-2\"\
+      ,\n  \"userMetadata\": {}\n}"
+https://docs.browserbase.com/reference/api/delete-context:
+- endpoint: https://api.browserbase.com/v1/contexts/{id}
+  name: Delete Context
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"12345\"\n}\n"
+    output_json: "{\n  \"status_code\": 204,\n  \"headers\": {\n    \"Content-Type\": \"application/json\"\n  }\n}"
+https://docs.browserbase.com/reference/api/list-sessions:
+- endpoint: https://api.browserbase.com/v1/sessions
+  name: List Sessions
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"status\": \"RUNNING\",\n  \"q\": \"user:12345\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": [\n    {\n      \"id\": \"session123\",\n      \"createdAt\": \"\
+      2023-11-07T05:31:56Z\",\n      \"updatedAt\": \"2023-11-07T05:31:56Z\",\n      \"projectId\": \"project123\",\n    \
+      \  \"startedAt\": \"2023-11-07T05:31:56Z\",\n      \"endedAt\": \"2023-11-07T05:31:56Z\",\n      \"expiresAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n      \"status\": \"RUNNING\",\n      \"proxyBytes\": 123,\n      \"avgCpuUsage\": 123,\n      \"memoryUsage\": 123,\n\
+      \      \"keepAlive\": true,\n      \"contextId\": \"context123\",\n      \"region\": \"us-west-2\",\n      \"userMetadata\"\
+      : {\n        \"user\": \"12345\"\n      }\n    }\n  ]\n}"
+https://docs.browserbase.com/reference/api/session-logs:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}/logs
+  name: Get Session Logs
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\"\n}\n"
+    output_json: "[\n  {\n    \"method\": \"GET\",\n    \"pageId\": 123,\n    \"sessionId\": \"session123\",\n    \"request\"\
+      : {\n      \"timestamp\": 1609459200000,\n      \"params\": {},\n      \"rawBody\": \"{\\\"key\\\":\\\"value\\\"}\"\n\
+      \    },\n    \"response\": {\n      \"timestamp\": 1609459201000,\n      \"result\": {\n        \"status\": \"success\"\
+      \n      },\n      \"rawBody\": \"{\\\"status\\\":\\\"success\\\"}\"\n    },\n    \"timestamp\": 1609459202000,\n   \
+      \ \"frameId\": \"frame123\",\n    \"loaderId\": \"loader123\"\n  }\n]"
+https://docs.browserbase.com/reference/api/session-recording:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}/recording
+  name: Get Session Recording
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\"\n}\n"
+    output_json: "[\n  {\n    \"data\": {},\n    \"sessionId\": \"session123\",\n    \"timestamp\": 1609459200000,\n    \"\
+      type\": 1\n  }\n]"
+https://docs.browserbase.com/reference/api/create-a-session:
+- endpoint: https://api.browserbase.com/v1/sessions
+  name: Create a Session
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"projectId\": \"exampleProjectId\",\n  \"extensionId\": \"exampleExtensionId\",\n  \"browserSettings\"\
+      : {\n    \"context\": {\n      \"id\": \"exampleContextId\",\n      \"persist\": true\n    },\n    \"extensionId\":\
+      \ \"exampleExtensionId\",\n    \"fingerprint\": {\n      \"httpVersion\": \"1\",\n      \"browsers\": [\n        \"\
+      chrome\"\n      ],\n      \"devices\": [\n        \"desktop\"\n      ],\n      \"locales\": [\n        \"en-US\"\n \
+      \     ],\n      \"operatingSystems\": [\n        \"android\"\n      ],\n      \"screen\": {\n        \"maxHeight\":\
+      \ 123,\n        \"maxWidth\": 123,\n        \"minHeight\": 123,\n        \"minWidth\": 123\n      }\n    },\n    \"\
+      viewport\": {\n      \"width\": 123,\n      \"height\": 123\n    },\n    \"blockAds\": true,\n    \"solveCaptchas\"\
+      : true,\n    \"recordSession\": true,\n    \"logSession\": true,\n    \"advancedStealth\": true\n  },\n  \"timeout\"\
+      : 10830,\n  \"keepAlive\": true,\n  \"proxies\": true,\n  \"region\": \"us-west-2\",\n  \"userMetadata\": {}\n}\n"
+    output_json: "{\n  \"id\": \"exampleSessionId\",\n  \"createdAt\": \"2023-11-07T05:31:56Z\",\n  \"updatedAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n  \"projectId\": \"exampleProjectId\",\n  \"startedAt\": \"2023-11-07T05:31:56Z\",\n  \"endedAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n  \"expiresAt\": \"2023-11-07T05:31:56Z\",\n  \"status\": \"RUNNING\",\n  \"proxyBytes\": 123,\n  \"avgCpuUsage\"\
+      : 123,\n  \"memoryUsage\": 123,\n  \"keepAlive\": true,\n  \"contextId\": \"exampleContextId\",\n  \"region\": \"us-west-2\"\
+      ,\n  \"userMetadata\": {},\n  \"connectUrl\": \"wss://example.connect.url\",\n  \"seleniumRemoteUrl\": \"http://example.selenium.url\"\
+      ,\n  \"signingKey\": \"exampleSigningKey\"\n}"
+https://docs.browserbase.com/reference/api/session-live-urls:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}/debug
+  name: Session Live URLs
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"debuggerFullscreenUrl\": \"https://debugger.browserbase.com/fullscreen/session123\"\
+      ,\n    \"debuggerUrl\": \"https://debugger.browserbase.com/session123\",\n    \"pages\": [\n      {\n        \"id\"\
+      : \"page1\",\n        \"url\": \"https://example.com\",\n        \"faviconUrl\": \"https://example.com/favicon.ico\"\
+      ,\n        \"title\": \"Example Page\",\n        \"debuggerUrl\": \"https://debugger.browserbase.com/page1\",\n    \
+      \    \"debuggerFullscreenUrl\": \"https://debugger.browserbase.com/fullscreen/page1\"\n      }\n    ],\n    \"wsUrl\"\
+      : \"wss://ws.browserbase.com/session123\"\n  }\n}"
+http://docs.browserbase.com/reference/api/connect: null
+http://docs.browserbase.com/reference/api/create-a-context:
+- endpoint: https://api.browserbase.com/v1/contexts
+  name: Create a Context
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"projectId\": \"exampleProjectId\"\n}\n"
+    output_json: "{\n  \"status_code\": 201,\n  \"data\": {\n    \"id\": \"contextId123\",\n    \"uploadUrl\": \"https://upload.browserbase.com/contextId123\"\
+      ,\n    \"publicKey\": \"publicKeyExample\",\n    \"cipherAlgorithm\": \"AES-256-CBC\",\n    \"initializationVectorSize\"\
+      : 16\n  }\n}"
+http://docs.browserbase.com/reference/api/create-session-uploads:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}/uploads
+  name: Create Session Uploads
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\",\n  \"file\": \"<file-content>\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"message\": \"File uploaded successfully\"\n  }\n}"
+http://docs.browserbase.com/reference/api/delete-extension:
+- endpoint: https://api.browserbase.com/v1/extensions/{id}
+  name: Delete Extension
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"extension123\"\n}\n"
+    output_json: "{\n  \"status_code\": 204,\n  \"headers\": {\n    \"Content-Type\": \"application/json\"\n  }\n}"
+http://docs.browserbase.com/reference/api/extension:
+- endpoint: https://api.browserbase.com/v1/extensions/{id}
+  name: Get Extension
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"extension123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"extension123\",\n    \"createdAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"updatedAt\": \"2023-11-07T05:31:56Z\",\n    \"fileName\": \"example_extension.js\",\n    \"projectId\": \"\
+      project456\"\n  }\n}"
+http://docs.browserbase.com/reference/api/list-projects:
+- endpoint: https://api.browserbase.com/v1/projects
+  name: List Projects
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"api_key\": \"<api-key>\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": [\n    {\n      \"id\": \"project123\",\n      \"createdAt\": \"\
+      2023-11-07T05:31:56Z\",\n      \"updatedAt\": \"2023-11-07T05:31:56Z\",\n      \"name\": \"Project Alpha\",\n      \"\
+      ownerId\": \"owner456\",\n      \"defaultTimeout\": 10830\n    },\n    {\n      \"id\": \"project789\",\n      \"createdAt\"\
+      : \"2023-11-07T06:00:00Z\",\n      \"updatedAt\": \"2023-11-07T06:00:00Z\",\n      \"name\": \"Project Beta\",\n   \
+      \   \"ownerId\": \"owner123\",\n      \"defaultTimeout\": 7200\n    }\n  ]\n}"
+http://docs.browserbase.com/reference/api/project:
+- endpoint: https://api.browserbase.com/v1/projects/{id}
+  name: Get Project
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"project123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"project123\",\n    \"createdAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"updatedAt\": \"2023-11-07T05:31:56Z\",\n    \"name\": \"Sample Project\",\n    \"ownerId\": \"owner456\",\n\
+      \    \"defaultTimeout\": 10830\n  }\n}"
+http://docs.browserbase.com/reference/api/project-usage:
+- endpoint: https://api.browserbase.com/v1/projects/{id}/usage
+  name: Get Project Usage
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"project123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"browserMinutes\": 1,\n    \"proxyBytes\": 1\n  }\n}"
+http://docs.browserbase.com/reference/api/session:
+- endpoint: https://api.browserbase.com/v1/sessions/{id}
+  name: Get Session
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"session123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"session123\",\n    \"createdAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"updatedAt\": \"2023-11-07T05:31:56Z\",\n    \"projectId\": \"project456\",\n    \"startedAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"endedAt\": \"2023-11-07T05:31:56Z\",\n    \"expiresAt\": \"2023-11-07T05:31:56Z\",\n    \"status\": \"RUNNING\"\
+      ,\n    \"proxyBytes\": 123,\n    \"avgCpuUsage\": 123,\n    \"memoryUsage\": 123,\n    \"keepAlive\": true,\n    \"\
+      contextId\": \"context789\",\n    \"region\": \"us-west-2\",\n    \"userMetadata\": {},\n    \"connectUrl\": \"wss://connect.browserbase.com/session123\"\
+      ,\n    \"seleniumRemoteUrl\": \"http://selenium.browserbase.com/session123\",\n    \"signingKey\": \"signingKey123\"\
+      \n  },\n  \"message\": null,\n  \"component\": {\n    \"name\": \"BrowserbaseSessionDetail\"\n  }\n}"
+http://docs.browserbase.com/reference/api/update-context:
+- endpoint: https://api.browserbase.com/v1/contexts/{id}
+  name: Update Context
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"id\": \"context123\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"context123\",\n    \"uploadUrl\": \"https://upload.browserbase.com/context123\"\
+      ,\n    \"publicKey\": \"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\",\n    \"cipherAlgorithm\": \"AES-256-CBC\"\
+      ,\n    \"initializationVectorSize\": 16\n  }\n}"
+http://docs.browserbase.com/reference/api/upload-an-extension:
+- endpoint: https://api.browserbase.com/v1/extensions
+  name: Upload an Extension
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"file\": \"<file>\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": {\n    \"id\": \"abc123\",\n    \"createdAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n    \"updatedAt\": \"2023-11-07T05:31:56Z\",\n    \"fileName\": \"extension.zip\",\n    \"projectId\": \"project123\"\
+      \n  }\n}"
+http://docs.browserbase.com/reference/api/list-all-sessions:
+- endpoint: https://api.browserbase.com/v1/sessions
+  name: List Sessions
+  authorization: X-BB-API-Key
+  examples:
+    input_json: "{\n  \"status\": \"RUNNING\",\n  \"q\": \"user:12345\"\n}\n"
+    output_json: "{\n  \"status_code\": 200,\n  \"data\": [\n    {\n      \"id\": \"session123\",\n      \"createdAt\": \"\
+      2023-11-07T05:31:56Z\",\n      \"updatedAt\": \"2023-11-07T05:31:56Z\",\n      \"projectId\": \"project123\",\n    \
+      \  \"startedAt\": \"2023-11-07T05:31:56Z\",\n      \"endedAt\": \"2023-11-07T05:31:56Z\",\n      \"expiresAt\": \"2023-11-07T05:31:56Z\"\
+      ,\n      \"status\": \"RUNNING\",\n      \"proxyBytes\": 123,\n      \"avgCpuUsage\": 123,\n      \"memoryUsage\": 123,\n\
+      \      \"keepAlive\": true,\n      \"contextId\": \"context123\",\n      \"region\": \"us-west-2\",\n      \"userMetadata\"\
+      : {\n        \"user\": \"12345\"\n      }\n    }\n  ]\n}"
+http://docs.browserbase.com/reference/api/get-a-project-by-id: null

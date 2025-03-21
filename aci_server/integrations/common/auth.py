@@ -9,7 +9,7 @@ import json
 import requests
 import aiohttp
 import time
-from .encryption import decrypt, encrypt
+from .encryption import decrypt, encrypt, safe_decrypt, safe_encrypt, is_encrypted
 
 class TokenService:
     @staticmethod
@@ -29,15 +29,15 @@ class TokenService:
                 }
                 
                 if 'access_token' in raw_data:
-                    raw_data['access_token'] = encrypt(raw_data['access_token'])
+                    raw_data['access_token'] = safe_encrypt(raw_data['access_token'])
                 if 'refresh_token' in raw_data and raw_data['refresh_token']:
-                    raw_data['refresh_token'] = encrypt(raw_data['refresh_token'])
+                    raw_data['refresh_token'] = safe_encrypt(raw_data['refresh_token'])
             
             if 'access_token' in new_token_data:
-                new_token_data['access_token'] = encrypt(new_token_data['access_token'])
+                new_token_data['access_token'] = safe_encrypt(new_token_data['access_token'])
             
             if 'refresh_token' in new_token_data and new_token_data['refresh_token']:
-                new_token_data['refresh_token'] = encrypt(new_token_data['refresh_token'])
+                new_token_data['refresh_token'] = safe_encrypt(new_token_data['refresh_token'])
             
             supabase = get_supabase()
             result = supabase.table('users_oauth_tokens') \
@@ -104,16 +104,17 @@ class TokenService:
             token_data = token_res.data[0]
             
             if token_data.get('access_token'):
-                token_data['access_token'] = decrypt(token_data['access_token'])
+                token_data['access_token'] = safe_decrypt(token_data['access_token'])
             
             if token_data.get('refresh_token'):
-                token_data['refresh_token'] = decrypt(token_data['refresh_token'])
+                token_data['refresh_token'] = safe_decrypt(token_data['refresh_token'])
+                
             if token_data.get('raw_token_data') and isinstance(token_data['raw_token_data'], dict):
                 raw_data = token_data['raw_token_data']
                 if 'access_token' in raw_data:
-                    raw_data['access_token'] = token_data['access_token']
+                    raw_data['access_token'] = safe_decrypt(raw_data['access_token'])
                 if 'refresh_token' in raw_data and raw_data['refresh_token']:
-                    raw_data['refresh_token'] = token_data['refresh_token']
+                    raw_data['refresh_token'] = safe_decrypt(raw_data['refresh_token'])
                 
             return token_data
             
@@ -576,7 +577,7 @@ async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
             raise HTTPException(status_code=404, detail=f"API key for provider {provider_tag} not found")
         
         encrypted_api_key = api_key_res.data[0]['api_key']
-        decrypted_api_key = decrypt(encrypted_api_key)
+        decrypted_api_key = safe_decrypt(encrypted_api_key)
             
         return decrypted_api_key
     except HTTPException as he:
@@ -612,7 +613,7 @@ async def get_user_db_credentials(request: Request, provider_tag: str) -> dict:
         credentials = json.loads(creds_res.data[0]['credentials'])
         
         if credentials.get('password'):
-            credentials['password'] = decrypt(credentials['password'])
+            credentials['password'] = safe_decrypt(credentials['password'])
         
         return credentials
         
@@ -620,5 +621,3 @@ async def get_user_db_credentials(request: Request, provider_tag: str) -> dict:
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get database credentials: {str(e)}")
-    
-    

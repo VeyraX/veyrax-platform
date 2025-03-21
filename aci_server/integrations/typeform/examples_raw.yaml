@@ -1,0 +1,2060 @@
+routes:
+  - endpoint: /typeform/get_account_workspaces
+    examples:
+      - scenario: "List Account Workspaces"
+        description: "Retrieves all workspaces within a specific account"
+        input_json: |
+          {
+            "account_id": "ABCD1234",
+            "search": null,
+            "page": 1,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "account_id": "ABCD1234",
+                  "forms": [
+                    {
+                      "count": 12,
+                      "href": "https://api.typeform.com/workspaces/a1b2c3/forms"
+                    }
+                  ],
+                  "id": "a1b2c3",
+                  "name": "My Workspace",
+                  "self": [
+                    {
+                      "href": "https://api.typeform.com/workspaces/a1b2c3"
+                    }
+                  ],
+                  "shared": false
+                }
+              ],
+              "page_count": 1,
+              "total_items": 10
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWorkspaceList"
+            }
+          }
+
+  - endpoint: /typeform/create_account_workspace
+    examples:
+      - scenario: "Create Account Workspace"
+        description: "Creates a new workspace in a specific account"
+        input_json: |
+          {
+            "account_id": "ABCD1234",
+            "name": "My new workspace"
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "account_id": "ABCD1234",
+              "forms": [],
+              "id": "d4e5f6",
+              "name": "My new workspace",
+              "self": [
+                {
+                  "href": "https://api.typeform.com/workspaces/d4e5f6"
+                }
+              ],
+              "shared": false,
+              "members": []
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWorkspaceCard"
+            }
+          }
+
+  - endpoint: /typeform/get_workspaces
+    examples:
+      - scenario: "List All Accessible Workspaces"
+        description: "Retrieves all workspaces the user has access to across multiple organizations"
+        input_json: |
+          {
+            "search": null,
+            "page": 1,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "account_id": "ABCD1234",
+                  "forms": [
+                    {
+                      "count": 12,
+                      "href": "https://api.typeform.com/workspaces/a1b2c3/forms"
+                    }
+                  ],
+                  "id": "a1b2c3",
+                  "name": "My Workspace",
+                  "self": [
+                    {
+                      "href": "https://api.typeform.com/workspaces/a1b2c3"
+                    }
+                  ],
+                  "shared": false
+                },
+                {
+                  "account_id": "EFGH5678",
+                  "forms": [
+                    {
+                      "count": 5,
+                      "href": "https://api.typeform.com/workspaces/g7h8i9/forms"
+                    }
+                  ],
+                  "id": "g7h8i9",
+                  "name": "Marketing Workspace",
+                  "self": [
+                    {
+                      "href": "https://api.typeform.com/workspaces/g7h8i9"
+                    }
+                  ],
+                  "shared": true
+                }
+              ],
+              "page_count": 1,
+              "total_items": 10
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWorkspaceList"
+            }
+          }
+
+  - endpoint: /typeform/create_workspace
+    examples:
+      - scenario: "Create New Workspace"
+        description: "Creates a new workspace in the account where the user is an owner"
+        input_json: |
+          {
+            "name": "My new workspace"
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "account_id": "ABCD1234",
+              "forms": [],
+              "id": "j9k0l1",
+              "name": "My new workspace",
+              "self": [
+                {
+                  "href": "https://api.typeform.com/workspaces/j9k0l1"
+                }
+              ],
+              "shared": false,
+              "members": []
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWorkspaceCard"
+            }
+          }
+
+  - endpoint: /typeform/delete_workspace
+    examples:
+      - scenario: "Delete Workspace"
+        description: "Deletes an existing workspace"
+        input_json: |
+          {
+            "workspace_id": "a1b2c3"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Workspace successfully deleted",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_workspace
+    examples:
+      - scenario: "Retrieve Workspace Details"
+        description: "Retrieves detailed information about a specific workspace"
+        input_json: |
+          {
+            "workspace_id": "a1b2c3"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "account_id": "ABCD1234",
+              "forms": [
+                {
+                  "count": 12,
+                  "href": "https://api.typeform.com/workspaces/a1b2c3/forms"
+                }
+              ],
+              "id": "a1b2c3",
+              "name": "My Workspace",
+              "self": [
+                {
+                  "href": "https://api.typeform.com/workspaces/a1b2c3"
+                }
+              ],
+              "shared": false,
+              "members": [
+                {
+                  "email": "user@example.com",
+                  "role": "owner"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWorkspaceCard"
+            }
+          }
+
+  - endpoint: /typeform/update_workspace
+    examples:
+      - scenario: "Update Workspace Name"
+        description: "Updates the name of an existing workspace"
+        input_json: |
+          {
+            "workspace_id": "a1b2c3",
+            "operations": [
+              {
+                "op": "replace",
+                "path": "/name",
+                "value": "Marketing Workspace"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Workspace successfully updated",
+            "component": null
+          }
+      - scenario: "Add Workspace Member"
+        description: "Adds a new member to a workspace"
+        input_json: |
+          {
+            "workspace_id": "a1b2c3",
+            "operations": [
+              {
+                "op": "add",
+                "path": "/members",
+                "value": {
+                  "email": "newmember@example.com",
+                  "role": "editor"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Member successfully added to workspace",
+            "component": null
+          }
+      - scenario: "Remove Workspace Member"
+        description: "Removes a member from a workspace"
+        input_json: |
+          {
+            "workspace_id": "a1b2c3",
+            "operations": [
+              {
+                "op": "remove",
+                "path": "/members",
+                "value": {
+                  "email": "member@example.com"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Member successfully removed from workspace",
+            "component": null
+          }
+
+  # Form endpoints
+  - endpoint: /typeform/get_forms
+    examples:
+      - scenario: "List All Forms"
+        description: "Retrieves a list of all forms in your Typeform account"
+        input_json: |
+          {
+            "search": null,
+            "page": 1,
+            "page_size": 10,
+            "workspace_id": null,
+            "sort_by": "created_at",
+            "order_by": "desc"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "total_items": 25,
+              "page_count": 3,
+              "items": [
+                {
+                  "id": "abc123",
+                  "title": "Customer Feedback Survey",
+                  "self": {
+                    "href": "https://api.typeform.com/forms/abc123"
+                  },
+                  "last_updated_at": "2023-05-15T09:45:22Z",
+                  "created_at": "2023-04-10T14:30:00Z",
+                  "settings": {
+                    "is_public": true,
+                    "language": "en"
+                  },
+                  "workspaces": [
+                    {
+                      "href": "https://api.typeform.com/workspaces/a1b2c3"
+                    }
+                  ],
+                  "_links": {
+                    "display": "https://yourcompany.typeform.com/to/abc123"
+                  }
+                },
+                {
+                  "id": "def456",
+                  "title": "Employee Satisfaction",
+                  "self": {
+                    "href": "https://api.typeform.com/forms/def456"
+                  },
+                  "last_updated_at": "2023-05-10T11:20:15Z",
+                  "created_at": "2023-03-22T08:15:30Z",
+                  "settings": {
+                    "is_public": false,
+                    "language": "en"
+                  },
+                  "workspaces": [
+                    {
+                      "href": "https://api.typeform.com/workspaces/a1b2c3"
+                    }
+                  ],
+                  "_links": {
+                    "display": "https://yourcompany.typeform.com/to/def456"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformFormList"
+            }
+          }
+
+  - endpoint: /typeform/create_form
+    examples:
+      - scenario: "Create Simple Form"
+        description: "Creates a basic form with a few fields"
+        input_json: |
+          {
+            "form_data": {
+              "title": "Simple Feedback Form",
+              "type": "form",
+              "settings": {
+                "is_public": true,
+                "language": "en"
+              },
+              "workspace": {
+                "href": "https://api.typeform.com/workspaces/a1b2c3"
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome-screen",
+                  "title": "Welcome to our feedback form",
+                  "properties": {
+                    "description": "We value your opinion!",
+                    "show_button": true,
+                    "button_text": "Start"
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "ref": "name_field",
+                  "title": "What's your name?",
+                  "type": "short_text",
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "ref": "email_field",
+                  "title": "What's your email address?",
+                  "type": "email",
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "ref": "rating_field",
+                  "title": "How would you rate our service?",
+                  "type": "rating",
+                  "properties": {
+                    "steps": 5,
+                    "shape": "star"
+                  },
+                  "validations": {
+                    "required": true
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "ref": "thank-you-screen",
+                  "title": "Thanks for your feedback!",
+                  "properties": {
+                    "show_button": true,
+                    "button_text": "Close",
+                    "button_mode": "redirect",
+                    "redirect_url": "https://www.example.com"
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "id": "ghi789",
+              "title": "Simple Feedback Form",
+              "type": "form",
+              "self": {
+                "href": "https://api.typeform.com/forms/ghi789"
+              },
+              "_links": {
+                "display": "https://yourcompany.typeform.com/to/ghi789"
+              }
+            },
+            "message": "Form successfully created",
+            "component": {
+              "name": "TypeformFormCard"
+            }
+          }
+
+  - endpoint: /typeform/delete_form
+    examples:
+      - scenario: "Delete Form"
+        description: "Deletes a form and all of its responses"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Form successfully deleted",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_form
+    examples:
+      - scenario: "Retrieve Form Details"
+        description: "Retrieves detailed information about a specific form"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "title": "Customer Feedback Survey",
+              "type": "form",
+              "language": "en",
+              "workspace": {
+                "href": "https://api.typeform.com/workspaces/a1b2c3"
+              },
+              "theme": {
+                "href": "https://api.typeform.com/themes/Fs24as"
+              },
+              "settings": {
+                "is_public": true,
+                "language": "en",
+                "progress_bar": "percentage",
+                "show_progress_bar": true,
+                "show_typeform_branding": false
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome-screen",
+                  "title": "Welcome to our Customer Feedback Survey",
+                  "properties": {
+                    "description": "Your opinion helps us improve our services.",
+                    "show_button": true,
+                    "button_text": "Start"
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "id": "field1",
+                  "ref": "customer_name",
+                  "title": "What's your name?",
+                  "type": "short_text",
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "id": "field2",
+                  "ref": "service_rating",
+                  "title": "How would you rate our service?",
+                  "type": "rating",
+                  "properties": {
+                    "steps": 5,
+                    "shape": "star"
+                  },
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "id": "field3",
+                  "ref": "feedback_text",
+                  "title": "Do you have any additional feedback?",
+                  "type": "long_text",
+                  "validations": {
+                    "required": false
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "ref": "thanks-screen",
+                  "title": "Thank you for your feedback!",
+                  "properties": {
+                    "show_button": true,
+                    "button_text": "Done",
+                    "button_mode": "redirect",
+                    "redirect_url": "https://www.example.com"
+                  }
+                }
+              ],
+              "_links": {
+                "display": "https://yourcompany.typeform.com/to/abc123"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformFormDetail"
+            }
+          }
+
+  - endpoint: /typeform/update_form_patch
+    examples:
+      - scenario: "Update Form Title"
+        description: "Updates the title of an existing form using a patch operation"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "operations": [
+              {
+                "op": "replace",
+                "path": "/title",
+                "value": "Updated Customer Feedback Survey"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": null,
+            "message": "Form successfully updated",
+            "component": null
+          }
+      - scenario: "Update Form Settings"
+        description: "Updates multiple form settings using patch operations"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "operations": [
+              {
+                "op": "replace",
+                "path": "/settings/is_public",
+                "value": false
+              },
+              {
+                "op": "replace",
+                "path": "/settings/meta",
+                "value": {
+                  "allow_indexing": true,
+                  "description": "Updated survey description",
+                  "image": {
+                    "href": "https://images.typeform.com/images/4bcd3"
+                  },
+                  "title": "SEO friendly title"
+                }
+              },
+              {
+                "op": "replace",
+                "path": "/workspace",
+                "value": {
+                  "href": "https://api.typeform.com/workspaces/a1b2c3"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": null,
+            "message": "Form successfully updated",
+            "component": null
+          }
+
+  - endpoint: /typeform/update_form
+    examples:
+      - scenario: "Complete Form Update"
+        description: "Updates an entire form with new fields and settings"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "form_data": {
+              "title": "Updated Customer Feedback Form",
+              "type": "form",
+              "settings": {
+                "is_public": true,
+                "language": "en",
+                "show_progress_bar": true,
+                "progress_bar": "percentage"
+              },
+              "workspace": {
+                "href": "https://api.typeform.com/workspaces/a1b2c3"
+              },
+              "welcome_screens": [
+                {
+                  "ref": "welcome-screen",
+                  "title": "Welcome to our updated feedback form",
+                  "properties": {
+                    "description": "We appreciate your feedback!",
+                    "show_button": true,
+                    "button_text": "Start"
+                  }
+                }
+              ],
+              "fields": [
+                {
+                  "ref": "name_field",
+                  "title": "What's your full name?",
+                  "type": "short_text",
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "ref": "email_field",
+                  "title": "What's your email address?",
+                  "type": "email",
+                  "validations": {
+                    "required": true
+                  }
+                },
+                {
+                  "ref": "feedback_field",
+                  "title": "Please share your feedback with us",
+                  "type": "long_text",
+                  "validations": {
+                    "required": true
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "ref": "thank-you-screen",
+                  "title": "Thank you for your valuable feedback!",
+                  "properties": {
+                    "show_button": true,
+                    "button_text": "Close",
+                    "button_mode": "redirect",
+                    "redirect_url": "https://www.example.com/thankyou"
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "title": "Updated Customer Feedback Form",
+              "type": "form",
+              "self": {
+                "href": "https://api.typeform.com/forms/abc123"
+              },
+              "_links": {
+                "display": "https://yourcompany.typeform.com/to/abc123"
+              }
+            },
+            "message": "Form successfully updated",
+            "component": {
+              "name": "TypeformFormCard"
+            }
+          }
+
+  - endpoint: /typeform/get_form_messages
+    examples:
+      - scenario: "Retrieve Form Messages"
+        description: "Retrieves the customizable messages for a form"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "label.button.submit": "Send Response",
+              "label.yes.default": "Yes",
+              "label.no.default": "No",
+              "label.buttonNoAnswer.default": "Continue",
+              "label.error.required": "This field is required",
+              "label.error.emailAddress": "Please enter a valid email address",
+              "block.fileUpload.choose": "Choose a file",
+              "block.fileUpload.drag": "Drag and drop a file here",
+              "label.error.url": "Please enter a valid URL",
+              "label.warning.success": "Thank you for completing the form!"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformFormMessages"
+            }
+          }
+
+  - endpoint: /typeform/update_form_messages
+    examples:
+      - scenario: "Update Form Messages"
+        description: "Updates the customizable messages for a form"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "messages": {
+              "label.button.submit": "Submit Feedback",
+              "label.yes.default": "Yes, absolutely",
+              "label.no.default": "No, not at all",
+              "label.buttonNoAnswer.default": "Next Question",
+              "label.error.required": "Please fill out this field",
+              "label.warning.success": "Thanks for your valuable feedback!"
+            }
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Form messages successfully updated",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_translation_payload
+    examples:
+      - scenario: "Retrieve Translation Payload"
+        description: "Retrieves the form content in the main language as a translation payload"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "fields": [
+                {
+                  "id": "field1",
+                  "title": "What's your name?",
+                  "properties": {
+                    "description": "We'll use this to personalize your experience"
+                  }
+                },
+                {
+                  "id": "field2",
+                  "title": "How would you rate our service?",
+                  "properties": {
+                    "description": "On a scale from 1 to 5",
+                    "labels": {
+                      "left": "Poor",
+                      "center": "Average",
+                      "right": "Excellent"
+                    }
+                  }
+                }
+              ],
+              "welcome_screens": [
+                {
+                  "id": "welcome1",
+                  "title": "Welcome to our survey!",
+                  "properties": {
+                    "description": "We value your feedback",
+                    "button_text": "Start"
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "id": "thanks1",
+                  "title": "Thank you for your feedback!",
+                  "properties": {
+                    "description": "Your responses will help us improve",
+                    "button_text": "Close"
+                  }
+                }
+              ],
+              "messages": {
+                "label.button.submit": "Submit",
+                "label.error.required": "This field is required",
+                "label.yes.default": "Yes",
+                "label.no.default": "No"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformTranslationPayload"
+            }
+          }
+
+  - endpoint: /typeform/get_translation_statuses
+    examples:
+      - scenario: "Retrieve Translation Statuses"
+        description: "Retrieves the status of translations for each language for a form"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "languages": [
+                {
+                  "code": "en",
+                  "status": "active"
+                },
+                {
+                  "code": "es",
+                  "status": "active"
+                },
+                {
+                  "code": "fr",
+                  "status": "pending"
+                },
+                {
+                  "code": "de",
+                  "status": "inactive"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformTranslationStatusList"
+            }
+          }
+
+  - endpoint: /typeform/delete_form_translation
+    examples:
+      - scenario: "Delete Form Translation"
+        description: "Deletes a translation for a specific language"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "language": "fr"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Translation successfully deleted",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_form_translation
+    examples:
+      - scenario: "Retrieve Form Translation"
+        description: "Retrieves a translation for a specific language"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "language": "es"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "fields": [
+                {
+                  "id": "field1",
+                  "title": "¿Cómo te llamas?",
+                  "properties": {
+                    "description": "Lo usaremos para personalizar tu experiencia"
+                  }
+                },
+                {
+                  "id": "field2",
+                  "title": "¿Cómo calificarías nuestro servicio?",
+                  "properties": {
+                    "description": "En una escala del 1 al 5",
+                    "labels": {
+                      "left": "Pobre",
+                      "center": "Promedio",
+                      "right": "Excelente"
+                    }
+                  }
+                }
+              ],
+              "welcome_screens": [
+                {
+                  "id": "welcome1",
+                  "title": "¡Bienvenido a nuestra encuesta!",
+                  "properties": {
+                    "description": "Valoramos tu opinión",
+                    "button_text": "Comenzar"
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "id": "thanks1",
+                  "title": "¡Gracias por tus comentarios!",
+                  "properties": {
+                    "description": "Tus respuestas nos ayudarán a mejorar",
+                    "button_text": "Cerrar"
+                  }
+                }
+              ],
+              "messages": {
+                "label.button.submit": "Enviar",
+                "label.error.required": "Este campo es obligatorio",
+                "label.yes.default": "Sí",
+                "label.no.default": "No"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformTranslationPayload"
+            }
+          }
+
+  - endpoint: /typeform/update_form_translation
+    examples:
+      - scenario: "Update Form Translation"
+        description: "Updates a translation for a specific language"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "language": "es",
+            "translation_data": {
+              "fields": [
+                {
+                  "id": "field1",
+                  "title": "¿Cómo te llamas?",
+                  "properties": {
+                    "description": "Lo usaremos para personalizar tu experiencia"
+                  }
+                },
+                {
+                  "id": "field2",
+                  "title": "¿Cómo calificarías nuestro servicio?",
+                  "properties": {
+                    "description": "En una escala del 1 al 5",
+                    "labels": {
+                      "left": "Pobre",
+                      "center": "Promedio",
+                      "right": "Excelente"
+                    }
+                  }
+                }
+              ],
+              "welcome_screens": [
+                {
+                  "id": "welcome1",
+                  "title": "¡Bienvenido a nuestra encuesta actualizada!",
+                  "properties": {
+                    "description": "Valoramos mucho tu opinión",
+                    "button_text": "Comenzar"
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "id": "thanks1",
+                  "title": "¡Gracias por tus valiosos comentarios!",
+                  "properties": {
+                    "description": "Tus respuestas nos ayudarán a mejorar nuestro servicio",
+                    "button_text": "Cerrar"
+                  }
+                }
+              ],
+              "messages": {
+                "label.button.submit": "Enviar",
+                "label.error.required": "Este campo es obligatorio",
+                "label.yes.default": "Sí",
+                "label.no.default": "No"
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Translation successfully updated",
+            "component": null
+          }
+
+  - endpoint: /typeform/auto_translate_form
+    examples:
+      - scenario: "Auto-Translate Form"
+        description: "Requests an automatic translation for a form in a specific language"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "language": "fr"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "fields": [
+                {
+                  "id": "field1",
+                  "title": "Quel est votre nom ?",
+                  "properties": {
+                    "description": "Nous l'utiliserons pour personnaliser votre expérience"
+                  }
+                },
+                {
+                  "id": "field2",
+                  "title": "Comment évalueriez-vous notre service ?",
+                  "properties": {
+                    "description": "Sur une échelle de 1 à 5",
+                    "labels": {
+                      "left": "Médiocre",
+                      "center": "Moyen",
+                      "right": "Excellent"
+                    }
+                  }
+                }
+              ],
+              "welcome_screens": [
+                {
+                  "id": "welcome1",
+                  "title": "Bienvenue à notre enquête !",
+                  "properties": {
+                    "description": "Nous apprécions vos commentaires",
+                    "button_text": "Commencer"
+                  }
+                }
+              ],
+              "thankyou_screens": [
+                {
+                  "id": "thanks1",
+                  "title": "Merci pour vos commentaires !",
+                  "properties": {
+                    "description": "Vos réponses nous aideront à nous améliorer",
+                    "button_text": "Fermer"
+                  }
+                }
+              ],
+              "messages": {
+                "label.button.submit": "Soumettre",
+                "label.error.required": "Ce champ est obligatoire",
+                "label.yes.default": "Oui",
+                "label.no.default": "Non"
+              }
+            },
+            "message": "Translation automatically generated",
+            "component": {
+              "name": "TypeformTranslationPayload"
+            }
+          }
+
+  - endpoint: /typeform/get_images
+    examples:
+      - scenario: "List All Images"
+        description: "Retrieves a list of all images in your Typeform account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": [
+              {
+                "id": "abc123",
+                "file_name": "header-image.jpg",
+                "src": "https://images.typeform.com/images/abc123"
+              },
+              {
+                "id": "def456",
+                "file_name": "product-photo.png",
+                "src": "https://images.typeform.com/images/def456"
+              },
+              {
+                "id": "ghi789",
+                "file_name": "team-logo.png",
+                "src": "https://images.typeform.com/images/ghi789"
+              }
+            ],
+            "message": null,
+            "component": {
+              "name": "TypeformImageList"
+            }
+          }
+
+  - endpoint: /typeform/delete_image
+    examples:
+      - scenario: "Delete Image"
+        description: "Deletes an image from your Typeform account"
+        input_json: |
+          {
+            "image_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Image successfully deleted",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_image
+    examples:
+      - scenario: "Retrieve Image Metadata"
+        description: "Retrieves the JSON metadata for an image"
+        input_json: |
+          {
+            "image_id": "abc123",
+            "json_response": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "src": "https://images.typeform.com/images/abc123",
+              "file_name": "header-image.jpg",
+              "width": 1200,
+              "height": 800,
+              "media_type": "image/jpeg",
+              "has_alpha": false,
+              "avg_color": "f5f5f5"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformImageDetail"
+            }
+          }
+      - scenario: "Retrieve Binary Image"
+        description: "Retrieves the binary data of an image"
+        input_json: |
+          {
+            "image_id": "abc123",
+            "json_response": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "media_type": "image/jpeg",
+              "content_url": "https://images.typeform.com/images/abc123",
+              "file_name": "header-image.jpg"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformImage"
+            }
+          }
+
+  - endpoint: /typeform/get_background_image
+    examples:
+      - scenario: "Retrieve Background Image"
+        description: "Retrieves a background image in the specified size"
+        input_json: |
+          {
+            "image_id": "abc123",
+            "size": "default",
+            "json_response": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "src": "https://images.typeform.com/images/abc123/background/default",
+              "file_name": "header-image.jpg",
+              "width": 1680,
+              "height": 1050,
+              "media_type": "image/jpeg",
+              "has_alpha": false,
+              "avg_color": "f5f5f5"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformImageDetail"
+            }
+          }
+
+  - endpoint: /typeform/get_choice_image
+    examples:
+      - scenario: "Retrieve Choice Image"
+        description: "Retrieves a choice image in the specified size"
+        input_json: |
+          {
+            "image_id": "abc123",
+            "size": "default",
+            "json_response": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "src": "https://images.typeform.com/images/abc123/choice/default",
+              "file_name": "product-image.jpg",
+              "width": 230,
+              "height": 230,
+              "media_type": "image/jpeg",
+              "has_alpha": false,
+              "avg_color": "ffffff"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformImageDetail"
+            }
+          }
+
+  - endpoint: /typeform/get_image_by_size
+    examples:
+      - scenario: "Retrieve Standard Image"
+        description: "Retrieves an image in the specified size"
+        input_json: |
+          {
+            "image_id": "abc123",
+            "size": "default",
+            "json_response": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "abc123",
+              "src": "https://images.typeform.com/images/abc123/image/default",
+              "file_name": "logo.png",
+              "width": 800,
+              "height": 600,
+              "media_type": "image/png",
+              "has_alpha": true,
+              "avg_color": "00ff00"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformImageDetail"
+            }
+          }
+
+  - endpoint: /typeform/get_themes
+    examples:
+      - scenario: "List All Themes"
+        description: "Retrieves a list of all themes in your Typeform account"
+        input_json: |
+          {
+            "page": 1,
+            "page_size": 10
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "page_count": 2,
+              "total_items": 15,
+              "items": [
+                {
+                  "id": "theme123",
+                  "name": "Corporate Blue",
+                  "visibility": "private",
+                  "font": "Helvetica Neue",
+                  "has_transparent_button": false,
+                  "rounded_corners": "small",
+                  "colors": {
+                    "answer": "#4FB0AE",
+                    "background": "#FFFFFF",
+                    "button": "#4FB0AE",
+                    "question": "#3D3D3D"
+                  }
+                },
+                {
+                  "id": "theme456",
+                  "name": "Minimal Gray",
+                  "visibility": "private",
+                  "font": "Lato",
+                  "has_transparent_button": true,
+                  "rounded_corners": "large",
+                  "colors": {
+                    "answer": "#808080",
+                    "background": "#F5F5F5",
+                    "button": "#808080",
+                    "question": "#333333"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformThemeList"
+            }
+          }
+
+  - endpoint: /typeform/create_theme
+    examples:
+      - scenario: "Create New Theme"
+        description: "Creates a new custom theme for forms"
+        input_json: |
+          {
+            "theme_data": {
+              "name": "Modern Green",
+              "font": "Montserrat",
+              "has_transparent_button": false,
+              "rounded_corners": "large",
+              "colors": {
+                "answer": "#2E8B57",
+                "background": "#FFFFFF",
+                "button": "#2E8B57",
+                "question": "#333333"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "large"
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 201,
+            "data": {
+              "id": "theme789",
+              "name": "Modern Green",
+              "visibility": "private",
+              "font": "Montserrat",
+              "has_transparent_button": false,
+              "rounded_corners": "large",
+              "colors": {
+                "answer": "#2E8B57",
+                "background": "#FFFFFF",
+                "button": "#2E8B57",
+                "question": "#333333"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "large"
+              }
+            },
+            "message": "Theme successfully created",
+            "component": {
+              "name": "TypeformThemeDetail"
+            }
+          }
+
+  - endpoint: /typeform/delete_theme
+    examples:
+      - scenario: "Delete Theme"
+        description: "Deletes a theme from your Typeform account"
+        input_json: |
+          {
+            "theme_id": "theme123"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Theme successfully deleted",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_theme
+    examples:
+      - scenario: "Retrieve Theme Details"
+        description: "Retrieves detailed information about a specific theme"
+        input_json: |
+          {
+            "theme_id": "theme123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "theme123",
+              "name": "Corporate Blue",
+              "visibility": "private",
+              "font": "Helvetica Neue",
+              "has_transparent_button": false,
+              "rounded_corners": "small",
+              "colors": {
+                "answer": "#4FB0AE",
+                "background": "#FFFFFF",
+                "button": "#4FB0AE",
+                "question": "#3D3D3D"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "small"
+              },
+              "background": {
+                "brightness": 0,
+                "layout": "fullscreen"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformThemeDetail"
+            }
+          }
+
+  - endpoint: /typeform/update_theme_partial
+    examples:
+      - scenario: "Update Theme Colors"
+        description: "Updates the colors of an existing theme"
+        input_json: |
+          {
+            "theme_id": "theme123",
+            "theme_updates": {
+              "colors": {
+                "answer": "#336699",
+                "background": "#F8F8F8",
+                "button": "#336699",
+                "question": "#222222"
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "theme123",
+              "name": "Corporate Blue",
+              "visibility": "private",
+              "font": "Helvetica Neue",
+              "has_transparent_button": false,
+              "rounded_corners": "small",
+              "colors": {
+                "answer": "#336699",
+                "background": "#F8F8F8",
+                "button": "#336699",
+                "question": "#222222"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "small"
+              }
+            },
+            "message": "Theme successfully updated",
+            "component": {
+              "name": "TypeformThemeDetail"
+            }
+          }
+
+  - endpoint: /typeform/update_theme_full
+    examples:
+      - scenario: "Complete Theme Update"
+        description: "Completely replaces an existing theme with a new definition"
+        input_json: |
+          {
+            "theme_id": "theme123",
+            "theme_data": {
+              "name": "Corporate Blue V2",
+              "font": "Open Sans",
+              "has_transparent_button": true,
+              "rounded_corners": "large",
+              "colors": {
+                "answer": "#3366CC",
+                "background": "#FAFAFA",
+                "button": "#3366CC",
+                "question": "#222222"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "large"
+              },
+              "background": {
+                "brightness": -0.1,
+                "layout": "fullscreen"
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "theme123",
+              "name": "Corporate Blue V2",
+              "visibility": "private",
+              "font": "Open Sans",
+              "has_transparent_button": true,
+              "rounded_corners": "large",
+              "colors": {
+                "answer": "#3366CC",
+                "background": "#FAFAFA",
+                "button": "#3366CC",
+                "question": "#222222"
+              },
+              "fields": {
+                "alignment": "left",
+                "font_size": "medium"
+              },
+              "screens": {
+                "alignment": "center",
+                "font_size": "large"
+              },
+              "background": {
+                "brightness": -0.1,
+                "layout": "fullscreen"
+              }
+            },
+            "message": "Theme successfully updated",
+            "component": {
+              "name": "TypeformThemeDetail"
+            }
+          }
+  - endpoint: /typeform/delete_responses
+    examples:
+      - scenario: "Delete Form Responses"
+        description: "Deletes specific responses from a form"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "response_ids": [
+              "7f46165474d11ee5836777d85df2cdab",
+              "9ba5db11ec6c63d22f08aade805bd363"
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true
+            },
+            "message": "Responses successfully queued for deletion",
+            "component": null
+          }
+
+  - endpoint: /typeform/get_responses
+    examples:
+      - scenario: "Get Form Responses"
+        description: "Retrieves responses to a form with various filtering options"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "page_size": 10,
+            "sort": "submitted_at,desc",
+            "response_type": ["completed"]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "total_items": 25,
+              "page_count": 3,
+              "items": [
+                {
+                  "response_id": "7f46165474d11ee5836777d85df2cdab",
+                  "token": "test7f46165474d11ee5836777d85df2cdab",
+                  "landed_at": "2023-05-10T15:32:45Z",
+                  "submitted_at": "2023-05-10T15:38:12Z",
+                  "metadata": {
+                    "browser": "Chrome",
+                    "platform": "desktop",
+                    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+                  },
+                  "answers": [
+                    {
+                      "field": {
+                        "id": "nameField",
+                        "ref": "name_ref",
+                        "type": "short_text"
+                      },
+                      "type": "text",
+                      "text": "John Doe"
+                    },
+                    {
+                      "field": {
+                        "id": "emailField",
+                        "ref": "email_ref",
+                        "type": "email"
+                      },
+                      "type": "email",
+                      "email": "john.doe@example.com"
+                    },
+                    {
+                      "field": {
+                        "id": "ratingField",
+                        "ref": "rating_ref",
+                        "type": "rating"
+                      },
+                      "type": "number",
+                      "number": 4
+                    }
+                  ],
+                  "calculated": {
+                    "score": 4
+                  },
+                  "hidden": {
+                    "source": "website"
+                  }
+                },
+                {
+                  "response_id": "9ba5db11ec6c63d22f08aade805bd363",
+                  "token": "test9ba5db11ec6c63d22f08aade805bd363",
+                  "landed_at": "2023-05-09T18:24:56Z",
+                  "submitted_at": "2023-05-09T18:28:33Z",
+                  "metadata": {
+                    "browser": "Safari",
+                    "platform": "mobile",
+                    "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1"
+                  },
+                  "answers": [
+                    {
+                      "field": {
+                        "id": "nameField",
+                        "ref": "name_ref",
+                        "type": "short_text"
+                      },
+                      "type": "text",
+                      "text": "Jane Smith"
+                    },
+                    {
+                      "field": {
+                        "id": "emailField",
+                        "ref": "email_ref",
+                        "type": "email"
+                      },
+                      "type": "email",
+                      "email": "jane.smith@example.com"
+                    },
+                    {
+                      "field": {
+                        "id": "ratingField",
+                        "ref": "rating_ref",
+                        "type": "rating"
+                      },
+                      "type": "number",
+                      "number": 5
+                    }
+                  ],
+                  "calculated": {
+                    "score": 5
+                  },
+                  "hidden": {
+                    "source": "email"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformResponseList"
+            }
+          }
+      - scenario: "Get Specific Responses"
+        description: "Retrieves specific responses by their IDs"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "included_response_ids": [
+              "7f46165474d11ee5836777d85df2cdab"
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "total_items": 1,
+              "page_count": 1,
+              "items": [
+                {
+                  "response_id": "7f46165474d11ee5836777d85df2cdab",
+                  "token": "test7f46165474d11ee5836777d85df2cdab",
+                  "landed_at": "2023-05-10T15:32:45Z",
+                  "submitted_at": "2023-05-10T15:38:12Z",
+                  "metadata": {
+                    "browser": "Chrome",
+                    "platform": "desktop",
+                    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+                  },
+                  "answers": [
+                    {
+                      "field": {
+                        "id": "nameField",
+                        "ref": "name_ref",
+                        "type": "short_text"
+                      },
+                      "type": "text",
+                      "text": "John Doe"
+                    },
+                    {
+                      "field": {
+                        "id": "emailField",
+                        "ref": "email_ref",
+                        "type": "email"
+                      },
+                      "type": "email",
+                      "email": "john.doe@example.com"
+                    },
+                    {
+                      "field": {
+                        "id": "ratingField",
+                        "ref": "rating_ref",
+                        "type": "rating"
+                      },
+                      "type": "number",
+                      "number": 4
+                    }
+                  ],
+                  "calculated": {
+                    "score": 4
+                  },
+                  "hidden": {
+                    "source": "website"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformResponseList"
+            }
+          }
+
+  - endpoint: /typeform/download_form_files
+    examples:
+      - scenario: "Download All Uploaded Files"
+        description: "Downloads all files uploaded by respondents for a form as a ZIP archive"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "file_name": "abc123_uploads.zip",
+              "file_size": 1024576,
+              "file_type": "application/zip",
+              "download_url": "https://api.typeform.com/forms/abc123/responses/files"
+            },
+            "message": "Files available for download",
+            "component": {
+              "name": "TypeformFileDownload"
+            }
+          }
+
+  - endpoint: /typeform/get_response_file
+    examples:
+      - scenario: "Download Single Uploaded File"
+        description: "Downloads a specific file uploaded by a respondent"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "response_id": "7f46165474d11ee5836777d85df2cdab",
+            "field_id": "fileUploadField",
+            "filename": "document.pdf",
+            "inline": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "file_name": "document.pdf",
+              "file_type": "application/pdf",
+              "download_url": "https://api.typeform.com/forms/abc123/responses/7f46165474d11ee5836777d85df2cdab/fields/fileUploadField/files/document.pdf"
+            },
+            "message": "File available for download",
+            "component": {
+              "name": "TypeformFileDownload"
+            }
+          }
+
+  - endpoint: /typeform/get_form_insights
+    examples:
+      - scenario: "Retrieve Form Insights"
+        description: "Retrieves form-level and question-level insights and statistics"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "form": {
+                "summary": {
+                  "responses_count": 126,
+                  "total_visits": 245,
+                  "unique_visits": 187,
+                  "completion_rate": 52.3,
+                  "average_time": 125000
+                },
+                "platforms": [
+                  {
+                    "platform": "desktop",
+                    "responses_count": 84,
+                    "total_visits": 154,
+                    "unique_visits": 118,
+                    "completion_rate": 54.5,
+                    "average_time": 110000
+                  },
+                  {
+                    "platform": "mobile",
+                    "responses_count": 42,
+                    "total_visits": 91,
+                    "unique_visits": 69,
+                    "completion_rate": 46.2,
+                    "average_time": 155000
+                  }
+                ]
+              },
+              "fields": [
+                {
+                  "id": "nameField",
+                  "ref": "name_ref",
+                  "title": "What is your name?",
+                  "type": "short_text",
+                  "views": 245,
+                  "dropoffs": 12
+                },
+                {
+                  "id": "emailField",
+                  "ref": "email_ref",
+                  "title": "What is your email address?",
+                  "type": "email",
+                  "views": 233,
+                  "dropoffs": 18
+                },
+                {
+                  "id": "ratingField",
+                  "ref": "rating_ref",
+                  "title": "How would you rate our service?",
+                  "type": "rating",
+                  "views": 215,
+                  "dropoffs": 89
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformInsights"
+            }
+          }
+
+  - endpoint: /typeform/get_webhooks
+    examples:
+      - scenario: "List All Webhooks"
+        description: "Retrieves all webhooks for a form"
+        input_json: |
+          {
+            "form_id": "abc123"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "webhook1",
+                  "tag": "notification",
+                  "form_id": "abc123",
+                  "url": "https://example.com/webhook/typeform",
+                  "enabled": true,
+                  "verify_ssl": true,
+                  "event_types": {
+                    "form_response": true,
+                    "form_response_partial": false
+                  },
+                  "created_at": "2023-04-10T14:22:35.000Z",
+                  "updated_at": "2023-04-15T09:18:42.000Z"
+                },
+                {
+                  "id": "webhook2",
+                  "tag": "data-export",
+                  "form_id": "abc123",
+                  "url": "https://analytics.example.org/api/typeform",
+                  "enabled": true,
+                  "verify_ssl": true,
+                  "secret": "s3cr3tK3y",
+                  "event_types": {
+                    "form_response": true,
+                    "form_response_partial": true
+                  },
+                  "created_at": "2023-05-02T11:05:22.000Z",
+                  "updated_at": "2023-05-02T11:05:22.000Z"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWebhookList"
+            }
+          }
+
+  - endpoint: /typeform/get_webhook
+    examples:
+      - scenario: "Retrieve Webhook Details"
+        description: "Retrieves details of a specific webhook"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "tag": "notification"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "webhook1",
+              "tag": "notification",
+              "form_id": "abc123",
+              "url": "https://example.com/webhook/typeform",
+              "enabled": true,
+              "verify_ssl": true,
+              "event_types": {
+                "form_response": true,
+                "form_response_partial": false
+              },
+              "created_at": "2023-04-10T14:22:35.000Z",
+              "updated_at": "2023-04-15T09:18:42.000Z"
+            },
+            "message": null,
+            "component": {
+              "name": "TypeformWebhookDetail"
+            }
+          }
+
+  - endpoint: /typeform/create_or_update_webhook
+    examples:
+      - scenario: "Create New Webhook"
+        description: "Creates a new webhook for a form"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "tag": "crm-integration",
+            "webhook_data": {
+              "url": "https://crm.example.com/api/typeform-hook",
+              "enabled": true,
+              "verify_ssl": true,
+              "secret": "my-webhook-secret",
+              "event_types": {
+                "form_response": true,
+                "form_response_partial": false
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "webhook3",
+              "tag": "crm-integration",
+              "form_id": "abc123",
+              "url": "https://crm.example.com/api/typeform-hook",
+              "enabled": true,
+              "verify_ssl": true,
+              "secret": "my-webhook-secret",
+              "event_types": {
+                "form_response": true,
+                "form_response_partial": false
+              },
+              "created_at": "2023-05-23T08:45:12.000Z",
+              "updated_at": "2023-05-23T08:45:12.000Z"
+            },
+            "message": "Webhook successfully created",
+            "component": {
+              "name": "TypeformWebhookDetail"
+            }
+          }
+      - scenario: "Update Existing Webhook"
+        description: "Updates an existing webhook configuration"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "tag": "notification",
+            "webhook_data": {
+              "url": "https://example.com/webhook/typeform-v2",
+              "enabled": true,
+              "verify_ssl": true,
+              "event_types": {
+                "form_response": true,
+                "form_response_partial": true
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "webhook1",
+              "tag": "notification",
+              "form_id": "abc123",
+              "url": "https://example.com/webhook/typeform-v2",
+              "enabled": true,
+              "verify_ssl": true,
+              "event_types": {
+                "form_response": true,
+                "form_response_partial": true
+              },
+              "created_at": "2023-04-10T14:22:35.000Z",
+              "updated_at": "2023-05-23T10:15:42.000Z"
+            },
+            "message": "Webhook successfully updated",
+            "component": {
+              "name": "TypeformWebhookDetail"
+            }
+          }
+
+  - endpoint: /typeform/delete_webhook
+    examples:
+      - scenario: "Delete Webhook"
+        description: "Deletes a webhook from a form"
+        input_json: |
+          {
+            "form_id": "abc123",
+            "tag": "data-export"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "data": null,
+            "message": "Webhook successfully deleted",
+            "component": null
+          }

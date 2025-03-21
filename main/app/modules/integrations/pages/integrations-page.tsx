@@ -9,7 +9,6 @@ import { IntegrationCardProps } from '../api/types.integrations'
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface IntegrationsPageProps {
   isPublic?: boolean
@@ -74,7 +73,6 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
   useEffect(() => {
     let filtered = [...integrations];
     
-    // First filter by search query
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase().trim();
       
@@ -140,7 +138,7 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
       {!isPublic && <Header isShowChat={false} />}
 
       <div className="flex-1 px-8 py-6">
-        <div className="mb-8">
+        <div className="mb-4">
           <h1 className="text-3xl font-bold tracking-tight mb-6">{isPublic ? "Marketplace" : "Integrations"}</h1>
           
           <div className="flex flex-col gap-4">
@@ -151,29 +149,31 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
                 placeholder="Search integrations by name, description or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full"
+                className="pl-10 w-full text-sm"
               />
             </div>
             
-            <div className="w-full overflow-x-auto scrollbar-hide pb-4">
-              <div className="flex gap-3 marker:min-w-max">
-                {categories.map(category => (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    size="default"
-                    className="rounded-full whitespace-nowrap px-4 font-medium"
-                    onClick={() => handleCategoryClick(category)}
-                  >
-                    {category}
-                  </Button>
-                ))}
+            <div className="relative">
+              <div className="max-w-[calc(100vw-4rem)] overflow-x-auto h-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative">
+                <div className="flex space-x-3 pb-2">
+                  {categories.map(category => (
+                    <Button
+                      key={category}
+                      variant={selectedCategory === category ? "default" : "outline"}
+                      size="default"
+                      className="rounded-full whitespace-nowrap px-4 font-medium flex-shrink-0"
+                      onClick={() => handleCategoryClick(category)}
+                    >
+                      {category}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {isLoading ? (
             [...Array(8)].map((_, index) => (
               <IntegrationSkeleton key={index} />
