@@ -24,10 +24,10 @@ router = APIRouter(prefix="/sentry", tags=["sentry"])
 
 examples = ExamplesLoader()
 
-async def get_sentry_service(request: Request):
+async def get_sentry_service(request: Request, auth_mode: str = "api_key"):
     try:
-        token_data = await TokenService.get_user_token(request, 'sentry')
-        if TokenService.is_token_expired(token_data):
+        token_data = await TokenService.get_user_token(request, 'sentry', auth_mode)
+        if TokenService.is_token_expired(token_data, auth_mode):
             refresher = TokenRefresherFactory.get_refresher('sentry')
             token_data = await refresher.refresh(request, token_data)
             await TokenService.update_token(request, token_data)
