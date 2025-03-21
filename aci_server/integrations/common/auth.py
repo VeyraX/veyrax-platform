@@ -10,6 +10,7 @@ import requests
 import aiohttp
 import time
 from .encryption import decrypt, encrypt, safe_decrypt, safe_encrypt, is_encrypted
+import logging
 
 class TokenService:
     @staticmethod
@@ -517,6 +518,53 @@ class RedditTokenRefresher(BaseTokenRefresher):
                 detail=f"Failed to refresh Reddit token: {str(e)}"
             )
 
+class AirtableTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        refresh_token = token_data.get('refresh_token')
+        if not refresh_token:
+            raise ValueError("No refresh token available for Airtable")
+            
+        try:
+            redirect_uri = f"{request.base_url}api/oauth/airtable/callback"
+            
+            token_url = "https://airtable.com/oauth2/v1/token"
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": f"Basic {base64.b64encode(f'{os.environ.get('AIRTABLE_CLIENT_ID')}:{os.environ.get('AIRTABLE_CLIENT_SECRET')}'.encode()).decode()}"
+            }
+            
+            data = {
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "redirect_uri": redirect_uri
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(token_url, headers=headers, data=data) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise ValueError(f"Failed to refresh Airtable token: {error_text}")
+                        
+                    new_token_data = await response.json()
+                    
+            refreshed_token = {
+                'access_token': new_token_data['access_token'],
+                'token_type': new_token_data.get('token_type', 'Bearer'),
+                'expires_in': new_token_data.get('expires_in', 7200),
+                'refresh_token': new_token_data.get('refresh_token', refresh_token),
+                'scope': new_token_data.get('scope', token_data.get('scope')),
+                'expires_at': int(time.time()) + new_token_data.get('expires_in', 7200)
+            }
+            
+            updated_token = await TokenService.update_token(request, token_data, refreshed_token)
+            
+            return updated_token
+            
+        except Exception as e:
+            logging.error(f"Error refreshing Airtable token: {str(e)}")
+            raise ValueError(f"Failed to refresh Airtable token: {str(e)}")
+
 class TokenRefresherFactory:
     _refreshers = {
         'google': GoogleTokenRefresher,
@@ -529,6 +577,7 @@ class TokenRefresherFactory:
         'figma': FigmaTokenRefresher,
         "sentry": SentryTokenRefresher,
         "reddit": RedditTokenRefresher,
+        "airtable": AirtableTokenRefresher,
     }
 
     @classmethod
