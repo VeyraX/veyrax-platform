@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Reddit",
+      "version": "1.0.0",
+      "description": "A React component for displaying Reddit posts",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

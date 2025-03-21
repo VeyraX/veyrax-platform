@@ -3,6 +3,7 @@ version: '3.8'
 services:
   nginx:
     build: ./nginx
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -11,8 +12,10 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+      - ./nginx/logs:/var/log/nginx
     depends_on:
       - aci_server
+
   aci_server:
     build: 
       context: ./aci_server
@@ -22,7 +25,7 @@ services:
       - ./aci_server:/app
       - ./.env:/app/.env
     restart: always
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
   certbot:
     image: certbot/certbot

@@ -48,11 +48,13 @@ from integrations.coda.route import router as coda_router
 from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
+from integrations.reddit.route import router as reddit_router
 from integrations.common.utils import get_router_tools, log_api_call
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
 from integrations.replicate.route import router as replicate_router
+from integrations.posthog.route import router as posthog_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -122,7 +124,9 @@ INTEGRATION_ROUTERS = {
     "linkedin": linkedin_router,
     "browserbase": browser_base_router,
     "typeform": typeform_router,
-    "replicate": replicate_router
+    "replicate": replicate_router,
+    "reddit": reddit_router,
+    "posthog": posthog_router
 }
 
 app = FastAPI()

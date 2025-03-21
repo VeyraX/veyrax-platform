@@ -1,0 +1,532 @@
+routes:
+  - endpoint: /reddit/get_posts
+    examples:
+      - scenario: "Get Hot Posts from Subreddit"
+        description: "Retrieve hot posts from a specific subreddit"
+        input_json: |
+          {
+            "subreddit": "programming",
+            "limit": 10,
+            "sort": "hot"
+          }
+        output_json: |
+          {
+            "data": {
+              "posts": [
+                {
+                  "id": "abc123",
+                  "title": "Introducing a New Programming Language",
+                  "author": "dev_user",
+                  "subreddit": "programming",
+                  "score": 1500,
+                  "url": "https://reddit.com/r/programming/comments/abc123",
+                  "created_utc": 1647834567.0,
+                  "num_comments": 234,
+                  "is_self": true,
+                  "selftext": "Here's my thoughts on creating a new programming language...",
+                  "permalink": "/r/programming/comments/abc123"
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditPostList"
+            }
+          }
+
+  - endpoint: /reddit/submit_post
+    examples:
+      - scenario: "Create Text Post"
+        description: "Submit a new text post to a subreddit"
+        input_json: |
+          {
+            "subreddit": "programming",
+            "title": "My Experience with REST APIs",
+            "text": "Here's what I learned while building REST APIs...",
+            "flair_id": "abc-123-flair"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "def456",
+              "title": "My Experience with REST APIs",
+              "author": "tech_writer",
+              "subreddit": "programming",
+              "score": 1,
+              "url": "https://reddit.com/r/programming/comments/def456",
+              "created_utc": 1647834567.0,
+              "num_comments": 0,
+              "is_self": true,
+              "selftext": "Here's what I learned while building REST APIs...",
+              "permalink": "/r/programming/comments/def456"
+            },
+            "component": {
+              "name": "RedditPost"
+            }
+          }
+
+  - endpoint: /reddit/get_comments
+    examples:
+      - scenario: "Get Post Comments"
+        description: "Retrieve comments from a specific post"
+        input_json: |
+          {
+            "post_id": "abc123",
+            "limit": 5,
+            "sort": "top"
+          }
+        output_json: |
+          {
+            "data": {
+              "comments": [
+                {
+                  "id": "comment123",
+                  "author": "helpful_user",
+                  "body": "This is a great explanation!",
+                  "score": 150,
+                  "created_utc": 1647834667.0,
+                  "permalink": "/r/programming/comments/abc123/comment/comment123",
+                  "parent_id": "t3_abc123"
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditCommentList"
+            }
+          }
+
+  - endpoint: /reddit/submit_comment
+    examples:
+      - scenario: "Reply to Post"
+        description: "Submit a new comment on a post"
+        input_json: |
+          {
+            "parent_id": "t3_abc123",
+            "text": "Thanks for sharing this information!"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "comment789",
+              "author": "active_user",
+              "body": "Thanks for sharing this information!",
+              "score": 1,
+              "created_utc": 1647834767.0,
+              "permalink": "/r/programming/comments/abc123/comment/comment789",
+              "parent_id": "t3_abc123"
+            },
+            "component": {
+              "name": "RedditComment"
+            }
+          }
+
+  - endpoint: /reddit/get_flairs
+
+  - endpoint: /reddit/edit_post
+    examples:
+      - scenario: "Edit Post Content"
+        description: "Edit the content of an existing post"
+        input_json: |
+          {
+            "post_id": "abc123",
+            "text": "Updated content with additional information..."
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "abc123",
+              "title": "Original Title",
+              "author": "original_poster",
+              "subreddit": "programming",
+              "score": 1500,
+              "url": "https://reddit.com/r/programming/comments/abc123",
+              "created_utc": 1647834567.0,
+              "num_comments": 234,
+              "is_self": true,
+              "selftext": "Updated content with additional information...",
+              "permalink": "/r/programming/comments/abc123"
+            },
+            "component": {
+              "name": "RedditPost"
+            }
+          }
+
+  - endpoint: /reddit/search
+    examples:
+      - scenario: "Search Posts"
+        description: "Search for posts across Reddit or within a subreddit"
+        input_json: |
+          {
+            "query": "python async",
+            "subreddit": "programming",
+            "limit": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "posts": [
+                {
+                  "id": "search123",
+                  "title": "Understanding Python Async/Await",
+                  "author": "python_dev",
+                  "subreddit": "programming",
+                  "score": 750,
+                  "url": "https://reddit.com/r/programming/comments/search123",
+                  "created_utc": 1647834567.0,
+                  "num_comments": 123,
+                  "is_self": true,
+                  "selftext": "A deep dive into Python's async features...",
+                  "permalink": "/r/programming/comments/search123"
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditPostList"
+            }
+          }
+
+  - endpoint: /reddit/get_user_info
+    examples:
+      - scenario: "Get User Information"
+        description: "Retrieve information about a Reddit user"
+        input_json: |
+          {
+            "username": "spez"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "1w72",
+              "name": "spez",
+              "created_utc": 1132617709.0,
+              "comment_karma": 15782,
+              "link_karma": 10253,
+              "is_gold": true,
+              "is_mod": true,
+              "has_verified_email": true
+            },
+            "component": {
+              "name": "RedditUserProfile"
+            }
+          }
+
+  - endpoint: /reddit/vote_post
+    examples:
+      - scenario: "Upvote Post"
+        description: "Upvote a Reddit post"
+        input_json: |
+          {
+            "post_id": "abcdef",
+            "direction": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t3_abcdef",
+              "direction": 1,
+              "message": "Successfully upvoted post"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/vote_comment
+    examples:
+      - scenario: "Upvote Comment"
+        description: "Upvote a Reddit comment"
+        input_json: |
+          {
+            "comment_id": "xyz789",
+            "direction": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t1_xyz789",
+              "direction": 1,
+              "message": "Successfully upvoted comment"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/save_post
+    examples:
+      - scenario: "Save Post"
+        description: "Save a Reddit post for later viewing"
+        input_json: |
+          {
+            "post_id": "abcdef"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t3_abcdef",
+              "message": "Post successfully saved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/save_comment
+    examples:
+      - scenario: "Save Comment"
+        description: "Save a Reddit comment for later reference"
+        input_json: |
+          {
+            "comment_id": "xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t1_xyz789",
+              "message": "Comment successfully saved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/unsave_post
+    examples:
+      - scenario: "Unsave Post"
+        description: "Unsave a previously saved Reddit post"
+        input_json: |
+          {
+            "post_id": "abcdef"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t3_abcdef",
+              "message": "Post successfully unsaved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/unsave_comment
+    examples:
+      - scenario: "Unsave Comment"
+        description: "Unsave a previously saved Reddit comment"
+        input_json: |
+          {
+            "comment_id": "xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "thing_id": "t1_xyz789",
+              "message": "Comment successfully unsaved"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/get_saved
+
+  - endpoint: /reddit/get_my_info
+    examples:
+      - scenario: "Get Current User Information"
+        description: "Retrieve information about the currently authenticated Reddit user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "id": "abc123user",
+              "name": "your_username",
+              "created_utc": 1545834567.0,
+              "comment_karma": 2345,
+              "link_karma": 1234,
+              "is_gold": false,
+              "is_mod": false,
+              "has_verified_email": true
+            },
+            "component": {
+              "name": "RedditUserProfile"
+            }
+          }
+
+  - endpoint: /reddit/delete_post
+    examples:
+      - scenario: "Delete Post"
+        description: "Delete a Reddit post that you authored"
+        input_json: |
+          {
+            "post_id": "abc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Post successfully deleted"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/c
+    examples:
+      - scenario: "Delete Comment"
+        description: "Delete a Reddit comment that you authored"
+        input_json: |
+          {
+            "comment_id": "xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Comment successfully deleted"
+            },
+            "component": {
+              "name": "RedditAction"
+            }
+          }
+
+  - endpoint: /reddit/edit_comment
+    examples:
+      - scenario: "Edit Comment Content"
+        description: "Edit the content of an existing comment"
+        input_json: |
+          {
+            "comment_id": "xyz789",
+            "text": "Updated comment with additional information..."
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "xyz789",
+              "author": "original_commenter",
+              "body": "Updated comment with additional information...",
+              "score": 52,
+              "created_utc": 1647834667.0,
+              "permalink": "/r/programming/comments/abc123/comment/xyz789",
+              "parent_id": "t3_abc123"
+            },
+            "component": {
+              "name": "RedditComment"
+            }
+          }
+
+  - endpoint: /reddit/get_comment
+    examples:
+      - scenario: "Get Comment Information"
+        description: "Retrieve information about a specific comment"
+        input_json: |
+          {
+            "comment_id": "t1_xyz789"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "xyz789",
+              "author": "helpful_user",
+              "body": "This is a detailed comment with useful information.",
+              "score": 52,
+              "created_utc": 1647834667.0,
+              "permalink": "/r/programming/comments/abc123/comment/xyz789",
+              "parent_id": "t3_abc123"
+            },
+            "component": {
+              "name": "RedditComment"
+            }
+          }
+
+  - endpoint: /reddit/get_my_subreddits
+    examples:
+      - scenario: "Get User Subscribed Subreddits"
+        description: "Retrieve the list of subreddits a user is subscribed to"
+        input_json: |
+          {
+            "limit": 100
+          }
+        output_json: |
+          {
+            "data": {
+              "subreddits": [
+                {
+                  "id": "2qh33",
+                  "display_name": "programming",
+                  "name": "t5_2qh33",
+                  "title": "Programming",
+                  "description": "Computer Programming",
+                  "subscribers": 3945000,
+                  "created_utc": 1201233600.0,
+                  "url": "/r/programming/",
+                  "over18": false,
+                  "community_icon": "https://styles.redditmedia.com/t5_2qh33/styles/communityIcon_6w1jtoxywqf21.png",
+                  "banner_img": "",
+                  "header_img": "",
+                  "icon_img": ""
+                },
+                {
+                  "id": "2qh1i",
+                  "display_name": "technology",
+                  "name": "t5_2qh1i",
+                  "title": "Technology",
+                  "description": "For all things technology",
+                  "subscribers": 12500000,
+                  "created_utc": 1201233600.0,
+                  "url": "/r/technology/",
+                  "over18": false,
+                  "community_icon": "https://styles.redditmedia.com/t5_2qh1i/styles/communityIcon_a0lvr3qyyls51.png",
+                  "banner_img": "",
+                  "header_img": "",
+                  "icon_img": ""
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditSubredditList"
+            }
+          }
+
+  - endpoint: /reddit/get_link_flairs
+    examples:
+      - scenario: "Get Link Flairs"
+        description: "Retrieve available post flairs for a subreddit"
+        input_json: |
+          {
+            "subreddit": "programming"
+          }
+        output_json: |
+          {
+            "data": {
+              "flairs": [
+                {
+                  "id": "2df389a8-3e9c-11e6-b7e0-0e82b9d0a60c",
+                  "text": "Discussion",
+                  "text_editable": false,
+                  "css_class": "discussion",
+                  "background_color": "#f5f5f5",
+                  "text_color": "#000000",
+                  "type": "text"
+                },
+                {
+                  "id": "5e28f98c-3e9c-11e6-9f0e-0e737b0d8a1e",
+                  "text": "Tutorial",
+                  "text_editable": false,
+                  "css_class": "tutorial",
+                  "background_color": "#dff0d8",
+                  "text_color": "#3c763d",
+                  "type": "text"
+                }
+              ]
+            },
+            "component": {
+              "name": "RedditFlairList"
+            }
+          }
