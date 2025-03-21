@@ -464,6 +464,59 @@ class FigmaTokenRefresher(BaseTokenRefresher):
             print(f"Error refreshing Figma token: {str(e)}")
             raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
 
+class RedditTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            client_id = os.getenv('REDDIT_CLIENT_ID')
+            client_secret = os.getenv('REDDIT_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                raise ValueError("Missing Reddit client credentials")
+            
+            refresh_token = token_data.get('refresh_token')
+            if not refresh_token:
+                raise ValueError("No refresh token available")
+
+            auth = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+            
+            headers = {
+                "Authorization": f"Basic {auth}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            
+            data = {
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "https://www.reddit.com/api/v1/access_token",
+                    headers=headers,
+                    data=data
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise ValueError(f"Failed to refresh token: {error_text}")
+                    
+                    refresh_data = await response.json()
+                    
+                    new_token_data = {
+                        'access_token': refresh_data['access_token'],
+                        'refresh_token': refresh_token, 
+                        'expires_at': int(time.time() + refresh_data['expires_in']),
+                        'raw_token_data': refresh_data
+                    }
+                    
+                    return await TokenService.update_token(request, token_data, new_token_data)
+                    
+        except Exception as e:
+            raise HTTPException(
+                status_code=401, 
+                detail=f"Failed to refresh Reddit token: {str(e)}"
+            )
+
 class TokenRefresherFactory:
     _refreshers = {
         'google': GoogleTokenRefresher,
@@ -475,6 +528,7 @@ class TokenRefresherFactory:
         'asana': AsanaTokenRefresher,
         'figma': FigmaTokenRefresher,
         "sentry": SentryTokenRefresher,
+        "reddit": RedditTokenRefresher,
     }
 
     @classmethod
