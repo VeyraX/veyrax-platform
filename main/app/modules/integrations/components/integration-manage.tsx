@@ -3,8 +3,21 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Provider, ManageDialogProps } from "../api/types.integrations";
-import { disconnectProvider, getUserApiKey, enableApiKeyProvider, enableDbAccessProvider, getUserDbCredentials, testDbConnection, validateApiKey, enableApiKeyWithBaseProvider, getProviderBaseUrl } from "../api/api.integrations";
+import { ManageDialogProps } from "../api/types.integrations";
+import { 
+  disconnectProvider,
+  getUserApiKey,
+  enableApiKeyProvider,
+  enableDbAccessProvider,
+  getUserDbCredentials,
+  testDbConnection,
+  validateApiKey,
+  enableApiKeyWithBaseProvider,
+  getProviderBaseUrl,
+  getProviderCustomAuth,
+  updateProviderCustomAuth,
+  validateCustomAuth
+} from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -12,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-config";
 import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
+import { CustomAuthForm } from "./provider-connection-forms/custom-auth-form";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
@@ -30,9 +44,12 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     database: "",
     role: ""
   });
+  const [customAuthData, setCustomAuthData] = useState<Record<string, any>>({});
+  const [originalCustomAuthData, setOriginalCustomAuthData] = useState<Record<string, any>>({});
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [shouldCloseAfterUpdate, setShouldCloseAfterUpdate] = useState(true);
   const [apiKeyChanged, setApiKeyChanged] = useState(false);
+  const [customAuthChanged, setCustomAuthChanged] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [baseUrl, setBaseUrl] = useState<string>("");
@@ -49,6 +66,9 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         }
       } else if (provider.auth_method === 'db_access') {
         fetchDbCredentials();
+      } else if (provider.auth_method === 'custom') {
+        fetchCustomAuth();
+        setCustomAuthChanged(false);
       }
     }
   }, [open, provider.id, provider.auth_method]);
@@ -115,6 +135,26 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       setOriginalBaseUrl(url || "");
     } catch (error) {
       console.error('Failed to fetch base URL:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchCustomAuth = async () => {
+    if (provider.auth_method !== 'custom') return;
+    
+    setIsLoading(true);
+    try {
+      const authData = await getProviderCustomAuth(provider.id);
+      if (authData) {
+        setCustomAuthData(authData);
+        setOriginalCustomAuthData(JSON.parse(JSON.stringify(authData))); // Deep copy
+      } else {
+        setCustomAuthData({});
+        setOriginalCustomAuthData({});
+      }
+    } catch (error) {
+      console.error('Failed to fetch custom auth data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +258,71 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     }
   };
 
+  const handleSaveCustomAuth = async () => {
+    if (!customAuthChanged) {
+      onClose();
+      return;
+    }
+
+    // Validate required fields
+    if (provider.auth_schema) {
+      const requiredFields = provider.auth_schema.filter(field => field.required);
+      for (const field of requiredFields) {
+        if (!customAuthData[field.key] && customAuthData[field.key] !== false) {
+          setValidationError(`${field.label} is required`);
+          return;
+        }
+      }
+    }
+
+    setIsValidating(true);
+    setValidationError(null);
+
+    try {
+      // Extract only the changed fields to send to the API
+      const changedFields: Record<string, any> = {};
+      
+      // Compare current data with original data
+      Object.keys(customAuthData).forEach(key => {
+        // If the field is new or has changed, include it
+        if (
+          !originalCustomAuthData.hasOwnProperty(key) || 
+          JSON.stringify(customAuthData[key]) !== JSON.stringify(originalCustomAuthData[key])
+        ) {
+          changedFields[key] = customAuthData[key];
+        }
+      });
+      
+      // If there are no changes, just close the dialog
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected in custom auth data");
+        onClose();
+        return;
+      }
+      
+      console.log("Sending changed fields:", Object.keys(changedFields));
+      
+      // Validate the custom auth changes if possible
+      const validationResult = await validateCustomAuth(provider.id, customAuthData);
+      
+      if (!validationResult.valid) {
+        setValidationError(validationResult.message);
+        setIsValidating(false);
+        return;
+      }
+
+      // Only send the changed fields to the API
+      await updateProviderCustomAuth(provider.id, changedFields);
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error("Error saving custom auth data:", error);
+      setValidationError(error instanceof Error ? error.message : "Failed to save authentication data");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
   const handleDisconnect = async () => {
     try {
       await disconnectProvider(provider.id);
@@ -313,6 +418,29 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </div>
       );
     }
+  };
+
+  const renderCustomAuthForm = () => {
+    if (!provider.auth_schema || provider.auth_schema.length === 0) {
+      return (
+        <div className="p-4 border rounded bg-amber-50 text-amber-800">
+          No authentication schema defined for this provider.
+        </div>
+      );
+    }
+
+    return (
+      <CustomAuthForm
+        authSchema={provider.auth_schema}
+        authData={customAuthData}
+        onChange={(authData) => {
+          setCustomAuthData(authData);
+          setCustomAuthChanged(true);
+          setValidationError(null);
+        }}
+        disabled={isValidating || isLoading}
+      />
+    );
   };
 
   return (
@@ -425,6 +553,20 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
             </div>
           )}
+
+          {provider.auth_method === 'custom' && (
+            <div className="space-y-4">
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{validationError}</span>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                {renderCustomAuthForm()}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex justify-between">
@@ -434,6 +576,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             provider.auth_method === 'none' || 
             provider.auth_method === 'api_key' ||
             provider.auth_method === 'api_key_with_base' ||
+            provider.auth_method === 'custom' ||
             (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax')
           ) && (
             <div className="flex gap-2">
@@ -466,6 +609,21 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                 (provider.auth_method === 'api_key' && (!apiKey.trim() || isValidating || !apiKeyChanged)) ||
                 (provider.auth_method === 'api_key_with_base' && (!apiKey.trim() || !baseUrl.trim() || isValidating || !apiKeyChanged))
               }
+            >
+              {isValidating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                "Save Configuration"
+              )}
+            </Button>
+          )}
+
+          {provider.auth_method === 'custom' && (
+            <Button 
+              onClick={handleSaveCustomAuth} 
+              disabled={isLoading || isValidating || !customAuthChanged}
             >
               {isValidating ? (
                 <>

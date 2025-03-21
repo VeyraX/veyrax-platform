@@ -195,6 +195,14 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     });
 
   await supabase
+    .from('user_provider_custom_auth')
+    .delete()
+    .match({ 
+      user_id: user?.id,
+      provider_id: providerId 
+    });
+
+  await supabase
     .from('users_providers')
     .delete()
     .match({ 
@@ -735,6 +743,256 @@ export const getProviderBaseUrl = async (providerId: string): Promise<string | n
   } catch (error) {
     console.error('Error parsing raw_data:', error);
     return null;
+  }
+}
+
+export const getProviderCustomAuth = async (providerId: string): Promise<Record<string, any> | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data: provider } = await supabase
+    .from('providers')
+    .select('provider_tag, auth_schema')
+    .eq('id', providerId)
+    .single();
+    
+  if (!provider) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('user_provider_custom_auth')
+      .select('raw_data')
+      .eq('user_id', user?.id)
+      .eq('provider_id', providerId)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      throw error;
+    }
+    
+    if (!data || !data.raw_data) return null;
+    
+    // Parse raw_data if it's a string
+    const rawData = typeof data.raw_data === 'string' 
+      ? JSON.parse(data.raw_data) 
+      : data.raw_data;
+  
+    
+    return rawData;
+  } catch (error) {
+    console.error('Error fetching custom auth data:', error);
+    return null;
+  }
+}
+
+export const updateProviderCustomAuth = async (providerId: string, authData: Record<string, any>): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user?.id) {
+    throw new Error("User not authenticated");
+  }
+  
+  const { data: provider } = await supabase
+    .from('providers')
+    .select('provider_tag, auth_schema')
+    .eq('id', providerId)
+    .single();
+    
+  if (!provider) throw new Error('Provider not found');
+  
+  try {
+    // Ensure user is connected to provider
+    const { error: providerError } = await supabase
+      .from('users_providers')
+      .upsert({
+        user_id: user.id,
+        provider_id: providerId
+      }, {
+        onConflict: 'provider_id,user_id'
+      });
+
+    if (providerError) {
+      console.error("Error upserting users_providers:", providerError);
+      throw providerError;
+    }
+    
+    // Fetch existing data first
+    const { data: existingRecord, error: fetchError } = await supabase
+      .from('user_provider_custom_auth')
+      .select('id, raw_data')
+      .eq('user_id', user.id)
+      .eq('provider_id', providerId)
+      .single();
+    
+    let existingData: Record<string, any> = {};
+    let recordId: string | null = null;
+    
+    if (!fetchError && existingRecord) {
+      recordId = existingRecord.id;
+      existingData = typeof existingRecord.raw_data === 'string' 
+        ? JSON.parse(existingRecord.raw_data) 
+        : existingRecord.raw_data || {};
+    }
+    
+    // Merge existing data with new data
+    const mergedData = { ...existingData, ...authData };
+    
+    // Process only the new/changed fields to encrypt sensitive values
+    const processedAuthData = { ...mergedData };
+    const authSchema = Array.isArray(provider.auth_schema) ? provider.auth_schema : [];
+    
+    for (const field of authSchema) {
+      const key = field.key;
+      const isSensitive = field.type === 'password' || field.sensitive;
+      const valueChanged = authData[key] !== undefined && authData[key] !== existingData[key];
+      
+      // Only encrypt if: field is sensitive, has a value, and has changed
+      if (isSensitive && processedAuthData[key] && valueChanged) {
+        console.log(`Encrypting changed/new sensitive field: ${key}`);
+        const response = await fetch('/api/encrypt', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ apiKey: processedAuthData[key] })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to encrypt value for ${key}`);
+        }
+        
+        const { encryptedKey } = await response.json();
+        processedAuthData[key] = encryptedKey;
+      }
+    }
+    
+    console.log(`Saving custom auth for user ${user.id} and provider ${providerId}`);
+    
+    if (recordId) {
+      // Update existing record
+      const { error: updateError } = await supabase
+        .from('user_provider_custom_auth')
+        .update({ raw_data: processedAuthData })
+        .eq('id', recordId)
+        .eq('user_id', user.id); // Ensure we only update our own record
+        
+      if (updateError) {
+        console.error("Error updating custom auth:", updateError);
+        throw updateError;
+      }
+    } else {
+      // Create new record
+      const { error: insertError } = await supabase
+        .from('user_provider_custom_auth')
+        .insert({
+          user_id: user.id,
+          provider_id: providerId,
+          raw_data: processedAuthData
+        });
+        
+      if (insertError) {
+        console.error("Error inserting custom auth:", insertError);
+        throw insertError;
+      }
+    }
+  } catch (error) {
+    console.error('Error updating custom auth data:', error);
+    throw error;
+  }
+}
+
+export const validateCustomAuth = async (providerId: string, authData: Record<string, any>): Promise<{valid: boolean, message: string}> => {
+  try {
+    const { data: provider } = await supabase
+      .from('providers')
+      .select('provider_tag, auth_schema')
+      .eq('id', providerId)
+      .single();
+      
+    if (!provider) throw new Error('Provider not found');
+    if (!provider.auth_schema) return { valid: true, message: 'No auth schema defined, assuming valid' };
+    
+    const authSchema = Array.isArray(provider.auth_schema) ? provider.auth_schema : [];
+    
+    // Check for required fields
+    const missingRequiredFields = [];
+    
+    for (const field of authSchema) {
+      if (field.required) {
+        const value = authData[field.key];
+        if (value === undefined || value === null || value === '') {
+          missingRequiredFields.push(field.label || field.key);
+        }
+      }
+    }
+    
+    if (missingRequiredFields.length > 0) {
+      return { 
+        valid: false, 
+        message: `Missing required fields: ${missingRequiredFields.join(', ')}` 
+      };
+    }
+    
+    // Validate field types
+    const typeErrors = [];
+    
+    for (const field of authSchema) {
+      const value = authData[field.key];
+      if (value !== undefined && value !== null && value !== '') {
+        // Basic type validation
+        switch (field.type) {
+          case 'number':
+            if (isNaN(Number(value))) {
+              typeErrors.push(`${field.label || field.key} must be a number`);
+            }
+            break;
+          case 'email':
+            // Simple email validation
+            if (!/\S+@\S+\.\S+/.test(value)) {
+              typeErrors.push(`${field.label || field.key} must be a valid email address`);
+            }
+            break;
+          case 'url':
+            // Simple URL validation
+            try {
+              new URL(value);
+            } catch (error) {
+              typeErrors.push(`${field.label || field.key} must be a valid URL`);
+            }
+            break;
+          case 'json':
+            // Validate JSON
+            if (typeof value === 'string') {
+              try {
+                JSON.parse(value);
+              } catch (error) {
+                typeErrors.push(`${field.label || field.key} must be valid JSON`);
+              }
+            }
+            break;
+        }
+      }
+    }
+    
+    if (typeErrors.length > 0) {
+      return { 
+        valid: false, 
+        message: typeErrors.join('; ') 
+      };
+    }
+    
+    return {
+      valid: true,
+      message: 'Authentication validation completed'
+    };
+  } catch (error) {
+    console.error('Error validating custom auth:', error);
+    return { 
+      valid: false, 
+      message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
+    };
   }
 }
 

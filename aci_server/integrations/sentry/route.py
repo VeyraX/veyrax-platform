@@ -13,8 +13,8 @@ from .schema import (
     ListServiceHooksParams, CreateServiceHookParams,
     ApiResponse, DsnResponse, GetDsnParams
 )
-from ..common.auth import TokenService, TokenRefresherFactory
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
+from ..common.auth import TokenService, TokenRefresherFactory, get_provider_custom_auth
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from .client import SentryClient
 from ..common.input_schema_decorator import schema
 from pydantic import ValidationError
@@ -24,21 +24,33 @@ router = APIRouter(prefix="/sentry", tags=["sentry"])
 
 examples = ExamplesLoader()
 
-async def get_sentry_service(request: Request, auth_mode: str = "api_key"):
-    try:
-        token_data = await TokenService.get_user_token(request, 'sentry', auth_mode)
-        if TokenService.is_token_expired(token_data, auth_mode):
-            refresher = TokenRefresherFactory.get_refresher('sentry')
-            token_data = await refresher.refresh(request, token_data)
-            await TokenService.update_token(request, token_data)
+async def get_sentry_service(request: Request, auth_mode: str = "custom"):
+
+    if auth_mode == "oauth":
+        try:
+            token_data = await TokenService.get_user_token(request, 'sentry', auth_mode)
+            if TokenService.is_token_expired(token_data, auth_mode):
+                refresher = TokenRefresherFactory.get_refresher('sentry')
+                token_data = await refresher.refresh(request, token_data)
+                await TokenService.update_token(request, token_data)
+            
+            client = SentryClient(token_data['access_token'], token_data.get('raw_token_data',{}).get('org_slug', ""))
+            apply_error_handler_to_client(client)
+            service = SentryService(client)
+            apply_error_handler_to_service(service)
+            return service
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Sentry service initialization failed: {str(e)}")
+    elif auth_mode == 'custom':
+        token_data = await get_provider_custom_auth(request, "sentry")
         
-        client = SentryClient(token_data['access_token'], token_data.get('raw_token_data',{}).get('org_slug', ""))
+        client = SentryClient(token_data.get('api_key'), token_data.get('org_slug'))
         apply_error_handler_to_client(client)
         service = SentryService(client)
         apply_error_handler_to_service(service)
         return service
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Sentry service initialization failed: {str(e)}")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid auth mode")
 
 @router.post("/list_teams", response_model=ApiResponse)
 @schema(

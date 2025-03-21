@@ -675,3 +675,111 @@ async def get_user_db_credentials(request: Request, provider_tag: str) -> dict:
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get database credentials: {str(e)}")
+
+async def get_provider_custom_auth(request: Request, provider_tag: str) -> dict:
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        provider_res = supabase.table('providers') \
+            .select('id, auth_schema') \
+            .eq('provider_tag', provider_tag) \
+            .execute()
+        
+        if not provider_res.data:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        provider_id = provider_res.data[0]['id']
+        auth_schema = provider_res.data[0].get('auth_schema', [])
+        
+        auth_res = supabase.table('user_provider_custom_auth') \
+            .select('raw_data') \
+            .eq('user_id', user_id) \
+            .eq('provider_id', provider_id) \
+            .execute()
+        
+        if not auth_res.data:
+            raise HTTPException(status_code=404, detail=f"Custom auth data for provider {provider_tag} not found")
+        
+        raw_data = json.loads(auth_res.data[0]['raw_data']) if isinstance(auth_res.data[0]['raw_data'], str) else auth_res.data[0]['raw_data']
+        
+        # Decrypt sensitive fields
+        for field in auth_schema:
+            field_key = field.get('key')
+            is_sensitive = field.get('type') == 'password' or field.get('sensitive', False)
+            
+            if is_sensitive and field_key in raw_data and raw_data[field_key]:
+                if is_encrypted(raw_data[field_key]):
+                    raw_data[field_key] = safe_decrypt(raw_data[field_key])
+        
+        return raw_data
+            
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get provider custom auth: {str(e)}")
+
+async def update_provider_custom_auth(request: Request, provider_tag: str, auth_data: dict) -> dict:
+    try:
+        user_id = await get_user_from_request(request)
+        
+        supabase = get_supabase()
+        provider_res = supabase.table('providers') \
+            .select('id, auth_schema') \
+            .eq('provider_tag', provider_tag) \
+            .execute()
+        
+        if not provider_res.data:
+            raise HTTPException(status_code=404, detail="Provider not found")
+            
+        provider_id = provider_res.data[0]['id']
+        auth_schema = provider_res.data[0].get('auth_schema', [])
+        
+        # Create a copy of auth_data to avoid modifying the original
+        encrypted_auth_data = auth_data.copy()
+        original_values = {}
+        
+        # Encrypt sensitive fields
+        for field in auth_schema:
+            field_key = field.get('key')
+            is_sensitive = field.get('type') == 'password' or field.get('sensitive', False)
+            
+            if is_sensitive and field_key in encrypted_auth_data and encrypted_auth_data[field_key]:
+                original_values[field_key] = encrypted_auth_data[field_key]
+                encrypted_auth_data[field_key] = safe_encrypt(encrypted_auth_data[field_key])
+        
+        # Check if the record exists
+        check_res = supabase.table('user_provider_custom_auth') \
+            .select('id') \
+            .eq('user_id', user_id) \
+            .eq('provider_id', provider_id) \
+            .execute()
+        
+        if check_res.data:
+            # Update existing record
+            result = supabase.table('user_provider_custom_auth') \
+                .update({'raw_data': encrypted_auth_data}) \
+                .eq('user_id', user_id) \
+                .eq('provider_id', provider_id) \
+                .execute()
+        else:
+            # Create new record
+            result = supabase.table('user_provider_custom_auth') \
+                .insert({
+                    'user_id': user_id,
+                    'provider_id': provider_id,
+                    'raw_data': encrypted_auth_data
+                }) \
+                .execute()
+        
+        # Restore original values for return
+        result_data = encrypted_auth_data.copy()
+        for key, value in original_values.items():
+            result_data[key] = value
+            
+        return result_data
+            
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update provider custom auth: {str(e)}")
