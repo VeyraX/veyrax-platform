@@ -55,6 +55,11 @@ from integrations.common.prompt_example import get_tools_example_prompt, get_too
 from integrations.linkedin.route import router as linkedin_router
 from integrations.replicate.route import router as replicate_router
 from integrations.posthog.route import router as posthog_router
+from integrations.amazon.route import router as amazon_affiliates_router
+from integrations.revid.route import router as revid_ai_router
+from integrations.cloudinary.route import router as cloudinary_router
+
+
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -126,7 +131,10 @@ INTEGRATION_ROUTERS = {
     "typeform": typeform_router,
     "replicate": replicate_router,
     "reddit": reddit_router,
-    "posthog": posthog_router
+    "posthog": posthog_router,
+    "amazon": amazon_affiliates_router,
+    "revid": revid_ai_router,
+    "cloudinary": cloudinary_router
 }
 
 app = FastAPI()

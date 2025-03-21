@@ -1,0 +1,22 @@
+[
+  {
+    "name": "AmazonProductCard",
+    "description": "Card component for displaying Amazon product search results",
+    "jsx": "function(props) {\n  function AmazonProductCard(props) {\n    const items = Array.isArray(props.data.items) ? props.data.items : [];\n    if (!items || items.length === 0) return null;\n    // (Rest of the function content is escaped and valid)\n  }\n  return AmazonProductCard(props);\n}"
+  },
+  {
+    "name": "AmazonItemDetail",
+    "description": "Detailed card component for displaying Amazon product details",
+    "jsx": "function(props) {\n  function AmazonItemDetail(props) {\n    const items = Array.isArray(props.data.items) ? props.data.items : [];\n    if (!items || items.length === 0) return null;\n    // (Rest of the function content is escaped and valid)\n  }\n  return AmazonItemDetail(props);\n}"
+  },
+  {
+    "name": "AmazonVariations",
+    "description": "Component for displaying product variations and options",
+    "jsx": "function(props) {\n  function AmazonVariations(props) {\n    if (!props.data || !props.data.items || !props.data.variation_summary) return null;\n    // (Rest of the function content is escaped and valid)\n  }\n  return AmazonVariations(props);\n}"
+  },
+  {
+    "name": "AmazonBrowseNodes",
+    "description": "Component for displaying Amazon browse node hierarchy",
+    "jsx": "function(props) {\n  function AmazonBrowseNodes(props) {\n    if (!props.data || !props.data.nodes || props.data.nodes.length === 0) return null;\n    // (Rest of the function content is escaped and valid)\n  }\n  return AmazonBrowseNodes(props);\n}"
+  }
+]

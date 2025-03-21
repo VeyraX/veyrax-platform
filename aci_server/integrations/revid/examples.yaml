@@ -1,0 +1,139 @@
+routes:
+  - endpoint: /revid/create_video
+    examples:
+      - scenario: "Create TikTok Video"
+        description: "Create a simple TikTok video with AI-generated visuals"
+        input_json: |
+          {
+            "input_text": "The future of artificial intelligence is here. AI is transforming how we work, learn, and connect with each other.",
+            "selected_voice": "CwhRBWXzGAHq8TQ4Fs17",
+            "generation_user_prompt": "Futuristic technology, AI, digital networks",
+            "media_type": "movingImage",
+            "generation_preset": "REALISM",
+            "caption_preset_name": "Wrap 2",
+            "has_avatar": false
+          }
+        output_json: |
+          {
+            "data": {
+              "project_id": "Vx09kTolPXUnt124MSB1",
+              "status": "processing",
+              "message": "Video creation initiated"
+            },
+            "component": {
+              "name": "RevidVideoCreationCard"
+            }
+          }
+
+  - endpoint: /revid/video_status
+    examples:
+      - scenario: "Check Video Status"
+        description: "Check the status of a video creation project"
+        input_json: |
+          {
+            "project_id": "Vx09kTolPXUnt124MSB1"
+          }
+        output_json: |
+          {
+            "data": {
+              "project_id": "Vx09kTolPXUnt124MSB1",
+              "status": "completed",
+              "video_url": "https://cdn.tfrv.xyz/renders/gjcIDd3JXNbmRF7DcHp7/7sTtkKTvJ.mp4",
+              "error": null
+            },
+            "component": {
+              "name": "RevidVideoStatusCard"
+            }
+          }
+
+  - endpoint: /revid/projects_list
+    examples:
+      - scenario: "List Recent Projects"
+        description: "Get a list of recent video creation projects"
+        input_json: |
+          {
+            "limit": 3
+          }
+        output_json: |
+          {
+            "data": {
+              "projects": [
+                {
+                  "pid": "Vx09kTolPXUnt124MSB1",
+                  "status": "completed",
+                  "videoUrl": "https://cdn.tfrv.xyz/renders/gjcIDd3JXNbmRF7DcHp7/7sTtkKTvJ.mp4",
+                  "createdAt": "2023-03-15T14:30:00Z"
+                },
+                {
+                  "pid": "W32bLmnQYzUvp567JRT2",
+                  "status": "processing",
+                  "videoUrl": null,
+                  "createdAt": "2023-03-15T15:45:00Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "RevidProjectListCard"
+            }
+          }
+
+  - endpoint: /revid/add_to_queue
+    examples:
+      - scenario: "Add Video to Queue"
+        description: "Add a completed video to the publishing queue"
+        input_json: |
+          {
+            "video_url": "https://cdn.tfrv.xyz/renders/gjcIDd3JXNbmRF7DcHp7/7sTtkKTvJ.mp4",
+            "channel_name": "my-tiktok-channel",
+            "tiktok": {
+              "username": "myaccount",
+              "title": "AI Technology Explained",
+              "privacy_level": "PUBLIC_TO_EVERYONE",
+              "disable_duet": false,
+              "disable_stitch": false,
+              "disable_comment": false
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Added to queue"
+            },
+            "component": {
+              "name": "RevidQueueStatusCard"
+            }
+          }
+
+  - endpoint: /revid/publish_now
+    examples:
+      - scenario: "Publish Video Immediately"
+        description: "Publish a video immediately to social media platforms"
+        input_json: |
+          {
+            "video_url": "https://cdn.tfrv.xyz/renders/gjcIDd3JXNbmRF7DcHp7/7sTtkKTvJ.mp4",
+            "channel_name": "my-tiktok-channel",
+            "tiktok": {
+              "username": "myaccount",
+              "title": "AI Technology Explained",
+              "privacy_level": "PUBLIC_TO_EVERYONE",
+              "disable_duet": false,
+              "disable_stitch": false,
+              "disable_comment": false
+            },
+            "youtube": {
+              "username": "myaccount",
+              "title": "AI Technology: The Future is Now",
+              "description": "Learn about how AI is transforming our world."
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Published successfully"
+            },
+            "component": {
+              "name": "RevidPublishStatusCard"
+            }
+          } 

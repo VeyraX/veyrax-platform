@@ -4,11 +4,12 @@ export interface Provider {
   description: string;
   logo_url?: string;
   provider_tag: string;
-  auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none';
+  auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none' | 'custom';
   scopes?: {
     scope: string;
     scope_name: string;
   }[];
+  auth_schema?: CustomAuthField[];
   input_schema?: string | object;
   output_schema?: string | object;
   created_at?: string | number;
@@ -138,4 +139,14 @@ export interface ParameterObject {
 export interface ApiKeyWithBaseConfig {
   api_key: string;
   base_url: string;
+}
+
+export interface CustomAuthField {
+  key: string;
+  label: string;
+  type: string;
+  required: boolean;
+  placeholder?: string;
+  sensitive?: boolean;
+  options?: { label: string, value: string }[];
 }

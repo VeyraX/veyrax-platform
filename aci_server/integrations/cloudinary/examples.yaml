@@ -1,0 +1,320 @@
+routes:
+  - endpoint: /cloudinary/upload
+    examples:
+      - scenario: "Upload Image from URL"
+        description: "Upload an image to Cloudinary from a URL"
+        input_json: |
+          {
+            "file": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
+            "public_id": "olympic_flag",
+            "resource_type": "image",
+            "tags": "olympic,flag"
+          }
+        output_json: |
+          {
+            "data": {
+              "public_id": "olympic_flag",
+              "version": 1627998723,
+              "width": 1920,
+              "height": 1080,
+              "format": "jpg",
+              "resource_type": "image",
+              "created_at": "2023-08-03T14:52:03Z",
+              "tags": ["olympic", "flag"],
+              "bytes": 123456,
+              "type": "upload",
+              "url": "http://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg",
+              "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg",
+              "signature": "a1b2c3d4e5f6g7h8i9j0",
+              "original_filename": "olympic_flag"
+            },
+            "component": {
+              "name": "CloudinaryAssetCard"
+            }
+          }
+      - scenario: "Upload Video with Transformation"
+        description: "Upload a video to Cloudinary with eager transformations"
+        input_json: |
+          {
+            "file": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+            "public_id": "sample_video",
+            "resource_type": "video",
+            "eager": "w_400,h_300,c_pad",
+            "tags": "sample,video,bunny"
+          }
+        output_json: |
+          {
+            "data": {
+              "public_id": "sample_video",
+              "version": 1627998980,
+              "width": 1280,
+              "height": 720,
+              "format": "mp4",
+              "resource_type": "video",
+              "created_at": "2023-08-03T14:56:20Z",
+              "tags": ["sample", "video", "bunny"],
+              "bytes": 1048576,
+              "type": "upload",
+              "url": "http://res.cloudinary.com/demo/video/upload/v1627998980/sample_video.mp4",
+              "secure_url": "https://res.cloudinary.com/demo/video/upload/v1627998980/sample_video.mp4",
+              "signature": "a1b2c3d4e5f6g7h8i9j0",
+              "original_filename": "big_buck_bunny_720p_1mb",
+              "duration": 30.53,
+              "bit_rate": 273741,
+              "frame_rate": 24,
+              "audio": {
+                "codec": "aac",
+                "bit_rate": "128117",
+                "frequency": 44100,
+                "channels": 2,
+                "channel_layout": "stereo"
+              },
+              "video": {
+                "pix_format": "yuv420p",
+                "codec": "h264",
+                "level": 31,
+                "bit_rate": "145594"
+              },
+              "eager": [
+                {
+                  "transformation": "w_400,h_300,c_pad",
+                  "width": 400,
+                  "height": 300,
+                  "bytes": 524288,
+                  "format": "mp4",
+                  "url": "http://res.cloudinary.com/demo/video/upload/w_400,h_300,c_pad/v1627998980/sample_video.mp4",
+                  "secure_url": "https://res.cloudinary.com/demo/video/upload/w_400,h_300,c_pad/v1627998980/sample_video.mp4"
+                }
+              ]
+            },
+            "component": {
+              "name": "CloudinaryAssetCard"
+            }
+          }
+
+  - endpoint: /cloudinary/explicit
+    examples:
+      - scenario: "Generate Image Transformations"
+        description: "Generate transformations for an existing image"
+        input_json: |
+          {
+            "public_id": "olympic_flag",
+            "eager": "w_200,h_200,c_fit|w_100,h_100,c_thumb",
+            "resource_type": "image"
+          }
+        output_json: |
+          {
+            "data": {
+              "public_id": "olympic_flag",
+              "version": 1627999123,
+              "width": 1920,
+              "height": 1080,
+              "format": "jpg",
+              "resource_type": "image",
+              "created_at": "2023-08-03T14:58:43Z",
+              "bytes": 123456,
+              "type": "upload",
+              "url": "http://res.cloudinary.com/demo/image/upload/v1627999123/olympic_flag.jpg",
+              "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627999123/olympic_flag.jpg",
+              "signature": "k9l8m7n6o5p4q3r2s1t0",
+              "eager": [
+                {
+                  "transformation": "w_200,h_200,c_fit",
+                  "width": 200,
+                  "height": 112,
+                  "bytes": 8541,
+                  "format": "jpg",
+                  "url": "http://res.cloudinary.com/demo/image/upload/w_200,h_200,c_fit/v1627999123/olympic_flag.jpg",
+                  "secure_url": "https://res.cloudinary.com/demo/image/upload/w_200,h_200,c_fit/v1627999123/olympic_flag.jpg"
+                },
+                {
+                  "transformation": "w_100,h_100,c_thumb",
+                  "width": 100,
+                  "height": 100,
+                  "bytes": 4218,
+                  "format": "jpg",
+                  "url": "http://res.cloudinary.com/demo/image/upload/w_100,h_100,c_thumb/v1627999123/olympic_flag.jpg",
+                  "secure_url": "https://res.cloudinary.com/demo/image/upload/w_100,h_100,c_thumb/v1627999123/olympic_flag.jpg"
+                }
+              ]
+            },
+            "component": {
+              "name": "CloudinaryAssetCard"
+            }
+          }
+
+  - endpoint: /cloudinary/list_assets
+    examples:
+      - scenario: "List Image Assets"
+        description: "List images in a Cloudinary account"
+        input_json: |
+          {
+            "max_results": 3,
+            "resource_type": "image"
+          }
+        output_json: |
+          {
+            "data": {
+              "resources": [
+                {
+                  "public_id": "olympic_flag",
+                  "version": 1627998723,
+                  "format": "jpg",
+                  "width": 1920,
+                  "height": 1080,
+                  "resource_type": "image",
+                  "created_at": "2023-08-03T14:52:03Z",
+                  "bytes": 123456,
+                  "type": "upload",
+                  "url": "http://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg",
+                  "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg"
+                },
+                {
+                  "public_id": "sample_image",
+                  "version": 1627999200,
+                  "format": "png",
+                  "width": 800,
+                  "height": 600,
+                  "resource_type": "image",
+                  "created_at": "2023-08-03T15:00:00Z",
+                  "bytes": 98765,
+                  "type": "upload",
+                  "url": "http://res.cloudinary.com/demo/image/upload/v1627999200/sample_image.png",
+                  "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627999200/sample_image.png"
+                },
+                {
+                  "public_id": "profile_photo",
+                  "version": 1627999300,
+                  "format": "jpg",
+                  "width": 400,
+                  "height": 400,
+                  "resource_type": "image",
+                  "created_at": "2023-08-03T15:01:40Z",
+                  "bytes": 45678,
+                  "type": "upload",
+                  "url": "http://res.cloudinary.com/demo/image/upload/v1627999300/profile_photo.jpg",
+                  "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627999300/profile_photo.jpg"
+                }
+              ],
+              "next_cursor": "aa0cfa697a118d3fed8c1247d5b7f6d8"
+            },
+            "component": {
+              "name": "CloudinaryAssetList"
+            }
+          }
+
+  - endpoint: /cloudinary/get_asset_details
+    examples:
+      - scenario: "Get Image Details"
+        description: "Get details for a specific image"
+        input_json: |
+          {
+            "public_id": "olympic_flag",
+            "resource_type": "image",
+            "colors": true
+          }
+        output_json: |
+          {
+            "data": {
+              "public_id": "olympic_flag",
+              "version": 1627998723,
+              "width": 1920,
+              "height": 1080,
+              "format": "jpg",
+              "resource_type": "image",
+              "created_at": "2023-08-03T14:52:03Z",
+              "tags": ["olympic", "flag"],
+              "bytes": 123456,
+              "type": "upload",
+              "url": "http://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg",
+              "secure_url": "https://res.cloudinary.com/demo/image/upload/v1627998723/olympic_flag.jpg",
+              "colors": ["#0081C8", "#FCB131", "#000000", "#00A651", "#EE334E", "#FFFFFF"]
+            },
+            "component": {
+              "name": "CloudinaryAssetCard"
+            }
+          }
+      - scenario: "Get Video Details"
+        description: "Get details for a specific video"
+        input_json: |
+          {
+            "public_id": "sample_video",
+            "resource_type": "video"
+          }
+        output_json: |
+          {
+            "data": {
+              "public_id": "sample_video",
+              "version": 1627998980,
+              "width": 1280,
+              "height": 720,
+              "format": "mp4",
+              "resource_type": "video",
+              "created_at": "2023-08-03T14:56:20Z",
+              "tags": ["sample", "video", "bunny"],
+              "bytes": 1048576,
+              "type": "upload",
+              "url": "http://res.cloudinary.com/demo/video/upload/v1627998980/sample_video.mp4",
+              "secure_url": "https://res.cloudinary.com/demo/video/upload/v1627998980/sample_video.mp4",
+              "duration": 30.53,
+              "bit_rate": 273741,
+              "frame_rate": 24,
+              "audio": {
+                "codec": "aac",
+                "bit_rate": "128117",
+                "frequency": 44100,
+                "channels": 2,
+                "channel_layout": "stereo"
+              },
+              "video": {
+                "pix_format": "yuv420p",
+                "codec": "h264",
+                "level": 31,
+                "bit_rate": "145594"
+              }
+            },
+            "component": {
+              "name": "CloudinaryAssetCard"
+            }
+          }
+
+  - endpoint: /cloudinary/delete_asset
+    examples:
+      - scenario: "Delete Image"
+        description: "Delete an image and invalidate CDN cache"
+        input_json: |
+          {
+            "public_id": "olympic_flag",
+            "resource_type": "image",
+            "invalidate": true
+          }
+        output_json: |
+          {
+            "data": {
+              "result": "ok"
+            },
+            "component": {
+              "name": "CloudinaryDeleteResult"
+            }
+          }
+
+  - endpoint: /cloudinary/rename_asset
+    examples:
+      - scenario: "Rename Image"
+        description: "Rename an image (change its public ID)"
+        input_json: |
+          {
+            "from_public_id": "olympic_flag",
+            "to_public_id": "flags/olympic_flag_2023",
+            "resource_type": "image",
+            "invalidate": true
+          }
+        output_json: |
+          {
+            "data": {
+              "result": "ok"
+            },
+            "component": {
+              "name": "CloudinaryRenameResult"
+            }
+          } 
