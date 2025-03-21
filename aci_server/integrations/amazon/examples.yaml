@@ -1,0 +1,426 @@
+routes:
+  - endpoint: /amazon/search_items
+    examples:
+      - scenario: "Basic Product Search"
+        description: "Search for products related to a keyword"
+        input_json: |
+          {
+            "keyword": "laptop"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B07XVKZHLF",
+                  "title": "Dell XPS 13 Laptop",
+                  "description": "13.3-inch FHD Display, Intel Core i7, 16GB RAM, 512GB SSD",
+                  "image_url": "https://example.com/dell-xps-image.jpg",
+                  "feedback_count": "1250",
+                  "rating": "4.5",
+                  "price": "$1,299.99",
+                  "url": "https://www.amazon.com/dp/B07XVKZHLF"
+                },
+                {
+                  "asin": "B08N5KWB9H",
+                  "title": "MacBook Air",
+                  "description": "13-inch Retina Display, Apple M1 Chip, 8GB RAM, 256GB SSD",
+                  "image_url": "https://example.com/macbook-air-image.jpg",
+                  "feedback_count": "2100",
+                  "rating": "4.8",
+                  "price": "$999.99",
+                  "url": "https://www.amazon.com/dp/B08N5KWB9H"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonProductCard"
+            }
+          }
+      
+      - scenario: "Electronics Search"
+        description: "Search for electronic products"
+        input_json: |
+          {
+            "keyword": "wireless headphones"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B0863TXGM3",
+                  "title": "Sony WH-1000XM4 Wireless Headphones",
+                  "description": "Industry-leading noise canceling with Dual Noise Sensor technology",
+                  "image_url": "https://example.com/sony-headphones.jpg",
+                  "feedback_count": "1800",
+                  "rating": "4.7",
+                  "price": "$348.00",
+                  "url": "https://www.amazon.com/dp/B0863TXGM3"
+                },
+                {
+                  "asin": "B07VSGNZH5",
+                  "title": "Bose QuietComfort 45 Headphones",
+                  "description": "Wireless Noise Cancelling Bluetooth Headphones",
+                  "image_url": "https://example.com/bose-headphones.jpg",
+                  "feedback_count": "1350",
+                  "rating": "4.6",
+                  "price": "$329.00",
+                  "url": "https://www.amazon.com/dp/B07VSGNZH5"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonProductCard"
+            }
+          }
+      
+      - scenario: "Book Search"
+        description: "Search for books by keyword"
+        input_json: |
+          {
+            "keyword": "machine learning"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B07XW7LCMV",
+                  "title": "Hands-On Machine Learning with Scikit-Learn and TensorFlow",
+                  "description": "Concepts, Tools, and Techniques to Build Intelligent Systems",
+                  "image_url": "https://example.com/ml-book.jpg",
+                  "feedback_count": "980",
+                  "rating": "4.9",
+                  "price": "$49.99",
+                  "url": "https://www.amazon.com/dp/B07XW7LCMV"
+                },
+                {
+                  "asin": "B08PMDTXFT",
+                  "title": "Deep Learning for Beginners",
+                  "description": "A comprehensive guide to neural networks and modern deep learning approaches",
+                  "image_url": "https://example.com/dl-book.jpg",
+                  "feedback_count": "750",
+                  "rating": "4.5",
+                  "price": "$39.99",
+                  "url": "https://www.amazon.com/dp/B08PMDTXFT"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonProductCard"
+            }
+          }
+
+  - endpoint: /amazon/get_items
+    examples:
+      - scenario: "Get Single Item by ASIN"
+        description: "Retrieve details for a specific product by its ASIN"
+        input_json: |
+          {
+            "asins": "B01N5IB20Q"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B01N5IB20Q",
+                  "title": "Nintendo Switch with Neon Blue and Neon Red Joy‑Con",
+                  "description": "Get the gaming system that lets you play the games you want, wherever you are, however you like.",
+                  "brand": "Nintendo",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 299.99,
+                    "currency": "USD",
+                    "display_amount": "$299.99"
+                  },
+                  "rating": {
+                    "value": 4.8,
+                    "count": 18452
+                  },
+                  "url": "https://www.amazon.com/dp/B01N5IB20Q",
+                  "available": true,
+                  "features": [
+                    "Play your way with the Nintendo Switch gaming system",
+                    "Includes a Nintendo Switch console and Nintendo Switch dock in black",
+                    "Battery life is approximately 4.5 to 9 hours"
+                  ],
+                  "color": "Neon Red/Blue"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonItemDetail"
+            }
+          }
+          
+      - scenario: "Get Multiple Items by ASINs"
+        description: "Retrieve details for multiple products by their ASINs"
+        input_json: |
+          {
+            "asins": ["B01N5IB20Q", "B01F9G43WU"]
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B01N5IB20Q",
+                  "title": "Nintendo Switch with Neon Blue and Neon Red Joy‑Con",
+                  "description": "Get the gaming system that lets you play the games you want, wherever you are, however you like.",
+                  "brand": "Nintendo",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 299.99,
+                    "currency": "USD",
+                    "display_amount": "$299.99"
+                  },
+                  "rating": {
+                    "value": 4.8,
+                    "count": 18452
+                  },
+                  "url": "https://www.amazon.com/dp/B01N5IB20Q",
+                  "available": true,
+                  "features": [
+                    "Play your way with the Nintendo Switch gaming system",
+                    "Includes a Nintendo Switch console and Nintendo Switch dock in black",
+                    "Battery life is approximately 4.5 to 9 hours"
+                  ],
+                  "color": "Neon Red/Blue"
+                },
+                {
+                  "asin": "B01F9G43WU",
+                  "title": "Xbox Series X",
+                  "description": "Introducing Xbox Series X, the fastest, most powerful Xbox ever.",
+                  "brand": "Microsoft",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/51wPCOWBrCL._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/51wPCOWBrCL._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/51wPCOWBrCL._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 499.99,
+                    "currency": "USD",
+                    "display_amount": "$499.99"
+                  },
+                  "rating": {
+                    "value": 4.7,
+                    "count": 12340
+                  },
+                  "url": "https://www.amazon.com/dp/B01F9G43WU",
+                  "available": true,
+                  "features": [
+                    "Introducing Xbox Series X, the fastest, most powerful Xbox ever",
+                    "Experience next-gen speed and performance",
+                    "Play thousands of games from four generations of Xbox"
+                  ],
+                  "color": "Black"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonItemDetail"
+            }
+          }
+          
+      - scenario: "Get Item by URL"
+        description: "Retrieve details for a product using its Amazon URL"
+        input_json: |
+          {
+            "asins": "https://www.amazon.com/dp/B01N5IB20Q"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B01N5IB20Q",
+                  "title": "Nintendo Switch with Neon Blue and Neon Red Joy‑Con",
+                  "description": "Get the gaming system that lets you play the games you want, wherever you are, however you like.",
+                  "brand": "Nintendo",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 299.99,
+                    "currency": "USD",
+                    "display_amount": "$299.99"
+                  },
+                  "rating": {
+                    "value": 4.8,
+                    "count": 18452
+                  },
+                  "url": "https://www.amazon.com/dp/B01N5IB20Q",
+                  "available": true,
+                  "features": [
+                    "Play your way with the Nintendo Switch gaming system",
+                    "Includes a Nintendo Switch console and Nintendo Switch dock in black",
+                    "Battery life is approximately 4.5 to 9 hours"
+                  ],
+                  "color": "Neon Red/Blue"
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonItemDetail"
+            }
+          }
+
+  - endpoint: /amazon/get_variations
+    examples:
+      - scenario: "Get Product Variations"
+        description: "Retrieve all variations of a specific product by its ASIN"
+        input_json: |
+          {
+            "asin": "B01N5IB20Q"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "asin": "B01N5IB20Q",
+                  "title": "Nintendo Switch with Neon Blue and Neon Red Joy‑Con",
+                  "description": "Get the gaming system that lets you play the games you want, wherever you are, however you like.",
+                  "brand": "Nintendo",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/41NxuFRQCKL._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 299.99,
+                    "currency": "USD",
+                    "display_amount": "$299.99"
+                  },
+                  "url": "https://www.amazon.com/dp/B01N5IB20Q",
+                  "color": "Neon Red/Blue"
+                },
+                {
+                  "asin": "B07VJRZ62R",
+                  "title": "Nintendo Switch with Gray Joy‑Con",
+                  "description": "Get the gaming system that lets you play the games you want, wherever you are, however you like.",
+                  "brand": "Nintendo",
+                  "images": {
+                    "small": "https://m.media-amazon.com/images/I/71r5EDssS5L._SL75_.jpg",
+                    "medium": "https://m.media-amazon.com/images/I/71r5EDssS5L._SL160_.jpg",
+                    "large": "https://m.media-amazon.com/images/I/71r5EDssS5L._SL500_.jpg"
+                  },
+                  "price": {
+                    "amount": 299.99,
+                    "currency": "USD",
+                    "display_amount": "$299.99"
+                  },
+                  "url": "https://www.amazon.com/dp/B07VJRZ62R",
+                  "color": "Gray"
+                }
+              ],
+              "variation_summary": {
+                "variationDimensions": ["color"],
+                "variationCount": 2
+              }
+            },
+            "component": {
+              "name": "AmazonVariations"
+            }
+          }
+
+  - endpoint: /amazon/get_browse_nodes
+    examples:
+      - scenario: "Get Browse Nodes Information"
+        description: "Retrieve category browse nodes information by IDs"
+        input_json: |
+          {
+            "browse_node_ids": ["667049031", "599385031"]
+          }
+        output_json: |
+          {
+            "data": {
+              "nodes": [
+                {
+                  "id": "667049031",
+                  "display_name": "Video Games",
+                  "context_free_name": "Video Games",
+                  "is_root": true,
+                  "ancestor": null,
+                  "children": [
+                    {
+                      "id": "14878888031",
+                      "display_name": "PlayStation 5"
+                    },
+                    {
+                      "id": "16225016031",
+                      "display_name": "Xbox Series X & S"
+                    },
+                    {
+                      "id": "10671048031",
+                      "display_name": "Nintendo Switch"
+                    }
+                  ]
+                },
+                {
+                  "id": "599385031",
+                  "display_name": "Electronics",
+                  "context_free_name": "Electronics",
+                  "is_root": true,
+                  "ancestor": null,
+                  "children": [
+                    {
+                      "id": "172594",
+                      "display_name": "Headphones & Earbuds"
+                    },
+                    {
+                      "id": "2649512011",
+                      "display_name": "Wearable Technology"
+                    },
+                    {
+                      "id": "172282",
+                      "display_name": "Camera & Photo"
+                    }
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "AmazonBrowseNodes"
+            }
+          }
+
+  - endpoint: /amazon/get_asin_from_url
+    examples:
+      - scenario: "Extract ASIN from URL"
+        description: "Extract the Amazon ASIN from a product URL"
+        input_json: |
+          {
+            "url": "https://www.amazon.com/dp/B01N5IB20Q"
+          }
+        output_json: |
+          {
+            "data": {
+              "asin": "B01N5IB20Q"
+            }
+          }
+      
+      - scenario: "Extract ASIN from Complex URL"
+        description: "Extract the Amazon ASIN from a URL with additional parameters"
+        input_json: |
+          {
+            "url": "https://www.amazon.com/Nintendo-Switch-Neon-Blue-Red-Joy/dp/B01N5IB20Q/ref=sr_1_1?keywords=nintendo+switch&qid=1620149860&sr=8-1"
+          }
+        output_json: |
+          {
+            "data": {
+              "asin": "B01N5IB20Q"
+            }
+          } 
