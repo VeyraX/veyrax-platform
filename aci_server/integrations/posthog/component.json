@@ -1,0 +1,11 @@
+
+[
+    {
+      "name": "PostHog",
+      "version": "1.0.0",
+      "description": "A React component for displaying PostHog insights",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

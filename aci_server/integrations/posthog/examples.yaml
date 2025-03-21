@@ -1,0 +1,1500 @@
+routes:
+  - endpoint: /posthog/execute_query
+    examples:
+      - scenario: "Execute HogQL Query"
+        description: "Query events where current URL contains blog"
+        input_json: |
+          {
+            "project_id": "12345",
+            "query": {
+              "kind": "HogQLQuery",
+              "query": "select properties.$current_url from events where properties.$current_url like '%/blog%' limit 100"
+            },
+            "async_query": false,
+            "refresh": "blocking"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "properties.$current_url": "https://example.com/blog/article-1"
+                },
+                {
+                  "properties.$current_url": "https://example.com/blog/article-2"
+                }
+              ],
+              "columns": ["properties.$current_url"],
+              "types": ["String"],
+              "hogql": "select properties.$current_url from events where properties.$current_url like '%/blog%' limit 100"
+            },
+            "component": {
+              "name": "PosthogQueryResult",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/get_query
+    examples:
+      - scenario: "Get Query Status"
+        description: "Retrieve the status of a previously executed query"
+        input_json: |
+          {
+            "project_id": "12345",
+            "query_id": "01234567-89ab-cdef-0123-456789abcdef"
+          }
+        output_json: |
+          {
+            "data": {
+              "complete": true,
+              "dashboard_id": null,
+              "end_time": "2023-10-01T12:34:56.789Z",
+              "error": false,
+              "error_message": null,
+              "expiration_time": "2023-10-02T12:34:56.789Z",
+              "id": "01234567-89ab-cdef-0123-456789abcdef",
+              "insight_id": null,
+              "labels": null,
+              "pickup_time": "2023-10-01T12:34:45.678Z",
+              "query_async": true,
+              "query_progress": 1.0,
+              "results": {
+                "results": [
+                  {
+                    "properties.$current_url": "https://example.com/blog/article-1"
+                  }
+                ],
+                "columns": ["properties.$current_url"]
+              },
+              "start_time": "2023-10-01T12:34:45.000Z",
+              "task_id": "task-0123456789",
+              "team_id": 123
+            },
+            "component": {
+              "name": "PosthogQueryStatus",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/delete_query
+    examples:
+      - scenario: "Delete Query"
+        description: "Delete a specific query by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "query_id": "01234567-89ab-cdef-0123-456789abcdef"
+          }
+        output_json: |
+          {
+            "success": true
+          }
+          
+  - endpoint: /posthog/list_insights
+    examples:
+      - scenario: "List Insights"
+        description: "Retrieve a paginated list of insights"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0,
+            "refresh": "force_cache"
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 25,
+              "next": "https://us.posthog.com/api/projects/123/insights/?limit=10&offset=10",
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "short_id": "abc123",
+                  "name": "Daily Active Users",
+                  "derived_name": "Daily Active Users",
+                  "filters": {
+                    "display": "ActionsLineGraph",
+                    "interval": "day"
+                  },
+                  "query": {
+                    "kind": "InsightVizNode"
+                  },
+                  "created_at": "2023-01-01T00:00:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  }
+                },
+                {
+                  "id": 2,
+                  "short_id": "def456",
+                  "name": "Conversion Funnel",
+                  "derived_name": "Conversion Funnel",
+                  "filters": {
+                    "display": "FunnelViz"
+                  },
+                  "query": {
+                    "kind": "InsightVizNode"
+                  },
+                  "created_at": "2023-01-15T00:00:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogInsightsList",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/create_insight
+    examples:
+      - scenario: "Create New Insight"
+        description: "Create a new insight with trend data"
+        input_json: |
+          {
+            "project_id": "12345",
+            "name": "New User Growth",
+            "description": "Track monthly user growth",
+            "query": {
+              "kind": "InsightVizNode",
+              "source": {
+                "kind": "TrendsQuery",
+                "interval": "month",
+                "series": [
+                  {
+                    "kind": "EventsNode",
+                    "event": "$new_user",
+                    "math": "total"
+                  }
+                ],
+                "dateRange": {
+                  "date_from": "-6m"
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "short_id": "ghi789",
+              "name": "New User Growth",
+              "description": "Track monthly user growth",
+              "query": {
+                "kind": "InsightVizNode",
+                "source": {
+                  "kind": "TrendsQuery",
+                  "interval": "month",
+                  "series": [
+                    {
+                      "kind": "EventsNode",
+                      "event": "$new_user",
+                      "math": "total"
+                    }
+                  ],
+                  "dateRange": {
+                    "date_from": "-6m"
+                  }
+                }
+              },
+              "created_at": "2023-10-15T08:30:45Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              }
+            },
+            "component": {
+              "name": "PosthogInsight",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/get_insight
+    examples:
+      - scenario: "Get Insight Details"
+        description: "Retrieve a specific insight by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "insight_id": 123,
+            "refresh": "force_cache"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "short_id": "ghi789",
+              "name": "New User Growth",
+              "description": "Track monthly user growth",
+              "query": {
+                "kind": "InsightVizNode",
+                "source": {
+                  "kind": "TrendsQuery",
+                  "interval": "month"
+                }
+              },
+              "result": {
+                "data": [
+                  {"date": "2023-08-01", "count": 1250},
+                  {"date": "2023-09-01", "count": 1820},
+                  {"date": "2023-10-01", "count": 2340}
+                ]
+              },
+              "created_at": "2023-10-15T08:30:45Z",
+              "last_refresh": "2023-10-20T14:25:12Z"
+            },
+            "component": {
+              "name": "PosthogInsight",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/update_insight
+    examples:
+      - scenario: "Update Insight"
+        description: "Update an existing insight's properties"
+        input_json: |
+          {
+            "project_id": "12345",
+            "insight_id": 123,
+            "name": "Updated User Growth Analysis",
+            "description": "Track monthly and weekly user growth comparison",
+            "tags": ["growth", "weekly", "monthly"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "short_id": "ghi789",
+              "name": "Updated User Growth Analysis",
+              "description": "Track monthly and weekly user growth comparison",
+              "query": {
+                "kind": "InsightVizNode",
+                "source": {
+                  "kind": "TrendsQuery",
+                  "interval": "month"
+                }
+              },
+              "tags": ["growth", "weekly", "monthly"],
+              "updated_at": "2023-10-25T09:15:30Z",
+              "last_modified_at": "2023-10-25T09:15:30Z",
+              "last_modified_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              }
+            },
+            "component": {
+              "name": "PosthogInsight",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_dashboards
+    examples:
+      - scenario: "List Dashboards"
+        description: "Retrieve a paginated list of dashboards"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 3,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "name": "Product Analytics",
+                  "description": "Key metrics for the product team",
+                  "pinned": true,
+                  "created_at": "2023-05-01T10:00:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  }
+                },
+                {
+                  "id": 2,
+                  "name": "User Engagement",
+                  "description": "User engagement metrics across the platform",
+                  "created_at": "2023-06-15T14:30:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogDashboardsList",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/create_dashboard
+    examples:
+      - scenario: "Create New Dashboard"
+        description: "Create a new empty dashboard"
+        input_json: |
+          {
+            "project_id": "12345",
+            "name": "Marketing Analytics",
+            "description": "Dashboard for marketing campaign analytics",
+            "pinned": true,
+            "tags": ["marketing", "campaigns"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 3,
+              "name": "Marketing Analytics",
+              "description": "Dashboard for marketing campaign analytics",
+              "pinned": true,
+              "created_at": "2023-10-27T09:45:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "tags": ["marketing", "campaigns"],
+              "tiles": []
+            },
+            "component": {
+              "name": "PosthogDashboard",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/get_dashboard
+    examples:
+      - scenario: "Get Dashboard Details"
+        description: "Retrieve a specific dashboard by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "dashboard_id": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "Product Analytics",
+              "description": "Key metrics for the product team",
+              "pinned": true,
+              "created_at": "2023-05-01T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "tiles": [
+                {
+                  "id": 1,
+                  "dashboard_id": 1,
+                  "insight_id": 123,
+                  "layouts": {
+                    "sm": {"x": 0, "y": 0, "w": 6, "h": 5}
+                  }
+                },
+                {
+                  "id": 2,
+                  "dashboard_id": 1,
+                  "insight_id": 124,
+                  "layouts": {
+                    "sm": {"x": 6, "y": 0, "w": 6, "h": 5}
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogDashboard",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/update_dashboard
+    examples:
+      - scenario: "Update Dashboard"
+        description: "Update a dashboard's properties"
+        input_json: |
+          {
+            "project_id": "12345",
+            "dashboard_id": 1,
+            "name": "Product Analytics 2.0",
+            "description": "Updated dashboard for product team",
+            "tags": ["product", "metrics", "updated"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "Product Analytics 2.0",
+              "description": "Updated dashboard for product team",
+              "pinned": true,
+              "created_at": "2023-05-01T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "tags": ["product", "metrics", "updated"],
+              "tiles": [
+                {
+                  "id": 1,
+                  "dashboard_id": 1,
+                  "insight_id": 123,
+                  "layouts": {
+                    "sm": {"x": 0, "y": 0, "w": 6, "h": 5}
+                  }
+                },
+                {
+                  "id": 2,
+                  "dashboard_id": 1,
+                  "insight_id": 124,
+                  "layouts": {
+                    "sm": {"x": 6, "y": 0, "w": 6, "h": 5}
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogDashboard",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_events
+    examples:
+      - scenario: "List Events"
+        description: "Retrieve a paginated list of events"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0,
+            "event": "$pageview"
+          }
+        output_json: |
+          {
+            "data": {
+              "next": "https://us.posthog.com/api/projects/123/events/?limit=10&offset=10",
+              "previous": null,
+              "results": [
+                {
+                  "id": "01234567-89ab-cdef-0123-456789abcdef",
+                  "distinct_id": "user123",
+                  "properties": {
+                    "$current_url": "https://example.com/home",
+                    "$browser": "Chrome",
+                    "$os": "Mac OS X"
+                  },
+                  "event": "$pageview",
+                  "timestamp": "2023-10-25T15:30:45Z",
+                  "person": {
+                    "id": 123,
+                    "properties": {
+                      "email": "user@example.com"
+                    }
+                  }
+                },
+                {
+                  "id": "12345678-89ab-cdef-0123-456789abcdef",
+                  "distinct_id": "user456",
+                  "properties": {
+                    "$current_url": "https://example.com/products",
+                    "$browser": "Firefox",
+                    "$os": "Windows"
+                  },
+                  "event": "$pageview",
+                  "timestamp": "2023-10-25T15:28:30Z",
+                  "person": {
+                    "id": 456,
+                    "properties": {
+                      "email": "other@example.com"
+                    }
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogEventsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_event
+    examples:
+      - scenario: "Get Event Details"
+        description: "Retrieve a specific event by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "event_id": "01234567-89ab-cdef-0123-456789abcdef"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "01234567-89ab-cdef-0123-456789abcdef",
+              "distinct_id": "user123",
+              "properties": {
+                "$current_url": "https://example.com/home",
+                "$browser": "Chrome",
+                "$os": "Mac OS X",
+                "$screen_height": 1080,
+                "$screen_width": 1920
+              },
+              "event": "$pageview",
+              "timestamp": "2023-10-25T15:30:45Z",
+              "person": {
+                "id": 123,
+                "properties": {
+                  "email": "user@example.com",
+                  "name": "John Doe",
+                  "created_at": "2023-08-01T12:00:00Z"
+                }
+              },
+              "elements": [
+                {
+                  "tag_name": "a",
+                  "attr_class": "nav-link",
+                  "text": "Products"
+                },
+                {
+                  "tag_name": "div",
+                  "attr_class": "navigation"
+                }
+              ],
+              "elements_chain": "div.navigation > a.nav-link"
+            },
+            "component": {
+              "name": "PosthogEvent",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_projects
+    examples:
+      - scenario: "List Projects"
+        description: "Retrieve a paginated list of projects in your organization"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                  "organization": "452c1a86-a0af-475b-b03f-724878b0f387",
+                  "api_token": "phc_token1",
+                  "name": "Main Project",
+                  "completed_snippet_onboarding": true,
+                  "ingested_event": true,
+                  "is_demo": false,
+                  "timezone": "UTC",
+                  "access_control": true
+                },
+                {
+                  "id": 2,
+                  "uuid": "195fe615-b8ad-4c33-9e9c-d7612fbf6d0g",
+                  "organization": "452c1a86-a0af-475b-b03f-724878b0f387",
+                  "api_token": "phc_token2",
+                  "name": "Test Project",
+                  "completed_snippet_onboarding": false,
+                  "ingested_event": false,
+                  "is_demo": true,
+                  "timezone": "America/New_York",
+                  "access_control": false
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogProjectsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieve a specific project by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "organization_id": "452c1a86-a0af-475b-b03f-724878b0f387",
+            "project_id": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+              "organization": "452c1a86-a0af-475b-b03f-724878b0f387",
+              "api_token": "phc_token1",
+              "name": "Main Project",
+              "completed_snippet_onboarding": true,
+              "ingested_event": true,
+              "is_demo": false,
+              "timezone": "UTC",
+              "access_control": true
+            },
+            "component": {
+              "name": "PosthogProject",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_organizations
+    examples:
+      - scenario: "List Organizations"
+        description: "Retrieve a paginated list of organizations"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+                  "name": "Main Organization",
+                  "slug": "main-organization",
+                  "logo_media_id": "a5d9f2f1-d934-4d2e-bebe-4b3cdcd08a33",
+                  "created_at": "2023-05-01T10:00:00Z",
+                  "updated_at": "2023-10-27T09:45:00Z",
+                  "membership_level": 1,
+                  "plugins_access_level": 0,
+                  "teams": [],
+                  "projects": [],
+                  "is_member_join_email_enabled": true,
+                  "enforce_2fa": false,
+                  "member_count": "15"
+                },
+                {
+                  "id": "597f7eca-7276-5993-cfeb-63cbbbba7f09",
+                  "name": "Test Organization",
+                  "slug": "test-organization",
+                  "created_at": "2023-06-15T14:30:00Z",
+                  "updated_at": "2023-10-20T11:25:00Z",
+                  "membership_level": 1,
+                  "plugins_access_level": 0,
+                  "teams": [],
+                  "projects": [],
+                  "is_member_join_email_enabled": false,
+                  "enforce_2fa": true,
+                  "member_count": "5"
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogOrganizationsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_organization
+    examples:
+      - scenario: "Get Organization Details"
+        description: "Retrieve a specific organization by ID"
+        input_json: |
+          {
+            "organization_id": "497f6eca-6276-4993-bfeb-53cbbbba6f08"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+              "name": "Main Organization",
+              "slug": "main-organization",
+              "logo_media_id": "a5d9f2f1-d934-4d2e-bebe-4b3cdcd08a33",
+              "created_at": "2023-05-01T10:00:00Z",
+              "updated_at": "2023-10-27T09:45:00Z",
+              "membership_level": 1,
+              "plugins_access_level": 0,
+              "teams": [],
+              "projects": [
+                {
+                  "id": 1,
+                  "name": "Main Project",
+                  "api_token": "phc_token1"
+                },
+                {
+                  "id": 2,
+                  "name": "Test Project",
+                  "api_token": "phc_token2"
+                }
+              ],
+              "is_member_join_email_enabled": true,
+              "enforce_2fa": false,
+              "member_count": "15"
+            },
+            "component": {
+              "name": "PosthogOrganization",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_organization_members
+    examples:
+      - scenario: "List Organization Members"
+        description: "Retrieve a paginated list of members in an organization"
+        input_json: |
+          {
+            "organization_id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 3,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": "897f6eca-7276-5993-afeb-63cbbbba6f09",
+                  "user": {
+                    "id": 1,
+                    "uuid": "195be615-b8ad-5c33-9e9c-d7612fbf6d0g",
+                    "distinct_id": "user123",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com",
+                    "is_email_verified": true,
+                    "role_at_organization": "admin"
+                  },
+                  "level": 15,
+                  "joined_at": "2023-01-15T14:30:00Z",
+                  "updated_at": "2023-10-20T11:25:00Z",
+                  "is_2fa_enabled": true,
+                  "has_social_auth": false,
+                  "last_login": "2023-10-25T09:15:30Z"
+                },
+                {
+                  "id": "997f6eca-8276-6993-bfeb-73cbbbba6f10",
+                  "user": {
+                    "id": 2,
+                    "uuid": "295be615-c8ad-6c33-ae9c-e7612fbf6e0h",
+                    "distinct_id": "user456",
+                    "first_name": "Jane",
+                    "last_name": "Smith",
+                    "email": "jane@example.com",
+                    "is_email_verified": true,
+                    "role_at_organization": "engineering"
+                  },
+                  "level": 8,
+                  "joined_at": "2023-02-20T10:15:00Z",
+                  "updated_at": "2023-09-15T13:40:00Z",
+                  "is_2fa_enabled": false,
+                  "has_social_auth": true,
+                  "last_login": "2023-10-24T16:30:00Z"
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogOrganizationMembersList",
+              "props": {}
+            }
+          }
+
+  - endpoint: /posthog/list_persons
+    examples:
+      - scenario: "List Persons"
+        description: "Retrieve a paginated list of persons"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0,
+            "search": "user@example.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "name": "John Doe",
+                  "distinct_ids": ["user123", "id-from-crm-123"],
+                  "properties": {
+                    "email": "john@example.com",
+                    "name": "John Doe",
+                    "$initial_browser": "Chrome",
+                    "$initial_os": "Mac OS X"
+                  },
+                  "created_at": "2023-01-15T10:00:00Z",
+                  "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f"
+                },
+                {
+                  "id": 2,
+                  "name": "Jane Smith",
+                  "distinct_ids": ["user456"],
+                  "properties": {
+                    "email": "jane@example.com",
+                    "name": "Jane Smith",
+                    "$initial_browser": "Firefox",
+                    "$initial_os": "Windows"
+                  },
+                  "created_at": "2023-02-20T14:30:00Z",
+                  "uuid": "195be615-b8ad-4c33-9e9c-d7612fbf6d0g"
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogPersonsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_person
+    examples:
+      - scenario: "Get Person Details"
+        description: "Retrieve a specific person by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "person_id": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "John Doe",
+              "distinct_ids": ["user123", "id-from-crm-123"],
+              "properties": {
+                "email": "john@example.com",
+                "name": "John Doe",
+                "$initial_browser": "Chrome",
+                "$initial_os": "Mac OS X",
+                "$initial_referrer": "https://google.com",
+                "$initial_referring_domain": "google.com",
+                "$initial_device_type": "Desktop"
+              },
+              "created_at": "2023-01-15T10:00:00Z",
+              "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f"
+            },
+            "component": {
+              "name": "PosthogPerson",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/update_person
+    examples:
+      - scenario: "Update Person Properties"
+        description: "Update properties of a specific person"
+        input_json: |
+          {
+            "project_id": "12345",
+            "person_id": 1,
+            "properties": {
+              "name": "John D. Doe",
+              "title": "Senior Engineer",
+              "department": "Engineering"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "John D. Doe",
+              "distinct_ids": ["user123", "id-from-crm-123"],
+              "properties": {
+                "email": "john@example.com",
+                "name": "John D. Doe",
+                "title": "Senior Engineer",
+                "department": "Engineering",
+                "$initial_browser": "Chrome",
+                "$initial_os": "Mac OS X"
+              },
+              "created_at": "2023-01-15T10:00:00Z",
+              "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f"
+            },
+            "component": {
+              "name": "PosthogPerson",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/delete_person
+    examples:
+      - scenario: "Delete Person"
+        description: "Delete a specific person by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "person_id": 1,
+            "delete_events": false
+          }
+        output_json: |
+          {
+            "success": true
+          }
+          
+  - endpoint: /posthog/bulk_delete_persons
+    examples:
+      - scenario: "Bulk Delete Persons by IDs"
+        description: "Delete multiple persons by their IDs"
+        input_json: |
+          {
+            "project_id": "12345",
+            "ids": [1, 2, 3],
+            "delete_events": false
+          }
+        output_json: |
+          {
+            "success": true
+          }
+      - scenario: "Bulk Delete Persons by Distinct IDs"
+        description: "Delete multiple persons by their distinct IDs"
+        input_json: |
+          {
+            "project_id": "12345",
+            "distinct_ids": ["user123", "user456"],
+            "delete_events": true
+          }
+        output_json: |
+          {
+            "success": true
+          }
+
+  - endpoint: /posthog/list_actions
+    examples:
+      - scenario: "List Actions"
+        description: "Retrieve a paginated list of actions"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "name": "Signup Flow Complete",
+                  "description": "User completed the entire signup flow",
+                  "tags": ["signup", "onboarding"],
+                  "steps": [
+                    {
+                      "event": "signup_completed",
+                      "properties": [
+                        {
+                          "key": "source",
+                          "value": "website"
+                        }
+                      ]
+                    }
+                  ],
+                  "created_at": "2023-01-15T10:00:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  },
+                  "deleted": false,
+                  "is_calculating": false
+                },
+                {
+                  "id": 2,
+                  "name": "Purchase Completed",
+                  "description": "User made a purchase",
+                  "tags": ["conversion", "revenue"],
+                  "steps": [
+                    {
+                      "event": "purchase",
+                      "properties": [
+                        {
+                          "key": "value",
+                          "operator": "gt",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  ],
+                  "created_at": "2023-02-20T14:30:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  },
+                  "deleted": false,
+                  "is_calculating": false
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogActionsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/create_action
+    examples:
+      - scenario: "Create Action"
+        description: "Create a new action definition"
+        input_json: |
+          {
+            "project_id": "12345",
+            "name": "Button Click on Homepage",
+            "description": "User clicked the main CTA button on homepage",
+            "tags": ["engagement", "homepage"],
+            "steps": [
+              {
+                "event": "$autocapture",
+                "selector": "button.cta-button",
+                "tag_name": "button",
+                "text": "Get Started",
+                "url": "https://example.com/",
+                "url_matching": "exact"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 3,
+              "name": "Button Click on Homepage",
+              "description": "User clicked the main CTA button on homepage",
+              "tags": ["engagement", "homepage"],
+              "steps": [
+                {
+                  "event": "$autocapture",
+                  "selector": "button.cta-button",
+                  "tag_name": "button",
+                  "text": "Get Started",
+                  "text_matching": "contains",
+                  "url": "https://example.com/",
+                  "url_matching": "exact"
+                }
+              ],
+              "created_at": "2023-10-25T09:15:30Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "deleted": false,
+              "is_calculating": true
+            },
+            "component": {
+              "name": "PosthogAction",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_action
+    examples:
+      - scenario: "Get Action Details"
+        description: "Retrieve a specific action by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "action_id": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "Signup Flow Complete",
+              "description": "User completed the entire signup flow",
+              "tags": ["signup", "onboarding"],
+              "steps": [
+                {
+                  "event": "signup_completed",
+                  "properties": [
+                    {
+                      "key": "source",
+                      "value": "website"
+                    }
+                  ]
+                }
+              ],
+              "created_at": "2023-01-15T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "deleted": false,
+              "is_calculating": false,
+              "last_calculated_at": "2023-10-24T12:00:00Z",
+              "team_id": 1,
+              "is_action": true
+            },
+            "component": {
+              "name": "PosthogAction",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/update_action
+    examples:
+      - scenario: "Update Action"
+        description: "Update an existing action"
+        input_json: |
+          {
+            "project_id": "12345",
+            "action_id": 1,
+            "name": "Signup Flow Completed",
+            "description": "User completed the entire signup flow successfully",
+            "tags": ["signup", "onboarding", "conversion"],
+            "steps": [
+              {
+                "event": "signup_completed",
+                "properties": [
+                  {
+                    "key": "source",
+                    "value": "website"
+                  },
+                  {
+                    "key": "completed",
+                    "value": true
+                  }
+                ]
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "name": "Signup Flow Completed",
+              "description": "User completed the entire signup flow successfully",
+              "tags": ["signup", "onboarding", "conversion"],
+              "steps": [
+                {
+                  "event": "signup_completed",
+                  "properties": [
+                    {
+                      "key": "source",
+                      "value": "website"
+                    },
+                    {
+                      "key": "completed",
+                      "value": true
+                    }
+                  ]
+                }
+              ],
+              "created_at": "2023-01-15T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "deleted": false,
+              "is_calculating": true,
+              "last_calculated_at": null
+            },
+            "component": {
+              "name": "PosthogAction",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/delete_action
+    examples:
+      - scenario: "Delete Action"
+        description: "Delete (mark as deleted) a specific action"
+        input_json: |
+          {
+            "project_id": "12345",
+            "action_id": 1
+          }
+        output_json: |
+          {
+            "success": true
+          }
+
+  - endpoint: /posthog/list_feature_flags
+    examples:
+      - scenario: "List Feature Flags"
+        description: "Retrieve a paginated list of feature flags"
+        input_json: |
+          {
+            "project_id": "12345",
+            "limit": 10,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "count": 2,
+              "next": null,
+              "previous": null,
+              "results": [
+                {
+                  "id": 1,
+                  "key": "new-dashboard",
+                  "name": "New Dashboard UI",
+                  "filters": {
+                    "groups": [
+                      {
+                        "rollout_percentage": 25
+                      }
+                    ]
+                  },
+                  "deleted": false,
+                  "active": true,
+                  "created_at": "2023-01-15T10:00:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  },
+                  "is_simple_flag": true,
+                  "rollout_percentage": 25,
+                  "tags": ["dashboard", "ui"]
+                },
+                {
+                  "id": 2,
+                  "key": "beta-feature",
+                  "name": "Beta Feature",
+                  "filters": {
+                    "groups": [
+                      {
+                        "properties": [
+                          {
+                            "key": "email",
+                            "value": "@example.com",
+                            "operator": "contains",
+                            "type": "person"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "deleted": false,
+                  "active": true,
+                  "created_at": "2023-02-20T14:30:00Z",
+                  "created_by": {
+                    "id": 1,
+                    "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com"
+                  },
+                  "is_simple_flag": false,
+                  "tags": ["beta"]
+                }
+              ]
+            },
+            "component": {
+              "name": "PosthogFeatureFlagsList",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/create_feature_flag
+    examples:
+      - scenario: "Create Feature Flag"
+        description: "Create a new feature flag with rollout percentage"
+        input_json: |
+          {
+            "project_id": "12345",
+            "key": "new-checkout-flow",
+            "name": "New Checkout Flow",
+            "active": true,
+            "rollout_percentage": 50,
+            "tags": ["checkout", "payment"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 3,
+              "key": "new-checkout-flow",
+              "name": "New Checkout Flow",
+              "filters": {
+                "groups": [
+                  {
+                    "rollout_percentage": 50
+                  }
+                ]
+              },
+              "deleted": false,
+              "active": true,
+              "created_at": "2023-10-25T09:15:30Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "is_simple_flag": true,
+              "rollout_percentage": 50,
+              "tags": ["checkout", "payment"]
+            },
+            "component": {
+              "name": "PosthogFeatureFlag",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/get_feature_flag
+    examples:
+      - scenario: "Get Feature Flag Details"
+        description: "Retrieve a specific feature flag by ID"
+        input_json: |
+          {
+            "project_id": "12345",
+            "flag_id": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "key": "new-dashboard",
+              "name": "New Dashboard UI",
+              "filters": {
+                "groups": [
+                  {
+                    "rollout_percentage": 25
+                  }
+                ]
+              },
+              "deleted": false,
+              "active": true,
+              "created_at": "2023-01-15T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "is_simple_flag": true,
+              "rollout_percentage": 25,
+              "tags": ["dashboard", "ui"]
+            },
+            "component": {
+              "name": "PosthogFeatureFlag",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/update_feature_flag
+    examples:
+      - scenario: "Update Feature Flag"
+        description: "Update an existing feature flag"
+        input_json: |
+          {
+            "project_id": "12345",
+            "flag_id": 1,
+            "name": "New Dashboard Interface",
+            "active": true,
+            "rollout_percentage": 50,
+            "tags": ["dashboard", "ui", "updated"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 1,
+              "key": "new-dashboard",
+              "name": "New Dashboard Interface",
+              "filters": {
+                "groups": [
+                  {
+                    "rollout_percentage": 50
+                  }
+                ]
+              },
+              "deleted": false,
+              "active": true,
+              "created_at": "2023-01-15T10:00:00Z",
+              "created_by": {
+                "id": 1,
+                "uuid": "095be615-a8ad-4c33-8e9c-c7612fbf6c9f",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+              },
+              "is_simple_flag": true,
+              "rollout_percentage": 50,
+              "tags": ["dashboard", "ui", "updated"]
+            },
+            "component": {
+              "name": "PosthogFeatureFlag",
+              "props": {}
+            }
+          }
+          
+  - endpoint: /posthog/delete_feature_flag
+    examples:
+      - scenario: "Delete Feature Flag"
+        description: "Delete a specific feature flag"
+        input_json: |
+          {
+            "project_id": "12345",
+            "flag_id": 1
+          }
+        output_json: |
+          {
+            "success": true
+          }
