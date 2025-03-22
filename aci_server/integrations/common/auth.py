@@ -552,11 +552,15 @@ class AirtableTokenRefresher(BaseTokenRefresher):
                     
             refreshed_token = {
                 'access_token': new_token_data['access_token'],
-                'token_type': new_token_data.get('token_type', 'Bearer'),
-                'expires_in': new_token_data.get('expires_in', 7200),
                 'refresh_token': new_token_data.get('refresh_token', refresh_token),
-                'scope': new_token_data.get('scope', token_data.get('scope')),
-                'expires_at': int(time.time()) + new_token_data.get('expires_in', 7200)
+                'expires_at': int(time.time()) + new_token_data.get('expires_in', 7200),
+                'raw_token_data': {
+                    'access_token': new_token_data['access_token'],
+                    'refresh_token': new_token_data.get('refresh_token', refresh_token),
+                    'expires_in': new_token_data.get('expires_in', 7200),
+                    'scope': new_token_data.get('scope', token_data.get('scope')),
+                    'token_type': new_token_data.get('token_type', 'Bearer')
+                }
             }
             
             updated_token = await TokenService.update_token(request, token_data, refreshed_token)
