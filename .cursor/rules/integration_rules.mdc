@@ -446,7 +446,7 @@ async def validate_key(params: Dict[str, Any] = Body(...)):
     except Exception as e:
         return {"valid": False, "message": f"Invalid API key"}
 ```
-### 10. Never use items items in the ApiResponse schema. 
+### 10. Never use items in the ApiResponse schema. 
 
 class WorkspaceList(BaseModel):
     items: List[Workspace]

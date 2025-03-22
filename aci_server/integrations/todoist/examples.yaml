@@ -1,0 +1,1124 @@
+routes:
+  - endpoint: /todoist/get_projects
+    examples:
+      - scenario: "Get All Projects"
+        description: "Retrieve all projects for the user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "220474322",
+                  "name": "Inbox",
+                  "comment_count": 10,
+                  "order": 0,
+                  "color": "grey",
+                  "is_shared": false,
+                  "is_favorite": false,
+                  "is_inbox_project": true,
+                  "is_team_inbox": false,
+                  "view_style": "list",
+                  "url": "https://todoist.com/showProject?id=220474322",
+                  "parent_id": null
+                },
+                {
+                  "id": "2203306141",
+                  "name": "Shopping List",
+                  "comment_count": 0,
+                  "order": 1,
+                  "color": "charcoal",
+                  "is_shared": false,
+                  "is_favorite": false,
+                  "is_inbox_project": false,
+                  "is_team_inbox": false,
+                  "view_style": "list",
+                  "url": "https://todoist.com/showProject?id=2203306141",
+                  "parent_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistProjectList"
+            }
+          }
+
+  - endpoint: /todoist/create_project
+    examples:
+      - scenario: "Create New Project"
+        description: "Create a new project in Todoist"
+        input_json: |
+          {
+            "name": "Shopping List",
+            "color": "charcoal",
+            "is_favorite": true,
+            "view_style": "list"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2203306141",
+              "name": "Shopping List",
+              "comment_count": 0,
+              "order": 1,
+              "color": "charcoal",
+              "is_shared": false,
+              "is_favorite": true,
+              "is_inbox_project": false,
+              "is_team_inbox": false,
+              "view_style": "list",
+              "url": "https://todoist.com/showProject?id=2203306141",
+              "parent_id": null
+            },
+            "component": {
+              "name": "TodoistProject"
+            }
+          }
+
+  - endpoint: /todoist/get_project
+    examples:
+      - scenario: "Get Project Details"
+        description: "Retrieve details for a specific project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2203306141",
+              "name": "Shopping List",
+              "comment_count": 0,
+              "order": 1,
+              "color": "charcoal",
+              "is_shared": false,
+              "is_favorite": false,
+              "is_inbox_project": false,
+              "is_team_inbox": false,
+              "view_style": "list",
+              "url": "https://todoist.com/showProject?id=2203306141",
+              "parent_id": null
+            },
+            "component": {
+              "name": "TodoistProject"
+            }
+          }
+
+  - endpoint: /todoist/update_project
+    examples:
+      - scenario: "Update Project"
+        description: "Update an existing project's properties"
+        input_json: |
+          {
+            "project_id": "2203306141",
+            "name": "Things To Buy",
+            "is_favorite": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2203306141",
+              "name": "Things To Buy",
+              "comment_count": 0,
+              "order": 1,
+              "color": "charcoal",
+              "is_shared": false,
+              "is_favorite": true,
+              "is_inbox_project": false,
+              "is_team_inbox": false,
+              "view_style": "list",
+              "url": "https://todoist.com/showProject?id=2203306141",
+              "parent_id": null
+            },
+            "component": {
+              "name": "TodoistProject"
+            }
+          }
+
+  - endpoint: /todoist/delete_project
+    examples:
+      - scenario: "Delete Project"
+        description: "Delete an existing project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": true
+          }
+
+  - endpoint: /todoist/get_collaborators
+    examples:
+      - scenario: "Get Project Collaborators"
+        description: "Retrieve all collaborators for a shared project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2671362",
+                  "name": "Alice",
+                  "email": "alice@example.com"
+                },
+                {
+                  "id": "2671366",
+                  "name": "Bob",
+                  "email": "bob@example.com"
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistCollaboratorList"
+            }
+          }
+
+  - endpoint: /todoist/get_sections
+    examples:
+      - scenario: "Get Project Sections"
+        description: "Retrieve all sections for a specific project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "7025",
+                  "project_id": "2203306141",
+                  "order": 1,
+                  "name": "Groceries"
+                },
+                {
+                  "id": "7026",
+                  "project_id": "2203306141",
+                  "order": 2,
+                  "name": "Household Items"
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistSectionList"
+            }
+          }
+      - scenario: "Get All Sections"
+        description: "Retrieve all sections across all projects"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "7025",
+                  "project_id": "2203306141",
+                  "order": 1,
+                  "name": "Groceries"
+                },
+                {
+                  "id": "7026",
+                  "project_id": "2203306141",
+                  "order": 2,
+                  "name": "Household Items"
+                },
+                {
+                  "id": "7027",
+                  "project_id": "2203306142",
+                  "order": 1,
+                  "name": "Phase 1"
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistSectionList"
+            }
+          }
+
+  - endpoint: /todoist/get_section
+    examples:
+      - scenario: "Get Section Details"
+        description: "Retrieve details for a specific section"
+        input_json: |
+          {
+            "section_id": "7025"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "7025",
+              "project_id": "2203306141",
+              "order": 1,
+              "name": "Groceries"
+            },
+            "component": {
+              "name": "TodoistSection"
+            }
+          }
+
+  - endpoint: /todoist/create_section
+    examples:
+      - scenario: "Create New Section"
+        description: "Create a new section in a project"
+        input_json: |
+          {
+            "name": "Groceries",
+            "project_id": "2203306141",
+            "order": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "7025",
+              "project_id": "2203306141",
+              "order": 1,
+              "name": "Groceries"
+            },
+            "component": {
+              "name": "TodoistSection"
+            }
+          }
+
+  - endpoint: /todoist/update_section
+    examples:
+      - scenario: "Update Section"
+        description: "Update an existing section's name"
+        input_json: |
+          {
+            "section_id": "7025",
+            "name": "Food Items"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "7025",
+              "project_id": "2203306141",
+              "order": 1,
+              "name": "Food Items"
+            },
+            "component": {
+              "name": "TodoistSection"
+            }
+          }
+
+  - endpoint: /todoist/delete_section
+    examples:
+      - scenario: "Delete Section"
+        description: "Delete an existing section"
+        input_json: |
+          {
+            "section_id": "7025"
+          }
+        output_json: |
+          {
+            "data": true
+          }
+
+  - endpoint: /todoist/get_tasks
+    examples:
+      - scenario: "Get All Tasks"
+        description: "Retrieve all active tasks"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": {
+                    "date": "2016-09-04"
+                  },
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                },
+                {
+                  "id": "2995104340",
+                  "project_id": "2203306141",
+                  "section_id": "7026",
+                  "content": "Buy Cleaning Supplies",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 2,
+                  "due": null,
+                  "deadline": null,
+                  "duration": {
+                    "amount": 30,
+                    "unit": "minute"
+                  },
+                  "url": "https://todoist.com/showTask?id=2995104340",
+                  "comment_count": 0,
+                  "created_at": "2019-12-12T10:15:30.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+      - scenario: "Get Project Tasks"
+        description: "Retrieve all tasks for a specific project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": {
+                    "date": "2016-09-04"
+                  },
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+      - scenario: "Get Section Tasks"
+        description: "Retrieve all tasks for a specific section"
+        input_json: |
+          {
+            "section_id": "7025"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": null,
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+      - scenario: "Get Tasks by Label"
+        description: "Retrieve all tasks with a specific label"
+        input_json: |
+          {
+            "label": "Shopping"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": null,
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                },
+                {
+                  "id": "2995104340",
+                  "project_id": "2203306141",
+                  "section_id": "7026",
+                  "content": "Buy Cleaning Supplies",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 2,
+                  "due": null,
+                  "deadline": null,
+                  "duration": {
+                    "amount": 30,
+                    "unit": "minute"
+                  },
+                  "url": "https://todoist.com/showTask?id=2995104340",
+                  "comment_count": 0,
+                  "created_at": "2019-12-12T10:15:30.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+      - scenario: "Get Tasks by Filter"
+        description: "Retrieve tasks using a Todoist filter expression"
+        input_json: |
+          {
+            "filter": "today | overdue"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": null,
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+      - scenario: "Get Tasks by IDs"
+        description: "Retrieve specific tasks by their IDs"
+        input_json: |
+          {
+            "ids": ["2995104339", "2995104340"]
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "id": "2995104339",
+                  "project_id": "2203306141",
+                  "section_id": "7025",
+                  "content": "Buy Milk",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Food", "Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 1,
+                  "due": {
+                    "date": "2016-09-01",
+                    "is_recurring": false,
+                    "datetime": "2016-09-01T12:00:00.000000Z",
+                    "string": "tomorrow at 12",
+                    "timezone": "Europe/Moscow"
+                  },
+                  "deadline": null,
+                  "duration": null,
+                  "url": "https://todoist.com/showTask?id=2995104339",
+                  "comment_count": 10,
+                  "created_at": "2019-12-11T22:36:50.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                },
+                {
+                  "id": "2995104340",
+                  "project_id": "2203306141",
+                  "section_id": "7026",
+                  "content": "Buy Cleaning Supplies",
+                  "description": "",
+                  "is_completed": false,
+                  "labels": ["Shopping"],
+                  "parent_id": null,
+                  "order": 1,
+                  "priority": 2,
+                  "due": null,
+                  "deadline": null,
+                  "duration": {
+                    "amount": 30,
+                    "unit": "minute"
+                  },
+                  "url": "https://todoist.com/showTask?id=2995104340",
+                  "comment_count": 0,
+                  "created_at": "2019-12-12T10:15:30.000000Z",
+                  "creator_id": "2671355",
+                  "assignee_id": null,
+                  "assigner_id": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistTaskList"
+            }
+          }
+
+  - endpoint: /todoist/get_task
+    examples:
+      - scenario: "Get Task Details"
+        description: "Retrieve details for a specific task"
+        input_json: |
+          {
+            "task_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104339",
+              "project_id": "2203306141",
+              "section_id": "7025",
+              "content": "Buy Milk",
+              "description": "",
+              "is_completed": false,
+              "labels": ["Food", "Shopping"],
+              "parent_id": null,
+              "order": 1,
+              "priority": 1,
+              "due": {
+                "date": "2016-09-01",
+                "is_recurring": false,
+                "datetime": "2016-09-01T12:00:00.000000Z",
+                "string": "tomorrow at 12",
+                "timezone": "Europe/Moscow"
+              },
+              "deadline": {
+                "date": "2016-09-04"
+              },
+              "duration": null,
+              "url": "https://todoist.com/showTask?id=2995104339",
+              "comment_count": 10,
+              "created_at": "2019-12-11T22:36:50.000000Z",
+              "creator_id": "2671355",
+              "assignee_id": null,
+              "assigner_id": null
+            },
+            "component": {
+              "name": "TodoistTask"
+            }
+          }
+
+  - endpoint: /todoist/create_task
+    examples:
+      - scenario: "Create New Task"
+        description: "Create a new task in Todoist"
+        input_json: |
+          {
+            "content": "Buy Milk",
+            "description": "2% or whole milk from the grocery store",
+            "project_id": "2203306141",
+            "section_id": "7025",
+            "priority": 1,
+            "due_string": "tomorrow at noon",
+            "due_lang": "en",
+            "labels": ["Food", "Shopping"]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104339",
+              "project_id": "2203306141",
+              "section_id": "7025",
+              "content": "Buy Milk",
+              "description": "2% or whole milk from the grocery store",
+              "is_completed": false,
+              "labels": ["Food", "Shopping"],
+              "parent_id": null,
+              "order": 1,
+              "priority": 1,
+              "due": {
+                "date": "2016-09-01",
+                "is_recurring": false,
+                "datetime": "2016-09-01T12:00:00.000000Z",
+                "string": "tomorrow at noon",
+                "timezone": "Europe/Moscow"
+              },
+              "deadline": null,
+              "duration": null,
+              "url": "https://todoist.com/showTask?id=2995104339",
+              "comment_count": 0,
+              "created_at": "2019-12-11T22:36:50.000000Z",
+              "creator_id": "2671355",
+              "assignee_id": null,
+              "assigner_id": null
+            },
+            "component": {
+              "name": "TodoistTask"
+            }
+          }
+      - scenario: "Create Task with Duration"
+        description: "Create a new task with a duration specified"
+        input_json: |
+          {
+            "content": "Deep clean kitchen",
+            "project_id": "2203306141",
+            "priority": 2,
+            "duration": 45,
+            "duration_unit": "minute"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104340",
+              "project_id": "2203306141",
+              "section_id": null,
+              "content": "Deep clean kitchen",
+              "description": "",
+              "is_completed": false,
+              "labels": [],
+              "parent_id": null,
+              "order": 1,
+              "priority": 2,
+              "due": null,
+              "deadline": null,
+              "duration": {
+                "amount": 45,
+                "unit": "minute"
+              },
+              "url": "https://todoist.com/showTask?id=2995104340",
+              "comment_count": 0,
+              "created_at": "2019-12-11T22:37:00.000000Z",
+              "creator_id": "2671355",
+              "assignee_id": null,
+              "assigner_id": null
+            },
+            "component": {
+              "name": "TodoistTask"
+            }
+          }
+
+  - endpoint: /todoist/update_task
+    examples:
+      - scenario: "Update Task Content"
+        description: "Update an existing task's content"
+        input_json: |
+          {
+            "task_id": "2995104339",
+            "content": "Buy Organic Milk",
+            "priority": 4
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104339",
+              "project_id": "2203306141",
+              "section_id": "7025",
+              "content": "Buy Organic Milk",
+              "description": "2% or whole milk from the grocery store",
+              "is_completed": false,
+              "labels": ["Food", "Shopping"],
+              "parent_id": null,
+              "order": 1,
+              "priority": 4,
+              "due": {
+                "date": "2016-09-01",
+                "is_recurring": false,
+                "datetime": "2016-09-01T12:00:00.000000Z",
+                "string": "tomorrow at noon",
+                "timezone": "Europe/Moscow"
+              },
+              "deadline": null,
+              "duration": null,
+              "url": "https://todoist.com/showTask?id=2995104339",
+              "comment_count": 10,
+              "created_at": "2019-12-11T22:36:50.000000Z",
+              "creator_id": "2671355",
+              "assignee_id": null,
+              "assigner_id": null
+            },
+            "component": {
+              "name": "TodoistTask"
+            }
+          }
+      - scenario: "Update Task Due Date"
+        description: "Update an existing task's due date"
+        input_json: |
+          {
+            "task_id": "2995104339",
+            "due_string": "next Monday at 9am",
+            "due_lang": "en"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104339",
+              "project_id": "2203306141",
+              "section_id": "7025",
+              "content": "Buy Milk",
+              "description": "2% or whole milk from the grocery store",
+              "is_completed": false,
+              "labels": ["Food", "Shopping"],
+              "parent_id": null,
+              "order": 1,
+              "priority": 1,
+              "due": {
+                "date": "2016-09-05",
+                "is_recurring": false,
+                "datetime": "2016-09-05T09:00:00.000000Z",
+                "string": "next Monday at 9am",
+                "timezone": "Europe/Moscow"
+              },
+              "deadline": null,
+              "duration": null,
+              "url": "https://todoist.com/showTask?id=2995104339",
+              "comment_count": 10,
+              "created_at": "2019-12-11T22:36:50.000000Z",
+              "creator_id": "2671355",
+              "assignee_id": null,
+              "assigner_id": null
+            },
+            "component": {
+              "name": "TodoistTask"
+            }
+          }
+
+  - endpoint: /todoist/close_task
+    examples:
+      - scenario: "Complete Task"
+        description: "Mark a task as complete"
+        input_json: |
+          {
+            "task_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": true
+          }
+
+  - endpoint: /todoist/reopen_task
+    examples:
+      - scenario: "Reopen Task"
+        description: "Mark a completed task as incomplete"
+        input_json: |
+          {
+            "task_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": true
+          }
+
+  - endpoint: /todoist/delete_task
+    examples:
+      - scenario: "Delete Task"
+        description: "Delete an existing task"
+        input_json: |
+          {
+            "task_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": true
+          }
+
+  - endpoint: /todoist/get_comments
+    examples:
+      - scenario: "Get Task Comments"
+        description: "Retrieve all comments for a specific task"
+        input_json: |
+          {
+            "task_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "content": "Need one bottle of milk",
+                  "id": "2992679862",
+                  "posted_at": "2016-09-22T07:00:00.000000Z",
+                  "project_id": null,
+                  "task_id": "2995104339",
+                  "attachment": {
+                    "file_name": "File.pdf",
+                    "file_type": "application/pdf",
+                    "file_url": "https://s3.amazonaws.com/domorebetter/Todoist+Setup+Guide.pdf",
+                    "resource_type": "file"
+                  }
+                },
+                {
+                  "content": "Make sure it's organic",
+                  "id": "2992679863",
+                  "posted_at": "2016-09-22T08:00:00.000000Z",
+                  "project_id": null,
+                  "task_id": "2995104339",
+                  "attachment": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistCommentList"
+            }
+          }
+      - scenario: "Get Project Comments"
+        description: "Retrieve all comments for a specific project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "content": "Important project - high priority",
+                  "id": "2992679864",
+                  "posted_at": "2016-09-22T07:30:00.000000Z",
+                  "project_id": "2203306141",
+                  "task_id": null,
+                  "attachment": null
+                }
+              ]
+            },
+            "component": {
+              "name": "TodoistCommentList"
+            }
+          }
+
+  - endpoint: /todoist/get_comment
+    examples:
+      - scenario: "Get Comment Details"
+        description: "Retrieve details for a specific comment"
+        input_json: |
+          {
+            "comment_id": "2992679862"
+          }
+        output_json: |
+          {
+            "data": {
+              "content": "Need one bottle of milk",
+              "id": "2992679862",
+              "posted_at": "2016-09-22T07:00:00.000000Z",
+              "project_id": null,
+              "task_id": "2995104339",
+              "attachment": {
+                "file_name": "File.pdf",
+                "file_type": "application/pdf",
+                "file_url": "https://s3.amazonaws.com/domorebetter/Todoist+Setup+Guide.pdf",
+                "resource_type": "file"
+              }
+            },
+            "component": {
+              "name": "TodoistComment"
+            }
+          }
+
+  - endpoint: /todoist/create_comment
+    examples:
+      - scenario: "Create Task Comment"
+        description: "Create a new comment on a task"
+        input_json: |
+          {
+            "task_id": "2995104339",
+            "content": "Need one bottle of milk"
+          }
+        output_json: |
+          {
+            "data": {
+              "content": "Need one bottle of milk",
+              "id": "2992679862",
+              "posted_at": "2016-09-22T07:00:00.000000Z",
+              "project_id": null,
+              "task_id": "2995104339",
+              "attachment": null
+            },
+            "component": {
+              "name": "TodoistComment"
+            }
+          }
+      - scenario: "Create Task Comment with Attachment"
+        description: "Create a new comment on a task with an attachment"
+        input_json: |
+          {
+            "task_id": "2995104339",
+            "content": "Need one bottle of milk",
+            "attachment": {
+              "resource_type": "file",
+              "file_url": "https://s3.amazonaws.com/domorebetter/Todoist+Setup+Guide.pdf",
+              "file_type": "application/pdf",
+              "file_name": "File.pdf"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "content": "Need one bottle of milk",
+              "id": "2992679862",
+              "posted_at": "2016-09-22T07:00:00.000000Z",
+              "project_id": null,
+              "task_id": "2995104339",
+              "attachment": {
+                "file_name": "File.pdf",
+                "file_type": "application/pdf",
+                "file_url": "https://s3.amazonaws.com/domorebetter/Todoist+Setup+Guide.pdf",
+                "resource_type": "file"
+              }
+            },
+            "component": {
+              "name": "TodoistComment"
+            }
+          }
+      - scenario: "Create Project Comment"
+        description: "Create a new comment on a project"
+        input_json: |
+          {
+            "project_id": "2203306141",
+            "content": "Important project - high priority"
+          }
+        output_json: |
+          {
+            "data": {
+              "content": "Important project - high priority",
+              "id": "2992679864",
+              "posted_at": "2016-09-22T07:30:00.000000Z",
+              "project_id": "2203306141",
+              "task_id": null,
+              "attachment": null
+            },
+            "component": {
+              "name": "TodoistComment"
+            }
+          }
+
+  - endpoint: /todoist/update_comment
+    examples:
+      - scenario: "Update Comment"
+        description: "Update an existing comment's content"
+        input_json: |
+          {
+            "comment_id": "2992679862",
+            "content": "Need two bottles of milk"
+          }
+        output_json: |
+          {
+            "data": {
+              "content": "Need two bottles of milk",
+              "id": "2992679862",
+              "posted_at": "2016-09-22T07:00:00.000000Z",
+              "project_id": null,
+              "task_id": "2995104339",
+              "attachment": {
+                "file_name": "File.pdf",
+                "file_type": "application/pdf",
+                "file_url": "https://s3.amazonaws.com/domorebetter/Todoist+Setup+Guide.pdf",
+                "resource_type": "file"
+              }
+            },
+            "component": {
+              "name": "TodoistComment"
+            }
+          }
+
+  - endpoint: /todoist/delete_comment
+    examples:
+      - scenario: "Delete Comment"
+        description: "Delete an existing comment"
+        input_json: |
+          {
+            "comment_id": "2992679862"
+          }
+        output_json: |
+          {
+            "data": true
+          }
