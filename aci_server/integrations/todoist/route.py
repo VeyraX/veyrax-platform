@@ -72,8 +72,7 @@ from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
-from .auth.token_service import TokenService
-from .auth.todoist_token_refresher import TodoistTokenRefresher
+from ..common.auth import TokenService
 
 router = APIRouter(prefix="/todoist", tags=["todoist"])
 examples = ExamplesLoader()
@@ -81,10 +80,6 @@ examples = ExamplesLoader()
 async def get_todoist_service(request: FastAPIRequest):
     try:
         token_data = await TokenService.get_user_token(request, 'todoist')
-
-        if TokenService.is_token_expired(token_data):
-            token_data = await TodoistTokenRefresher.refresh(request, token_data)
-        
         client = TodoistClient(token_data['access_token'])
         apply_error_handler_to_client(client)
         service = TodoistService(client)

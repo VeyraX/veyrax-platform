@@ -32,7 +32,12 @@ from .schema import (
     GetPersonalLabelsParams,
     CreatePersonalLabelParams,
     UpdatePersonalLabelParams,
-    GetSharedLabelsParams
+    GetSharedLabelsParams,
+    CreateTaskParams,
+    UpdateTaskParams,
+    CloseTaskParams,
+    ReopenTaskParams,
+    DeleteTaskParams
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -153,7 +158,18 @@ class TodoistService:
         return ApiResponse(data=success)
 
     def get_comments(self, params: GetCommentsParams) -> ApiResponse:
-        response = self.client.get_comments(params.task_id, params.project_id)
+        task_id = params.task_id if hasattr(params, 'task_id') else None
+        project_id = params.project_id if hasattr(params, 'project_id') else None
+        
+        if task_id and project_id:
+            response = self.client.get_comments(task_id=task_id)
+        elif task_id:
+            response = self.client.get_comments(task_id=task_id)
+        elif project_id:
+            response = self.client.get_comments(project_id=project_id)
+        else:
+            raise ValueError("Either task_id or project_id must be provided")
+        
         comments = [TodoistComment(**comment) for comment in response]
         comment_list = CommentList(items=comments)
         return self.prepare_response(comment_list, "TodoistCommentList")

@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Dict, Any, Union, Literal
-from pydantic import root_validator
 
 # Base Todoist models
 class TodoistProject(BaseModel):
@@ -214,11 +213,11 @@ class GetCommentsParams(BaseModel):
     task_id: Optional[str] = None
     project_id: Optional[str] = None
 
-    @root_validator
-    def validate_task_or_project(cls, values):
-        if not values.get('task_id') and not values.get('project_id'):
+    @model_validator(mode='after')
+    def validate_task_or_project(self):
+        if not self.task_id and not self.project_id:
             raise ValueError('Either task_id or project_id must be provided')
-        return values
+        return self
 
 class GetCommentParams(BaseModel):
     comment_id: str
@@ -229,11 +228,11 @@ class CreateCommentParams(BaseModel):
     content: str
     attachment: Optional[Dict[str, str]] = None
     
-    @root_validator
-    def validate_task_or_project(cls, values):
-        if not values.get('task_id') and not values.get('project_id'):
+    @model_validator(mode='after')
+    def validate_task_or_project(self):
+        if not self.task_id and not self.project_id:
             raise ValueError('Either task_id or project_id must be provided')
-        return values
+        return self
 
 class UpdateCommentParams(BaseModel):
     comment_id: str
