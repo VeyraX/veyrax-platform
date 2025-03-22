@@ -1,0 +1,949 @@
+---
+description: Writing new integrations for tools
+globs: 
+alwaysApply: false
+---
+# Integration Guide: Key Concepts and Best Practices
+
+## Architectural Principles
+
+The integration layer follows a clear three-tier architecture:
+
+1. **Route** - handling HTTP requests, input validation
+2. **Service** - business logic, data transformation
+3. **Client** - low-level API interaction
+4. **Schema** - models 
+
+### Example Integration Structure
+integrations/
+└── example_service/
+├── client.py # Low-level API calls
+├── service.py # Business logic and data transformation
+├── route.py # FastAPI routes
+├── schema.py # Pydantic models
+└── component.json # React components for display
+└── tests.py # Integration Tests
+
+
+
+## Key Concepts
+
+### 1. Input and Output Validation
+
+Always use Pydantic models for both input and output validation and handle validation errors separately.
+
+```python
+# schema.py
+# Input schema
+class GetMessagesParams(BaseModel):
+    filters: Optional[MessageFilters] = None
+    next_link: Optional[str] = None
+
+# Output schema
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+# route.py
+@router.post("/get_messages", response_model=ApiResponse)
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
+async def get_messages(
+    params: Dict[str, Any] = Body(...),
+    service: ExampleService = Depends(get_example_service)
+):
+    validated_params = GetMessagesParams(**params)
+    return service.get_messages(
+        validated_params.next_link, 
+        validated_params.filters
+    )
+```
+
+### 2. Centralized Error Handling
+
+Instead of handling errors in each endpoint, use centralized error handlers:
+
+```python
+# Apply error handlers to both service and router
+apply_error_handler_to_service(service)
+apply_error_handler_to_router(router)
+```
+
+This approach:
+1. Ensures consistent error handling across all endpoints
+2. Reduces code duplication
+3. Properly formats all errors according to API standards
+4. Separates business logic from error handling concerns
+
+The error handlers automatically catch:
+- Validation errors (400 Bad Request)
+- Authentication errors (401 Unauthorized)
+- Permission errors (403 Forbidden)
+- Not found errors (404 Not Found)
+- Other exceptions (500 Internal Server Error)
+
+### 3. Service Initialization with Error Handling
+
+```python
+async def get_example_service(request: FastAPIRequest):
+    try:
+        token_data = await TokenService.get_user_token(request, 'example')
+        
+        if TokenService.is_token_expired(token_data):
+            try:
+                token_data = await ExampleTokenRefresher.refresh(request, token_data)
+            except Exception as e:
+                raise HTTPException(status_code=401, detail="Failed to refresh token")
+        
+        client = ExampleClient(token_data['access_token'])
+        service = ExampleService(client)
+        
+        # Apply error handler to service
+        apply_error_handler_to_service(service)
+        
+        return service
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize service: {str(e)}")
+```
+
+### 4. Standardized Response Format
+
+Use a unified response format for all integrations:
+
+```python
+# schema.py
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, Event, EventList]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+
+# Output schema for specific endpoints
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+# service.py
+def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+    tool_name = "example"
+    components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+    return ApiResponse(data=data, component=components)
+```
+
+### 5. Using Schema Decorator for Input and Output Validation
+
+Always use the `@schema` decorator to specify both input and output schemas:
+
+```python
+# Old approach - only input schema
+@router.post("/get_messages", response_model=ApiResponse)
+@input_schema(schema_class=GetMessagesParams)
+async def get_messages(params: Dict[str, Any], service: Service):
+    # ...
+
+# New approach - both input and output schemas
+@router.post("/get_messages", response_model=ApiResponse)
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
+async def get_messages(params: Dict[str, Any], service: Service):
+    # ...
+```
+
+This approach:
+1. Documents the expected input and output formats
+2. Enables automatic schema extraction for API documentation
+3. Provides consistent validation across all endpoints
+4. Makes it easier to understand the data flow
+
+### 6. Separation of Business Logic and Routing
+
+All business logic should be in the service layer, not in the routes:
+
+```python
+# Bad - logic in route
+@router.post("/download_file")
+async def download_file(params: Dict[str, Any], service: Service):
+    file_id = params.get('file_id')
+    file_content, mime_type = service.download_file(file_id)
+    # File processing logic here...
+    return {...}
+
+# Good - logic in service
+@router.post("/download_file")
+@schema(input_schema_class=DownloadFileParams, output_schema_class=DownloadFileResponse)
+async def download_file(params: Dict[str, Any], service: Service):
+    validated_params = DownloadFileParams(**params)
+    return service.download_file_with_metadata(validated_params.file_id)
+```
+
+### 7. DRY Principle (Don't Repeat Yourself)
+
+Avoid rewriting parameters and use direct model validation with unpacking:
+
+```python
+# Bad - manually mapping each parameter
+@router.post("/weather")
+async def get_weather(params: Dict[str, Any]):
+    validated_params = WeatherParams(
+        city=params.get('city'),
+        country=params.get('country'),
+        units=params.get('units', 'metric'),
+        include_forecast=params.get('include_forecast', False)
+    )
+    return service.get_weather(validated_params)
+
+# Good - using dictionary unpacking
+@router.post("/weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
+async def get_weather(params: Dict[str, Any]):
+    validated_params = WeatherParams(**params)  # Unpacking all parameters at once
+    return service.get_weather(validated_params)
+```
+
+The `**params` syntax unpacks the dictionary and passes all key-value pairs as keyword arguments to the model constructor. This approach:
+
+1. Is much more concise
+2. Automatically handles all validation
+3. Allows the model to set default values
+4. Reduces the chance of errors when adding new parameters
+5. Makes the code more maintainable
+
+Similarly, when working with API responses:
+
+```python
+# Bad - manually extracting each field
+def _convert_to_message(self, response):
+    message = Message(
+        id=response.get('id', ''),
+        subject=response.get('subject', ''),
+        body=response.get('body', {}).get('content', ''),
+        sender=response.get('from', {}).get('emailAddress', {}).get('address', '')
+        # Many more fields...
+    )
+    return message
+
+# Good - using dictionary unpacking with preprocessing
+def _convert_to_message(self, response):
+    # Preprocess only the fields that need special handling
+    processed_data = {
+        'id': response.get('id', ''),
+        'body': response.get('body', {}).get('content', ''),
+        'sender': response.get('from', {}).get('emailAddress', {}).get('address', ''),
+        # Only handle complex nested fields
+    }
+    
+    # Copy all other fields directly
+    for key, value in response.items():
+        if key not in processed_data and key in Message.__annotations__:
+            processed_data[key] = value
+            
+    return Message(**processed_data)
+```
+### 8. Examples Format and String Comments
+
+#### 8.1 Proper Examples Format
+
+Always use the direct reference to the examples loader with the endpoint path:
+
+```python
+# Correct way to reference examples
+@router.post("/images_search", response_model=ApiResponse)
+@schema(
+    input_schema_class=ImagesSearchParams, 
+    output_schema_class=ImagesSearchResponse,
+    examples=examples["/brave/images_search"]  # Direct reference to examples
+)
+async def images_search(
+    params: Dict[str, Any] = Body(...),
+    service: BraveService = Depends(get_brave_service)
+):
+    validated_params = ImagesSearchParams(**params)
+    return service.images_search(validated_params)
+```
+
+#### 8.2 No Comments and No Docstrings
+
+Never add comments and documentation strings:
+
+```python
+# Correct - clean function.
+def get_user_info(self, user_id: str):
+    return self.client.get_user(user_id)
+```
+
+
+This approach significantly reduces code verbosity and makes it more maintainable, especially when dealing with models that have many fields.
+
+## Common Issues and Solutions
+
+### 1. Manual Error Handling in Routes
+
+**Problem**: Handling errors directly in each route function.
+
+**Solution**: Use centralized error handlers:
+
+```python
+# Bad - repeating error handling in each route
+@router.post("/get_weather")
+async def get_weather(params: Dict[str, Any]):
+    try:
+        validated_params = WeatherParams(**params)
+        return service.get_weather(validated_params)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Good - centralized error handling
+@router.post("/get_weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
+async def get_weather(params: Dict[str, Any]):
+    validated_params = WeatherParams(**params)
+    return service.get_weather(validated_params)
+
+# At the end of the route file
+apply_error_handler_to_router(router)
+```
+
+### 2. Lack of Input or Output Validation
+
+**Problem**: Direct access to parameters without validation or inconsistent response formats.
+
+**Solution**: Always use Pydantic models for both input and output:
+
+```python
+# Bad
+city = params.get('city')
+if not city:
+    raise HTTPException(status_code=400, detail="city is required")
+
+# Good
+validated_params = WeatherParams(**params)
+city = validated_params.city
+
+# Bad - inconsistent response format
+return {"data": {"temperature": 25, "humidity": 60}}
+
+# Good - using output schema
+return WeatherResponse(data=WeatherData(temperature=25, humidity=60))
+```
+
+### 3. Missing Schema Decorator
+
+**Problem**: Endpoints without proper schema decorators.
+
+**Solution**: Always use the `@schema` decorator with both input and output schemas:
+
+```python
+# Missing decorator
+@router.post("/get_weather")
+async def get_weather(params: Dict[str, Any], service: Service):
+    # ...
+
+# Correct usage
+@router.post("/get_weather")
+@schema(input_schema_class=WeatherParams, output_schema_class=WeatherResponse)
+async def get_weather(params: Dict[str, Any], service: Service):
+    # ...
+```
+
+### 4. Mixing Abstraction Levels
+
+**Problem**: Mixing low-level API calls with business logic.
+
+**Solution**: Clear separation into client, service, and routes:
+
+```python
+# client.py - low-level API calls
+def get_messages(self, **params):
+    return requests.get(f"{self.BASE_URL}/messages", params=params).json()
+
+# service.py - business logic
+def get_messages(self, next_link, filters):
+    params = self._build_params(filters)
+    response = self.client.get_messages(**params)
+    return self._process_messages(response)
+
+# route.py - only routing and validation
+@router.post("/get_messages")
+@schema(input_schema_class=GetMessagesParams, output_schema_class=GetMessagesResponse)
+async def get_messages(params: Dict[str, Any], service: Service):
+    validated_params = GetMessagesParams(**params)
+    return service.get_messages(validated_params.next_link, validated_params.filters)
+```
+
+### 4. Standardized Response Format
+
+Use a unified response format for all integrations:
+
+```python
+# schema.py
+class ApiResponse(BaseModel):
+    data: Union[Message, MessageList, Event, EventList]  # Define all possible data types
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
+        None,
+        description="UI components configuration for rendering results"
+    )
+
+# Output schema for specific endpoints
+class GetMessagesResponse(BaseModel):
+    data: MessageList
+    message: Optional[str] = None
+
+class GetMessageResponse(BaseModel):
+    data: Message
+    message: Optional[str] = None
+
+# service.py
+def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+    tool_name = "example"
+    components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+    return ApiResponse(data=data, component=components)
+```
+
+Important rules for ApiResponse:
+1. The `data` field must use a Union of all possible response types for that integration
+2. The `component` field must support both single component (Dict) and multiple components (List[Dict])
+3. Always use Field() with description for component to maintain consistent documentation
+4. Make sure all possible return types are properly typed in the Union
+
+### 9. Consistent API Structure
+
+All integrations should follow consistent patterns:
+
+1. Use POST methods for all operations (even for read operations)
+2. Avoid dynamic URL parameters - pass all parameters in the request body
+3. Ensure all route paths follow the same pattern: `/integration_name/operation_name` 
+4. For validation endpoints, use a simple dictionary response with `valid` and `message` fields
+
+Example of good API design:
+
+```python
+# Good - POST with body parameters
+@router.post("/get_item", response_model=ApiResponse)
+@schema(input_schema_class=GetItemParams, output_schema_class=GetItemResponse)
+async def get_item(params: Dict[str, Any] = Body(...)):
+    validated_params = GetItemParams(**params)  # Contains item_id in the body
+    return service.get_item(validated_params.item_id)
+
+# Bad - GET with path parameters
+@router.get("/get_item/{item_id}", response_model=ApiResponse)
+async def get_item(item_id: str):
+    return service.get_item(item_id)
+
+# Good validation endpoint
+@router.post("/validate_key")
+async def validate_key(params: Dict[str, Any] = Body(...)):
+    try:
+        api_key = params.get("api_key", "")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = ExampleClient(api_key)
+        # Test the API key with a simple operation
+        client.test_connection()
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}
+```
+### 10. Never use items items in the ApiResponse schema. 
+
+class WorkspaceList(BaseModel):
+    items: List[Workspace]
+
+You MUST put items to make sure that you now using it inside ApiResponse model.
+
+
+This updated section should be added to your integration_rules.mdc document to ensure consistent implementation of ApiResponse and API structure across all integrations.
+
+## Conclusion
+
+By following these principles, you'll create integrations that are:
+
+1. Easy to maintain and extend
+2. Have consistent error handling through centralized handlers
+3. Clearly separate responsibilities between layers
+4. Provide robust input and output validation
+5. Return standardized responses
+6. Enable automatic schema extraction for documentation
+
+This significantly simplifies working with the code and reduces the number of potential errors.
+
+
+# Example for Exa:
+client.py
+```
+import requests
+from typing import Dict, Any, List, Optional
+
+class ExaClient:
+    BASE_URL = "https://api.exa.ai"
+    
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.headers = {
+            "content-type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+    def search(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Perform a search query"""
+        response = requests.post(
+            f"{self.BASE_URL}/search",
+            headers=self.headers,
+            json=self._clean_params(params)
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_contents(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        response = requests.post(
+            f"{self.BASE_URL}/contents",
+            headers=self.headers,
+            json=params
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def find_similar(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Find similar content to a given URL"""
+        response = requests.post(
+            f"{self.BASE_URL}/findSimilar",
+            headers=self.headers,
+            json=self._clean_params(params)
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def _clean_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean parameters before sending to API"""
+        cleaned = {}
+        for k, v in params.items():
+            if v is None:
+                continue
+            if isinstance(v, bool):
+                cleaned[k] = v
+            elif isinstance(v, list):
+                cleaned[k] = v
+            else:
+                cleaned[k] = v
+        return cleaned
+```
+
+schema.py
+```
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Union
+
+class CommonParams(BaseModel):
+    numResults: Optional[int] = Field(
+        10, 
+        ge=1, 
+        le=100,
+        description="Number of results to return (1-100)"
+    )
+
+class SearchParams(CommonParams):
+    query: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=1000,
+        description="Search query"
+    )
+    includeDomains: Optional[List[str]] = Field(
+        None,
+        description="List of domains to include in search results"
+    )
+    excludeDomains: Optional[List[str]] = Field(
+        None,
+        description="List of domains to exclude from search results"
+    )
+    includeText: Optional[List[str]] = Field(
+        None,
+        description="List of text patterns to include in search results"
+    )
+    excludeText: Optional[List[str]] = Field(
+        None,
+        description="List of text patterns to exclude from search results"
+    )
+    startCrawlDate: Optional[str] = Field(
+        None,
+        description="Start date for crawled content (ISO format)"
+    )
+    endCrawlDate: Optional[str] = Field(
+        None,
+        description="End date for crawled content (ISO format)"
+    )
+    startPublishedDate: Optional[str] = Field(
+        None,
+        description="Start date for published content (ISO format)"
+    )
+    endPublishedDate: Optional[str] = Field(
+        None,
+        description="End date for published content (ISO format)"
+    )
+    useAutoprompt: Optional[bool] = Field(
+        None,
+        description="Whether to use autoprompt to enhance the query"
+    )
+    contents: Optional[Dict[str, bool]] = Field(
+        None,
+        description="Content types to include (e.g., {\"text\": true})"
+    )
+
+class ContentsParams(BaseModel):
+    ids: List[str] = Field(
+        ...,
+        description="List of IDs or URLs to retrieve content for"
+    )
+    text: Optional[bool] = Field(
+        True,
+        description="Whether to include text content"
+    )
+
+class FindSimilarParams(CommonParams):
+    url: str = Field(
+        ...,
+        description="URL to find similar content for"
+    )
+    excludeDomains: Optional[List[str]] = Field(
+        None,
+        description="List of domains to exclude from results"
+    )
+
+class SearchResult(BaseModel):
+    id: str
+    title: str
+    url: str
+    publishedDate: Optional[str] = None
+    author: Optional[str] = None
+    score: Optional[float] = None
+    text: Optional[str] = None
+    image: Optional[str] = None
+    favicon: Optional[str] = None
+
+class ContentResult(BaseModel):
+    id: str
+    title: str
+    url: str
+    publishedDate: Optional[str] = None
+    author: Optional[str] = None
+    text: Optional[str] = None
+    image: Optional[str] = None
+    favicon: Optional[str] = None
+
+
+class SimilarResult(BaseModel):
+    id: str
+    title: str
+    url: str
+    publishedDate: Optional[str] = None
+    author: Optional[str] = None
+    score: float
+
+class CostBreakdown(BaseModel):
+    total: float
+    search: Optional[Dict[str, float]] = None
+    contents: Optional[Dict[str, float]] = None
+
+class SearchResponse(BaseModel):
+    requestId: str
+    results: List[SearchResult]
+    autopromptString: Optional[str] = None
+    resolvedSearchType: Optional[str] = None
+    effectiveFilters: Optional[Dict[str, Any]] = None
+    costDollars: CostBreakdown
+
+class ContentsResponse(BaseModel):
+    requestId: str
+    results: List[ContentResult]
+    costDollars: CostBreakdown
+
+class FindSimilarResponse(BaseModel):
+    requestId: str
+    results: List[SimilarResult]
+    costDollars: CostBreakdown
+
+# API Response
+class ApiResponse(BaseModel):
+    data: Union[SearchResponse, ContentsResponse, FindSimilarResponse]
+    component: Optional[Dict[str, Any]] = None
+```
+
+
+service.py
+```
+from typing import Dict, Any, List, Optional
+from .client import ExaClient
+from .schema import (
+    SearchParams,
+    ContentsParams,
+    FindSimilarParams,
+    SearchResponse,
+    ContentsResponse,
+    FindSimilarResponse,
+    ApiResponse
+)
+import os
+from ..common.component_handler import load_components, prepare_components_auto
+
+class ExaService:
+    def __init__(self, client: ExaClient):
+        self.client = client
+        self.components_data = self._load_components()
+
+    def _load_components(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return load_components(current_dir)
+        
+    def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
+        tool_name = "exa"
+        components = prepare_components_auto(data, component_name, self.components_data, tool_name)
+        return ApiResponse(data=data, component=components)
+
+    def search(self, params: SearchParams) -> ApiResponse:
+        processed_params = self._process_search_params(params)
+        response = self.client.search(processed_params)
+        validated = SearchResponse(**response)
+        return ApiResponse(data=validated)
+
+    def get_contents(self, params: ContentsParams) -> ApiResponse:
+        processed_params = self._process_contents_params(params)
+        response = self.client.get_contents(processed_params)
+        validated = ContentsResponse(**response)
+        return ApiResponse(data=validated)
+
+    def find_similar(self, params: FindSimilarParams) -> ApiResponse:
+        processed_params = self._process_similar_params(params)
+        response = self.client.find_similar(processed_params)
+        validated = FindSimilarResponse(**response)
+        return ApiResponse(data=validated)
+
+    def _process_search_params(self, params: SearchParams) -> Dict[str, Any]:
+        return params.model_dump(exclude_none=True)
+
+    def _process_contents_params(self, params: ContentsParams) -> Dict[str, Any]:
+        return params.model_dump(exclude_none=True)
+
+    def _process_similar_params(self, params: FindSimilarParams) -> Dict[str, Any]:
+        return params.model_dump(exclude_none=True)
+```
+
+route.py
+```
+from fastapi import APIRouter, Body, Depends, HTTPException
+from starlette.requests import Request as FastAPIRequest
+from typing import Dict, Any
+from .schema import (
+    SearchParams,
+    ContentsParams,
+    FindSimilarParams,
+    ApiResponse
+)
+from .service import ExaService
+from .client import ExaClient
+from ..common.auth import validate_provider_api_key
+from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error, apply_error_handler_to_client
+from ..common.examples_handler import ExamplesLoader
+
+router = APIRouter(prefix="/exa", tags=["exa"])
+examples = ExamplesLoader()
+
+async def get_exa_service(request: FastAPIRequest):
+    try:
+        api_key = await validate_provider_api_key(request, "exa")
+        client = ExaClient(api_key)
+        apply_error_handler_to_client(client)
+        service = ExaService(client)
+        
+        apply_error_handler_to_service(service)
+        
+        return service
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Failed to initialize Exa service: {str(e)}"
+        )
+
+@router.post("/search", response_model=ApiResponse)
+@schema(
+    input_schema_class=SearchParams,
+    output_schema_class=ApiResponse,
+    examples=examples["/exa/search"]
+)
+async def search(
+    params: Dict[str, Any] = Body(...),
+    service: ExaService = Depends(get_exa_service)
+):
+    validated_params = SearchParams(**params)
+    return service.search(validated_params)
+
+@router.post("/contents", response_model=ApiResponse)
+@schema(
+    input_schema_class=ContentsParams,
+    output_schema_class=ApiResponse,
+    examples=examples["/exa/contents"]
+)
+async def get_contents(
+    params: Dict[str, Any] = Body(...),
+    service: ExaService = Depends(get_exa_service)
+):
+    validated_params = ContentsParams(**params)
+    return service.get_contents(validated_params)
+
+@router.post("/find_similar", response_model=ApiResponse)
+@schema(
+    input_schema_class=FindSimilarParams,
+    output_schema_class=ApiResponse,
+    examples=examples["/exa/find_similar"]
+)
+async def find_similar(
+    params: Dict[str, Any] = Body(...),
+    service: ExaService = Depends(get_exa_service)
+):
+    validated_params = FindSimilarParams(**params)
+    return service.find_similar(validated_params)
+
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        client = ExaClient(api_key=api_key)
+        test_params = {"query": "test", "numResults": 1}
+        test_response = client.search(test_params)
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Invalid API key"}
+
+apply_error_handler_to_router(router)
+```
+
+examples.yaml
+```
+routes:
+  - endpoint: /exa/search
+    examples:
+      - scenario: "Advanced Search with Filters"
+        description: "Search with domain filters and date constraints"
+        input_json: |
+          {
+            "query": "quantum computing breakthroughs",
+            "numResults": 5,
+            "includeDomains": ["nature.com", "science.org"],
+            "startPublishedDate": "2023-01-01",
+            "endPublishedDate": "2024-03-01"
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "search-789012",
+              "results": [
+                {
+                  "id": "doc-2",
+                  "title": "Quantum Error Correction Breakthrough",
+                  "url": "https://nature.com/articles/quantum-error-correction",
+                  "publishedDate": "2023-11-15",
+                  "author": "John Doe et al.",
+                  "score": 0.98,
+                  "text": "Researchers have achieved a significant milestone in quantum error correction...",
+                  "image": "https://nature.com/images/quantum-computing.jpg",
+                  "favicon": "https://nature.com/favicon.ico"
+                }
+              ],
+              "costDollars": {
+                "total": 0.03,
+                "search": {
+                  "api": 0.015,
+                  "processing": 0.015
+                }
+              }
+            },
+            "component": {
+              "name": "ExaSearchCard"
+            }
+          }
+
+  - endpoint: /exa/contents
+    examples:
+      - scenario: "Retrieve Content by URLs"
+        description: "Get full content for specific URLs"
+        input_json: |
+          {
+            "ids": [
+              "https://example.com/ai-research/llm-advances",
+              "https://nature.com/articles/quantum-error-correction"
+            ],
+            "text": true
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "contents-345678",
+              "results": [
+                {
+                  "id": "doc-1",
+                  "title": "Advances in Large Language Models",
+                  "url": "https://example.com/ai-research/llm-advances",
+                  "publishedDate": "2024-03-01",
+                  "author": "Jane Smith",
+                  "text": "Recent advances in large language models have shown significant improvements in reasoning capabilities. This paper explores the latest developments in transformer architectures and their applications in various domains...",
+                  "image": "https://example.com/images/llm-research.jpg",
+                  "favicon": "https://example.com/favicon.ico"
+                }
+              ],
+              "costDollars": {
+                "total": 0.05,
+                "contents": {
+                  "api": 0.025,
+                  "processing": 0.025
+                }
+              }
+            },
+            "component": {
+              "name": "ExaContentCard"
+            }
+          }
+
+  - endpoint: /exa/find_similar
+    examples:
+      - scenario: "Find Similar Content"
+        description: "Discover content similar to a given URL"
+        input_json: |
+          {
+            "url": "https://example.com/ai-research/llm-advances",
+            "numResults": 3,
+            "excludeDomains": ["blog.example.com"]
+          }
+        output_json: |
+          {
+            "data": {
+              "requestId": "similar-901234",
+              "results": [
+                {
+                  "id": "doc-3",
+                  "title": "The Future of Language Models",
+                  "url": "https://research.ai/future-of-llms",
+                  "publishedDate": "2024-02-15",
+                  "author": "Alex Johnson",
+                  "score": 0.89
+                }
+              ],
+              "costDollars": {
+                "total": 0.04,
+                "search": {
+                  "api": 0.02,
+                  "processing": 0.02
+                }
+              }
+            },
+            "component": {
+              "name": "ExaSimilarCard"
+            }
+          }
+```
