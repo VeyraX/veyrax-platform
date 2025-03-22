@@ -32,7 +32,7 @@ class QueueInput(BaseModel):
     
 class PublishInput(BaseModel):
     video_url: str
-    channel_name: str
+    channel_name: Optional[str] = None
     tiktok: Optional[Dict[str, Any]] = None
     youtube: Optional[Dict[str, Any]] = None
     instagram: Optional[Dict[str, Any]] = None

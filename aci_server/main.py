@@ -197,13 +197,60 @@ async def root_head():
         )
 
 @app.get("/tools")
-async def get_tools():
+async def get_tools(simple_schema: bool = False, format: str = "default"):
     tools = {}
     for name, router in INTEGRATION_ROUTERS.items():
         tools[name] = get_router_tools(router)
+      
+    if simple_schema:
+        return {"tools": convert_to_brief_format(tools)}
     
     return {"tools": tools}
 
+def convert_to_brief_format(tools_dict):
+    """
+    Convert tools to a very brief format with structure:
+    {
+      "tools": {
+        "tool_name": {
+          "method_name": "description"
+        }
+      }
+    }
+    """
+    brief_tools = {}
+    
+    for tool_name, tool_functions in tools_dict.items():
+        brief_tools[tool_name] = {}
+        
+        for func in tool_functions:
+            if func.get("type") == "function" and "function" in func:
+                method_name = func["function"].get("name", "")
+                description = func["function"].get("description", "")
+                
+                # Try to get a better description from examples if available
+                if "examples" in func and func["examples"] and "description" in func["examples"][0]:
+                    description = func["examples"][0]["description"]
+                
+                if method_name == 'validate_key':
+                    continue
+                
+                brief_tools[tool_name][method_name] = description
+    
+    return brief_tools
+
+def remove_components_recursively(obj):
+    """Recursively remove all keys named 'component' from dictionaries."""
+    if isinstance(obj, dict):
+        # Create a new dict without the 'component' key
+        result = {k: remove_components_recursively(v) for k, v in obj.items() if (k not in ["component", "components", 'parameters', 'strict', 'properties', 'output_schema', 'input_schema', 'input_json', 'output_json', ''])}
+        return result
+    elif isinstance(obj, list):
+        # Process each item in the list
+        return [remove_components_recursively(item) for item in obj]
+    else:
+        # Return non-dict, non-list values as is
+        return obj
 
 def find_route_by_tool_and_method(tool: str, method: str):
     if tool not in INTEGRATION_ROUTERS:
