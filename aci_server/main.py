@@ -88,14 +88,14 @@ sentry_sdk.init(
 )
 
 INTEGRATION_ROUTERS = {
-    "gmail": gmail_router,
+    #"gmail": gmail_router,
     "google-calendar": google_calendar_router,
     "notion": notion_router,
     "slack": slack_router,
     "linear": linear_router,
     "openweather": openweather_router,
     "perplexity": perplexity_router,
-    "google-drive": google_drive_router,
+    #"google-drive": google_drive_router,
     "jira": jira_router,
     "confluence": confluence_router,
     "outlook": outlook_router,
