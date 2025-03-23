@@ -115,3 +115,75 @@
     width: 300px;
   }
 }
+
+/* Flow Configuration Editor Styles */
+.editor-content {
+  max-height: 400px;
+  overflow-y: auto;
+  height: 400px;
+}
+
+.editor-content h1, 
+.editor-content h2, 
+.editor-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.editor-content h1 { font-size: 1.5rem; }
+.editor-content h2 { font-size: 1.25rem; }
+.editor-content h3 { font-size: 1.125rem; }
+.editor-content p { margin-bottom: 0.75rem; }
+
+.editor-content ul, 
+.editor-content ol { 
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.editor-content ul { list-style-type: disc; }
+.editor-content ol { list-style-type: decimal; }
+.editor-content li { margin-bottom: 0.25rem; }
+
+.editor-content blockquote {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 0.75rem 0;
+}
+
+.editor-content code {
+  background-color: #f3f4f6;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+}
+
+.editor-content pre {
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+/* Placeholder для ContentEditable */
+[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  cursor: text;
+}
+
+.editor-content:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: hsl(var(--input)) !important;
+}
+
+.editor-content:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: hsl(var(--input)) !important;
+}
