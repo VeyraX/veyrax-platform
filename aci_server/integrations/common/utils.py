@@ -111,16 +111,11 @@ def handle_api_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            print("[handle_api_error] Calling API", func.__name__)
             response = func(*args, **kwargs)
-            print("[handle_api_error] Response", response)
             return response
         except HTTPException as e:
-            print("[handle_api_error] HTTPException", e)
             raise e
         except (requests.exceptions.HTTPError, HTTPException) as e:
-
-            print("[handle_api_error] HTTPError", e)
             try:
                 error_data = e.response.json()
             except:

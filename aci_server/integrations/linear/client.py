@@ -1,6 +1,6 @@
 import requests
 from typing import Optional
-
+from fastapi import HTTPException
 class LinearClient:
     def __init__(self, token: str):
         self.token = token
@@ -18,9 +18,10 @@ class LinearClient:
         )
 
         result = response.json()
+        print("[LinearClient] Result", result)
         if 'errors' in result:
-            errors = "\n".join([e['message'] for e in result['errors']])
-            raise ValueError(f"GraphQL Errors: {errors}")
+            # errors = "\n".join([e['message'] for e in result['errors']])
+            raise HTTPException(status_code=422, detail=f"GraphQL Errors: {(str(result))}")
         return result
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:

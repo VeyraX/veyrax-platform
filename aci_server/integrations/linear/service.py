@@ -164,8 +164,12 @@ class LinearService:
         
         transformed_data = {}
         for key, value in update_data.items():
-            new_key = field_mappings.get(key, key)
-            transformed_data[new_key] = value
+            if key == 'labels':
+                # Convert label names to IDs just like in create_issue
+                transformed_data['labelIds'] = self._convert_label_names_to_ids(value)
+            else:
+                new_key = field_mappings.get(key, key)
+                transformed_data[new_key] = value
         
         response = self.client.update_issue(issue_id, transformed_data)
         
