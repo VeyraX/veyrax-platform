@@ -136,4 +136,97 @@ routes:
             "component": {
               "name": "RevidPublishStatusCard"
             }
+          }
+
+  - endpoint: /revid/voice_list
+    examples:
+      - scenario: "Get All Voices"
+        description: "Retrieve a list of all available voices"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "voices": [
+                {
+                  "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+                  "name": "Roger",
+                  "category": "premade",
+                  "accent": "American",
+                  "description": "confident",
+                  "age": "middle-aged",
+                  "gender": "male",
+                  "use_case": "social media",
+                  "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/CwhRBWXzGAHq8TQ4Fs17/58ee3ff5-f6f2-4628-93b8-e38eb31806b0.mp3"
+                },
+                {
+                  "voice_id": "MF3mGyEYCl7XYWbV9V6O",
+                  "name": "Elli",
+                  "category": "premade",
+                  "accent": "american",
+                  "description": "emotional",
+                  "age": "young",
+                  "gender": "female",
+                  "use_case": "narration",
+                  "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/MF3mGyEYCl7XYWbV9V6O/d8ecadea-9e48-4e5d-868a-2ec3d7397861.mp3"
+                }
+              ]
+            },
+            "component": {
+              "name": "RevidVoiceSelector"
+            }
+          }
+      - scenario: "Filter Voices by Category"
+        description: "Retrieve voices filtered by category"
+        input_json: |
+          {
+            "category": "premade"
+          }
+        output_json: |
+          {
+            "data": {
+              "voices": [
+                {
+                  "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+                  "name": "Roger",
+                  "category": "premade",
+                  "accent": "American",
+                  "description": "confident",
+                  "age": "middle-aged",
+                  "gender": "male",
+                  "use_case": "social media",
+                  "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/CwhRBWXzGAHq8TQ4Fs17/58ee3ff5-f6f2-4628-93b8-e38eb31806b0.mp3"
+                }
+              ]
+            },
+            "component": {
+              "name": "RevidVoiceSelector"
+            }
+          }
+      - scenario: "Filter Voices by Gender"
+        description: "Retrieve voices filtered by gender"
+        input_json: |
+          {
+            "gender": "female"
+          }
+        output_json: |
+          {
+            "data": {
+              "voices": [
+                {
+                  "voice_id": "MF3mGyEYCl7XYWbV9V6O",
+                  "name": "Elli",
+                  "category": "premade",
+                  "accent": "american",
+                  "description": "emotional",
+                  "age": "young",
+                  "gender": "female",
+                  "use_case": "narration",
+                  "preview_url": "https://storage.googleapis.com/eleven-public-prod/premade/voices/MF3mGyEYCl7XYWbV9V6O/d8ecadea-9e48-4e5d-868a-2ec3d7397861.mp3"
+                }
+              ]
+            },
+            "component": {
+              "name": "RevidVoiceSelector"
+            }
           } 

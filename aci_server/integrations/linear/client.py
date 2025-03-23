@@ -1,6 +1,6 @@
 import requests
 from typing import Optional
-
+from fastapi import HTTPException
 class LinearClient:
     def __init__(self, token: str):
         self.token = token
@@ -16,12 +16,12 @@ class LinearClient:
             json={"query": query, "variables": variables or {}},
             headers=self.headers
         )
-        response.raise_for_status()
-        
+
         result = response.json()
+        print("[LinearClient] Result", result)
         if 'errors' in result:
-            errors = "\n".join([e['message'] for e in result['errors']])
-            raise ValueError(f"GraphQL Errors: {errors}")
+            # errors = "\n".join([e['message'] for e in result['errors']])
+            raise HTTPException(status_code=422, detail=f"GraphQL Errors: {(str(result))}")
         return result
 
     def list_issues(self, cursor: Optional[str] = None, max_results: int = 50) -> dict:
@@ -56,36 +56,35 @@ class LinearClient:
     def search_issues(self, search_term: str, cursor: Optional[str] = None, max_results: int = 50) -> dict:
         query = """
         query SearchIssues($searchTerm: String!, $cursor: String, $first: Int!) {
-            issues(
-                first: $first
-                after: $cursor
-                orderBy: updatedAt
-                filter: {
-                    or: [
-                        { title: { containsIgnoreCase: $searchTerm } }
-                        { description: { containsIgnoreCase: $searchTerm } }
-                        { id: { eq: $searchTerm } }
-                    ]
-                }
-            ) {
-                nodes {
-                    id
-                    title
-                    description
-                    identifier
-                    state { id name }
-                    priority
-                    assignee { id name email }
-                    creator { id name email }
-                    createdAt
-                    updatedAt
-                    url
-                }
-                pageInfo {
-                    hasNextPage
-                    endCursor
-                }
+          issues(
+            first: $first
+            after: $cursor
+            orderBy: updatedAt
+            filter: {
+              or: [
+                { title: { contains: $searchTerm } },
+                { description: { contains: $searchTerm } }
+              ]
             }
+          ) {
+            nodes {
+              id
+              title
+              description
+              identifier
+              state { id name }
+              priority
+              assignee { id name email }
+              creator { id name email }
+              createdAt
+              updatedAt
+              url
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
         }
         """
         return self.execute_query(query, {

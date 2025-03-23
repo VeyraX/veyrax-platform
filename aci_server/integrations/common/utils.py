@@ -113,7 +113,9 @@ def handle_api_error(func):
         try:
             response = func(*args, **kwargs)
             return response
-        except requests.exceptions.HTTPError as e:
+        except HTTPException as e:
+            raise e
+        except (requests.exceptions.HTTPError, HTTPException) as e:
             try:
                 error_data = e.response.json()
             except:
@@ -199,8 +201,6 @@ def apply_error_handler_to_router(router: APIRouter):
                 try:
                     return endpoint_response
                 except ValidationError as e:
-                    print("[route_error_handler] Output ValidationError: ", e)
-                    
                     error_detail = format_validation_error_response(e.errors(), "output")
                     raise HTTPException(status_code=422, detail=error_detail)
                     
@@ -208,11 +208,9 @@ def apply_error_handler_to_router(router: APIRouter):
                 raise
                 
             except ServiceValidationError as e:
-                print("[route_error_handler] ServiceValidationError: ", e)
                 raise e.to_http_exception()
                 
             except Exception as e:
-                print("[route_error_handler] unhandled exception: ", e)
                 if not isinstance(e, requests.exceptions.HTTPError):
                     traceback.print_exc()
                     raise HTTPException(status_code=500, detail={
@@ -238,6 +236,8 @@ def handle_service_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
+        except HTTPException as e:
+            raise e
         except requests.exceptions.HTTPError as e:
             try:
                 error_response = e.response.json()
