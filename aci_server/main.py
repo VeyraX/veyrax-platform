@@ -95,7 +95,7 @@ INTEGRATION_ROUTERS = {
     "linear": linear_router,
     "openweather": openweather_router,
     "perplexity": perplexity_router,
-    #"google-drive": google_drive_router,
+    "google-drive": google_drive_router,
     "jira": jira_router,
     "confluence": confluence_router,
     "outlook": outlook_router,
