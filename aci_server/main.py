@@ -487,9 +487,10 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
     try:
         try:
             request_data = await request.json()
+            print(request_data)
             tool = request_data.get("tool")
             method = request_data.get("method")
-            params = request_data.get("params", {})
+            params = request_data.get("params", request_data.get("parameters", {}))
             
             if not tool or not method:
                 raise HTTPException(status_code=400, detail="Tool and method are required fields")
@@ -497,7 +498,11 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid request format: {str(e)}")
         
-        response = await handle_tool_call(tool=tool, method=method, request=request, include_component=include_component)
+        # Create a new request with the params
+        new_request = Request(scope=request.scope)
+        new_request._json = params  # Set the params as the request body
+        
+        response = await handle_tool_call(tool=tool, method=method, request=new_request, include_component=include_component)
         success = 1
         return response
         
