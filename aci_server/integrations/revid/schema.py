@@ -7,7 +7,7 @@ from pydantic import validator
 class CreateVideoInput(BaseModel):
     input_text: str
     webhook: Optional[str] = Field(None)
-    selected_voice: Optional[str] = Field('CwhRBWXzGAHq8TQ4Fs17', description='voice id')
+    selected_voice: Optional[str] = Field('CwhRBWXzGAHq8TQ4Fs17', description='voice id from elevenLabs voice id')
     generation_user_prompt: Optional[str] = None
     audio_url: Optional[str] = Field("https://cdn.tfrv.xyz/audio/cartoon-music-1.mp3", description='audio in mp3 format')
     caption_preset_name: Optional[str] = "Wrap 2"
@@ -36,6 +36,24 @@ class PublishInput(BaseModel):
     tiktok: Optional[Dict[str, Any]] = None
     youtube: Optional[Dict[str, Any]] = None
     instagram: Optional[Dict[str, Any]] = None
+
+class VoiceListInput(BaseModel):
+    category: Optional[str] = None
+    gender: Optional[str] = None
+    
+class VoiceInfo(BaseModel):
+    voice_id: str
+    name: str
+    category: str
+    accent: Optional[str] = None
+    description: Optional[str] = None
+    age: Optional[str] = None
+    gender: Optional[str] = None
+    use_case: Optional[str] = None
+    preview_url: Optional[str] = None
+
+class VoiceListOutput(BaseModel):
+    voices: List[VoiceInfo] = []
 
 class CreateVideoOutput(BaseModel):
     project_id: Optional[str] = None
@@ -66,6 +84,7 @@ class ApiResponse(BaseModel):
         ProjectListOutput,
         QueueOutput,
         PublishOutput,
+        VoiceListOutput,
         Dict[str, Any]
     ]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

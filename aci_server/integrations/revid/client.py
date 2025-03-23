@@ -1,6 +1,6 @@
 import requests
 from typing import Dict, Any, Optional
-
+from fastapi import HTTPException
 
 
 
@@ -18,7 +18,8 @@ class RevidAIClient:
         
     def _make_request(self, endpoint: str, data: Dict[str, Any] = None):
         url = f"{self.base_url}/{endpoint}"
-        return requests.post(url, headers=self.headers, json=data)
+        response = requests.post(url, headers=self.headers, json=data)
+        return response
 
     def create_video(self, creation_params: Dict[str, Any]):
         return self._make_request("render", creation_params)
