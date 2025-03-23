@@ -135,8 +135,6 @@ def handle_api_error(func):
                 }
             )
         except ValidationError as e:
-            print(f"[handle_api_error] ValidationError in {func.__name__}:", str(e))
-            
             error_detail = format_validation_error_response(e.errors(), "input")
             raise ClientNonCriticalError(
                 message=f"Input validation error in API client: {str(e)}",

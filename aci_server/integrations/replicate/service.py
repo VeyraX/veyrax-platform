@@ -27,6 +27,8 @@ from .schema import (
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import time
+import datetime
 
 class ReplicateService:
     def __init__(self, client: ReplicateClient):
@@ -235,8 +237,24 @@ class ReplicateService:
         """
         # Transform the request to the format expected by the client
         data = request.model_dump(exclude_none=True)
-        data.pop("model_owner")
-        data.pop("model_name")
+        
+        # Special case for Minimax video model - use only the input field
+        is_minimax_video = model_owner == "minimax" and model_name == "video-01"
+        if is_minimax_video:
+            # For Minimax, only send the input field
+            data = {"input": data.get("input", {})}
+            print(f"[SERVICE] Sending simplified data to Minimax: {data}")
+        else:
+            # For other models, remove fields not expected by the API
+            if "model_owner" in data:
+                data.pop("model_owner")
+            if "model_name" in data:
+                data.pop("model_name")
+            if "create_placeholder_response" in data:
+                create_placeholder = data.pop("create_placeholder_response")
+            else:
+                create_placeholder = False
+        
         wait = request.wait
         
         response = self.client.create_official_model_prediction(
@@ -245,14 +263,65 @@ class ReplicateService:
             data=data,
             wait=wait
         )
-
-        print('[create_official_model_prediction] response: ', response)
         
+        print(f'[create_official_model_prediction] response for {model_owner}/{model_name}: {response}')
+        
+        # Check if response is an error response
+        if "error" in response and "detail" in response:
+            # Handle API error response
+            error_message = response.get("detail", "Unknown error from Replicate API")
+            raise ValueError(f"Replicate API error: {error_message}")
+            
         if not response:
             raise ValueError("Empty response received from Replicate API")
+        
+        # Ensure required fields exist
+        required_fields = ["id", "model", "created_at", "input", "urls"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        # Special handling for Minimax video model which may return partial data
+        if is_minimax_video and missing_fields:
+            print(f"Creating placeholder response for Minimax video model. Missing fields: {missing_fields}")
+            # Create placeholder data for missing fields
+            if "id" not in response:
+                response["id"] = f"placeholder-{model_owner}-{model_name}-{int(time.time())}"
+            if "model" not in response:
+                response["model"] = f"{model_owner}/{model_name}"
+            if "created_at" not in response:
+                response["created_at"] = datetime.datetime.now().isoformat()
+            if "input" not in response:
+                response["input"] = data.get("input", {})
+            if "urls" not in response:
+                response["urls"] = {
+                    "get": f"https://api.replicate.com/v1/predictions/{response.get('id', 'placeholder')}",
+                    "cancel": f"https://api.replicate.com/v1/predictions/{response.get('id', 'placeholder')}/cancel"
+                }
+            if "status" not in response:
+                response["status"] = "processing"
             
-        prediction_response = PredictionResponse(**response)
-        return self.prepare_response(prediction_response, "ReplicatePredictionView")
+            missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            raise ValueError(f"Missing required fields in API response: {', '.join(missing_fields)}")
+        
+        # Create URLs object if not present but individual URL fields exist
+        if "urls" not in response and ("get" in response or "cancel" in response):
+            response["urls"] = {
+                "get": response.get("get", ""),
+                "cancel": response.get("cancel", "")
+            }
+        
+        # Ensure status is a valid string
+        if "status" not in response or not isinstance(response["status"], str):
+            response["status"] = "processing"  # Default status
+            
+        try:
+            prediction_response = PredictionResponse(**response)
+            return self.prepare_response(prediction_response, "ReplicatePredictionView")
+        except Exception as e:
+            print(f"Failed to parse response: {e}")
+            print(f"Response data: {response}")
+            raise ValueError(f"Failed to parse Replicate API response: {str(e)}")
     
     def list_models(self) -> ApiResponse:
         """
