@@ -11,7 +11,9 @@ from .schema import (
     QueueInput,
     QueueOutput,
     PublishInput,
-    PublishOutput
+    PublishOutput,
+    VoiceListInput,
+    VoiceListOutput
 )
 from .service import RevidAIService
 from .client import RevidAIClient
@@ -35,6 +37,19 @@ async def get_revid_service(request: Request):
         return service
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Revid AI service initialization failed: {str(e)}")
+
+@router.post("/voice_list", response_model=ApiResponse)
+@schema(
+    input_schema_class=VoiceListInput,
+    output_schema_class=VoiceListOutput,
+    examples=examples["/revid/voice_list"]
+)
+async def voice_list(
+    params: Dict[str, Any] = Body(...),
+    service: RevidAIService = Depends(get_revid_service),
+):
+    validated_params = VoiceListInput(**params)
+    return service.get_voice_list(validated_params)
 
 @router.post("/create_video", response_model=ApiResponse)
 @schema(

@@ -11,25 +11,71 @@ from .schema import (
     QueueInput,
     QueueOutput,
     PublishInput,
-    PublishOutput
+    PublishOutput,
+    VoiceListInput,
+    VoiceListOutput,
+    VoiceInfo
 )
 import os
+import json
 from ..common.component_handler import load_components, prepare_components_auto
 from fastapi import HTTPException
+
 
 class RevidAIService:
     def __init__(self, client: RevidAIClient):
         self.client = client
         self.components_data = self._load_components()
+        self._voices_data = self._load_voices_data()
 
     def _load_components(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         return load_components(current_dir)
         
+    def _load_voices_data(self) -> List[Dict[str, Any]]:
+        try:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            voices_file_path = os.path.join(current_dir, "utils", "voices.json")
+            with open(voices_file_path, 'r') as file:
+                return json.load(file)
+        except Exception as e:
+            return []
+            
     def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
         tool_name = "revid"
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
+    
+    def get_voice_list(self, params: VoiceListInput) -> ApiResponse:
+        voices = []
+        
+        for voice_data in self._voices_data:
+            if params.category and voice_data.get("category") != params.category:
+                continue
+                
+            labels = voice_data.get("labels", {})
+            if params.gender and labels.get("gender") != params.gender:
+                continue
+                
+            voice_info = VoiceInfo(
+                voice_id=voice_data.get("voice_id", ""),
+                name=voice_data.get("name", ""),
+                category=voice_data.get("category", ""),
+                preview_url=voice_data.get("preview_url")
+            )
+            
+            # Add label information if available
+            if labels:
+                voice_info.accent = labels.get("accent")
+                voice_info.description = labels.get("description")
+                voice_info.age = labels.get("age")
+                voice_info.gender = labels.get("gender")
+                voice_info.use_case = labels.get("use_case")
+                
+            voices.append(voice_info)
+            
+        output = VoiceListOutput(voices=voices)
+        return self.prepare_response(output)
     
     def create_tiktok_video(self, params: CreateVideoInput) -> ApiResponse:
         payload = {
@@ -52,6 +98,7 @@ class RevidAIService:
                 "hasToGenerateVideos": True
             }
         }
+        
         response = self.client.create_video(payload)
         parsed_response = self._parse_create_video_response(response)
         return self.prepare_response(parsed_response)
