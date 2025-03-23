@@ -1,8 +1,9 @@
 export const OPENAPI_SPEC = {
+  "openapi": "3.1.0",
   "info": {
     "title": "VeyraX API",
-    "description": "API for retrieving available tools and executing tool methods dynamically.",
-    "version": "1.0.0"
+    "version": "1.0.1",
+    "description": "API for retrieving available tools and dynamically executing tool methods."
   },
   "servers": [
     {
@@ -46,78 +47,53 @@ export const OPENAPI_SPEC = {
           }
         }
       },
-      "SendEmailRequest": {
-        "type": "object",
-        "properties": {
-          "to": {
-            "type": "string",
-            "example": "recipient@example.com"
-          },
-          "subject": {
-            "type": "string",
-            "example": "Hello from VeyraX"
-          },
-          "body": {
-            "type": "string",
-            "example": "This is a test email sent via the VeyraX API."
-          }
-        },
-        "required": [
-          "to",
-          "subject",
-          "body"
-        ]
-      },
-      "SendEmailResponse": {
-        "type": "object",
-        "properties": {
-          "messageId": {
-            "type": "string",
-            "example": "1234567890"
-          },
-          "threadId": {
-            "type": "string",
-            "example": "0987654321"
-          },
-          "status": {
-            "type": "string",
-            "example": "sent"
-          }
-        }
-      },
       "DynamicToolMethodRequest": {
         "type": "object",
-        "description": "Generic request object for tool method execution.",
+        "description": "Parameters for the specific tool method",
         "properties": {
-          "parameters": {
+          "tool": {
+            "type": "string",
+            "description": "The name of the tool (e.g., \"gmail\", \"slack\")"
+          },
+          "method": {
+            "type": "string",
+            "description": "The method of the tool (e.g., \"sendEmail\", \"listEvents\")"
+          },
+          "params": {
             "type": "object",
-            "additionalProperties": true,
-            "description": "Dynamic parameters for the tool method."
+            "description": "Parameters to pass to the tool method",
+            "additionalProperties": true
           }
         },
-        "required": [
-          "parameters"
-        ]
+        "required": ["tool", "method"],
+        "example": {
+          "tool": "gmail",
+          "method": "sendEmail",
+          "params": {
+            "to": "recipient@example.com",
+            "subject": "Hello from VeyraX",
+            "body": "This is a test email sent via the VeyraX API."
+          }
+        }
       },
       "DynamicToolMethodResponse": {
         "type": "object",
-        "description": "Generic response object for tool method execution.",
+        "description": "Dynamic response from tool method",
         "properties": {
           "result": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Dynamic result structure based on the tool method."
+            "type": "string",
+            "description": "A message or result from the tool"
           }
-        }
+        },
+        "additionalProperties": true
       }
     }
   },
   "paths": {
     "/get-tools": {
       "get": {
-        "operationId": "getTools",
         "summary": "Retrieve available tools",
-        "description": "Fetches a list of available tools and their supported methods.",
+        "operationId": "getTools",
         "security": [
           {
             "VeyraxApiKey": []
@@ -133,38 +109,20 @@ export const OPENAPI_SPEC = {
                 }
               }
             }
+          },
+          "500": {
+            "description": "Server error"
           }
         }
       }
     },
-    "/tool-call/{tool}/{method}?include_component=false": {
+    "/tool-execute": {
       "post": {
-        "operationId": "callToolMethod",
-        "summary": "Call a tool method dynamically",
-        "description": "Executes a specified method on a given tool.",
+        "summary": "Executes a tool method using parameters from the request body",
+        "operationId": "executeTool",
         "security": [
           {
             "VeyraxApiKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "tool",
-            "in": "path",
-            "required": true,
-            "description": "The tool to execute (e.g., \"gmail\", \"google-calendar\").",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "method",
-            "in": "path",
-            "required": true,
-            "description": "The method to execute within the tool (e.g., \"sendEmail\", \"listEvents\").",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "requestBody": {
@@ -179,7 +137,7 @@ export const OPENAPI_SPEC = {
         },
         "responses": {
           "200": {
-            "description": "Successful tool method execution",
+            "description": "Successful response from tool method",
             "content": {
               "application/json": {
                 "schema": {
@@ -187,6 +145,15 @@ export const OPENAPI_SPEC = {
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request format or missing fields"
+          },
+          "404": {
+            "description": "Tool or method not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }

@@ -416,10 +416,8 @@ async def get_dev_user_tools(request: Request):
                     method_name = tool_schema["function"]["name"]
                     provider_tools[method_name] = tool_schema
                 
-                # Add to user_tools
                 user_tools[name] = provider_tools
         
-        # Add memories
         user_memories = await get_user_memories(user_id)
         user_tools['memories'] = user_memories
         
@@ -433,3 +431,41 @@ async def get_dev_user_tools(request: Request):
             error_message=str(e)
         )
         raise HTTPException(status_code=500, detail=f"Failed to get dev user tools: {str(e)}")
+
+@app.post("/tool-execute")
+async def execute_tool_from_body(request: Request, include_component: bool = False):
+    success = 0
+    error_message = None
+    
+    try:
+        try:
+            request_data = await request.json()
+            tool = request_data.get("tool")
+            method = request_data.get("method")
+            params = request_data.get("params", {})
+            
+            if not tool or not method:
+                raise HTTPException(status_code=400, detail="Tool and method are required fields")
+                
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid request format: {str(e)}")
+        
+        response = await handle_tool_call(tool=tool, method=method, request=request, include_component=include_component)
+        success = 1
+        return response
+        
+    except Exception as exc:
+        error_message = str(exc)
+        raise
+        
+    finally:
+        try:
+            user_id = await get_user_from_request(request)
+            log_api_call(
+                user_id=user_id,
+                endpoint=f"/tool-execute",
+                success=success,
+                error_message=error_message
+            )
+        except Exception as log_error:
+            print(f"Error logging API call for Supabase: {str(log_error)}")

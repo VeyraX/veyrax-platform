@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { UserProfile } from "../api/types.settings"
 import { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Plus, LogOut } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -21,6 +20,19 @@ import {
 } from "../api/types.settings"
 import { useTheme } from "next-themes"
 import { Skeleton } from "@/components/ui/skeleton"
+import { deleteUserAccount } from "../api/api.settings"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface AccountSettingsProps {
   profile: UserProfile | null;
@@ -34,6 +46,10 @@ export default function AccountSettings({ profile, isLoading }: AccountSettingsP
     language: 'en'
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [confirmText, setConfirmText] = useState("")
+  const router = useRouter()
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
@@ -42,6 +58,27 @@ export default function AccountSettings({ profile, isLoading }: AccountSettingsP
       await new Promise(resolve => setTimeout(resolve, 1000))
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (confirmText !== "DELETE") return
+    
+    setIsDeleting(true)
+    try {
+      const success = await deleteUserAccount()
+      if (success) {
+        setShowDeleteDialog(false)
+        router.push("/")
+      } else {
+        toast.error("Failed to delete your account. Please try again later.")
+      }
+    } catch (error) {
+      toast.error("Failed to delete your account. Please try again later.")
+      console.error("Error deleting account:", error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
     }
   }
 
@@ -139,6 +176,8 @@ export default function AccountSettings({ profile, isLoading }: AccountSettingsP
         </div>
       </div>
 
+      <Separator />
+
       {/* Buttons Section */}
       <div className="flex justify-end gap-4">
         <Button 
@@ -148,6 +187,53 @@ export default function AccountSettings({ profile, isLoading }: AccountSettingsP
         >
           {isSaving ? "Saving..." : "Save changes"}
         </Button>
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogTrigger asChild>
+            <Button variant="destructive">
+              Delete Account
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Delete Account
+              </DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove all your data from our servers.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm font-medium mb-2">
+                To confirm, type "DELETE" in the box below:
+              </p>
+              <Input
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="mb-4"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setConfirmText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAccount}
+                disabled={confirmText !== "DELETE" || isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

@@ -144,3 +144,39 @@ export async function revokeApiKey(): Promise<boolean> {
     return false
   }
 }
+
+export async function deleteUserAccount(): Promise<boolean> {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      console.error('No authenticated user found:', error)
+      return false
+    }
+    
+    const response = await fetch('/api/user/delete-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: user.id }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Delete account response error:', errorData)
+      throw new Error(errorData.message || `Failed to delete account: ${response.status}`)
+    }
+
+    await supabase.auth.signOut()
+    return true
+  } catch (error) {
+    console.error('Error in deleteUserAccount:', error)
+    return false
+  }
+}
