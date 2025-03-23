@@ -16,15 +16,9 @@ import traceback
 import sentry_sdk
 
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
-    """
-    Generate a simplified set of OpenAI function schemas from FastAPI routes,
-    applying strict mode: all parameters are 'required'. We now accurately handle
-    optional fields by checking if a default is provided or if the annotation includes `None`.
-    """
     tools = []
 
     for route in router.routes:
-        # Skip the /tools endpoint
         if route.path.endswith("/tools"):
             continue
         
@@ -34,7 +28,7 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
             examples = route.endpoint.examples()
             tool_schema["examples"] = examples
         except Exception as e:
-            if "validate_key" not in route.path:  # validate_key doesn't have examples
+            if "validate_key" not in route.path: 
                 print(f"Error getting examples for {route.path}: {e}")
             tool_schema["examples"] = []
         
@@ -44,14 +38,45 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
 
 
 def route_identifier(route: routing.APIRoute) -> str:
-    """
-    Extract a consistent identifier for a route that can be used to match
-    between frontend tool calls and backend route handlers.
-    
-    Returns the route path, which provides a consistent way to identify routes
-    across the application.
-    """
     return str(route.path)
+
+
+def format_validation_error_response(errors, error_source="input"):
+    field_errors = {}
+    
+    for error in errors:
+        loc = error.get("loc", [])
+        if not loc:
+            continue
+            
+        if len(loc) > 1:
+            field_name = ".".join(str(item) for item in loc)
+        else:
+            field_name = str(loc[0])
+            
+        if field_name not in field_errors:
+            field_errors[field_name] = []
+        field_errors[field_name].append(error.get("msg", ""))
+    
+    error_details = []
+    for field, messages in field_errors.items():
+        field_message = f"{field}: {'; '.join(messages)}"
+        error_details.append(field_message)
+    
+    error_message = ". ".join(error_details)
+    
+    type_label = "Input" if error_source == "input" else "Output"
+    error_code = "VALIDATION_INPUT_ERROR" if error_source == "input" else "VALIDATION_OUTPUT_ERROR"
+    
+    return {
+        "data": {
+            "status": "error",
+            "message": f"{type_label} validation error: {error_message}",
+            "validation_errors": field_errors,
+            "error_code": error_code
+        },
+        "component": None
+    }
 
 
 def format_validation_error(e: ValidationError, model_name: str = "InputValidation"):
@@ -81,6 +106,7 @@ def log_api_call(user_id: str, endpoint: Optional[str] = None, success: Optional
     except Exception as e:
         print(f"Error logging API call: {str(e)}")
 
+
 def handle_api_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -88,13 +114,47 @@ def handle_api_error(func):
             response = func(*args, **kwargs)
             return response
         except requests.exceptions.HTTPError as e:
-            raise ClientNonCriticalError(e.response.text or str(e), e.response.json())
+            try:
+                error_data = e.response.json()
+            except:
+                error_data = {"message": e.response.text or str(e)}
+                
+            error_message = error_data.get("message", str(e))
+            if isinstance(error_data, dict) and "error" in error_data:
+                error_message = error_data["error"]
+            
+            raise ClientNonCriticalError(
+                message=error_message,
+                errors={
+                    "status": "error",
+                    "message": error_message,
+                    "status_code": e.response.status_code,
+                    "error_code": f"API_HTTP_ERROR_{e.response.status_code}"
+                }
+            )
+        except ValidationError as e:
+            print(f"[handle_api_error] ValidationError in {func.__name__}:", str(e))
+            
+            error_detail = format_validation_error_response(e.errors(), "input")
+            raise ClientNonCriticalError(
+                message=f"Input validation error in API client: {str(e)}",
+                errors=error_detail["data"]
+            )
         except Exception as e:
-            print(f"Unexpected Error in {func.__name__}:", str(e))
+            print(f"[handle_api_error] Unexpected Error in {func.__name__}:", str(e))
             print(traceback.format_exc())
-            raise ClientUnknowError(str(e), {})
+            
+            raise ClientUnknowError(
+                message=str(e),
+                errors={
+                    "status": "error",
+                    "message": f"Unexpected error in API client: {str(e)}",
+                    "error_code": "API_UNKNOWN_ERROR"
+                }
+            )
     
     return wrapper
+
 
 class ServiceValidationError(Exception):
     def __init__(self, message: str, errors: dict):
@@ -102,11 +162,19 @@ class ServiceValidationError(Exception):
         self.errors = errors
         super().__init__(self.message)
 
+    def to_http_exception(self):
+        return HTTPException(
+            status_code=422, 
+            detail=format_validation_error_response(self.errors, "output")
+        )
+
+
 class ClientNonCriticalError(Exception):
     def __init__(self, message: str, errors: dict):
         self.message = message
         self.errors = errors
         super().__init__(self.message)
+
 
 class ClientUnknowError(Exception):
     def __init__(self, message: str, errors: dict):
@@ -114,66 +182,47 @@ class ClientUnknowError(Exception):
         self.errors = errors
         super().__init__(self.message)
 
+
 def apply_error_handler_to_router(router: APIRouter):
     def route_error_handler(endpoint):
         @functools.wraps(endpoint)
         async def wrapper(*args, **kwargs):
             try:
-                endpoint_response = await endpoint(*args, **kwargs)
-                return endpoint_response
-            except ValidationError as e:
-                print("[route_error_handler] ValidationError: ", e)
-                errors = e.errors()
-                error_details = []
+                try:
+                    endpoint_response = await endpoint(*args, **kwargs)
+                except ValidationError as e:
+                    print("[route_error_handler] Input ValidationError: ", e)
+                    
+                    error_detail = format_validation_error_response(e.errors(), "input")
+                    raise HTTPException(status_code=422, detail=error_detail)
                 
-                field_errors = {}
-                
-                for error in errors:
-                    loc = error.get("loc", [])
-                    if loc and len(loc) > 0:
-                        field_name = loc[0]
-                        if field_name not in field_errors:
-                            field_errors[field_name] = []
-                        field_errors[field_name].append(error.get("msg", ""))
-                
-                for field, messages in field_errors.items():
-                    field_message = f"{field}: {'; '.join(messages)}"
-                    error_details.append(field_message)
-                
-                error_message = ". ".join(error_details)
-                
-                return {
-                    "data": {
-                        "status": "error",
-                        "message": f"Validation error: {error_message}",
-                        "validation_errors": field_errors
-                    },
-                    "component": None
-                }
-                
+                try:
+                    return endpoint_response
+                except ValidationError as e:
+                    print("[route_error_handler] Output ValidationError: ", e)
+                    
+                    error_detail = format_validation_error_response(e.errors(), "output")
+                    raise HTTPException(status_code=422, detail=error_detail)
+                    
             except HTTPException as e:
-                return {
-                    "data": {
-                        "status": "error",
-                        "message": e.detail
-                    },
-                    "component": None
-                }
+                raise
+                
             except ServiceValidationError as e:
                 print("[route_error_handler] ServiceValidationError: ", e)
-                raise HTTPException(status_code=422, detail=str(e))
+                raise e.to_http_exception()
                 
             except Exception as e:
                 print("[route_error_handler] unhandled exception: ", e)
                 if not isinstance(e, requests.exceptions.HTTPError):
                     traceback.print_exc()
-                    return {
+                    raise HTTPException(status_code=500, detail={
                         "data": {
                             "status": "error",
-                            "message": f"Unexpected error: {str(e)}"
+                            "message": f"Unexpected error: {str(e)}",
+                            "error_code": "INTERNAL_SERVER_ERROR"
                         },
                         "component": None
-                    }
+                    })
                 raise
         
         return wrapper
@@ -191,22 +240,47 @@ def handle_service_error(func):
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
             try:
-                return {"data": e.response.json(), "component": None}
+                error_response = e.response.json()
+                raise HTTPException(status_code=e.response.status_code, detail={"data": error_response, "component": None})
             except:
-                return {"data": {"error": e.response.text or str(e)}, "component": None}
+                raise HTTPException(status_code=e.response.status_code or 500, detail={
+                    "data": {
+                        "status": "error", 
+                        "message": e.response.text or str(e),
+                        "error_code": "HTTP_REQUEST_ERROR"
+                    }, 
+                    "component": None
+                })
         
         except ClientNonCriticalError as e:
-            return {"data": {"error": e.message, "errors": e.errors}, "component": None}
+            raise HTTPException(status_code=400, detail={
+                "data": {
+                    "status": "error", 
+                    "message": e.message, 
+                    "errors": e.errors,
+                    "error_code": "CLIENT_ERROR"
+                }, 
+                "component": None
+            })
 
         except ValidationError as e:
             sentry_sdk.capture_exception(e)
-            raise ServiceValidationError(e.errors(), "Validation error in service")
+            
+            error_detail = format_validation_error_response(e.errors(), "output")
+            raise HTTPException(status_code=422, detail=error_detail)
 
         except Exception as e:
             print(f"[handle_service_error] Unexpected Error in {func.__name__}:", str(e))
             print(traceback.format_exc())
             
-            return {"data": {"error": str(e)}, "component": None}
+            raise HTTPException(status_code=500, detail={
+                "data": {
+                    "status": "error", 
+                    "message": f"Internal server error: {str(e)}",
+                    "error_code": "INTERNAL_SERVER_ERROR" 
+                }, 
+                "component": None
+            })
     return wrapper
 
 

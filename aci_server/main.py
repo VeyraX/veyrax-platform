@@ -240,16 +240,12 @@ def convert_to_brief_format(tools_dict):
     return brief_tools
 
 def remove_components_recursively(obj):
-    """Recursively remove all keys named 'component' from dictionaries."""
     if isinstance(obj, dict):
-        # Create a new dict without the 'component' key
         result = {k: remove_components_recursively(v) for k, v in obj.items() if (k not in ["component", "components", 'parameters', 'strict', 'properties', 'output_schema', 'input_schema', 'input_json', 'output_json', ''])}
         return result
     elif isinstance(obj, list):
-        # Process each item in the list
         return [remove_components_recursively(item) for item in obj]
     else:
-        # Return non-dict, non-list values as is
         return obj
 
 def find_route_by_tool_and_method(tool: str, method: str):
@@ -269,6 +265,10 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
     success = 0
     response = None
     error_message = None
+    user_id = None
+    
+    user_id = await get_user_from_request(request)
+        
     try:
         try:
             params = await request.json()
@@ -276,7 +276,8 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
             params = {}
         
         if tool not in INTEGRATION_ROUTERS:
-            raise HTTPException(status_code=404, detail=f"Tool '{tool}' not found")
+            error_message = f"Tool '{tool}' not found"
+            raise HTTPException(status_code=404, detail=error_message)
         
         router = INTEGRATION_ROUTERS[tool]
         
@@ -293,12 +294,13 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                             dependency_result = await dep_func(request)
                             
                             if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
-                                raise ValueError(f"Dependency resolution error: got Depends object instead of service instance")
+                                error_message = f"Dependency resolution error: got Depends object instead of service instance"
+                                raise ValueError(error_message)
                                 
                             endpoint_args[name] = dependency_result
                         except Exception as dep_error:
-                            error_msg = f"Error resolving dependency {name}: {str(dep_error)}"
-                            raise HTTPException(status_code=500, detail=error_msg)
+                            error_message = f"Error resolving dependency {name}: {str(dep_error)}"
+                            raise HTTPException(status_code=500, detail=error_message)
                 
                 for name, param in signature.parameters.items():
                     if name in endpoint_args:
@@ -323,7 +325,7 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                 except Exception as exc:
                     success = 0 
                     error_message = str(exc)
-                    raise exc
+                    raise
                 
                 if not include_component:
                     if isinstance(response, dict) and "component" in response:
@@ -336,23 +338,42 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                 
                 return response
         
-        raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}'")
+        error_message = f"Method '{method}' not found in tool '{tool}'"
+        raise HTTPException(status_code=404, detail=error_message)
     
-    except Exception as exc:
-        error_message = str(exc)
+    except HTTPException as http_exc:
+        success = 0
+        error_message = str(http_exc.detail)
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/tool-call/{tool}/{method}",
+            success=success,
+            error_message=error_message
+        )
         raise
     
+    except Exception as exc:
+        success = 0
+        error_message = str(exc)
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/tool-call/{tool}/{method}",
+            success=success,
+            error_message=error_message
+        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
+    
     finally:
-        try:
-            user_id = await get_user_from_request(request)
-            log_api_call(
-                user_id=user_id,
-                endpoint=f"/tool-call/{tool}/{method}",
-                success=success,
-                error_message=error_message
-            )
-        except Exception as log_error:
-            print(f"Error logging API call for Supabase: {str(log_error)}")
+        if success == 1:
+            try:
+                log_api_call(
+                    user_id=user_id,
+                    endpoint=f"/tool-call/{tool}/{method}",
+                    success=success,
+                    error_message=None
+                )
+            except Exception as log_error:
+                print(f"Error logging API call for Supabase: {str(log_error)}")
 
 @app.get("/tools/{tool_name}")
 async def get_tool_spec(tool_name: str):
@@ -483,7 +504,19 @@ async def get_dev_user_tools(request: Request):
 async def execute_tool_from_body(request: Request, include_component: bool = False):
     success = 0
     error_message = None
+    user_id = None
     
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as auth_error:
+        log_api_call(
+            user_id="anonymous",
+            endpoint=f"/tool-execute",
+            success=0,
+            error_message=f"Authentication error: {str(auth_error)}"
+        )
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(auth_error)}")
+        
     try:
         try:
             request_data = await request.json()
@@ -493,31 +526,50 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
             params = request_data.get("params", request_data.get("parameters", {}))
             
             if not tool or not method:
-                raise HTTPException(status_code=400, detail="Tool and method are required fields")
+                error_message = "Tool and method are required fields"
+                raise HTTPException(status_code=400, detail=error_message)
                 
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid request format: {str(e)}")
+            error_message = f"Invalid request format: {str(e)}"
+            raise HTTPException(status_code=400, detail=error_message)
         
-        # Create a new request with the params
         new_request = Request(scope=request.scope)
-        new_request._json = params  # Set the params as the request body
+        new_request._json = params
         
         response = await handle_tool_call(tool=tool, method=method, request=new_request, include_component=include_component)
         success = 1
         return response
         
-    except Exception as exc:
-        error_message = str(exc)
+    except HTTPException as http_exc:
+        success = 0
+        error_message = str(http_exc.detail)
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/tool-execute",
+            success=success,
+            error_message=error_message
+        )
         raise
         
+    except Exception as exc:
+        success = 0
+        error_message = str(exc)
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/tool-execute",
+            success=success,
+            error_message=error_message
+        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
+        
     finally:
-        try:
-            user_id = await get_user_from_request(request)
-            log_api_call(
-                user_id=user_id,
-                endpoint=f"/tool-execute",
-                success=success,
-                error_message=error_message
-            )
-        except Exception as log_error:
-            print(f"Error logging API call for Supabase: {str(log_error)}")
+        if success == 1:
+            try:
+                log_api_call(
+                    user_id=user_id,
+                    endpoint=f"/tool-execute",
+                    success=success,
+                    error_message=None
+                )
+            except Exception as log_error:
+                print(f"Error logging API call for Supabase: {str(log_error)}")
