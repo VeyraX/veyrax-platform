@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Google Docs",
+      "version": "1.0.0",
+      "description": "A React component for displaying Google Docs",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

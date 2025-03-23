@@ -1,0 +1,256 @@
+routes:
+  - endpoint: /google_docs/get_document
+    examples:
+      - scenario: "Get Document Metadata"
+        description: "Retrieves metadata for a specific document"
+        input_json: |
+          {
+            "document_id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+              "title": "Sample Document",
+              "url": "https://docs.google.com/document/d/1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+              "revision_id": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsDocumentCard"
+            }
+          }
+
+  - endpoint: /google_docs/create_document
+    examples:
+      - scenario: "Create New Document"
+        description: "Creates a new Google Docs document"
+        input_json: |
+          {
+            "title": "New Test Document"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1RAnDoMdOcId12345",
+              "title": "New Test Document",
+              "url": "https://docs.google.com/document/d/1RAnDoMdOcId12345",
+              "revision_id": "ALm37BU0c0_QdGNWYI12YuYM2PQYuGQ19VzXZvJRpJwbZLIRpOCrKdxVqzX2UcKtDw"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsDocumentCard"
+            }
+          }
+
+  - endpoint: /google_docs/batch_update
+    examples:
+      - scenario: "Batch Update Document"
+        description: "Performs multiple operations on a document in a single request"
+        input_json: |
+          {
+            "document_id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+            "requests": [
+              {
+                "insertText": {
+                  "location": {
+                    "index": 1
+                  },
+                  "text": "Hello, world!"
+                }
+              },
+              {
+                "updateTextStyle": {
+                  "range": {
+                    "startIndex": 1,
+                    "endIndex": 14
+                  },
+                  "textStyle": {
+                    "bold": true
+                  },
+                  "fields": "bold"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "documentId": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+              "replies": [
+                {
+                  "insertText": {
+                    "startIndex": 1,
+                    "endIndex": 14
+                  }
+                },
+                {
+                  "updateTextStyle": {
+                    "startIndex": 1,
+                    "endIndex": 14
+                  }
+                }
+              ],
+              "writeControl": {
+                "requiredRevisionId": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsUpdateResult"
+            }
+          }
+
+  - endpoint: /google_docs/insert_text
+    examples:
+      - scenario: "Insert Text into Document"
+        description: "Inserts text at a specific position in the document"
+        input_json: |
+          {
+            "document_id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+            "location_index": 1,
+            "text": "This is new text being added to the document."
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "documentId": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+              "replies": [
+                {
+                  "insertText": {
+                    "startIndex": 1,
+                    "endIndex": 45
+                  }
+                }
+              ],
+              "writeControl": {
+                "requiredRevisionId": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsUpdateResult"
+            }
+          }
+
+  - endpoint: /google_docs/replace_all_text
+    examples:
+      - scenario: "Replace Text in Document"
+        description: "Replaces all occurrences of a text with another text"
+        input_json: |
+          {
+            "document_id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+            "text_to_replace": "project",
+            "replace_text": "initiative"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "documentId": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+              "replies": [
+                {
+                  "replaceAllText": {
+                    "occurrencesChanged": 3
+                  }
+                }
+              ],
+              "writeControl": {
+                "requiredRevisionId": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsUpdateResult"
+            }
+          }
+
+  - endpoint: /google_docs/search_text
+    examples:
+      - scenario: "Search Text in Document"
+        description: "Searches for a specific text within the document"
+        input_json: |
+          {
+            "document_id": "1dT5TzUbV_c4jC0rBsR-oeLh0lyWbg3N6Xf9hbDQJmQE",
+            "search_term": "important",
+            "case_sensitive": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "matches": [
+                {
+                  "text": "This is an important note about the project.",
+                  "start_index": 100,
+                  "end_index": 145
+                },
+                {
+                  "text": "Another important consideration is timing.",
+                  "start_index": 200,
+                  "end_index": 240
+                }
+              ],
+              "total_found": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsSearchResult"
+            }
+          }
+
+  - endpoint: /google_docs/get_document_content
+    examples:
+      - scenario: "Get Document Content"
+        description: "Retrieves the full content of a document"
+        input_json: |
+          {
+            "document_id": "1SHswVVC2s737fmT5o_23JoGAvDz0cIae6iNzGaDPFQM"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1SHswVVC2s737fmT5o_23JoGAvDz0cIae6iNzGaDPFQM",
+              "title": "Sample Document",
+              "url": "https://docs.google.com/document/d/1SHswVVC2s737fmT5o_23JoGAvDz0cIae6iNzGaDPFQM",
+              "revision_id": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ",
+              "content": "Это содержимое документа. Здесь находится весь текст документа, включая все абзацы и форматирование.",
+              "structural_elements": [
+                {
+                  "paragraph": {
+                    "elements": [
+                      {
+                        "textRun": {
+                          "content": "Это содержимое документа. ",
+                          "textStyle": {}
+                        }
+                      }
+                    ],
+                    "paragraphStyle": {}
+                  }
+                },
+                {
+                  "paragraph": {
+                    "elements": [
+                      {
+                        "textRun": {
+                          "content": "Здесь находится весь текст документа, включая все абзацы и форматирование.",
+                          "textStyle": {}
+                        }
+                      }
+                    ],
+                    "paragraphStyle": {}
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleDocsContentViewer"
+            }
+          }

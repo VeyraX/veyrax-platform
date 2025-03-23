@@ -1,0 +1,361 @@
+routes:
+  - endpoint: /google_sheets/get_spreadsheet
+    examples:
+      - scenario: "Get Spreadsheet Metadata"
+        description: "Retrieves metadata for a specific spreadsheet"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "title": "Sample Spreadsheet",
+              "url": "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "sheets": [
+                {
+                  "id": 0,
+                  "title": "Sheet1",
+                  "index": 0,
+                  "rowCount": 1000,
+                  "columnCount": 26
+                },
+                {
+                  "id": 123456789,
+                  "title": "Sheet2",
+                  "index": 1,
+                  "rowCount": 1000,
+                  "columnCount": 26
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsSpreadsheetCard"
+            }
+          }
+
+  - endpoint: /google_sheets/get_spreadsheet_values
+    examples:
+      - scenario: "Get Spreadsheet Values"
+        description: "Retrieves values from a specific range in a spreadsheet"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "range": "Sheet1!A1:D5"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "sheet_title": "Sheet1",
+              "range": "Sheet1!A1:D5",
+              "values": [
+                ["Name", "Age", "Email", "City"],
+                ["John Smith", "30", "john@example.com", "New York"],
+                ["Jane Doe", "25", "jane@example.com", "San Francisco"],
+                ["Bob Johnson", "42", "bob@example.com", "Chicago"]
+              ],
+              "majorDimension": "ROWS"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsDataTable"
+            }
+          }
+
+  - endpoint: /google_sheets/get_spreadsheet_values_batch
+    examples:
+      - scenario: "Get Multiple Ranges of Spreadsheet Values"
+        description: "Retrieves values from multiple ranges in a single request"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "ranges": ["Sheet1!A1:B5", "Sheet1!D1:F5"]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "value_ranges": [
+                {
+                  "range": "Sheet1!A1:B5",
+                  "majorDimension": "ROWS",
+                  "values": [
+                    ["Name", "Age"],
+                    ["John Smith", "30"],
+                    ["Jane Doe", "25"],
+                    ["Bob Johnson", "42"]
+                  ]
+                },
+                {
+                  "range": "Sheet1!D1:F5",
+                  "majorDimension": "ROWS",
+                  "values": [
+                    ["City", "State", "Zip"],
+                    ["New York", "NY", "10001"],
+                    ["San Francisco", "CA", "94105"],
+                    ["Chicago", "IL", "60601"]
+                  ]
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsDataTableBatch"
+            }
+          }
+
+  - endpoint: /google_sheets/update_spreadsheet_values
+    examples:
+      - scenario: "Update Spreadsheet Values"
+        description: "Updates values in a specific range of a spreadsheet"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "range": "Sheet1!A1:B2",
+            "values": [
+              ["Updated Name", "Updated Age"],
+              ["John Updated", "31"]
+            ],
+            "value_input_option": "RAW"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "updated_range": "Sheet1!A1:B2",
+              "updated_cells": 4,
+              "updated_rows": 2,
+              "updated_columns": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsUpdateResult"
+            }
+          }
+
+  - endpoint: /google_sheets/append_spreadsheet_values
+    examples:
+      - scenario: "Append Spreadsheet Values"
+        description: "Appends values to a spreadsheet at the end of a range"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "range": "Sheet1!A:D",
+            "values": [
+              ["Sarah Wilson", "29", "sarah@example.com", "Boston"]
+            ],
+            "value_input_option": "RAW"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "updated_range": "Sheet1!A5:D5",
+              "updated_cells": 4,
+              "updated_rows": 1,
+              "updated_columns": 4
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsUpdateResult"
+            }
+          }
+
+  - endpoint: /google_sheets/clear_spreadsheet_values
+    examples:
+      - scenario: "Clear Spreadsheet Values"
+        description: "Clears all values from a specified range"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "range": "Sheet1!A2:D5"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "cleared_range": "Sheet1!A2:D5",
+              "message": "Values cleared successfully"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsClearResult"
+            }
+          }
+
+  - endpoint: /google_sheets/create_spreadsheet
+    examples:
+      - scenario: "Create New Spreadsheet"
+        description: "Creates a new Google Sheets spreadsheet"
+        input_json: |
+          {
+            "title": "New Test Spreadsheet"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1RAnDoMsPrEaDsHeEtId12345",
+              "title": "New Test Spreadsheet",
+              "url": "https://docs.google.com/spreadsheets/d/1RAnDoMsPrEaDsHeEtId12345",
+              "sheets": [
+                {
+                  "id": 0,
+                  "title": "Sheet1",
+                  "index": 0,
+                  "rowCount": 1000,
+                  "columnCount": 26
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsSpreadsheetCard"
+            }
+          }
+
+  - endpoint: /google_sheets/add_sheet
+    examples:
+      - scenario: "Add New Sheet to Spreadsheet"
+        description: "Adds a new sheet to an existing spreadsheet"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "sheet_title": "NewSheet"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "sheet_id": 987654321,
+              "sheet_title": "NewSheet",
+              "message": "Sheet added successfully"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsActionResult"
+            }
+          }
+
+  - endpoint: /google_sheets/delete_sheet
+    examples:
+      - scenario: "Delete Sheet from Spreadsheet"
+        description: "Deletes a sheet from a spreadsheet by sheet ID"
+        input_json: |
+          {
+            "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+            "sheet_id": 987654321
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms",
+              "sheet_id": 987654321,
+              "message": "Sheet deleted successfully"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsActionResult"
+            }
+          }
+
+  - endpoint: /google_sheets/search_spreadsheet
+    examples:
+      - scenario: "Search in Spreadsheet"
+        description: "Searches for a term across the entire spreadsheet or specific ranges"
+        input_json: |
+          {
+            "spreadsheet_id": "1zVcHD-WNJFznJG9YH_jalCrJCNghO-Tb2nKN1_dABUA",
+            "search_term": "example",
+            "case_sensitive": false
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "matches": [
+                {
+                  "sheet": "Sheet1",
+                  "cell": "C2",
+                  "value": "john@example.com",
+                  "a1_notation": "Sheet1!C2"
+                },
+                {
+                  "sheet": "Sheet1",
+                  "cell": "C3",
+                  "value": "jane@example.com",
+                  "a1_notation": "Sheet1!C3"
+                }
+              ],
+              "total_found": 2
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsSearchResult"
+            }
+          }
+
+  - endpoint: /google_sheets/get_formulas
+    examples:
+      - scenario: "Get Formulas from Range"
+        description: "Retrieves cells with formulas from a specified range"
+        input_json: |
+          {
+            "spreadsheet_id": "1zVcHD-WNJFznJG9YH_jalCrJCNghO-Tb2nKN1_dABUA",
+            "range": "Sheet1!A1:E5"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1zVcHD-WNJFznJG9YH_jalCrJCNghO-Tb2nKN1_dABUA",
+              "range": "Sheet1!A1:E5",
+              "formulas": [
+                ["Name", "Age", "Email", "City", "=SUM(B2:B4)"],
+                ["John Smith", "30", "john@example.com", "New York", ""],
+                ["Jane Doe", "=2*10+5", "jane@example.com", "San Francisco", ""],
+                ["Bob Johnson", "42", "bob@example.com", "Chicago", "=CONCATENATE(A3,\" - \",D3)"]
+              ],
+              "majorDimension": "ROWS"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsFormulasResult"
+            }
+          }
+
+  - endpoint: /google_sheets/add_formula
+    examples:
+      - scenario: "Add Formula to Cell"
+        description: "Adds a formula to a specific cell in the spreadsheet"
+        input_json: |
+          {
+            "spreadsheet_id": "1zVcHD-WNJFznJG9YH_jalCrJCNghO-Tb2nKN1_dABUA",
+            "range": "Sheet1!E5",
+            "formula": "=AVERAGE(B2:B4)"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "spreadsheet_id": "1zVcHD-WNJFznJG9YH_jalCrJCNghO-Tb2nKN1_dABUA",
+              "range": "Sheet1!E5",
+              "applied": true,
+              "formula": "=AVERAGE(B2:B4)"
+            },
+            "message": null,
+            "component": {
+              "name": "GoogleSheetsFormulaResult"
+            }
+          }

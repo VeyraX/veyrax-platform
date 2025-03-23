@@ -60,8 +60,8 @@ from integrations.revid.route import router as revid_ai_router
 from integrations.cloudinary.route import router as cloudinary_router
 from integrations.airtable.route import router as airtable_router
 from integrations.todoist.route import router as todoist_router
-
-
+from integrations.google_sheets.route import router as google_sheets_router
+from integrations.google_docs.route import router as google_docs_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -138,7 +138,9 @@ INTEGRATION_ROUTERS = {
     "revid": revid_ai_router,
     "cloudinary": cloudinary_router,
     "airtable": airtable_router,
-    "todoist": todoist_router
+    "todoist": todoist_router,
+    "google-sheets": google_sheets_router,
+    "google-docs": google_docs_router
 }
 
 app = FastAPI()

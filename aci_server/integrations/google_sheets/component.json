@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Google Sheets",
+      "version": "1.0.0",
+      "description": "A React component for displaying Google Sheets",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]
