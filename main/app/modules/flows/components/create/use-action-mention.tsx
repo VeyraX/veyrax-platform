@@ -1,15 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { ProviderAction } from "@/app/modules/flows/api/types.flows";
-import { getAllProviderActions } from "@/app/modules/flows/api/api.flows";
 
 interface CursorPosition {
   top: number;
   left: number;
 }
 
-export function useActionsMention(contentEditableRef: React.RefObject<any>) {
-  const [actions, setActions] = useState<any[]>([]);
-  const [filteredActions, setFilteredActions] = useState<any[]>([]);
+export function useActionsMention(contentEditableRef: React.RefObject<any>, providedActions: any[] = []) {
+  const [actions, setActions] = useState<any[]>(providedActions);
+  const [filteredActions, setFilteredActions] = useState<any[]>(providedActions);
   const [showActions, setShowActions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
@@ -19,18 +18,9 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>) {
   const actionJustSelectedTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const loadActions = async () => {
-      try {
-        const actions = await getAllProviderActions();
-        setActions(actions);
-        setFilteredActions(actions);
-      } catch (error) {
-        console.error('Error loading actions:', error);
-      }
-    };
-
-    loadActions();
-  }, []);
+    setActions(providedActions);
+    setFilteredActions(providedActions);
+  }, [providedActions]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {

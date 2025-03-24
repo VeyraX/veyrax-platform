@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
-import { getAllProviderActions } from "@/app/modules/flows/api/api.flows";
 import ContentEditable from "react-contenteditable";
 import { ActionItem } from "@/app/modules/flows/components/action-item";
 import { Wand2, Loader2, MessageSquare, Settings } from "lucide-react";
@@ -13,33 +12,19 @@ import { useToolsDetector, ToolsList } from "../flow-description-tool-detector";
 import { extractTextFromHTML, isEmptyHTML } from "../flow-description-html";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatFlowCreator } from "./chat-flow-creator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FlowConfigurationProps {
   onSave?: (config: { name: string; description: string }) => void;
   onTest?: () => void;
+  actions: any[];
 }
 
-export function FlowConfiguration({ onSave, onTest }: FlowConfigurationProps) {
+export function FlowConfiguration({ onSave, onTest, actions }: FlowConfigurationProps) {
   const [name, setName] = useState("");
   const [html, setHtml] = useState("");
-  const [actions, setActions] = useState<any[]>([]);
   const contentEditableRef = useRef<any>(null);
   const lastHtml = useRef("");
   const [activeTab, setActiveTab] = useState<string>("configure");
-
-  useEffect(() => {
-    const loadActions = async () => {
-      try {
-        const actions = await getAllProviderActions();
-        setActions(actions);
-      } catch (error) {
-        console.error('Error loading actions:', error);
-      }
-    };
-
-    loadActions();
-  }, []);
 
   const { complete, completion, isLoading: isImproving } = useCompletion({
     api: '/api/flow/improve-description',
@@ -64,7 +49,7 @@ export function FlowConfiguration({ onSave, onTest }: FlowConfigurationProps) {
     actionsListRef,
     handleActionSelect,
     processEditorChange
-  } = useActionsMention(contentEditableRef);
+  } = useActionsMention(contentEditableRef, actions);
 
   const handleChange = (evt: any) => {
     const newHtml = evt.target.value;
@@ -147,7 +132,7 @@ export function FlowConfiguration({ onSave, onTest }: FlowConfigurationProps) {
         </TabsContent>
         
         <TabsContent value="configure">
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)]">
             <div className="space-y-2">
               <label className="text-sm font-medium">Flow Name</label>
               <Input
@@ -200,7 +185,7 @@ export function FlowConfiguration({ onSave, onTest }: FlowConfigurationProps) {
                     {filteredActions.length > 0 ? (
                       filteredActions.map((action, index) => (
                         <button 
-                          key={action.provider_id + action.action_name}
+                          key={action.action_id || `${action.provider_id}-${action.action_name}-${index}`}
                           data-index={index}
                           className={`w-full text-left ${index === selectedActionIndex ? 'bg-primary/10' : ''} cursor-pointer`}
                           onClick={(e) => {

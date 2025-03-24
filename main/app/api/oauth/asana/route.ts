@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
 
     const redirectUri = `${request.nextUrl.origin}/api/oauth/asana/callback`;
 
-    // Asana doesn't use scopes, so we don't include them in the URL
     const authUrl = `https://app.asana.com/-/oauth_authorize?` +
         `client_id=${process.env.ASANA_CLIENT_ID}&` +
         `response_type=code&` +

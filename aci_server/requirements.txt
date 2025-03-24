@@ -39,12 +39,8 @@ cryptography==44.0.2
 snowflake-connector-python==3.14.0
 psycopg2-binary==2.9.10
 clickhouse-driver==0.2.9
-
-## E2B.dev deps
 e2b==1.1.0
 e2b-code-interpreter==1.1.0
 packaging==24.2
-## End of E2B deps
-
-
+beautifulsoup4==4.12.2
 python-amazon-paapi==5.0.1

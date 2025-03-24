@@ -6,44 +6,69 @@ import { useRef, useState, useEffect } from "react";
 import { useChat } from 'ai/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FlowHeader } from "../components/header";
+import { getFlowById } from "../api/api.flows";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function FlowCreatePage() {
-  // Создаем постоянный ID для чата
+export default function FlowCreatePage({ flowId }: { flowId?: string }) {
+  const router = useRouter();
   const flowChatId = useRef(`flow-chat-${Date.now()}`).current;
   const [isMobile, setIsMobile] = useState(false);
-
-  // Отслеживание размера экрана
+  const [flowName, setFlowName] = useState("New Flow");
+  const [flow, setFlow] = useState<any>(null);
+  const [isLoadingFlow, setIsLoadingFlow] = useState(!!flowId);
+  const [isMounted, setIsMounted] = useState(false);
+  
   useEffect(() => {
+    setIsMounted(true);
+    
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
     
-    // Проверка при загрузке
     checkScreenSize();
     
-    // Слушатель изменения размера окна
     window.addEventListener('resize', checkScreenSize);
     
     return () => {
       window.removeEventListener('resize', checkScreenSize);
     };
   }, []);
+  
+  useEffect(() => {
+    if (flowId) {
+      const loadFlow = async () => {
+        try {
+          setIsLoadingFlow(true);
+          const flowData = await getFlowById(flowId);
+          if (flowData) {
+            setFlow(flowData);
+            setFlowName(flowData.name || "Edit Flow");
+          }
+        } catch (error) {
+          console.error('Error loading flow:', error);
+        } finally {
+          setIsLoadingFlow(false);
+        }
+      };
+      
+      loadFlow();
+    }
+  }, [flowId]);
 
-  // Используем useChat для управления чатом на глобальном уровне
   const { messages, append, isLoading: isChatLoading, stop } = useChat({
-    api: '/api/flow/create-from-chat',
+    api: '/api/flow/test-from-chat',
     id: flowChatId,
     initialMessages: [],
     onFinish: (message) => {
       try {
-        // Обработка завершения сообщения остается прежней
         if (message.toolInvocations && message.toolInvocations.length > 0) {
           for (const toolInvocation of message.toolInvocations) {
             if (toolInvocation.toolName === 'flow_improve_description' && toolInvocation.state === 'result') {
               try {
                 const result = toolInvocation.result;
                 if (result && typeof result === 'object' && result.name && result.description) {
-                  // Данные можно передать в UnifiedFlowCreator через колбэк
                   return;
                 }
               } catch (toolError) {
@@ -57,7 +82,6 @@ export default function FlowCreatePage() {
           try {
             const flowData = JSON.parse(message.content);
             if (flowData.name && flowData.description) {
-              // Здесь также можно обработать данные
             }
           } catch (jsonError) {
             console.log('Message is not a valid JSON, continuing...', jsonError);
@@ -81,17 +105,97 @@ export default function FlowCreatePage() {
     }
   };
 
-  const handleSaveFlow = (config: { name: string; description: string }) => {
-    console.log('Saving flow:', config);
+  const handleSaveFlow = (config: { name: string; description: string; plain_description?: string; id?: string }) => {
+    console.log('Сохраняем поток:', config);
+    setFlowName(config.name || "New Flow");
+    
+    if (config.id) {
+      const updatedFlow = {
+        ...flow,
+        id: config.id,
+        name: config.name,
+        description: config.description,
+        plain_description: config.plain_description
+      };
+      setFlow(updatedFlow);
+      
+      if (!flowId) {
+        const newUrl = `/flow/${config.id}/edit`;
+        window.history.pushState(
+          { ...window.history.state, as: newUrl, url: newUrl }, 
+          '', 
+          newUrl
+        );
+        console.log("URL updated without page re-render:", newUrl);
+      } else {
+        console.log("Update data without URL change");
+      }
+    }
+  };
+
+  const handleCreateFlow = () => {
+    console.log('Creating new flow with name:', flowName);
+    
+    if (flow?.id) {
+      console.log('Flow already exists, letting the header handle it');
+      return;
+    }
+    
+    router.push('/agent');
+  };
+
+  const handlePublishFlow = (publishedFlowId: string) => {
+    console.log('Flow published with ID:', publishedFlowId);
+    router.push('/agent');
   };
 
   const handleTestFlow = () => {
     console.log('Testing flow');
   };
 
+  if (!isMounted || isLoadingFlow) {
+    return (
+      <div className="h-screen overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <Skeleton className="w-6 h-6 rounded-full" />
+            <Skeleton className="w-40 h-5" />
+          </div>
+          <Skeleton className="w-20 h-7 rounded-full" />
+        </div>
+        
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-[700px] border-r border-border bg-muted/10 flex flex-col h-full overflow-hidden p-6">
+            <div className="flex flex-col h-full gap-6">
+              <Skeleton className="w-36 h-8 mb-4" />
+              <Skeleton className="w-full h-10 mb-2" />
+              <Skeleton className="w-full h-[200px] mb-4" />
+              <Skeleton className="w-full h-10 mb-2" />
+              <Skeleton className="w-full h-[100px]" />
+            </div>
+          </div>
+
+          <div className="flex-1 h-full overflow-hidden">
+            <div className="h-full flex items-center justify-center">
+              <Skeleton className="w-[400px] h-[300px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isMobile) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
+        <FlowHeader 
+          flowName={flowName} 
+          onBack={() => router.back()}
+          onCreateClick={handleCreateFlow}
+          onPublish={handlePublishFlow}
+          isLoading={isLoadingFlow}
+          flowId={flow?.id}
+        />
         <Tabs defaultValue="chat" className="w-full h-full flex flex-col">
           <TabsList className="grid grid-cols-2 mb-2">
             <TabsTrigger value="chat" className="flex items-center gap-2">
@@ -120,6 +224,12 @@ export default function FlowCreatePage() {
               onTest={handleTestFlow}
               chatMessages={messages}
               flowChatId={flowChatId}
+              initialData={flow ? {
+                id: flow.id,
+                name: flow.name,
+                description: flow.description
+              } : undefined}
+              isLoading={isLoadingFlow}
             />
           </TabsContent>
         </Tabs>
@@ -128,24 +238,40 @@ export default function FlowCreatePage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="w-[700px] border-r border-border bg-muted/10 flex flex-col h-full overflow-hidden">
-        <UnifiedFlowCreator 
-          onSave={handleSaveFlow}
-          onTest={handleTestFlow}
-          chatMessages={messages}
-          flowChatId={flowChatId}
-        />
-      </div>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <FlowHeader 
+        flowName={flowName} 
+        onBack={() => router.back()}
+        onCreateClick={handleCreateFlow}
+        onPublish={handlePublishFlow}
+        isLoading={isLoadingFlow}
+        flowId={flow?.id}
+      />
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-[700px] border-r border-border bg-muted/10 flex flex-col h-full overflow-hidden">
+          <UnifiedFlowCreator 
+            onSave={handleSaveFlow}
+            onTest={handleTestFlow}
+            chatMessages={messages}
+            flowChatId={flowChatId}
+            initialData={flow ? {
+              id: flow.id,
+              name: flow.name,
+              description: flow.description
+            } : undefined}
+            isLoading={isLoadingFlow}
+          />
+        </div>
 
-      <div className="flex-1 h-full overflow-hidden">
-        <FlowChatPanel
-          messages={messages}
-          isLoading={isChatLoading}
-          chatId={flowChatId}
-          onSubmit={handleSendMessage}
-          onStop={stop}
-        />
+        <div className="flex-1 h-full overflow-hidden">
+          <FlowChatPanel
+            messages={messages}
+            isLoading={isChatLoading}
+            chatId={flowChatId}
+            onSubmit={handleSendMessage}
+            onStop={stop}
+          />
+        </div>
       </div>
     </div>
   );

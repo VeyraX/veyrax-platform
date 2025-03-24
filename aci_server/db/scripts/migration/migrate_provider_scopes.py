@@ -55,6 +55,15 @@ def migrate_provider_scopes():
                         print(f"Missing scope data in item for provider {provider_name}: {scope_item}")
                         continue
                     
+                    # Check if this scope already exists in the database
+                    existing_scope = supabase.table("provider_scopes").select(
+                        "id"
+                    ).eq("provider_id", provider_id).eq("scope_id", scope_id).limit(1).execute()
+                    
+                    if existing_scope.data:
+                        print(f"Scope '{scope_name}' already exists for provider '{provider_name}'. Skipping...")
+                        continue
+                    
                     # Insert into the new table
                     supabase.table("provider_scopes").insert({
                         "scope_id": scope_id,

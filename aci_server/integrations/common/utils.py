@@ -301,3 +301,45 @@ def apply_error_handler_to_client(client):
             if hasattr(original_method, '__self__') and original_method.__self__ is client:
                 setattr(client, method_name, handle_api_error(original_method))
     return client
+
+
+def get_user_flows_actions(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_actions_flows_view') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        if not result.data:
+            return []
+        
+        flows_map = {}
+        
+        for row in result.data:
+            flow_id = row.get('flow_id')
+            
+            if flow_id not in flows_map:
+                flows_map[flow_id] = {
+                    "name": row.get('flow_name'),
+                    "plain_description": row.get('flow_plain_description'),
+                    "available_actions": []
+                }
+            
+            action = {
+                "provider_slug": row.get('provider_slug'),
+                "action_slug": row.get('action_slug'),
+                "input_schema": row.get('input_schema'),
+                "output_schema": row.get('output_schema')
+            }
+            
+            flows_map[flow_id]["available_actions"].append(action)
+        
+        # Convert dictionary to list
+        flows = list(flows_map.values())
+        
+        return flows
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}

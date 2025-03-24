@@ -108,6 +108,15 @@ def migrate_provider_actions():
                     import hashlib
                     action_id = hashlib.md5(f"{provider_id}:{action_slug}".encode()).hexdigest()
                     
+                    # Check if this action already exists in the database
+                    existing_action = supabase.table("provider_actions").select(
+                        "id"
+                    ).eq("provider_id", provider_id).eq("action_slug", action_slug).limit(1).execute()
+                    
+                    if existing_action.data:
+                        print(f"Action '{action_slug}' already exists for provider '{provider_name}'. Skipping...")
+                        continue
+                    
                     # Get component for this action
                     action_component = None
                     if action_slug in endpoint_to_component:
@@ -130,7 +139,7 @@ def migrate_provider_actions():
                     print(f"Adding action: {action_slug} for provider: {provider_name}")
                     
                     # Insert into the providers_actions table
-                    supabase.table("providers_actions").insert(action_data).execute()
+                    supabase.table("provider_actions").insert(action_data).execute()
                     
                     action_count += 1
                     print(f"Successfully added action: {action_slug} for provider: {provider_name}")
@@ -140,7 +149,7 @@ def migrate_provider_actions():
                     import traceback
                     traceback.print_exc()
         
-        print(f"Migration complete! Added {action_count} actions to providers_actions table")
+        print(f"Migration complete! Added {action_count} actions to provider_actions table")
         
     except Exception as e:
         print(f"Error during migration: {str(e)}")

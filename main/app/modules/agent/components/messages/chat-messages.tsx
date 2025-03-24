@@ -21,6 +21,7 @@ interface ChatMessagesProps {
   isInitialLoading?: boolean
   chatId: string
   isFlow?: boolean
+  hideRatings?: boolean
 }
 
 function parseMessageContent(content: string) {
@@ -56,7 +57,7 @@ function parseMessageContent(content: string) {
   return cleanContent;
 }
 
-export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoading, chatId, isFlow = false }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoading, chatId, isFlow = false, hideRatings = false }: ChatMessagesProps) {
   const [copiedMessageId, setCopiedMessageId] = React.useState<string | null>(null);
   const [ratedMessages, setRatedMessages] = React.useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -87,7 +88,7 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
   };
 
   return (
-    <div className="flex flex-col gap-8 p-4 max-w-5xl mx-auto w-full overflow-y-auto relative h-full">
+    <div className={`flex flex-col gap-8 p-4 max-w-5xl mx-auto w-full ${isFlow ? '' : 'overflow-y-auto'} relative h-full`}>
       {messages.length === 0 && isFlow ? (
         <div className="flex-grow flex items-center justify-center min-h-[300px]">
           <FlowChatEmptyState />
@@ -147,6 +148,23 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           </div>
                                       );
                                     
+                                    case 'tool_call_test_flow':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Completed</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    
                                     case 'flow_improve_description':
                                     case 'flow_generate':
                                       return (
@@ -154,12 +172,12 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
                                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Обрабатываю...</span>
+                                              <span>Generating flow...</span>
                                             </div>
                                           ) : (
-                                            <div className="flex items-center gap-2 text-green-600">
+                                            <div className="flex items-center gap-2">
                                               <Check className="h-4 w-4" />
-                                              <span>Готово</span>
+                                              <span>Generated</span>
                                             </div>
                                           )}
                                         </div>
@@ -200,7 +218,8 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                 {isLastAssistantMessage && 
                  !isLoading && 
                  (!message.hasOwnProperty('is_accurate') || message.is_accurate === null) &&
-                 !ratedMessages.has(message.id) && (
+                 !ratedMessages.has(message.id) && 
+                 !hideRatings && (
                   <div className="flex gap-1 -translate-y-4">
                     <Button 
                       variant="ghost" 

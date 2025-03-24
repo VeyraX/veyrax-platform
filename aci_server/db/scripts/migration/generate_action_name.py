@@ -28,7 +28,7 @@ RULES:
 6. Return ONLY the name, nothing else - no explanation, no quotes, no period.
 """
 
-def generate_action_display_name(action_slug, examples, output_schema):
+def generate_action_display_name(action_slug, examples, output_schema, input_schema):
     """Generate a user-friendly name for an action based on examples and schema"""
     
     # Create a descriptive prompt
@@ -39,6 +39,9 @@ def generate_action_display_name(action_slug, examples, output_schema):
 
     Examples:
     {json.dumps(examples, indent=2)[:500]}
+
+    Input schema:
+    {json.dumps(input_schema, indent=2)[:500]}
 
     Based on this information, provide a clear, concise 2-4 word name that describes what this action does.
     """
@@ -60,41 +63,48 @@ def process_actions():
         supabase = get_supabase()
         
         # Fetch all actions with examples and output_schema
-        response = supabase.table("providers_actions").select("id, action_name, examples, output_schema").execute()
+        response = supabase.table("provider_actions").select("id, action_name, action_slug, examples, output_schema, input_schema").execute()
         
         actions = response.data
         print(f"Found {len(actions)} actions to process")
         
         # Process each action
         count = 0
+        skipped = 0
         for action in actions:
             try:
                 action_id = action["id"]
-                action_slug = action["action_name"]
+                current_action_name = action.get("action_name")
+                action_slug = action.get("action_slug")
                 examples = action.get("examples", [])
                 output_schema = action.get("output_schema", {})
+                input_schema = action.get("input_schema", {})
                 
-                # Generate display name based on examples and output schema
-                new_action_name = generate_action_display_name(action_slug, examples, output_schema)
+                if current_action_name and action_slug and current_action_name != action_slug:
+                    print(f"Skipping action with existing name: {action_slug} → {current_action_name}")
+                    skipped += 1
+                    continue
+                
+                new_action_name = generate_action_display_name(action_slug or current_action_name, examples, output_schema, input_schema)
                 
                 print(f"{action_slug} → {new_action_name}")
                 
                 # Update the action_name field directly
-                supabase.table("providers_actions").update({
+                supabase.table("provider_actions").update({
                     "action_name": new_action_name
                 }).eq("id", action_id).execute()
                 
                 count += 1
                 if count % 10 == 0:
-                    print(f"Processed {count}/{len(actions)} actions")
+                    print(f"Processed {count}/{len(actions) - skipped} actions (skipped {skipped})")
                 
                 # Slight delay to avoid rate limits
                 time.sleep(0.1)
                 
             except Exception as e:
-                print(f"Error processing action {action.get('action_name', 'unknown')}: {str(e)}")
+                print(f"Error processing action {action.get('action_slug', action.get('action_name', 'unknown'))}: {str(e)}")
         
-        print("Name generation complete!")
+        print(f"Name generation complete! Processed {count} actions, skipped {skipped} actions with existing names")
         
     except Exception as e:
         print(f"Error during name generation: {str(e)}")

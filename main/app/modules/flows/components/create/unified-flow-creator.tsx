@@ -3,42 +3,74 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
-import { getAllProviderActions } from "@/app/modules/flows/api/api.flows";
+import { getUserActions } from "@/app/modules/flows/api/api.flows";
 import ContentEditable from "react-contenteditable";
 import { ActionItem } from "@/app/modules/flows/components/action-item";
-import { Wand2, Loader2, MessageSquare, Settings } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useChat } from 'ai/react';
 import { useActionsMention } from "./use-action-mention";
 import { useToolsDetector, ToolsList } from "../flow-description-tool-detector";
 import { extractTextFromHTML, isEmptyHTML } from "../flow-description-html";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatMessages } from "@/app/modules/agent/components/messages/chat-messages";
-import { AIInputWithSearch } from "@/app/modules/agent/components/input/ai-input";
 import { type Message } from 'ai/react';
 import { ChatFlowCreator } from "./chat-flow-creator";
+import { updateFlowWithExtractedActions, saveFlowWithExtractedActions } from "@/app/modules/flows/api/api.flows";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UnifiedFlowCreatorProps {
-  onSave?: (config: { name: string; description: string }) => void;
+  onSave?: (config: { name: string; description: string; plain_description?: string; id?: string }) => void;
   onTest?: () => void;
   chatMessages?: Message[];
   flowChatId?: string;
+  initialData?: {
+    id: string;
+    name: string;
+    description: string;
+    plain_description?: string;
+  };
+  isLoading?: boolean;
 }
 
-export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }: UnifiedFlowCreatorProps) {
-  const [name, setName] = useState("");
-  const [html, setHtml] = useState("");
+export function UnifiedFlowCreator({ 
+  onSave, 
+  onTest, 
+  chatMessages, 
+  flowChatId, 
+  initialData,
+  isLoading = false
+}: UnifiedFlowCreatorProps) {
+  const [activeTab, setActiveTab] = useState<string>(initialData ? "configure" : "create");
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedTab = localStorage.getItem('flowCreatorActiveTab');
+      if (storedTab) {
+        setActiveTab(storedTab);
+      }
+    }
+  }, []);
+  
+  const [name, setName] = useState(initialData?.name || "");
+  const [html, setHtml] = useState(initialData?.description || "");
   const [actions, setActions] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("create");
+  const [isActionsLoading, setIsActionsLoading] = useState(true);
   const [isImproving, setIsImproving] = useState(false);
+  const [flowId, setFlowId] = useState<string | undefined>(initialData?.id);
+  const [isSaving, setIsSaving] = useState(false);
   
   const contentEditableRef = useRef<any>(null);
   const lastHtml = useRef("");
   
-  // Создаем стабильный ID для чата
   const flowCreatorChatId = useRef(`flow-creator-${Date.now()}`).current;
+
+  // Handle tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('flowCreatorActiveTab', value);
+    }
+  };
   
-  // Поднимаем состояние чата на уровень UnifiedFlowCreator
   const { messages, append, isLoading: isChatLoading, stop } = useChat({
     api: '/api/flow/create-from-chat',
     id: flowCreatorChatId,
@@ -94,16 +126,28 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
 
   useEffect(() => {
     const loadActions = async () => {
+      setIsActionsLoading(true);
       try {
-        const actions = await getAllProviderActions();
-        setActions(actions);
+        const fetchedActions = await getUserActions();
+        console.log(fetchedActions);
+        setActions(fetchedActions);
       } catch (error) {
         console.error('Error loading actions:', error);
+      } finally {
+        setIsActionsLoading(false);
       }
     };
 
     loadActions();
   }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name || "");
+      setHtml(initialData.description || "");
+      setFlowId(initialData.id);
+    }
+  }, [initialData]);
 
   const { 
     filteredActions, 
@@ -117,7 +161,7 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
     actionsListRef,
     handleActionSelect,
     processEditorChange
-  } = useActionsMention(contentEditableRef);
+  } = useActionsMention(contentEditableRef, actions);
 
   const { usedTools } = useToolsDetector(html, actions);
 
@@ -140,13 +184,38 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
     lastHtml.current = newHtml;
   };
 
-  const handleSave = () => {
-    const plainText = extractTextFromHTML(html);
-    
-    onSave?.({ 
-      name, 
-      description: plainText 
-    });
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      
+      const plainText = extractTextFromHTML(html);
+      let currentFlowId = flowId;
+      
+      if (!currentFlowId) {
+        currentFlowId = await saveFlowWithExtractedActions({
+          name,
+          html
+        }, actions);
+        
+        setFlowId(currentFlowId);
+      } else {
+        await updateFlowWithExtractedActions(currentFlowId, {
+          name,
+          html
+        }, actions);
+      }
+      
+      onSave?.({ 
+        name, 
+        description: html,
+        plain_description: plainText,
+        id: currentFlowId
+      });
+    } catch (error) {
+      console.error('Error saving flow:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAIImprove = async () => {
@@ -197,11 +266,35 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full gap-6 p-6">
+        <Skeleton className="w-36 h-8 mb-4" />
+        <div className="space-y-4 flex-grow">
+          <div className="space-y-2">
+            <Skeleton className="w-24 h-5" />
+            <Skeleton className="w-full h-10" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="w-24 h-5" />
+            <Skeleton className="w-full h-[200px]" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="w-24 h-5" />
+            <Skeleton className="w-full h-[50px]" />
+          </div>
+        </div>
+        <div className="flex gap-3 mt-4">
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full gap-6 p-6">
-      <h2 className="text-2xl font-semibold">Flow Creator</h2>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex-1 flex flex-col">
         <TabsList className="h-auto gap-4 rounded-none bg-transparent px-0 py-1 text-foreground mb-4">
           <TabsTrigger 
             className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
@@ -256,11 +349,11 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
                       innerRef={contentEditableRef}
                       html={html}
                       onChange={handleChange}
-                      className="editor-content min-h-[400px] h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block"
+                      className="editor-content min-h-[100px] h-auto w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 block"
                       data-placeholder="Describe the flow you would like to create... Use @ to mention actions"
                     />
                   ) : (
-                    <div className="editor-content min-h-[400px] h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm relative flex items-center justify-center">
+                    <div className="editor-content min-h-[100px] h-auto w-full rounded-md border border-input bg-background px-3 py-2 text-sm relative flex items-center justify-center">
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   )}
@@ -279,7 +372,7 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
                       {filteredActions.length > 0 ? (
                         filteredActions.map((action, index) => (
                           <button 
-                            key={action.provider_id + action.action_name}
+                            key={action.action_id || `${action.provider_id}-${action.action_name}-${index}`}
                             data-index={index}
                             className={`w-full text-left ${index === selectedActionIndex ? 'bg-primary/10' : ''} cursor-pointer`}
                             onClick={(e) => {
@@ -303,20 +396,27 @@ export function UnifiedFlowCreator({ onSave, onTest, chatMessages, flowChatId }:
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="mt-4">
+              
               <div className="space-y-2">
                 <label className="text-sm font-medium">Tools</label>
                 <ToolsList tools={usedTools} />
               </div>
+            </div>
 
-              <div className="flex gap-3 mt-6">
+            <div className="w-full bg-background pt-2 px-6 mt-auto">
+              <div className="flex gap-3 mt-2">
                 <Button variant="outline" onClick={onTest} className="flex-1">
                   Test
                 </Button>
-                <Button onClick={handleSave} className="flex-1">
-                  Save
+                <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save"
+                  )}
                 </Button>
               </div>
             </div>

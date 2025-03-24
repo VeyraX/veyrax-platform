@@ -49,7 +49,7 @@ from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
 from integrations.reddit.route import router as reddit_router
-from integrations.common.utils import get_router_tools, log_api_call
+from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
@@ -575,3 +575,38 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
                 )
             except Exception as log_error:
                 print(f"Error logging API call for Supabase: {str(log_error)}")
+
+@app.get("/get-flows")
+async def get_user_flows_endpoint(request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
+        flows = get_user_flows_actions(user_id)
+        
+        if isinstance(flows, dict) and "error" in flows:
+            raise Exception(flows["error"])
+        
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-flows",
+            success=1
+        )
+        
+        response = {
+            "flows": flows,
+            "examples": json.loads(get_tools_example_prompt)
+        }
+        
+        return response
+    except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-flows",
+            success=0,
+            error_message=str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user flows: {str(e)}")
+
