@@ -113,10 +113,6 @@ class OfficialModelPredictionRequest(BaseModel):
     )
     model_owner: str = Field(..., description="Owner of the model")
     model_name: str = Field(..., description="Name of the model")
-    wait: Optional[int] = Field(
-        default=None,
-        description="Wait for the prediction to complete. Value is in seconds. Maximum 60 seconds."
-    )
 
 class KlingModelPredictionRequest(OfficialModelPredictionRequest):
     class KlingInput(BaseModel):
@@ -183,10 +179,6 @@ class MinimaxVideoModelPredictionRequest(OfficialModelPredictionRequest):
     )
     model_owner: Optional[str] = Field(default="minimax", description="Owner of the model")
     model_name: Optional[str] = Field(default="video-01", description="Name of the model")
-    wait: Optional[int] = Field(
-        default=None,
-        description="Wait for the prediction to complete. Value is in seconds. Maximum 60 seconds."
-    )
 
 # Direct version-based model requests
 class StableDiffusionRequest(PredictionRequest):

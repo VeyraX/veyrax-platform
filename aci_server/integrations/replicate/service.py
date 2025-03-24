@@ -258,8 +258,7 @@ class ReplicateService:
         self,
         model_owner: str,
         model_name: str,
-        request: OfficialModelPredictionRequest,
-        wait: Optional[int] = None
+        request: OfficialModelPredictionRequest
     ) -> ApiResponse:
         """
         Create a prediction using an official model
@@ -297,11 +296,8 @@ class ReplicateService:
         response = self.client.create_official_model_prediction(
             model_owner=model_owner,
             model_name=model_name,
-            data=data,
-            wait=wait
+            data=data
         )
-        
-        print(f'[create_official_model_prediction] response for {model_owner}/{model_name}: {response}')
         
         # Check if response is an error response
         if "error" in response and "detail" in response:
