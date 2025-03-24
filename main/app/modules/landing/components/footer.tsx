@@ -35,7 +35,6 @@ export const Footer = () => {
             </a>
             <a href="/marketplace" className="transition-colors hover:text-gray-300">Marketplace</a>
             <a href="https://status.aci.so" className="transition-colors hover:text-gray-300">Status</a>
-            <a href="mailto:korzhov.work2019@gmail.com" className="transition-colors hover:text-gray-300">Contacts</a>
           </nav>
           <div className="mb-8 flex space-x-4">
             <Button
@@ -45,7 +44,7 @@ export const Footer = () => {
               asChild
             >
               <a
-                href="https://x.com/korzhov_dm"
+                href="https://x.com/veyraxai"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -58,13 +57,6 @@ export const Footer = () => {
               className="rounded-full"
               asChild
             >
-              <a
-                href="https://www.linkedin.com/in/korzhovdm/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Image src={LinkedIn} alt="LinkedIn" className="h-4 w-4" />
-              </a>
             </Button>
           </div>
           <div className="text-center">

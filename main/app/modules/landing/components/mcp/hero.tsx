@@ -120,14 +120,14 @@ export const Hero = () => {
                   <HeroVideoDialog
                     className="dark:hidden block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg"
+                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg?modestbranding=1&showinfo=0&rel=0&fs=1&color=white"
                     thumbnailSrc="/landing/hero_mcp.png"
                     thumbnailAlt="Hero Video"
                   />
                   <HeroVideoDialog
                     className="hidden dark:block"
                     animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg"
+                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg?modestbranding=1&showinfo=0&rel=0&fs=1&color=white"
                     thumbnailSrc="/landing/hero_mcp.png"
                     thumbnailAlt="Hero Video"
                   />
