@@ -7,9 +7,16 @@ const supabase = createClient()
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
   const { data: { user } } = await supabase.auth.getUser()
   
+  // Single query with joined tables
   const { data: providers } = await supabase
     .from('providers')
-    .select('*')
+    .select(`
+      *,
+      provider_scopes (
+        scope_id,
+        scope_name
+      )
+    `)
 
   const { data: userProviders } = await supabase
     .from('users_providers')
@@ -35,24 +42,29 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   
   const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
 
-  const result = providers?.map((provider: Provider) => {
-    const isConnected = connectedProviderIds.has(provider.id);
+  const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
+    const isConnected = connectedProviderIds.has(provider.id)
     
     const isReallyConnected = provider.auth_method === 'api_key' 
       ? providersWithApiKeys.has(provider.id) 
-      : isConnected;
+      : isConnected
     
-    const isPopular = popularProviderIds.has(provider.id);
+    const isPopular = popularProviderIds.has(provider.id)
 
     return {
       ...provider,
+      // New format merge for scopes
+      scopes: provider.provider_scopes?.map(s => ({
+        scope: s.scope_id,
+        scope_name: s.scope_name
+      })) || [],
       connected: isReallyConnected,
       isPopular,
       hasIndex: false,
       indexStatus: null,
       lastSyncDate: null,
       processedEntities: null
-    };
+    }
   }) || []
   
   return result as IntegrationCardProps[]
@@ -151,6 +163,8 @@ export const enableDbAccessProvider = async (providerId: string, dbConfig: DbCon
   }
 
   if (dbAccessError) throw dbAccessError;
+
+  await addActionsUser(providerId);
 }
 
 export const getUserDbCredentials = async (providerId: string): Promise<DbConfig | null> => {
@@ -175,9 +189,36 @@ export const getUserDbCredentials = async (providerId: string): Promise<DbConfig
   }
 }
 
-export const disconnectProvider = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser()
+export const deleteActions = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) throw new Error('User not authenticated');
 
+  // Get all actions for the provider
+  const { data: actions, error: actionsError } = await supabase
+    .from('provider_actions')
+    .select('id')
+    .eq('provider_id', providerId);
+
+  if (actionsError) throw actionsError;
+
+  if (actions?.length) {
+    const actionIds = actions.map(a => a.id);
+    
+    const { error: deleteError } = await supabase
+      .from('users_provider_actions')
+      .delete()
+      .eq('user_id', user.id)
+      .in('action_id', actionIds);
+
+    if (deleteError) throw deleteError;
+  }
+};
+
+export const disconnectProvider = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  await deleteActions(providerId);
+  
   await supabase
     .from('users_provider_api_keys')
     .delete()
@@ -208,7 +249,7 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
-    })
+    });
 
   await supabase
     .from('users_oauth_tokens')
@@ -216,8 +257,8 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
-    })
-}
+    });
+};
 
 export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {
   const response = await fetch(`/api/oauth/${providerTag}`, {
@@ -294,6 +335,8 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
   }
 
   if (apiKeyError) throw apiKeyError;
+
+  await addActionsUser(providerId);
 }
 
 export const getUserApiKey = async (providerId: string): Promise<string | null> => {
@@ -355,6 +398,9 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
+
+  // TODO: explore if we need to cast scopes from old format here (looks like no)
+
   const { data: provider, error } = await supabase
     .from('providers')
     .select('*')
@@ -723,6 +769,8 @@ export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: s
   }
 
   if (apiKeyError) throw apiKeyError;
+
+  await addActionsUser(providerId);
 }
 
 export const getProviderBaseUrl = async (providerId: string): Promise<string | null> => {
@@ -866,9 +914,10 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
         const { encryptedKey } = await response.json();
         processedAuthData[key] = encryptedKey;
       }
+
+      await addActionsUser(providerId);
     }
-    
-    console.log(`Saving custom auth for user ${user.id} and provider ${providerId}`);
+
     
     if (recordId) {
       // Update existing record
@@ -1033,5 +1082,91 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
       valid: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
     };
+  }
+};
+export const addActionsUser = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user?.id) {
+    throw new Error('Unauthorized - User ID not found');
+  }
+  
+  // Get provider details
+  const { data: provider, error: providersError } = await supabase
+        .from('providers')
+        .select('id, name, auth_method')
+        .eq('id', providerId).single();
+
+  if (!provider) throw new Error('Provider not found');
+
+  if (provider.auth_method === 'oauth') {
+    // OAuth flow - get scopes from token and find associated actions
+    const { data: oauthToken, error: tokenError } = await supabase
+      .from('users_oauth_tokens')
+      .select('scopes')
+      .eq('user_id', user.id)
+      .eq('provider_id', providerId)
+      .single();
+
+    if (tokenError || !oauthToken?.scopes) throw new Error('Failed to get OAuth token scopes');
+
+    // Get actions linked to the granted scopes
+    const { data: scopedActions, error: scopeError } = await supabase
+      .from('provider_action_scopes')
+      .select('action_id')
+      .in('scope_id', oauthToken.scopes)
+      .eq('provider_id', providerId);
+
+    if (scopeError || !scopedActions?.length) return;
+
+    const actionIds = scopedActions.map(sa => sa.action_id);
+
+    // Get full action details
+    const { data: actions, error: actionsError } = await supabase
+      .from('provider_actions')
+      .select('id')
+      .eq('provider_id', providerId)
+      .in('id', actionIds);
+
+    if (actionsError || !actions?.length) return;
+
+    const insertData = actions.map(action => ({
+      user_id: user?.id,
+      provider_id: providerId,
+      action_id: action.id
+    }));
+
+    const { error: insertError } = await supabase
+      .from('users_provider_actions')
+      .upsert(insertData, {
+        onConflict: 'user_id,provider_id,action_id',
+        ignoreDuplicates: true
+      });
+
+    if (insertError) throw insertError;
+  } else {
+    // Non-OAuth flow (existing implementation)
+    const { data: actions, error: actionsError } = await supabase
+      .from('provider_actions')
+      .select('id')
+      .eq('provider_id', providerId);
+
+    if (actionsError) throw actionsError;
+    if (!actions?.length) return;
+
+    const insertData = actions.map(action => ({
+      user_id: user?.id,
+      provider_id: providerId,
+      action_id: action.id
+    }));
+
+    const { error: insertError } = await supabase
+      .from('users_provider_actions')
+      .upsert(insertData, {
+        onConflict: 'user_id,provider_id,action_id',
+        ignoreDuplicates: true
+      });
+
+    if (insertError) throw insertError;
   }
 };

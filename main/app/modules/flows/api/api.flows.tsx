@@ -529,13 +529,12 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
       const providerIds = Array.from(new Set(actionDetails.map(item => item.provider_id)));
       
       // 3. Получаем информацию о провайдерах из таблицы providers
-      const { data: providersData, error: providersError } = await supabase
+      const { data: provider } = await supabase
         .from('providers')
         .select('id, name')
-        .in('id', providerIds);
+        .in('id', providerIds).single();;
       
-      if (providersError) throw providersError;
-      console.log('Providers data:', providersData);
+
       
       // 4. Сопоставляем действия с названиями провайдеров
       const missingActionDetails = actionDetails.map(action => {

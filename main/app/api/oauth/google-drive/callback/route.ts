@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations';
+
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -97,6 +99,8 @@ export async function GET(request: NextRequest) {
             console.error('Upsert error:', upsertError);
             throw upsertError;
         }
+
+        await addActionsUser(provider_id);
 
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
     } catch (error: any) {

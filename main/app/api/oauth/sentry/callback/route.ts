@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
-
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations';
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
@@ -158,6 +158,8 @@ export async function GET(request: NextRequest) {
             console.error('Failed to verify installation:', verifyError);
             // Continue even if verification fails
         }
+
+        await addActionsUser(provider_id);
 
         // Redirect back to the integrations page with success message
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
