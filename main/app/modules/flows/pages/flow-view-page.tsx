@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getFlowById, getUserActions } from "../api/api.flows";
+import { getFlowById, getUserActions, getPublicFlowById, getFlowActions, getPublicFlowActions, getActionsByIds } from "../api/api.flows";
 import { useRouter } from "next/navigation";
 import { FlowHeader } from "../components/header";
 import { ToolsList } from "../components/flow-description-tool-detector";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { isEmptyHTML } from "../components/flow-description-html";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { createClient } from '@/lib/utils/supabase/client';
 
 function cleanHtml(html: string): string {
   const parser = new DOMParser();
@@ -44,9 +45,10 @@ function cleanHtml(html: string): string {
 
 interface FlowViewPageProps {
   flowId: string;
+  isPublic?: boolean;
 }
 
-export default function FlowViewPage({ flowId }: FlowViewPageProps) {
+export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageProps) {
   const router = useRouter();
   const [flow, setFlow] = useState<any>(null);
   const [actions, setActions] = useState<any[]>([]);
@@ -54,23 +56,69 @@ export default function FlowViewPage({ flowId }: FlowViewPageProps) {
   const [isLoadingFlow, setIsLoadingFlow] = useState(true);
   const [usedTools, setUsedTools] = useState<any[]>([]);
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+  const [flowActions, setFlowActions] = useState<string[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    
+    checkAuth();
+  }, []);
   
   useEffect(() => {
     const loadFlow = async () => {
       try {
         setIsLoadingFlow(true);
         
-        const flowData = await getFlowById(flowId);
-        if (flowData) {
-          setFlow(flowData);
-          setIsOwner(true); 
+        if (isPublic) {
+          const publicFlowData = await getPublicFlowById(flowId);
+          if (publicFlowData) {
+            setFlow(publicFlowData);
+            setIsOwner(false);
+            
+            try {
+              const flowActionsData = await getPublicFlowActions(flowId);
+              setFlowActions(flowActionsData);
+              
+              if (flowActionsData.length > 0) {
+                const actionsData = await getActionsByIds(flowActionsData);
+                setActions(actionsData);
+              } else {
+                setActions([]);
+              }
+            } catch (actionsError) {
+              console.error('Error loading actions for public flow:', actionsError);
+              setFlowActions([]);
+              setActions([]);
+            }
+          } else {
+            setFlow(null);
+          }
+        } else {
+          try {
+            const flowData = await getFlowById(flowId);
+            if (flowData) {
+              setFlow(flowData);
+              setIsOwner(true);
+              
+              const actionsData = await getUserActions();
+              setActions(actionsData);
+              
+              const flowActionsData = await getFlowActions(flowId);
+              setFlowActions(flowActionsData);
+            }
+          } catch (error) {
+            console.error('Error fetching flow by ID:', error);
+            setFlow(null);
+          }
         }
-        
-        const actionsData = await getUserActions();
-        setActions(actionsData);
-        
       } catch (error) {
         console.error('Error loading flow:', error);
+        setFlow(null);
       } finally {
         setIsLoadingFlow(false);
       }
@@ -79,10 +127,28 @@ export default function FlowViewPage({ flowId }: FlowViewPageProps) {
     if (flowId) {
       loadFlow();
     }
-  }, [flowId]);
+  }, [flowId, isPublic]);
   
   useEffect(() => {
-    if (flow && actions.length > 0 && flow.description) {
+    if (flow && actions.length > 0 && flowActions.length > 0) {
+      const toolsMap = new Map();
+      
+      const relevantActions = isPublic 
+        ? actions 
+        : actions.filter(action => flowActions.includes(action.action_id));
+      
+      relevantActions.forEach(action => {
+        if (!toolsMap.has(action.provider_id)) {
+          toolsMap.set(action.provider_id, {
+            provider_id: action.provider_id,
+            provider_name: action.provider_name,
+            logo_url: action.logo_url
+          });
+        }
+      });
+      
+      setUsedTools(Array.from(toolsMap.values()));
+    } else if (flow && flow.description && actions.length > 0) {
       try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(flow.description, 'text/html');
@@ -114,7 +180,7 @@ export default function FlowViewPage({ flowId }: FlowViewPageProps) {
         console.error('Error detecting tools:', error);
       }
     }
-  }, [flow, actions]);
+  }, [flow, actions, flowActions, isPublic]);
   
   const handleEdit = () => {
     router.push(`/flow/${flowId}/edit`);
@@ -143,6 +209,17 @@ export default function FlowViewPage({ flowId }: FlowViewPageProps) {
         description: "Code copied to clipboard"
       });
     });
+  };
+  
+  const getShareableUrl = () => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/flow/${flowId}/shared`;
+  };
+  
+  const handleCopyLink = () => {
+    const url = getShareableUrl();
+    navigator.clipboard.writeText(url);
+    toast.success("Link copied");
   };
   
   if (isLoadingFlow) {
@@ -225,11 +302,13 @@ export default function FlowViewPage({ flowId }: FlowViewPageProps) {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <FlowHeader 
-        flowName={flow.name || "Flow"} 
+        flowName={flow?.name || "Flow"} 
         onBack={handleBack}
         isLoading={isLoadingFlow}
-        flowId={flow.id}
+        flowId={flow?.id}
         isOwner={isOwner}
+        isAuthenticated={isAuthenticated}
+        isShared={flow?.is_shared || false}
       />
       
       <div className="flex-1 overflow-auto">

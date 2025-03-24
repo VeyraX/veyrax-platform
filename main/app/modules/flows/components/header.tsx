@@ -2,9 +2,11 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button"; 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
-import { updateFlowStatus } from "../api/api.flows";
-import { Loader2, Copy, Edit } from "lucide-react";
+import { useState, useEffect } from "react";
+import { updateFlowStatus, cloneFlow } from "../api/api.flows";
+import { Loader2, Copy, Edit, LogIn } from "lucide-react";
+import { SharePopover } from "./share-popover";
+import { toast } from "sonner";
 
 export function FlowHeader({ 
   flowName = "New Flow", 
@@ -13,7 +15,9 @@ export function FlowHeader({
   onPublish,
   isLoading = false,
   flowId,
-  isOwner = false
+  isOwner = false,
+  isShared = false,
+  isAuthenticated = true
 }: { 
   flowName?: string, 
   onBack?: () => void, 
@@ -21,29 +25,41 @@ export function FlowHeader({
   onPublish?: (flowId: string) => void,
   isLoading?: boolean,
   flowId?: string,
-  isOwner?: boolean
+  isOwner?: boolean,
+  isShared?: boolean,
+  isAuthenticated?: boolean
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const isEditMode = pathname?.includes('/edit');
-  const [isPublishing, setIsPublishing] = useState(false);
+  const isCreateMode = pathname === '/flow/create';
+  const [isActivating, setIsActivating] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const [currentIsShared, setCurrentIsShared] = useState(isShared);
   
-  const handlePublish = async () => {
+  useEffect(() => {
+    setCurrentIsShared(isShared);
+  }, [isShared]);
+  
+  const handleBackClick = () => {
+    router.push('/flows');
+  };
+  
+  const handleActivate = async () => {
     if (!flowId) {
       onCreateClick?.();
       return;
     }
     
     try {
-      setIsPublishing(true);
+      setIsActivating(true);
       await updateFlowStatus(flowId, "Active");
       onPublish?.(flowId);
-      // Redirect to view subpath after publishing
       router.push(`/flow/${flowId}/view`);
     } catch (error) {
-      console.error("Error publishing flow:", error);
+      console.error("Error activating flow:", error);
     } finally {
-      setIsPublishing(false);
+      setIsActivating(false);
     }
   };
 
@@ -53,9 +69,27 @@ export function FlowHeader({
     }
   };
 
-  const handleCloneClick = () => {
-    // Логика клонирования
-    // ...
+  const handleCloneClick = async () => {
+    if (!flowId) return;
+    
+    try {
+      setIsCloning(true);
+      const newFlowId = await cloneFlow(flowId);
+      router.push(`/flow/${newFlowId}/edit`);
+    } catch (error) {
+      console.error("Error cloning flow:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to clone the flow");
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
+  const handleLoginClick = () => {
+    router.push('/login');
+  };
+
+  const handleShareStatusChange = (newIsShared: boolean) => {
+    setCurrentIsShared(newIsShared);
   };
 
   if (isLoading) {
@@ -73,48 +107,84 @@ export function FlowHeader({
   return (
     <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
       <div className="flex items-center gap-2">
-        <button onClick={onBack} className="text-gray-700 p-1 rounded-full hover:bg-gray-100">
-          <ArrowLeft size={16} />
-        </button>
+        {isAuthenticated ? (
+          <button onClick={handleBackClick} className="text-gray-700 p-1 rounded-full hover:bg-gray-100">
+            <ArrowLeft size={16} />
+          </button>
+        ) : (
+          <div className="w-0 h-0"></div>
+        )}
         <div className="flex items-center text-sm">
           <span className="font-medium text-gray-900">{flowName}</span>
         </div>
       </div>
       
-      <div className="flex items-center gap-2">
-        {isEditMode && flowId && (
-          <Button 
-            onClick={handlePublish}
-            className="rounded-full bg-black text-white text-xs px-3 py-0.5 h-7 hover:bg-gray-800 flex items-center gap-1"
-            disabled={isPublishing}
-          >
-            {isPublishing ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              'Publish'
-            )}
-          </Button>
-        )}
-        
-        {isOwner && !isEditMode ? (
-          <Button 
-            onClick={handleEditClick}
-            className="rounded-full bg-black text-white text-xs px-3 py-0.5 h-7 hover:bg-gray-800 flex items-center gap-1"
-          >
-            Edit
-          </Button>
-        ) : !isEditMode && (
-          <Button 
-            onClick={handleCloneClick}
-            className="rounded-full bg-black text-white text-xs px-3 py-0.5 h-7 hover:bg-gray-800 flex items-center gap-1"
-          >
-            Clone
-          </Button>
-        )}
-      </div>
+      {!isCreateMode && (
+        <div className="flex items-center gap-2">
+          {!isAuthenticated ? (
+            <Button 
+              onClick={handleLoginClick}
+              size="sm"
+            >
+              <LogIn size={14} className="mr-1" />
+              Login
+            </Button>
+          ) : isEditMode && flowId && (
+            <Button 
+              onClick={handleActivate}
+              size="sm"
+              disabled={isActivating}
+            >
+              {isActivating ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Activating...
+                </>
+              ) : (
+                'Activate'
+              )}
+            </Button>
+          )}
+          
+          {isAuthenticated && isOwner && !isEditMode ? (
+            <div className="flex items-center gap-2">
+              {/* Share Popover */}
+              {flowId && (
+                <SharePopover 
+                  flowId={flowId} 
+                  isShared={currentIsShared}
+                  onShareStatusChange={handleShareStatusChange}
+                />
+              )}
+              
+              {/* Edit Button */}
+              <Button 
+                onClick={handleEditClick}
+                size="sm"
+              >
+                Edit
+              </Button>
+            </div>
+          ) : isAuthenticated && !isEditMode && !isOwner && (
+            <Button 
+              onClick={handleCloneClick}
+              size="sm"
+              disabled={isCloning}
+            >
+              {isCloning ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Cloning...
+                </>
+              ) : (
+                <>
+                  Clone
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
