@@ -226,11 +226,40 @@ class ReplicateService:
         return self.prepare_response({"success": True, "message": "Deployment deleted"})
     
     # ---------- Models ----------
+    def _prepare_flux_model_params(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        # Create a new dict with only the parameters that should be sent to the API
+        cleaned_data = {}
+        
+        # For Flux models, we only need to include the input field and its contents
+        if "input" in data:
+            cleaned_data["input"] = data["input"]
+        
+        # Remove any unsupported parameters that might have been included
+        # Explicitly remove these fields even if they appear inside input
+        unsupported_params = [
+            "wait", "stream", "webhook", "webhook_events_filter",
+            "model_owner", "model_name"
+        ]
+        
+        # Remove at top level if present
+        for param in unsupported_params:
+            if param in cleaned_data:
+                cleaned_data.pop(param)
+                
+        # Also check inside input dict if it exists
+        if "input" in cleaned_data and isinstance(cleaned_data["input"], dict):
+            for param in unsupported_params:
+                if param in cleaned_data["input"]:
+                    cleaned_data["input"].pop(param)
+        
+        return cleaned_data
+
     def create_official_model_prediction(
         self,
         model_owner: str,
         model_name: str,
-        request: OfficialModelPredictionRequest
+        request: OfficialModelPredictionRequest,
+        wait: Optional[int] = None
     ) -> ApiResponse:
         """
         Create a prediction using an official model
@@ -238,14 +267,18 @@ class ReplicateService:
         # Transform the request to the format expected by the client
         data = request.model_dump(exclude_none=True)
         
-        # Special case for Minimax video model - use only the input field
+        # Handle different model types with specific parameter preparation
         is_minimax_video = model_owner == "minimax" and model_name == "video-01"
+        is_flux_model = model_owner == "black-forest-labs" and (model_name == "flux-1.1-pro" or model_name == "flux-schnell")
+        
         if is_minimax_video:
             # For Minimax, only send the input field
             data = {"input": data.get("input", {})}
-            print(f"[SERVICE] Sending simplified data to Minimax: {data}")
+        elif is_flux_model:
+            # For Flux models, use specific parameter handling
+            data = self._prepare_flux_model_params(data)
         else:
-            # For other models, remove fields not expected by the API
+            # For other models, remove standard fields not expected by the API
             if "model_owner" in data:
                 data.pop("model_owner")
             if "model_name" in data:
@@ -254,9 +287,13 @@ class ReplicateService:
                 create_placeholder = data.pop("create_placeholder_response")
             else:
                 create_placeholder = False
+            
+            # Ensure wait is not in the data payload
+            if "wait" in data:
+                data.pop("wait")
         
-        wait = request.wait
-        
+        # Use the wait parameter passed directly to this method
+        # instead of from the request object
         response = self.client.create_official_model_prediction(
             model_owner=model_owner,
             model_name=model_name,

@@ -190,16 +190,6 @@ class ReplicateClient:
                 headers=headers,
                 json=data
             )
-            
-            # Special handling for Minimax video model
-            if is_minimax_video:
-                print(f"[CLIENT] Response status code: {response.status_code}")
-                print(f"[CLIENT] Response headers: {response.headers}")
-                try:
-                    print(f"[CLIENT] Response content: {response.text}")
-                except:
-                    print("[CLIENT] Could not print response content")
-            
             # Check for HTTP errors
             response.raise_for_status()
             
