@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
-import { addActionsUser } from '@/app/modules/integrations/api/api.integrations';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
 
 
 export async function GET(request: NextRequest) {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         }
 
         await addActionsUser(provider_id);
-        
+
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
     } catch (error: any) {
         console.error('OAuth callback error:', {

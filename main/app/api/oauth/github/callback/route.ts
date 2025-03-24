@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
-import { addActionsUser } from '@/app/modules/integrations/api/api.integrations';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
+
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
