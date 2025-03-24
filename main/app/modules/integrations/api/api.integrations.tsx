@@ -79,6 +79,10 @@ export const enableProvider = async (providerId: string): Promise<void> => {
       user_id: user?.id,
       provider_id: providerId 
     })
+
+    console.log('Adding actions user for providerId:', providerId);
+
+    await addActionsUser(providerId);
 }
 
 export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig): Promise<void> => {
@@ -1084,32 +1088,48 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
     };
   }
 };
+
+
 export const addActionsUser = async (providerId: string): Promise<void> => {
+  
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user?.id) {
+  const userIdToUse = user?.id;
+
+  if (!userIdToUse) {
+    console.error('No user ID found in auth context');
     throw new Error('Unauthorized - User ID not found');
   }
   
+
   // Get provider details
   const { data: provider, error: providersError } = await supabase
         .from('providers')
         .select('id, name, auth_method')
         .eq('id', providerId).single();
 
-  if (!provider) throw new Error('Provider not found');
+  if (!provider) {
+    console.error('Provider not found:', providerId);
+    throw new Error('Provider not found');
+  }
 
+  console.log('Provider auth method:', provider.auth_method);
   if (provider.auth_method === 'oauth') {
+    console.log('Processing OAuth flow');
     // OAuth flow - get scopes from token and find associated actions
     const { data: oauthToken, error: tokenError } = await supabase
       .from('users_oauth_tokens')
       .select('scopes')
-      .eq('user_id', user.id)
+      .eq('user_id', userIdToUse)
       .eq('provider_id', providerId)
       .single();
 
-    if (tokenError || !oauthToken?.scopes) throw new Error('Failed to get OAuth token scopes');
+    if (tokenError || !oauthToken?.scopes) {
+      console.error('Failed to get OAuth token scopes:', tokenError);
+      throw new Error('Failed to get OAuth token scopes');
+    }
 
+    console.log('Retrieved OAuth scopes:', oauthToken.scopes);
     // Get actions linked to the granted scopes
     const { data: scopedActions, error: scopeError } = await supabase
       .from('provider_action_scopes')
@@ -1117,9 +1137,16 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .in('scope_id', oauthToken.scopes)
       .eq('provider_id', providerId);
 
-    if (scopeError || !scopedActions?.length) return;
+    if (scopeError) {
+      console.error('Error getting scoped actions:', scopeError);
+    }
+    if (!scopedActions?.length) {
+      console.log('No scoped actions found, returning');
+      return;
+    }
 
     const actionIds = scopedActions.map(sa => sa.action_id);
+    console.log('Found action IDs:', actionIds);
 
     // Get full action details
     const { data: actions, error: actionsError } = await supabase
@@ -1128,45 +1155,65 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .eq('provider_id', providerId)
       .in('id', actionIds);
 
-    if (actionsError || !actions?.length) return;
+    if (actionsError) {
+      console.error('Error getting actions:', actionsError);
+    }
+    if (!actions?.length) {
+      console.log('No actions found, returning');
+      return;
+    }
 
     const insertData = actions.map(action => ({
       user_id: user?.id,
-      provider_id: providerId,
       action_id: action.id
     }));
 
+    console.log('Inserting user provider actions:', insertData);
     const { error: insertError } = await supabase
       .from('users_provider_actions')
       .upsert(insertData, {
-        onConflict: 'user_id,provider_id,action_id',
+        onConflict: 'user_id,action_id',
         ignoreDuplicates: true
       });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Error inserting actions:', insertError);
+      throw insertError;
+    }
   } else {
+    console.log('Processing non-OAuth flow');
     // Non-OAuth flow (existing implementation)
     const { data: actions, error: actionsError } = await supabase
       .from('provider_actions')
       .select('id')
       .eq('provider_id', providerId);
 
-    if (actionsError) throw actionsError;
-    if (!actions?.length) return;
+    if (actionsError) {
+      console.error('Error getting actions:', actionsError);
+      throw actionsError;
+    }
+    if (!actions?.length) {
+      console.log('No actions found, returning');
+      return;
+    }
 
     const insertData = actions.map(action => ({
       user_id: user?.id,
-      provider_id: providerId,
       action_id: action.id
     }));
 
+    console.log('Inserting user provider actions:', insertData);
     const { error: insertError } = await supabase
       .from('users_provider_actions')
       .upsert(insertData, {
-        onConflict: 'user_id,provider_id,action_id',
+        onConflict: 'user_id,action_id',
         ignoreDuplicates: true
       });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error('Error inserting actions:', insertError);
+      throw insertError;
+    }
   }
+  console.log('Successfully completed addActionsUser');
 };
