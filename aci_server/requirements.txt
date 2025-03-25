@@ -19,7 +19,7 @@ slack-sdk==3.34.0
 httpx==0.28.1
 python-multipart==0.0.20
 qdrant-client==1.10.1
-openai==1.63.0
+openai[datalib]==1.63.0
 celery[redis]==5.4.0
 redis==5.2.1
 flower==2.0.1
@@ -48,3 +48,6 @@ packaging==24.2
 
 
 python-amazon-paapi==5.0.1
+
+pympler==1.1 # for memory profiling
+objgraph==3.6.2
