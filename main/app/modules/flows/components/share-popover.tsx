@@ -83,6 +83,7 @@ export function SharePopover({ flowId, isShared, onShareStatusChange }: SharePop
       <PopoverTrigger asChild>
         <Button 
           size="sm"
+          className="rounded-full"
         >
           Share
         </Button>

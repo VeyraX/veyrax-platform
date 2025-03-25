@@ -227,11 +227,11 @@ export const createFlow = async (flowRequest: CreateFlowRequest): Promise<string
       throw new Error('Not authenticated');
     }
     
-    // Insert flow
+    // Insert flow with default name if not provided
     const { data: newFlow, error: flowError } = await supabase
       .from('user_flows')
       .insert({
-        name: flowRequest.name,
+        name: flowRequest.name || "New Flow",
         description: flowRequest.description,
         plain_description: flowRequest.plain_description,
         status: flowRequest.status || 'Draft',
@@ -344,6 +344,35 @@ export const deleteFlow = async (flowId: string): Promise<void> => {
     throw error;
   }
 };
+
+export async function getProviderActionsForFlow(userId?: string) {
+  try {
+    const supabase = createClient();
+    
+    let queryUserId = userId;
+    
+    if (!queryUserId) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Not authenticated');
+      }
+      
+      queryUserId = user.id;
+    }
+    
+    const { data, error } = await supabase
+      .from('user_actions_view')
+      .select('provider_id, provider_name, action_slug, input_schema, examples, logo_url')
+      .eq('user_id', queryUserId);
+
+    if (error) throw error;
+    return { data: data || [], error: null };
+  } catch (error) {
+    console.error('Error fetching actions for flow:', error);
+    return { data: [], error };
+  }
+}
 
 export const updateFlowStatus = async (flowId: string, status: FlowStatus): Promise<void> => {
   try {

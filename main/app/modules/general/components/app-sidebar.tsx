@@ -39,6 +39,10 @@ const items = [
         url: "/agent",
       },
       {
+        title: "Flows",
+        url: "/flows",
+      },
+      {
         title: "Integrations",
         url: "/integrations",
       },

@@ -46,6 +46,11 @@ export function FlowHeader({
   };
   
   const handleActivate = async () => {
+    if (!flowId && isCreateMode) {
+      toast.error("Please save your flow first before activating Read Mode");
+      return;
+    }
+    
     if (!flowId) {
       onCreateClick?.();
       return;
@@ -125,24 +130,18 @@ export function FlowHeader({
             <Button 
               onClick={handleLoginClick}
               size="sm"
+              className="rounded-full"
             >
-              <LogIn size={14} className="mr-1" />
               Login
             </Button>
-          ) : isEditMode && flowId && (
+          ) : isEditMode && (
             <Button 
               onClick={handleActivate}
               size="sm"
+              className="rounded-full"
               disabled={isActivating}
             >
-              {isActivating ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Activating...
-                </>
-              ) : (
-                'Activate'
-              )}
+              {isActivating ? 'Activating...' : 'Read Mode'}
             </Button>
           )}
           
@@ -157,32 +156,37 @@ export function FlowHeader({
                 />
               )}
               
-              {/* Edit Button */}
+              {/* Edit Mode Button */}
               <Button 
                 onClick={handleEditClick}
                 size="sm"
+                className="rounded-full"
               >
-                Edit
+                Edit Mode
               </Button>
             </div>
           ) : isAuthenticated && !isEditMode && !isOwner && (
             <Button 
               onClick={handleCloneClick}
               size="sm"
+              className="rounded-full"
               disabled={isCloning}
             >
-              {isCloning ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Cloning...
-                </>
-              ) : (
-                <>
-                  Clone
-                </>
-              )}
+              {isCloning ? 'Cloning...' : 'Clone'}
             </Button>
           )}
+        </div>
+      )}
+
+      {isCreateMode && (
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={handleActivate}
+            size="sm"
+            className="rounded-full"
+          >
+            Read Mode
+          </Button>
         </div>
       )}
     </div>

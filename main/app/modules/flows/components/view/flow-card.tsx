@@ -9,7 +9,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getFlowActions, getUserActions } from '../../api/api.flows'
 import { ProviderAction } from '../../api/types.flows'
 import { Button } from '@/components/ui/button'
-import { Play } from 'lucide-react'
+import { Play, MoreHorizontal } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { deleteFlow } from '../../api/api.flows'
+import { toast } from 'sonner'
 
 export const FlowSkeleton = () => (
   <div className="w-full border rounded-lg h-[204px] p-4 space-y-4">
@@ -38,7 +46,6 @@ const FlowCard: React.FC<FlowCardProps> = ({
   id,
   name,
   plain_description,
-  status,
   isPublishing,
   onFlowChange
 }) => {
@@ -78,14 +85,23 @@ const FlowCard: React.FC<FlowCardProps> = ({
     fetchFlowTools()
   }, [id])
   
+  const handleEdit = () => {
+    router.push(`/flow/${id}/edit`)
+  }
+
   const handleView = () => {
     router.push(`/flow/${id}/view`)
   }
-  
-  const getStatusBadge = () => {
-    if (isPublishing) return <Badge className="bg-amber-500 text-xs">Publishing</Badge>
-    if (status === 'Active') return <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors text-xs">Active</Badge>
-    return <Badge variant="outline" className="text-xs">Draft</Badge>
+
+  const handleDelete = async () => {
+    try {
+      await deleteFlow(id)
+      toast.success('Flow deleted successfully')
+      onFlowChange?.()
+    } catch (error) {
+      toast.error('Failed to delete flow')
+      console.error('Error deleting flow:', error)
+    }
   }
 
   const truncatedDescription = plain_description 
@@ -129,7 +145,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
               <span className="text-xs text-muted-foreground">No tools</span>
             )}
           </div>
-          {getStatusBadge()}
+          {isPublishing && <Badge className="bg-amber-500 text-xs">Publishing</Badge>}
         </div>
         
         <div className="flex-1 min-w-0">
@@ -139,7 +155,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
           </p>
         </div>
 
-        <div className="flex justify-end mt-3">
+        <div className="flex justify-end mt-3 gap-2">
           <Button 
             variant="outline" 
             size="sm"
@@ -148,6 +164,24 @@ const FlowCard: React.FC<FlowCardProps> = ({
           >
             View
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleView}>
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEdit}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>
