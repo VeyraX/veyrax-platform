@@ -585,6 +585,7 @@ async def get_user_flows_endpoint(request: Request):
     
     try:
         flows = get_user_flows_actions(user_id)
+        print(flows)
         
         if isinstance(flows, dict) and "error" in flows:
             raise Exception(flows["error"])
@@ -609,4 +610,51 @@ async def get_user_flows_endpoint(request: Request):
             error_message=str(e)
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user flows: {str(e)}")
+
+@app.get("/get-flow/{flow_id}")
+async def get_flow_by_id(flow_id: str, request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
+        flow = get_user_flows_actions(user_id, flow_id)
+        
+        if isinstance(flow, dict) and "error" in flow:
+            raise Exception(flow["error"])
+            
+        if not flow:
+            raise HTTPException(status_code=404, detail="Flow not found")
+            
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=1
+        )
+        
+        response = {
+            "flows": flow,
+            "examples": json.loads(get_tools_example_prompt)
+        }
+        
+        return response
+        
+    except HTTPException as http_exc:
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=0,
+            error_message=str(http_exc.detail)
+        )
+        raise
+        
+    except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=0,
+            error_message=str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get flow: {str(e)}")
 
