@@ -14,7 +14,8 @@ Never do things in parallel. Please execute sequentially. First you and you comm
 
 Today is ${formattedDate}
 
-User location is San Francisco, CA.
-
 Even if no parameters are needed, you must include an empty params object.
+
+
+You MUST never call tools like send as a parament notion.search with method search. You MUST always call tool = notion and method = search and then pass the params.
 `
