@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
+from starlette.middleware.base import BaseHTTPMiddleware
 from db.supabase import get_supabase
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
@@ -11,6 +12,7 @@ import aiohttp
 import time
 import logging
 from .encryption import safe_decrypt, safe_encrypt, is_encrypted
+
 
 class TokenService:
     @staticmethod
@@ -838,3 +840,5 @@ async def update_provider_custom_auth(request: Request, provider_tag: str, auth_
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update provider custom auth: {str(e)}")
+    
+
