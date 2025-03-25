@@ -5,7 +5,7 @@ import {
   PopoverTrigger 
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Share2, Check, Twitter, Linkedin, Facebook, Link } from "lucide-react";
+import { Share2, Check, Twitter, Linkedin, Facebook, Link, Image } from "lucide-react";
 import { updateFlow } from "../api/api.flows";
 import { toast } from "sonner";
 
@@ -20,13 +20,14 @@ export function SharePopover({ flowId, isShared, onShareStatusChange }: SharePop
   const [isToggling, setIsToggling] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [currentIsShared, setCurrentIsShared] = useState(isShared);
+  const [isGeneratingOg, setIsGeneratingOg] = useState(false);
   const linkRef = useRef<HTMLParagraphElement>(null);
   
   useEffect(() => {
     setCurrentIsShared(isShared);
   }, [isShared]);
   
-  const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}/flow/` : '';
+  const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
   const shareUrl = `${baseUrl}${flowId}/shared`;
   
   const handleCopyLink = async () => {
@@ -160,6 +161,15 @@ export function SharePopover({ flowId, isShared, onShareStatusChange }: SharePop
                 <p ref={linkRef} className="text-xs whitespace-nowrap">{shareUrl}</p>
               </div>
 
+              {/* OG Image Preview */}
+              <div className="relative w-full aspect-[1200/630] rounded-md overflow-hidden border">
+                <img
+                  src={`${baseUrl}api/og?flowId=${flowId}`}
+                  alt="OG Preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
               <div className="h-px bg-gray-200 my-1"></div>
               
               <Button
@@ -177,4 +187,4 @@ export function SharePopover({ flowId, isShared, onShareStatusChange }: SharePop
       </PopoverContent>
     </Popover>
   );
-}
+} 

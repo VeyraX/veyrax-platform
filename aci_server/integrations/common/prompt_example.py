@@ -7,7 +7,7 @@ today_day = datetime.now().strftime("%Y-%m-%d")
 
 get_tools_example_prompt = f"""
 {{
-  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question. The date is today's date: {today_day}",
+  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question. For G-Tools pagination, simply use page number. The date is today's date: {today_day}",
   "examples": [
     {{
     "user_question": "I need to find a 5 pages in Confluence about the API documentation. Please search for it.",
@@ -36,7 +36,11 @@ get_tools_example_prompt = f"""
             "max_results": 5
           }}
         }}
-      }}
+    }},
+    {{
+      "user_question": "Show me the next page of available tools",
+      "page": 2
+    }}
   ]
 }}
 """

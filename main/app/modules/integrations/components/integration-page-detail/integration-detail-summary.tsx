@@ -253,8 +253,8 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
                 {endpointsList.map((endpoint, index) => (
                   <tr key={index} className="border-t border-border">
                     <td className="py-4 pr-4">
-                      <div className="font-medium text-foreground">{endpoint.name}</div>
-                      <div className="text-sm text-muted-foreground">{endpoint.functionId}</div>
+                      <div className="font-medium text-foreground">{endpoint.functionId}</div>
+                      <div className="text-sm text-muted-foreground">{endpoint.name}</div>
                     </td>
                     <td className="py-4 pr-4 text-muted-foreground">
                       {endpoint.description}

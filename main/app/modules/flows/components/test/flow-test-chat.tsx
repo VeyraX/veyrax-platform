@@ -51,7 +51,7 @@ export function FlowChatPanel({
               onStop={onStop}
               userTools={{}}
               className="max-w-none"
-              placeholder="What do you want to know?"
+              placeholder="How can I help you with testing?"
             />
           </div>
         </div>

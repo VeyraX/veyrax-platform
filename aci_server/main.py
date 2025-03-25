@@ -49,7 +49,7 @@ from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
 from integrations.reddit.route import router as reddit_router
-from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions
+from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
@@ -385,10 +385,16 @@ async def get_tool_spec(tool_name: str):
     router = INTEGRATION_ROUTERS[tool_name]
     return {"tools": get_router_tools(router)}
 
-@app.get("/get-tools")
+@app.post("/get-tools")
 async def get_user_tools(request: Request):
+    try:
+        body = await request.json()
+        page = body.get('page', 1)
+    except:
+        page = 1
+    
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
-        return await get_dev_user_tools(request)
+        return await get_dev_user_tools(request, page)
     
     try:
         user_id = await get_user_from_request(request)
@@ -396,37 +402,39 @@ async def get_user_tools(request: Request):
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
     try:
-        supabase = get_supabase()
-    
-        user_providers = supabase.table('users_providers') \
-            .select('provider_id') \
-            .eq('user_id', user_id) \
-            .execute()
+        user_tools = get_user_tools_from_actions(user_id)
+        
+        if isinstance(user_tools, dict) and "error" in user_tools:
+            raise Exception(user_tools["error"])
             
-        if not user_providers.data:
+        if not user_tools:
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
-            
             tools_response["tools"]["memories"] = {}
-            
             return tools_response
             
-        provider_ids = [item['provider_id'] for item in user_providers.data]
+        tools_per_page = 4
+        all_tools = list(user_tools.items())
+        total_tools = len(all_tools)
         
-        providers = supabase.table('providers') \
-            .select('provider_tag, input_schema') \
-            .in_('id', provider_ids) \
-            .execute()
-            
-        user_tools = {}
-        user_tools['examples'] = json.loads(get_tools_example_prompt)
-
-        for provider in providers.data:
-            if provider.get('input_schema'):
-                user_tools[provider['provider_tag']] = provider['input_schema']
+        start_idx = (page - 1) * tools_per_page
+        end_idx = min(start_idx + tools_per_page, total_tools)
+        
+        paginated_tools = dict(all_tools[start_idx:end_idx])
+        
+        response_tools = {
+            "tools": paginated_tools,
+            "pagination": {
+                "total_tools": total_tools,
+                "tools_per_page": tools_per_page,
+                "current_page": page,
+                "total_pages": (total_tools + tools_per_page - 1) // tools_per_page
+            }
+        }
+        response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
         
         user_memories = await get_user_memories(user_id)
-        user_tools['memories'] = user_memories
+        response_tools["tools"]["memories"] = user_memories
         
         log_api_call(
             user_id=user_id,
@@ -434,7 +442,7 @@ async def get_user_tools(request: Request):
             success=1
         )
         
-        return {"tools": user_tools}
+        return response_tools
     except Exception as e:
         log_api_call(
             user_id=user_id,
@@ -444,7 +452,7 @@ async def get_user_tools(request: Request):
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 
-async def get_dev_user_tools(request: Request):
+async def get_dev_user_tools(request: Request, page: int):
     try:
         user_id = await get_user_from_request(request)
     except Exception as e:  

@@ -348,3 +348,44 @@ def get_user_flows_actions(user_id: str, flow_id: str = None):
     except Exception as e:
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
+
+
+def get_user_tools_from_actions(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_actions_view') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return {}
+            
+        user_tools = {}
+        
+        for row in result.data:
+            provider_name = row.get('provider_tag')
+            action_name = row.get('action_slug')
+            input_schema = row.get('input_schema')
+            
+            if not provider_name or not action_name or not input_schema:
+                continue
+                
+            if provider_name not in user_tools:
+                user_tools[provider_name] = {}
+                
+            action_schema = {
+                "type": "function",
+                "function": {
+                    "name": action_name,
+                    **input_schema
+                }
+            }
+            
+            user_tools[provider_name][action_name] = action_schema
+            
+        return user_tools
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}

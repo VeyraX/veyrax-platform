@@ -107,37 +107,27 @@ export function ChatFlowCreator({
     }
   };
 
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <div className="flex flex-col h-full relative">
-      <div className="absolute inset-0 flex flex-col overflow-hidden">
-        <div 
-          ref={messagesContainerRef} 
-          className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative"
-          style={{ paddingBottom: "90px" }}
-        >
+      <div className="absolute inset-0 flex flex-col">
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {hasMessages ? (
-            <ChatMessages 
-              chatId={chatId}
-              messages={messages as Message[]}
-              isLoading={isLoading}
-              onSendMessage={handleSendMessage}
-              isFlow={false}
-              hideRatings={true}
-            />
+            <div className="pb-[120px]">
+              <ChatMessages 
+                chatId={chatId}
+                messages={messages as Message[]}
+                isLoading={isLoading}
+                onSendMessage={handleSendMessage}
+                isFlow={false}
+                hideRatings={true}
+              />
+            </div>
           ) : (
             <FlowChatCreateEmptyState onSendMessage={handleSendMessage} />
           )}
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 px-4 pt-2 bg-background">
+        <div className="sticky bottom-0 px-4 pt-2 bg-background">
           <AIInputWithSearch
             placeholder="Describe the flow you want to create..."
             onSubmit={handleSendMessage}

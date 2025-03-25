@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess } from './types.integrations'
+import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess, ProviderAction } from './types.integrations'
 
 const supabase = createClient()
 
@@ -195,24 +195,19 @@ export const deleteActions = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.id) throw new Error('User not authenticated');
 
-  // Get all actions for the provider
-  const { data: actions, error: actionsError } = await supabase
+  const { data: actions } = await supabase
     .from('provider_actions')
     .select('id')
     .eq('provider_id', providerId);
 
-  if (actionsError) throw actionsError;
-
   if (actions?.length) {
     const actionIds = actions.map(a => a.id);
     
-    const { error: deleteError } = await supabase
+    await supabase
       .from('users_provider_actions')
       .delete()
       .eq('user_id', user.id)
       .in('action_id', actionIds);
-
-    if (deleteError) throw deleteError;
   }
 };
 
@@ -400,9 +395,6 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
-
-  // TODO: explore if we need to cast scopes from old format here (looks like no)
-
   const { data: provider, error } = await supabase
     .from('providers')
     .select('*')
@@ -414,113 +406,71 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     throw error;
   }
 
-  let inputSchema = {};
-  let uiComponents = [];
-  let exampleSchema = {};
-  
-  try {
-    inputSchema = typeof provider.input_schema === 'string' 
-      ? JSON.parse(provider.input_schema) 
-      : provider.input_schema || {};
-  } catch (e) {
-    console.error('Error parsing input schema:', e);
+  const { data: actions, error: actionsError } = await supabase
+    .from('provider_actions')
+    .select('*')
+    .eq('provider_id', provider.id);
+
+  if (actionsError) {
+    console.error('Error fetching provider actions:', actionsError);
+    throw actionsError;
   }
-  
-  try {
-    uiComponents = typeof provider.ui_component === 'string' 
-      ? JSON.parse(provider.ui_component) 
-      : provider.ui_component || [];
+
+  const endpointsList = actions?.map(action => {
+    const inputSchema = typeof action.input_schema === 'string' 
+      ? JSON.parse(action.input_schema) 
+      : action.input_schema;
+
+    return {
+      name: action.action_slug,
+      functionId: action.action_name,
+      description: inputSchema?.function?.description || '',
+      paramCount: countParameters(inputSchema),
+      input_schema: inputSchema,
+      output_schema: typeof action.output_schema === 'string' 
+        ? JSON.parse(action.output_schema) 
+        : action.output_schema,
+      examples: typeof action.examples === 'string'
+        ? JSON.parse(action.examples)
+        : action.examples
+    };
+  }) || [];
+
+  const uiComponents = actions?.map(action => {
+    if (!action.ui_component) return null;
     
-    if (!Array.isArray(uiComponents)) {
-      uiComponents = [uiComponents].filter(Boolean);
-    }
-  } catch (e) {
-    console.error('Error parsing UI components:', e);
-    uiComponents = [];
-  }
+    const component = typeof action.ui_component === 'string'
+      ? JSON.parse(action.ui_component)
+      : action.ui_component;
 
-  try {
-    exampleSchema = typeof provider.example_schema === 'string'
-      ? JSON.parse(provider.example_schema)
-      : provider.example_schema || {};
-  } catch (e) {
-    console.error('Error parsing example schema:', e);
-    exampleSchema = {};
-  }
+    return {
+      ...component,
+      action_slug: action.action_slug
+    };
+  }).filter(Boolean) || [];
 
-  const totalEndpoints = Object.keys(inputSchema).length;
-
-  let totalParameters = 0;
-  Object.values(inputSchema).forEach((endpoint: any) => {
-    if (endpoint?.function?.parameters?.properties) {
-      const topLevelParams = Object.keys(endpoint.function.parameters.properties).length;
-      
-      let nestedParams = 0;
-      Object.entries(endpoint.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
-        if (propValue.$ref && endpoint.function.parameters.$defs) {
-          const defName = propValue.$ref.split('/').pop();
-          const definition = endpoint.function.parameters.$defs[defName];
-          
-          if (definition?.properties) {
-            nestedParams += Object.keys(definition.properties).length;
-          }
-        }
-      });
-      
-      totalParameters += topLevelParams + nestedParams;
-    }
-  });
-
+  const totalEndpoints = endpointsList.length;
+  const totalParameters = endpointsList.reduce((sum, endpoint) => sum + endpoint.paramCount, 0);
   const totalComponents = uiComponents.length;
 
-  const endpointsList: ProviderEndpoint[] = Object.entries(inputSchema).map(([key, value]: [string, any]) => {
-    const functionName = value?.function?.name || key;
-    const description = value?.function?.description || '';
-    
-    let paramCount = 0;
-    if (value?.function?.parameters?.properties) {
-      paramCount = Object.keys(value.function.parameters.properties).length;
-      
-      Object.entries(value.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
-        if (propValue.$ref && value.function.parameters.$defs) {
-          const defName = propValue.$ref.split('/').pop();
-          const definition = value.function.parameters.$defs[defName];
-          
-          if (definition?.properties) {
-            paramCount += Object.keys(definition.properties).length;
-          }
-        }
-      });
-    }
-    
-    return {
-      name: key,
-      functionId: functionName,
-      description,
-      paramCount
-    };
-  });
+  const inputSchemas: Record<string, any> = {};
+  const outputSchemas: Record<string, any> = {};
+  const exampleSchema: Record<string, any> = {};
 
-  endpointsList.sort((a, b) => {
-    const getKeyParts = (name: string) => {
-      const parts = name.split('_');
-      const action = parts[0] || '';
-      const entity = parts.slice(1).join('_') || '';
-      return { action, entity };
-    };
-
-    const partsA = getKeyParts(a.name);
-    const partsB = getKeyParts(b.name);
-
-    if (partsA.entity !== partsB.entity) {
-      return partsA.entity.localeCompare(partsB.entity);
-    }
-    
-    return partsA.action.localeCompare(partsB.action);
+  endpointsList.forEach(endpoint => {
+    inputSchemas[endpoint.name] = endpoint.input_schema;
+    outputSchemas[endpoint.name] = endpoint.output_schema;
+    exampleSchema[endpoint.name] = endpoint.examples;
   });
 
   return {
-    provider,
+    provider: {
+      ...provider,
+      input_schema: inputSchemas,
+      output_schema: outputSchemas,
+      ui_component: uiComponents
+    },
+    actions: actions || [],
     totalEndpoints,
     totalParameters,
     totalComponents,
@@ -529,38 +479,75 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
   };
 };
 
+const countParameters = (schema: any): number => {
+  if (!schema?.function?.parameters?.properties) return 0;
+  
+  let count = 0;
+  const props = schema.function.parameters.properties;
+  
+  for (const [_, prop] of Object.entries(props) as [string, { $ref?: string }][]) {
+    count += 1;
+    if (prop.$ref && schema.function.parameters.$defs) {
+      const defName = prop.$ref.split('/').pop();
+      const definition = schema.function.parameters.$defs[defName as string];
+      if (definition?.properties) {
+        count += Object.keys(definition.properties).length;
+      }
+    }
+  }
+  
+  return count;
+};
+
 export const findComponentForEndpoint = async (providerTag: string, endpointName: string): Promise<any> => {
-  const { data: provider, error } = await supabase
+  const { data: provider } = await supabase
     .from('providers')
-    .select('ui_component')
+    .select('id')
     .eq('provider_tag', providerTag)
     .single();
 
-  if (error) {
-    console.error('Error fetching provider components:', error);
-    throw error;
-  }
-
-  let uiComponents = [];
-  try {
-    uiComponents = typeof provider.ui_component === 'string' 
-      ? JSON.parse(provider.ui_component) 
-      : provider.ui_component || [];
-    
-    if (!Array.isArray(uiComponents)) {
-      uiComponents = [uiComponents].filter(Boolean);
-    }
-  } catch (e) {
-    console.error('Error parsing UI components:', e);
+  if (!provider) {
     return null;
   }
 
-  const componentWithRelatedEndpoint = uiComponents.find(component => 
-    component.related_endpoints && 
-    component.related_endpoints.includes(endpointName)
-  );
-  
-  return componentWithRelatedEndpoint || null;
+  const { data: action } = await supabase
+    .from('provider_actions')
+    .select(`
+      id,
+      action_name,
+      action_slug,
+      ui_component
+    `)
+    .eq('provider_id', provider.id)
+    .eq('action_slug', endpointName)
+    .single();
+
+  if (!action?.ui_component) {
+    return null;
+  }
+
+  try {
+    const rawComponent = typeof action.ui_component === 'string' 
+      ? JSON.parse(action.ui_component) 
+      : action.ui_component;
+
+    const componentName = Object.keys(rawComponent)[0];
+    if (!componentName) {
+      return null;
+    }
+
+    const componentData = rawComponent[componentName];
+
+    return {
+      name: componentName,
+      ...componentData,
+      action_slug: action.action_slug,
+      jsx: componentData.component?.jsx || componentData.jsx || '',
+      component: componentData.component || { jsx: componentData.jsx || '' }
+    };
+  } catch (e) {
+    return null;
+  }
 };
 
 export const testDbConnection = async (providerId: string, dbConfig: DbConfig): Promise<{success: boolean, message: string}> => {
@@ -824,7 +811,6 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
     
     if (!data || !data.raw_data) return null;
     
-    // Parse raw_data if it's a string
     const rawData = typeof data.raw_data === 'string' 
       ? JSON.parse(data.raw_data) 
       : data.raw_data;
@@ -1089,13 +1075,11 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
 
 
 export const addActionsUser = async (providerId: string): Promise<void> => {
-  
   const { data: { user } } = await supabase.auth.getUser();
 
   const userIdToUse = user?.id;
 
   if (!userIdToUse) {
-    console.error('No user ID found in auth context');
     throw new Error('Unauthorized - User ID not found');
   }
   
@@ -1106,13 +1090,10 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         .eq('id', providerId).single();
 
   if (!provider) {
-    console.error('Provider not found:', providerId);
     throw new Error('Provider not found');
   }
 
-  console.log('Provider auth method:', provider.auth_method);
   if (provider.auth_method === 'oauth') {
-    console.log('Processing OAuth flow');
     const { data: oauthToken, error: tokenError } = await supabase
       .from('users_oauth_tokens')
       .select('scopes')
@@ -1121,11 +1102,9 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .single();
 
     if (tokenError || !oauthToken?.scopes) {
-      console.error('Failed to get OAuth token scopes:', tokenError);
       throw new Error('Failed to get OAuth token scopes');
     }
 
-    console.log('Retrieved OAuth scopes:', oauthToken.scopes);
     const { data: scopedActions, error: scopeError } = await supabase
       .from('provider_action_scopes')
       .select('action_id')
@@ -1133,15 +1112,13 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .eq('provider_id', providerId);
 
     if (scopeError) {
-      console.error('Error getting scoped actions:', scopeError);
+      throw scopeError;
     }
     if (!scopedActions?.length) {
-      console.log('No scoped actions found, returning');
       return;
     }
 
     const actionIds = scopedActions.map(sa => sa.action_id);
-    console.log('Found action IDs:', actionIds);
 
     const { data: actions, error: actionsError } = await supabase
       .from('provider_actions')
@@ -1150,10 +1127,9 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .in('id', actionIds);
 
     if (actionsError) {
-      console.error('Error getting actions:', actionsError);
+      throw actionsError;
     }
     if (!actions?.length) {
-      console.log('No actions found, returning');
       return;
     }
 
@@ -1162,7 +1138,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       action_id: action.id
     }));
 
-    console.log('Inserting user provider actions:', insertData);
     const { error: insertError } = await supabase
       .from('users_provider_actions')
       .upsert(insertData, {
@@ -1171,7 +1146,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       });
 
     if (insertError) {
-      console.error('Error inserting actions:', insertError);
       throw insertError;
     }
   } else {
@@ -1181,11 +1155,9 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       .eq('provider_id', providerId);
 
     if (actionsError) {
-      console.error('Error getting actions:', actionsError);
       throw actionsError;
     }
     if (!actions?.length) {
-      console.log('No actions found, returning');
       return;
     }
 
@@ -1194,7 +1166,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       action_id: action.id
     }));
 
-    console.log('Inserting user provider actions:', insertData);
     const { error: insertError } = await supabase
       .from('users_provider_actions')
       .upsert(insertData, {
@@ -1203,9 +1174,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       });
 
     if (insertError) {
-      console.error('Error inserting actions:', insertError);
       throw insertError;
     }
   }
-  console.log('Successfully completed addActionsUser');
 };
