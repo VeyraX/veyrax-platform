@@ -196,7 +196,7 @@ export function FlowConfiguration({ onSave, onTest, actions }: FlowConfiguration
                           }}
                         >
                           <ActionItem
-                            actionName={action.action_name}
+                            actionSlug={action.action_slug}
                             logoUrl={action.logo_url}
                             providerName={action.provider_name}
                           />

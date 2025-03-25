@@ -123,7 +123,7 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                             return (
                               <MessageFormatter 
                                 key={partIndex} 
-                                content={part.text} 
+                                content={part.text}
                               />
                             );
                           }
@@ -160,6 +160,58 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                             <div className="flex items-center gap-2">
                                               <Check className="h-4 w-4" />
                                               <span>Completed</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+
+                                    case 'tool_call_builder':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                        {['partial-call', 'call'].includes(state) ? (
+                                          <div className="flex items-center gap-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                            <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <Check className="h-4 w-4" />
+                                            <span>Completed</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+
+
+                                    case 'get_tools':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Getting the tools...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Found tools</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+
+                                    case 'get_flow':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Getting the flow data...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Found flows</span>
                                             </div>
                                           )}
                                         </div>

@@ -183,7 +183,7 @@ export const getActionsByIds = async (actionIds: string[]): Promise<any[]> => {
     
     const { data, error } = await supabase
       .from('provider_actions')
-      .select('id, action_name, provider_id')
+      .select('id, action_name, action_slug, provider_id')
       .in('id', actionIds);
 
     console.log(data);
@@ -207,6 +207,7 @@ export const getActionsByIds = async (actionIds: string[]): Promise<any[]> => {
       return {
         action_id: action.id,
         action_name: action.action_name,
+        action_slug: action.action_slug,
         provider_id: action.provider_id,
         provider_name: provider.name,
         logo_url: provider.logo_url
@@ -375,11 +376,11 @@ export const extractActionsFromHTML = (html: string, availableActions: ProviderA
     
     actionElements.forEach(element => {
       const providerName = element.getAttribute('data-provider');
-      const actionName = element.getAttribute('data-action');
+      const actionSlug = element.getAttribute('data-action');
       
-      if (providerName && actionName) {
+      if (providerName && actionSlug) {
         const matchingAction = availableActions.find(action => 
-          action.provider_name === providerName && action.action_name === actionName
+          action.provider_name === providerName && action.action_slug === actionSlug
         );
         
         if (matchingAction && matchingAction.action_id) {
@@ -515,7 +516,7 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
       // 1. Получаем детали действий из таблицы provider_actions
       const { data: actionDetails, error: actionDetailsError } = await supabase
         .from('provider_actions')
-        .select('id, provider_id, action_name')
+        .select('id, provider_id, action_name, action_slug')
         .in('id', missingActions);
       
       if (actionDetailsError) throw actionDetailsError;
@@ -543,6 +544,7 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
         return {
           action_id: action.id,
           action_name: action.action_name,
+          action_slug: action.action_slug,
           provider_id: action.provider_id,
           provider_name: provider.name
         };

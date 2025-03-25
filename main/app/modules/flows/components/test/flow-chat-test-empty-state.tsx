@@ -10,10 +10,10 @@ export function FlowChatEmptyState() {
         
         <div className="space-y-2">
           <h3 className="text-xl font-medium">
-            Design Your Flow
+            Test Your Flow
           </h3>
           <p className="text-muted-foreground text-sm">
-            Write your flow description and test it right here with our AI agent.
+            Click the «Test» button or send message here to test your flow.
           </p>
         </div>
       </div>

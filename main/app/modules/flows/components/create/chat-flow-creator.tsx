@@ -10,23 +10,25 @@ import { type Message } from 'ai/react';
 interface ChatFlowCreatorProps {
   actions: any[];
   onFlowGenerated: (flowData: { name: string; description: string }) => void;
+  useExternalChat?: boolean;
   externalMessages?: Message[];
   externalChatId?: string;
   externalIsLoading?: boolean;
-  externalOnSubmit?: (message: string) => Promise<void>;
+  externalOnSubmit?: (value: string) => Promise<void>;
   externalOnStop?: () => void;
-  useExternalChat?: boolean;
+  flowId?: string;
 }
 
 export function ChatFlowCreator({ 
   actions, 
   onFlowGenerated,
+  useExternalChat = false,
   externalMessages,
   externalChatId,
   externalIsLoading,
   externalOnSubmit,
   externalOnStop,
-  useExternalChat = false
+  flowId
 }: ChatFlowCreatorProps) {
   const temporaryFlowChatId = useRef(`flow-chat-${Date.now()}`).current;
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -34,6 +36,10 @@ export function ChatFlowCreator({
   const { messages: localMessages, append, isLoading: localIsLoading, stop: localStop, setMessages } = useChat({
     api: '/api/flow/create-from-chat',
     id: useExternalChat && externalChatId ? externalChatId : temporaryFlowChatId,
+    body: {
+      flowId: flowId,
+      chatId: useExternalChat && externalChatId ? externalChatId : temporaryFlowChatId
+    },
     initialMessages: [],
     onFinish: (message) => {
       try {
@@ -127,7 +133,7 @@ export function ChatFlowCreator({
               hideRatings={true}
             />
           ) : (
-            <FlowChatCreateEmptyState />
+            <FlowChatCreateEmptyState onSendMessage={handleSendMessage} />
           )}
         </div>
         

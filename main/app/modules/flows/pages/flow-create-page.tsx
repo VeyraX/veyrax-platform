@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { FlowHeader } from "../components/header";
 import { getFlowById } from "../api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   const router = useRouter();
@@ -61,6 +62,10 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
     api: '/api/flow/test-from-chat',
     id: flowChatId,
     initialMessages: [],
+    body: {
+      flowId: flow?.id,
+      chatId: flowChatId
+    },
     onFinish: (message) => {
       try {
         if (message.toolInvocations && message.toolInvocations.length > 0) {
@@ -149,8 +154,23 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
     router.push('/agent');
   };
 
-  const handleTestFlow = () => {
-    console.log('Testing flow');
+  const handleTestFlow = async () => {
+    if (flow?.id) {
+      console.log('Testing flow with ID:', flow.id);
+      handleSendMessage("Test the provided flow.");
+    } else {
+      toast.error('Please save the flow first.');
+      try {
+        
+        if (flow?.id) {
+          handleSendMessage("Test the provided flow.");
+        } else {
+          console.error('Failed to get flow ID after saving');
+        }
+      } catch (error) {
+        console.error('Error saving flow before test:', error);
+      }
+    }
   };
 
   if (!isMounted || isLoadingFlow) {
@@ -230,6 +250,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
                 description: flow.description
               } : undefined}
               isLoading={isLoadingFlow}
+              isTestRunning={isChatLoading}
             />
           </TabsContent>
         </Tabs>
@@ -260,6 +281,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
               description: flow.description
             } : undefined}
             isLoading={isLoadingFlow}
+            isTestRunning={isChatLoading}
           />
         </div>
 

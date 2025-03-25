@@ -30,7 +30,7 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>, prov
 
     const query = searchQuery.toLowerCase();
     const filtered = actions.filter(action => 
-      action.action_name.toLowerCase().includes(query) || 
+      action.action_slug.toLowerCase().includes(query) || 
       action.provider_name?.toLowerCase().includes(query)
     );
     
@@ -157,21 +157,21 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>, prov
     actionElement.contentEditable = 'false';
     
     actionElement.setAttribute('data-provider', action.provider_name || '');
-    actionElement.setAttribute('data-action', action.action_name || '');
+    actionElement.setAttribute('data-action', action.action_slug || '');
     
     const imgContainer = document.createElement('div');
     imgContainer.className = 'h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white';
     
     const imgElement = document.createElement('img');
     imgElement.src = action.logo_url;
-    imgElement.alt = action.action_name;
+    imgElement.alt = action.action_slug;
     imgElement.className = 'max-h-full max-w-full object-contain';
     
     imgContainer.appendChild(imgElement);
     
     const textElement = document.createElement('span');
     textElement.className = 'text-primary text-xs font-medium';
-    textElement.textContent = action.action_name;
+    textElement.textContent = action.action_slug;
     
     actionElement.appendChild(imgContainer);
     actionElement.appendChild(textElement);

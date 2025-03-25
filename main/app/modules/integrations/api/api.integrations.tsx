@@ -7,7 +7,6 @@ const supabase = createClient()
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Single query with joined tables
   const { data: providers } = await supabase
     .from('providers')
     .select(`
@@ -53,7 +52,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
 
     return {
       ...provider,
-      // New format merge for scopes
       scopes: provider.provider_scopes?.map(s => ({
         scope: s.scope_id,
         scope_name: s.scope_name
@@ -1102,7 +1100,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
   }
   
 
-  // Get provider details
   const { data: provider, error: providersError } = await supabase
         .from('providers')
         .select('id, name, auth_method')
@@ -1116,7 +1113,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
   console.log('Provider auth method:', provider.auth_method);
   if (provider.auth_method === 'oauth') {
     console.log('Processing OAuth flow');
-    // OAuth flow - get scopes from token and find associated actions
     const { data: oauthToken, error: tokenError } = await supabase
       .from('users_oauth_tokens')
       .select('scopes')
@@ -1130,7 +1126,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
 
     console.log('Retrieved OAuth scopes:', oauthToken.scopes);
-    // Get actions linked to the granted scopes
     const { data: scopedActions, error: scopeError } = await supabase
       .from('provider_action_scopes')
       .select('action_id')
@@ -1148,7 +1143,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     const actionIds = scopedActions.map(sa => sa.action_id);
     console.log('Found action IDs:', actionIds);
 
-    // Get full action details
     const { data: actions, error: actionsError } = await supabase
       .from('provider_actions')
       .select('id')
@@ -1181,8 +1175,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       throw insertError;
     }
   } else {
-    console.log('Processing non-OAuth flow');
-    // Non-OAuth flow (existing implementation)
     const { data: actions, error: actionsError } = await supabase
       .from('provider_actions')
       .select('id')

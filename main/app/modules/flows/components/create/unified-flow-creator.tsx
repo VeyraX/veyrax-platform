@@ -29,6 +29,7 @@ interface UnifiedFlowCreatorProps {
     plain_description?: string;
   };
   isLoading?: boolean;
+  isTestRunning?: boolean;
 }
 
 export function UnifiedFlowCreator({ 
@@ -37,7 +38,8 @@ export function UnifiedFlowCreator({
   chatMessages, 
   flowChatId, 
   initialData,
-  isLoading = false
+  isLoading = false,
+  isTestRunning = false
 }: UnifiedFlowCreatorProps) {
   const [activeTab, setActiveTab] = useState<string>(initialData ? "configure" : "create");
   
@@ -75,6 +77,10 @@ export function UnifiedFlowCreator({
     api: '/api/flow/create-from-chat',
     id: flowCreatorChatId,
     initialMessages: [],
+    body: {
+      flowId: flowId,
+      chatId: flowCreatorChatId
+    },
     onFinish: (message) => {
       try {
         if (message.toolInvocations && message.toolInvocations.length > 0) {
@@ -325,6 +331,7 @@ export function UnifiedFlowCreator({
               externalIsLoading={isChatLoading}
               externalOnSubmit={handleSendCreatorMessage}
               externalOnStop={stop}
+              flowId={flowId}
             />
           </div>
         </TabsContent>
@@ -383,7 +390,7 @@ export function UnifiedFlowCreator({
                             }}
                           >
                             <ActionItem
-                              actionName={action.action_name}
+                              actionSlug={action.action_slug}
                               logoUrl={action.logo_url}
                               providerName={action.provider_name}
                             />
@@ -405,10 +412,10 @@ export function UnifiedFlowCreator({
 
             <div className="w-full bg-background pt-2 px-6 mt-auto">
               <div className="flex gap-3 mt-2">
-                <Button variant="outline" onClick={onTest} className="flex-1">
+                <Button variant="outline" onClick={onTest} className="flex-1" disabled={isSaving || isTestRunning}>
                   Test
                 </Button>
-                <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
+                <Button onClick={handleSave} className="flex-1" disabled={isSaving || isTestRunning}>
                   {isSaving ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />

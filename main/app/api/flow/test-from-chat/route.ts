@@ -1,8 +1,9 @@
 import { openai } from '@ai-sdk/openai';
 import { Message, streamText } from 'ai';
 import { NextResponse } from 'next/server';
-import { tool_call_test_flow, get_flows } from '@/lib/ai/tools/tool-call'
+import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 import { getFlowForPrompt } from '@/app/modules/flows/api/api.server.flow';
+import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       
       This is the flow that user wants to test. Use the ID provided above when calling the tool_call_test_flow tool.
       `;
+
     }
 
     const SystemMainPrompt = `
@@ -47,6 +49,10 @@ export async function POST(request: Request) {
       You are tester. You main goal is first call get flows, and then call test flow with the id that user choose.
       
       ${flow ? 'The user already has a flow they want to test. Use the current flow ID for testing.' : 'Get flow first, then tool-call to test this out.'}
+
+      ${flow_testing_prompt}
+
+      If flow is empty, you should ask user to create a flow first.
     `;
 
     const allMessages = [
@@ -58,7 +64,7 @@ export async function POST(request: Request) {
       model: openai('gpt-4o'),
       messages: allMessages,
       tools: {
-        get_flows,
+        get_flow,
         tool_call_test_flow
       },
       experimental_toolCallStreaming: true,

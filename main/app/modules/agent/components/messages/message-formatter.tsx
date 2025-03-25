@@ -74,14 +74,26 @@ export function MessageFormatter({ content }: { content: string }) {
         h1: ({node, ...props}) => <h1 className="text-2xl font-bold my-4" {...props}/>,
         h2: ({node, ...props}) => <h2 className="text-xl font-semibold my-3" {...props}/>,
         h3: ({node, ...props}) => <h3 className="text-lg font-medium my-2" {...props}/>,
-        a: ({node, ...props}) => (
-          <a 
-            className="text-blue-500 hover:text-blue-600 hover:underline" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            {...props}
-          />
-        ),
+        a: ({node, href, children, ...props}) => {
+          const text = String(children);
+          const isUrl = text.startsWith('http://') || text.startsWith('https://');
+          
+          const displayText = isUrl && text.length > 50
+            ? text.substring(0, 30) + '...' + text.substring(text.length - 10)
+            : text;
+
+          return (
+            <a 
+              className="text-blue-500 hover:text-blue-600 hover:underline break-all" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              href={href}
+              {...props}
+            >
+              {displayText}
+            </a>
+          );
+        },
       }}
     >
       {content}

@@ -14,7 +14,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
     
   
-    // Get provider details
     const { data: provider, error: providersError } = await supabase
           .from('providers')
           .select('id, name, auth_method')
@@ -25,10 +24,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
       throw new Error('Provider not found');
     }
   
-    console.log('Provider auth method:', provider.auth_method);
     if (provider.auth_method === 'oauth') {
-      console.log('Processing OAuth flow');
-      // OAuth flow - get scopes from token and find associated actions
       const { data: oauthToken, error: tokenError } = await supabase
         .from('users_oauth_tokens')
         .select('scopes')
@@ -41,21 +37,16 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw new Error('Failed to get OAuth token scopes');
       }
   
-      console.log('Retrieved OAuth scopes:', oauthToken.scopes);
 
       const { data: scopedActions2, error: scopeError2 } = await supabase
         .from('provider_scopes')
         .select('id, scope_id')
         .eq('provider_id', providerId);
   
-      // Parse the scopes string into an array
       const scopesArray = Array.isArray(oauthToken.scopes) 
         ? oauthToken.scopes 
         : oauthToken.scopes.split(',');
       
-      console.log('Using scopes array:', scopesArray);
-
-      // Get actions linked to the granted scopes
       const { data: scopedActions, error: scopeError } = await supabase
         .from('provider_scopes')
         .select('id, scope_id')
@@ -88,8 +79,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw insertError;
       }
     } else {
-      console.log('Processing non-OAuth flow');
-      // Non-OAuth flow (existing implementation)
       const { data: actions, error: actionsError } = await supabase
         .from('provider_actions')
         .select('id')
@@ -100,7 +89,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw actionsError;
       }
       if (!actions?.length) {
-        console.log('No actions found, returning');
         return;
       }
   
@@ -109,7 +97,6 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         action_id: action.id
       }));
   
-      console.log('Inserting user provider actions:', insertData);
       const { error: insertError } = await supabase
         .from('users_provider_actions')
         .upsert(insertData, {
@@ -122,5 +109,4 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw insertError;
       }
     }
-    console.log('Successfully completed addActionsUser');
   };

@@ -18,9 +18,9 @@ export async function getProviderActionsForFlow(userId?: string) {
     
     const { data, error } = await supabase
       .from('user_actions_view')
-      .select('provider_id, provider_name, action_name, logo_url')
+      .select('provider_id, provider_name, action_slug, input_schema, examples, logo_url')
       .eq('user_id', queryUserId);
-    
+
     if (error) throw error;
     return { data: data || [], error: null };
   } catch (error) {
@@ -29,7 +29,6 @@ export async function getProviderActionsForFlow(userId?: string) {
   }
 }
 
-// Новая функция для получения информации о потоке для промпта
 export async function getFlowForPrompt(flowId?: string) {
   if (!flowId) {
     return { data: null, error: null };
@@ -48,9 +47,14 @@ export async function getFlowForPrompt(flowId?: string) {
       .select('id, name, description, plain_description')
       .eq('id', flowId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
+    
+    if (!data) {
+      return { data: null, error: null };
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error('Error fetching flow for prompt:', error);
