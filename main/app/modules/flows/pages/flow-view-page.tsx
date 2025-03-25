@@ -326,7 +326,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                     <div dangerouslySetInnerHTML={{ __html: cleanHtml(flow.description) }} />
                   </div>
                 ) : (
-                  <div className="text-muted-foreground italic">
+                  <div className="text-muted-foreground">
                     No description available for this flow.
                   </div>
                 )}
