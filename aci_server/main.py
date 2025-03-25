@@ -70,6 +70,8 @@ import inspect
 import sentry_sdk
 import random
 import time
+from starlette.middleware.base import BaseHTTPMiddleware
+
 
 
 load_dotenv()
@@ -143,6 +145,53 @@ INTEGRATION_ROUTERS = {
     "google-docs": google_docs_router
 }
 
+async def check_user_permission(request: Request, tool: str, method: str):
+    try:
+        user_id = await get_user_from_request(request)
+        user_tools = get_user_tools_from_actions(user_id)
+        
+        if not user_tools:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        if tool not in user_tools:
+            raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
+        if method not in user_tools[tool]:
+            raise HTTPException(status_code=403, detail=f"Action {method} is not availiable for {tool} for this user")
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking permissions: {str(e)}")
+
+
+class PermissionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path.strip("/")
+        segments = path.split("/")
+
+        print("PermissionMiddleware, segments", segments)
+        # Skip non-tool routes like root, healthcheck, etc.
+        if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] == "tool-call"):
+            if segments[0] == "tool-call" and len(segments) >= 3:
+                tool, method = segments[1], segments[2]
+            else:
+                tool, method = segments[0], segments[1] if len(segments) > 1 else None
+
+            if tool and method:
+                print("PermissionMiddleware,checking permission for tool, method", tool, method)
+                try:
+                    await check_user_permission(request, tool, method)
+                except HTTPException as e:
+                    if e.status_code in [401, 403]:
+                        return JSONResponse(
+                            status_code=e.status_code,
+                            content={"detail": f"Method not available: {e.detail}"}
+                        )
+                    raise e
+
+        # Proceed if allowed
+        return await call_next(request)
+
+
 app = FastAPI()
 
 app.state.celery = celery_app
@@ -154,6 +203,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(PermissionMiddleware)
 
 
 

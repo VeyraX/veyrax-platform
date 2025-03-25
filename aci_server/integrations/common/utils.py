@@ -14,7 +14,8 @@ import requests
 import functools
 import traceback
 import sentry_sdk
-
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     tools = []
 
@@ -389,3 +390,5 @@ def get_user_tools_from_actions(user_id: str):
     except Exception as e:
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
+    
+
