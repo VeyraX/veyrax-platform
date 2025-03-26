@@ -29,24 +29,42 @@ export async function getProviderActionsForFlow(userId?: string) {
   }
 }
 
-export async function getFlowForPrompt(flowId?: string) {
+export async function getFlowForPromptServer(flowId?: string, apiKey?: string) {
   if (!flowId) {
     return { data: null, error: null };
   }
   
   try {
     const supabase = createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      throw new Error('Not authenticated');
+    let userId;
+
+    if (apiKey) {
+      const { data: apiKeyData, error: apiKeyError } = await supabase
+        .from('users_api_keys')
+        .select('user_id')
+        .eq('api_key', apiKey)
+        .single();
+      
+      if (apiKeyError || !apiKeyData) {
+        throw new Error('Invalid API key');
+      }
+      
+      userId = apiKeyData.user_id;
+    } else {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Not authenticated');
+      }
+      
+      userId = user.id;
     }
     
     const { data, error } = await supabase
       .from('user_flows')
       .select('id, name, description, plain_description')
       .eq('id', flowId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .maybeSingle();
     
     if (error) throw error;
@@ -60,4 +78,9 @@ export async function getFlowForPrompt(flowId?: string) {
     console.error('Error fetching flow for prompt:', error);
     return { data: null, error };
   }
+}
+
+// Keep the old function for backward compatibility, but make it use the new one
+export async function getFlowForPrompt(flowId?: string) {
+  return getFlowForPromptServer(flowId);
 }

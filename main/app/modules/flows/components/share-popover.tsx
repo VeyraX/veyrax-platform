@@ -28,7 +28,7 @@ export function SharePopover({ flowId, isShared, onShareStatusChange }: SharePop
   }, [isShared]);
   
   const baseUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
-  const shareUrl = `${baseUrl}${flowId}/shared`;
+  const shareUrl = `${baseUrl}flow/${flowId}/shared`;
   
   const handleCopyLink = async () => {
     try {

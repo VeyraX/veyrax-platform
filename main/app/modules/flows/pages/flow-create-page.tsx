@@ -8,18 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FlowHeader } from "../components/header";
-import { getFlowById } from "../api/api.flows";
+import { getFlowById, updateFlowStatus } from "../api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   const router = useRouter();
   const flowChatId = useRef(`flow-chat-${Date.now()}`).current;
+  const flowCreatorRef = useRef<{ saveFlow: () => Promise<string | undefined> } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [flowName, setFlowName] = useState("New Flow");
   const [flow, setFlow] = useState<any>(null);
   const [isLoadingFlow, setIsLoadingFlow] = useState(!!flowId);
   const [isMounted, setIsMounted] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   
   useEffect(() => {
     setIsMounted(true);
@@ -173,6 +175,31 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
     }
   };
 
+  const handleActivate = async () => {
+    try {
+      setIsActivating(true);
+      
+      // Save current flow state
+      const savedFlowId = await flowCreatorRef.current?.saveFlow();
+      if (!savedFlowId && !flow?.id) {
+        toast.error("Failed to save flow");
+        return;
+      }
+      
+      const targetFlowId = savedFlowId || flow?.id;
+      
+      // Update flow status to Active
+      await updateFlowStatus(targetFlowId, "Active");
+      handlePublishFlow(targetFlowId);
+      router.push(`/flow/${targetFlowId}/view`);
+    } catch (error) {
+      console.error("Error activating flow:", error);
+      toast.error("Failed to activate flow");
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
   if (!isMounted || isLoadingFlow) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
@@ -215,6 +242,8 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
           onPublish={handlePublishFlow}
           isLoading={isLoadingFlow}
           flowId={flow?.id}
+          onActivate={handleActivate}
+          isActivating={isActivating}
         />
         <Tabs defaultValue="chat" className="w-full h-full flex flex-col">
           <TabsList className="grid grid-cols-2 mb-2">
@@ -251,6 +280,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
               } : undefined}
               isLoading={isLoadingFlow}
               isTestRunning={isChatLoading}
+              creatorRef={flowCreatorRef}
             />
           </TabsContent>
         </Tabs>
@@ -267,6 +297,8 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
         onPublish={handlePublishFlow}
         isLoading={isLoadingFlow}
         flowId={flow?.id}
+        onActivate={handleActivate}
+        isActivating={isActivating}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="w-[700px] border-r border-border bg-muted/10 flex flex-col h-full overflow-hidden">
@@ -282,6 +314,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
             } : undefined}
             isLoading={isLoadingFlow}
             isTestRunning={isChatLoading}
+            creatorRef={flowCreatorRef}
           />
         </div>
 

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { createClient } from '@/lib/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 export async function GetAuthToken() {
   const cookieStore = cookies();
@@ -32,8 +33,24 @@ export async function getAccessToken(): Promise<string> {
   }
 }
 
-export async function getAuthHeaders(): Promise<HeadersInit> {
+export async function getAuthHeaders(apiKey?: string): Promise<HeadersInit> {
   try {
+    if (apiKey) {
+      return {
+        'VEYRAX_API_KEY': apiKey,
+        'Content-Type': 'application/json'
+      };
+    }
+
+    const headersList = headers();
+    const headerApiKey = headersList.get('VEYRAX_API_KEY');
+    if (headerApiKey) {
+      return {
+        'VEYRAX_API_KEY': headerApiKey,
+        'Content-Type': 'application/json'
+      };
+    }
+
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     

@@ -7,6 +7,7 @@ import { updateFlowStatus, cloneFlow } from "../api/api.flows";
 import { Loader2, Copy, Edit, LogIn } from "lucide-react";
 import { SharePopover } from "./share-popover";
 import { toast } from "sonner";
+import { FlowSchedule } from "../api/types.flows";
 
 export function FlowHeader({ 
   flowName = "New Flow", 
@@ -17,7 +18,10 @@ export function FlowHeader({
   flowId,
   isOwner = false,
   isShared = false,
-  isAuthenticated = true
+  isAuthenticated = true,
+  hasSchedule = false,
+  onActivate,
+  isActivating = false,
 }: { 
   flowName?: string, 
   onBack?: () => void, 
@@ -27,44 +31,48 @@ export function FlowHeader({
   flowId?: string,
   isOwner?: boolean,
   isShared?: boolean,
-  isAuthenticated?: boolean
+  isAuthenticated?: boolean,
+  hasSchedule?: boolean,
+  onActivate?: () => Promise<void>,
+  isActivating?: boolean,
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const isEditMode = pathname?.includes('/edit');
   const isCreateMode = pathname === '/flow/create';
-  const [isActivating, setIsActivating] = useState(false);
   const [isCloning, setIsCloning] = useState(false);
   const [currentIsShared, setCurrentIsShared] = useState(isShared);
   
   useEffect(() => {
     setCurrentIsShared(isShared);
   }, [isShared]);
-  
+
   const handleBackClick = () => {
     router.push('/flows');
   };
   
   const handleActivate = async () => {
-    if (!flowId && isCreateMode) {
-      toast.error("Please save your flow first before activating Read Mode");
-      return;
-    }
-    
-    if (!flowId) {
-      onCreateClick?.();
-      return;
-    }
-    
-    try {
-      setIsActivating(true);
-      await updateFlowStatus(flowId, "Active");
-      onPublish?.(flowId);
-      router.push(`/flow/${flowId}/view`);
-    } catch (error) {
-      console.error("Error activating flow:", error);
-    } finally {
-      setIsActivating(false);
+    if (onActivate) {
+      await onActivate();
+    } else {
+      if (!flowId && isCreateMode) {
+        toast.error("Please save your flow first before activating Read Mode");
+        return;
+      }
+      
+      if (!flowId) {
+        onCreateClick?.();
+        return;
+      }
+      
+      try {
+        await updateFlowStatus(flowId, "Active");
+        onPublish?.(flowId);
+        router.push(`/flow/${flowId}/view`);
+      } catch (error) {
+        console.error("Error activating flow:", error);
+        toast.error("Failed to activate flow");
+      }
     }
   };
 
@@ -135,19 +143,26 @@ export function FlowHeader({
               Login
             </Button>
           ) : isEditMode && (
-            <Button 
-              onClick={handleActivate}
-              size="sm"
-              className="rounded-full"
-              disabled={isActivating}
-            >
-              {isActivating ? 'Activating...' : 'Read Mode'}
-            </Button>
+            <>
+              <Button 
+                onClick={handleActivate}
+                size="sm"
+                className="rounded-full"
+                disabled={isActivating}
+              >
+                {isActivating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </>
           )}
           
           {isAuthenticated && isOwner && !isEditMode ? (
             <div className="flex items-center gap-2">
-              {/* Share Popover */}
               {flowId && (
                 <SharePopover 
                   flowId={flowId} 
@@ -156,13 +171,12 @@ export function FlowHeader({
                 />
               )}
               
-              {/* Edit Mode Button */}
               <Button 
                 onClick={handleEditClick}
                 size="sm"
                 className="rounded-full"
               >
-                Edit Mode
+                Edit
               </Button>
             </div>
           ) : isAuthenticated && !isEditMode && !isOwner && (
@@ -184,8 +198,15 @@ export function FlowHeader({
             onClick={handleActivate}
             size="sm"
             className="rounded-full"
+            disabled={isActivating}
           >
-            Read Mode
+            {isActivating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              </>
+            ) : (
+              'Save'
+            )}
           </Button>
         </div>
       )}

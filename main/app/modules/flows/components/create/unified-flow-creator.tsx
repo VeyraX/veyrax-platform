@@ -16,6 +16,9 @@ import { type Message } from 'ai/react';
 import { ChatFlowCreator } from "./chat-flow-creator";
 import { updateFlowWithExtractedActions, saveFlowWithExtractedActions } from "@/app/modules/flows/api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { ScheduleTabContent } from "./schedule-tab-content";
+import { FlowSchedule } from "../../api/types.flows";
 
 interface UnifiedFlowCreatorProps {
   onSave?: (config: { name: string; description: string; plain_description?: string; id?: string }) => void;
@@ -30,6 +33,10 @@ interface UnifiedFlowCreatorProps {
   };
   isLoading?: boolean;
   isTestRunning?: boolean;
+  onCreateClick?: () => void;
+  isCreateMode?: boolean;
+  creatorRef?: React.MutableRefObject<{ saveFlow: () => Promise<string | undefined> } | null>;
+  onScheduleChange?: (schedule: FlowSchedule | null) => void;
 }
 
 export function UnifiedFlowCreator({ 
@@ -39,7 +46,11 @@ export function UnifiedFlowCreator({
   flowChatId, 
   initialData,
   isLoading = false,
-  isTestRunning = false
+  isTestRunning = false,
+  onCreateClick,
+  isCreateMode = false,
+  creatorRef,
+  onScheduleChange = () => {},
 }: UnifiedFlowCreatorProps) {
   const [activeTab, setActiveTab] = useState<string>(initialData ? "configure" : "create");
   
@@ -190,7 +201,7 @@ export function UnifiedFlowCreator({
     lastHtml.current = newHtml;
   };
 
-  const handleSave = async () => {
+  const saveFlow = async () => {
     try {
       setIsSaving(true);
       
@@ -217,11 +228,28 @@ export function UnifiedFlowCreator({
         plain_description: plainText,
         id: currentFlowId
       });
+
+      return currentFlowId;
     } catch (error) {
       console.error('Error saving flow:', error);
+      toast.error('Failed to save flow');
+      return undefined;
     } finally {
       setIsSaving(false);
     }
+  };
+
+  useEffect(() => {
+    if (creatorRef) {
+      creatorRef.current = {
+        saveFlow
+      };
+    }
+  }, [creatorRef, name, html, actions, flowId]);
+
+  const handleTestFlow = async () => {
+    await saveFlow();
+    onTest?.();
   };
 
   const handleAIImprove = async () => {
@@ -298,6 +326,11 @@ export function UnifiedFlowCreator({
     );
   }
 
+  if (!flowId && isCreateMode) {
+    onCreateClick?.();
+    return;
+  }
+
   return (
     <div className="flex flex-col h-full gap-6 p-6">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex-1 flex flex-col">
@@ -313,6 +346,12 @@ export function UnifiedFlowCreator({
             value="configure"
           >
             Configure Flow
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="schedule"
+          >
+            Schedule Flow
           </TabsTrigger>
         </TabsList>
         
@@ -412,22 +451,34 @@ export function UnifiedFlowCreator({
 
             <div className="w-full bg-background pt-2 px-6 mt-auto">
               <div className="flex gap-3 mt-2">
-                <Button variant="outline" onClick={onTest} className="flex-1" disabled={isSaving || isTestRunning}>
-                  Test
-                </Button>
-                <Button onClick={handleSave} className="flex-1" disabled={isSaving || isTestRunning}>
+                <Button 
+                  onClick={handleTestFlow} 
+                  className="flex-1" 
+                  disabled={isSaving || isTestRunning}
+                >
                   {isSaving ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </>
+                  ) : isTestRunning ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     </>
                   ) : (
-                    "Save"
+                    "Save & Test"
                   )}
                 </Button>
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="schedule" className="mt-0 flex-1 overflow-auto">
+          <ScheduleTabContent 
+            flowId={flowId}
+            isLoading={isLoading}
+            onScheduleChange={onScheduleChange}
+          />
         </TabsContent>
       </Tabs>
     </div>

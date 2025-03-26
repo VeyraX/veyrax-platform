@@ -234,6 +234,40 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                           )}
                                         </div>
                                       );
+
+                                    case 'flowScheduleTool':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Setting up flow schedule...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Schedule updated</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+
+                                    case 'deleteFlowScheduleTool':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Deleting flow schedule...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Schedule deleted</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
                                       
                                     default:
                                       return null;

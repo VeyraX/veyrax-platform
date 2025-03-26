@@ -25,12 +25,8 @@ export const tool_call = tool({
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params),
-        credentials: 'include'
+        headers,
+        body: JSON.stringify(params)
       });
       
       if (!response.ok) {
@@ -76,15 +72,12 @@ export const tool_call_test_flow = tool({
       });
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${tool}/${method}`;
-
+      console.log('url', url);
+      console.log('params', params);
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params),
-        credentials: 'include'
+        headers,
+        body: JSON.stringify(params)
       });
       
       if (!response.ok) {
@@ -123,10 +116,7 @@ export const get_flow = tool({
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
+        headers,
         credentials: 'include'
       });
       
@@ -174,12 +164,8 @@ export const tool_call_builder = tool({
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params),
-        credentials: 'include'
+        headers,
+        body: JSON.stringify(params)
       });
       
       if (!response.ok) {
@@ -205,7 +191,6 @@ export const tool_call_builder = tool({
   }
 });
 
-
 export const get_tools = tool({
   description: 'Get user tools and examples that can be used to automate tasks',
   parameters: z.object({}),
@@ -217,10 +202,7 @@ export const get_tools = tool({
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
-        },
+        headers,
         credentials: 'include'
       });
       
