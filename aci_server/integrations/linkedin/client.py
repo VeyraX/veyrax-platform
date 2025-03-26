@@ -37,7 +37,6 @@ class LinkedInClient:
             params=params
         )
 
-        print(f"[search_people] Response: {response.json()}, self.headers: {self.headers}, params: {params}")
         response.raise_for_status()
         return response.json()
         
