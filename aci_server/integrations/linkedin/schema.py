@@ -110,7 +110,7 @@ class ProfileData(BaseModel):
 
 
 class PersonSearchItem(BaseModel):
-    fullName: Optional[str] = None
+    fullName: str
     headline: Optional[str] = None
     summary: Optional[str] = None
     profilePicture: Optional[str] = None
@@ -120,14 +120,14 @@ class PersonSearchItem(BaseModel):
 
 
 class SearchPeopleData(BaseModel):
-    total: Optional[int] = None
-    items: Optional[List[PersonSearchItem]] = None
+    total: int
+    items: List[PersonSearchItem] = []
 
 
 class SearchPeopleResponse(BaseModel):
-    success: Optional[bool] = None
+    success: bool
     message: Optional[str] = None
-    data: Optional[SearchPeopleData] = None
+    data: SearchPeopleData
 
 
 class ProfilePicture(BaseModel):

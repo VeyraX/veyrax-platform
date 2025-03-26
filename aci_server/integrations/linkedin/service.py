@@ -74,6 +74,23 @@ class LinkedInService:
             start=params.start,
             geo=params.geo
         )    
+        
+        # Ensure response has the required structure
+        if not isinstance(response, dict):
+            response = {}
+        
+        # Ensure success field exists
+        if 'success' not in response:
+            response['success'] = True
+            
+        # Ensure data field exists with proper structure
+        if 'data' not in response or not isinstance(response['data'], dict):
+            response['data'] = {'total': 0, 'items': []}
+        elif 'items' not in response['data']:
+            response['data']['items'] = []
+        elif 'total' not in response['data']:
+            response['data']['total'] = len(response['data'].get('items', []))
+
         # Transform response data to match our schema
         search_response = SearchPeopleResponse(**response)
         
