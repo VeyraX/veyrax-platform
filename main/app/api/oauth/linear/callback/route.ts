@@ -26,9 +26,6 @@ export async function GET(request: NextRequest) {
         const decodedState = Buffer.from(state, 'base64').toString();
         const { provider_id, scopes } = JSON.parse(decodedState);
 
-        console.log('[linear/callback] Provider ID:', provider_id);
-        console.log('[linear/callback] Scopes:', scopes);
-
         const { data: provider, error: providerError } = await supabase
             .from('providers')
             .select('*')
@@ -53,8 +50,6 @@ export async function GET(request: NextRequest) {
                 grant_type: 'authorization_code',
             }),
         });
-
-        console.log('[linear/callback] Token response:', tokenResponse);
 
         const tokens = await tokenResponse.json();
 
@@ -102,8 +97,6 @@ export async function GET(request: NextRequest) {
             console.error('Upsert error:', upsertError);
             throw upsertError;
         }
-
-        console.log('[linear/callback] Added user to actions:', provider_id);
 
         await addActionsUser(provider_id);
 
