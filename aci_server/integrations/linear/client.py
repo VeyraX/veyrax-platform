@@ -146,20 +146,41 @@ class LinearClient:
         query = """
         mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
             issueUpdate(id: $id, input: $input) {
+                success
                 issue {
-                    id 
-                    title 
+                    id
+                    title
                     description
                     identifier
-                    state { id name }
+                    state { 
+                        id 
+                        name 
+                    }
                     priority
-                    assignee { id name email }
-                    creator { id name email }
-                    createdAt 
+                    assignee { 
+                        id 
+                        name 
+                        email 
+                    }
+                    creator {
+                        id
+                        name
+                        email
+                    }
+                    createdAt
                     updatedAt
-                    labels { nodes { name } }
-                    project { id }
-                    team { id key }
+                    labels { 
+                        nodes { 
+                            name 
+                        } 
+                    }
+                    project { 
+                        id 
+                    }
+                    team { 
+                        id 
+                        key 
+                    }
                 }
             }
         }

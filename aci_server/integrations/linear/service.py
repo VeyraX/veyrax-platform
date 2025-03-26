@@ -165,18 +165,24 @@ class LinearService:
         transformed_data = {}
         for key, value in update_data.items():
             if key == 'labels':
-                # Convert label names to IDs just like in create_issue
                 transformed_data['labelIds'] = self._convert_label_names_to_ids(value)
             else:
                 new_key = field_mappings.get(key, key)
                 transformed_data[new_key] = value
         
         response = self.client.update_issue(issue_id, transformed_data)
+
+        print(f"Response: {response}")
         
         if 'errors' in response:
-            raise ValueError(f"GraphQL Error: {response['errors']}")
+            error_msg = response.get('errors', [{}])[0].get('message', 'Unknown error')
+            raise ValueError(f"GraphQL Error: {error_msg}")
         
-        issue = Issue(**response['data']['issueUpdate']['issue'])
+        update_result = response.get('data', {}).get('issueUpdate')
+        if not update_result or not update_result.get('success'):
+            raise ValueError("Failed to update issue")
+            
+        issue = Issue(**update_result['issue'])
         return self.prepare_response(issue, "LinearIssueCard")
 
     def comment_issue(self, issue_id: str, comment: CommentCreate) -> ApiResponse:
