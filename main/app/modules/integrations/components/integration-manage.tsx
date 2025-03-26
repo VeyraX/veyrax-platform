@@ -458,7 +458,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
-          {provider.auth_method === 'oauth' && provider.scopes && (
+          {provider.auth_method === 'oauth' && provider.user_scopes && (
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-medium">Authorized Scopes</h3>
@@ -474,7 +474,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                 </TooltipProvider>
               </div>
               <div className="flex flex-wrap gap-2 justify-end">
-                {provider.scopes.map((scope) => (
+                {provider.user_scopes.map((scope) => (
                   <Badge key={scope.scope} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors">
                     {scope.scope_name}
                   </Badge>

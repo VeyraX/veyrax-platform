@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess, ProviderAction } from './types.integrations'
+import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess, ProviderAction, ProviderScope } from './types.integrations'
 
 const supabase = createClient()
+
+
 
 
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
@@ -41,6 +43,20 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   
   const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
 
+  // Add query for oauth tokens
+  const { data: userOAuthTokens } = await supabase
+    .from('users_oauth_tokens')
+    .select('provider_id, scopes')
+    .eq('user_id', user?.id)
+
+  // Create a map of provider_id to scopes
+  const providerScopes = new Map(
+    userOAuthTokens?.map(token => [
+      token.provider_id, 
+      Array.isArray(token.scopes) ? token.scopes : token.scopes?.split(',') || []
+    ])
+  )
+
   const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
     const isConnected = connectedProviderIds.has(provider.id)
     
@@ -55,6 +71,9 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       scope_name: s.scope_name
     })) || []
 
+    // Add user_scopes to the provider object
+    const userScopes = providerScopes.get(provider.id) || []
+
     return {
       ...provider,
       connected: isReallyConnected,
@@ -62,7 +81,8 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       hasIndex: false,
       indexStatus: null,
       lastSyncDate: null,
-      processedEntities: null
+      processedEntities: null,
+      user_scopes: userScopes
     }
   }) || []
   
@@ -394,6 +414,8 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data: provider, error } = await supabase
     .from('providers')
     .select(`
@@ -406,11 +428,31 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     .eq('provider_tag', providerTag)
     .single();
 
-
-
   if (error) {
     console.error('Error fetching provider details:', error);
     throw error;
+  }
+
+  // Convert provider scopes to ProviderScope format
+  const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
+    scope: s.scope_id,
+    scope_name: s.scope_name
+  })) || [];
+
+  // Only fetch and process OAuth tokens if the provider uses OAuth
+  let userScopes: ProviderScope[] = [];
+  if (provider.auth_method === 'oauth') {
+    const { data: oauthToken } = await supabase
+      .from('users_oauth_tokens')
+      .select('scopes')
+      .eq('user_id', user?.id)
+      .eq('provider_id', provider.id)
+      .single();
+
+    // Filter user scopes based on the oauth token scopes
+    userScopes = oauthToken?.scopes
+      ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope))
+      : [];
   }
 
   const { data: actions, error: actionsError } = await supabase
@@ -470,20 +512,15 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     exampleSchema[endpoint.name] = endpoint.examples;
   });
 
-
-  const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
-    scope: s.scope_id,
-    scope_name: s.scope_name
-  })) || [];
-
   // Remove provider_scopes from provider object and add transformed scopes
   const { provider_scopes: _, ...providerWithoutScopes } = provider;
   const providerWithScopes = {
     ...providerWithoutScopes,
-    scopes
+    scopes,
+    user_scopes: userScopes
   };
 
-  const result: ProviderDetails =  {
+  const result: ProviderDetails = {
     provider: {
       ...providerWithScopes,
       input_schema: inputSchemas,
