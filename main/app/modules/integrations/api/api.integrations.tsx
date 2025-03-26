@@ -50,12 +50,13 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     
     const isPopular = popularProviderIds.has(provider.id)
 
+    provider.scopes = provider.provider_scopes?.map(s => ({
+      scope: s.scope_id,
+      scope_name: s.scope_name
+    })) || []
+
     return {
       ...provider,
-      scopes: provider.provider_scopes?.map(s => ({
-        scope: s.scope_id,
-        scope_name: s.scope_name
-      })) || [],
       connected: isReallyConnected,
       isPopular,
       hasIndex: false,
@@ -77,8 +78,6 @@ export const enableProvider = async (providerId: string): Promise<void> => {
       user_id: user?.id,
       provider_id: providerId 
     })
-
-    console.log('Adding actions user for providerId:', providerId);
 
     await addActionsUser(providerId);
 }
@@ -397,9 +396,17 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
   const { data: provider, error } = await supabase
     .from('providers')
-    .select('*')
+    .select(`
+      *,
+      provider_scopes (
+        scope_id,
+        scope_name
+      )
+    `)
     .eq('provider_tag', providerTag)
     .single();
+
+
 
   if (error) {
     console.error('Error fetching provider details:', error);
@@ -463,9 +470,22 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     exampleSchema[endpoint.name] = endpoint.examples;
   });
 
-  return {
+
+  const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
+    scope: s.scope_id,
+    scope_name: s.scope_name
+  })) || [];
+
+  // Remove provider_scopes from provider object and add transformed scopes
+  const { provider_scopes: _, ...providerWithoutScopes } = provider;
+  const providerWithScopes = {
+    ...providerWithoutScopes,
+    scopes
+  };
+
+  const result: ProviderDetails =  {
     provider: {
-      ...provider,
+      ...providerWithScopes,
       input_schema: inputSchemas,
       output_schema: outputSchemas,
       ui_component: uiComponents
@@ -477,6 +497,8 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     endpointsList,
     exampleSchema
   };
+
+  return result;
 };
 
 const countParameters = (schema: any): number => {
@@ -601,7 +623,6 @@ export const getUserMemoryChunks = async (): Promise<any[]> => {
       .eq('user_id', user?.id);
     
     if (error) throw error;
-    console.log(data);
     
     return data || [];
   } catch (error) {
@@ -886,7 +907,6 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
       
       // Only encrypt if: field is sensitive, has a value, and has changed
       if (isSensitive && processedAuthData[key] && valueChanged) {
-        console.log(`Encrypting changed/new sensitive field: ${key}`);
         const response = await fetch('/api/encrypt', {
           method: 'POST',
           headers: {

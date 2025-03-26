@@ -2,18 +2,16 @@ import { createClient } from "@/lib/utils/supabase/server";
 
 
 export const addActionsUser = async (providerId: string): Promise<void> => {
-    const supabase = await createClient();
-  
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-  
     const userIdToUse = user?.id;
-  
+
     if (!userIdToUse) {
       console.error('No user ID found in auth context');
       throw new Error('Unauthorized - User ID not found');
     }
     
-  
+    // Get provider details
     const { data: provider, error: providersError } = await supabase
           .from('providers')
           .select('id, name, auth_method')
@@ -25,6 +23,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
   
     if (provider.auth_method === 'oauth') {
+      // OAuth flow - get scopes from token and find associated actions
       const { data: oauthToken, error: tokenError } = await supabase
         .from('users_oauth_tokens')
         .select('scopes')
@@ -37,16 +36,12 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw new Error('Failed to get OAuth token scopes');
       }
   
-
-      const { data: scopedActions2, error: scopeError2 } = await supabase
-        .from('provider_scopes')
-        .select('id, scope_id')
-        .eq('provider_id', providerId);
-  
+      // Parse the scopes string into an array
       const scopesArray = Array.isArray(oauthToken.scopes) 
         ? oauthToken.scopes 
         : oauthToken.scopes.split(',');
       
+      // Get actions linked to the granted scopes
       const { data: scopedActions, error: scopeError } = await supabase
         .from('provider_scopes')
         .select('id, scope_id')
@@ -57,16 +52,26 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         console.error('Error getting scoped actions:', scopeError);
       }
       if (!scopedActions?.length) {
-        console.log('No scoped actions found, returning; all scopes:', scopedActions2, oauthToken.scopes);
         return;
       }
+
+      const scopedActionIds = scopedActions.map(action => action.id);
+
+      const { data: providerActionScopes, error } = await supabase
+        .from('provider_action_scopes')
+        .select('action_id, scope_id')
+        .in('scope_id', scopedActionIds);
+      
+      if (error) {
+        console.error('Error getting provider action scopes:', error);
+        throw error;
+      }
   
-      const insertData = scopedActions.map(sa => ({
-        action_id: sa.id,
+      const insertData = providerActionScopes.map(sa => ({
+        action_id: sa.action_id,
         user_id: user?.id
       }));
   
-      console.log('Inserting user provider actions:', insertData);
       const { error: insertError } = await supabase
         .from('users_provider_actions')
         .upsert(insertData, {
@@ -79,6 +84,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
         throw insertError;
       }
     } else {
+      // Non-OAuth flow (existing implementation)
       const { data: actions, error: actionsError } = await supabase
         .from('provider_actions')
         .select('id')
