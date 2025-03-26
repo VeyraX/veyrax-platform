@@ -75,24 +75,34 @@ class LinkedInService:
             geo=params.geo
         )    
         
-        # Ensure response has the required structure
-        if not isinstance(response, dict):
-            response = {}
+        # Transform the raw response to match our schema
+        transformed_response = {
+            "success": True,
+            "message": "",
+            "data": {
+                "total": response.get("data", {}).get("total", 0),
+                "items": []
+            }
+        }
         
-        # Ensure success field exists
-        if 'success' not in response:
-            response['success'] = True
-            
-        # Ensure data field exists with proper structure
-        if 'data' not in response or not isinstance(response['data'], dict):
-            response['data'] = {'total': 0, 'items': []}
-        elif 'items' not in response['data']:
-            response['data']['items'] = []
-        elif 'total' not in response['data']:
-            response['data']['total'] = len(response['data'].get('items', []))
-
+        # Transform items if they exist in the response
+        items = response.get("data", {}).get("items", [])
+        if items:
+            transformed_response["data"]["items"] = [
+                {
+                    "fullName": item.get("fullName", ""),
+                    "headline": item.get("headline", ""),
+                    "summary": item.get("summary", ""),
+                    "profilePicture": item.get("profilePicture", ""),
+                    "location": item.get("location", ""),
+                    "profileURL": item.get("profileURL", ""),
+                    "username": item.get("username", "")
+                }
+                for item in items
+            ]
+        
         # Transform response data to match our schema
-        search_response = SearchPeopleResponse(**response)
+        search_response = SearchPeopleResponse(**transformed_response)
         
         return self.prepare_response(search_response, None)
         

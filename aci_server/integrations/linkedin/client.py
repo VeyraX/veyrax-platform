@@ -36,37 +36,9 @@ class LinkedInClient:
             headers=self.headers,
             params=params
         )
+
         response.raise_for_status()
-        
-        # Get the raw response
-        raw_response = response.json()
-        
-        # Transform the response to match our schema
-        transformed_response = {
-            "success": True,
-            "message": None,
-            "data": {
-                "total": raw_response.get("total", 0),
-                "items": []
-            }
-        }
-        
-        # Transform items if they exist
-        if "items" in raw_response:
-            transformed_response["data"]["items"] = [
-                {
-                    "fullName": item.get("fullName", ""),
-                    "headline": item.get("headline"),
-                    "summary": item.get("summary"),
-                    "profilePicture": item.get("profilePicture"),
-                    "location": item.get("location"),
-                    "profileURL": item.get("profileURL"),
-                    "username": item.get("username")
-                }
-                for item in raw_response["items"]
-            ]
-            
-        return transformed_response
+        return response.json()
         
     def get_profile_posts(self, username: str, pagination_token: Optional[str] = None) -> Dict[str, Any]:
         """Get posts from a LinkedIn profile"""
