@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes } = JSON.parse(decodedState);
+        const { provider_id, scopes, return_url } = JSON.parse(decodedState);
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
 
         await addActionsUser(provider_id);
 
-        return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
+        return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
     } catch (error: any) {
         console.error('OAuth callback error:', {
             message: error.message,

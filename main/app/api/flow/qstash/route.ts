@@ -10,24 +10,32 @@ const supabase = createClient(
 const BASE_URL = process.env.FRONTEND_URL;
 
 async function handler(req: Request) {
-  console.log('🚀 QStash webhook received');
   
   try {
-    console.log('Parsing request body...');
     const body = await req.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
     
     const { flowId, apiKey } = body;
-    console.log('FlowId:', flowId);
-    console.log('API Key present:', !!apiKey);
 
     if (!flowId || !apiKey) {
-      console.error('Missing parameters - flowId:', !flowId, 'apiKey:', !apiKey);
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
-    
-    console.log('Making request to run-flow endpoint...');
-    console.log('Target URL:', `${BASE_URL}/api/flow/run-flow`);
+
+    const { data: flow, error: flowError } = await supabase
+      .from('user_flows')
+      .select('status')
+      .eq('id', flowId)
+      .single();
+
+    if (flowError) {
+      throw new Error(`Failed to get flow status: ${flowError.message}`);
+    }
+
+    if (flow.status === 'Draft') {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Flow is in draft mode, skipping execution' 
+      });
+    }
     
     const response = await fetch(`${BASE_URL}/api/flow/run-flow`, {
       method: 'POST',
@@ -38,16 +46,9 @@ async function handler(req: Request) {
       body: JSON.stringify({ flowId })
     });
 
-    console.log('Run-flow response status:', response.status);
     const responseBody = await response.text();
-    console.log('Run-flow response body:', responseBody);
 
     if (!response.ok) {
-      console.error('Failed to run flow:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseBody
-      });
       throw new Error(`Failed to run flow: ${response.status} ${response.statusText} - ${responseBody}`);
     }
 
@@ -68,8 +69,5 @@ async function handler(req: Request) {
 
 export const POST = verifySignatureAppRouter(handler);
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}; 
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic'; 

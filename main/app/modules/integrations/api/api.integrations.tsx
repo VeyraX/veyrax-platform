@@ -276,13 +276,13 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     });
 };
 
-export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {
+export const initiateOAuthFlow = async (providerTag: string, scopes: string[], return_url?: string): Promise<string> => {
   const response = await fetch(`/api/oauth/${providerTag}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ scopes })
+    body: JSON.stringify({ scopes, return_url })
   });
   
   const { url } = await response.json();

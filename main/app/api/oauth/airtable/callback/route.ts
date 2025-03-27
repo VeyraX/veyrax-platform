@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes, code_verifier } = JSON.parse(decodedState);
+        const { provider_id, scopes, code_verifier, return_url } = JSON.parse(decodedState);
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
             }
             
             const tokens = JSON.parse(responseText);
-            return await processTokens(tokens, user.id, provider_id, scopes, request);
+            return await processTokens(tokens, user.id, provider_id, scopes, request, return_url);
             
         } catch (error) {
             throw error;
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-async function processTokens(tokens: any, userId: string, providerId: string, scopes: string[], request: NextRequest) {
+async function processTokens(tokens: any, userId: string, providerId: string, scopes: string[], request: NextRequest, return_url: string) {
     const supabase = await createClient();
     
     const { error: providerUpsertError } = await supabase
@@ -129,5 +129,5 @@ async function processTokens(tokens: any, userId: string, providerId: string, sc
     
     await addActionsUser(providerId);
 
-    return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
+    return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
 }

@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FlowHeader } from "../components/header";
-import { getFlowById, updateFlowStatus } from "../api/api.flows";
+import { getFlowById, updateFlowStatus, getUserActions } from "../api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { ProviderAction } from '../api/types.flows';
 
 export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   const [isLoadingFlow, setIsLoadingFlow] = useState(!!flowId);
   const [isMounted, setIsMounted] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
+  const [userTools, setUserTools] = useState<ProviderAction[]>([]);
   
   useEffect(() => {
     setIsMounted(true);
@@ -59,6 +61,19 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
       loadFlow();
     }
   }, [flowId]);
+
+  useEffect(() => {
+    const loadTools = async () => {
+      try {
+        const tools = await getUserActions();
+        setUserTools(tools);
+      } catch (error) {
+        console.error('Error loading tools:', error);
+      }
+    };
+
+    loadTools();
+  }, []);
 
   const { messages, append, isLoading: isChatLoading, stop } = useChat({
     api: '/api/flow/test-from-chat',
@@ -283,6 +298,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
               isLoading={isLoadingFlow}
               isTestRunning={isChatLoading}
               creatorRef={flowCreatorRef}
+              userTools={userTools}
             />
           </TabsContent>
         </Tabs>
@@ -319,6 +335,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
             isLoading={isLoadingFlow}
             isTestRunning={isChatLoading}
             creatorRef={flowCreatorRef}
+            userTools={userTools}
           />
         </div>
 

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { scopes } = await request.json();
+    const { scopes, return_url } = await request.json();
     
     const { data: provider } = await supabase
         .from('providers')
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
 
     const state = Buffer.from(JSON.stringify({
         provider_id: provider.id,
-        scopes
+        scopes,
+        return_url: return_url || '/integrations'
     })).toString('base64');
 
     const redirectUri = `${request.nextUrl.origin}/api/oauth/outlook/callback`;

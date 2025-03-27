@@ -1,12 +1,9 @@
-import { openai } from '@ai-sdk/openai';
 import { appendResponseMessages, streamText } from 'ai';
-import { getUserToolsServer } from '@/lib/utils/get-user-tools';
-import { main_system_prompt } from '../../../prompts/main_system_prompt';
+import { flowRunPrompt } from '@/app/prompts/flow_run_prompt';
 import { createClient } from '@supabase/supabase-js';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { type Message } from 'ai';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
-import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || ''
@@ -100,7 +97,7 @@ export async function POST(req: Request) {
       
       ${flowData ? 'The service account already has a flow they want to test. Use the current flow ID for testing.' : 'Get flow first, then tool-call to test this out.'}
 
-      ${flow_testing_prompt}
+      ${flowRunPrompt}
 
       If flow is empty, you should respond with an error message indicating the flow needs to be created first.
     `;

@@ -9,11 +9,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, formatISO } from "date-fns";
 import { createOrUpdateFlowSchedule, deleteFlowSchedule, getFlowSchedule } from "../../api/api.schedule.flows";
 import { FlowSchedule } from "../../api/types.flows";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ScheduleTabContentProps {
   flowId?: string;
@@ -223,9 +229,21 @@ export function ScheduleTabContent({
       <div className={`flex-grow ${isEnabled ? 'space-y-6' : ''}`}>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-medium text-foreground">Enable Scheduling</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-medium text-foreground">Enable Scheduling</h2>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>All times are in UTC timezone.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="text-sm text-muted-foreground">
-              Turn on to schedule automatic runs of this flow
+              Turn on to schedule automatic runs of this flow. Works only if the flow is published.
             </div>
           </div>
           <Switch

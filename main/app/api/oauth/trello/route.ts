@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { scopes } = await request.json();
+    const { scopes, return_url } = await request.json();
     
     const { data: provider } = await supabase
         .from('providers')
@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Provider not found' }, { status: 404 });
     }
 
-    const returnUrl = `${request.nextUrl.origin}/integrations/${provider.provider_tag }/auth-complete`;
+    const authCompleteUrl = `${request.nextUrl.origin}/integrations/${provider.provider_tag}/auth-complete`;
+    const finalReturnUrl = return_url || '/integrations';
     
     const authUrl = `https://trello.com/1/authorize?` +
         `expiration=never&` +
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
         `scope=${encodeURIComponent(Array.isArray(scopes) ? scopes.join(',') : scopes)}&` +
         `response_type=token&` +
         `key=${process.env.TRELLO_API_KEY}&` +
-        `return_url=${encodeURIComponent(returnUrl)}`;
+        `return_url=${encodeURIComponent(authCompleteUrl)}?return_to=${encodeURIComponent(finalReturnUrl)}`;
 
     return NextResponse.json({ url: authUrl });
 }

@@ -297,7 +297,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                       flowRuns={flowRuns}
                     />
                   ) : (
-                    <div className="text-muted-foreground">No schedule configured for this flow.</div>
+                    <div className="text-muted-foreground text-sm">No schedule configured for this flow.</div>
                   )}
                 </div>
               </TabsContent>

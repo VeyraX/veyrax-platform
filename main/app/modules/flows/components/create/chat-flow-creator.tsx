@@ -6,9 +6,11 @@ import { ChatMessages } from "@/app/modules/agent/components/messages/chat-messa
 import { AIInputWithSearch } from "@/app/modules/agent/components/input/ai-input";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
 import { type Message } from 'ai/react';
+import { ProviderAction } from '../../api/types.flows';
 
 interface ChatFlowCreatorProps {
   actions: any[];
+  userTools: ProviderAction[];
   onFlowGenerated: (flowData: { name: string; description: string }) => void;
   useExternalChat?: boolean;
   externalMessages?: Message[];
@@ -21,6 +23,7 @@ interface ChatFlowCreatorProps {
 
 export function ChatFlowCreator({ 
   actions, 
+  userTools,
   onFlowGenerated,
   useExternalChat = false,
   externalMessages,
@@ -123,7 +126,10 @@ export function ChatFlowCreator({
               />
             </div>
           ) : (
-            <FlowChatCreateEmptyState onSendMessage={handleSendMessage} />
+            <FlowChatCreateEmptyState 
+              onSendMessage={handleSendMessage}
+              userTools={userTools}
+            />
           )}
         </div>
         

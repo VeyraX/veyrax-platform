@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { ScheduleTabContent } from "./schedule-tab-content";
 import { FlowSchedule } from "../../api/types.flows";
+import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
+import { ProviderAction } from "../../api/types.flows";
 
 interface UnifiedFlowCreatorProps {
   onSave?: (config: { name: string; description: string; plain_description?: string; id?: string }) => void;
@@ -36,6 +38,7 @@ interface UnifiedFlowCreatorProps {
   onCreateClick?: () => void;
   isCreateMode?: boolean;
   creatorRef?: React.MutableRefObject<{ saveFlow: () => Promise<string | undefined> } | null>;
+  userTools?: ProviderAction[];
 }
 
 export function UnifiedFlowCreator({ 
@@ -49,6 +52,7 @@ export function UnifiedFlowCreator({
   onCreateClick,
   isCreateMode = false,
   creatorRef,
+  userTools = [],
 }: UnifiedFlowCreatorProps) {
   const [activeTab, setActiveTab] = useState<string>(initialData ? "configure" : "create");
   
@@ -326,7 +330,12 @@ export function UnifiedFlowCreator({
 
   if (!flowId && isCreateMode) {
     onCreateClick?.();
-    return;
+    return (
+      <FlowChatCreateEmptyState 
+        onSendMessage={onTest} 
+        userTools={userTools}
+      />
+    );
   }
 
   return (
@@ -351,6 +360,7 @@ export function UnifiedFlowCreator({
           <div className="h-full flex flex-col overflow-hidden">
             <ChatFlowCreator 
               actions={actions} 
+              userTools={userTools}
               onFlowGenerated={(flowData) => {
                 setName(flowData.name);
                 setHtml(flowData.description);

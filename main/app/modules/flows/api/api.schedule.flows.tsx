@@ -59,6 +59,12 @@ export const createOrUpdateFlowSchedule = async (flowId: string, schedule: FlowS
       .eq('flow_id', flowId)
       .maybeSingle();
 
+    const { data: flow, error: flowError } = await supabase
+      .from('user_flows')
+      .select('status')
+      .eq('id', flowId)
+      .maybeSingle();
+
     if (checkError) {
       console.error('Error checking existing schedule:', checkError);
       throw checkError;
@@ -80,7 +86,8 @@ export const createOrUpdateFlowSchedule = async (flowId: string, schedule: FlowS
       body: JSON.stringify({
         flowId,
         schedule,
-        apiKey: apiKeyData.api_key
+        apiKey: apiKeyData.api_key,
+        status: flow?.status
       })
     });
 

@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
             username: userData.username
         });
 
-        // Сохраняем связь пользователя с провайдером
         console.log('Upserting provider connection...');
         const { error: providerUpsertError } = await supabase
             .from('users_providers')
@@ -73,7 +72,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to save provider connection' }, { status: 500 });
         }
 
-        // Шифруем токен и сохраняем его
         const encryptedAccessToken = encrypt(token);
         const tenYearsInSeconds = 10 * 365 * 24 * 60 * 60;
         

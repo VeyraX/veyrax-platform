@@ -50,6 +50,7 @@ export interface IntegrationCardProps extends Provider {
   onConnectionChange?: () => void;
   isPublic?: boolean;
   onShowSettings?: (provider: Provider) => void;
+  return_url?: string;
 }
 
 export interface UserProvider {
