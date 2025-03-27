@@ -63,6 +63,7 @@ from integrations.airtable.route import router as airtable_router
 from integrations.todoist.route import router as todoist_router
 from integrations.google_sheets.route import router as google_sheets_router
 from integrations.google_docs.route import router as google_docs_router
+from integrations.x.route import router as x_router
 from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
@@ -143,7 +144,8 @@ INTEGRATION_ROUTERS = {
     "airtable": airtable_router,
     "todoist": todoist_router,
     "google-sheets": google_sheets_router,
-    "google-docs": google_docs_router
+    "google-docs": google_docs_router,
+    "x": x_router
 }
 
 app = FastAPI()

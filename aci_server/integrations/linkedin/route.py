@@ -69,7 +69,6 @@ async def search_people(
     params: Dict[str, Any] = Body(...),
     service: LinkedInService = Depends(get_linkedin_service)
 ):
-    print("[search_people] params", params)
     validated_params = SearchPeopleParams(**params)
     return service.search_people(validated_params)
 

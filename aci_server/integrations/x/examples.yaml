@@ -1,0 +1,1321 @@
+routes:
+  - endpoint: /x/get_user_profile
+    examples:
+      - scenario: "Get Elon Musk's Twitter Profile"
+        description: "Retrieve Elon Musk's profile information from Twitter by his username"
+        input_json: |
+          {
+            "screenname": "elonmusk"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User profile retrieved successfully",
+              "data": {
+                "profile": "https://twitter.com/elonmusk",
+                "rest_id": "44196397",
+                "avatar": "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg",
+                "desc": "Owner of X",
+                "name": "Elon Musk",
+                "friends": 1219,
+                "sub_count": 180000000,
+                "id": "44196397"
+              }
+            },
+            "component": null
+          }
+      - scenario: "Get Twitter Profile with REST ID"
+        description: "Retrieve a Twitter profile using both username and REST ID for more precise lookup"
+        input_json: |
+          {
+            "screenname": "elonmusk",
+            "rest_id": "44196397"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User profile retrieved successfully",
+              "data": {
+                "profile": "https://twitter.com/elonmusk",
+                "rest_id": "44196397",
+                "avatar": "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg",
+                "desc": "Owner of X",
+                "name": "Elon Musk",
+                "friends": 1219,
+                "sub_count": 180000000,
+                "id": "44196397"
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/get_user_timeline
+    examples:
+      - scenario: "Get User Timeline"
+        description: "Retrieve a user's recent tweets and timeline activity"
+        input_json: |
+          {
+            "screenname": "elonmusk"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User timeline retrieved successfully",
+              "data": {
+                "timeline": [
+                  {
+                    "id": "1771985294500520970",
+                    "text": "RT @Tesla: Update on robotaxi unveil",
+                    "created_at": "2024-03-24T12:15:00Z",
+                    "entities": {},
+                    "retweeted": true,
+                    "favorited": false,
+                    "retweet_count": 5246,
+                    "favorite_count": 0,
+                    "media": []
+                  },
+                  {
+                    "id": "1771598040526254511",
+                    "text": "I'm excited about the future of AI!",
+                    "created_at": "2024-03-23T14:36:22Z",
+                    "entities": {},
+                    "retweeted": false,
+                    "favorited": false,
+                    "retweet_count": 12453,
+                    "favorite_count": 156789,
+                    "media": []
+                  }
+                ],
+                "user": {
+                  "profile": "https://twitter.com/elonmusk",
+                  "rest_id": "44196397",
+                  "avatar": "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg",
+                  "desc": "Owner of X",
+                  "name": "Elon Musk",
+                  "friends": 1219,
+                  "sub_count": 180000000,
+                  "id": "44196397"
+                }
+              }
+            },
+            "component": null
+          }
+      - scenario: "Get User Timeline with Cursor"
+        description: "Retrieve a user's timeline with pagination using cursor"
+        input_json: |
+          {
+            "screenname": "elonmusk",
+            "cursor": "HBaAgICw-PnSrY8LEI66vLGz_P78rxgKFooI3MTb1aysrKtADRJxEAAA"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User timeline retrieved successfully",
+              "data": {
+                "timeline": [
+                  {
+                    "id": "1770845244276494488",
+                    "text": "Looking forward to the robotaxi unveil!",
+                    "created_at": "2024-03-20T19:45:32Z",
+                    "entities": {},
+                    "retweeted": false,
+                    "favorited": false,
+                    "retweet_count": 8765,
+                    "favorite_count": 98765,
+                    "media": []
+                  }
+                ],
+                "user": {
+                  "profile": "https://twitter.com/elonmusk",
+                  "rest_id": "44196397",
+                  "avatar": "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg",
+                  "desc": "Owner of X",
+                  "name": "Elon Musk",
+                  "friends": 1219,
+                  "sub_count": 180000000,
+                  "id": "44196397"
+                }
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/get_user_following
+    examples:
+      - scenario: "Get User Following List"
+        description: "Retrieve a list of accounts that a user follows"
+        input_json: |
+          {
+            "screenname": "elonmusk"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User following list retrieved successfully",
+              "data": {
+                "following": [
+                  {
+                    "user_id": "44196397",
+                    "screen_name": "tesla",
+                    "description": "Electric cars, giant batteries and solar",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1337607516008501250/6Ggc4S5n_400x400.png",
+                    "statuses_count": 22456,
+                    "followers_count": 21500000,
+                    "friends_count": 49,
+                    "media_count": 3456,
+                    "name": "Tesla"
+                  },
+                  {
+                    "user_id": "34743251",
+                    "screen_name": "SpaceX",
+                    "description": "SpaceX designs, manufactures and launches the world's most advanced rockets and spacecraft",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1082744382585856001/rH_k3PtQ_400x400.jpg",
+                    "statuses_count": 3892,
+                    "followers_count": 19800000,
+                    "friends_count": 21,
+                    "media_count": 1254,
+                    "name": "SpaceX"
+                  }
+                ],
+                "next_cursor": "HBaAgIDg4-iYsI8LKI66vLGz_P78rxgAFooI3MTbzbycnJtADRJxEAAA"
+              }
+            },
+            "component": null
+          }
+      - scenario: "Get User Following with Pagination"
+        description: "Retrieve a user's following list with pagination using cursor"
+        input_json: |
+          {
+            "screenname": "elonmusk",
+            "cursor": "HBaAgIDg4-iYsI8LKI66vLGz_P78rxgAFooI3MTbzbycnJtADRJxEAAA"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User following list retrieved successfully",
+              "data": {
+                "following": [
+                  {
+                    "user_id": "13298072",
+                    "screen_name": "Neuralink",
+                    "description": "Building devices to connect humans and computers",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1596755559385923584/tFJD6vGk_400x400.jpg",
+                    "statuses_count": 876,
+                    "followers_count": 2800000,
+                    "friends_count": 15,
+                    "media_count": 345,
+                    "name": "Neuralink"
+                  }
+                ],
+                "next_cursor": ""
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/get_user_followers
+    examples:
+      - scenario: "Get User Followers List"
+        description: "Retrieve a list of accounts that follow a user"
+        input_json: |
+          {
+            "screenname": "elonmusk"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User followers list retrieved successfully",
+              "data": {
+                "followers_count": 180000000,
+                "followers": [
+                  {
+                    "user_id": "1234567890",
+                    "screen_name": "user1",
+                    "description": "Fan of technology and innovation",
+                    "profile_image": "https://pbs.twimg.com/profile_images/example1.jpg",
+                    "statuses_count": 1567,
+                    "followers_count": 456,
+                    "friends_count": 789,
+                    "media_count": 123,
+                    "name": "User One"
+                  },
+                  {
+                    "user_id": "9876543210",
+                    "screen_name": "user2",
+                    "description": "Tech enthusiast and space lover",
+                    "profile_image": "https://pbs.twimg.com/profile_images/example2.jpg",
+                    "statuses_count": 2345,
+                    "followers_count": 678,
+                    "friends_count": 901,
+                    "media_count": 234,
+                    "name": "User Two"
+                  }
+                ],
+                "next_cursor": "HBaAgIDw3-L-op8LEI66vLGz_P78rxgKFooI3MTb1cnMzMpADRJxEAAA",
+                "status": "success"
+              }
+            },
+            "component": null
+          }
+      - scenario: "Get User Followers with Pagination"
+        description: "Retrieve a user's followers list with pagination using cursor"
+        input_json: |
+          {
+            "screenname": "elonmusk",
+            "cursor": "HBaAgIDw3-L-op8LEI66vLGz_P78rxgKFooI3MTb1cnMzMpADRJxEAAA"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User followers list retrieved successfully",
+              "data": {
+                "followers_count": 180000000,
+                "followers": [
+                  {
+                    "user_id": "1357924680",
+                    "screen_name": "user3",
+                    "description": "AI and robotics enthusiast",
+                    "profile_image": "https://pbs.twimg.com/profile_images/example3.jpg",
+                    "statuses_count": 3456,
+                    "followers_count": 789,
+                    "friends_count": 1012,
+                    "media_count": 345,
+                    "name": "User Three"
+                  }
+                ],
+                "next_cursor": "",
+                "status": "success"
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/get_tweet
+    examples:
+      - scenario: "Get Tweet by ID"
+        description: "Retrieve details about a specific tweet using its ID"
+        input_json: |
+          {
+            "id": "1671370010743263233"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Tweet retrieved successfully",
+              "data": {
+                "likes": 54876,
+                "created_at": "2023-06-21T02:15:34Z",
+                "text": "Tesla Q2 Earnings Call will be on July 19th. Submit questions at https://say.com/tsla",
+                "retweets": 3654,
+                "bookmarks": 1289,
+                "quotes": 245,
+                "replies": 2893,
+                "lang": "en",
+                "conversation_id": "1671370010743263233",
+                "author": {
+                  "rest_id": "44196397",
+                  "name": "Elon Musk",
+                  "screen_name": "elonmusk",
+                  "image": "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg",
+                  "blue_verified": true
+                },
+                "media": {
+                  "video": []
+                },
+                "id": "1671370010743263233"
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/get_tweet_retweets
+    examples:
+      - scenario: "Get Tweet Retweets"
+        description: "Retrieve a list of users who retweeted a specific tweet"
+        input_json: |
+          {
+            "id": "1700199139470942473"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Tweet retweets retrieved successfully",
+              "data": {
+                "retweets": [
+                  {
+                    "user_id": "859966742532997120",
+                    "screen_name": "nobu7121",
+                    "description": "",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1542088112427667462/-B3T9H41_normal.jpg",
+                    "statuses_count": 11667,
+                    "followers_count": 466,
+                    "friends_count": 1576,
+                    "media_count": 7,
+                    "name": "nobu712"
+                  },
+                  {
+                    "user_id": "1409532656111476739",
+                    "screen_name": "KiraboSawula",
+                    "description": "CEO Sawula Productions| Future Lawyer| I respect the law| I respect people| 1st Aug| Budonian| I respect women & girls| Hardworking|James 4:8✌👌👊",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1656640073461383175/DbNBgwpj_normal.jpg",
+                    "statuses_count": 14132,
+                    "followers_count": 205,
+                    "friends_count": 398,
+                    "media_count": 78,
+                    "name": "Bwana Sawula"
+                  },
+                  {
+                    "user_id": "1701335704096161793",
+                    "screen_name": "satelitlgbgtv",
+                    "description": "",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1701335979942887424/4s1o6tf3_normal.jpg",
+                    "statuses_count": 783,
+                    "followers_count": 1,
+                    "friends_count": 35,
+                    "media_count": 28,
+                    "name": "LYUBOMIR HRISTOV GEORGIEV SATELITLGBGTV BULGARIA"
+                  }
+                ],
+                "next_cursor": "HBagp5O9uuuNqjEAAA=="
+              }
+            },
+            "component": null
+          }
+      - scenario: "Get Tweet Retweets with Pagination"
+        description: "Retrieve more users who retweeted a tweet using pagination"
+        input_json: |
+          {
+            "id": "1700199139470942473",
+            "cursor": "HBagp5O9uuuNqjEAAA=="
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Tweet retweets retrieved successfully",
+              "data": {
+                "retweets": [
+                  {
+                    "user_id": "488062482",
+                    "screen_name": "ZongZiWang",
+                    "description": "founding mobile eng @figma | mobile advisor | keyboard maker | open source @RealCharAI e/acc",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1680646692444700672/djJEnpCB_normal.jpg",
+                    "statuses_count": 156,
+                    "followers_count": 150,
+                    "friends_count": 460,
+                    "media_count": 15,
+                    "name": "Joey Wang"
+                  },
+                  {
+                    "user_id": "1663874533227470850",
+                    "screen_name": "DavidDicke46828",
+                    "description": "CO-FOUNDER\nI educate the world about Bitcoin. Investor, Trader, YouTuber.",
+                    "profile_image": "https://pbs.twimg.com/profile_images/1703338491965513728/XjRkaXZr_normal.jpg",
+                    "statuses_count": 55,
+                    "followers_count": 314,
+                    "friends_count": 8,
+                    "media_count": 0,
+                    "name": "David EtherBit Crypto"
+                  }
+                ],
+                "next_cursor": "HBagp5O9ttmOnLIAAA=="
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /x/search_tweets
+    examples:
+      - scenario: "Search for tweets about a topic"
+        description: "Search for tweets containing \"cybertruck\""
+        input_json: |
+          {
+            "query": "cybertruck",
+            "search_type": "Top"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Tweets retrieved successfully",
+            "data": {
+              "timeline": [
+                {
+                  "type": "tweet",
+                  "tweet_id": "1703108627035254988",
+                  "screen_name": "fishcatut",
+                  "bookmarks": 9,
+                  "favorites": 241,
+                  "created_at": "Sat Sep 16 18:08:33 +0000 2023",
+                  "text": "What's going on here #cybertruck #tesla https://t.co/6W1eU8HAu6",
+                  "lang": "en",
+                  "quotes": 14,
+                  "replies": 42,
+                  "retweets": 19,
+                  "media": {
+                    "photo": [
+                      {
+                        "media_url_https": "https://pbs.twimg.com/media/F6KoROmWoAANrrN.jpg"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "tweet",
+                  "tweet_id": "1703279557577699342",
+                  "screen_name": "mahkusg",
+                  "bookmarks": 21,
+                  "favorites": 825,
+                  "created_at": "Sun Sep 17 05:27:46 +0000 2023",
+                  "text": "Cybertruck charging at the 50,000th supercharger in Roseville tonight! https://t.co/SfPqUUrJAn",
+                  "lang": "en",
+                  "quotes": 17,
+                  "replies": 32,
+                  "retweets": 82,
+                  "media": {
+                    "photo": [
+                      {
+                        "media_url_https": "https://pbs.twimg.com/media/F6NDuJ2a0AAzX8S.jpg"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "next_cursor": "DAACCgACF6OTaL7AJxAKAAMXo5Novr_Y8AgABAAAAAILAAUAAAEIRW1QQzZ3QUFBZlEvZ0dKTjB2R3AvQUFBQUJZWG96L0s3TnZRcVJlaTc1dlpsc0RTRjZNc2tYZ2JRSGNYb05sVWJKWXdDQmVhZHduU1Z0QmFGNkx5Z00yYjBSY1hvekhBNWhzeGt4ZWpnY0Z3bDhESUY2S29SZGhXOE13WG9tTGd0SmFSY3hlamFDLzdWd0dsRjU1bHdLZ2JvYzBYaTVVcWtOb1FKQmVpbnV4VDE0QlFGNk5PNE54WG9IRVhvNEJpSlpjUldSZWpRN3UybW5BT0Y1bzRveUlYSU1zWG5wcEMxNWR3alJlVUE3SHFseUdjRjVsbUdGalhRZElYbzRFOWZKb3dXdz09CAAGAAAAAAgABwAAAAAMAAgKAAEXmWYYWNdB0gAAAA"
+            }
+          }
+      - scenario: "Search for tweets with pagination"
+        description: "Search for more tweets about \"cybertruck\" using a cursor for pagination"
+        input_json: |
+          {
+            "query": "cybertruck",
+            "search_type": "Top",
+            "cursor": "DAACCgACF6OTaL7AJxAKAAMXo5Novr_Y8AgABAAAAAILAAUAAAEIRW1QQzZ3QUFBZlEvZ0dKTjB2R3AvQUFBQUJZWG96L0s3TnZRcVJlaTc1dlpsc0RTRjZNc2tYZ2JRSGNYb05sVWJKWXdDQmVhZHduU1Z0QmFGNkx5Z00yYjBSY1hvekhBNWhzeGt4ZWpnY0Z3bDhESUY2S29SZGhXOE13WG9tTGd0SmFSY3hlamFDLzdWd0dsRjU1bHdLZ2JvYzBYaTVVcWtOb1FKQmVpbnV4VDE0QlFGNk5PNE54WG9IRVhvNEJpSlpjUldSZWpRN3UybW5BT0Y1bzRveUlYSU1zWG5wcEMxNWR3alJlVUE3SHFseUdjRjVsbUdGalhRZElYbzRFOWZKb3dXdz09CAAGAAAAAAgABwAAAAAMAAgKAAEXmWYYWNdB0gAAAA"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Tweets retrieved successfully",
+            "data": {
+              "timeline": [
+                {
+                  "type": "tweet",
+                  "tweet_id": "1703346243101987161",
+                  "screen_name": "pablo9948967714",
+                  "bookmarks": 0,
+                  "favorites": 21,
+                  "created_at": "Sun Sep 17 09:52:45 +0000 2023",
+                  "text": "The New #Tesla Cybertruck video back to the future\n$TSLA\nIt's coming soon 👍🚀 https://t.co/gzxALnV64T",
+                  "lang": "en",
+                  "quotes": 1,
+                  "replies": 2,
+                  "retweets": 5,
+                  "media": {
+                    "video": [
+                      {
+                        "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1703346196859801601/pu/img/zA9Stc-b335N7L45.jpg",
+                        "variants": [
+                          {
+                            "bitrate": 256000,
+                            "content_type": "video/mp4",
+                            "url": "https://video.twimg.com/ext_tw_video/1703346196859801601/pu/vid/avc1/480x270/fB9zcrSCmumapDBC.mp4?tag=12"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "next_cursor": "QVFDQ2dnQUNGNk9GQTVUc1JSQU5BQU1YbzI3ME85ZEZBQWdBQkFBQUFBSUxBQVVBQUFFSVJXMVFRell6UVVGQlpWRXZaMGRLVGpCMlIzQXZRVUZCUVVCWldHOTZMMHMzVG5aUmNsSmxhVGMxZmxwc2MwUlRSalpreyt1etc"
+            }
+          }
+
+  - endpoint: /x/get_tweet_thread
+    examples:
+      - scenario: "Get Tweet Thread (Conversation)"
+        description: "Retrieve a tweet and its replies (conversation thread)"
+        input_json: |
+          {
+            "id": "1738106896777699464"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Tweet thread retrieved successfully",
+            "data": {
+              "id": "1738106896777699464",
+              "likes": 203056,
+              "display_text": "Starship Flight 3 static fire test",
+              "created_at": "Fri Dec 22 07:59:11 +0000 2023",
+              "status": "active",
+              "text": "Starship Flight 3 static fire test https://t.co/7HvFYvyQa3",
+              "retweets": 15609,
+              "bookmarks": 1073,
+              "quotes": 963,
+              "replies": 9876,
+              "lang": "en",
+              "source": "<a href=\"http://twitter.com/download/iphone\" rel=\"nofollow\">Twitter for iPhone</a>",
+              "views": "23041960",
+              "conversation_id": "1738106896777699464",
+              "author": {
+                "rest_id": "44196397",
+                "name": "Elon Musk",
+                "screen_name": "elonmusk",
+                "image": "https://pbs.twimg.com/profile_images/1893803697185910784/Na5lOWi5_normal.jpg",
+                "blue_verified": true,
+                "sub_count": 219733115
+              },
+              "media": {
+                "photo": [
+                  {
+                    "media_url_https": "https://pbs.twimg.com/media/GB7_AkIWkAAMFBS.jpg",
+                    "id": "1738106891375382528"
+                  }
+                ]
+              },
+              "thread": [
+                {
+                  "likes": 837,
+                  "created_at": "Fri Dec 22 08:01:21 +0000 2023",
+                  "status": "active",
+                  "text": "@elonmusk Gratitude is a musk thank you Elon https://t.co/8u6rbvMYKp",
+                  "retweets": 74,
+                  "bookmarks": 4,
+                  "quotes": 2,
+                  "display_text": "Gratitude is a musk thank you Elon",
+                  "replies": 154,
+                  "lang": "en",
+                  "views": "56792",
+                  "conversation_id": "1738106896777699464",
+                  "id": "1738107442452381976",
+                  "author": {
+                    "rest_id": "2800216425",
+                    "name": "THE CHELSEA FORUM",
+                    "screen_name": "TheChelseaForum",
+                    "image": "https://pbs.twimg.com/profile_images/1742821047999643648/j-wglZyi_normal.jpg",
+                    "blue_verified": true,
+                    "sub_count": 215776
+                  },
+                  "media": {
+                    "photo": [
+                      {
+                        "media_url_https": "https://pbs.twimg.com/media/GB7_AkIWkAAMFBS.jpg",
+                        "id": "1738106891375382528"
+                      },
+                      {
+                        "media_url_https": "https://pbs.twimg.com/media/GB7_erDWsAAeTs2.jpg",
+                        "id": "1738107408629542912"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "likes": 175,
+                  "created_at": "Fri Dec 22 08:24:30 +0000 2023",
+                  "status": "active",
+                  "text": "@elonmusk \"We don't want to be one of those single-planet species; we want to be a multi-planet species\"\n\n~ Elon Musk https://t.co/ieZ2JJxW7A",
+                  "retweets": 10,
+                  "bookmarks": 5,
+                  "quotes": 0,
+                  "display_text": "\"We don't want to be one of those single-planet species; we want to be a multi-planet species\"\n\n~ Elon Musk",
+                  "replies": 36,
+                  "lang": "en",
+                  "views": "23483",
+                  "conversation_id": "1738106896777699464",
+                  "id": "1738113270286860522",
+                  "author": {
+                    "rest_id": "2539091210",
+                    "name": "Success Minded",
+                    "screen_name": "_SuccessMinded_",
+                    "image": "https://pbs.twimg.com/profile_images/1530799722650341376/3S7y1ujh_normal.jpg",
+                    "blue_verified": true,
+                    "sub_count": 789367
+                  },
+                  "media": {
+                    "photo": [
+                      {
+                        "media_url_https": "https://pbs.twimg.com/media/GB8ExonWEAAuR5C.jpg",
+                        "id": "1738113231950843904"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "cursor": "ZAAAAPBVHBmmiIG09c--g58w1IO67e6zgp8wssHawdbv_54w1MS1-bSny58w0MbVudS0gZ8whMTcnaTOgZ8w3sHXwfTLip8wsISyjdLg_54wloC6nbrd_54whILU0ZzW_54wJQISFQQAAA"
+            }
+          }
+      - scenario: "Get Tweet Thread With Pagination"
+        description: "Retrieve more replies from a tweet thread using cursor for pagination"
+        input_json: |
+          {
+            "id": "1738106896777699464",
+            "cursor": "ZAAAAPBVHBmmiIG09c--g58w1IO67e6zgp8wssHawdbv_54w1MS1-bSny58w0MbVudS0gZ8whMTcnaTOgZ8w3sHXwfTLip8wsISyjdLg_54wloC6nbrd_54whILU0ZzW_54wJQISFQQAAA"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Tweet thread retrieved successfully",
+            "data": {
+              "thread": [
+                {
+                  "likes": 114,
+                  "created_at": "Fri Dec 22 08:00:38 +0000 2023",
+                  "status": "active",
+                  "text": "@elonmusk 🚀",
+                  "retweets": 6,
+                  "bookmarks": 1,
+                  "quotes": 0,
+                  "display_text": "🚀",
+                  "replies": 34,
+                  "lang": "qme",
+                  "views": "10926",
+                  "conversation_id": "1738106896777699464",
+                  "id": "1738107263477514370",
+                  "author": {
+                    "rest_id": "1389913567671975937",
+                    "name": "DogeDesigner",
+                    "screen_name": "cb_doge",
+                    "image": "https://pbs.twimg.com/profile_images/1498070100393754625/C2V-fbll_normal.jpg",
+                    "blue_verified": true,
+                    "sub_count": 1365834
+                  }
+                },
+                {
+                  "likes": 95,
+                  "created_at": "Fri Dec 22 08:02:22 +0000 2023",
+                  "status": "active",
+                  "text": "@elonmusk That is so beautiful. So happy to see progress on IFT3.",
+                  "retweets": 4,
+                  "bookmarks": 0,
+                  "quotes": 0,
+                  "display_text": "That is so beautiful. So happy to see progress on IFT3.",
+                  "replies": 13,
+                  "lang": "en",
+                  "views": "16381",
+                  "conversation_id": "1738106896777699464",
+                  "id": "1738107700742148185",
+                  "author": {
+                    "rest_id": "1522405142888255488",
+                    "name": "Penny2x",
+                    "screen_name": "imPenny2x",
+                    "image": "https://pbs.twimg.com/profile_images/1849893553305993216/05Mq98mf_normal.jpg",
+                    "blue_verified": true,
+                    "sub_count": 123594
+                  }
+                }
+              ],
+              "cursor": "QVFDQ2dnQUNGNk8tNk5qb0tSQktBQU1ab2w0ek9OZFZUQWdBQkFBQUFBSUxBQVVBQUFFUFJXMVFUMWxZWDBGbFVWbHZaRXRFZFVKQlgwRkdSWE56TUhBdlJHTlRaeTlSUkRndQttqzx1xzcx"
+            }
+          }
+
+  - endpoint: /x/get_latest_replies
+    examples:
+      - scenario: "Get Latest Replies to a Tweet"
+        description: "Retrieve replies to a specific tweet"
+        input_json: |
+          {
+            "id": "1738106896777699464"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Latest replies retrieved successfully",
+            "data": {
+              "status": "ok",
+              "timeline": [
+                {
+                  "tweet_id": "1738107896777699464",
+                  "screen_name": "johndoe",
+                  "name": "John Doe",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/john_normal.jpg",
+                  "bookmarks": 15,
+                  "favorites": 87,
+                  "created_at": "2023-12-22T08:55:27.000Z",
+                  "text": "This is a reply to the original tweet.",
+                  "lang": "en",
+                  "source": "Twitter Web App",
+                  "quotes": 2,
+                  "replies": 10,
+                  "conversation_id": "1738106896777699464",
+                  "retweets": 8,
+                  "views": 12345,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": ["twitter"],
+                    "mentions": ["janesmith"]
+                  },
+                  "user_info": {
+                    "followers": 1234,
+                    "following": 567,
+                    "location": "San Francisco, CA",
+                    "verified": false
+                  },
+                  "media": [
+                    {
+                      "media_url_https": "https://pbs.twimg.com/media/reply123.jpg",
+                      "type": "photo"
+                    }
+                  ]
+                },
+                {
+                  "tweet_id": "1738108996777699465",
+                  "screen_name": "alicegreen",
+                  "name": "Alice Green",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/alice_normal.jpg",
+                  "bookmarks": 8,
+                  "favorites": 45,
+                  "created_at": "2023-12-22T09:02:27.000Z",
+                  "text": "Here's my take on this thread.",
+                  "lang": "en",
+                  "source": "Twitter for Android",
+                  "quotes": 0,
+                  "replies": 5,
+                  "conversation_id": "1738106896777699464",
+                  "retweets": 3,
+                  "views": 8765,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": [],
+                    "mentions": ["janesmith"]
+                  },
+                  "user_info": {
+                    "followers": 789,
+                    "following": 432,
+                    "location": "New York, NY",
+                    "verified": false
+                  },
+                  "media": []
+                }
+              ],
+              "next_cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMlQwOTowNToyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg==",
+              "prev_cursor": null
+            }
+          }
+      - scenario: "Get Latest Replies - Pagination"
+        description: "Retrieve more replies using a cursor"
+        input_json: |
+          {
+            "id": "1738106896777699464",
+            "cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMlQwOTowNToyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg=="
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "Latest replies retrieved successfully",
+            "data": {
+              "status": "ok",
+              "timeline": [
+                {
+                  "tweet_id": "1738110996777699465",
+                  "screen_name": "bobwhite",
+                  "name": "Bob White",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/bob_normal.jpg",
+                  "bookmarks": 3,
+                  "favorites": 28,
+                  "created_at": "2023-12-22T09:15:27.000Z",
+                  "text": "Adding my thoughts to this conversation.",
+                  "lang": "en",
+                  "source": "Twitter for iPhone",
+                  "quotes": 0,
+                  "replies": 2,
+                  "conversation_id": "1738106896777699464",
+                  "retweets": 1,
+                  "views": 5432,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": [],
+                    "mentions": ["janesmith"]
+                  },
+                  "user_info": {
+                    "followers": 456,
+                    "following": 321,
+                    "location": "Chicago, IL",
+                    "verified": false
+                  },
+                  "media": []
+                }
+              ],
+              "next_cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMlQwOToyMDoyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg==",
+              "prev_cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMlQwOTowMDoyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg=="
+            }
+          }
+
+  - endpoint: /x/get_list_timeline
+    examples:
+      - scenario: "Get List Timeline"
+        description: "Retrieve tweets from a specific list"
+        input_json: |
+          {
+            "list_id": "1591878425840766976"
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "List timeline retrieved successfully",
+            "data": {
+              "timeline": [
+                {
+                  "tweet_id": "1738106896777699464",
+                  "screen_name": "janesmith",
+                  "name": "Jane Smith",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/jane_normal.jpg",
+                  "bookmarks": 98,
+                  "favorites": 2451,
+                  "created_at": "2023-12-22T08:34:27.000Z",
+                  "text": "This is a tweet from the list timeline.",
+                  "lang": "en",
+                  "source": "Twitter for iPhone",
+                  "quotes": 18,
+                  "replies": 160,
+                  "conversation_id": "1738106896777699464",
+                  "retweets": 251,
+                  "views": 483527,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": ["twitter"],
+                    "mentions": []
+                  },
+                  "user_info": {
+                    "followers": 25000,
+                    "following": 1200,
+                    "location": "San Francisco, CA",
+                    "verified": true
+                  },
+                  "media": [
+                    {
+                      "media_url_https": "https://pbs.twimg.com/media/1234567890.jpg",
+                      "type": "photo"
+                    }
+                  ]
+                },
+                {
+                  "tweet_id": "1738005896777699464",
+                  "screen_name": "markbrown",
+                  "name": "Mark Brown",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/mark_normal.jpg",
+                  "bookmarks": 45,
+                  "favorites": 823,
+                  "created_at": "2023-12-22T01:34:27.000Z",
+                  "text": "Another tweet from someone in the list.",
+                  "lang": "en",
+                  "source": "Twitter Web App",
+                  "quotes": 5,
+                  "replies": 42,
+                  "conversation_id": "1738005896777699464",
+                  "retweets": 78,
+                  "views": 125678,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": [],
+                    "mentions": []
+                  },
+                  "user_info": {
+                    "followers": 12000,
+                    "following": 800,
+                    "location": "Boston, MA",
+                    "verified": false
+                  },
+                  "media": []
+                }
+              ],
+              "next_cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMVQyMTozNDoyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg=="
+            }
+          }
+      - scenario: "Get List Timeline - Pagination"
+        description: "Retrieve more tweets from a list using a cursor"
+        input_json: |
+          {
+            "list_id": "1591878425840766976",
+            "cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMVQyMTozNDoyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg=="
+          }
+        output_json: |
+          {
+            "success": true,
+            "message": "List timeline retrieved successfully",
+            "data": {
+              "timeline": [
+                {
+                  "tweet_id": "1737905896777699464",
+                  "screen_name": "sarahwilson",
+                  "name": "Sarah Wilson",
+                  "profile_image_url": "https://pbs.twimg.com/profile_images/123456789/sarah_normal.jpg",
+                  "bookmarks": 32,
+                  "favorites": 567,
+                  "created_at": "2023-12-21T19:34:27.000Z",
+                  "text": "Continuing the list timeline with an older tweet.",
+                  "lang": "en",
+                  "source": "Twitter for Android",
+                  "quotes": 8,
+                  "replies": 37,
+                  "conversation_id": "1737905896777699464",
+                  "retweets": 52,
+                  "views": 98765,
+                  "entities": {
+                    "urls": [],
+                    "hashtags": ["tech", "news"],
+                    "mentions": []
+                  },
+                  "user_info": {
+                    "followers": 18000,
+                    "following": 950,
+                    "location": "Seattle, WA",
+                    "verified": true
+                  },
+                  "media": [
+                    {
+                      "media_url_https": "https://pbs.twimg.com/media/1234567891.jpg",
+                      "type": "photo"
+                    }
+                  ]
+                }
+              ],
+              "next_cursor": "HBaobWFsa2VyVmFsdWU9MjAyMy0xMi0yMVQxNTozNDoyNy4wMDBaJmN1cnNvclR5cGU9VElNRSZwYWdpbmF0aW9uVG9rZW49cGFnaW5hdGlvbl90b2tlbg=="
+            }
+          }
+      - scenario: "Get List Timeline with Pagination"
+        description: "Retrieve more tweets from a list using a cursor"
+        input: '{
+          "list_id": "1177128103228989440",
+          "cursor": "HBaAgLzWm9W5ijIJAAA="
+        }'
+        output: '{
+          "success": true,
+          "message": "List timeline retrieved successfully",
+          "data": {
+            "timeline": [
+              {
+                "tweet_id": "1895765450848993693",
+                "created_at": "Fri Mar 01 12:04:18 +0000 2024",
+                "favorites": 205,
+                "text": "Example tweet text",
+                "screen_name": "userhandle",
+                "retweets": 25,
+                "replies": 10
+              }
+            ],
+            "next_cursor": "HBaAwKjV6fTQ3DIJGAA="
+          }
+        }'
+
+  - endpoint: /x/get_community_timeline
+    examples:
+      - scenario: "Get Community Timeline"
+        description: "Retrieve tweets from a community"
+        input: '{
+          "community_id": "1783990533192651232",
+          "ranking": "Top"
+        }'
+        output: '{
+          "success": true,
+          "message": "Community timeline retrieved successfully",
+          "data": {
+            "timeline": [
+              {
+                "tweet_id": "1904724059705008278",
+                "bookmarks": null,
+                "created_at": "Wed Mar 26 02:36:18 +0000 2025",
+                "favorites": 1021,
+                "text": "See the CPU execution, Pipeline stages and Caches in action.",
+                "lang": "en",
+                "source": "<a href=\\"https://mobile.twitter.com\\" rel=\\"nofollow\\">Twitter Web App</a>",
+                "views": "49729",
+                "screen_name": "pyjamabrah",
+                "quotes": 4,
+                "replies": 7,
+                "retweets": 179,
+                "media": {
+                  "video": [
+                    {
+                      "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/1904718849792253952/pu/img/3WiiqS3Mw9XLAEnE.jpg"
+                    }
+                  ]
+                },
+                "author": {
+                  "rest_id": "870639786603589633",
+                  "name": "Piyush Itankar",
+                  "screen_name": "pyjamabrah",
+                  "avatar": "https://pbs.twimg.com/profile_images/1889191677325398016/_UmPrJDx_normal.jpg",
+                  "blue_verified": true
+                }
+              }
+            ],
+            "next_cursor": "HBaAgLzWm9W5ijIJAAA="
+          }
+        }'
+      - scenario: "Get Community Timeline with Pagination"
+        description: "Retrieve more tweets from a community using a cursor"
+        input: '{
+          "community_id": "1783990533192651232",
+          "ranking": "Top",
+          "cursor": "HBaAgLzWm9W5ijIJAAA="
+        }'
+        output: '{
+          "success": true,
+          "message": "Community timeline retrieved successfully",
+          "data": {
+            "timeline": [
+              {
+                "tweet_id": "1904630179378626780",
+                "bookmarks": null,
+                "created_at": "Tue Mar 25 20:23:15 +0000 2025",
+                "favorites": 1112,
+                "text": "Found Modern C! This free book goes through every nook and cranny of the language at length.",
+                "lang": "en",
+                "source": "<a href=\\"https://mobile.twitter.com\\" rel=\\"nofollow\\">Twitter Web App</a>",
+                "views": "66148",
+                "screen_name": "RuiCarrilho5",
+                "quotes": 2,
+                "replies": 9,
+                "retweets": 115,
+                "author": {
+                  "rest_id": "1216916772927963136",
+                  "name": "Roy Carrilho",
+                  "screen_name": "RuiCarrilho5",
+                  "avatar": "https://pbs.twimg.com/profile_images/1826295782393204742/lB22Puxd_normal.jpg",
+                  "blue_verified": true
+                }
+              }
+            ],
+            "next_cursor": "HBaAwKjV6fTQ3DIJGAA="
+          }
+        }'
+
+  - endpoint: /x/get_list_followers
+    examples:
+      - scenario: "Get List Followers"
+        description: "Retrieve followers of a list"
+        input: '{
+          "list_id": "1177128103228989440"
+        }'
+        output: '{
+          "success": true,
+          "message": "List followers retrieved successfully",
+          "data": {
+            "followers": [
+              {
+                "user_id": "1894463741304958977",
+                "screen_name": "papito_laganny",
+                "description": "",
+                "profile_image": "https://pbs.twimg.com/profile_images/1894464490164686849/WEbwR9Na_normal.jpg",
+                "statuses_count": 2,
+                "followers_count": 2,
+                "friends_count": 28,
+                "media_count": 0,
+                "created_at": "Tue Feb 25 19:08:26 +0000 2025",
+                "location": "",
+                "blue_verified": false,
+                "verified": false,
+                "website": null,
+                "name": "Patrick Do_papito Laganny",
+                "affiliates": [],
+                "business_account": null
+              },
+              {
+                "user_id": "1686982680250884096",
+                "screen_name": "PascalCaid85",
+                "description": "Homme simple né le 27.03.1961 à Nantes.",
+                "profile_image": "https://pbs.twimg.com/profile_images/1686982858139664384/sALE_5b-_normal.jpg",
+                "statuses_count": 3786,
+                "followers_count": 48,
+                "friends_count": 68,
+                "media_count": 69,
+                "created_at": "Thu Aug 03 06:10:30 +0000 2023",
+                "location": "Je vis en Vendée 85 ",
+                "blue_verified": false,
+                "verified": false,
+                "website": null,
+                "name": "Pascal",
+                "affiliates": [],
+                "business_account": null
+              }
+            ],
+            "next_cursor": "HBaAgLzWm9W5ijIJAAA="
+          }
+        }'
+      - scenario: "Get List Followers with Pagination"
+        description: "Retrieve more followers of a list using a cursor"
+        input: '{
+          "list_id": "1177128103228989440",
+          "cursor": "HBaAgLzWm9W5ijIJAAA="
+        }'
+        output: '{
+          "success": true,
+          "message": "List followers retrieved successfully",
+          "data": {
+            "followers": [
+              {
+                "user_id": "1845768403283230733",
+                "screen_name": "thevoicewithinm",
+                "description": "The 1st media sharing content for everyone",
+                "profile_image": "https://pbs.twimg.com/profile_images/1853443789307703296/-hmEm82S_normal.jpg",
+                "statuses_count": 28,
+                "followers_count": 13,
+                "friends_count": 132,
+                "media_count": 4,
+                "created_at": "Mon Oct 14 10:07:49 +0000 2024",
+                "location": "Los Angeles, CA",
+                "blue_verified": true,
+                "verified": false,
+                "website": "https://linktr.ee/thevoicewithinmedia",
+                "name": "thevoicewithinmedia",
+                "affiliates": [],
+                "business_account": null
+              }
+            ],
+            "next_cursor": "HBaAwKjV6fTQ3DIJGAA="
+          }
+        }'
+
+  - endpoint: /x/get_list_members
+    examples:
+      - scenario: "Get List Members"
+        description: "Retrieve members of a list"
+        input: '{
+          "list_id": "1177128103228989440"
+        }'
+        output: '{
+          "success": true,
+          "message": "List members retrieved successfully",
+          "data": {
+            "members": [
+              {
+                "user_id": "1231534927285493760",
+                "screen_name": "Ted290723",
+                "description": "Teddy - 27 ans - Ici on parle de foot mais surtout de lOL !",
+                "profile_image": "https://pbs.twimg.com/profile_images/1891134569929207808/hszi74up_normal.jpg",
+                "statuses_count": 17136,
+                "followers_count": 779,
+                "friends_count": 973,
+                "media_count": 1099,
+                "created_at": "Sun Feb 23 11:03:11 +0000 2020",
+                "location": "Eure-et-Loir, Centre",
+                "blue_verified": false,
+                "verified": false,
+                "website": null,
+                "name": "Ted",
+                "affiliates": [],
+                "business_account": null
+              },
+              {
+                "user_id": "1118448192482414593",
+                "screen_name": "OLMLNINO",
+                "description": "Un gone passionné de ballon et surtout de lOL",
+                "profile_image": "https://pbs.twimg.com/profile_images/1477112544804458497/orBkKSs2_normal.jpg",
+                "statuses_count": 15861,
+                "followers_count": 1138,
+                "friends_count": 418,
+                "media_count": 599,
+                "created_at": "Wed Apr 17 09:36:43 +0000 2019",
+                "location": "",
+                "blue_verified": false,
+                "verified": false,
+                "website": null,
+                "name": "1LyonnaisDansLaVille",
+                "affiliates": [],
+                "business_account": null
+              }
+            ],
+            "next_cursor": "HBaAgLzWm9W5ijIJAAA="
+          }
+        }'
+      - scenario: "Get List Members with Pagination"
+        description: "Retrieve more members of a list using a cursor"
+        input: '{
+          "list_id": "1177128103228989440",
+          "cursor": "HBaAgLzWm9W5ijIJAAA="
+        }'
+        output: '{
+          "success": true,
+          "message": "List members retrieved successfully",
+          "data": {
+            "members": [
+              {
+                "user_id": "1111962841542811648",
+                "screen_name": "OL_OutofContext",
+                "description": "Out of context tweets from Olympique Lyonnais",
+                "profile_image": "https://pbs.twimg.com/profile_images/1576849225975037958/kn_kZfRn_normal.jpg",
+                "statuses_count": 1280,
+                "followers_count": 21360,
+                "friends_count": 4,
+                "media_count": 932,
+                "created_at": "Sat Mar 30 12:06:15 +0000 2019",
+                "location": "Ruche n°69",
+                "blue_verified": false,
+                "verified": false,
+                "website": null,
+                "name": "Out Of Context Olympique Lyonnais",
+                "affiliates": [],
+                "business_account": null
+              }
+            ],
+            "next_cursor": "HBaAwKjV6fTQ3DIJGAA="
+          }
+        }'
+
+  - endpoint: /x/get_space
+    examples:
+      - scenario: "Get Space Information"
+        description: "Retrieve information about a Twitter Space"
+        input: '{
+          "id": "1yoJMwpbmaXKQ"
+        }'
+        output: '{
+          "success": true,
+          "message": "Space retrieved successfully",
+          "data": {
+            "state": "Ended",
+            "id": "1yoJMwpbmaXKQ",
+            "ended": "1712035727255",
+            "started": 1712011212266,
+            "locked": false,
+            "replay_start_time": 0,
+            "total_live_listeners": 1284588,
+            "total_replay_watched": 208,
+            "content_type": "visual_audio",
+            "is_space_available_for_replay": true,
+            "media_key": "28_1774929779223080960",
+            "replay_available": true,
+            "participants": {
+              "admins": [
+                {
+                  "avatar": "https://pbs.twimg.com/profile_images/1884131699094650880/V5VjQdga_normal.jpg",
+                  "display_name": "Bark",
+                  "is_verified": true,
+                  "is_blue_verified": true,
+                  "periscope_user_id": "1zYKbeqYpyQex",
+                  "screenname": "barkmeta",
+                  "rest_id": "336348053"
+                }
+              ],
+              "speakers": [
+                {
+                  "avatar": "https://pbs.twimg.com/profile_images/1899560241575960576/X4sZFrOT_normal.jpg",
+                  "display_name": "Books",
+                  "is_verified": true,
+                  "periscope_user_id": "1DZEoJOyMBYja",
+                  "is_blue_verified": true,
+                  "screenname": "DaoKwonDo",
+                  "rest_id": "314560827"
+                },
+                {
+                  "avatar": "https://pbs.twimg.com/profile_images/1863506996449710080/WvZMJxsE_normal.jpg",
+                  "display_name": "fity.eth",
+                  "is_verified": true,
+                  "periscope_user_id": "1oNjlvewARaQw",
+                  "is_blue_verified": true,
+                  "screenname": "Fityeth",
+                  "rest_id": "1431423782900621314"
+                }
+              ]
+            }
+          }
+        }'
