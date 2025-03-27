@@ -172,21 +172,12 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   };
 
   const handleTestFlow = async () => {
-    if (flow?.id) {
-      console.log('Testing flow with ID:', flow.id);
+    try {
+      const savedFlow = await flowCreatorRef.current?.saveFlow();
+      
       handleSendMessage("Test the provided flow.");
-    } else {
-      toast.error('Please save the flow first.');
-      try {
-        
-        if (flow?.id) {
-          handleSendMessage("Test the provided flow.");
-        } else {
-          console.error('Failed to get flow ID after saving');
-        }
-      } catch (error) {
-        console.error('Error saving flow before test:', error);
-      }
+    } catch (error) {
+      console.error('Error during flow save and test:', error);
     }
   };
 

@@ -17,8 +17,6 @@ import { ChatFlowCreator } from "./chat-flow-creator";
 import { updateFlowWithExtractedActions, saveFlowWithExtractedActions } from "@/app/modules/flows/api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { ScheduleTabContent } from "./schedule-tab-content";
-import { FlowSchedule } from "../../api/types.flows";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
 import { ProviderAction } from "../../api/types.flows";
 
