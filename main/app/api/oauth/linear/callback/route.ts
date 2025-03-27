@@ -7,18 +7,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    
+
     if (!code || !state) {
-        console.error('Missing code or state');
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Invalid request`);
     }
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    console.log('[linear/callback] User:', user);
     
     if (!user) {
-        console.error('No user found');
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Unauthorized`);
     }
 
@@ -33,7 +30,6 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (providerError || !provider) {
-            console.error('Provider error:', providerError);
             throw new Error('Provider not found');
         }
 
@@ -54,7 +50,6 @@ export async function GET(request: NextRequest) {
         const tokens = await tokenResponse.json();
 
         if (tokens.error) {
-            console.error('Token error:', tokens);
             throw new Error(tokens.error_description || tokens.error);
         }
 
@@ -68,7 +63,6 @@ export async function GET(request: NextRequest) {
             });
 
         if (providerUpsertError) {
-            console.error('Provider upsert error:', providerUpsertError);
             throw providerUpsertError;
         }
 
@@ -94,7 +88,6 @@ export async function GET(request: NextRequest) {
             });
 
         if (upsertError) {
-            console.error('Upsert error:', upsertError);
             throw upsertError;
         }
 
@@ -102,10 +95,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
     } catch (error: any) {
-        console.error('OAuth callback error:', {
-            message: error.message,
-            error: error
-        });
         return NextResponse.redirect(
             `${request.nextUrl.origin}/integrations?error=${encodeURIComponent(error.message || 'Unknown error')}`
         );

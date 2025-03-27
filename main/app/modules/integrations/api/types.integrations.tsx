@@ -1,3 +1,8 @@
+export interface ProviderScope {
+  scope: string;
+  scope_name: string;
+}
+
 export interface Provider {
   id: string;
   name: string;
@@ -5,10 +10,8 @@ export interface Provider {
   logo_url?: string;
   provider_tag: string;
   auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none' | 'custom';
-  scopes?: {
-    scope: string;
-    scope_name: string;
-  }[];
+  scopes?: ProviderScope[];
+  user_scopes?: ProviderScope[];
   auth_schema?: CustomAuthField[];
   created_at?: string | number;
   is_enabled?: boolean;

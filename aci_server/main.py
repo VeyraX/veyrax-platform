@@ -147,9 +147,13 @@ INTEGRATION_ROUTERS = {
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
+        if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
+            return
+
+        
         user_id = await get_user_from_request(request)
         user_tools = get_user_tools_from_actions(user_id)
-        
+
         if not user_tools:
             raise HTTPException(status_code=401, detail="User not found")
         
@@ -167,8 +171,7 @@ class PermissionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path.strip("/")
         segments = path.split("/")
-
-        print("PermissionMiddleware, segments", segments)
+        
         # Skip non-tool routes like root, healthcheck, etc.
         if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] == "tool-call"):
             if segments[0] == "tool-call" and len(segments) >= 3:
@@ -177,7 +180,6 @@ class PermissionMiddleware(BaseHTTPMiddleware):
                 tool, method = segments[0], segments[1] if len(segments) > 1 else None
 
             if tool and method:
-                print("PermissionMiddleware,checking permission for tool, method", tool, method)
                 try:
                     await check_user_permission(request, tool, method)
                 except HTTPException as e:
