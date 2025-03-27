@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authApi } from '@/app/modules/auth/api/api.auth'
 import Image from "next/image"
+import Link from "next/link"
 
 export function RegisterForm() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -97,6 +98,13 @@ export function RegisterForm() {
             >
               {isEmailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign up"}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Login
+              </Link>
+            </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

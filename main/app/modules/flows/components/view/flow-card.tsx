@@ -98,18 +98,6 @@ const FlowCard: React.FC<FlowCardProps> = ({
     }
   }
 
-  const handleShareChange = async () => {
-    try {
-      // Add your share toggle API call here
-      setIsShared(!isShared)
-      toast.success(isShared ? 'Flow is now private' : 'Flow is now public')
-      onFlowChange?.()
-    } catch (error) {
-      console.error('Error updating flow visibility:', error)
-      toast.error('Failed to update flow visibility')
-    }
-  }
-
   const formatSchedule = (schedule: any) => {
     if (!schedule) return null
     

@@ -4,13 +4,15 @@ import { FC, useState, useEffect } from 'react'
 import { Header } from '@/app/modules/general/components/header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import FlowCard, { FlowSkeleton } from '../components/view/flow-card'
 import { getUserFlows, getUserActions, getFlowActions, getPublicTemplates } from '../api/api.flows'
 import { getAllFlowSchedules } from '../api/api.schedule.flows'
 import { UserFlow } from '../api/types.flows'
 import { FlowSchedule } from '../api/types.flows'
 import { ProviderAction } from '../api/types.flows'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface FlowWithSchedule extends UserFlow {
   schedule?: FlowSchedule | null;
@@ -22,6 +24,7 @@ interface FlowsPageProps {
 }
 
 const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
+  const router = useRouter()
   const [flows, setFlows] = useState<FlowWithSchedule[]>([])
   const [filteredFlows, setFilteredFlows] = useState<FlowWithSchedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -169,6 +172,30 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {selectedCategory !== "Templates" && (
+            <Card className="w-full shadow-none rounded-lg h-[204px] group">
+              <CardContent className="p-4 h-full flex flex-col">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2 min-h-[24px] min-w-[72px]">
+                    <div className="h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-primary/10">
+                      <Plus className="h-3 w-3 text-primary" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium text-base group-hover:text-primary transition-colors">New Flow</h3>
+                </div>
+                <div className="flex-grow">
+                  <p className="text-sm text-muted-foreground">Create a new automation flow to streamline your workflow.</p>
+                </div>
+                <div className="flex justify-end items-center mt-3">
+                  <Button variant="outline" size="sm" className="text-xs" onClick={() => router.push('/flow/create')}>
+                    Create
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           {isLoading ? (
             [...Array(8)].map((_, index) => (
               <FlowSkeleton key={index} />
