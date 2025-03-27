@@ -65,6 +65,8 @@ from integrations.google_sheets.route import router as google_sheets_router
 from integrations.google_docs.route import router as google_docs_router
 from integrations.x.route import router as x_router
 from integrations.heygen.route import router as heygen_router
+from integrations.bannerbear.route import router as bannerbear_router
+from integrations.uploadthing.route import router as uploadthing_router
 from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
@@ -147,7 +149,9 @@ INTEGRATION_ROUTERS = {
     "google-sheets": google_sheets_router,
     "google-docs": google_docs_router,
     "x": x_router,
-    "heygen": heygen_router
+    "heygen": heygen_router,
+    "bannerbear": bannerbear_router,
+    "uploadthing": uploadthing_router
 }
 
 app = FastAPI()
