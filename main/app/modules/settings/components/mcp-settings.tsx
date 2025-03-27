@@ -115,13 +115,6 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
           <TabsTrigger 
             className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
-            value="chatgpt"
-            onClick={() => setActiveTab('chatgpt')}
-          >
-            ChatGPT
-          </TabsTrigger>
-          <TabsTrigger 
-            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
             value="claude"
             onClick={() => setActiveTab('claude')}
           >
@@ -143,41 +136,7 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="chatgpt" className="mt-0">
-          <div className="p-6 border rounded-lg">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">ChatGPT Setup</h3>
-              <p className="text-sm text-muted-foreground">
-                Configure VeyraX with Custom GPTs and ChatGPT plugins
-              </p>
-            </div>
-            
-            <div className="mb-4">
-              <div className="relative">
-                <Textarea
-                  value={getOpenApiSpecAsString()}
-                  readOnly
-                  className="font-mono text-sm h-64 resize-none"
-                />
-              </div>
-              <div className="flex justify-end mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleCopySpec}
-                >
-                  {copiedSpec ? 
-                    <Check className="h-4 w-4" /> : 
-                    <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-        
         {Object.entries(mcpCommands).map(([key, command]) => {
-          if (key === 'chatgpt') return null; // Skip ChatGPT here as we have a custom tab for it
-          
           return (
             <TabsContent key={key} value={key} className="mt-0">
               <div className="p-6 border rounded-lg">
