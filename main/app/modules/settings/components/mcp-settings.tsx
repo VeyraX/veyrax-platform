@@ -28,22 +28,32 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
 
   const mcpCommands = {
     cursor: {
-      Windows: apiKey ? 
-        `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` : 
-        `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
-      MacOS: apiKey ? 
-        `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` : 
-        `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`
+      Windows: {
+        legacy: apiKey ?
+          `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` :
+          `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
+        current: apiKey ? 
+          `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cursor --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` : 
+          `C:\\Windows\\System32\\cmd.exe /c npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cursor --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`
+      },
+      MacOS: {
+        legacy: apiKey ?
+          `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` :
+          `npx -y @smithery/cli@latest run @VeyraX/veyrax-mcp --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
+        current: apiKey ? 
+          `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cursor --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` : 
+          `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cursor --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`
+      }
     },
     claude: apiKey ? 
       `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` :
-      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude`,
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client claude --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
     windsurf: apiKey ? 
       `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` :
-      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf`,
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client windsurf --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
     cline: apiKey ? 
       `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline --config "{\\"VEYRAX_API_KEY\\": \\"${apiKey.api_key}\\"}"` :
-      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline`,
+      `npx -y @smithery/cli@latest install @VeyraX/veyrax-mcp --client cline --config "{\\"VEYRAX_API_KEY\\": \\"VEYRAX_API_KEY\\"}"`,
   }
 
   const handleCopyCommand = (command: string) => {
@@ -105,6 +115,13 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
           <TabsTrigger 
             className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+            value="chatgpt"
+            onClick={() => setActiveTab('chatgpt')}
+          >
+            ChatGPT
+          </TabsTrigger>
+          <TabsTrigger 
+            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
             value="claude"
             onClick={() => setActiveTab('claude')}
           >
@@ -126,6 +143,38 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
           </TabsTrigger>
         </TabsList>
         
+        <TabsContent value="chatgpt" className="mt-0">
+          <div className="p-6 border rounded-lg">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold">ChatGPT Setup</h3>
+              <p className="text-sm text-muted-foreground">
+                Configure VeyraX with Custom GPTs and ChatGPT plugins
+              </p>
+            </div>
+            
+            <div className="mb-4">
+              <div className="relative">
+                <Textarea
+                  value={getOpenApiSpecAsString()}
+                  readOnly
+                  className="font-mono text-sm h-64 resize-none"
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleCopySpec}
+                >
+                  {copiedSpec ? 
+                    <Check className="h-4 w-4" /> : 
+                    <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
         {Object.entries(mcpCommands).map(([key, command]) => {
           if (key === 'chatgpt') return null; // Skip ChatGPT here as we have a custom tab for it
           
@@ -141,12 +190,12 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
                 
                 {key === 'cursor' ? (
                   <>
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">Windows</h4>
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium mb-2">Windows (Cursor ≤0.46.x)</h4>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <Input
-                            value={(command as {Windows: string; MacOS: string}).Windows}
+                            value={(command as any).Windows.legacy}
                             readOnly
                             className="pr-10 font-mono text-sm"
                           />
@@ -154,20 +203,62 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).Windows)}
+                          onClick={() => handleCopyCommand((command as any).Windows.legacy)}
                         >
-                          {copiedCommand === (command as {Windows: string; MacOS: string}).Windows ? 
+                          {copiedCommand === (command as any).Windows.legacy ? 
+                            <Check className="h-4 w-4" /> : 
+                            <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium mb-2">Windows (Cursor &gt;0.46.x)</h4>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            value={(command as any).Windows.current}
+                            readOnly
+                            className="pr-10 font-mono text-sm"
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleCopyCommand((command as any).Windows.current)}
+                        >
+                          {copiedCommand === (command as any).Windows.current ? 
+                            <Check className="h-4 w-4" /> : 
+                            <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mb-6">
+                      <h4 className="text-sm font-medium mb-2">MacOS (Cursor ≤0.46.x)</h4>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            value={(command as any).MacOS.legacy}
+                            readOnly
+                            className="pr-10 font-mono text-sm"
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleCopyCommand((command as any).MacOS.legacy)}
+                        >
+                          {copiedCommand === (command as any).MacOS.legacy ? 
                             <Check className="h-4 w-4" /> : 
                             <Copy className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium mb-2">MacOS</h4>
+                      <h4 className="text-sm font-medium mb-2">MacOS (Cursor &gt;0.46.x)</h4>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <Input
-                            value={(command as {Windows: string; MacOS: string}).MacOS}
+                            value={(command as any).MacOS.current}
                             readOnly
                             className="pr-10 font-mono text-sm"
                           />
@@ -175,9 +266,9 @@ export default function MCPSettings({ apiKey, onGenerateApiKey }: MCPSettingsPro
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          onClick={() => handleCopyCommand((command as {Windows: string; MacOS: string}).MacOS)}
+                          onClick={() => handleCopyCommand((command as any).MacOS.current)}
                         >
-                          {copiedCommand === (command as {Windows: string; MacOS: string}).MacOS ? 
+                          {copiedCommand === (command as any).MacOS.current ? 
                             <Check className="h-4 w-4" /> : 
                             <Copy className="h-4 w-4" />}
                         </Button>
