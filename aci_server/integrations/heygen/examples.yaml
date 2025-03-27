@@ -1,0 +1,664 @@
+routes:
+  - endpoint: /heygen/list_avatars
+    examples:
+      - scenario: "List All Avatars"
+        description: "Get all available avatars and talking photos"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "avatars": [
+                {
+                  "avatar_id": "avatar_123",
+                  "avatar_name": "John",
+                  "gender": "Male",
+                  "preview_image_url": "https://example.com/preview.jpg",
+                  "preview_video_url": "https://example.com/preview.mp4",
+                  "premium": false
+                }
+              ],
+              "talking_photos": [
+                {
+                  "talking_photo_id": "tp_123",
+                  "talking_photo_name": "Photo Avatar 1",
+                  "preview_image_url": "https://example.com/photo.jpg"
+                }
+              ]
+            },
+            "component": {
+              "name": "AvatarList"
+            }
+          }
+
+  - endpoint: /heygen/list_voices
+    examples:
+      - scenario: "List All Voices"
+        description: "Get all available voices"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "voices": [
+                {
+                  "voice_id": "voice_123",
+                  "language": "en-US",
+                  "gender": "Female",
+                  "name": "Sarah",
+                  "preview_audio": "https://example.com/preview.mp3",
+                  "support_pause": true,
+                  "emotion_support": true
+                }
+              ]
+            },
+            "component": {
+              "name": "VoiceList"
+            }
+          }
+
+  - endpoint: /heygen/list_avatar_groups
+    examples:
+      - scenario: "List Avatar Groups"
+        description: "Get all avatar groups"
+        input_json: |
+          {
+            "include_public": true
+          }
+        output_json: |
+          {
+            "data": {
+              "groups": [
+                {
+                  "group_id": "group_123",
+                  "name": "Business Avatars"
+                }
+              ]
+            },
+            "component": {
+              "name": "AvatarGroupList"
+            }
+          }
+
+  - endpoint: /heygen/list_group_avatars
+    examples:
+      - scenario: "List Group Avatars"
+        description: "Get all avatars in a specific group"
+        input_json: |
+          {
+            "group_id": "group_123"
+          }
+        output_json: |
+          {
+            "data": {
+              "avatars": [
+                {
+                  "avatar_id": "avatar_123",
+                  "avatar_name": "John",
+                  "gender": "Male",
+                  "preview_image_url": "https://example.com/preview.jpg",
+                  "preview_video_url": "https://example.com/preview.mp4",
+                  "premium": false
+                }
+              ]
+            },
+            "component": {
+              "name": "GroupAvatarList"
+            }
+          }
+
+  - endpoint: /heygen/generate_video
+    examples:
+      - scenario: "Generate Simple Video"
+        description: "Generate a video with an avatar speaking text"
+        input_json: |
+          {
+            "caption": false,
+            "title": "Test Video",
+            "video_inputs": [
+              {
+                "character": {
+                  "type": "avatar",
+                  "avatar_id": "avatar_123",
+                  "scale": 1.0,
+                  "avatar_style": "normal"
+                },
+                "voice": {
+                  "type": "text",
+                  "voice_id": "voice_123",
+                  "input_text": "Hello, this is a test video!"
+                },
+                "background": {
+                  "type": "color",
+                  "value": "#f6f6fc"
+                }
+              }
+            ],
+            "dimension": {
+              "width": 1280,
+              "height": 720
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "video_id": "vid_123456789"
+            },
+            "component": {
+              "name": "VideoGeneration"
+            }
+          }
+
+  - endpoint: /heygen/video_status
+    examples:
+      - scenario: "Check Video Status"
+        description: "Get the status of a video generation request"
+        input_json: |
+          {
+            "video_id": "vid_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "vid_123456789",
+              "status": "processing",
+              "video_url": null,
+              "thumbnail_url": null,
+              "gif_url": null,
+              "error": null
+            },
+            "component": {
+              "name": "VideoStatus"
+            }
+          }
+
+  - endpoint: /heygen/delete_video
+    examples:
+      - scenario: "Delete Video"
+        description: "Delete a generated video"
+        input_json: |
+          {
+            "video_id": "vid_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Video deleted successfully"
+            },
+            "component": {
+              "name": "VideoDelete"
+            }
+          }
+
+  - endpoint: /heygen/generate_webm
+    examples:
+      - scenario: "Generate WebM Video"
+        description: "Generate a WebM video with transparent background"
+        input_json: |
+          {
+            "avatar_pose_id": "Vanessa-invest-20220722",
+            "avatar_style": "normal",
+            "input_text": "This is a WebM video generated by HeyGen API",
+            "voice_id": "1bd001e7e50f421d891986aad5158bc8",
+            "dimension": {
+              "width": 1280,
+              "height": 720
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "code": 100,
+              "data": {
+                "video_id": "webm_123456789"
+              },
+              "message": "Success"
+            },
+            "component": {
+              "name": "WebMGeneration"
+            }
+          }
+
+  - endpoint: /heygen/list_videos
+    examples:
+      - scenario: "List Videos"
+        description: "Get list of videos with pagination"
+        input_json: |
+          {
+            "limit": 10,
+            "folder_id": null,
+            "title": null,
+            "token": null
+          }
+        output_json: |
+          {
+            "data": {
+              "code": 100,
+              "data": {
+                "token": "next_page_token",
+                "total": 25,
+                "videos": [
+                  {
+                    "video_id": "vid_123",
+                    "status": "completed",
+                    "created_at": 1679529600,
+                    "type": "GENERATED",
+                    "folder_id": ""
+                  }
+                ]
+              },
+              "message": null
+            },
+            "component": {
+              "name": "VideoList"
+            }
+          }
+
+  - endpoint: /heygen/share_video
+    examples:
+      - scenario: "Share Video"
+        description: "Generate shareable video URL"
+        input_json: |
+          {
+            "video_id": "vid_123"
+          }
+        output_json: |
+          {
+            "data": {
+              "url": "https://share.heygen.com/video/123"
+            },
+            "component": {
+              "name": "VideoShare"
+            }
+          }
+
+  - endpoint: /heygen/list_templates
+    examples:
+      - scenario: "List Templates"
+        description: "Get list of available templates"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "templates": [
+                {
+                  "template_id": "template_123",
+                  "name": "Business Presentation",
+                  "thumbnail_image_url": "https://example.com/thumbnail.jpg",
+                  "aspect_ratio": "landscape"
+                }
+              ]
+            },
+            "component": {
+              "name": "TemplateList"
+            }
+          }
+
+  - endpoint: /heygen/generate_from_template
+    examples:
+      - scenario: "Generate from Template"
+        description: "Generate video using template"
+        input_json: |
+          {
+            "template_id": "template_123",
+            "caption": false,
+            "title": "My Template Video",
+            "include_gif": true,
+            "enable_sharing": true,
+            "variables": {
+              "text_1": {
+                "name": "text_1",
+                "type": "text",
+                "properties": {
+                  "content": "Hello World"
+                }
+              },
+              "image_1": {
+                "name": "image_1",
+                "type": "image",
+                "properties": {
+                  "url": "https://example.com/image.jpg",
+                  "fit": "none"
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "video_id": "vid_123456789"
+            },
+            "component": {
+              "name": "TemplateGeneration"
+            }
+          }
+
+  - endpoint: /heygen/get_translation_languages
+    examples:
+      - scenario: "Get Supported Languages"
+        description: "Get list of supported languages for translation"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "languages": ["en", "es", "fr", "de", "it"]
+            },
+            "component": {
+              "name": "TranslationLanguages"
+            }
+          }
+
+  - endpoint: /heygen/translate_video
+    examples:
+      - scenario: "Translate Video"
+        description: "Start video translation process"
+        input_json: |
+          {
+            "video_url": "https://example.com/video.mp4",
+            "title": "Translated Video",
+            "output_language": "es",
+            "translate_audio_only": false,
+            "speaker_num": 1,
+            "enable_dynamic_duration": true
+          }
+        output_json: |
+          {
+            "data": {
+              "video_translate_id": "trans_123456789"
+            },
+            "component": {
+              "name": "VideoTranslation"
+            }
+          }
+
+  - endpoint: /heygen/get_translation_status
+    examples:
+      - scenario: "Check Translation Status"
+        description: "Get status of video translation"
+        input_json: |
+          {
+            "video_translate_id": "trans_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "video_translate_id": "trans_123456789",
+              "title": "Translated Video",
+              "status": "running",
+              "url": null,
+              "message": null
+            },
+            "component": {
+              "name": "TranslationStatus"
+            }
+          }
+
+  - endpoint: /heygen/get_translation_caption
+    examples:
+      - scenario: "Get Translation Caption"
+        description: "Get caption file for translated video"
+        input_json: |
+          {
+            "video_translate_id": "trans_123456789",
+            "caption_type": "vtt"
+          }
+        output_json: |
+          {
+            "data": {
+              "caption_url": "https://example.com/captions/video_123.vtt"
+            },
+            "component": {
+              "name": "TranslationCaption"
+            }
+          }
+
+  - endpoint: /heygen/generate_photo_avatar
+    examples:
+      - scenario: "Generate Photo Avatar"
+        description: "Generate photos for creating a photo avatar"
+        input_json: |
+          {
+            "name": "John Smith",
+            "age": "35",
+            "gender": "male",
+            "ethnicity": "caucasian",
+            "orientation": "front",
+            "pose": "professional",
+            "style": "business",
+            "appearance": "Professional businessman in a blue suit, clean shaven, short brown hair, confident smile"
+          }
+        output_json: |
+          {
+            "data": {
+              "generation_id": "gen_123456789"
+            },
+            "component": {
+              "name": "PhotoAvatarGeneration"
+            }
+          }
+
+  - endpoint: /heygen/get_generation_status
+    examples:
+      - scenario: "Check Generation Status"
+        description: "Check the status of photo avatar generation"
+        input_json: |
+          {
+            "generation_id": "gen_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "images": [
+                "https://example.com/avatar1.jpg",
+                "https://example.com/avatar2.jpg"
+              ],
+              "image_keys": [
+                "key_123",
+                "key_456"
+              ]
+            },
+            "component": {
+              "name": "GenerationStatus"
+            }
+          }
+
+  - endpoint: /heygen/add_motion
+    examples:
+      - scenario: "Add Motion"
+        description: "Add motion to an existing photo avatar"
+        input_json: |
+          {
+            "id": "avatar_123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "avatar_456789"
+            },
+            "component": {
+              "name": "PhotoAvatarMotion"
+            }
+          }
+
+  - endpoint: /heygen/add_sound_effect
+    examples:
+      - scenario: "Add Sound Effect"
+        description: "Add sound effect to a photo avatar"
+        input_json: |
+          {
+            "id": "avatar_123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "avatar_456789"
+            },
+            "component": {
+              "name": "PhotoAvatarSoundEffect"
+            }
+          }
+
+  - endpoint: /heygen/get_photo_avatar_details
+    examples:
+      - scenario: "Get Photo Avatar Details"
+        description: "Get details of a specific photo avatar"
+        input_json: |
+          {
+            "id": "avatar_123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "avatar_123456",
+              "name": "John Smith",
+              "preview_image_url": "https://example.com/avatar.jpg",
+              "created_at": 1679529600,
+              "has_motion": true,
+              "has_sound_effect": false
+            },
+            "component": {
+              "name": "PhotoAvatarDetails"
+            }
+          }
+
+  - endpoint: /heygen/upscale_avatar
+    examples:
+      - scenario: "Upscale Avatar"
+        description: "Upscale an existing photo avatar with motion"
+        input_json: |
+          {
+            "id": "avatar_123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "avatar_456789"
+            },
+            "component": {
+              "name": "PhotoAvatarUpscale"
+            }
+          }
+
+  - endpoint: /heygen/get_user_info
+    examples:
+      - scenario: "Get User Information"
+        description: "Get current authenticated user information"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "username": "john_doe",
+              "email": "john.doe@example.com",
+              "first_name": "John",
+              "last_name": "Doe"
+            },
+            "component": {
+              "name": "UserInfo"
+            }
+          }
+
+  - endpoint: /heygen/get_remaining_quota
+    examples:
+      - scenario: "Get Remaining Quota"
+        description: "Get remaining API quota for the current user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "remaining_quota": 6000,
+              "details": {
+                "video": 6000,
+                "interactive": 1000
+              }
+            },
+            "component": {
+              "name": "RemainingQuota"
+            }
+          }
+
+  - endpoint: /heygen/upload_asset
+    examples:
+      - scenario: "Upload Image Asset"
+        description: "Upload an image file as an asset"
+        input_json: |
+          {
+            "file_path": "/path/to/image.jpg",
+            "content_type": "image/jpeg"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "asset_123456",
+              "name": "image.jpg",
+              "file_type": "image",
+              "folder_id": "folder_123",
+              "meta": {
+                "width": 1280,
+                "height": 720
+              },
+              "image_key": "key_123456"
+            },
+            "component": {
+              "name": "UploadedAsset"
+            }
+          }
+
+  - endpoint: /heygen/list_folders
+    examples:
+      - scenario: "List Folders"
+        description: "Get list of folders"
+        input_json: |
+          {
+            "limit": 10,
+            "parent_id": null,
+            "is_trash": false
+          }
+        output_json: |
+          {
+            "data": {
+              "folders": [
+                {
+                  "id": "folder_123",
+                  "name": "My Videos",
+                  "project_type": "video",
+                  "parent_id": null,
+                  "created_at": 1679529600,
+                  "updated_at": 1679529600
+                }
+              ],
+              "token": "next_page_token"
+            },
+            "component": {
+              "name": "FolderList"
+            }
+          }
+
+  - endpoint: /heygen/create_folder
+    examples:
+      - scenario: "Create Folder"
+        description: "Create a new folder"
+        input_json: |
+          {
+            "name": "My New Folder",
+            "project_type": "video",
+            "parent_id": null
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "folder_123456",
+              "name": "My New Folder",
+              "project_type": "video",
+              "parent_id": null
+            },
+            "component": {
+              "name": "FolderCreated"
+            }
+          }
+ 
