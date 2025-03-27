@@ -63,7 +63,7 @@ from integrations.todoist.route import router as todoist_router
 from integrations.google_sheets.route import router as google_sheets_router
 from integrations.google_docs.route import router as google_docs_router
 from integrations.uploadthing.route import router as uploadthing_router
-
+from integrations.bannerbear.route import router as bannerbear_router
 
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
@@ -146,13 +146,14 @@ INTEGRATION_ROUTERS = {
     "todoist": todoist_router,
     "google-sheets": google_sheets_router,
     "google-docs": google_docs_router,
-    "uploadthing": uploadthing_router
+    "uploadthing": uploadthing_router,
+    "bannerbear": bannerbear_router
 }
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
 
-        if tool == "uploadthing":
+        if tool == "bannerbear":
             return
         
         if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
