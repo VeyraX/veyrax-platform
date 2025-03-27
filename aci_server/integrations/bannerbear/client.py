@@ -114,7 +114,9 @@ class BannerbearClient:
         return self._request("GET", f"/video_templates/{uid}")
 
     def list_all_video_templates(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        return self._request("GET", "/video_templates", params=data)
+        resp = self._request("GET", "/video_templates", params=data)
+        print('all video templates', resp)
+        return resp
 
     def create_session(self, data: Dict[str, Any]) -> Dict[str, Any]:
         return self._request("POST", "/sessions", data)

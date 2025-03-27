@@ -65,7 +65,7 @@ class ListAllImagesResponse(BaseModel):
 
 class CreateVideoParams(BaseModel):
     video_template: str
-    input_media_url: Optional[str] = None
+    input_media_url: str
     modifications: Optional[List[Dict[str, Any]]] = None
     metadata: Optional[str] = None
 

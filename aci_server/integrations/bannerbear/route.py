@@ -18,8 +18,8 @@ examples = ExamplesLoader()
 
 async def get_bannerbear_service(request: FastAPIRequest):
     try:
+        # Example: retrieve API key from request/env
         api_key = await validate_provider_api_key(request, "bannerbear")
-
         if not api_key:
             raise HTTPException(status_code=401, detail="Missing Bannerbear API key")
         client = BannerbearClient(api_key)
@@ -41,12 +41,7 @@ async def check_authorization(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CheckAuthorizationParams(**params)
-    r = service.check_authorization(validated_params)
-    return CheckAuthorizationResponse(
-        status_code=r.data.get("status_code", 200),
-        message=r.data.get("message", "Authorized"),
-        project=r.data.get("project")
-    )
+    return service.check_authorization(validated_params)
 
 
 @router.post("/retrieve_account_status")
@@ -60,22 +55,13 @@ async def retrieve_account_status(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveAccountStatusParams(**params)
-    r = service.retrieve_account_status(validated_params)
-    return RetrieveAccountStatusResponse(
-        status_code=r.data.get("status_code", 200),
-        created_at=r.data.get("created_at"),
-        uid=r.data.get("uid"),
-        paid_plan_name=r.data.get("paid_plan_name"),
-        api_usage=r.data.get("api_usage"),
-        api_quota=r.data.get("api_quota"),
-        current_project=r.data.get("current_project")
-    )
+    return service.retrieve_account_status(validated_params)
 
 
 @router.post("/create_image")
 @schema(
     input_schema_class=CreateImageParams,
-    output_schema_class=CreateImageResponse,  # or CreateImageResponse, if you prefer a specialized schema
+    output_schema_class=CreateImageResponse,
     examples=examples["/bannerbear/create_image"]
 )
 async def create_image(
@@ -111,11 +97,7 @@ async def list_all_images(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllImagesParams(**params)
-    r = service.list_all_images(validated_params)
-    return ListAllImagesResponse(
-        status_code=r.data.get("status_code", 200),
-        images=r.data.get("images", [])
-    )
+    return service.list_all_images(validated_params)
 
 
 @router.post("/create_video")
@@ -129,8 +111,7 @@ async def create_video(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateVideoParams(**params)
-    r = service.create_video(validated_params)
-    return CreateVideoResponse(**r.data)
+    return service.create_video(validated_params)
 
 
 @router.post("/retrieve_video")
@@ -144,11 +125,7 @@ async def retrieve_video(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveVideoParams(**params)
-    r = service.retrieve_video(validated_params)
-    return RetrieveVideoResponse(
-        status_code=r.data.get("status_code", 200),
-        video=r.data.get("video", {})
-    )
+    return service.retrieve_video(validated_params)
 
 
 @router.post("/update_video")
@@ -162,11 +139,7 @@ async def update_video(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = UpdateVideoParams(**params)
-    r = service.update_video(validated_params)
-    return UpdateVideoResponse(
-        status_code=r.data.get("status_code", 200),
-        video=r.data.get("video", {})
-    )
+    return service.update_video(validated_params)
 
 
 @router.post("/list_all_videos")
@@ -180,11 +153,7 @@ async def list_all_videos(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllVideosParams(**params)
-    r = service.list_all_videos(validated_params)
-    return ListAllVideosResponse(
-        status_code=r.data.get("status_code", 200),
-        videos=r.data.get("videos", [])
-    )
+    return service.list_all_videos(validated_params)
 
 
 @router.post("/create_collection")
@@ -198,8 +167,7 @@ async def create_collection(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateCollectionParams(**params)
-    r = service.create_collection(validated_params)
-    return CreateCollectionResponse(**r.data)
+    return service.create_collection(validated_params)
 
 
 @router.post("/retrieve_collection")
@@ -213,11 +181,7 @@ async def retrieve_collection(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveCollectionParams(**params)
-    r = service.retrieve_collection(validated_params)
-    return RetrieveCollectionResponse(
-        status_code=r.data.get("status_code", 200),
-        collection=r.data.get("collection", {})
-    )
+    return service.retrieve_collection(validated_params)
 
 
 @router.post("/list_all_collections")
@@ -231,11 +195,7 @@ async def list_all_collections(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllCollectionsParams(**params)
-    r = service.list_all_collections(validated_params)
-    return ListAllCollectionsResponse(
-        status_code=r.data.get("status_code", 200),
-        collections=r.data.get("collections", [])
-    )
+    return service.list_all_collections(validated_params)
 
 
 @router.post("/create_animated_gif")
@@ -249,8 +209,7 @@ async def create_animated_gif(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateAnimatedGifParams(**params)
-    r = service.create_animated_gif(validated_params)
-    return CreateAnimatedGifResponse(**r.data)
+    return service.create_animated_gif(validated_params)
 
 
 @router.post("/retrieve_animated_gif")
@@ -264,11 +223,7 @@ async def retrieve_animated_gif(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveAnimatedGifParams(**params)
-    r = service.retrieve_animated_gif(validated_params)
-    return RetrieveAnimatedGifResponse(
-        status_code=r.data.get("status_code", 200),
-        animated_gif=r.data.get("animated_gif", {})
-    )
+    return service.retrieve_animated_gif(validated_params)
 
 
 @router.post("/list_all_animated_gifs")
@@ -282,11 +237,7 @@ async def list_all_animated_gifs(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllAnimatedGifsParams(**params)
-    r = service.list_all_animated_gifs(validated_params)
-    return ListAllAnimatedGifsResponse(
-        status_code=r.data.get("status_code", 200),
-        animated_gifs=r.data.get("animated_gifs", [])
-    )
+    return service.list_all_animated_gifs(validated_params)
 
 
 @router.post("/create_screenshot")
@@ -300,8 +251,7 @@ async def create_screenshot(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateScreenshotParams(**params)
-    r = service.create_screenshot(validated_params)
-    return CreateScreenshotResponse(**r.data)
+    return service.create_screenshot(validated_params)
 
 
 @router.post("/retrieve_screenshot")
@@ -315,11 +265,7 @@ async def retrieve_screenshot(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveScreenshotParams(**params)
-    r = service.retrieve_screenshot(validated_params)
-    return RetrieveScreenshotResponse(
-        status_code=r.data.get("status_code", 200),
-        screenshot=r.data.get("screenshot", {})
-    )
+    return service.retrieve_screenshot(validated_params)
 
 
 @router.post("/list_all_screenshots")
@@ -333,11 +279,7 @@ async def list_all_screenshots(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllScreenshotsParams(**params)
-    r = service.list_all_screenshots(validated_params)
-    return ListAllScreenshotsResponse(
-        status_code=r.data.get("status_code", 200),
-        screenshots=r.data.get("screenshots", [])
-    )
+    return service.list_all_screenshots(validated_params)
 
 
 @router.post("/create_template")
@@ -351,8 +293,7 @@ async def create_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateTemplateParams(**params)
-    r = service.create_template(validated_params)
-    return CreateTemplateResponse(**r.data)
+    return service.create_template(validated_params)
 
 
 @router.post("/duplicate_template")
@@ -366,8 +307,7 @@ async def duplicate_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = DuplicateTemplateParams(**params)
-    r = service.duplicate_template(validated_params)
-    return DuplicateTemplateResponse(**r.data)
+    return service.duplicate_template(validated_params)
 
 
 @router.post("/retrieve_template")
@@ -381,11 +321,7 @@ async def retrieve_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveTemplateParams(**params)
-    r = service.retrieve_template(validated_params)
-    return RetrieveTemplateResponse(
-        status_code=r.data.get("status_code", 200),
-        template=r.data.get("template", {})
-    )
+    return service.retrieve_template(validated_params)
 
 
 @router.post("/update_template")
@@ -399,11 +335,7 @@ async def update_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = UpdateTemplateParams(**params)
-    r = service.update_template(validated_params)
-    return UpdateTemplateResponse(
-        status_code=r.data.get("status_code", 200),
-        template=r.data.get("template", {})
-    )
+    return service.update_template(validated_params)
 
 
 @router.post("/list_all_templates")
@@ -417,11 +349,7 @@ async def list_all_templates(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllTemplatesParams(**params)
-    r = service.list_all_templates(validated_params)
-    return ListAllTemplatesResponse(
-        status_code=r.data.get("status_code", 200),
-        templates=r.data.get("templates", [])
-    )
+    return service.list_all_templates(validated_params)
 
 
 @router.post("/import_templates")
@@ -435,8 +363,7 @@ async def import_templates(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ImportTemplatesParams(**params)
-    r = service.import_templates(validated_params)
-    return ImportTemplatesResponse(**r.data)
+    return service.import_templates(validated_params)
 
 
 @router.post("/create_template_set")
@@ -450,8 +377,7 @@ async def create_template_set(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateTemplateSetParams(**params)
-    r = service.create_template_set(validated_params)
-    return CreateTemplateSetResponse(**r.data)
+    return service.create_template_set(validated_params)
 
 
 @router.post("/update_template_set")
@@ -465,11 +391,7 @@ async def update_template_set(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = UpdateTemplateSetParams(**params)
-    r = service.update_template_set(validated_params)
-    return UpdateTemplateSetResponse(
-        status_code=r.data.get("status_code", 200),
-        template_set=r.data.get("template_set", {})
-    )
+    return service.update_template_set(validated_params)
 
 
 @router.post("/retrieve_template_set")
@@ -483,11 +405,7 @@ async def retrieve_template_set(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveTemplateSetParams(**params)
-    r = service.retrieve_template_set(validated_params)
-    return RetrieveTemplateSetResponse(
-        status_code=r.data.get("status_code", 200),
-        template_set=r.data.get("template_set", {})
-    )
+    return service.retrieve_template_set(validated_params)
 
 
 @router.post("/list_all_template_sets")
@@ -501,11 +419,7 @@ async def list_all_template_sets(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllTemplateSetsParams(**params)
-    r = service.list_all_template_sets(validated_params)
-    return ListAllTemplateSetsResponse(
-        status_code=r.data.get("status_code", 200),
-        template_sets=r.data.get("template_sets", [])
-    )
+    return service.list_all_template_sets(validated_params)
 
 
 @router.post("/create_video_template")
@@ -519,8 +433,7 @@ async def create_video_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateVideoTemplateParams(**params)
-    r = service.create_video_template(validated_params)
-    return CreateVideoTemplateResponse(**r.data)
+    return service.create_video_template(validated_params)
 
 
 @router.post("/retrieve_video_template")
@@ -534,11 +447,7 @@ async def retrieve_video_template(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveVideoTemplateParams(**params)
-    r = service.retrieve_video_template(validated_params)
-    return RetrieveVideoTemplateResponse(
-        status_code=r.data.get("status_code", 200),
-        video_template=r.data.get("video_template", {})
-    )
+    return service.retrieve_video_template(validated_params)
 
 
 @router.post("/list_all_video_templates")
@@ -552,11 +461,7 @@ async def list_all_video_templates(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllVideoTemplatesParams(**params)
-    r = service.list_all_video_templates(validated_params)
-    return ListAllVideoTemplatesResponse(
-        status_code=r.data.get("status_code", 200),
-        video_templates=r.data.get("video_templates", [])
-    )
+    return service.list_all_video_templates(validated_params)
 
 
 @router.post("/create_session")
@@ -570,11 +475,7 @@ async def create_session(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateSessionParams(**params)
-    r = service.create_session(validated_params)
-    return CreateSessionResponse(
-        status_code=r.data.get("status_code", 200),
-        session=r.data.get("session", {})
-    )
+    return service.create_session(validated_params)
 
 
 @router.post("/retrieve_session")
@@ -588,11 +489,7 @@ async def retrieve_session(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveSessionParams(**params)
-    r = service.retrieve_session(validated_params)
-    return RetrieveSessionResponse(
-        status_code=r.data.get("status_code", 200),
-        session=r.data.get("session", {})
-    )
+    return service.retrieve_session(validated_params)
 
 
 @router.post("/list_all_sessions")
@@ -606,11 +503,7 @@ async def list_all_sessions(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllSessionsParams(**params)
-    r = service.list_all_sessions(validated_params)
-    return ListAllSessionsResponse(
-        status_code=r.data.get("status_code", 200),
-        sessions=r.data.get("sessions", [])
-    )
+    return service.list_all_sessions(validated_params)
 
 
 @router.post("/create_webhook")
@@ -624,11 +517,7 @@ async def create_webhook(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateWebhookParams(**params)
-    r = service.create_webhook(validated_params)
-    return CreateWebhookResponse(
-        status_code=r.data.get("status_code", 200),
-        webhook=r.data.get("webhook", {})
-    )
+    return service.create_webhook(validated_params)
 
 
 @router.post("/retrieve_webhook")
@@ -642,11 +531,7 @@ async def retrieve_webhook(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveWebhookParams(**params)
-    r = service.retrieve_webhook(validated_params)
-    return RetrieveWebhookResponse(
-        status_code=r.data.get("status_code", 200),
-        webhook=r.data.get("webhook", {})
-    )
+    return service.retrieve_webhook(validated_params)
 
 
 @router.post("/delete_webhook")
@@ -660,11 +545,7 @@ async def delete_webhook(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = DeleteWebhookParams(**params)
-    r = service.delete_webhook(validated_params)
-    return DeleteWebhookResponse(
-        status_code=r.data.get("status_code", 204),
-        message="Webhook deleted"
-    )
+    return service.delete_webhook(validated_params)
 
 
 @router.post("/create_movie")
@@ -678,8 +559,7 @@ async def create_movie(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateMovieParams(**params)
-    r = service.create_movie(validated_params)
-    return CreateMovieResponse(**r.data)
+    return service.create_movie(validated_params)
 
 
 @router.post("/retrieve_movie")
@@ -693,11 +573,7 @@ async def retrieve_movie(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveMovieParams(**params)
-    r = service.retrieve_movie(validated_params)
-    return RetrieveMovieResponse(
-        status_code=r.data.get("status_code", 200),
-        movie=r.data.get("movie", {})
-    )
+    return service.retrieve_movie(validated_params)
 
 
 @router.post("/list_all_movies")
@@ -711,11 +587,7 @@ async def list_all_movies(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllMoviesParams(**params)
-    r = service.list_all_movies(validated_params)
-    return ListAllMoviesResponse(
-        status_code=r.data.get("status_code", 200),
-        movies=r.data.get("movies", [])
-    )
+    return service.list_all_movies(validated_params)
 
 
 @router.post("/create_diagnosis")
@@ -729,8 +601,7 @@ async def create_diagnosis(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateDiagnosisParams(**params)
-    r = service.create_diagnosis(validated_params)
-    return CreateDiagnosisResponse(**r.data)
+    return service.create_diagnosis(validated_params)
 
 
 @router.post("/retrieve_diagnosis")
@@ -744,11 +615,7 @@ async def retrieve_diagnosis(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveDiagnosisParams(**params)
-    r = service.retrieve_diagnosis(validated_params)
-    return RetrieveDiagnosisResponse(
-        status_code=r.data.get("status_code", 200),
-        diagnosis=r.data.get("diagnosis", {})
-    )
+    return service.retrieve_diagnosis(validated_params)
 
 
 @router.post("/create_signed_base")
@@ -762,11 +629,7 @@ async def create_signed_base(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateSignedBaseParams(**params)
-    r = service.create_signed_base(validated_params)
-    return CreateSignedBaseResponse(
-        status_code=r.data.get("status_code", 200),
-        signed_base=r.data.get("signed_base", {})
-    )
+    return service.create_signed_base(validated_params)
 
 
 @router.post("/list_signed_bases")
@@ -780,11 +643,7 @@ async def list_signed_bases(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListSignedBasesParams(**params)
-    r = service.list_signed_bases(validated_params)
-    return ListSignedBasesResponse(
-        status_code=r.data.get("status_code", 200),
-        signed_bases=r.data.get("signed_bases", [])
-    )
+    return service.list_signed_bases(validated_params)
 
 
 @router.post("/create_project")
@@ -798,11 +657,7 @@ async def create_project(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = CreateProjectParams(**params)
-    r = service.create_project(validated_params)
-    return CreateProjectResponse(
-        status_code=r.data.get("status_code", 200),
-        project=r.data.get("project", {})
-    )
+    return service.create_project(validated_params)
 
 
 @router.post("/retrieve_project")
@@ -816,11 +671,7 @@ async def retrieve_project(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveProjectParams(**params)
-    r = service.retrieve_project(validated_params)
-    return RetrieveProjectResponse(
-        status_code=r.data.get("status_code", 200),
-        project=r.data.get("project", {})
-    )
+    return service.retrieve_project(validated_params)
 
 
 @router.post("/hydrate_project")
@@ -834,8 +685,7 @@ async def hydrate_project(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = HydrateProjectParams(**params)
-    r = service.hydrate_project(validated_params)
-    return HydrateProjectResponse(**r.data)
+    return service.hydrate_project(validated_params)
 
 
 @router.post("/list_all_projects")
@@ -849,11 +699,7 @@ async def list_all_projects(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListAllProjectsParams(**params)
-    r = service.list_all_projects(validated_params)
-    return ListAllProjectsResponse(
-        status_code=r.data.get("status_code", 200),
-        projects=r.data.get("projects", [])
-    )
+    return service.list_all_projects(validated_params)
 
 
 @router.post("/list_fonts")
@@ -867,11 +713,7 @@ async def list_fonts(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListFontsParams(**params)
-    r = service.list_fonts(validated_params)
-    return FontsResponse(
-        status_code=r.data.get("status_code", 200),
-        fonts=r.data.get("fonts", {})
-    )
+    return service.list_fonts(validated_params)
 
 
 @router.post("/list_effects")
@@ -885,11 +727,7 @@ async def list_effects(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = ListEffectsParams(**params)
-    r = service.list_effects(validated_params)
-    return EffectsResponse(
-        status_code=r.data.get("status_code", 200),
-        effects=r.data.get("effects", [])
-    )
+    return service.list_effects(validated_params)
 
 
 @router.post("/join_pdf")
@@ -903,8 +741,7 @@ async def join_pdf(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = JoinPdfParams(**params)
-    r = service.join_pdf(validated_params)
-    return JoinPdfResponse(**r.data)
+    return service.join_pdf(validated_params)
 
 
 @router.post("/retrieve_joined_pdf")
@@ -918,11 +755,7 @@ async def retrieve_joined_pdf(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveJoinedPdfParams(**params)
-    r = service.retrieve_joined_pdf(validated_params)
-    return RetrieveJoinedPdfResponse(
-        status_code=r.data.get("status_code", 200),
-        joined_pdf=r.data.get("joined_pdf", {})
-    )
+    return service.retrieve_joined_pdf(validated_params)
 
 
 @router.post("/rasterize_pdf")
@@ -936,8 +769,7 @@ async def rasterize_pdf(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RasterizePdfParams(**params)
-    r = service.rasterize_pdf(validated_params)
-    return RasterizePdfResponse(**r.data)
+    return service.rasterize_pdf(validated_params)
 
 
 @router.post("/retrieve_rasterized_pdf")
@@ -951,11 +783,7 @@ async def retrieve_rasterized_pdf(
     service: BannerbearService = Depends(get_bannerbear_service)
 ):
     validated_params = RetrieveRasterizedPdfParams(**params)
-    r = service.retrieve_rasterized_pdf(validated_params)
-    return RetrieveRasterizedPdfResponse(
-        status_code=r.data.get("status_code", 200),
-        rasterization=r.data.get("rasterization", {})
-    )
+    return service.retrieve_rasterized_pdf(validated_params)
 
 
 apply_error_handler_to_router(router)
