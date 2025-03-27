@@ -1,0 +1,1304 @@
+routes:
+  - endpoint: /auth
+    examples:
+      - scenario: "Check Authorization"
+        description: "Checks whether the provided Bannerbear API key is valid"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "message": "Authorized",
+            "project": "My Project Name"
+          }
+
+  - endpoint: /account
+    examples:
+      - scenario: "Retrieve Account Status"
+        description: "Retrieves account quotas, plan details, and current usage"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "created_at": "2019-10-22T09:49:45.265Z",
+            "uid": "jJWBKNELpQPvbX5R93Gk",
+            "paid_plan_name": "Bannerbear Automate",
+            "api_usage": 391,
+            "api_quota": 1000,
+            "current_project": {
+              "name": "My Project Name",
+              "templates": 42
+            }
+          }
+
+  - endpoint: /images
+    examples:
+      - scenario: "Create an Image"
+        description: "Creates a new image using the specified template and modifications"
+        input_json: |
+          {
+            "template": "YOUR_TEMPLATE_UID",
+            "modifications": [
+              {
+                "name": "title",
+                "text": "Hello World"
+              },
+              {
+                "name": "avatar",
+                "image_url": "https://www.example.com/avatar.jpg"
+              }
+            ],
+            "metadata": "Record ID: 123"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "kG39R5XbvPQpLENKBWJj",
+            "status": "pending",
+            "image_url": null,
+            "template": "YOUR_TEMPLATE_UID",
+            "modifications": [
+              {
+                "name": "title",
+                "text": "Hello World"
+              },
+              {
+                "name": "avatar",
+                "image_url": "https://www.example.com/avatar.jpg"
+              }
+            ],
+            "created_at": "2025-03-27T10:00:00.000Z"
+          }
+
+  - endpoint: /images/:uid
+    examples:
+      - scenario: "Retrieve an Image"
+        description: "Retrieves details of a specific image by UID"
+        input_json: |
+          {
+            "uid": "kG39R5XbvPQpLENKBWJj"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "image": {
+              "uid": "kG39R5XbvPQpLENKBWJj",
+              "status": "completed",
+              "image_url": "https://cdn.bannerbear.com/images/kG39R5XbvPQpLENKBWJj.jpg",
+              "template": "6A37YJe5qNDmpvWKP0",
+              "width": 1000,
+              "height": 1000,
+              "modifications": [
+                {
+                  "name": "title",
+                  "text": "Hello World"
+                },
+                {
+                  "name": "avatar",
+                  "image_url": "https://www.example.com/avatar.jpg"
+                }
+              ],
+              "created_at": "2025-03-27T10:01:00.000Z"
+            }
+          }
+
+  - endpoint: /images (list)
+    examples:
+      - scenario: "List All Images"
+        description: "Lists images with optional pagination"
+        input_json: |
+          {
+            "page": 1,
+            "limit": 25
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "images": [
+              {
+                "uid": "kG39R5XbvPQpLENKBWJj",
+                "status": "completed",
+                "image_url": "https://cdn.bannerbear.com/images/kG39R5XbvPQpLENKBWJj.jpg",
+                "created_at": "2025-03-27T10:02:00.000Z"
+              },
+              {
+                "uid": "aB123Xyz9PQpABCD123",
+                "status": "completed",
+                "image_url": "https://cdn.bannerbear.com/images/aB123Xyz9PQpABCD123.jpg",
+                "created_at": "2025-03-27T10:03:00.000Z"
+              }
+            ]
+          }
+
+  - endpoint: /videos
+    examples:
+      - scenario: "Create a Video"
+        description: "Creates a new video with input media and modifications"
+        input_json: |
+          {
+            "video_template": "YOUR_VIDEO_TEMPLATE_UID",
+            "input_media_url": "https://www.example.com/video.mp4",
+            "modifications": [
+              {
+                "name": "title",
+                "text": "My Video Title"
+              }
+            ],
+            "metadata": "Video Record 456"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "8G39Z5x3bLPqXE59R2",
+            "status": "pending",
+            "video_url": null,
+            "render_type": "overlay",
+            "created_at": "2025-03-27T10:04:00.000Z"
+          }
+
+  - endpoint: /videos/:uid
+    examples:
+      - scenario: "Retrieve a Video"
+        description: "Retrieves details of a specific video by UID"
+        input_json: |
+          {
+            "uid": "8G39Z5x3bLPqXE59R2"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "video": {
+              "uid": "8G39Z5x3bLPqXE59R2",
+              "status": "completed",
+              "video_url": "https://cdn.bannerbear.com/videos/8G39Z5x3bLPqXE59R2.mp4",
+              "render_type": "overlay",
+              "percent_rendered": 100,
+              "width": 1000,
+              "height": 1000,
+              "modifications": [
+                {
+                  "name": "title",
+                  "text": "My Video Title"
+                }
+              ],
+              "created_at": "2025-03-27T10:05:00.000Z"
+            }
+          }
+
+  - endpoint: /videos (update)
+    examples:
+      - scenario: "Update a Video"
+        description: "Updates video transcription/approval settings"
+        input_json: |
+          {
+            "uid": "8G39Z5x3bLPqXE59R2",
+            "transcription": [
+              "This is a replaced line 1",
+              "This is a replaced line 2"
+            ],
+            "approved": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "video": {
+              "uid": "8G39Z5x3bLPqXE59R2",
+              "status": "rendering",
+              "video_url": null,
+              "transcription": [
+                "This is a replaced line 1",
+                "This is a replaced line 2"
+              ],
+              "approved": true,
+              "updated_at": "2025-03-27T10:06:00.000Z"
+            }
+          }
+
+  - endpoint: /videos (list)
+    examples:
+      - scenario: "List All Videos"
+        description: "Lists videos with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "videos": [
+              {
+                "uid": "8G39Z5x3bLPqXE59R2",
+                "status": "completed",
+                "video_url": "https://cdn.bannerbear.com/videos/8G39Z5x3bLPqXE59R2.mp4",
+                "created_at": "2025-03-27T10:07:00.000Z"
+              },
+              {
+                "uid": "dH456n9x8PQrcDZB12",
+                "status": "pending",
+                "video_url": null,
+                "created_at": "2025-03-27T10:08:00.000Z"
+              }
+            ]
+          }
+
+  - endpoint: /collections
+    examples:
+      - scenario: "Create a Collection"
+        description: "Creates a collection for multiple templates at once"
+        input_json: |
+          {
+            "template_set": "YOUR_TEMPLATE_SET_UID",
+            "modifications": [
+              {
+                "name": "text_container",
+                "text": "Hello Collection"
+              }
+            ],
+            "metadata": "Batch ID: 789"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "rZdpMYmAnDB1zb3kXL",
+            "status": "pending",
+            "image_urls": null,
+            "template_set": "YOUR_TEMPLATE_SET_UID",
+            "created_at": "2025-03-27T10:09:00.000Z"
+          }
+
+  - endpoint: /collections/:uid
+    examples:
+      - scenario: "Retrieve a Collection"
+        description: "Retrieves details of a specific collection by UID"
+        input_json: |
+          {
+            "uid": "rZdpMYmAnDB1zb3kXL"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "collection": {
+              "uid": "rZdpMYmAnDB1zb3kXL",
+              "status": "completed",
+              "template_set": "YOUR_TEMPLATE_SET_UID",
+              "image_urls": {
+                "template_xxx_image_url": "https://cdn.bannerbear.com/...",
+                "template_yyy_image_url": "https://cdn.bannerbear.com/..."
+              },
+              "created_at": "2025-03-27T10:10:00.000Z"
+            }
+          }
+
+  - endpoint: /collections (list)
+    examples:
+      - scenario: "List All Collections"
+        description: "Lists collections with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "collections": [
+              {
+                "uid": "rZdpMYmAnDB1zb3kXL",
+                "status": "completed",
+                "created_at": "2025-03-27T10:11:00.000Z"
+              },
+              {
+                "uid": "mP13qZwDx003abcXYZ",
+                "status": "pending",
+                "created_at": "2025-03-27T10:12:00.000Z"
+              }
+            ]
+          }
+
+  - endpoint: /animated_gifs
+    examples:
+      - scenario: "Create an Animated GIF"
+        description: "Creates an animated GIF from multiple frames"
+        input_json: |
+          {
+            "template": "YOUR_GIF_TEMPLATE_UID",
+            "frames": [
+              [
+                {
+                  "name": "layer1",
+                  "text": "Frame 1 text"
+                }
+              ],
+              [
+                {
+                  "name": "layer1",
+                  "text": "Frame 2 text"
+                }
+              ]
+            ],
+            "fps": 1,
+            "loop": true
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "a46YPx8Z65pwmKrdGE",
+            "status": "pending",
+            "image_url": null,
+            "created_at": "2025-03-27T10:13:00.000Z"
+          }
+
+  - endpoint: /animated_gifs/:uid
+    examples:
+      - scenario: "Retrieve an Animated GIF"
+        description: "Retrieves details of a specific animated GIF by UID"
+        input_json: |
+          {
+            "uid": "a46YPx8Z65pwmKrdGE"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "animated_gif": {
+              "uid": "a46YPx8Z65pwmKrdGE",
+              "status": "completed",
+              "image_url": "https://cdn.bannerbear.com/animated_gifs/a46YPx8Z65pwmKrdGE.gif",
+              "fps": 1,
+              "loop": true,
+              "frames": [
+                [
+                  {
+                    "name": "layer1",
+                    "text": "Frame 1 text"
+                  }
+                ],
+                [
+                  {
+                    "name": "layer1",
+                    "text": "Frame 2 text"
+                  }
+                ]
+              ],
+              "created_at": "2025-03-27T10:14:00.000Z"
+            }
+          }
+
+  - endpoint: /animated_gifs (list)
+    examples:
+      - scenario: "List All Animated GIFs"
+        description: "Lists animated GIFs with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "animated_gifs": [
+              {
+                "uid": "a46YPx8Z65pwmKrdGE",
+                "status": "completed",
+                "image_url": "https://cdn.bannerbear.com/animated_gifs/a46YPx8Z65pwmKrdGE.gif"
+              },
+              {
+                "uid": "xB123Y9ZgQ09RS7VVV",
+                "status": "pending",
+                "image_url": null
+              }
+            ]
+          }
+
+  - endpoint: /screenshots
+    examples:
+      - scenario: "Create a Screenshot"
+        description: "Creates a screenshot of a public webpage"
+        input_json: |
+          {
+            "url": "https://www.apple.com",
+            "width": 1200,
+            "height": 3000,
+            "mobile": false
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "xwbeAQqO70Y3oyd2WY",
+            "status": "pending",
+            "screenshot_image_url": null,
+            "created_at": "2025-03-27T10:15:00.000Z"
+          }
+
+  - endpoint: /screenshots/:uid
+    examples:
+      - scenario: "Retrieve a Screenshot"
+        description: "Retrieves details of a specific screenshot by UID"
+        input_json: |
+          {
+            "uid": "xwbeAQqO70Y3oyd2WY"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "screenshot": {
+              "uid": "xwbeAQqO70Y3oyd2WY",
+              "status": "completed",
+              "screenshot_image_url": "https://cdn.bannerbear.com/screenshots/xwbeAQqO70Y3oyd2WY.png",
+              "width": 1200,
+              "height": 3000,
+              "created_at": "2025-03-27T10:16:00.000Z"
+            }
+          }
+
+  - endpoint: /screenshots (list)
+    examples:
+      - scenario: "List All Screenshots"
+        description: "Lists screenshots with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "screenshots": [
+              {
+                "uid": "xwbeAQqO70Y3oyd2WY",
+                "status": "completed",
+                "screenshot_image_url": "https://cdn.bannerbear.com/screenshots/xwbeAQqO70Y3oyd2WY.png"
+              },
+              {
+                "uid": "abcd1234wxyz5678",
+                "status": "pending",
+                "screenshot_image_url": null
+              }
+            ]
+          }
+
+  - endpoint: /templates
+    examples:
+      - scenario: "Create a Template"
+        description: "Creates a new blank template in Bannerbear"
+        input_json: |
+          {
+            "name": "My Template",
+            "width": 1000,
+            "height": 900,
+            "tags": ["Tag1", "Tag2"]
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "04PK8K2bctXHjqB97O",
+            "name": "My Template",
+            "width": 1000,
+            "height": 900,
+            "tags": ["Tag1", "Tag2"],
+            "created_at": "2025-03-27T10:17:00.000Z"
+          }
+
+  - endpoint: /templates?source=:uid
+    examples:
+      - scenario: "Duplicate a Template"
+        description: "Duplicates an existing template by UID"
+        input_json: |
+          {
+            "source": "SOURCE_TEMPLATE_UID"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "NEW_TEMPLATE_UID",
+            "name": "Copy of Source Template",
+            "width": 1000,
+            "height": 1000,
+            "created_at": "2025-03-27T10:18:00.000Z"
+          }
+
+  - endpoint: /templates/:uid
+    examples:
+      - scenario: "Retrieve a Template"
+        description: "Retrieves details of a specific template by UID"
+        input_json: |
+          {
+            "uid": "04PK8K2bctXHjqB97O"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "template": {
+              "uid": "04PK8K2bctXHjqB97O",
+              "name": "My Template",
+              "width": 1000,
+              "height": 900,
+              "tags": ["Tag1", "Tag2"],
+              "preview_url": "https://cdn.bannerbear.com/templates/04PK8K2bctXHjqB97O.png",
+              "created_at": "2025-03-27T10:19:00.000Z"
+            }
+          }
+
+  - endpoint: /templates/:uid (update)
+    examples:
+      - scenario: "Update a Template"
+        description: "Updates certain attributes of an existing template"
+        input_json: |
+          {
+            "tags": ["TagA","TagB"],
+            "name": "My Updated Template",
+            "width": 1200,
+            "height": 630
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "template": {
+              "uid": "04PK8K2bctXHjqB97O",
+              "name": "My Updated Template",
+              "width": 1200,
+              "height": 630,
+              "tags": ["TagA","TagB"],
+              "updated_at": "2025-03-27T10:20:00.000Z"
+            }
+          }
+
+  - endpoint: /templates (list)
+    examples:
+      - scenario: "List All Templates"
+        description: "Lists templates with optional pagination or filtering"
+        input_json: |
+          {
+            "page": 1,
+            "limit": 25
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "templates": [
+              {
+                "uid": "04PK8K2bctXHjqB97O",
+                "name": "My Template",
+                "width": 1200,
+                "height": 630,
+                "tags": ["TagA","TagB"]
+              },
+              {
+                "uid": "aB123Xyz9PQZZZ9BBB",
+                "name": "Another Template",
+                "width": 1000,
+                "height": 1000,
+                "tags": []
+              }
+            ]
+          }
+
+  - endpoint: /templates/import
+    examples:
+      - scenario: "Import Templates"
+        description: "Imports templates from the public library or publicly shared ones"
+        input_json: |
+          {
+            "publications": [
+              "ao9gyzedjlb3bw0j7m",
+              "ewmqrbyd5vqoj9xz7z"
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "imported": [
+              {
+                "uid": "ImportedTemplate1",
+                "name": "Template from publication ao9gyzedjlb3bw0j7m"
+              },
+              {
+                "uid": "ImportedTemplate2",
+                "name": "Template from publication ewmqrbyd5vqoj9xz7z"
+              }
+            ]
+          }
+
+  - endpoint: /template_sets
+    examples:
+      - scenario: "Create a Template Set"
+        description: "Creates a new template set with specified template UIDs"
+        input_json: |
+          {
+            "name": "My Template Set",
+            "templates": [
+              "p4KnlWBbK1V5OQGgm1",
+              "r6anBGWDA1EDO38124"
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "VymBYa7gMjW6JQ2njM",
+            "name": "My Template Set",
+            "templates": [
+              "p4KnlWBbK1V5OQGgm1",
+              "r6anBGWDA1EDO38124"
+            ],
+            "created_at": "2025-03-27T10:21:00.000Z"
+          }
+
+  - endpoint: /template_sets/:uid
+    examples:
+      - scenario: "Update a Template Set"
+        description: "Updates an existing template set by clearing it then adding new templates"
+        input_json: |
+          {
+            "uid": "VymBYa7gMjW6JQ2njM",
+            "templates": [
+              "p4KnlWBbK1V5OQGgm1"
+            ],
+            "name": "My Updated Template Set"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "template_set": {
+              "uid": "VymBYa7gMjW6JQ2njM",
+              "name": "My Updated Template Set",
+              "templates": [
+                "p4KnlWBbK1V5OQGgm1"
+              ],
+              "updated_at": "2025-03-27T10:22:00.000Z"
+            }
+          }
+
+  - endpoint: /template_sets/:uid (retrieve)
+    examples:
+      - scenario: "Retrieve a Template Set"
+        description: "Retrieves details of a specific template set by UID"
+        input_json: |
+          {
+            "uid": "VymBYa7gMjW6JQ2njM"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "template_set": {
+              "uid": "VymBYa7gMjW6JQ2njM",
+              "name": "My Template Set",
+              "available_modifications": [
+                {
+                  "name": "avatar",
+                  "image_url": null
+                }
+              ],
+              "templates": [
+                {
+                  "uid": "p4KnlWBbK1V5OQGgm1",
+                  "name": "Template #1"
+                }
+              ],
+              "created_at": "2025-03-27T10:23:00.000Z"
+            }
+          }
+
+  - endpoint: /template_sets (list)
+    examples:
+      - scenario: "List All Template Sets"
+        description: "Lists template sets with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "template_sets": [
+              {
+                "uid": "VymBYa7gMjW6JQ2njM",
+                "name": "My Template Set",
+                "templates": [
+                  "p4KnlWBbK1V5OQGgm1"
+                ]
+              },
+              {
+                "uid": "QQQabBBBc123XYZ987",
+                "name": "Another Template Set",
+                "templates": []
+              }
+            ]
+          }
+
+  - endpoint: /video_templates
+    examples:
+      - scenario: "Create a Video Template"
+        description: "Converts an image template into a video template"
+        input_json: |
+          {
+            "template": "IMAGE_TEMPLATE_UID",
+            "render_type": "overlay",
+            "approval_required": false
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "GL4kqNvzJ09lYxgVdO",
+            "name": "Video Template from base",
+            "render_type": "overlay",
+            "approval_required": false,
+            "created_at": "2025-03-27T10:24:00.000Z"
+          }
+
+  - endpoint: /video_templates/:uid
+    examples:
+      - scenario: "Retrieve a Video Template"
+        description: "Retrieves details of a specific video template by UID"
+        input_json: |
+          {
+            "uid": "GL4kqNvzJ09lYxgVdO"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "video_template": {
+              "uid": "GL4kqNvzJ09lYxgVdO",
+              "name": "Quote Example",
+              "render_type": "transcribe",
+              "approval_required": true,
+              "width": 1000,
+              "height": 1000,
+              "created_at": "2025-03-27T10:25:00.000Z"
+            }
+          }
+
+  - endpoint: /video_templates (list)
+    examples:
+      - scenario: "List All Video Templates"
+        description: "Lists video templates with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "video_templates": [
+              {
+                "uid": "GL4kqNvzJ09lYxgVdO",
+                "name": "Quote Example",
+                "render_type": "transcribe",
+                "approval_required": true
+              },
+              {
+                "uid": "HH999XnnnT66ABCX9z",
+                "name": "Overlay Template",
+                "render_type": "overlay",
+                "approval_required": false
+              }
+            ]
+          }
+
+  - endpoint: /sessions
+    examples:
+      - scenario: "Create a Session"
+        description: "Creates an editor session for a template"
+        input_json: |
+          {
+            "template": "TEMPLATE_UID",
+            "mode": "preview"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "rpdmzYDgW0o9GEwJA5",
+            "session_editor_url": "https://app.bannerbear.com/session/abc123xyz987",
+            "expired": false,
+            "created_at": "2025-03-27T10:26:00.000Z"
+          }
+
+  - endpoint: /sessions/:uid
+    examples:
+      - scenario: "Retrieve a Session"
+        description: "Retrieves details of a specific session by UID"
+        input_json: |
+          {
+            "uid": "rpdmzYDgW0o9GEwJA5"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "session": {
+              "uid": "rpdmzYDgW0o9GEwJA5",
+              "session_editor_url": "https://app.bannerbear.com/session/abc123xyz987",
+              "expired": false,
+              "template": "TEMPLATE_UID",
+              "created_at": "2025-03-27T10:27:00.000Z"
+            }
+          }
+
+  - endpoint: /sessions (list)
+    examples:
+      - scenario: "List All Sessions"
+        description: "Lists template editor sessions with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "sessions": [
+              {
+                "uid": "rpdmzYDgW0o9GEwJA5",
+                "expired": false,
+                "template": "TEMPLATE_UID",
+                "created_at": "2025-03-27T10:28:00.000Z"
+              },
+              {
+                "uid": "AAABBCCDDDEEE99999",
+                "expired": true,
+                "template": "TEMPLATE_UID",
+                "created_at": "2025-03-27T10:29:00.000Z"
+              }
+            ]
+          }
+
+  - endpoint: /webhooks
+    examples:
+      - scenario: "Create a Webhook"
+        description: "Registers a new project-level webhook"
+        input_json: |
+          {
+            "url": "https://webhook.site/1234abcd",
+            "event": "image_created"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "QXYlGg4rbAJE5ZoDkm",
+            "url": "https://webhook.site/1234abcd",
+            "event": "image_created",
+            "created_at": "2025-03-27T10:30:00.000Z"
+          }
+
+  - endpoint: /webhooks/:uid
+    examples:
+      - scenario: "Retrieve a Webhook"
+        description: "Retrieves details of a specific webhook by UID"
+        input_json: |
+          {
+            "uid": "QXYlGg4rbAJE5ZoDkm"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "webhook": {
+              "uid": "QXYlGg4rbAJE5ZoDkm",
+              "url": "https://webhook.site/1234abcd",
+              "event": "image_created",
+              "created_at": "2025-03-27T10:31:00.000Z"
+            }
+          }
+
+  - endpoint: /webhooks/:uid (delete)
+    examples:
+      - scenario: "Delete a Webhook"
+        description: "Removes the specified webhook"
+        input_json: |
+          {
+            "uid": "QXYlGg4rbAJE5ZoDkm"
+          }
+        output_json: |
+          {
+            "status_code": 204,
+            "message": "Webhook deleted"
+          }
+
+  - endpoint: /movies
+    examples:
+      - scenario: "Create a Movie"
+        description: "Creates a new movie from multiple video or image clips"
+        input_json: |
+          {
+            "width": 800,
+            "height": 500,
+            "transition": "fade",
+            "soundtrack_url": "https://www.example.com/music.mp3",
+            "inputs": [
+              {
+                "asset_url": "https://www.example.com/intro.mp4"
+              },
+              {
+                "asset_url": "https://www.example.com/video_part.mp4",
+                "trim_to_length_in_seconds": 10,
+                "mute": true
+              },
+              {
+                "asset_url": "https://www.example.com/outro.mp4"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "9R5XbvPQkG3pLENKBWJj",
+            "status": "pending",
+            "movie_url": null,
+            "created_at": "2025-03-27T10:32:00.000Z"
+          }
+
+  - endpoint: /movies/:uid
+    examples:
+      - scenario: "Retrieve a Movie"
+        description: "Retrieves details of a specific movie by UID"
+        input_json: |
+          {
+            "uid": "9R5XbvPQkG3pLENKBWJj"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "movie": {
+              "uid": "9R5XbvPQkG3pLENKBWJj",
+              "status": "completed",
+              "percent_rendered": 100,
+              "movie_url": "https://cdn.bannerbear.com/movies/9R5XbvPQkG3pLENKBWJj.mp4",
+              "created_at": "2025-03-27T10:33:00.000Z"
+            }
+          }
+
+  - endpoint: /movies (list)
+    examples:
+      - scenario: "List All Movies"
+        description: "Lists movies with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "movies": [
+              {
+                "uid": "9R5XbvPQkG3pLENKBWJj",
+                "status": "completed",
+                "movie_url": "https://cdn.bannerbear.com/movies/9R5XbvPQkG3pLENKBWJj.mp4",
+                "created_at": "2025-03-27T10:34:00.000Z"
+              },
+              {
+                "uid": "bCD9a12bMpQ0zzzXYC",
+                "status": "pending",
+                "movie_url": null,
+                "created_at": "2025-03-27T10:35:00.000Z"
+              }
+            ]
+          }
+
+  - endpoint: /diagnoses
+    examples:
+      - scenario: "Create a Diagnosis"
+        description: "Creates a diagnostic report for an image, checking external asset loading"
+        input_json: |
+          {
+            "image_uid": "kG39R5XbvPQpLENKBWJj"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "KqePQDVvDXZwgNz2oJ",
+            "type": "Image",
+            "parent_uid": "kG39R5XbvPQpLENKBWJj",
+            "status": "pending",
+            "report": null,
+            "created_at": "2025-03-27T10:36:00.000Z"
+          }
+
+  - endpoint: /diagnoses/:uid
+    examples:
+      - scenario: "Retrieve a Diagnosis"
+        description: "Retrieves details of a diagnosis by UID"
+        input_json: |
+          {
+            "uid": "KqePQDVvDXZwgNz2oJ"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "diagnosis": {
+              "uid": "KqePQDVvDXZwgNz2oJ",
+              "status": "completed",
+              "type": "Image",
+              "parent_uid": "kG39R5XbvPQpLENKBWJj",
+              "report": {
+                "external_images": [
+                  {
+                    "image_url": "https://www.bannerbear.com/assets/sample_avatar.jpg",
+                    "result": "success"
+                  },
+                  {
+                    "image_url": "https://www.bannerbear.com/assets/missing_img.jpg",
+                    "result": "fail",
+                    "comment": "404 Not Found"
+                  }
+                ]
+              },
+              "created_at": "2025-03-27T10:37:00.000Z"
+            }
+          }
+
+  - endpoint: /templates/:uid/signed_bases
+    examples:
+      - scenario: "Create a Signed Base"
+        description: "Generates a base URL for on-demand image generation via signed parameters"
+        input_json: |
+          {
+            "uid": "TEMPLATE_UID"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "signed_base": {
+              "uid": "KL754AzeNDqyJDXq2g",
+              "base_url": "https://ondemand.bannerbear.com/signedurl/KL754AzeNDqyJDXq2g/image.jpg",
+              "example_url": "https://ondemand.bannerbear.com/signedurl/KL754AzeNDqyJDXq2g/image.jpg?modifications=..."
+            }
+          }
+
+  - endpoint: /templates/:uid/signed_bases (list)
+    examples:
+      - scenario: "List Signed Bases"
+        description: "Lists all existing signed bases for a given template"
+        input_json: |
+          {
+            "uid": "TEMPLATE_UID",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "signed_bases": [
+              {
+                "uid": "KL754AzeNDqyJDXq2g",
+                "base_url": "https://ondemand.bannerbear.com/signedurl/KL754AzeNDqyJDXq2g/image.jpg"
+              },
+              {
+                "uid": "ABC123XYZ9abcABC123",
+                "base_url": "https://ondemand.bannerbear.com/signedurl/ABC123XYZ9abcABC123/image.jpg"
+              }
+            ]
+          }
+
+  - endpoint: /projects
+    examples:
+      - scenario: "Create a Project"
+        description: "Creates a new project under a Bannerbear account"
+        input_json: |
+          {
+            "name": "New Project",
+            "image_proxy": true,
+            "web_sessions": false
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "vY7qXEd1ngzP8GAr3Q",
+            "name": "New Project",
+            "image_proxy": true,
+            "web_sessions": false,
+            "created_at": "2025-03-27T10:38:00.000Z"
+          }
+
+  - endpoint: /projects/:uid
+    examples:
+      - scenario: "Retrieve a Project"
+        description: "Retrieves details of a specific project by UID"
+        input_json: |
+          {
+            "uid": "vY7qXEd1ngzP8GAr3Q"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "project": {
+              "uid": "vY7qXEd1ngzP8GAr3Q",
+              "name": "New Project",
+              "templates": 3,
+              "image_proxy": true,
+              "web_sessions": false,
+              "created_at": "2025-03-27T10:39:00.000Z"
+            }
+          }
+
+  - endpoint: /projects/:uid/hydrate
+    examples:
+      - scenario: "Hydrate a Project"
+        description: "Copies templates from one project to another"
+        input_json: |
+          {
+            "uid": "TARGET_PROJECT_UID",
+            "source": "SOURCE_PROJECT_UID"
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "TARGET_PROJECT_UID",
+            "hydrated_from": "SOURCE_PROJECT_UID",
+            "imported_templates": [
+              {
+                "uid": "TemplateA",
+                "name": "Source Template A"
+              },
+              {
+                "uid": "TemplateB",
+                "name": "Source Template B"
+              }
+            ]
+          }
+
+  - endpoint: /projects (list)
+    examples:
+      - scenario: "List All Projects"
+        description: "Lists projects in the account with optional pagination"
+        input_json: |
+          {
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "projects": [
+              {
+                "uid": "vY7qXEd1ngzP8GAr3Q",
+                "name": "New Project",
+                "templates": 3
+              },
+              {
+                "uid": "GGHH1234n9XXYYZ",
+                "name": "Another Project",
+                "templates": 5
+              }
+            ]
+          }
+
+  - endpoint: /fonts
+    examples:
+      - scenario: "List Available Fonts"
+        description: "Retrieves a categorized list of fonts available in Bannerbear"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "fonts": {
+              "Serif": [
+                "Abril Fatface",
+                "Alegreya",
+                "Arvo"
+              ],
+              "Sans Serif": [
+                "Alegreya Sans",
+                "Anton",
+                "Archivo"
+              ],
+              "Novelty": [
+                "Caveat",
+                "Courgette"
+              ],
+              "Custom": [
+                "bb_custom_font_2cd55546..."
+              ]
+            }
+          }
+
+  - endpoint: /effects
+    examples:
+      - scenario: "List Available Effects"
+        description: "Returns a list of image effects supported by Bannerbear"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "effects": [
+              "Smart Crop",
+              "Grayscale",
+              "Sepia",
+              "Gaussian Blur"
+            ]
+          }
+
+  - endpoint: /utilities/pdf/join
+    examples:
+      - scenario: "Join PDF Files"
+        description: "Merges multiple PDF files into a single output PDF"
+        input_json: |
+          {
+            "pdf_inputs": [
+              "https://cdn.bannerbear.com/example1.pdf",
+              "https://cdn.bannerbear.com/example2.pdf"
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "4GKN5JERxblWjd3mAM",
+            "status": "pending",
+            "joined_pdf_url": null,
+            "created_at": "2025-03-27T10:40:00.000Z"
+          }
+
+  - endpoint: /utilities/pdf/join/:uid
+    examples:
+      - scenario: "Retrieve Joined PDF File"
+        description: "Retrieves the merged PDF file by join operation UID"
+        input_json: |
+          {
+            "uid": "4GKN5JERxblWjd3mAM"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "joined_pdf": {
+              "uid": "4GKN5JERxblWjd3mAM",
+              "status": "completed",
+              "joined_pdf_url": "https://images.bannerbear.com/join_pdfs/.../joined.pdf",
+              "pdf_inputs": [
+                "https://cdn.bannerbear.com/example1.pdf",
+                "https://cdn.bannerbear.com/example2.pdf"
+              ],
+              "created_at": "2025-03-27T10:41:00.000Z"
+            }
+          }
+
+  - endpoint: /utilities/pdf/rasterize
+    examples:
+      - scenario: "Rasterize a PDF"
+        description: "Turns a PDF into high-resolution JPG/PNG images"
+        input_json: |
+          {
+            "url": "https://cdn.bannerbear.com/example.pdf",
+            "dpi": 300
+          }
+        output_json: |
+          {
+            "status_code": 202,
+            "uid": "P8XANz2er9lky4WG65",
+            "status": "pending",
+            "image_url_png": null,
+            "image_url_jpg": null,
+            "created_at": "2025-03-27T10:42:00.000Z"
+          }
+
+  - endpoint: /utilities/pdf/rasterize/:uid
+    examples:
+      - scenario: "Retrieve Rasterized PDF"
+        description: "Retrieves details (and URLs) of a rasterized PDF"
+        input_json: |
+          {
+            "uid": "P8XANz2er9lky4WG65"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "rasterization": {
+              "uid": "P8XANz2er9lky4WG65",
+              "status": "completed",
+              "image_url_png": "https://images.bannerbear.com/rasterizations/.../image.png",
+              "image_url_jpg": "https://images.bannerbear.com/rasterizations/.../image.jpg",
+              "dpi": 300,
+              "created_at": "2025-03-27T10:43:00.000Z"
+            }
+          }
