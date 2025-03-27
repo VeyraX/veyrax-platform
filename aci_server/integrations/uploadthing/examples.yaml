@@ -1,0 +1,807 @@
+routes:
+  - endpoint: /uploadthing/list_files
+    examples:
+      - scenario: "List Files"
+        description: "List files with default parameters"
+        input_json: |
+          {
+            "limit": 500,
+            "offset": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "hasMore": false,
+              "files": [
+                {
+                  "id": "file_123456789",
+                  "customId": "my-custom-id-1",
+                  "key": "file_123456789",
+                  "name": "document.pdf",
+                  "status": "Uploaded",
+                  "size": 1024567,
+                  "uploadedAt": 1717213483400
+                },
+                {
+                  "id": "file_987654321",
+                  "customId": null,
+                  "key": "file_987654321",
+                  "name": "image.png",
+                  "status": "Uploaded",
+                  "size": 2048123,
+                  "uploadedAt": 1717213383400
+                }
+              ]
+            },
+            "component": {
+              "name": "UploadThingFileList",
+              "type": "list",
+              "title": "UploadThing Files",
+              "items": [
+                {
+                  "title": "document.pdf",
+                  "subtitle": "Uploaded",
+                  "description": "CustomID: my-custom-id-1",
+                  "url": "file_123456789",
+                  "size": "1 MB",
+                  "date": "May 31, 2024"
+                },
+                {
+                  "title": "image.png",
+                  "subtitle": "Uploaded",
+                  "description": "",
+                  "url": "file_987654321",
+                  "size": "2 MB",
+                  "date": "May 31, 2024"
+                }
+              ]
+            }
+          }
+      - scenario: "List Files with Pagination"
+        description: "List files with custom limit and offset"
+        input_json: |
+          {
+            "limit": 10,
+            "offset": 20
+          }
+        output_json: |
+          {
+            "data": {
+              "hasMore": true,
+              "files": [
+                {
+                  "id": "file_abcdefg",
+                  "customId": "document-21",
+                  "key": "file_abcdefg",
+                  "name": "report.docx",
+                  "status": "Uploaded",
+                  "size": 5048576,
+                  "uploadedAt": 1717213283400
+                }
+              ]
+            },
+            "component": {
+              "name": "UploadThingFileList",
+              "type": "list",
+              "title": "UploadThing Files",
+              "items": [
+                {
+                  "title": "report.docx",
+                  "subtitle": "Uploaded",
+                  "description": "CustomID: document-21",
+                  "url": "file_abcdefg",
+                  "size": "5 MB",
+                  "date": "May 31, 2024"
+                }
+              ]
+            }
+          }
+          
+  - endpoint: /uploadthing/poll_upload
+    examples:
+      - scenario: "Poll Upload - Still Working"
+        description: "Check the status of an upload that is still in progress"
+        input_json: |
+          {
+            "fileKey": "file_123456789"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "still working"
+            },
+            "component": {
+              "name": "UploadThingFileDetail",
+              "type": "detail",
+              "title": "Upload Status",
+              "status": "Processing",
+              "description": "Your file is currently being processed. Please check back later."
+            }
+          }
+      - scenario: "Poll Upload - Completed"
+        description: "Check the status of a completed upload"
+        input_json: |
+          {
+            "fileKey": "file_abcdefg"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "done",
+              "file": {
+                "fileKey": "file_abcdefg",
+                "fileName": "presentation.pptx",
+                "fileSize": 3145728,
+                "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "fileUrl": "https://uploadthing.com/f/file_abcdefg-presentation.pptx",
+                "customId": "presentation-001",
+                "callbackUrl": "https://example.com/callback",
+                "callbackSlug": "presentation-upload"
+              },
+              "metadata": {
+                "userId": "user_123",
+                "projectId": "project_456"
+              },
+              "callbackData": {
+                "processed": true,
+                "thumbnailUrl": "https://example.com/thumbnails/presentation-001.jpg"
+              }
+            },
+            "component": {
+              "name": "UploadThingFileDetail",
+              "type": "detail",
+              "title": "Upload Complete",
+              "subtitle": "presentation.pptx",
+              "status": "Complete",
+              "url": "https://uploadthing.com/f/file_abcdefg-presentation.pptx",
+              "size": "3 MB",
+              "metadata": {
+                "userId": "user_123",
+                "projectId": "project_456"
+              }
+            }
+          }
+          
+  - endpoint: /uploadthing/get_server_callback
+    examples:
+      - scenario: "Get Server Callback - Still Waiting"
+        description: "Check if server callback data is available but it's still waiting"
+        input_json: |
+          {}
+        headers: |
+          {
+            "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV8xMjM0NTY3ODkiLCJleHAiOjE3MTk4OTA2MjF9.3sKgFEMFGgNPBouoL9Pm9_hJZYvuN9uVZ5jjlLbqTFI"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "still waiting"
+            },
+            "component": {
+              "name": "UploadThingCallbackStatus",
+              "type": "status",
+              "title": "Callback Status",
+              "status": "Waiting",
+              "message": "Waiting for callback data to be set by the server."
+            }
+          }
+      - scenario: "Get Server Callback - Ready"
+        description: "Check if server callback data is available and it's ready"
+        input_json: |
+          {}
+        headers: |
+          {
+            "Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV9hYmNkZWZnIiwiZXhwIjoxNzE5ODkwNjIxfQ.jM9PydhJPzrKaYIiHbm52Ek8JZ4J1Z6Y1xG8G6Ukr-E"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "ok"
+            },
+            "component": {
+              "name": "UploadThingCallbackStatus",
+              "type": "status",
+              "title": "Callback Status",
+              "status": "Ready",
+              "message": "Callback data is ready and available."
+            }
+          }
+          
+  - endpoint: /uploadthing/set_server_callback
+    examples:
+      - scenario: "Set Server Callback"
+        description: "Set callback data for a file"
+        input_json: |
+          {
+            "fileKey": "file_123456789",
+            "callbackData": {
+              "processed": true,
+              "thumbnailUrl": "https://example.com/thumbnails/file_123456789.jpg",
+              "metadata": {
+                "width": 1920,
+                "height": 1080,
+                "format": "jpg"
+              }
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "ok"
+            },
+            "component": {
+              "name": "UploadThingCallbackStatus",
+              "type": "status",
+              "title": "Callback Status",
+              "status": "Ready",
+              "message": "Callback data has been set successfully."
+            }
+          }
+          
+  - endpoint: /uploadthing/prepare_upload
+    examples:
+      - scenario: "Prepare Single File Upload"
+        description: "Prepare a presigned URL for a single file upload"
+        input_json: |
+          {
+            "callbackUrl": "https://example.com/callback",
+            "callbackSlug": "image-upload",
+            "files": [
+              {
+                "name": "profile.jpg",
+                "size": 1048576,
+                "customId": "user-profile-123"
+              }
+            ],
+            "routeConfig": ["image"],
+            "metadata": {
+              "userId": "user_123",
+              "albumId": "album_456"
+            }
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "file_123456789",
+                "fileName": "profile.jpg",
+                "fileType": "image/jpeg",
+                "fileUrl": "https://uploadthing.com/f/file_123456789-profile.jpg",
+                "contentDisposition": "inline",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV8xMjM0NTY3ODkiLCJleHAiOjE3MTk4OTA2MjF9.3sKgFEMFGgNPBouoL9Pm9_hJZYvuN9uVZ5jjlLbqTFI",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_123456789",
+                "customId": "user-profile-123",
+                "url": "https://uploadthing-presigned-url.s3.amazonaws.com/file_123456789",
+                "fields": {
+                  "Content-Type": "image/jpeg",
+                  "key": "file_123456789",
+                  "bucket": "uploadthing"
+                }
+              }
+            ],
+            "component": {
+              "name": "UploadThingPreparedUpload",
+              "type": "upload",
+              "title": "Prepared Uploads",
+              "uploads": [
+                {
+                  "fileName": "profile.jpg",
+                  "fileType": "image/jpeg",
+                  "fileSize": "1 MB",
+                  "uploadType": "Single Part",
+                  "key": "file_123456789"
+                }
+              ]
+            }
+          }
+      - scenario: "Prepare Multiple Files Upload"
+        description: "Prepare presigned URLs for multiple files upload"
+        input_json: |
+          {
+            "callbackUrl": "https://example.com/callback",
+            "callbackSlug": "document-upload",
+            "files": [
+              {
+                "name": "report.pdf",
+                "size": 5242880,
+                "customId": "report-2024-q1"
+              },
+              {
+                "name": "presentation.pptx",
+                "size": 10485760,
+                "customId": "presentation-2024-q1"
+              }
+            ],
+            "routeConfig": {
+              "pdf": {
+                "maxFileSize": "8MB"
+              },
+              "doc": {
+                "maxFileSize": "16MB"
+              }
+            },
+            "metadata": {
+              "projectId": "project_789",
+              "departmentId": "dept_123"
+            }
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "file_abcdefg",
+                "fileName": "report.pdf",
+                "fileType": "application/pdf",
+                "fileUrl": "https://uploadthing.com/f/file_abcdefg-report.pdf",
+                "contentDisposition": "inline",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV9hYmNkZWZnIiwiZXhwIjoxNzE5ODkwNjIxfQ.jM9PydhJPzrKaYIiHbm52Ek8JZ4J1Z6Y1xG8G6Ukr-E",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_abcdefg",
+                "customId": "report-2024-q1",
+                "url": "https://uploadthing-presigned-url.s3.amazonaws.com/file_abcdefg",
+                "fields": {
+                  "Content-Type": "application/pdf",
+                  "key": "file_abcdefg",
+                  "bucket": "uploadthing"
+                }
+              },
+              {
+                "key": "file_hijklmn",
+                "fileName": "presentation.pptx",
+                "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "fileUrl": "https://uploadthing.com/f/file_hijklmn-presentation.pptx",
+                "contentDisposition": "attachment",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV9oaWprbG1uIiwiZXhwIjoxNzE5ODkwNjIxfQ.rLZ8EmST2TCYt7QDaslkJEhQwX1KsLJ5j5J9lLY3tFA",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_hijklmn",
+                "customId": "presentation-2024-q1",
+                "urls": [
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_hijklmn-part1",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_hijklmn-part2",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_hijklmn-part3"
+                ],
+                "uploadId": "multipart_12345",
+                "chunkSize": 5242880,
+                "chunkCount": 2
+              }
+            ],
+            "component": {
+              "name": "UploadThingPreparedUpload",
+              "type": "upload",
+              "title": "Prepared Uploads",
+              "uploads": [
+                {
+                  "fileName": "report.pdf",
+                  "fileType": "application/pdf",
+                  "fileSize": "5 MB",
+                  "uploadType": "Single Part",
+                  "key": "file_abcdefg"
+                },
+                {
+                  "fileName": "presentation.pptx",
+                  "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                  "fileSize": "10 MB",
+                  "uploadType": "Multi Part",
+                  "key": "file_hijklmn"
+                }
+              ]
+            }
+          }
+          
+  - endpoint: /uploadthing/upload_files
+    examples:
+      - scenario: "Upload Single File"
+        description: "Upload a single file directly using the uploadFiles endpoint"
+        input_json: |
+          {
+            "files": [
+              {
+                "name": "document.pdf",
+                "size": 2097152,
+                "type": "application/pdf",
+                "customId": "doc-12345"
+              }
+            ],
+            "acl": "public-read",
+            "contentDisposition": "inline",
+            "metadata": {
+              "userId": "user_456",
+              "projectId": "proj_789"
+            }
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "file_12345abcde",
+                "fileName": "document.pdf",
+                "fileType": "application/pdf",
+                "fileUrl": "https://uploadthing.com/f/file_12345abcde-document.pdf",
+                "contentDisposition": "inline",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV8xMjM0NWFiY2RlIiwiZXhwIjoxNzE5ODkwNjIxfQ.5Jx9pYzH8KoL7m3jL8Z2XyZ7UgV5JkL7mN8nDpQzVzE",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_12345abcde",
+                "customId": "doc-12345",
+                "url": "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345abcde",
+                "fields": {
+                  "Content-Type": "application/pdf",
+                  "key": "file_12345abcde",
+                  "bucket": "uploadthing"
+                }
+              }
+            ],
+            "component": {
+              "name": "UploadThingPreparedUpload",
+              "type": "upload",
+              "title": "Prepared Uploads",
+              "uploads": [
+                {
+                  "fileName": "document.pdf",
+                  "fileType": "application/pdf",
+                  "fileSize": "2 MB",
+                  "uploadType": "Single Part",
+                  "key": "file_12345abcde"
+                }
+              ]
+            }
+          }
+      - scenario: "Upload Multiple Files"
+        description: "Upload multiple files directly with custom access control settings"
+        input_json: |
+          {
+            "files": [
+              {
+                "name": "confidential.docx",
+                "size": 3145728,
+                "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "customId": "doc-67890"
+              },
+              {
+                "name": "large-video.mp4",
+                "size": 104857600,
+                "type": "video/mp4",
+                "customId": "video-12345"
+              }
+            ],
+            "acl": "private",
+            "contentDisposition": "attachment",
+            "metadata": {
+              "departmentId": "dept_123",
+              "confidential": true,
+              "retentionPeriod": "5 years"
+            }
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "file_67890fghij",
+                "fileName": "confidential.docx",
+                "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "fileUrl": "https://uploadthing.com/f/file_67890fghij-confidential.docx",
+                "contentDisposition": "attachment",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV82Nzg5MGZnaGlqIiwiZXhwIjoxNzE5ODkwNjIxfQ.7Kf2JpQzH8KoL7m3jL8Z2XyZ7UgV5JkL7mN8nDpR2VzE",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_67890fghij",
+                "customId": "doc-67890",
+                "url": "https://uploadthing-presigned-url.s3.amazonaws.com/file_67890fghij",
+                "fields": {
+                  "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "key": "file_67890fghij",
+                  "bucket": "uploadthing"
+                }
+              },
+              {
+                "key": "file_12345klmno",
+                "fileName": "large-video.mp4",
+                "fileType": "video/mp4",
+                "fileUrl": "https://uploadthing.com/f/file_12345klmno-large-video.mp4",
+                "contentDisposition": "attachment",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlS2V5IjoiZmlsZV8xMjM0NWtsbW5vIiwiZXhwIjoxNzE5ODkwNjIxfQ.9Kp2JpQtH8KoL7m3jL8Z2XyZ7UgV5JkL7mN8nXpR3VzE",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_12345klmno",
+                "customId": "video-12345",
+                "urls": [
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345klmno-part1",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345klmno-part2",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345klmno-part3",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345klmno-part4",
+                  "https://uploadthing-presigned-url.s3.amazonaws.com/file_12345klmno-part5"
+                ],
+                "uploadId": "multipart_67890",
+                "chunkSize": 20971520,
+                "chunkCount": 5
+              }
+            ],
+            "component": {
+              "name": "UploadThingPreparedUpload",
+              "type": "upload",
+              "title": "Prepared Uploads",
+              "uploads": [
+                {
+                  "fileName": "confidential.docx",
+                  "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "fileSize": "3 MB",
+                  "uploadType": "Single Part",
+                  "key": "file_67890fghij"
+                },
+                {
+                  "fileName": "large-video.mp4",
+                  "fileType": "video/mp4",
+                  "fileSize": "100 MB",
+                  "uploadType": "Multi Part",
+                  "key": "file_12345klmno"
+                }
+              ]
+            }
+          }
+          
+  - endpoint: /uploadthing/rename_files
+    examples:
+      - scenario: "Rename Multiple Files"
+        description: "Rename multiple files by their file keys"
+        input_json: |
+          {
+            "updates": [
+              {
+                "fileKey": "file_123456789",
+                "newName": "renamed-document.pdf"
+              },
+              {
+                "fileKey": "file_987654321",
+                "newName": "renamed-image.png"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "renamedCount": 2
+            },
+            "component": {
+              "name": "UploadThingRenameResult",
+              "type": "status",
+              "title": "File Rename Status",
+              "status": "Success",
+              "message": "Successfully renamed 2 files"
+            }
+          }
+      - scenario: "Rename Single File"
+        description: "Rename a single file by its file key"
+        input_json: |
+          {
+            "updates": [
+              {
+                "fileKey": "file_abcdefg",
+                "newName": "important-report.docx"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "renamedCount": 1
+            },
+            "component": {
+              "name": "UploadThingRenameResult",
+              "type": "status",
+              "title": "File Rename Status",
+              "status": "Success",
+              "message": "Successfully renamed 1 file"
+            }
+          }
+          
+  - endpoint: /uploadthing/delete_files
+    examples:
+      - scenario: "Delete Files by Keys"
+        description: "Delete multiple files by their file keys"
+        input_json: |
+          {
+            "fileKeys": ["file_123456789", "file_987654321"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "deletedCount": 2
+            },
+            "component": {
+              "name": "UploadThingDeleteResult",
+              "type": "status",
+              "title": "File Deletion Status",
+              "status": "Success",
+              "message": "Successfully marked 2 files for deletion"
+            }
+          }
+      - scenario: "Delete Files by Custom IDs"
+        description: "Delete multiple files by their custom IDs"
+        input_json: |
+          {
+            "customIds": ["my-custom-id-1", "document-21"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "deletedCount": 2
+            },
+            "component": {
+              "name": "UploadThingDeleteResult",
+              "type": "status",
+              "title": "File Deletion Status",
+              "status": "Success",
+              "message": "Successfully marked 2 files for deletion"
+            }
+          }
+          
+  - endpoint: /uploadthing/get_app_info
+    examples:
+      - scenario: "Get App Information"
+        description: "Retrieve information about the current app"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "appId": "app_12345",
+              "defaultACL": "public-read",
+              "allowACLOverride": true
+            },
+            "component": {
+              "name": "UploadThingAppInfo",
+              "type": "detail",
+              "title": "App Information",
+              "properties": [
+                {
+                  "label": "App ID",
+                  "value": "app_12345"
+                },
+                {
+                  "label": "Default ACL",
+                  "value": "public-read"
+                },
+                {
+                  "label": "Allow ACL Override",
+                  "value": "Yes"
+                }
+              ]
+            }
+          }
+          
+  - endpoint: /uploadthing/get_usage_info
+    examples:
+      - scenario: "Get Usage Information"
+        description: "Retrieve usage statistics for the current app"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "totalBytes": 1073741824,
+              "appTotalBytes": 536870912,
+              "filesUploaded": 42,
+              "limitBytes": 10737418240
+            },
+            "component": {
+              "name": "UploadThingUsageInfo",
+              "type": "detail",
+              "title": "Usage Information",
+              "properties": [
+                {
+                  "label": "Total Storage Used",
+                  "value": "1 GB"
+                },
+                {
+                  "label": "App Storage Used",
+                  "value": "512 MB"
+                },
+                {
+                  "label": "Files Uploaded",
+                  "value": "42"
+                },
+                {
+                  "label": "Storage Limit",
+                  "value": "10 GB"
+                },
+                {
+                  "label": "Usage Percentage",
+                  "value": "5%"
+                }
+              ]
+            }
+          }
+          
+  - endpoint: /uploadthing/upload_from_url
+    examples:
+      - scenario: "Upload File from URL"
+        description: "Download a file from a URL and upload it to UploadThing"
+        input_json: |
+          {
+            "url": "https://example.com/sample-file.pdf",
+            "customId": "url-upload-123",
+            "callbackUrl": "https://myapp.com/callback",
+            "callbackSlug": "url-upload-complete",
+            "routeConfig": ["blob"],
+            "metadata": {
+              "source": "url-upload",
+              "userId": "user_789"
+            }
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "file_url_12345",
+                "fileName": "sample-file.pdf",
+                "fileType": "application/pdf",
+                "fileUrl": "https://uploadthing.com/f/file_url_12345-sample-file.pdf",
+                "contentDisposition": "inline",
+                "pollingJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "pollingUrl": "https://api.uploadthing.com/v6/pollUpload/file_url_12345",
+                "customId": "url-upload-123",
+                "url": "https://s3.amazonaws.com/uploadthing/...",
+                "fields": {
+                  "key": "file_url_12345",
+                  "Content-Type": "application/pdf",
+                  "Content-Disposition": "inline; filename=\"sample-file.pdf\"",
+                  "bucket": "uploadthing",
+                  "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+                  "X-Amz-Credential": "...",
+                  "X-Amz-Date": "...",
+                  "X-Amz-Security-Token": "...",
+                  "Policy": "...",
+                  "X-Amz-Signature": "..."
+                }
+              }
+            ],
+            "component": {
+              "name": "UploadThingPreparedUpload",
+              "type": "status",
+              "title": "File Upload from URL",
+              "status": "Prepared",
+              "message": "File prepared for upload from URL",
+              "items": [
+                {
+                  "fileName": "sample-file.pdf",
+                  "fileType": "application/pdf",
+                  "fileUrl": "https://uploadthing.com/f/file_url_12345-sample-file.pdf"
+                }
+              ]
+            }
+          }
+      - scenario: "Upload Image from Cloudinary URL"
+        description: "Download an image from Cloudinary and upload it to UploadThing"
+        input_json: |
+          {
+            "url": "https://res.cloudinary.com/varga/image/upload/v1733565112/flux-pro-1.1image_20241206184919_3ceef2_eutgvf.png", 
+            "callbackUrl": "https://example.com/callback", 
+            "callbackSlug": "test-callback", 
+            "routeConfig": ["image"], 
+            "metadata": {}
+          }
+        output_json: |
+          {
+            "data": [
+              {
+                "key": "a4c191b8-d10a-4d07-8728-54c8a382488c-y5wfn1.1image_20241206184919_3ceef2_eutgvf.png",
+                "fileName": "flux-pro-1.1image_20241206184919_3ceef2_eutgvf.png",
+                "fileType": "image",
+                "fileUrl": "https://utfs.io/f/a4c191b8-d10a-4d07-8728-54c8a382488c-y5wfn1.1image_20241206184919_3ceef2_eutgvf.png",
+                "contentDisposition": "inline",
+                "pollingJwt": "vh3JvDvXtNZEF8Taxmfl5Q==:ZQkMblLtI2KzVNGYE5oOsdb858CJCJQnfviqkr3lqrofn6B8v6ANRq/UV/yeWmXgb+FjBpTfBEwhbxzftsEZPZiiAx7ogKbccazJbI1qDqcraE5BdTm1pFYYQs9DiiY7ntxC3HbqBra717nlegHj35Ls3xsYZx5nPo5MvEeEGewa",
+                "pollingUrl": "https://api.uploadthing.com/v6/serverCallback",
+                "customId": null,
+                "url": "https://uploadthing-prod-sea1.s3.us-west-2.amazonaws.com/",
+                "fields": {
+                  "Content-Type": "image/png",
+                  "Content-Disposition": "inline; filename=\"flux-pro-1.1image_20241206184919_3ceef2_eutgvf.png\"; filename*=UTF-8''flux-pro-1.1image_20241206184919_3ceef2_eutgvf.png",
+                  "bucket": "uploadthing-prod-sea1",
+                  "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+                  "X-Amz-Credential": "***REMOVED***/20250327/us-west-2/s3/aws4_request",
+                  "X-Amz-Date": "20250327T152139Z",
+                  "X-Amz-Security-Token": "***REMOVED***",
+                  "key": "a4c191b8-d10a-4d07-8728-54c8a382488c-y5wfn1.1image_20241206184919_3ceef2_eutgvf.png",
+                  "Policy": "***REMOVED***",
+                  "X-Amz-Signature": "***REMOVED***"
+                }
+              }
+            ],
+            "component": null
+          } 
