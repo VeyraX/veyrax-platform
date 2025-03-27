@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { deleteFlow } from '../../api/api.flows'
+import { deleteFlow, updateFlowStatus } from '../../api/api.flows'
 import { toast } from 'sonner'
 
 export const FlowSkeleton = () => (
@@ -37,9 +37,14 @@ export const FlowSkeleton = () => (
   </div>
 )
 
-interface FlowCardProps extends UserFlow {
+interface FlowCardProps extends Omit<UserFlow, 'status' | 'is_shared' | 'is_template'> {
   onFlowChange?: () => void
   isPublishing?: boolean
+  status?: 'Active' | 'Draft'
+  is_shared?: boolean
+  is_template?: boolean
+  schedule?: any
+  flowTools: ProviderAction[]
 }
 
 const FlowCard: React.FC<FlowCardProps> = ({
@@ -47,50 +52,27 @@ const FlowCard: React.FC<FlowCardProps> = ({
   name,
   plain_description,
   isPublishing,
-  onFlowChange
+  onFlowChange,
+  status = 'Draft',
+  is_shared = false,
+  schedule,
+  flowTools,
+  is_template
 }) => {
   const router = useRouter()
-  const [flowTools, setFlowTools] = useState<ProviderAction[]>([])
-  const [isLoadingTools, setIsLoadingTools] = useState(false)
-  
-  useEffect(() => {
-    const fetchFlowTools = async () => {
-      if (!id) return
-      
-      setIsLoadingTools(true)
-      try {
-        const allActions = await getUserActions()
-        
-        const flowActionIds = await getFlowActions(id)
-        
-        const toolsUsed = allActions.filter(action => 
-          flowActionIds.includes(action.action_id)
-        )
-        
-        const uniqueProviders = new Map()
-        toolsUsed.forEach(tool => {
-          if (!uniqueProviders.has(tool.provider_id)) {
-            uniqueProviders.set(tool.provider_id, tool)
-          }
-        })
-        
-        setFlowTools(Array.from(uniqueProviders.values()))
-      } catch (error) {
-        console.error('Error fetching flow tools:', error)
-      } finally {
-        setIsLoadingTools(false)
-      }
-    }
-    
-    fetchFlowTools()
-  }, [id])
+  const [currentStatus, setCurrentStatus] = useState(status)
+  const [isShared, setIsShared] = useState(is_shared)
   
   const handleEdit = () => {
     router.push(`/flow/${id}/edit`)
   }
 
   const handleView = () => {
-    router.push(`/flow/${id}/view`)
+    if (is_template) {
+      router.push(`/flow/${id}/shared`)
+    } else {
+      router.push(`/flow/${id}/view`)
+    }
   }
 
   const handleDelete = async () => {
@@ -104,6 +86,61 @@ const FlowCard: React.FC<FlowCardProps> = ({
     }
   }
 
+  const handleStatusChange = async (newStatus: 'Active' | 'Draft') => {
+    try {
+      await updateFlowStatus(id, newStatus)
+      setCurrentStatus(newStatus)
+      toast.success(`Flow is now ${newStatus}`)
+      onFlowChange?.()
+    } catch (error) {
+      console.error('Error updating flow status:', error)
+      toast.error('Failed to update flow status')
+    }
+  }
+
+  const handleShareChange = async () => {
+    try {
+      // Add your share toggle API call here
+      setIsShared(!isShared)
+      toast.success(isShared ? 'Flow is now private' : 'Flow is now public')
+      onFlowChange?.()
+    } catch (error) {
+      console.error('Error updating flow visibility:', error)
+      toast.error('Failed to update flow visibility')
+    }
+  }
+
+  const formatSchedule = (schedule: any) => {
+    if (!schedule) return null
+    
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}${minutes !== '00' ? ':' + minutes : ''} ${ampm}`;
+    };
+    
+    if (schedule.type === 'once') {
+      const date = new Date(schedule.oneTime.datetime);
+      return `Once at ${formatTime(date.toTimeString().slice(0, 5))}`;
+    }
+    
+    if (schedule.recurrence) {
+      const { dayOfWeek, dayOfMonth, time } = schedule.recurrence;
+      if (dayOfWeek !== undefined) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return `Every ${days[dayOfWeek]} at ${formatTime(time)}`;
+      }
+      if (dayOfMonth !== undefined) {
+        return `Monthly on day ${dayOfMonth} at ${formatTime(time)}`;
+      }
+      return `Daily at ${formatTime(time)}`;
+    }
+    
+    return null;
+  }
+
   const truncatedDescription = plain_description 
     ? plain_description.length > 100 
       ? plain_description.substring(0, 100) + '...' 
@@ -113,75 +150,93 @@ const FlowCard: React.FC<FlowCardProps> = ({
   return (
     <Card className="w-full shadow-none rounded-lg h-[204px]">
       <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-center gap-2 min-h-[24px] min-w-[72px]">
+            {flowTools.slice(0, 3).map((tool) => (
+              <div 
+                key={tool.provider_id} 
+                className="h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-200"
+                title={tool.provider_name}
+              >
+                <img 
+                  src={tool.logo_url} 
+                  alt={tool.provider_name}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+            ))}
+          </div>
           <div className="flex items-center gap-2">
-            {isLoadingTools ? (
-              <>
-                <Skeleton className="h-6 w-6 rounded-full" />
-                <Skeleton className="h-6 w-6 rounded-full" />
-              </>
-            ) : flowTools.length > 0 ? (
-              <>
-                {flowTools.slice(0, 3).map((tool, index) => (
-                  <div 
-                    key={tool.provider_id} 
-                    className="h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-200"
-                    title={tool.provider_name}
-                  >
-                    <img 
-                      src={tool.logo_url} 
-                      alt={tool.provider_name}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
-                ))}
-                {flowTools.length > 3 && (
-                  <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs">
-                    +{flowTools.length - 3}
-                  </div>
-                )}
-              </>
-            ) : (
-              <span className="text-xs text-muted-foreground">No tools</span>
+            {isPublishing && !is_template && (
+              <Badge variant="secondary" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                Publishing
+              </Badge>
+            )}
+            {!is_template && (
+              <Badge variant="secondary" className={`transition-colors text-xs ${
+                currentStatus === 'Active' 
+                  ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
+                  : 'bg-gray-50 text-gray-600 dark:bg-gray-900/30 dark:text-gray-300'
+              }`}>
+                {currentStatus}
+              </Badge>
             )}
           </div>
-          {isPublishing && <Badge className="bg-amber-500 text-xs">Publishing</Badge>}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h2 className="text-base md:text-lg font-semibold truncate">{name}</h2>
-          <p className="text-muted-foreground mt-1 text-xs sm:text-sm line-clamp-3">
-            {truncatedDescription}
-          </p>
         </div>
 
-        <div className="flex justify-end mt-3 gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleView}
-            className="text-xs"
-          >
-            View
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleView}>
-                View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleEdit}>
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium text-base">{name}</h3>
+        </div>
+
+        <div className="flex-grow">
+          <p className="text-sm text-muted-foreground">{truncatedDescription}</p>
+        </div>
+
+        <div className="flex justify-between items-center mt-3">
+          {!is_template && schedule && (
+            <div className="text-xs text-muted-foreground">
+              {formatSchedule(schedule)}
+            </div>
+          )}
+          {is_template && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span>by</span>
+              <div className="flex items-center gap-1">
+                <img src="/logo.svg" alt="VeyraX" className="w-3.5 h-3.5" />
+                <span className="font-medium">VeyraX</span>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleView}
+              className="text-xs"
+            >
+              View
+            </Button>
+            {!is_template && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEdit}>
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange(currentStatus === 'Active' ? 'Draft' : 'Active')}>
+                    {currentStatus === 'Active' ? 'Disable' : 'Activate'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

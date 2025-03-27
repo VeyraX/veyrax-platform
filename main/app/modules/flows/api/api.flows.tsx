@@ -236,6 +236,7 @@ export const createFlow = async (flowRequest: CreateFlowRequest): Promise<string
         plain_description: flowRequest.plain_description,
         status: flowRequest.status || 'Draft',
         is_shared: false,
+        is_template: flowRequest.is_template || false,
         user_id: user.id
       })
       .select('id')
@@ -512,7 +513,7 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     if (flowError) throw flowError;
     
-    // Check if the current user is the owner of the flow
+
     if (flowToClone.user_id === user.id) {
       throw new Error('You cannot clone your own flow. Please edit the existing flow instead.');
     }
@@ -591,7 +592,7 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     const { data: newFlow, error: createError } = await supabase
       .from('user_flows')
       .insert({
-        name: `${flowToClone.name} (Clone)`,
+        name: `${flowToClone.name} (Copy)`,
         description: flowToClone.description,
         plain_description: flowToClone.plain_description,
         status: 'Draft',
@@ -623,5 +624,42 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
   } catch (error) {
     console.error('Error cloning flow:', error);
     throw error;
+  }
+};
+
+export const getPublicTemplates = async (): Promise<UserFlow[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_flows')
+      .select('*')
+      .eq('is_template', true)
+      .eq('is_shared', true);
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching public templates:', error);
+    throw error;
+  }
+};
+
+export const getTemplateById = async (flowId: string): Promise<UserFlow | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_flows')
+      .select('*')
+      .eq('id', flowId)
+      .eq('is_template', true)
+      .eq('is_shared', true)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error('Error fetching template:', error);
+    return null;
   }
 };

@@ -36,7 +36,6 @@ interface UnifiedFlowCreatorProps {
   onCreateClick?: () => void;
   isCreateMode?: boolean;
   creatorRef?: React.MutableRefObject<{ saveFlow: () => Promise<string | undefined> } | null>;
-  onScheduleChange?: (schedule: FlowSchedule | null) => void;
 }
 
 export function UnifiedFlowCreator({ 
@@ -50,7 +49,6 @@ export function UnifiedFlowCreator({
   onCreateClick,
   isCreateMode = false,
   creatorRef,
-  onScheduleChange = () => {},
 }: UnifiedFlowCreatorProps) {
   const [activeTab, setActiveTab] = useState<string>(initialData ? "configure" : "create");
   
@@ -347,12 +345,6 @@ export function UnifiedFlowCreator({
           >
             Configure Flow
           </TabsTrigger>
-          <TabsTrigger 
-            className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
-            value="schedule"
-          >
-            Schedule Flow
-          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="create" className="flex-1 h-full">
@@ -471,14 +463,6 @@ export function UnifiedFlowCreator({
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="schedule" className="mt-0 flex-1 overflow-auto">
-          <ScheduleTabContent 
-            flowId={flowId}
-            isLoading={isLoading}
-            onScheduleChange={onScheduleChange}
-          />
         </TabsContent>
       </Tabs>
     </div>

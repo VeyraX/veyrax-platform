@@ -162,6 +162,26 @@ export function ScheduleTabContent({
     }
   };
 
+  const handleSwitchChange = async (checked: boolean) => {
+    setIsEnabled(checked);
+    
+    if (!checked && flowId) {
+      try {
+        setIsSaving(true);
+        await deleteFlowSchedule(flowId);
+        setCurrentSchedule(null);
+        onScheduleChange(null);
+        toast.success("Schedule disabled");
+      } catch (error) {
+        console.error("Error disabling schedule:", error);
+        toast.error("Failed to disable schedule");
+        setIsEnabled(true); // Revert switch state on error
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
   const TimeSelector = () => (
     <div className="flex gap-2">
       <Select value={hour} onValueChange={setHour}>
@@ -199,30 +219,29 @@ export function ScheduleTabContent({
   );
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-grow space-y-4 p-4">
-        <div className="flex items-center justify-between space-x-2">
-          <div className="space-y-0.5">
-            <h3 className="text-sm font-medium">Enable Scheduling</h3>
-            <p className="text-xs text-gray-500">
+    <div className="flex flex-col">
+      <div className={`flex-grow ${isEnabled ? 'space-y-6' : ''}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-foreground">Enable Scheduling</h2>
+            <div className="text-sm text-muted-foreground">
               Turn on to schedule automatic runs of this flow
-            </p>
+            </div>
           </div>
           <Switch
             checked={isEnabled}
-            onCheckedChange={(checked: boolean) => {
-              setIsEnabled(checked);
-            }}
+            onCheckedChange={handleSwitchChange}
+            disabled={isSaving}
           />
         </div>
 
         {isEnabled && (
-          <>
+          <div className="space-y-6 mt-6">
             <Select
               value={scheduleType}
               onValueChange={(value: 'once' | 'daily' | 'weekly' | 'monthly') => setScheduleType(value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select schedule type" />
               </SelectTrigger>
               <SelectContent>
@@ -235,7 +254,7 @@ export function ScheduleTabContent({
 
             {scheduleType === 'once' && (
               <>
-                <div className="flex justify-center">
+                <div className="flex">
                   <Calendar
                     mode="single"
                     selected={date}
@@ -253,7 +272,7 @@ export function ScheduleTabContent({
                   value={recurringDay.toString()}
                   onValueChange={(value) => setRecurringDay(parseInt(value))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select day of week" />
                   </SelectTrigger>
                   <SelectContent>
@@ -274,7 +293,7 @@ export function ScheduleTabContent({
                   value={monthlyDay.toString()}
                   onValueChange={(value) => setMonthlyDay(parseInt(value))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select day of month" />
                   </SelectTrigger>
                   <SelectContent>
@@ -292,25 +311,27 @@ export function ScheduleTabContent({
             {scheduleType === 'daily' && (
               <TimeSelector />
             )}
-          </>
+          </div>
         )}
       </div>
 
-      <div className="w-full bg-background pt-2 px-6 mt-auto">
-        <div className="flex gap-3 mt-2">
-          <Button 
-            onClick={handleScheduleSave} 
-            className="flex-1" 
-            disabled={isSaving || !flowId}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Save"
-            )}
-          </Button>
+      {isEnabled && (
+        <div className="mt-6">
+          <div className="flex">
+            <Button 
+              onClick={handleScheduleSave} 
+              disabled={isSaving || !flowId}
+              className="w-24"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 } 

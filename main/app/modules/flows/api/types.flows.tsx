@@ -17,6 +17,7 @@ export interface UserFlow {
   plain_description?: string;
   status: FlowStatus;
   is_shared: boolean;
+  is_template: boolean;
   user_id: string;
   created_at?: string;
   updated_at?: string;
@@ -28,11 +29,12 @@ export interface FlowAction {
 }
 
 export interface CreateFlowRequest {
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   plain_description?: string;
+  actions?: string[];
   status?: FlowStatus;
-  actions?: string[]; // Array of action_ids
+  is_template?: boolean;
 }
 
 export interface UpdateFlowRequest {
@@ -40,9 +42,10 @@ export interface UpdateFlowRequest {
   name?: string;
   description?: string;
   plain_description?: string;
+  actions?: string[];
   status?: FlowStatus;
   is_shared?: boolean;
-  actions?: string[];
+  is_template?: boolean;
 }
 
 export interface FlowSchedule {

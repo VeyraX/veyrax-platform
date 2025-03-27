@@ -13,6 +13,7 @@ import { FlowSchedule, UserFlowRun } from "../api/types.flows";
 import { getFlowSchedule, getFlowRuns } from "../api/api.schedule.flows";
 import { FlowOverview } from "../components/flow-overview";
 import { FlowApiDocs } from "../components/flow-api-docs";
+import { ScheduleTabContent } from "../components/create/schedule-tab-content";
 
 interface FlowViewPageProps {
   flowId: string;
@@ -31,6 +32,23 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
   const [schedule, setSchedule] = useState<FlowSchedule | null>(null);
   const [flowRuns, setFlowRuns] = useState<UserFlowRun[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [flowStatus, setFlowStatus] = useState<'Active' | 'Draft'>('Draft');
+  
+  const loadScheduleAndRuns = async () => {
+    if (!flowId) return;
+    
+    try {
+      const [scheduleData, runsData] = await Promise.all([
+        getFlowSchedule(flowId),
+        getFlowRuns(flowId)
+      ]);
+      console.log('Loaded schedule and runs:', { schedule: scheduleData, runs: runsData });
+      setSchedule(scheduleData);
+      setFlowRuns(runsData || []);
+    } catch (error) {
+      console.error('Error loading schedule and runs:', error);
+    }
+  };
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -125,24 +143,14 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
   }, [flow, actions, flowActions, isPublic]);
   
   useEffect(() => {
-    const loadScheduleAndRuns = async () => {
-      if (!flowId || activeTab !== "flow-runs") return;
-      
-      try {
-        const [scheduleData, runsData] = await Promise.all([
-          getFlowSchedule(flowId),
-          getFlowRuns(flowId)
-        ]);
-        console.log('Loaded schedule and runs:', { schedule: scheduleData, runs: runsData });
-        setSchedule(scheduleData);
-        setFlowRuns(runsData || []);
-      } catch (error) {
-        console.error('Error loading schedule and runs:', error);
-      }
-    };
-
     loadScheduleAndRuns();
-  }, [flowId, activeTab]);
+  }, [flowId]);
+  
+  useEffect(() => {
+    if (flow?.status) {
+      setFlowStatus(flow.status);
+    }
+  }, [flow]);
   
   const handleBack = () => {
     router.back();
@@ -223,15 +231,17 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <FlowHeader 
-        flowName={flow?.name || "Flow"} 
+    <div className="h-screen overflow-hidden flex flex-col">
+      <FlowHeader
+        flowName={flow?.name}
         onBack={handleBack}
         isLoading={isLoadingFlow}
-        flowId={flow?.id}
+        flowId={flowId}
         isOwner={isOwner}
+        isShared={flow?.is_shared}
         isAuthenticated={isAuthenticated}
-        isShared={flow?.is_shared || false}
+        hasSchedule={!!schedule}
+        initialStatus={flowStatus}
       />
       
       <div className="flex-1 overflow-auto">
@@ -249,6 +259,12 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                     value="overview"
                   >
                     Overview
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+                    value="schedule"
+                  >
+                    Schedule
                   </TabsTrigger>
                   <TabsTrigger 
                     className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
@@ -273,7 +289,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
 
               <TabsContent value="flow-runs" className="mt-0">
                 <div className="bg-white rounded-md border p-6">
-                  <h2 className="text-xl font-medium text-foreground mb-2">Runs</h2>
+                  <h2 className="text-lg font-medium text-foreground">Runs</h2>
                   {schedule ? (
                     <ScheduleView
                       schedule={schedule}
@@ -283,6 +299,21 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                   ) : (
                     <div className="text-muted-foreground">No schedule configured for this flow.</div>
                   )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="schedule" className="mt-0">
+                <div className="bg-white rounded-md border p-6">
+                  <ScheduleTabContent 
+                    flowId={flowId}
+                    isLoading={isLoadingFlow}
+                    onScheduleChange={(newSchedule: FlowSchedule | null) => {
+                      setSchedule(newSchedule);
+                      if (activeTab === "flow-runs") {
+                        loadScheduleAndRuns();
+                      }
+                    }}
+                  />
                 </div>
               </TabsContent>
             </Tabs>

@@ -3,11 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { updateFlowStatus, cloneFlow } from "../api/api.flows";
-import { Loader2, Copy, Edit, LogIn } from "lucide-react";
+import { updateFlowStatus, cloneFlow, deleteFlow } from "../api/api.flows";
+import { Loader2, MoreVertical } from "lucide-react";
 import { SharePopover } from "./share-popover";
 import { toast } from "sonner";
 import { FlowSchedule } from "../api/types.flows";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 export function FlowHeader({ 
   flowName = "New Flow", 
@@ -22,6 +30,7 @@ export function FlowHeader({
   hasSchedule = false,
   onActivate,
   isActivating = false,
+  initialStatus = 'Draft',
 }: { 
   flowName?: string, 
   onBack?: () => void, 
@@ -35,6 +44,7 @@ export function FlowHeader({
   hasSchedule?: boolean,
   onActivate?: () => Promise<void>,
   isActivating?: boolean,
+  initialStatus?: 'Active' | 'Draft',
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,10 +52,17 @@ export function FlowHeader({
   const isCreateMode = pathname === '/flow/create';
   const [isCloning, setIsCloning] = useState(false);
   const [currentIsShared, setCurrentIsShared] = useState(isShared);
+  const [status, setStatus] = useState<'Active' | 'Draft'>(initialStatus);
   
   useEffect(() => {
     setCurrentIsShared(isShared);
   }, [isShared]);
+
+  useEffect(() => {
+    if (initialStatus !== status) {
+      setStatus(initialStatus);
+    }
+  }, [initialStatus]);
 
   const handleBackClick = () => {
     router.push('/flows');
@@ -76,9 +93,16 @@ export function FlowHeader({
     }
   };
 
-  const handleEditClick = () => {
+  const handleEditClick = async () => {
     if (flowId) {
-      router.push(`/flow/${flowId}/edit`);
+      try {
+        await updateFlowStatus(flowId, "Draft");
+        setStatus('Draft');
+        router.push(`/flow/${flowId}/edit`);
+      } catch (error) {
+        console.error("Error updating flow status:", error);
+        toast.error("Failed to update flow status");
+      }
     }
   };
 
@@ -105,6 +129,32 @@ export function FlowHeader({
     setCurrentIsShared(newIsShared);
   };
 
+  const handleStatusChange = async (newStatus: 'Active' | 'Draft') => {
+    if (!flowId) return;
+    
+    try {
+      await updateFlowStatus(flowId, newStatus);
+      setStatus(newStatus);
+      toast.success(`Flow is now ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating flow status:', error);
+      toast.error('Failed to update flow status');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!flowId) return;
+    
+    try {
+      await deleteFlow(flowId);
+      toast.success('Flow deleted successfully');
+      router.push('/flows');
+    } catch (error) {
+      console.error('Error deleting flow:', error);
+      toast.error('Failed to delete flow');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
@@ -129,6 +179,15 @@ export function FlowHeader({
         )}
         <div className="flex items-center text-sm">
           <span className="font-medium text-gray-900">{flowName}</span>
+          {isOwner && (
+            <Badge variant="secondary" className={`ml-2 transition-colors text-xs ${
+              status === 'Active' 
+                ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
+                : 'bg-gray-50 text-gray-600 dark:bg-gray-900/30 dark:text-gray-300'
+            }`}>
+              {status}
+            </Badge>
+          )}
         </div>
       </div>
       
@@ -142,7 +201,7 @@ export function FlowHeader({
             >
               Login
             </Button>
-          ) : isEditMode && (
+          ) : isEditMode ? (
             <>
               <Button 
                 onClick={handleActivate}
@@ -155,31 +214,42 @@ export function FlowHeader({
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </>
                 ) : (
-                  'Save'
+                  'Publish'
                 )}
               </Button>
             </>
-          )}
-          
-          {isAuthenticated && isOwner && !isEditMode ? (
+          ) : isAuthenticated && isOwner ? (
             <div className="flex items-center gap-2">
               {flowId && (
-                <SharePopover 
-                  flowId={flowId} 
-                  isShared={currentIsShared}
-                  onShareStatusChange={handleShareStatusChange}
-                />
+                <>
+                  <SharePopover 
+                    flowId={flowId} 
+                    isShared={currentIsShared}
+                    onShareStatusChange={handleShareStatusChange}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleEditClick}>
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStatusChange(status === 'Active' ? 'Draft' : 'Active')}>
+                        {status === 'Active' ? 'Disable' : 'Activate'}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               )}
-              
-              <Button 
-                onClick={handleEditClick}
-                size="sm"
-                className="rounded-full"
-              >
-                Edit
-              </Button>
             </div>
-          ) : isAuthenticated && !isEditMode && !isOwner && (
+          ) : isAuthenticated && !isOwner && (
             <Button 
               onClick={handleCloneClick}
               size="sm"
@@ -205,7 +275,7 @@ export function FlowHeader({
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               </>
             ) : (
-              'Save'
+              'Publish'
             )}
           </Button>
         </div>

@@ -244,6 +244,8 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
           flowId={flow?.id}
           onActivate={handleActivate}
           isActivating={isActivating}
+          isOwner={true}
+          initialStatus={flow?.status || 'Draft'}
         />
         <Tabs defaultValue="chat" className="w-full h-full flex flex-col">
           <TabsList className="grid grid-cols-2 mb-2">
@@ -299,6 +301,8 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
         flowId={flow?.id}
         onActivate={handleActivate}
         isActivating={isActivating}
+        isOwner={true}
+        initialStatus={flow?.status || 'Draft'}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="w-[700px] border-r border-border bg-muted/10 flex flex-col h-full overflow-hidden">
