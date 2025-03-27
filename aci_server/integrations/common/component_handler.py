@@ -24,8 +24,15 @@ def load_components(integration_dir: str) -> List[Dict[str, Any]]:
 
 def find_component(components: List[Dict[str, Any]], name: str) -> Optional[Dict[str, Any]]:
     for component in components:
-        if component["name"] == name:
+        comp_name = component.get("name", None)
+        
+        if comp_name is None:
+            print("[warning] component name is None", name)
+            return None
+        
+        if comp_name == name:
             return component
+        
     return None
 
 def create_component(component_def: Dict[str, Any], data: Any) -> Dict[str, Any]:
