@@ -16,7 +16,8 @@ from .schema import (
     SendMessageResponse,
     GenericResponse,
     ErrorResponse,
-    ApiResponse
+    ApiResponse,
+    EmailBody
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -77,6 +78,20 @@ class MailSMTPService:
         except Exception as e:
             return self.prepare_error_response(e)
     
+    def _short_body(self, body: dict) -> EmailBody:
+        # Handle text content
+        text = None
+        if body.get('text'):
+            text = body['text'][:500] + "..." if len(body['text']) > 500 else body['text']
+        
+        # Handle HTML content
+        html = None
+        if body.get('html'):
+            # Extract first part of HTML content
+            html = body['html'][:500] + "..." if len(body['html']) > 500 else body['html']
+            
+        return EmailBody(html=html, text=text)
+    
     def get_messages(self, params: GetMessagesParams) -> ApiResponse:
         try:
             # Filter out authentication parameters
@@ -86,8 +101,15 @@ class MailSMTPService:
             }
             response = self.client.get_messages(**processed_params)
             
+            # Create messages with shortened bodies without duplicate body parameter
+            messages = []
+            for msg in response["messages"]:
+                msg_copy = {k: v for k, v in msg.items() if k != 'body'}
+                short_body = self._short_body(msg['body'])
+                messages.append(EmailMessage(**msg_copy, body=short_body))
+            
             validated_response = EmailMessageList(
-                messages=[EmailMessage(**msg) for msg in response["messages"]],
+                messages=messages,
                 total=response["total"],
                 offset=response["offset"],
                 limit=response["limit"]

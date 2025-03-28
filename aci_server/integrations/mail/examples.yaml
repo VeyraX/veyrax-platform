@@ -6,7 +6,7 @@ routes:
         input_json: |
           {
             "folder": "INBOX",
-            "limit": 10,
+            "limit": 5,
             "offset": 0,
             "mark_as_read": false
           }

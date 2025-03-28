@@ -25,8 +25,6 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         if route.path.endswith("/tools"):
             continue
         
-        if route.path != "/mail/get_messages":
-            continue
 
         tool_schema = get_openai_function_schemas(route)
         try:
