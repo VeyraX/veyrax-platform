@@ -16,7 +16,8 @@ import {
   getProviderBaseUrl,
   getProviderCustomAuth,
   updateProviderCustomAuth,
-  validateCustomAuth
+  validateCustomAuth,
+  validateCustomAuthSchema
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
@@ -26,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-config";
 import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
 import { CustomAuthForm } from "./provider-connection-forms/custom-auth-form";
+import { EmailAuthForm } from "./provider-connection-forms/email-auth-form";
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
@@ -303,14 +305,16 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       
       console.log("Sending changed fields:", Object.keys(changedFields));
       
-      // Validate the custom auth changes if possible
-      const validationResult = await validateCustomAuth(provider.id, customAuthData);
-      
-      if (!validationResult.valid) {
-        setValidationError(validationResult.message);
+      const validateSchema = await validateCustomAuthSchema(provider.id, customAuthData);
+      if (!validateSchema.valid) {
+        setValidationError(validateSchema.message);
         setIsValidating(false);
         return;
       }
+      
+      // TODO: validation is tricky cause some fields are encrypted.
+      // const validationResult = await validateCustomAuth(provider.id, changedFields);
+      
 
       // Only send the changed fields to the API
       await updateProviderCustomAuth(provider.id, changedFields);
@@ -430,6 +434,23 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       );
     }
 
+    // Use EmailAuthForm specifically for mail provider
+    if (provider.provider_tag === "mail") {
+      return (
+        <EmailAuthForm
+          authSchema={provider.auth_schema}
+          authData={customAuthData}
+          onChange={(authData) => {
+            setCustomAuthData(authData);
+            setCustomAuthChanged(true);
+            setValidationError(null);
+          }}
+          disabled={isValidating || isLoading}
+        />
+      );
+    }
+
+    // Default to CustomAuthForm for other providers
     return (
       <CustomAuthForm
         authSchema={provider.auth_schema}

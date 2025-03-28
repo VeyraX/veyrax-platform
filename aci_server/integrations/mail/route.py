@@ -1,16 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.requests import Request as FastAPIRequest
 from typing import Dict, Any
-from .schema import (
-    GetMessagesParams,
-    GetMessageParams,
-    SendMessageParams,
-    CreateFolderParams,
-    DeleteMessageParams,
-    GetFoldersParams,
-    MoveMessageParams,
-    ApiResponse
-)
+from .schema import *
 from .service import MailSMTPService
 from .client import MailSMTPClient, MailSMTPError
 from ..common.auth import get_provider_custom_auth
@@ -28,56 +19,13 @@ examples = ExamplesLoader()
 async def get_mail_smtp_service(request: FastAPIRequest):
     try:
         auth_params = await get_provider_custom_auth(request, "mail")
-        auth_params_defaults = {
-            # "username": os.environ.get("SERVICE_ACCOUNT_EMAIL"),
-            # "password": os.environ.get("SERVICE_ACCOUNT_APP_EMAIL_SECRET"),
-            "smtp_host": "smtp.gmail.com",
-            "smtp_port": 587,
-            "imap_host": "imap.gmail.com",
-            "imap_port": 993,
-            "use_ssl": False,
-            "use_tls": True
-        }
-
-        # Check if environment variables are properly set
-        if not auth_params["username"] or not auth_params["password"]:
-            raise HTTPException(
-                status_code=401,
-                detail="Missing environment variables: SERVICE_ACCOUNT_EMAIL or SERVICE_ACCOUNT_APP_EMAIL_SECRET"
-            )
         
         # Get authentication from request
         username = auth_params.get("username")
         password = auth_params.get("password")
-        
-        smtp_host = auth_params.get("smtp_host")
-        smtp_port = auth_params.get("smtp_port")
-        imap_host = auth_params.get("imap_host")
-        imap_port = auth_params.get("imap_port")
-        use_ssl = auth_params.get("use_ssl", True)
-        use_tls = auth_params.get("use_tls", False)
-        
-        # # If service-specific hosts aren't provided, try to use common ones
-        if not smtp_host:
-            smtp_host = auth_params.get("host")
-        
-        if not imap_host:
-            imap_host = auth_params.get("host")
-        
-        if not smtp_port:
-            smtp_port = auth_params.get("port")
-            
-        if not imap_port:
-            imap_port = auth_params.get("port")
-        
-        # Set default ports if not provided
-        if not smtp_port:
-            smtp_port = 587 if use_tls else (465 if use_ssl else 25)
-            
-        if not imap_port:
-            imap_port = 993 if use_ssl else 143
-        
-        # Keep validation for username and password
+        service = auth_params.get("service", "").lower()
+
+        # Validate username and password - required for all services
         if not username:
             raise HTTPException(
                 status_code=401, 
@@ -89,6 +37,66 @@ async def get_mail_smtp_service(request: FastAPIRequest):
                 status_code=401, 
                 detail="Missing required parameter: password"
             )
+        
+        # List of known services
+        known_services = ["gmail", "outlook", "yahoo", "zoho", "aol", "protonmail", "gmx"]
+        
+        # If a known service is specified, apply its default settings
+        if service in known_services:
+            # Get the default settings for this service
+            default_settings_response = await get_default_settings({"service": service})
+            service_defaults = default_settings_response.get("settings", {})
+            
+            # Apply the service defaults if not specified in auth_params
+            smtp_host = auth_params.get("smtp_host") or service_defaults.get("smtp_host")
+            smtp_port = auth_params.get("smtp_port") or service_defaults.get("smtp_port")
+            imap_host = auth_params.get("imap_host") or service_defaults.get("imap_host")
+            imap_port = auth_params.get("imap_port") or service_defaults.get("imap_port")
+            
+            # For SSL and TLS settings, use auth_params if specified, otherwise use service defaults
+            use_ssl = auth_params.get("use_ssl") if auth_params.get("use_ssl") is not None else service_defaults.get("use_ssl", False)
+            use_tls = auth_params.get("use_tls") if auth_params.get("use_tls") is not None else service_defaults.get("use_tls", True)
+        else:
+            # For custom or unspecified service, check all required parameters
+            smtp_host = auth_params.get("smtp_host")
+            smtp_port = auth_params.get("smtp_port")
+            imap_host = auth_params.get("imap_host")
+            imap_port = auth_params.get("imap_port")
+            use_ssl = auth_params.get("use_ssl", False)
+            use_tls = auth_params.get("use_tls", True)
+            
+            # If service-specific hosts aren't provided, try to use common ones
+            if not smtp_host:
+                smtp_host = auth_params.get("host")
+            
+            if not imap_host:
+                imap_host = auth_params.get("host")
+            
+            if not smtp_port:
+                smtp_port = auth_params.get("port")
+                
+            if not imap_port:
+                imap_port = auth_params.get("port")
+            
+            # For custom services, validate that all required fields are present
+            if not smtp_host:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Missing required parameter for custom service: smtp_host"
+                )
+                
+            if not imap_host:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Missing required parameter for custom service: imap_host"
+                )
+        
+        # Set default ports if not provided
+        if not smtp_port:
+            smtp_port = 587 if use_tls else (465 if use_ssl else 25)
+            
+        if not imap_port:
+            imap_port = 993 if use_ssl else 143
         
         # For Gmail's IMAP, always use SSL
         if imap_host and "gmail" in imap_host.lower() and int(imap_port) == 993:
@@ -129,7 +137,7 @@ async def get_mail_smtp_service(request: FastAPIRequest):
 @router.post("/get_messages", response_model=ApiResponse)
 @schema(
     input_schema_class=GetMessagesParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=EmailMessageList,
     examples=examples["/mail/get_messages"]
 )
 async def get_messages(
@@ -142,7 +150,7 @@ async def get_messages(
 @router.post("/get_message", response_model=ApiResponse)
 @schema(
     input_schema_class=GetMessageParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=EmailMessage,
     examples=examples["/mail/get_message"]
 )
 async def get_message(
@@ -155,7 +163,7 @@ async def get_message(
 @router.post("/send_message", response_model=ApiResponse)
 @schema(
     input_schema_class=SendMessageParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=SendMessageResponse,
     examples=examples["/mail/send_message"]
 )
 async def send_message(
@@ -168,7 +176,7 @@ async def send_message(
 @router.post("/get_folders", response_model=ApiResponse)
 @schema(
     input_schema_class=GetFoldersParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=FolderList,
     examples=examples["/mail/get_folders"]
 )
 async def get_folders(
@@ -181,7 +189,7 @@ async def get_folders(
 @router.post("/create_folder", response_model=ApiResponse)
 @schema(
     input_schema_class=CreateFolderParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=GenericResponse,
     examples=examples["/mail/create_folder"]
 )
 async def create_folder(
@@ -194,7 +202,7 @@ async def create_folder(
 @router.post("/delete_message", response_model=ApiResponse)
 @schema(
     input_schema_class=DeleteMessageParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=GenericResponse,
     examples=examples["/mail/delete_message"]
 )
 async def delete_message(
@@ -207,7 +215,7 @@ async def delete_message(
 @router.post("/move_message", response_model=ApiResponse)
 @schema(
     input_schema_class=MoveMessageParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=GenericResponse,
     examples=examples["/mail/move_message"]
 )
 async def move_message(
@@ -295,7 +303,7 @@ async def validate_key(
         except Exception as e:
             smtp_error = str(e)
         
-        # Test IMAP connection
+        # Test IMAP connection and attempt to fetch emails
         try:
             # For IMAP testing
             if settings.get("imap_use_ssl", True):
@@ -306,7 +314,43 @@ async def validate_key(
                     imap_client.starttls()
             
             imap_client.login(username, password)
-            imap_client.logout()
+            
+            # Try to actually fetch emails as an additional validation step
+            try:
+                # Select the INBOX folder
+                result, data = imap_client.select('INBOX', readonly=True)
+                if result != 'OK':
+                    raise Exception(f"Failed to select INBOX: {data[0].decode() if data else 'Unknown error'}")
+                
+                # Try to fetch the most recent 1 message (just to verify we can access emails)
+                result, data = imap_client.search(None, 'ALL')
+                if result != 'OK':
+                    raise Exception(f"Failed to search messages: {data[0].decode() if data else 'Unknown error'}")
+                
+                # Get count of messages
+                message_count = len(data[0].split())
+                
+                # Close the mailbox and logout
+                imap_client.close()
+                imap_client.logout()
+                
+                # Include the message count in the success response
+                return {
+                    "valid": True,
+                    "message": f"SMTP and IMAP connections successful. Found {message_count} messages in inbox.",
+                    "settings_used": settings,
+                    "message_count": message_count
+                }
+                
+            except Exception as fetch_error:
+                # If we can connect but can't fetch emails, report this issue
+                imap_client.logout()
+                return {
+                    "valid": False,
+                    "message": f"Connected to mail server but couldn't fetch emails: {str(fetch_error)}",
+                    "settings_used": settings
+                }
+                
         except Exception as e:
             imap_error = str(e)
         
@@ -330,6 +374,7 @@ async def validate_key(
                 "settings_used": settings
             }
         
+        # Shouldn't reach here since we return earlier after successful email fetch
         return {
             "valid": True,
             "message": "SMTP and IMAP connections successful",

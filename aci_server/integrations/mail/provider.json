@@ -1,6 +1,6 @@
 {
-    "name": "Mail",
+    "name": "Gmail (SMTP/IMAP)",
     "provider_tag": "mail",
-    "description": "Connect to any mail provider via SMTP and IMAP. Note: some services like gmail may require app password",
+    "description": "Connect Gmail, Outlook, Proton mail and other emails via SMTP and IMAP. Note: some services like gmail may require app password",
     "auth_method": "custom"
 }

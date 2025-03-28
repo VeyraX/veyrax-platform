@@ -21,7 +21,7 @@ class EmailAttachment(BaseModel):
     content_type: Optional[str] = None
 
 
-class GetMessagesParams(CommonParams):
+class GetMessagesParams(BaseModel):
     folder: Optional[str] = Field("INBOX", description="Folder to fetch messages from")
     limit: Optional[int] = Field(20, description="Maximum number of messages to fetch", ge=1, le=100)
     offset: Optional[int] = Field(0, description="Number of messages to skip", ge=0)
@@ -29,12 +29,12 @@ class GetMessagesParams(CommonParams):
     mark_as_read: Optional[bool] = Field(False, description="Mark fetched messages as read")
 
 
-class GetMessageParams(CommonParams):
+class GetMessageParams(BaseModel):
     message_id: str = Field(..., description="Unique ID of the message to fetch")
     mark_as_read: Optional[bool] = Field(False, description="Mark the message as read")
 
 
-class SendMessageParams(CommonParams):
+class SendMessageParams(BaseModel):
     from_email: EmailAddress = Field(..., description="Sender email address")
     to: List[EmailAddress] = Field(..., description="Recipient email addresses")
     cc: Optional[List[EmailAddress]] = Field(None, description="CC recipient email addresses")
@@ -47,21 +47,21 @@ class SendMessageParams(CommonParams):
     priority: Optional[str] = Field(None, description="Email priority (high, normal, low)")
 
 
-class CreateFolderParams(CommonParams):
+class CreateFolderParams(BaseModel):
     folder_name: str = Field(..., description="Name of the folder to create")
 
 
-class DeleteMessageParams(CommonParams):
+class DeleteMessageParams(BaseModel):
     message_id: str = Field(..., description="Unique ID of the message to delete")
     folder: Optional[str] = Field("INBOX", description="Folder containing the message")
     permanently: Optional[bool] = Field(False, description="Permanently delete the message")
 
 
-class GetFoldersParams(CommonParams):
+class GetFoldersParams(BaseModel):
     include_counts: Optional[bool] = Field(False, description="Include message counts for each folder")
 
 
-class MoveMessageParams(CommonParams):
+class MoveMessageParams(BaseModel):
     message_id: str = Field(..., description="Unique ID of the message to move")
     source_folder: Optional[str] = Field("INBOX", description="Folder containing the message")
     destination_folder: str = Field(..., description="Folder to move the message to")

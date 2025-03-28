@@ -531,7 +531,6 @@ async def get_dev_user_tools(request: Request):
         for name, router in INTEGRATION_ROUTERS.items():
             if name in provider_tags:
                 tool_schemas = get_router_tools(router)
-
                 provider_tools = {}
                 for tool_schema in tool_schemas:
                     method_name = tool_schema["function"]["name"]
