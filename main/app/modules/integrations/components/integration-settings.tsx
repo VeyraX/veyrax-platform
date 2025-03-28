@@ -20,9 +20,12 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
   const [selectedScopes, setSelectedScopes] = useState<string[]>(
     provider.scopes?.map(scope => scope.scope_name) || []
   );
+  const [selectedScopesIds, setSelectedScopesIds] = useState<string[]>(
+    provider.scopes?.map(scope => scope.scope_id) || []
+  );
 
   const handleConfirm = () => {
-    onConfirm(selectedScopes);
+    onConfirm(selectedScopesIds);
   };
 
   const isGoogleProvider = provider.name.toLowerCase().includes('google') || 
@@ -88,6 +91,10 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
                       setSelectedScopes(checked
                         ? [...selectedScopes, scope.scope_name]
                         : selectedScopes.filter(s => s !== scope.scope_name)
+                      );
+                      setSelectedScopesIds(checked
+                        ? [...selectedScopesIds, scope.scope_id]
+                        : selectedScopesIds.filter(s => s !== scope.scope_id)
                       );
                     }}
                   />
