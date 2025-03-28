@@ -32,6 +32,7 @@ def migrate_provider_actions():
         
         # Counter for tracking operations
         action_count = 0
+        skipped_count = 0
         
         for provider in providers:
             provider_id = provider["id"]
@@ -116,6 +117,14 @@ def migrate_provider_actions():
                             component_info["component_name"]: component_info["component_data"]
                         }
                     
+                    # Check if action already exists for this provider
+                    existing_action = supabase.table("provider_actions").select("*").eq("provider_id", provider_id).eq("action_slug", action_slug).execute()
+                    
+                    if existing_action.data:
+                        print(f"Skipping existing action: {action_slug} for provider: {provider_name}")
+                        skipped_count += 1
+                        continue
+                    
                     # Create the action record - without provider_tag
                     action_data = {
                         "provider_id": provider_id,
@@ -129,8 +138,8 @@ def migrate_provider_actions():
                     # Log the action data structure (for debugging)
                     print(f"Adding action: {action_slug} for provider: {provider_name}")
                     
-                    # Insert into the providers_actions table
-                    supabase.table("providers_actions").insert(action_data).execute()
+                    # Insert into the provider_actions table
+                    supabase.table("provider_actions").insert(action_data).execute()
                     
                     action_count += 1
                     print(f"Successfully added action: {action_slug} for provider: {provider_name}")
@@ -139,8 +148,9 @@ def migrate_provider_actions():
                     print(f"Error adding action {action_slug} for provider {provider_name}: {str(e)}")
                     import traceback
                     traceback.print_exc()
-        
-        print(f"Migration complete! Added {action_count} actions to providers_actions table")
+         
+        print(f"Migration complete! Added {action_count} actions to provider_actions table")
+        print(f"Skipped {skipped_count} existing actions")
         
     except Exception as e:
         print(f"Error during migration: {str(e)}")

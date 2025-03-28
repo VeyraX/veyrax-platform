@@ -15,7 +15,7 @@ from gpt_generation import generate_prompt
 # Make sure environment variables are loaded
 load_dotenv()
 
-# System prompt for GPT to match actions with applicable scopes
+# System prompt for GPT remains the same
 SYSTEM_PROMPT = """
 You are an AI specialized in matching API actions with their required OAuth scopes.
 Your task is to determine which OAuth scopes can be used for a specific API action.
@@ -46,7 +46,6 @@ Notion: get_user — scope that will fit: read_pages, read_databases, write_page
 Asana: create_subtask — scope that will fit: full_access
 
 And the same, if Asana has only full_access, then it should be full_access and should work for all actions.
-
 
 For example full access means that you can read, write, delete, modify, etc.
 
@@ -143,6 +142,7 @@ def process_action_scopes():
         
         print(f"Found {len(providers)} OAuth providers to process")
         total_links = 0
+        skipped_links = 0
         
         # Process each OAuth provider
         for provider in providers:
@@ -163,7 +163,7 @@ def process_action_scopes():
             print(f"Processing {len(provider_scopes)} scopes for OAuth provider: {provider_name}")
             
             # Get all actions for this provider
-            actions_response = supabase.table("providers_actions").select(
+            actions_response = supabase.table("provider_actions").select(
                 "id, action_name, action_slug, provider_id"
             ).eq("provider_id", provider_id).execute()
             
@@ -205,6 +205,17 @@ def process_action_scopes():
                     db_scope_id = scope_id_to_db_id[scope_id]
                     
                     try:
+                        # Check if link already exists
+                        existing_link = supabase.table("provider_action_scopes").select("*")\
+                            .eq("scope_id", db_scope_id)\
+                            .eq("action_id", action_id)\
+                            .execute()
+                            
+                        if existing_link.data:
+                            print(f"Link already exists between scope {scope_id} and action {action_name}")
+                            skipped_links += 1
+                            continue
+                            
                         # Create link in provider_action_scopes table using database IDs
                         supabase.table("provider_action_scopes").insert({
                             "scope_id": db_scope_id,
@@ -214,16 +225,13 @@ def process_action_scopes():
                         total_links += 1
                         print(f"Linked action '{action_name}' to scope '{scope_id}'")
                     except Exception as e:
-                        # Skip if it's a duplicate key error
-                        if "duplicate key" in str(e).lower():
-                            print(f"Link already exists between scope {scope_id} and action {action_name}")
-                        else:
-                            print(f"Error linking scope {scope_id} to action {action_name}: {str(e)}")
+                        print(f"Error linking scope {scope_id} to action {action_name}: {str(e)}")
                 
                 # Slight delay to avoid rate limits
                 time.sleep(0.1)
         
         print(f"Linking complete! Created {total_links} action-scope links for OAuth providers")
+        print(f"Skipped {skipped_links} existing links")
         
     except Exception as e:
         print(f"Error during action-scope linking: {str(e)}")

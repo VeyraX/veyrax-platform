@@ -14,17 +14,14 @@ load_dotenv()
 
 def migrate_provider_scopes():
     try:
-        # Get Supabase client
         supabase = get_supabase()
-        
-        # Fetch all providers from the providers table
         response = supabase.table("providers").select("id, name, scopes").execute()
         providers = response.data
         
         print(f"Found {len(providers)} providers")
         
-        # Counter for tracking operations
         scope_count = 0
+        skipped_count = 0
         
         for provider in providers:
             provider_id = provider["id"]
@@ -34,8 +31,7 @@ def migrate_provider_scopes():
             if not scopes:
                 print(f"No scopes found for provider: {provider_name}")
                 continue
-                
-            # Convert string to JSON if necessary
+
             if isinstance(scopes, str):
                 try:
                     scopes = json.loads(scopes)
@@ -45,7 +41,6 @@ def migrate_provider_scopes():
             
             print(f"Processing {len(scopes)} scopes for provider: {provider_name}")
             
-            # Insert each scope into the provider_scopes table
             for scope_item in scopes:
                 try:
                     scope_id = scope_item.get("scope")
@@ -55,7 +50,14 @@ def migrate_provider_scopes():
                         print(f"Missing scope data in item for provider {provider_name}: {scope_item}")
                         continue
                     
-                    # Insert into the new table
+                    # Check if scope already exists for this provider
+                    existing_scope = supabase.table("provider_scopes").select("*").eq("provider_id", provider_id).eq("scope_id", scope_id).execute()
+                    
+                    if existing_scope.data:
+                        print(f"Skipping existing scope: {scope_name} ({scope_id}) for provider: {provider_name}")
+                        skipped_count += 1
+                        continue
+                    
                     supabase.table("provider_scopes").insert({
                         "scope_id": scope_id,
                         "scope_name": scope_name,
@@ -67,8 +69,11 @@ def migrate_provider_scopes():
                     
                 except Exception as e:
                     print(f"Error adding scope for provider {provider_name}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
         
         print(f"Migration complete! Added {scope_count} scopes to provider_scopes table")
+        print(f"Skipped {skipped_count} existing scopes")
         
     except Exception as e:
         print(f"Error during migration: {str(e)}")
