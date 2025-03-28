@@ -20,13 +20,15 @@ export default function AppLayout({
       disableTransitionOnChange
     >
       <ReactQueryProvider>
-        <div className="app-layout bg-light-special-background">
+        <div className="app-layout bg-light-special-background min-h-screen flex">
           <SidebarProvider>
             <AppSidebar collapsible="icon" />
-            <main className="flex-1 flex flex-col h-screen">
-              <div className="flex-1">
-                <SidebarInset>{children}</SidebarInset>
-              </div>
+            <main className="flex-1 flex flex-col overflow-hidden">
+              <SidebarInset>
+                <div className="flex-1 flex flex-col">
+                  {children}
+                </div>
+              </SidebarInset>
             </main>
           </SidebarProvider>
           <Toaster />
