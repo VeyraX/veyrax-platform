@@ -170,14 +170,73 @@ class ReplicateClient:
         """
         headers = self.headers.copy()
         headers = self._prepare_wait_header(headers, wait)
-            
-        response = requests.post(
-            f"{self.base_url}/models/{model_owner}/{model_name}/predictions",
-            headers=headers,
-            json=data
-        )
         
-        return response.json()
+        # Special case for Minimax video model
+        is_minimax_video = (model_owner == "minimax" and model_name == "video-01")
+        if is_minimax_video:
+            # For Minimax, ensure we only send the input field
+            if "input" in data:
+                data = {"input": data["input"]}
+            print(f"[CLIENT] Creating prediction for Minimax video model with data: {data}")
+        
+        try:    
+            url = f"{self.base_url}/models/{model_owner}/{model_name}/predictions"
+            if is_minimax_video:
+                print(f"[CLIENT] Making request to URL: {url}")
+                print(f"[CLIENT] Headers: {headers}")
+            
+            response = requests.post(
+                url,
+                headers=headers,
+                json=data
+            )
+            # Check for HTTP errors
+            response.raise_for_status()
+            
+            response_data = response.json()
+            
+            # Additional validation for Minimax video model
+            if is_minimax_video:
+                print(f"[CLIENT] Response JSON: {response_data}")
+            
+            return response_data
+            
+        except HTTPError as e:
+            error_msg = f"HTTP error in create_official_model_prediction: {e}"
+            print(error_msg)
+            if is_minimax_video:
+                print(f"[CLIENT] Minimax HTTP error: {e}")
+                if hasattr(e, 'response'):
+                    print(f"[CLIENT] Error response status: {e.response.status_code}")
+                    print(f"[CLIENT] Error response headers: {e.response.headers}")
+                    try:
+                        print(f"[CLIENT] Error response content: {e.response.text}")
+                    except:
+                        print("[CLIENT] Could not print error response content")
+            
+            # Try to extract error details from response
+            try:
+                error_json = e.response.json()
+                if is_minimax_video:
+                    print(f"[CLIENT] Error JSON: {error_json}")
+                return error_json
+            except:
+                # If can't parse response JSON, return error details
+                return {
+                    "error": True,
+                    "detail": str(e),
+                    "status_code": e.response.status_code if hasattr(e, 'response') else 500
+                }
+        except Exception as e:
+            error_msg = f"Error in create_official_model_prediction: {e}"
+            print(error_msg)
+            if is_minimax_video:
+                print(f"[CLIENT] Minimax general error: {e}")
+            
+            return {
+                "error": True,
+                "detail": str(e)
+            }
     
     def list_models(self) -> Dict[str, Any]:
         """

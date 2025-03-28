@@ -74,8 +74,35 @@ class LinkedInService:
             start=params.start,
             geo=params.geo
         )    
+        
+        # Transform the raw response to match our schema
+        transformed_response = {
+            "success": True,
+            "message": "",
+            "data": {
+                "total": response.get("data", {}).get("total", 0),
+                "items": []
+            }
+        }
+        
+        # Transform items if they exist in the response
+        items = response.get("data", {}).get("items", [])
+        if items:
+            transformed_response["data"]["items"] = [
+                {
+                    "fullName": item.get("fullName", ""),
+                    "headline": item.get("headline", ""),
+                    "summary": item.get("summary", ""),
+                    "profilePicture": item.get("profilePicture", ""),
+                    "location": item.get("location", ""),
+                    "profileURL": item.get("profileURL", ""),
+                    "username": item.get("username", "")
+                }
+                for item in items
+            ]
+        
         # Transform response data to match our schema
-        search_response = SearchPeopleResponse(**response)
+        search_response = SearchPeopleResponse(**transformed_response)
         
         return self.prepare_response(search_response, None)
         

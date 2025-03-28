@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pympler import muppy, summary
 from db.supabase import get_supabase
 from integrations.common.auth import get_user_from_request
 from integrations.google_calendar.schema import EventFilters
@@ -62,9 +63,11 @@ from integrations.airtable.route import router as airtable_router
 from integrations.todoist.route import router as todoist_router
 from integrations.google_sheets.route import router as google_sheets_router
 from integrations.google_docs.route import router as google_docs_router
-from integrations.uploadthing.route import router as uploadthing_router
+from integrations.x.route import router as x_router
+from integrations.heygen.route import router as heygen_router
 from integrations.bannerbear.route import router as bannerbear_router
-
+from integrations.uploadthing.route import router as uploadthing_router
+from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -74,8 +77,6 @@ import sentry_sdk
 import random
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
-
-
 
 load_dotenv()
 
@@ -146,8 +147,10 @@ INTEGRATION_ROUTERS = {
     "todoist": todoist_router,
     "google-sheets": google_sheets_router,
     "google-docs": google_docs_router,
-    "uploadthing": uploadthing_router,
-    "bannerbear": bannerbear_router
+    "x": x_router,
+    "heygen": heygen_router,
+    "bannerbear": bannerbear_router,
+    "uploadthing": uploadthing_router
 }
 
 async def check_user_permission(request: Request, tool: str, method: str):
@@ -212,9 +215,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(debug_router)
+
 app.add_middleware(PermissionMiddleware)
-
-
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
@@ -222,7 +225,6 @@ for router in INTEGRATION_ROUTERS.values():
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
 
 ## healthcheck route
 @app.head("/")

@@ -27,6 +27,8 @@ from .schema import (
 )
 import os
 from ..common.component_handler import load_components, prepare_components_auto
+import time
+import datetime
 
 class ReplicateService:
     def __init__(self, client: ReplicateClient):
@@ -224,6 +226,34 @@ class ReplicateService:
         return self.prepare_response({"success": True, "message": "Deployment deleted"})
     
     # ---------- Models ----------
+    def _prepare_flux_model_params(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        # Create a new dict with only the parameters that should be sent to the API
+        cleaned_data = {}
+        
+        # For Flux models, we only need to include the input field and its contents
+        if "input" in data:
+            cleaned_data["input"] = data["input"]
+        
+        # Remove any unsupported parameters that might have been included
+        # Explicitly remove these fields even if they appear inside input
+        unsupported_params = [
+            "wait", "stream", "webhook", "webhook_events_filter",
+            "model_owner", "model_name"
+        ]
+        
+        # Remove at top level if present
+        for param in unsupported_params:
+            if param in cleaned_data:
+                cleaned_data.pop(param)
+                
+        # Also check inside input dict if it exists
+        if "input" in cleaned_data and isinstance(cleaned_data["input"], dict):
+            for param in unsupported_params:
+                if param in cleaned_data["input"]:
+                    cleaned_data["input"].pop(param)
+        
+        return cleaned_data
+
     def create_official_model_prediction(
         self,
         model_owner: str,
@@ -235,24 +265,96 @@ class ReplicateService:
         """
         # Transform the request to the format expected by the client
         data = request.model_dump(exclude_none=True)
-        data.pop("model_owner")
-        data.pop("model_name")
-        wait = request.wait
         
+        # Handle different model types with specific parameter preparation
+        is_minimax_video = model_owner == "minimax" and model_name == "video-01"
+        is_flux_model = model_owner == "black-forest-labs" and (model_name == "flux-1.1-pro" or model_name == "flux-schnell")
+        
+        if is_minimax_video:
+            # For Minimax, only send the input field
+            data = {"input": data.get("input", {})}
+        elif is_flux_model:
+            # For Flux models, use specific parameter handling
+            data = self._prepare_flux_model_params(data)
+        else:
+            # For other models, remove standard fields not expected by the API
+            if "model_owner" in data:
+                data.pop("model_owner")
+            if "model_name" in data:
+                data.pop("model_name")
+            if "create_placeholder_response" in data:
+                create_placeholder = data.pop("create_placeholder_response")
+            else:
+                create_placeholder = False
+            
+            # Ensure wait is not in the data payload
+            if "wait" in data:
+                data.pop("wait")
+        
+        # Use the wait parameter passed directly to this method
+        # instead of from the request object
         response = self.client.create_official_model_prediction(
             model_owner=model_owner,
             model_name=model_name,
-            data=data,
-            wait=wait
+            data=data
         )
-
-        print('[create_official_model_prediction] response: ', response)
         
+        # Check if response is an error response
+        if "error" in response and "detail" in response:
+            # Handle API error response
+            error_message = response.get("detail", "Unknown error from Replicate API")
+            raise ValueError(f"Replicate API error: {error_message}")
+            
         if not response:
             raise ValueError("Empty response received from Replicate API")
+        
+        # Ensure required fields exist
+        required_fields = ["id", "model", "created_at", "input", "urls"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        # Special handling for Minimax video model which may return partial data
+        if is_minimax_video and missing_fields:
+            print(f"Creating placeholder response for Minimax video model. Missing fields: {missing_fields}")
+            # Create placeholder data for missing fields
+            if "id" not in response:
+                response["id"] = f"placeholder-{model_owner}-{model_name}-{int(time.time())}"
+            if "model" not in response:
+                response["model"] = f"{model_owner}/{model_name}"
+            if "created_at" not in response:
+                response["created_at"] = datetime.datetime.now().isoformat()
+            if "input" not in response:
+                response["input"] = data.get("input", {})
+            if "urls" not in response:
+                response["urls"] = {
+                    "get": f"https://api.replicate.com/v1/predictions/{response.get('id', 'placeholder')}",
+                    "cancel": f"https://api.replicate.com/v1/predictions/{response.get('id', 'placeholder')}/cancel"
+                }
+            if "status" not in response:
+                response["status"] = "processing"
             
-        prediction_response = PredictionResponse(**response)
-        return self.prepare_response(prediction_response, "ReplicatePredictionView")
+            missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            raise ValueError(f"Missing required fields in API response: {', '.join(missing_fields)}")
+        
+        # Create URLs object if not present but individual URL fields exist
+        if "urls" not in response and ("get" in response or "cancel" in response):
+            response["urls"] = {
+                "get": response.get("get", ""),
+                "cancel": response.get("cancel", "")
+            }
+        
+        # Ensure status is a valid string
+        if "status" not in response or not isinstance(response["status"], str):
+            response["status"] = "processing"  # Default status
+            
+        try:
+            prediction_response = PredictionResponse(**response)
+            return self.prepare_response(prediction_response, "ReplicatePredictionView")
+        except Exception as e:
+            print(f"Failed to parse response: {e}")
+            print(f"Response data: {response}")
+            raise ValueError(f"Failed to parse Replicate API response: {str(e)}")
     
     def list_models(self) -> ApiResponse:
         """

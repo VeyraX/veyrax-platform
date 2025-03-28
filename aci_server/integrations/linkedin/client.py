@@ -36,6 +36,7 @@ class LinkedInClient:
             headers=self.headers,
             params=params
         )
+
         response.raise_for_status()
         return response.json()
         

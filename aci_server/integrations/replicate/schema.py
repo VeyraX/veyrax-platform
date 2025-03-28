@@ -113,10 +113,6 @@ class OfficialModelPredictionRequest(BaseModel):
     )
     model_owner: str = Field(..., description="Owner of the model")
     model_name: str = Field(..., description="Name of the model")
-    wait: Optional[int] = Field(
-        default=None,
-        description="Wait for the prediction to complete. Value is in seconds. Maximum 60 seconds."
-    )
 
 class KlingModelPredictionRequest(OfficialModelPredictionRequest):
     class KlingInput(BaseModel):
@@ -168,6 +164,19 @@ class MinimaxVideoModelPredictionRequest(OfficialModelPredictionRequest):
     
     input: MinimaxVideoInput = Field(description="The Minimax Video-01 model's specific input parameters")
     
+    # Make all other fields optional for Minimax video
+    webhook: Optional[str] = Field(
+        default=None,
+        description="An HTTPS URL for receiving a webhook when the prediction has new output"
+    )
+    webhook_events_filter: Optional[List[str]] = Field(
+        default=None,
+        description="Which events trigger webhook requests. Valid values: start, output, logs, completed"
+    )
+    stream: Optional[bool] = Field(
+        default=None,
+        description="Request a URL to receive streaming output (deprecated, stream URL is always returned if supported)"
+    )
     model_owner: Optional[str] = Field(default="minimax", description="Owner of the model")
     model_name: Optional[str] = Field(default="video-01", description="Name of the model")
 
@@ -261,8 +270,8 @@ class PredictionListParams(BaseModel):
 
 # Prediction response
 class PredictionUrls(BaseModel):
-    get: str = Field(description="Retrieve the latest state of the prediction")
-    cancel: str = Field(description="Cancel the prediction")
+    get: Optional[str] = Field(default=None, description="Retrieve the latest state of the prediction")
+    cancel: Optional[str] = Field(default=None, description="Cancel the prediction")
     stream: Optional[str] = Field(
         default=None,
         description="An event source to stream the output of the prediction"
@@ -282,7 +291,7 @@ class PredictionResponse(BaseModel):
     error: Optional[str] = None
     logs: Optional[str] = None
     metrics: Optional[Dict[str, Any]] = None
-    urls: PredictionUrls
+    urls: Optional[PredictionUrls] = Field(None)
     data_removed: bool = False
     deployment: Optional[str] = None
     source: Optional[str] = Field(default=None, description="Source of the prediction. Valid values: web, api")

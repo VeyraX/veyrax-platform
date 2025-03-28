@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Heygen",
+      "version": "1.0.0",
+      "description": "A React component for displaying Heygen",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]
