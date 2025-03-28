@@ -14,6 +14,26 @@ The integration layer follows a clear three-tier architecture:
 3. **Client** - low-level API interaction
 4. **Schema** - models 
 
+### Route Design Rules
+
+1. **No Dynamic Routes**: Never use dynamic path parameters in routes
+   ```python
+   # BAD - Using dynamic path parameters
+   @router.post("/messages/{message_id}")
+   @router.get("/users/{user_id}/posts/{post_id}")
+   
+   # GOOD - Using query parameters in request body
+   @router.post("/get_message")  # message_id in request body
+   @router.post("/get_user_post")  # user_id and post_id in request body
+   ```
+
+   Why?
+   - Makes API contract more explicit and predictable
+   - Easier to maintain and version
+   - Better for documentation and type safety
+   - Consistent with POST-based API design
+   - Avoids path parameter encoding issues
+
 ### Example Integration Structure
 integrations/
 └── example_service/
@@ -446,15 +466,44 @@ async def validate_key(params: Dict[str, Any] = Body(...)):
     except Exception as e:
         return {"valid": False, "message": f"Invalid API key"}
 ```
-### 10. Never use items items in the ApiResponse schema. 
+### 10. Never use direct lists in the ApiResponse schema
 
-class WorkspaceList(BaseModel):
-    items: List[Workspace]
+**Rule**: All list responses must be wrapped in a container model.
 
-You MUST put items to make sure that you now using it inside ApiResponse model.
+```python
+# BAD - Direct list in ApiResponse
+class ApiResponse(BaseModel):
+    data: Union[TableSchema, List[TableInfo], List[SchemaInfo], List[Dict[str, Any]]]
+    component: Optional[Dict[str, Any]] = None
 
+# GOOD - Lists wrapped in container models
+class TableList(BaseModel):
+    tables: List[TableInfo]
 
-This updated section should be added to your integration_rules.mdc document to ensure consistent implementation of ApiResponse and API structure across all integrations.
+class SchemaList(BaseModel):
+    schemas: List[SchemaInfo]
+
+class QueryResult(BaseModel):
+    results: List[Dict[str, Any]]
+
+class ApiResponse(BaseModel):
+    data: Union[TableSchema, TableList, SchemaList, QueryResult]
+    component: Optional[Dict[str, Any]] = None
+```
+
+Key points:
+1. Never use List[] directly in ApiResponse Union
+2. Create wrapper models for all list responses
+3. Use descriptive names for wrapper models (e.g., TableList, SchemaList)
+4. Use plural form for the list field name (e.g., tables, schemas, results)
+5. This applies to all response types including Dict[str, Any]
+
+Benefits:
+1. Better type safety
+2. Clearer API contract
+3. Easier to extend with additional metadata
+4. More consistent response structure
+5. Better documentation generation
 
 ## Conclusion
 
@@ -946,4 +995,99 @@ routes:
               "name": "ExaSimilarCard"
             }
           }
+```
+
+### 11. Output Schema Models and Response Structure
+
+**Rule**: Each endpoint must have a specific output schema model that matches its response structure.
+
+```python
+# Input/Output Schema Definition
+class TableInfo(BaseModel):
+    name: str
+    type: str
+    row_count: int
+
+# Wrapper for list response
+class TableList(BaseModel):
+    tables: List[TableInfo]
+
+# Specific Output Schema
+class TablesResponse(BaseModel):
+    data: TableList
+
+# Generic API Response
+class ApiResponse(BaseModel):
+    data: Union[TableSchema, TableList, SchemaList, QueryResult]
+    component: Optional[Dict[str, Any]] = None
+
+# Route Implementation
+@router.post("/get_tables", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetTablesParams,
+    output_schema_class=TablesResponse,  # Must specify output schema
+    examples=examples["/example/get_tables"]
+)
+async def get_tables(
+    params: Dict[str, Any] = Body(...),
+    service: ExampleService = Depends(get_example_service)
+):
+    validated_params = GetTablesParams(**params)
+    return service.get_tables(validated_params)
+```
+
+Key requirements:
+1. Each endpoint must have a specific output schema model (e.g., TablesResponse)
+2. Output schema must be specified in @schema decorator
+3. Output schema must match the structure returned by the service
+4. Output schema must use wrapper models for lists
+5. Output schema must be named with "Response" suffix (e.g., TablesResponse, SchemaResponse)
+
+Structure pattern:
+```python
+# Pattern for output schemas
+class EntityResponse(BaseModel):
+    data: Entity
+
+class EntityListResponse(BaseModel):
+    data: EntityList  # EntityList contains List[Entity]
+
+class QueryResponse(BaseModel):
+    data: QueryResult  # QueryResult contains List[Dict[str, Any]]
+```
+
+Benefits:
+1. Clear contract for response structure
+2. Type safety throughout the stack
+3. Automatic response validation
+4. Better API documentation
+5. Consistent response patterns
+
+Common mistakes to avoid:
+```python
+# BAD - Direct list in output schema
+class BadResponse(BaseModel):
+    data: List[Entity]  # Don't use direct lists
+
+# BAD - Missing specific output schema
+@schema(
+    input_schema_class=Params,
+    output_schema_class=ApiResponse  # Don't use generic ApiResponse
+)
+
+# BAD - Inconsistent naming
+class GetTablesOutput(BaseModel):  # Don't use different suffixes
+    data: TableList
+
+# GOOD - Complete example
+class TableList(BaseModel):
+    tables: List[TableInfo]
+
+class TablesResponse(BaseModel):
+    data: TableList
+
+@schema(
+    input_schema_class=GetTablesParams,
+    output_schema_class=TablesResponse
+)
 ```

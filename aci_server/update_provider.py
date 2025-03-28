@@ -144,34 +144,23 @@ def get_provider_schemas(provider_tag: str) -> Dict[str, Any]:
         
         # Extract schemas from tool spec
         if isinstance(full_tool_spec, list):
-            print(f"\nProcessing tool specs, found {len(full_tool_spec)} items")
             for tool_item in full_tool_spec:
                 if isinstance(tool_item, dict) and 'function' in tool_item:
                     function_data = tool_item['function']
-                    print(f"\nFound function data: {function_data.get('name', 'NO_NAME')}")
                     
                     if 'name' in function_data:
                         endpoint_name = function_data['name'].split('/')[-1]
-                        print(f"Processing endpoint: {endpoint_name}")
                         
-                        input_schema = {
-                            'type': 'function',
-                            'function': function_data.copy()
-                        }
-                        print(f"Created input schema structure for {endpoint_name}")
+                        input_schema = tool_item.copy()
                         
                         if 'output_schema' in function_data:
                             output_schemas[endpoint_name] = function_data['output_schema']
                             del input_schema['function']['output_schema']
-                            print(f"Extracted output schema for {endpoint_name}")
                         
                         if 'examples' in input_schema:
                             del input_schema['examples']
-                            print(f"Removed examples from input schema for {endpoint_name}")
                         
                         input_schemas[endpoint_name] = input_schema
-                        print(f"Added final input schema for {endpoint_name}")
-                        print(f"Current schema structure: {json.dumps(input_schema, indent=2)[:200]}...")
         
         # Get component data
         component_data = None

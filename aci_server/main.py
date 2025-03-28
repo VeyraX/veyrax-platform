@@ -72,6 +72,8 @@ from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 from integrations.mail.route import router as mail_smtp_router
+from integrations.neondb.route import router as neondb_router
+from integrations.supabase.route import router as supabase_router
 import os
 import json
 import inspect
@@ -154,6 +156,8 @@ INTEGRATION_ROUTERS = {
     "bannerbear": bannerbear_router,
     "uploadthing": uploadthing_router,
     "mail": mail_smtp_router,
+    "neondb": neondb_router,
+    "supabase": supabase_router
 }
 
 async def check_user_permission(request: Request, tool: str, method: str):
