@@ -6,27 +6,32 @@ import { ChatMessages } from "@/app/modules/agent/components/messages/chat-messa
 import { AIInputWithSearch } from "@/app/modules/agent/components/input/ai-input";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
 import { type Message } from 'ai/react';
+import { ProviderAction } from '../../api/types.flows';
 
 interface ChatFlowCreatorProps {
   actions: any[];
+  userTools: ProviderAction[];
   onFlowGenerated: (flowData: { name: string; description: string }) => void;
+  useExternalChat?: boolean;
   externalMessages?: Message[];
   externalChatId?: string;
   externalIsLoading?: boolean;
-  externalOnSubmit?: (message: string) => Promise<void>;
+  externalOnSubmit?: (value: string) => Promise<void>;
   externalOnStop?: () => void;
-  useExternalChat?: boolean;
+  flowId?: string;
 }
 
 export function ChatFlowCreator({ 
   actions, 
+  userTools,
   onFlowGenerated,
+  useExternalChat = false,
   externalMessages,
   externalChatId,
   externalIsLoading,
   externalOnSubmit,
   externalOnStop,
-  useExternalChat = false
+  flowId
 }: ChatFlowCreatorProps) {
   const temporaryFlowChatId = useRef(`flow-chat-${Date.now()}`).current;
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -34,6 +39,10 @@ export function ChatFlowCreator({
   const { messages: localMessages, append, isLoading: localIsLoading, stop: localStop, setMessages } = useChat({
     api: '/api/flow/create-from-chat',
     id: useExternalChat && externalChatId ? externalChatId : temporaryFlowChatId,
+    body: {
+      flowId: flowId,
+      chatId: useExternalChat && externalChatId ? externalChatId : temporaryFlowChatId
+    },
     initialMessages: [],
     onFinish: (message) => {
       try {
@@ -101,36 +110,30 @@ export function ChatFlowCreator({
     }
   };
 
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
     <div className="flex flex-col h-full relative">
-      <div className="absolute inset-0 flex flex-col overflow-hidden">
-        <div 
-          ref={messagesContainerRef} 
-          className="flex-1 overflow-y-auto scrollbar-thin relative"
-          style={{ paddingBottom: "90px" }}
-        >
+      <div className="absolute inset-0 flex flex-col">
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {hasMessages ? (
-            <ChatMessages 
-              chatId={chatId}
-              messages={messages as Message[]}
-              isLoading={isLoading}
-              onSendMessage={handleSendMessage}
-              isFlow={false}
-            />
+            <div className="pb-[120px]">
+              <ChatMessages 
+                chatId={chatId}
+                messages={messages as Message[]}
+                isLoading={isLoading}
+                onSendMessage={handleSendMessage}
+                isFlow={false}
+                hideRatings={true}
+              />
+            </div>
           ) : (
-            <FlowChatCreateEmptyState />
+            <FlowChatCreateEmptyState 
+              onSendMessage={handleSendMessage}
+              userTools={userTools}
+            />
           )}
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 px-4 pt-2 bg-background">
+        <div className="sticky bottom-0 px-4 pt-2 bg-background">
           <AIInputWithSearch
             placeholder="Describe the flow you want to create..."
             onSubmit={handleSendMessage}

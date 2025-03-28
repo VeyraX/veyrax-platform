@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess } from './types.integrations'
+import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess, ProviderAction, ProviderScope } from './types.integrations'
 
 const supabase = createClient()
+
+
 
 
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
@@ -9,7 +11,13 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   
   const { data: providers } = await supabase
     .from('providers')
-    .select('*')
+    .select(`
+      *,
+      provider_scopes (
+        scope_id,
+        scope_name
+      )
+    `)
 
   const { data: userProviders } = await supabase
     .from('users_providers')
@@ -35,14 +43,36 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   
   const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
 
-  const result = providers?.map((provider: Provider) => {
-    const isConnected = connectedProviderIds.has(provider.id);
+  // Add query for oauth tokens
+  const { data: userOAuthTokens } = await supabase
+    .from('users_oauth_tokens')
+    .select('provider_id, scopes')
+    .eq('user_id', user?.id)
+
+  // Create a map of provider_id to scopes
+  const providerScopes = new Map(
+    userOAuthTokens?.map(token => [
+      token.provider_id, 
+      Array.isArray(token.scopes) ? token.scopes : token.scopes?.split(',') || []
+    ])
+  )
+
+  const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
+    const isConnected = connectedProviderIds.has(provider.id)
     
     const isReallyConnected = provider.auth_method === 'api_key' 
       ? providersWithApiKeys.has(provider.id) 
-      : isConnected;
+      : isConnected
     
-    const isPopular = popularProviderIds.has(provider.id);
+    const isPopular = popularProviderIds.has(provider.id)
+
+    provider.scopes = provider.provider_scopes?.map(s => ({
+      scope: s.scope_id,
+      scope_name: s.scope_name
+    })) || []
+
+    // Add user_scopes to the provider object
+    const userScopes = providerScopes.get(provider.id) || []
 
     return {
       ...provider,
@@ -51,8 +81,9 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       hasIndex: false,
       indexStatus: null,
       lastSyncDate: null,
-      processedEntities: null
-    };
+      processedEntities: null,
+      user_scopes: userScopes
+    }
   }) || []
   
   return result as IntegrationCardProps[]
@@ -67,6 +98,8 @@ export const enableProvider = async (providerId: string): Promise<void> => {
       user_id: user?.id,
       provider_id: providerId 
     })
+
+    await addActionsUser(providerId);
 }
 
 export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig): Promise<void> => {
@@ -151,6 +184,8 @@ export const enableDbAccessProvider = async (providerId: string, dbConfig: DbCon
   }
 
   if (dbAccessError) throw dbAccessError;
+
+  await addActionsUser(providerId);
 }
 
 export const getUserDbCredentials = async (providerId: string): Promise<DbConfig | null> => {
@@ -175,9 +210,31 @@ export const getUserDbCredentials = async (providerId: string): Promise<DbConfig
   }
 }
 
-export const disconnectProvider = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser()
+export const deleteActions = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) throw new Error('User not authenticated');
 
+  const { data: actions } = await supabase
+    .from('provider_actions')
+    .select('id')
+    .eq('provider_id', providerId);
+
+  if (actions?.length) {
+    const actionIds = actions.map(a => a.id);
+    
+    await supabase
+      .from('users_provider_actions')
+      .delete()
+      .eq('user_id', user.id)
+      .in('action_id', actionIds);
+  }
+};
+
+export const disconnectProvider = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  await deleteActions(providerId);
+  
   await supabase
     .from('users_provider_api_keys')
     .delete()
@@ -208,7 +265,7 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
-    })
+    });
 
   await supabase
     .from('users_oauth_tokens')
@@ -216,16 +273,16 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
-    })
-}
+    });
+};
 
-export const initiateOAuthFlow = async (providerTag: string, scopes: string[]): Promise<string> => {
+export const initiateOAuthFlow = async (providerTag: string, scopes: string[], return_url?: string): Promise<string> => {
   const response = await fetch(`/api/oauth/${providerTag}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ scopes })
+    body: JSON.stringify({ scopes, return_url })
   });
   
   const { url } = await response.json();
@@ -294,6 +351,8 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string): 
   }
 
   if (apiKeyError) throw apiKeyError;
+
+  await addActionsUser(providerId);
 }
 
 export const getUserApiKey = async (providerId: string): Promise<string | null> => {
@@ -355,9 +414,17 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data: provider, error } = await supabase
     .from('providers')
-    .select('*')
+    .select(`
+      *,
+      provider_scopes (
+        scope_id,
+        scope_name
+      )
+    `)
     .eq('provider_tag', providerTag)
     .single();
 
@@ -366,153 +433,180 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     throw error;
   }
 
-  let inputSchema = {};
-  let uiComponents = [];
-  let exampleSchema = {};
-  
-  try {
-    inputSchema = typeof provider.input_schema === 'string' 
-      ? JSON.parse(provider.input_schema) 
-      : provider.input_schema || {};
-  } catch (e) {
-    console.error('Error parsing input schema:', e);
+  // Convert provider scopes to ProviderScope format
+  const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
+    scope: s.scope_id,
+    scope_name: s.scope_name
+  })) || [];
+
+  // Only fetch and process OAuth tokens if the provider uses OAuth
+  let userScopes: ProviderScope[] = [];
+  if (provider.auth_method === 'oauth') {
+    const { data: oauthToken } = await supabase
+      .from('users_oauth_tokens')
+      .select('scopes')
+      .eq('user_id', user?.id)
+      .eq('provider_id', provider.id)
+      .single();
+
+    // Filter user scopes based on the oauth token scopes
+    userScopes = oauthToken?.scopes
+      ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope))
+      : [];
   }
-  
-  try {
-    uiComponents = typeof provider.ui_component === 'string' 
-      ? JSON.parse(provider.ui_component) 
-      : provider.ui_component || [];
+
+  const { data: actions, error: actionsError } = await supabase
+    .from('provider_actions')
+    .select('*')
+    .eq('provider_id', provider.id);
+
+  if (actionsError) {
+    console.error('Error fetching provider actions:', actionsError);
+    throw actionsError;
+  }
+
+  const endpointsList = actions?.map(action => {
+    const inputSchema = typeof action.input_schema === 'string' 
+      ? JSON.parse(action.input_schema) 
+      : action.input_schema;
+
+    return {
+      name: action.action_slug,
+      functionId: action.action_name,
+      description: inputSchema?.function?.description || '',
+      paramCount: countParameters(inputSchema),
+      input_schema: inputSchema,
+      output_schema: typeof action.output_schema === 'string' 
+        ? JSON.parse(action.output_schema) 
+        : action.output_schema,
+      examples: typeof action.examples === 'string'
+        ? JSON.parse(action.examples)
+        : action.examples
+    };
+  }) || [];
+
+  const uiComponents = actions?.map(action => {
+    if (!action.ui_component) return null;
     
-    if (!Array.isArray(uiComponents)) {
-      uiComponents = [uiComponents].filter(Boolean);
-    }
-  } catch (e) {
-    console.error('Error parsing UI components:', e);
-    uiComponents = [];
-  }
+    const component = typeof action.ui_component === 'string'
+      ? JSON.parse(action.ui_component)
+      : action.ui_component;
 
-  try {
-    exampleSchema = typeof provider.example_schema === 'string'
-      ? JSON.parse(provider.example_schema)
-      : provider.example_schema || {};
-  } catch (e) {
-    console.error('Error parsing example schema:', e);
-    exampleSchema = {};
-  }
+    return {
+      ...component,
+      action_slug: action.action_slug
+    };
+  }).filter(Boolean) || [];
 
-  const totalEndpoints = Object.keys(inputSchema).length;
-
-  let totalParameters = 0;
-  Object.values(inputSchema).forEach((endpoint: any) => {
-    if (endpoint?.function?.parameters?.properties) {
-      const topLevelParams = Object.keys(endpoint.function.parameters.properties).length;
-      
-      let nestedParams = 0;
-      Object.entries(endpoint.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
-        if (propValue.$ref && endpoint.function.parameters.$defs) {
-          const defName = propValue.$ref.split('/').pop();
-          const definition = endpoint.function.parameters.$defs[defName];
-          
-          if (definition?.properties) {
-            nestedParams += Object.keys(definition.properties).length;
-          }
-        }
-      });
-      
-      totalParameters += topLevelParams + nestedParams;
-    }
-  });
-
+  const totalEndpoints = endpointsList.length;
+  const totalParameters = endpointsList.reduce((sum, endpoint) => sum + endpoint.paramCount, 0);
   const totalComponents = uiComponents.length;
 
-  const endpointsList: ProviderEndpoint[] = Object.entries(inputSchema).map(([key, value]: [string, any]) => {
-    const functionName = value?.function?.name || key;
-    const description = value?.function?.description || '';
-    
-    let paramCount = 0;
-    if (value?.function?.parameters?.properties) {
-      paramCount = Object.keys(value.function.parameters.properties).length;
-      
-      Object.entries(value.function.parameters.properties).forEach(([_, propValue]: [string, any]) => {
-        if (propValue.$ref && value.function.parameters.$defs) {
-          const defName = propValue.$ref.split('/').pop();
-          const definition = value.function.parameters.$defs[defName];
-          
-          if (definition?.properties) {
-            paramCount += Object.keys(definition.properties).length;
-          }
-        }
-      });
-    }
-    
-    return {
-      name: key,
-      functionId: functionName,
-      description,
-      paramCount
-    };
+  const inputSchemas: Record<string, any> = {};
+  const outputSchemas: Record<string, any> = {};
+  const exampleSchema: Record<string, any> = {};
+
+  endpointsList.forEach(endpoint => {
+    inputSchemas[endpoint.name] = endpoint.input_schema;
+    outputSchemas[endpoint.name] = endpoint.output_schema;
+    exampleSchema[endpoint.name] = endpoint.examples;
   });
 
-  endpointsList.sort((a, b) => {
-    const getKeyParts = (name: string) => {
-      const parts = name.split('_');
-      const action = parts[0] || '';
-      const entity = parts.slice(1).join('_') || '';
-      return { action, entity };
-    };
+  // Remove provider_scopes from provider object and add transformed scopes
+  const { provider_scopes: _, ...providerWithoutScopes } = provider;
+  const providerWithScopes = {
+    ...providerWithoutScopes,
+    scopes,
+    user_scopes: userScopes
+  };
 
-    const partsA = getKeyParts(a.name);
-    const partsB = getKeyParts(b.name);
-
-    if (partsA.entity !== partsB.entity) {
-      return partsA.entity.localeCompare(partsB.entity);
-    }
-    
-    return partsA.action.localeCompare(partsB.action);
-  });
-
-  return {
-    provider,
+  const result: ProviderDetails = {
+    provider: {
+      ...providerWithScopes,
+      input_schema: inputSchemas,
+      output_schema: outputSchemas,
+      ui_component: uiComponents
+    },
+    actions: actions || [],
     totalEndpoints,
     totalParameters,
     totalComponents,
     endpointsList,
     exampleSchema
   };
+
+  return result;
+};
+
+const countParameters = (schema: any): number => {
+  if (!schema?.function?.parameters?.properties) return 0;
+  
+  let count = 0;
+  const props = schema.function.parameters.properties;
+  
+  for (const [_, prop] of Object.entries(props) as [string, { $ref?: string }][]) {
+    count += 1;
+    if (prop.$ref && schema.function.parameters.$defs) {
+      const defName = prop.$ref.split('/').pop();
+      const definition = schema.function.parameters.$defs[defName as string];
+      if (definition?.properties) {
+        count += Object.keys(definition.properties).length;
+      }
+    }
+  }
+  
+  return count;
 };
 
 export const findComponentForEndpoint = async (providerTag: string, endpointName: string): Promise<any> => {
-  const { data: provider, error } = await supabase
+  const { data: provider } = await supabase
     .from('providers')
-    .select('ui_component')
+    .select('id')
     .eq('provider_tag', providerTag)
     .single();
 
-  if (error) {
-    console.error('Error fetching provider components:', error);
-    throw error;
-  }
-
-  let uiComponents = [];
-  try {
-    uiComponents = typeof provider.ui_component === 'string' 
-      ? JSON.parse(provider.ui_component) 
-      : provider.ui_component || [];
-    
-    if (!Array.isArray(uiComponents)) {
-      uiComponents = [uiComponents].filter(Boolean);
-    }
-  } catch (e) {
-    console.error('Error parsing UI components:', e);
+  if (!provider) {
     return null;
   }
 
-  const componentWithRelatedEndpoint = uiComponents.find(component => 
-    component.related_endpoints && 
-    component.related_endpoints.includes(endpointName)
-  );
-  
-  return componentWithRelatedEndpoint || null;
+  const { data: action } = await supabase
+    .from('provider_actions')
+    .select(`
+      id,
+      action_name,
+      action_slug,
+      ui_component
+    `)
+    .eq('provider_id', provider.id)
+    .eq('action_slug', endpointName)
+    .single();
+
+  if (!action?.ui_component) {
+    return null;
+  }
+
+  try {
+    const rawComponent = typeof action.ui_component === 'string' 
+      ? JSON.parse(action.ui_component) 
+      : action.ui_component;
+
+    const componentName = Object.keys(rawComponent)[0];
+    if (!componentName) {
+      return null;
+    }
+
+    const componentData = rawComponent[componentName];
+
+    return {
+      name: componentName,
+      ...componentData,
+      action_slug: action.action_slug,
+      jsx: componentData.component?.jsx || componentData.jsx || '',
+      component: componentData.component || { jsx: componentData.jsx || '' }
+    };
+  } catch (e) {
+    return null;
+  }
 };
 
 export const testDbConnection = async (providerId: string, dbConfig: DbConfig): Promise<{success: boolean, message: string}> => {
@@ -566,7 +660,6 @@ export const getUserMemoryChunks = async (): Promise<any[]> => {
       .eq('user_id', user?.id);
     
     if (error) throw error;
-    console.log(data);
     
     return data || [];
   } catch (error) {
@@ -723,6 +816,8 @@ export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: s
   }
 
   if (apiKeyError) throw apiKeyError;
+
+  await addActionsUser(providerId);
 }
 
 export const getProviderBaseUrl = async (providerId: string): Promise<string | null> => {
@@ -774,7 +869,6 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
     
     if (!data || !data.raw_data) return null;
     
-    // Parse raw_data if it's a string
     const rawData = typeof data.raw_data === 'string' 
       ? JSON.parse(data.raw_data) 
       : data.raw_data;
@@ -850,7 +944,6 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
       
       // Only encrypt if: field is sensitive, has a value, and has changed
       if (isSensitive && processedAuthData[key] && valueChanged) {
-        console.log(`Encrypting changed/new sensitive field: ${key}`);
         const response = await fetch('/api/encrypt', {
           method: 'POST',
           headers: {
@@ -866,9 +959,10 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
         const { encryptedKey } = await response.json();
         processedAuthData[key] = encryptedKey;
       }
+
+      await addActionsUser(providerId);
     }
-    
-    console.log(`Saving custom auth for user ${user.id} and provider ${providerId}`);
+
     
     if (recordId) {
       // Update existing record
@@ -1033,5 +1127,111 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
       valid: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
     };
+  }
+};
+
+
+export const addActionsUser = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const userIdToUse = user?.id;
+
+  if (!userIdToUse) {
+    throw new Error('Unauthorized - User ID not found');
+  }
+  
+
+  const { data: provider, error: providersError } = await supabase
+        .from('providers')
+        .select('id, name, auth_method')
+        .eq('id', providerId).single();
+
+  if (!provider) {
+    throw new Error('Provider not found');
+  }
+
+  if (provider.auth_method === 'oauth') {
+    const { data: oauthToken, error: tokenError } = await supabase
+      .from('users_oauth_tokens')
+      .select('scopes')
+      .eq('user_id', userIdToUse)
+      .eq('provider_id', providerId)
+      .single();
+
+    if (tokenError || !oauthToken?.scopes) {
+      throw new Error('Failed to get OAuth token scopes');
+    }
+
+    const { data: scopedActions, error: scopeError } = await supabase
+      .from('provider_action_scopes')
+      .select('action_id')
+      .in('scope_id', oauthToken.scopes)
+      .eq('provider_id', providerId);
+
+    if (scopeError) {
+      throw scopeError;
+    }
+    if (!scopedActions?.length) {
+      return;
+    }
+
+    const actionIds = scopedActions.map(sa => sa.action_id);
+
+    const { data: actions, error: actionsError } = await supabase
+      .from('provider_actions')
+      .select('id')
+      .eq('provider_id', providerId)
+      .in('id', actionIds);
+
+    if (actionsError) {
+      throw actionsError;
+    }
+    if (!actions?.length) {
+      return;
+    }
+
+    const insertData = actions.map(action => ({
+      user_id: user?.id,
+      action_id: action.id
+    }));
+
+    const { error: insertError } = await supabase
+      .from('users_provider_actions')
+      .upsert(insertData, {
+        onConflict: 'user_id,action_id',
+        ignoreDuplicates: true
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
+  } else {
+    const { data: actions, error: actionsError } = await supabase
+      .from('provider_actions')
+      .select('id')
+      .eq('provider_id', providerId);
+
+    if (actionsError) {
+      throw actionsError;
+    }
+    if (!actions?.length) {
+      return;
+    }
+
+    const insertData = actions.map(action => ({
+      user_id: user?.id,
+      action_id: action.id
+    }));
+
+    const { error: insertError } = await supabase
+      .from('users_provider_actions')
+      .upsert(insertData, {
+        onConflict: 'user_id,action_id',
+        ignoreDuplicates: true
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
   }
 };

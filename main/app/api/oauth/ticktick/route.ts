@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { scopes } = await request.json();
+    const { scopes, return_url } = await request.json();
     
     const validScopes: TickTickScope[] = ['tasks:write', 'tasks:read'];
     const uniqueScopes = Array.from(new Set<string>(scopes))
@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
 
     const state = Buffer.from(JSON.stringify({
         provider_id: provider?.id,
-        scopes: uniqueScopes
+        scopes: uniqueScopes,
+        return_url: return_url || '/integrations'
     })).toString('base64');
 
     const redirectUri = `${request.nextUrl.origin}/api/oauth/ticktick/callback`;

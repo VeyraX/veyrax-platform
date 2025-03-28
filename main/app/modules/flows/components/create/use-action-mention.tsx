@@ -1,15 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { ProviderAction } from "@/app/modules/flows/api/types.flows";
-import { getAllProviderActions } from "@/app/modules/flows/api/api.flows";
 
 interface CursorPosition {
   top: number;
   left: number;
 }
 
-export function useActionsMention(contentEditableRef: React.RefObject<any>) {
-  const [actions, setActions] = useState<any[]>([]);
-  const [filteredActions, setFilteredActions] = useState<any[]>([]);
+export function useActionsMention(contentEditableRef: React.RefObject<any>, providedActions: any[] = []) {
+  const [actions, setActions] = useState<any[]>(providedActions);
+  const [filteredActions, setFilteredActions] = useState<any[]>(providedActions);
   const [showActions, setShowActions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
@@ -19,18 +18,9 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>) {
   const actionJustSelectedTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const loadActions = async () => {
-      try {
-        const actions = await getAllProviderActions();
-        setActions(actions);
-        setFilteredActions(actions);
-      } catch (error) {
-        console.error('Error loading actions:', error);
-      }
-    };
-
-    loadActions();
-  }, []);
+    setActions(providedActions);
+    setFilteredActions(providedActions);
+  }, [providedActions]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -40,7 +30,7 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>) {
 
     const query = searchQuery.toLowerCase();
     const filtered = actions.filter(action => 
-      action.action_name.toLowerCase().includes(query) || 
+      action.action_slug.toLowerCase().includes(query) || 
       action.provider_name?.toLowerCase().includes(query)
     );
     
@@ -167,21 +157,21 @@ export function useActionsMention(contentEditableRef: React.RefObject<any>) {
     actionElement.contentEditable = 'false';
     
     actionElement.setAttribute('data-provider', action.provider_name || '');
-    actionElement.setAttribute('data-action', action.action_name || '');
+    actionElement.setAttribute('data-action', action.action_slug || '');
     
     const imgContainer = document.createElement('div');
     imgContainer.className = 'h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white';
     
     const imgElement = document.createElement('img');
     imgElement.src = action.logo_url;
-    imgElement.alt = action.action_name;
+    imgElement.alt = action.action_slug;
     imgElement.className = 'max-h-full max-w-full object-contain';
     
     imgContainer.appendChild(imgElement);
     
     const textElement = document.createElement('span');
     textElement.className = 'text-primary text-xs font-medium';
-    textElement.textContent = action.action_name;
+    textElement.textContent = action.action_slug;
     
     actionElement.appendChild(imgContainer);
     actionElement.appendChild(textElement);

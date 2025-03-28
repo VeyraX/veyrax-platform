@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
+
 
 export async function POST(request: NextRequest) {
     const supabase = await createClient();
@@ -55,7 +57,6 @@ export async function POST(request: NextRequest) {
             username: userData.username
         });
 
-        // Сохраняем связь пользователя с провайдером
         console.log('Upserting provider connection...');
         const { error: providerUpsertError } = await supabase
             .from('users_providers')
@@ -71,7 +72,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to save provider connection' }, { status: 500 });
         }
 
-        // Шифруем токен и сохраняем его
         const encryptedAccessToken = encrypt(token);
         const tenYearsInSeconds = 10 * 365 * 24 * 60 * 60;
         
@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
             console.error('Upsert error:', upsertError);
             return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
         }
+
+        await addActionsUser(provider_id);
 
         console.log('Token saved successfully');
         return NextResponse.json({ success: true });

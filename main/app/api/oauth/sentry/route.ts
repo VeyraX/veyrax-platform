@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // We don't need to extract useExternalInstall since we're always using external install
-    const { scopes } = await request.json();
+    const { scopes, return_url } = await request.json();
     
     const { data: provider } = await supabase
         .from('providers')
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
     // Store the provider_id and scopes in state for the callback
     const state = Buffer.from(JSON.stringify({
         provider_id: provider.id,
-        scopes
+        scopes,
+        return_url: return_url || '/integrations'
     })).toString('base64');
     
     // Add state as a query parameter to track the installation

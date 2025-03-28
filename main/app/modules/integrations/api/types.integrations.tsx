@@ -1,3 +1,8 @@
+export interface ProviderScope {
+  scope: string;
+  scope_name: string;
+}
+
 export interface Provider {
   id: string;
   name: string;
@@ -5,17 +10,14 @@ export interface Provider {
   logo_url?: string;
   provider_tag: string;
   auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none' | 'custom';
-  scopes?: {
-    scope: string;
-    scope_name: string;
-  }[];
+  scopes?: ProviderScope[];
+  user_scopes?: ProviderScope[];
   auth_schema?: CustomAuthField[];
-  input_schema?: string | object;
-  output_schema?: string | object;
   created_at?: string | number;
   is_enabled?: boolean;
-  ui_component?: string | object;
   categories?: string;
+  input_schema?: Record<string, any>;
+  output_schema?: Record<string, any>;
 }
 
 export interface DbConfig {
@@ -48,6 +50,7 @@ export interface IntegrationCardProps extends Provider {
   onConnectionChange?: () => void;
   isPublic?: boolean;
   onShowSettings?: (provider: Provider) => void;
+  return_url?: string;
 }
 
 export interface UserProvider {
@@ -82,10 +85,14 @@ export interface ProviderEndpoint {
   functionId: string;
   description: string;
   paramCount: number;
+  input_schema?: object;
+  output_schema?: object;
+  examples?: object;
 }
 
 export interface ProviderDetails {
   provider: Provider;
+  actions: ProviderAction[];
   totalEndpoints: number;
   totalParameters: number;
   totalComponents: number;
@@ -107,7 +114,7 @@ export interface ComponentData {
     data: any;
   };
   description?: string;
-  related_endpoints?: string[];
+  action_slug?: string;
   version?: string;
 }
 
@@ -149,4 +156,16 @@ export interface CustomAuthField {
   placeholder?: string;
   sensitive?: boolean;
   options?: { label: string, value: string }[];
+}
+
+export interface ProviderAction {
+  id: string;
+  provider_id: string;
+  action_name: string;
+  action_slug: string;
+  input_schema: string | object;
+  output_schema: string | object;
+  examples: string | object;
+  ui_component?: string | object;
+  created_at?: string;
 }

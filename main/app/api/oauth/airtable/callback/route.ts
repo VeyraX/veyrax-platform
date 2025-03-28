@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes, code_verifier } = JSON.parse(decodedState);
+        const { provider_id, scopes, code_verifier, return_url } = JSON.parse(decodedState);
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
             }
             
             const tokens = JSON.parse(responseText);
-            return await processTokens(tokens, user.id, provider_id, scopes, request);
+            return await processTokens(tokens, user.id, provider_id, scopes, request, return_url);
             
         } catch (error) {
             throw error;
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-async function processTokens(tokens: any, userId: string, providerId: string, scopes: string[], request: NextRequest) {
+async function processTokens(tokens: any, userId: string, providerId: string, scopes: string[], request: NextRequest, return_url: string) {
     const supabase = await createClient();
     
     const { error: providerUpsertError } = await supabase
@@ -125,6 +126,8 @@ async function processTokens(tokens: any, userId: string, providerId: string, sc
     if (upsertError) {
         throw upsertError;
     }
+    
+    await addActionsUser(providerId);
 
-    return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
+    return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
 }

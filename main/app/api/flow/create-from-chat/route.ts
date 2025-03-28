@@ -1,12 +1,23 @@
-import { createClient } from '@/lib/utils/supabase/server';
 import { openai } from '@ai-sdk/openai';
 import { Message, streamText } from 'ai';
 import { NextResponse } from 'next/server';
 import { flow_improve_description } from '@/lib/ai/tools/flow-description';
+import { getFlowForPrompt, getProviderActionsForFlow } from '@/app/modules/flows/api/api.server.flow';
+import { flow_improvement_prompt } from '@/app/prompts/flow_improvements_prompt';
+import { flow_builder_prompt } from '@/app/prompts/flow_builder_prompt';
+import { tool_call_builder, get_tools } from '@/lib/ai/tools/tool-call';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flows';
+import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY || ''
+});
+
+const modelName = 'anthropic/claude-3.7-sonnet';
 
 export async function POST(request: Request) {
   try {
-    const { messages, chatId } = await request.json();
+    const { messages, flowId, chatId } = await request.json();
     
     if (!messages || messages.length === 0) {
       return NextResponse.json(
@@ -14,52 +25,84 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
-    const supabase = createClient();
-    const { data: actions, error } = await supabase
-      .from('provider_actions')
-      .select('provider_id, provider_name, action_name, logo_url');
-    
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to fetch available actions' },
-        { status: 500 }
-      );
+
+    let currentFlowId = flowId;
+
+    if (!currentFlowId && chatId) {
+      const urlMatch = chatId.match(/flow\/([^\/]+)\/edit/);
+      if (urlMatch && urlMatch[1]) {
+        currentFlowId = urlMatch[1];
+      }
     }
 
-    const systemMessage = `
+    let scheduleInfo = 'No schedule set';
+    if (currentFlowId) {
+      try {
+        const flowSchedule = await getFlowSchedule(currentFlowId);
+        scheduleInfo = flowSchedule ? `Schedule: ${JSON.stringify(flowSchedule)}` : 'No schedule set';
+      } catch (error) {
+        console.error('Error fetching flow schedule:', error);
+        scheduleInfo = 'Error fetching schedule';
+      }
+    }
+
+    const { data: flow } = await getFlowForPrompt(currentFlowId);
+
+    let flowContextInfo = '';
+    if (flow) {
+      flowContextInfo = `
+      Current flow information:
+      - ID: ${flow.id}
+      - Name: ${flow.name}
+      - Description: ${flow.plain_description || ''}
+      - ${scheduleInfo}
+      
+      This is the flow that user wants to test. Use the ID provided above when calling the tool_call_test_flow tool.
+      `;
+    }
+
+    const { data: actions, error } = await getProviderActionsForFlow();
+
+    const SystemMainPrompt = `
       You are a helpful assistant that helps users create automated workflows.
       Your task is to understand the user's request and convert it into a structured workflow.
-      
+
+      ${flow_improvement_prompt}
+      ${flowContextInfo}
+      ${scheduleInfo}
+
       Available actions:
-      ${actions.map(action => 
-        `- ${action.action_name} (Provider: ${action.provider_name})`
-      ).join('\n')}
-      
-      When creating a workflow, follow these guidelines:
-      1. Create a concise but descriptive name for the workflow
-      2. Generate a detailed step-by-step description that explains how the workflow operates
-      3. Mention specific actions from the available actions list when appropriate
-      4. Include necessary triggers, conditions, and actions
-      
-      You should use the flow_improve_description tool to create workflow details based on the user's request.
-      Only return plain text responses if the user is asking questions about workflows or if you need more information.
-      If the user provides enough information to create a workflow, use the tool instead of responding with text.
+      ${actions.map((action: any) => `- ${action.action_slug} (Provider: ${action.provider_name}, Logo URL: ${action.logo_url}). Input schema: ${action.input_schema}. Examples: ${action.examples}.`).join('\n')}
+
+      ${flow_builder_prompt}
+      Never add title to the flow description. Start with text and description, bullect points. No titles.
+
+      You MUST generate HTML for each action to fit the flow. MUST.
     `;
 
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY || ''
+    });
+
     const allMessages = [
-      { role: 'system', content: systemMessage, id: 'system' },
+      { role: 'system', content: SystemMainPrompt, id: 'system' },
       ...messages
     ];
 
     const response = streamText({
-      model: openai('gpt-4o'),
+      model: openrouter(modelName) as any,
       messages: allMessages,
       tools: {
-        flow_improve_description
+        flow_improve_description,
+        tool_call_builder,
+        flowScheduleTool,
+        deleteFlowScheduleTool
       },
       experimental_toolCallStreaming: true,
-      maxSteps: 3
+      maxSteps: 25,
+      onError: (error) => {
+        console.error('Error creating flow from chat:', error);
+      }
     });
 
     return response.toDataStreamResponse({

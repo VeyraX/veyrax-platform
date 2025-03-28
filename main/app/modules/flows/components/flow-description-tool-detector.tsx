@@ -18,9 +18,9 @@ export function useToolsDetector(html: string, actions: any[]) {
     const actionElements = getActionElementsFromHTML(html);
     const providersInfo = getProviderInfoFromActionElements(actionElements);
     
-    providersInfo.forEach(({ providerName, actionName }: { providerName: string; actionName: string }) => {
+    providersInfo.forEach(({ providerName, actionSlug }: { providerName: string; actionSlug: string }) => {
       const matchingAction = actions.find(a => 
-        a.provider_name === providerName && a.action_name === actionName
+        a.provider_name === providerName && a.action_slug === actionSlug
       );
       
       if (matchingAction) {

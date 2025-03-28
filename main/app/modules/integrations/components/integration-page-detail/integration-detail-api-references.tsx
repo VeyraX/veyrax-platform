@@ -54,7 +54,7 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
   }
 
   const getOutputSchema = (endpointName: string) => {
-    const outputSchema = typeof provider.output_schema === 'string' 
+    const outputSchema = typeof provider.output_schema  === 'string' 
       ? JSON.parse(provider.output_schema) 
       : provider.output_schema || {}
     

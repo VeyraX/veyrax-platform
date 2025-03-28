@@ -35,7 +35,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
   const handleSettingsConfirm = async (scopes: string[]) => {
     setShowSettings(false);
     try {
-      const url = await initiateOAuthFlow(props.provider_tag, scopes);
+      const url = await initiateOAuthFlow(props.provider_tag, scopes, props.return_url);
       window.location.href = url;
     } catch (error) {
       console.error(`Failed to start OAuth flow for ${props.name}:`, error);

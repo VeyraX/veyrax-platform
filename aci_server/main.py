@@ -50,7 +50,7 @@ from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
 from integrations.reddit.route import router as reddit_router
-from integrations.common.utils import get_router_tools, log_api_call
+from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
@@ -76,8 +76,7 @@ import inspect
 import sentry_sdk
 import random
 import time
-import objgraph
-import gc
+from starlette.middleware.base import BaseHTTPMiddleware
 
 load_dotenv()
 
@@ -154,6 +153,56 @@ INTEGRATION_ROUTERS = {
     "uploadthing": uploadthing_router
 }
 
+async def check_user_permission(request: Request, tool: str, method: str):
+    try:
+        
+        if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
+            return
+
+        
+        user_id = await get_user_from_request(request)
+        user_tools = get_user_tools_from_actions(user_id)
+
+        if not user_tools:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        if tool not in user_tools:
+            raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
+        if method not in user_tools[tool]:
+            raise HTTPException(status_code=403, detail=f"Action {method} is not availiable for {tool} for this user")
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking permissions: {str(e)}")
+
+
+class PermissionMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path.strip("/")
+        segments = path.split("/")
+        
+        # Skip non-tool routes like root, healthcheck, etc.
+        if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] == "tool-call"):
+            if segments[0] == "tool-call" and len(segments) >= 3:
+                tool, method = segments[1], segments[2]
+            else:
+                tool, method = segments[0], segments[1] if len(segments) > 1 else None
+
+            if tool and method:
+                try:
+                    await check_user_permission(request, tool, method)
+                except HTTPException as e:
+                    if e.status_code in [401, 403]:
+                        return JSONResponse(
+                            status_code=e.status_code,
+                            content={"detail": f"Method not available: {e.detail}"}
+                        )
+                    raise e
+
+        # Proceed if allowed
+        return await call_next(request)
+
+
 app = FastAPI()
 
 app.state.celery = celery_app
@@ -166,8 +215,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include debug router
 app.include_router(debug_router)
+
+app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
@@ -398,6 +448,7 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
+    
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
         return await get_dev_user_tools(request)
     
@@ -407,37 +458,22 @@ async def get_user_tools(request: Request):
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
     try:
-        supabase = get_supabase()
-    
-        user_providers = supabase.table('users_providers') \
-            .select('provider_id') \
-            .eq('user_id', user_id) \
-            .execute()
+        user_tools = get_user_tools_from_actions(user_id)
+        
+        if isinstance(user_tools, dict) and "error" in user_tools:
+            raise Exception(user_tools["error"])
             
-        if not user_providers.data:
+        if not user_tools:
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
-            
             tools_response["tools"]["memories"] = {}
-            
             return tools_response
-            
-        provider_ids = [item['provider_id'] for item in user_providers.data]
         
-        providers = supabase.table('providers') \
-            .select('provider_tag, input_schema') \
-            .in_('id', provider_ids) \
-            .execute()
-            
-        user_tools = {}
-        user_tools['examples'] = json.loads(get_tools_example_prompt)
-
-        for provider in providers.data:
-            if provider.get('input_schema'):
-                user_tools[provider['provider_tag']] = provider['input_schema']
+        response_tools = {"tools": user_tools}
+        response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
         
         user_memories = await get_user_memories(user_id)
-        user_tools['memories'] = user_memories
+        response_tools["tools"]["memories"] = user_memories
         
         log_api_call(
             user_id=user_id,
@@ -445,7 +481,7 @@ async def get_user_tools(request: Request):
             success=1
         )
         
-        return {"tools": user_tools}
+        return response_tools
     except Exception as e:
         log_api_call(
             user_id=user_id,
@@ -586,3 +622,86 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
                 )
             except Exception as log_error:
                 print(f"Error logging API call for Supabase: {str(log_error)}")
+
+@app.get("/get-flows")
+async def get_user_flows_endpoint(request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
+        flows = get_user_flows_actions(user_id)
+        print(flows)
+        
+        if isinstance(flows, dict) and "error" in flows:
+            raise Exception(flows["error"])
+        
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-flows",
+            success=1
+        )
+        
+        response = {
+            "flows": flows,
+            "examples": json.loads(get_tools_example_prompt)
+        }
+        
+        return response
+    except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-flows",
+            success=0,
+            error_message=str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get user flows: {str(e)}")
+
+@app.get("/get-flow/{flow_id}")
+async def get_flow_by_id(flow_id: str, request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+    except Exception as e:  
+        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+    try:
+        flow = get_user_flows_actions(user_id, flow_id)
+        
+        if isinstance(flow, dict) and "error" in flow:
+            raise Exception(flow["error"])
+            
+        if not flow:
+            raise HTTPException(status_code=404, detail="Flow not found")
+            
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=1
+        )
+        
+        response = {
+            "flows": flow,
+            "examples": json.loads(get_tools_example_prompt)
+        }
+        
+        return response
+        
+    except HTTPException as http_exc:
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=0,
+            error_message=str(http_exc.detail)
+        )
+        raise
+        
+    except Exception as e:
+        log_api_call(
+            user_id=user_id,
+            endpoint=f"/get-flow/{flow_id}",
+            success=0,
+            error_message=str(e)
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to get flow: {str(e)}")
+

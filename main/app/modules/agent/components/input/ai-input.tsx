@@ -28,6 +28,7 @@ interface AIInputWithSearchProps {
 
 export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWithSearchProps>(({
   id = "ai-input-with-search",
+  placeholder = "Ask anything...",
   minHeight = 64,
   maxHeight = 256,
   onSubmit,
@@ -163,8 +164,8 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
               <Textarea
                 id={id}
                 value={value}
-                placeholder="Ask anything..."
-                className="w-full rounded-xl rounded-b-none px-4 py-3 bg-black/5 dark:bg-white/5 border-none dark:text-white placeholder:text-black/70 dark:placeholder:text-white/70 resize-none focus-visible:ring-0 leading-[1.2]"
+                placeholder={placeholder}
+                className="w-full rounded-xl rounded-b-none px-4 py-3 bg-black/5 dark:bg-white/5 border-none dark:text-white placeholder:text-black/70 dark:placeholder:text-white/70 placeholder:text-sm resize-none focus-visible:ring-0 leading-[1.2]"
                 ref={textareaRef}
                 onKeyDown={handleKeyDown}
                 onChange={handleInputChange}

@@ -14,7 +14,8 @@ import requests
 import functools
 import traceback
 import sentry_sdk
-
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     tools = []
 
@@ -299,3 +300,93 @@ def apply_error_handler_to_client(client):
             if hasattr(original_method, '__self__') and original_method.__self__ is client:
                 setattr(client, method_name, handle_api_error(original_method))
     return client
+
+
+def get_user_flows_actions(user_id: str, flow_id: str = None):
+    try:
+        supabase = get_supabase()
+        
+        query = supabase.from_('user_actions_flows_view') \
+            .select('*') \
+            .eq('user_id', user_id)
+            
+        if flow_id:
+            query = query.eq('flow_id', flow_id)
+            
+        result = query.execute()
+        
+        if not result.data:
+            return []
+        
+        flows_map = {}
+        
+        for row in result.data:
+            flow_id = row.get('flow_id')
+            
+            if flow_id not in flows_map:
+                flows_map[flow_id] = {
+                    "id": flow_id,
+                    "name": row.get('flow_name'),
+                    "plain_description": row.get('flow_plain_description'),
+                    "available_actions": []
+                }
+            
+            action = {
+                "provider_slug": row.get('provider_slug'),
+                "action_slug": row.get('action_slug'),
+                "input_schema": row.get('input_schema'),
+                "output_schema": row.get('output_schema')
+            }
+            
+            flows_map[flow_id]["available_actions"].append(action)
+        
+        if flow_id:
+            return flows_map.get(flow_id)
+            
+        return list(flows_map.values())
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+
+
+def get_user_tools_from_actions(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_actions_view') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return {}
+            
+        user_tools = {}
+        
+        for row in result.data:
+            provider_name = row.get('provider_tag')
+            action_name = row.get('action_slug')
+            input_schema = row.get('input_schema')
+            
+            if not provider_name or not action_name or not input_schema:
+                continue
+                
+            if provider_name not in user_tools:
+                user_tools[provider_name] = {}
+                
+            action_schema = {
+                "type": "function",
+                "function": {
+                    "name": action_name,
+                    **input_schema
+                }
+            }
+            
+            user_tools[provider_name][action_name] = action_schema
+            
+        return user_tools
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+    
+

@@ -16,16 +16,16 @@ export function parseDOMFromHTML(html: string): Document {
   
   export function getProviderInfoFromActionElements(actionElements: NodeListOf<Element>): {
     providerName: string;
-    actionName: string;
+    actionSlug: string;
   }[] {
-    const result: { providerName: string; actionName: string; }[] = [];
+    const result: { providerName: string; actionSlug: string; }[] = [];
     
     actionElements.forEach(item => {
       const providerName = item.getAttribute('data-provider');
-      const actionName = item.getAttribute('data-action');
+      const actionSlug = item.getAttribute('data-action');
       
-      if (providerName && actionName) {
-        result.push({ providerName, actionName });
+      if (providerName && actionSlug) {
+        result.push({ providerName, actionSlug });
       }
     });
     

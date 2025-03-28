@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
+
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -36,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes } = JSON.parse(decodedState);
+        const { provider_id, scopes, return_url } = JSON.parse(decodedState);
         
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -159,8 +161,10 @@ export async function GET(request: NextRequest) {
             // Continue even if verification fails
         }
 
+        await addActionsUser(provider_id);
+
         // Redirect back to the integrations page with success message
-        return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
+        return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
     } catch (error: any) {
         console.error('OAuth callback error:', {
             message: error.message,

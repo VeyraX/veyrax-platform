@@ -88,15 +88,7 @@ export function LoginForm() {
               />
             </div>
             <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link 
-                  href="/password/reset" 
-                  className="text-sm text-muted-foreground hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <Input 
                 id="password" 
                 type="password" 
@@ -113,6 +105,13 @@ export function LoginForm() {
             >
               {isEmailLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Sign Up
+              </Link>
+            </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

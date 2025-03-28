@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/app/modules/general/components/header';
@@ -11,6 +11,7 @@ export default function IntegrationAuthComplete() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { provider_tag } = useParams<{ provider_tag: string }>();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const processToken = async () => {
@@ -18,6 +19,7 @@ export default function IntegrationAuthComplete() {
         const hash = window.location.hash.substring(1);
         let token;
         
+        // Extract token from hash
         const match = hash.match(/token=([^&]+)/);
         if (match) {
           token = match[1];
@@ -48,7 +50,8 @@ export default function IntegrationAuthComplete() {
         setStatus('Authorization successful! Redirecting...');
         
         setTimeout(() => {
-          router.push('/integrations?success=true');
+          const returnTo = searchParams.get('return_to') || '/integrations';
+          router.push(`${returnTo}?success=true`);
         }, 1000);
       } catch (err: any) {
         setError(err.message || 'An unknown error occurred');
@@ -57,7 +60,7 @@ export default function IntegrationAuthComplete() {
     };
     
     processToken();
-  }, [router, provider_tag]);
+  }, [router, provider_tag, searchParams]);
 
   return (
     <div className="flex-1 flex flex-col relative h-[100vh] w-full">

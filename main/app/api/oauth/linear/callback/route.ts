@@ -1,14 +1,14 @@
 import { createClient } from '@/lib/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
+import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    
+
     if (!code || !state) {
-        console.error('Missing code or state');
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Invalid request`);
     }
 
@@ -16,13 +16,12 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-        console.error('No user found');
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Unauthorized`);
     }
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes } = JSON.parse(decodedState);
+        const { provider_id, scopes, return_url } = JSON.parse(decodedState);
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -31,7 +30,6 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (providerError || !provider) {
-            console.error('Provider error:', providerError);
             throw new Error('Provider not found');
         }
 
@@ -52,7 +50,6 @@ export async function GET(request: NextRequest) {
         const tokens = await tokenResponse.json();
 
         if (tokens.error) {
-            console.error('Token error:', tokens);
             throw new Error(tokens.error_description || tokens.error);
         }
 
@@ -66,7 +63,6 @@ export async function GET(request: NextRequest) {
             });
 
         if (providerUpsertError) {
-            console.error('Provider upsert error:', providerUpsertError);
             throw providerUpsertError;
         }
 
@@ -92,16 +88,13 @@ export async function GET(request: NextRequest) {
             });
 
         if (upsertError) {
-            console.error('Upsert error:', upsertError);
             throw upsertError;
         }
 
-        return NextResponse.redirect(`${request.nextUrl.origin}/integrations?success=true`);
+        await addActionsUser(provider_id);
+
+        return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
     } catch (error: any) {
-        console.error('OAuth callback error:', {
-            message: error.message,
-            error: error
-        });
         return NextResponse.redirect(
             `${request.nextUrl.origin}/integrations?error=${encodeURIComponent(error.message || 'Unknown error')}`
         );
