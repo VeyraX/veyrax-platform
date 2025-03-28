@@ -275,6 +275,8 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
 };
 
 export const initiateOAuthFlow = async (providerTag: string, scopes: string[], return_url?: string): Promise<string> => {
+
+  
   const response = await fetch(`/api/oauth/${providerTag}`, {
     method: 'POST',
     headers: {
@@ -433,7 +435,7 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
 
   // Convert provider scopes to ProviderScope format
   const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
-    scope: s.scope_id,
+    scope_id: s.scope_id,
     scope_name: s.scope_name
   })) || [];
 

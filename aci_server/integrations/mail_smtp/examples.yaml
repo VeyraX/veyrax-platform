@@ -1,0 +1,356 @@
+routes:
+  - endpoint: /mail_smtp/get_messages
+    examples:
+      - scenario: "Get Messages from INBOX"
+        description: "Fetch emails from the INBOX folder"
+        input_json: |
+          {
+            "folder": "INBOX",
+            "limit": 10,
+            "offset": 0,
+            "mark_as_read": false
+          }
+        output_json: |
+          {
+            "data": {
+              "messages": [
+                {
+                  "id": "123456",
+                  "subject": "Meeting Tomorrow",
+                  "from_email": {
+                    "email": "john.doe@example.com",
+                    "name": "John Doe"
+                  },
+                  "to": [
+                    {
+                      "email": "jane.smith@example.com",
+                      "name": "Jane Smith"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 10 Jul 2023 10:30:45 +0000",
+                  "body": {
+                    "text": "Let's meet tomorrow at 10 AM to discuss the project.",
+                    "html": "<p>Let's meet tomorrow at 10 AM to discuss the project.</p>"
+                  },
+                  "attachments": [],
+                  "headers": [],
+                  "folder": "INBOX",
+                  "is_read": false,
+                  "size": 2045
+                },
+                {
+                  "id": "123457",
+                  "subject": "Weekly Report",
+                  "from_email": {
+                    "email": "reports@example.com",
+                    "name": "Reporting System"
+                  },
+                  "to": [
+                    {
+                      "email": "jane.smith@example.com",
+                      "name": "Jane Smith"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 9 Jul 2023 08:15:22 +0000",
+                  "body": {
+                    "text": "Please find attached the weekly report.",
+                    "html": "<p>Please find attached the weekly report.</p>"
+                  },
+                  "attachments": [
+                    {
+                      "filename": "weekly_report.pdf",
+                      "content_type": "application/pdf",
+                      "content": "base64-encoded-content"
+                    }
+                  ],
+                  "headers": [],
+                  "folder": "INBOX",
+                  "is_read": true,
+                  "size": 15768
+                }
+              ],
+              "total": 42,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "MailSMTPMessageList"
+            }
+          }
+
+  - endpoint: /mail_smtp/get_message
+    examples:
+      - scenario: "Get Single Email Message"
+        description: "Fetch a specific email by its ID"
+        input_json: |
+          {
+            "message_id": "123456",
+            "mark_as_read": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "123456",
+              "subject": "Meeting Tomorrow",
+              "from_email": {
+                "email": "john.doe@example.com",
+                "name": "John Doe"
+              },
+              "to": [
+                {
+                  "email": "jane.smith@example.com",
+                  "name": "Jane Smith"
+                }
+              ],
+              "cc": [],
+              "bcc": [],
+              "reply_to": null,
+              "date": "Mon, 10 Jul 2023 10:30:45 +0000",
+              "body": {
+                "text": "Let's meet tomorrow at 10 AM to discuss the project.\n\nBest regards,\nJohn",
+                "html": "<p>Let's meet tomorrow at 10 AM to discuss the project.</p><p>Best regards,<br>John</p>"
+              },
+              "attachments": [],
+              "headers": [
+                {
+                  "name": "From",
+                  "value": "John Doe <john.doe@example.com>"
+                },
+                {
+                  "name": "To",
+                  "value": "Jane Smith <jane.smith@example.com>"
+                },
+                {
+                  "name": "Subject",
+                  "value": "Meeting Tomorrow"
+                },
+                {
+                  "name": "Date",
+                  "value": "Mon, 10 Jul 2023 10:30:45 +0000"
+                }
+              ],
+              "folder": "INBOX",
+              "is_read": true,
+              "size": 2045
+            },
+            "component": {
+              "name": "MailSMTPMessageDetail"
+            }
+          }
+
+  - endpoint: /mail_smtp/send_message
+    examples:
+      - scenario: "Send Simple Email"
+        description: "Send a plain text email to a recipient"
+        input_json: |
+          {
+            "from_email": {
+              "email": "jane.smith@example.com",
+              "name": "Jane Smith"
+            },
+            "to": [
+              {
+                "email": "john.doe@example.com",
+                "name": "John Doe"
+              }
+            ],
+            "subject": "RE: Meeting Tomorrow",
+            "body_text": "I'll be there, thanks for the invitation!",
+            "body_html": "<p>I'll be there, thanks for the invitation!</p>"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message_id": "<20230710115622.12345@example.com>"
+            },
+            "component": {
+              "name": "MailSMTPSendResult"
+            }
+          }
+      - scenario: "Send Email with Attachment"
+        description: "Send an email with an attachment"
+        input_json: |
+          {
+            "from_email": {
+              "email": "jane.smith@example.com",
+              "name": "Jane Smith"
+            },
+            "to": [
+              {
+                "email": "john.doe@example.com",
+                "name": "John Doe"
+              }
+            ],
+            "cc": [
+              {
+                "email": "team@example.com",
+                "name": "Project Team"
+              }
+            ],
+            "subject": "Project Proposal",
+            "body_text": "Please find attached the project proposal for your review.",
+            "body_html": "<p>Please find attached the project proposal for your review.</p>",
+            "attachments": [
+              {
+                "filename": "proposal.pdf",
+                "content": "base64-encoded-content",
+                "content_type": "application/pdf"
+              }
+            ],
+            "priority": "high"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message_id": "<20230710120145.67890@example.com>"
+            },
+            "component": {
+              "name": "MailSMTPSendResult"
+            }
+          }
+
+  - endpoint: /mail_smtp/get_folders
+    examples:
+      - scenario: "Get Mail Folders"
+        description: "List all mail folders with message counts"
+        input_json: |
+          {
+            "include_counts": true
+          }
+        output_json: |
+          {
+            "data": {
+              "folders": [
+                {
+                  "name": "INBOX",
+                  "full_name": "INBOX",
+                  "delimiter": "/",
+                  "attributes": ["\\HasNoChildren"],
+                  "has_children": false,
+                  "message_count": 42,
+                  "unread_count": 5
+                },
+                {
+                  "name": "Sent",
+                  "full_name": "Sent",
+                  "delimiter": "/",
+                  "attributes": ["\\HasNoChildren"],
+                  "has_children": false,
+                  "message_count": 125,
+                  "unread_count": 0
+                },
+                {
+                  "name": "Drafts",
+                  "full_name": "Drafts",
+                  "delimiter": "/",
+                  "attributes": ["\\HasNoChildren"],
+                  "has_children": false,
+                  "message_count": 3,
+                  "unread_count": 0
+                },
+                {
+                  "name": "Trash",
+                  "full_name": "Trash",
+                  "delimiter": "/",
+                  "attributes": ["\\HasNoChildren"],
+                  "has_children": false,
+                  "message_count": 17,
+                  "unread_count": 0
+                },
+                {
+                  "name": "Projects",
+                  "full_name": "Projects",
+                  "delimiter": "/",
+                  "attributes": ["\\HasChildren"],
+                  "has_children": true,
+                  "message_count": 8,
+                  "unread_count": 0
+                }
+              ]
+            },
+            "component": {
+              "name": "MailSMTPFolderList"
+            }
+          }
+
+  - endpoint: /mail_smtp/create_folder
+    examples:
+      - scenario: "Create New Folder"
+        description: "Create a new mail folder"
+        input_json: |
+          {
+            "folder_name": "Clients/NewProject"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Folder 'Clients/NewProject' created successfully"
+            },
+            "component": {
+              "name": "MailSMTPGenericResult"
+            }
+          }
+
+  - endpoint: /mail_smtp/delete_message
+    examples:
+      - scenario: "Move Message to Trash"
+        description: "Delete an email (move to trash)"
+        input_json: |
+          {
+            "message_id": "123456",
+            "permanently": false
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Message 123456 deleted"
+            },
+            "component": {
+              "name": "MailSMTPGenericResult"
+            }
+          }
+      - scenario: "Permanently Delete Message"
+        description: "Permanently delete an email"
+        input_json: |
+          {
+            "message_id": "123456",
+            "permanently": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Message 123456 permanently deleted"
+            },
+            "component": {
+              "name": "MailSMTPGenericResult"
+            }
+          }
+
+  - endpoint: /mail_smtp/move_message
+    examples:
+      - scenario: "Move Message to Another Folder"
+        description: "Move an email to a different folder"
+        input_json: |
+          {
+            "message_id": "123456",
+            "destination_folder": "Projects/ClientA"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Message 123456 moved to Projects/ClientA"
+            },
+            "component": {
+              "name": "MailSMTPGenericResult"
+            }
+          } 

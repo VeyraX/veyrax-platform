@@ -128,7 +128,6 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   };
 
   const handleSaveFlow = (config: { name: string; description: string; plain_description?: string; id?: string }) => {
-    console.log('Сохраняем поток:', config);
     setFlowName(config.name || "New Flow");
     
     if (config.id) {
