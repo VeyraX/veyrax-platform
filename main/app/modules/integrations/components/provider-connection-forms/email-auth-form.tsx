@@ -13,61 +13,34 @@ interface EmailAuthFormProps {
   disabled?: boolean;
 }
 
+// Remove all services except Gmail
 const EMAIL_SERVICES = [
   { value: "gmail", label: "Gmail" },
-  { value: "outlook", label: "Outlook / Office 365" },
-  { value: "yahoo", label: "Yahoo Mail" },
-  { value: "zoho", label: "Zoho Mail" },
-  { value: "aol", label: "AOL Mail" },
-  { value: "protonmail", label: "ProtonMail" },
-  { value: "gmx", label: "GMX Mail" },
-  { value: "other", label: "Other Email Provider" }
 ];
 
 export function EmailAuthForm({ authSchema, authData, onChange, disabled = false }: EmailAuthFormProps) {
-  const [selectedService, setSelectedService] = useState<string>(authData.service || "gmail");
+  // No need for selectedService state anymore
 
   useEffect(() => {
-    // Initialize with gmail if not set
-    if (!authData.service) {
-      handleChange("service", "gmail");
-    } else {
-      setSelectedService(authData.service);
-    }
+    // Always initialize with gmail
+    handleChange("service", "gmail");
   }, []);
 
   const handleChange = (key: string, value: any) => {
-    onChange({ ...authData, [key]: value });
-  };
-
-  const handleServiceChange = (service: string) => {
-    setSelectedService(service);
-    handleChange("service", service);
-    
-    // Clear any custom server settings when switching to a standard service
-    if (service !== "other") {
-      const newAuthData = { ...authData, service };
-      // Keep only username and password when switching to a standard service
-      onChange({
-        username: authData.username || "",
-        password: authData.password || "",
-        service
-      });
-    }
+    // Always include service: "gmail" in the data
+    onChange({ ...authData, [key]: value, service: "gmail" });
   };
 
   const renderField = (field: CustomAuthField) => {
     const { key, label, type, required, placeholder, options } = field;
     const value = authData[key] !== undefined ? authData[key] : '';
     
-    // Skip rendering service field as we handle it separately
-    if (key === "service") return null;
-    
-    // For standard services, only show username and password
-    if (selectedService !== "other" && !["username", "password"].includes(key)) {
+    // Skip service field and only show username and password
+    if (key === "service" || !["username", "password"].includes(key)) {
       return null;
     }
     
+    // Render only username/password fields
     switch (type) {
       case 'text':
       case 'email':
@@ -187,35 +160,9 @@ export function EmailAuthForm({ authSchema, authData, onChange, disabled = false
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      {/* Service Selector - always visible */}
-      <div className="space-y-2">
-        <Label htmlFor="service">Email Service</Label>
-        <Select
-          value={selectedService}
-          onValueChange={handleServiceChange}
-          disabled={disabled}
-        >
-          <SelectTrigger id="service">
-            <SelectValue placeholder="Select Email Service" />
-          </SelectTrigger>
-          <SelectContent>
-            {EMAIL_SERVICES.map((service) => (
-              <SelectItem key={service.value} value={service.value}>
-                {service.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Remove service selector UI completely */}
       
-      {/* If service is other, show a note about required fields */}
-      {selectedService === "other" && (
-        <div className="text-sm text-muted-foreground">
-          All fields below are required for custom email providers.
-        </div>
-      )}
-      
-      {/* Render other auth fields */}
+      {/* Render username and password fields */}
       {authSchema.map(renderField)}
     </div>
   );

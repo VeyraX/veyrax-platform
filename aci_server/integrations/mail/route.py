@@ -41,55 +41,23 @@ async def get_mail_smtp_service(request: FastAPIRequest):
         # List of known services
         known_services = ["gmail", "outlook", "yahoo", "zoho", "aol", "protonmail", "gmx"]
         
-        # If a known service is specified, apply its default settings
-        if service in known_services:
-            # Get the default settings for this service
-            default_settings_response = await get_default_settings({"service": service})
-            service_defaults = default_settings_response.get("settings", {})
-            
-            # Apply the service defaults if not specified in auth_params
-            smtp_host = auth_params.get("smtp_host") or service_defaults.get("smtp_host")
-            smtp_port = auth_params.get("smtp_port") or service_defaults.get("smtp_port")
-            imap_host = auth_params.get("imap_host") or service_defaults.get("imap_host")
-            imap_port = auth_params.get("imap_port") or service_defaults.get("imap_port")
-            
-            # For SSL and TLS settings, use auth_params if specified, otherwise use service defaults
-            use_ssl = auth_params.get("use_ssl") if auth_params.get("use_ssl") is not None else service_defaults.get("use_ssl", False)
-            use_tls = auth_params.get("use_tls") if auth_params.get("use_tls") is not None else service_defaults.get("use_tls", True)
-        else:
-            # For custom or unspecified service, check all required parameters
-            smtp_host = auth_params.get("smtp_host")
-            smtp_port = auth_params.get("smtp_port")
-            imap_host = auth_params.get("imap_host")
-            imap_port = auth_params.get("imap_port")
-            use_ssl = auth_params.get("use_ssl", False)
-            use_tls = auth_params.get("use_tls", True)
-            
-            # If service-specific hosts aren't provided, try to use common ones
-            if not smtp_host:
-                smtp_host = auth_params.get("host")
-            
-            if not imap_host:
-                imap_host = auth_params.get("host")
-            
-            if not smtp_port:
-                smtp_port = auth_params.get("port")
-                
-            if not imap_port:
-                imap_port = auth_params.get("port")
-            
-            # For custom services, validate that all required fields are present
-            if not smtp_host:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Missing required parameter for custom service: smtp_host"
-                )
-                
-            if not imap_host:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Missing required parameter for custom service: imap_host"
-                )
+        # If service not specified or not in known services, default to Gmail
+        if not service or service not in known_services:
+            service = "gmail"
+        
+        # Get the default settings for this service
+        default_settings_response = await get_default_settings({"service": service})
+        service_defaults = default_settings_response.get("settings", {})
+        
+        # Apply the service defaults if not specified in auth_params
+        smtp_host = auth_params.get("smtp_host") or service_defaults.get("smtp_host")
+        smtp_port = auth_params.get("smtp_port") or service_defaults.get("smtp_port")
+        imap_host = auth_params.get("imap_host") or service_defaults.get("imap_host")
+        imap_port = auth_params.get("imap_port") or service_defaults.get("imap_port")
+        
+        # For SSL and TLS settings, use auth_params if specified, otherwise use service defaults
+        use_ssl = auth_params.get("use_ssl") if auth_params.get("use_ssl") is not None else service_defaults.get("use_ssl", False)
+        use_tls = auth_params.get("use_tls") if auth_params.get("use_tls") is not None else service_defaults.get("use_tls", True)
         
         # Set default ports if not provided
         if not smtp_port:

@@ -434,21 +434,21 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       );
     }
 
-    // Use EmailAuthForm specifically for mail provider
-    if (provider.provider_tag === "mail") {
-      return (
-        <EmailAuthForm
-          authSchema={provider.auth_schema}
-          authData={customAuthData}
-          onChange={(authData) => {
-            setCustomAuthData(authData);
-            setCustomAuthChanged(true);
-            setValidationError(null);
-          }}
-          disabled={isValidating || isLoading}
-        />
-      );
-    }
+    // // Use EmailAuthForm specifically for mail provider
+    // if (provider.provider_tag === "mail") {
+    //   return (
+    //     <EmailAuthForm
+    //       authSchema={provider.auth_schema}
+    //       authData={customAuthData}
+    //       onChange={(authData) => {
+    //         setCustomAuthData(authData);
+    //         setCustomAuthChanged(true);
+    //         setValidationError(null);
+    //       }}
+    //       disabled={isValidating || isLoading}
+    //     />
+    //   );
+    // }
 
     // Default to CustomAuthForm for other providers
     return (
