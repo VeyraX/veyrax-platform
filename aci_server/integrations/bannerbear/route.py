@@ -32,16 +32,21 @@ async def get_bannerbear_service(request: FastAPIRequest):
 
 @router.post("/validate_key")
 @schema(
-    input_schema_class=CheckAuthorizationParams,
-    output_schema_class=CheckAuthorizationResponse,
-    examples=examples["/bannerbear/check_authorization"]
+    input_schema_class=CheckAuthorizationParams
 )
-async def check_authorization(
+async def validate_key(
     params: Dict[str, Any] = Body(...),
-    service: BannerbearService = Depends(get_bannerbear_service)
 ):
-    validated_params = CheckAuthorizationParams(**params)
-    return service.check_authorization(validated_params)
+    try:
+        api_key = params.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": str(e)}
+        
+        client = BannerbearClient(api_key)
+        response = client.list_all_images({})
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        return {"valid": False, "message": str(e)}
 
 
 @router.post("/retrieve_account_status")
@@ -714,7 +719,6 @@ async def list_fonts(
 ):
     validated_params = ListFontsParams(**params)
     return service.list_fonts(validated_params)
-
 
 @router.post("/list_effects")
 @schema(

@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
 
 class CheckAuthorizationParams(BaseModel):
-    pass
+    api_key: str
 
 class CheckAuthorizationResponse(BaseModel):
     status_code: int
