@@ -42,5 +42,4 @@ clickhouse-driver==0.2.9
 e2b==1.1.0
 e2b-code-interpreter==1.1.0
 packaging==24.2
-beautifulsoup4==4.12.2
 python-amazon-paapi==5.0.1
