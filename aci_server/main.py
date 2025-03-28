@@ -444,16 +444,11 @@ async def get_tool_spec(tool_name: str):
     router = INTEGRATION_ROUTERS[tool_name]
     return {"tools": get_router_tools(router)}
 
-@app.post("/get-tools")
+@app.get("/get-tools")
 async def get_user_tools(request: Request):
-    try:
-        body = await request.json()
-        page = body.get('page', 1)
-    except:
-        page = 1
     
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
-        return await get_dev_user_tools(request, page)
+        return await get_dev_user_tools(request)
     
     try:
         user_id = await get_user_from_request(request)
@@ -471,25 +466,8 @@ async def get_user_tools(request: Request):
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
             return tools_response
-            
-        tools_per_page = 4
-        all_tools = list(user_tools.items())
-        total_tools = len(all_tools)
         
-        start_idx = (page - 1) * tools_per_page
-        end_idx = min(start_idx + tools_per_page, total_tools)
-        
-        paginated_tools = dict(all_tools[start_idx:end_idx])
-        
-        response_tools = {
-            "tools": paginated_tools,
-            "pagination": {
-                "total_tools": total_tools,
-                "tools_per_page": tools_per_page,
-                "current_page": page,
-                "total_pages": (total_tools + tools_per_page - 1) // tools_per_page
-            }
-        }
+        response_tools = {"tools": user_tools}
         response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
         
         user_memories = await get_user_memories(user_id)
@@ -511,7 +489,7 @@ async def get_user_tools(request: Request):
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 
-async def get_dev_user_tools(request: Request, page: int):
+async def get_dev_user_tools(request: Request):
     try:
         user_id = await get_user_from_request(request)
     except Exception as e:  

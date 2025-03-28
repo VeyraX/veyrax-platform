@@ -29,7 +29,7 @@ export async function getUserToolsServer(apiKey?: string) {
       }
 
       const response = await fetch(`${API_BASE_URL}/get-tools`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
