@@ -130,8 +130,8 @@ const FlowCard: React.FC<FlowCardProps> = ({
   }
 
   const truncatedDescription = plain_description 
-    ? plain_description.length > 100 
-      ? plain_description.substring(0, 100) + '...' 
+    ? plain_description.length > 60 
+      ? plain_description.substring(0, 60) + '...' 
       : plain_description
     : 'No description'
 

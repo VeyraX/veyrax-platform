@@ -9,6 +9,10 @@ import { tool_call_builder, get_tools } from '@/lib/ai/tools/tool-call';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flows';
 import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
+
+
+export const maxDuration = 150;
+
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || ''
 });

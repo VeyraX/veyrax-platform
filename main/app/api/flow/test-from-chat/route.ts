@@ -7,6 +7,8 @@ import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createClient } from '@supabase/supabase-js';
 
+export const maxDuration = 150;
+
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || ''
 });

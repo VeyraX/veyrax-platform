@@ -5,13 +5,15 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { type Message } from 'ai';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 
+
+export const maxDuration = 150;
+
+
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || ''
 });
 
 const modelName = 'anthropic/claude-3.7-sonnet';  
-
-export const maxDuration = 30;
 
 export async function POST(req: Request) {
   console.log('Received request to run-flow');
