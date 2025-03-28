@@ -152,9 +152,6 @@ INTEGRATION_ROUTERS = {
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
-
-        if tool == "bannerbear":
-            return
         
         if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
             return
