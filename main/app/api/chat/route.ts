@@ -5,7 +5,7 @@ import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
 import { tools } from '@/lib/ai/tools';
 
-export const maxDuration = 30;
+export const maxDuration = 150;
 
 export async function POST(req: Request) {
   const supabase = createClient();
