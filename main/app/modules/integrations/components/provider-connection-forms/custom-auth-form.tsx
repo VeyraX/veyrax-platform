@@ -119,6 +119,21 @@ export function CustomAuthForm({ authSchema, authData, onChange, disabled = fals
           </div>
         );
       
+      case 'boolean':
+        return (
+          <div className="flex items-center space-x-2" key={key}>
+            <Checkbox
+              id={key}
+              checked={!!value}
+              onCheckedChange={(checked) => handleChange(key, checked)}
+              disabled={disabled}
+            />
+            <Label htmlFor={key}>
+              {label}
+            </Label>
+          </div>
+        );
+      
       case 'json':
         return (
           <div className="space-y-2" key={key}>

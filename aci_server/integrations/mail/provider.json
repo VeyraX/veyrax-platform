@@ -1,0 +1,6 @@
+{
+    "name": "Mail",
+    "provider_tag": "mail",
+    "description": "Connect to any mail provider via SMTP and IMAP. Note: some services like gmail may require app password",
+    "auth_method": "custom"
+}
