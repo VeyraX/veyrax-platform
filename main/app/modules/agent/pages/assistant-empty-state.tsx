@@ -66,7 +66,6 @@ export function AssistantEmptyState({
 
         <SuggestionsEmptyState 
           onToolClick={handleToolClick}
-          onSelectSuggestion={handleSuggestionSelect}
           connectedTools={connectedTools}
         />
       </div>

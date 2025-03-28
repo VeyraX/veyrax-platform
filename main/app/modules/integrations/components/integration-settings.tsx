@@ -18,7 +18,7 @@ interface ScopeDialogProps {
 
 export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogProps) {
   const [selectedScopes, setSelectedScopes] = useState<string[]>(
-    provider.scopes?.map(scope => scope.scope) || []
+    provider.scopes?.map(scope => scope.scope_name) || []
   );
 
   const handleConfirm = () => {
@@ -80,18 +80,18 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
             </div>
             <div className="flex flex-col gap-4 justify-end">
               {provider.scopes?.map((scope) => (
-                <div key={scope.scope} className="flex items-center gap-2">
+                <div key={scope.scope_name} className="flex items-center gap-2">
                   <Checkbox
-                    id={scope.scope}
-                    checked={selectedScopes.includes(scope.scope)}
+                    id={scope.scope_name}
+                    checked={selectedScopes.includes(scope.scope_name)}
                     onCheckedChange={(checked) => {
                       setSelectedScopes(checked
-                        ? [...selectedScopes, scope.scope]
-                        : selectedScopes.filter(s => s !== scope.scope)
+                        ? [...selectedScopes, scope.scope_name]
+                        : selectedScopes.filter(s => s !== scope.scope_name)
                       );
                     }}
                   />
-                  <Label htmlFor={scope.scope} className="text-left">
+                  <Label htmlFor={scope.scope_name} className="text-left">
                     {scope.scope_name}
                   </Label>
                 </div>
