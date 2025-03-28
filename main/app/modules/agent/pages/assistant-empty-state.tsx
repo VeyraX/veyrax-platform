@@ -16,7 +16,6 @@ export function AssistantEmptyState({
   isLoading,
   onStop,
   userTools,
-  onToolClick,
   connectedTools
 }: AssistantEmptyStateProps) {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
@@ -36,10 +35,6 @@ export function AssistantEmptyState({
       
       inputRef.current.focus()
     }
-  }
-
-  const handleToolClick = (text: string) => {
-    onSubmit(text)
   }
 
   return (
@@ -65,7 +60,6 @@ export function AssistantEmptyState({
         />
 
         <SuggestionsEmptyState 
-          onToolClick={handleToolClick}
           connectedTools={connectedTools}
         />
       </div>

@@ -7,12 +7,10 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 interface SuggestionsEmptyStateProps {
-  onToolClick: (tool: string) => void
   connectedTools: { providerTag: string, logoUrl: string, isConnected: boolean }[]
 }
 
 export function SuggestionsEmptyState({
-  onToolClick,
   connectedTools
 }: SuggestionsEmptyStateProps) {
   const router = useRouter()
@@ -43,9 +41,8 @@ export function SuggestionsEmptyState({
             {connectedTools.filter(tool => tool.isConnected).map((tool) => (
               <div 
                 key={tool.providerTag}
-                className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-border bg-white cursor-pointer"
+                className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-border bg-white"
                 title={tool.providerTag}
-                onClick={() => onToolClick(tool.providerTag)}
               >
                 <img 
                   src={tool.logoUrl} 
@@ -56,7 +53,7 @@ export function SuggestionsEmptyState({
             ))}
             <button
               onClick={() => router.push('/integrations')}
-              className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-border bg-white hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-border bg-white hover:bg-muted/50 transition-colors cursor-pointer"
               title="Add new tool"
             >
               <Plus className="w-4 h-4 text-muted-foreground" />
