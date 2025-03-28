@@ -9,7 +9,11 @@ function SidebarStateController({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
   useEffect(() => {
-    if (pathname && pathname.startsWith('/flow')) {
+    if (pathname && (
+      pathname.startsWith('/flow') || 
+      pathname.startsWith('/flows') ||
+      pathname.startsWith('/integrations')
+    )) {
       setOpen(false);
     }
   }, [pathname, setOpen]);
@@ -23,8 +27,12 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   
   const pathname = usePathname();
   
-  const isFlowPage = pathname && pathname.startsWith('/flow');
-  const initialOpen = isFlowPage ? false : defaultOpen;
+  const shouldBeCollapsed = pathname && (
+    pathname.startsWith('/flow') || 
+    pathname.startsWith('/flows') ||
+    pathname.startsWith('/integrations')
+  );
+  const initialOpen = shouldBeCollapsed ? false : defaultOpen;
   
   return (
     <UISidebarProvider defaultOpen={initialOpen}>

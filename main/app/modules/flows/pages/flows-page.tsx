@@ -200,7 +200,7 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
             [...Array(8)].map((_, index) => (
               <FlowSkeleton key={index} />
             ))
-          ) : filteredFlows.length > 0 ? (
+          ) : (
             filteredFlows.map((flow) => (
               <FlowCard
                 key={flow.id}
@@ -209,10 +209,6 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
                 onFlowChange={fetchFlows}
               />
             ))
-          ) : (
-            <div className="col-span-full flex items-center justify-center h-[200px]">
-              <p className="text-muted-foreground">No flows found</p>
-            </div>
           )}
         </div>
       </div>

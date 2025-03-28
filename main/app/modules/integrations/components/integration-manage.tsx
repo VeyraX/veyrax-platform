@@ -57,6 +57,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   useEffect(() => {
     if (open) {
+      console.log('Provider data on dialog open:', provider);
       if (provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') {
         fetchApiKey();
         setApiKeyChanged(false);
@@ -475,8 +476,12 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               </div>
               <div className="flex flex-wrap gap-2 justify-end">
                 {provider.user_scopes.map((scope) => (
-                  <Badge key={scope.scope} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors">
-                    {scope.scope_name}
+                  <Badge 
+                    key={`${scope.scope_id}-${scope.scope_name}`} 
+                    variant="secondary" 
+                    className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors"
+                  >
+                    {scope.scope_name || scope.scope_id}
                   </Badge>
                 ))}
               </div>

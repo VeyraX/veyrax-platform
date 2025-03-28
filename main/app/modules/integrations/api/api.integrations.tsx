@@ -43,19 +43,10 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   
   const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
 
-  // Add query for oauth tokens
-  const { data: userOAuthTokens } = await supabase
-    .from('users_oauth_tokens')
-    .select('provider_id, scopes')
-    .eq('user_id', user?.id)
-
-  // Create a map of provider_id to scopes
-  const providerScopes = new Map(
-    userOAuthTokens?.map(token => [
-      token.provider_id, 
-      Array.isArray(token.scopes) ? token.scopes : token.scopes?.split(',') || []
-    ])
-  )
+  const { data: userScopes } = await supabase
+    .from('user_provider_scopes_view')
+    .select('*')
+    .eq('user_id', user?.id);
 
   const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
     const isConnected = connectedProviderIds.has(provider.id)
@@ -66,13 +57,20 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     
     const isPopular = popularProviderIds.has(provider.id)
 
+    const providerUserScopes = userScopes?.find(s => s.provider_id === provider.id);
+    
+    const transformedUserScopes = providerUserScopes ? 
+      providerUserScopes.scope_ids.map((scope_id: string, index: number) => ({
+        id: `${provider.id}-${scope_id}`,
+        scope_id: scope_id,
+        scope_name: providerUserScopes.scope_names[index]
+      })) : [];
+
     provider.scopes = provider.provider_scopes?.map(s => ({
-      scope: s.scope_id,
+      id: s.scope_id,
+      scope_id: s.scope_id,
       scope_name: s.scope_name
     })) || []
-
-    // Add user_scopes to the provider object
-    const userScopes = providerScopes.get(provider.id) || []
 
     return {
       ...provider,
@@ -82,7 +80,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       indexStatus: null,
       lastSyncDate: null,
       processedEntities: null,
-      user_scopes: userScopes
+      user_scopes: transformedUserScopes
     }
   }) || []
   
@@ -451,7 +449,7 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
 
     // Filter user scopes based on the oauth token scopes
     userScopes = oauthToken?.scopes
-      ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope))
+      ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope_id))
       : [];
   }
 

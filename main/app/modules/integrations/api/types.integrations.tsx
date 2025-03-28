@@ -1,6 +1,8 @@
 export interface ProviderScope {
-  scope: string;
+  id: string;
+  scope_id: string;
   scope_name: string;
+  provider_id?: string;
 }
 
 export interface Provider {
@@ -168,4 +170,11 @@ export interface ProviderAction {
   examples: string | object;
   ui_component?: string | object;
   created_at?: string;
+}
+
+export interface UserProviderScopesView {
+  user_id: string;
+  provider_id: string;
+  scope_ids: string[];
+  scope_names: string[];
 }

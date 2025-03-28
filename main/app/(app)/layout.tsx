@@ -22,7 +22,7 @@ export default function AppLayout({
       <ReactQueryProvider>
         <div className="app-layout bg-light-special-background">
           <SidebarProvider>
-            <AppSidebar collapsible="offcanvas" />
+            <AppSidebar collapsible="icon" />
             <main className="flex-1 flex flex-col h-screen">
               <div className="flex-1">
                 <SidebarInset>{children}</SidebarInset>

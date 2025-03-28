@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react'
-import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, LogOut, Loader2, Search, Glasses, Brain, Bot, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, Sparkles, ArrowRight, MessageSquare } from "lucide-react"
+import { Home, Library, Book, BookMarked, BookKey, ChevronUp, User2, Flag, Gift, Menu, Loader2, Search, Glasses, Brain, Plug, FileText, LayoutGrid, LineChart, Palette, Paintbrush, ChevronDown, Settings, ChevronsUpDown, Component, ArrowRight, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import {
@@ -29,6 +29,14 @@ import { getChats } from "@/app/modules/agent/api/api.agent"
 import { authApi } from '@/app/modules/auth/api/api.auth'
 import { useGetChats } from "@/app/modules/agent/api/quries.agent"
 import FeedbackDialog from './feedback-dialog'
+import { LogoutIcon as Logout } from "@/components/ui/logout"
+import { BoxesIcon as Boxes } from "@/components/ui/boxes"
+import { HandHeartIcon as HandHeart } from "@/components/ui/hand-heart"
+import { SparklesIcon as Sparkles } from "@/components/ui/sparkles"
+import { DiscordIcon as Discord } from "@/components/ui/discord"
+import { WorkflowIcon as Workflow } from "@/components/ui/workflow"
+import { LayersIcon as Layers } from "@/components/ui/layers"
+import { ConnectIcon as Connect } from "@/components/ui/connect"
 
 const items = [
   {
@@ -37,19 +45,23 @@ const items = [
       {
         title: "Playground",
         url: "/agent",
+        icon: <Sparkles size={16} />,
       },
       {
         title: "Integrations",
         url: "/integrations",
+        icon: <Connect size={16} />,
       },
       {
         title: "Feedback",
         action: "feedback",
+        icon: <HandHeart size={16} />,
       },
       {
         title: "Join Discord",
         action: "discord",
-        url: "https://discord.gg/s8FPCADUTd"
+        url: "https://discord.gg/s8FPCADUTd",
+        icon: <Discord size={16} />,
       },
     ],
   },
@@ -82,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: `/agent/${chat.id}`
       }));
       
-      items[1].items = chatItems;
+      items[1].items = chatItems as any;
       setChats(chatData);
     }
   }, [mounted, chatData]);
@@ -114,31 +126,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <>
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-3 py-4">
-            <img src="/logo.svg" alt="Logo" className="h-7 w-7" />
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-4",
+            "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          )}>
+            <img 
+              src="/logo.svg" 
+              alt="Logo" 
+              className={cn(
+                "h-8 w-8",
+                "group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
+              )} 
+            />
           </div>
         </SidebarHeader>
         <SidebarContent>
-
-        {items.map((group) => (
+          {items.map((group) => (
             <SidebarGroup key={group.title}>
               <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {group.items?.slice(0, group.title === "Recent Chats" ? (showAllChats ? undefined : 5) : undefined).map((item) => (
-                    <SidebarMenuItem className='cursor-pointer' key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.url}
-                        onClick={() => handleItemClick(item)}
-                      >
-                        <div>
-                          <span>{item.title}</span>
-                        </div>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                  {group.title === "Recent Chats" && group.items && group.items.length > 5 && (
+                  {(state === "expanded" || group.title === "ACI") && 
+                    group.items?.slice(0, group.title === "Recent Chats" ? (showAllChats ? undefined : 5) : undefined).map((item) => (
+                      <SidebarMenuItem className='cursor-pointer' key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.url}
+                          onClick={() => handleItemClick(item)}
+                          tooltip={item.title}
+                        >
+                          <div>
+                            {item.icon}
+                            <span>{item.title}</span>
+                          </div>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  {state === "expanded" && group.title === "Recent Chats" && group.items && group.items.length > 5 && (
                     <SidebarMenuItem>
                       <Button
                         variant="link"
@@ -154,19 +178,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarGroupContent>
             </SidebarGroup>
           ))}
-
         </SidebarContent>
 
         <SidebarFooter>
-          <div className="flex items-center justify-start px-3 py-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleLogoutClick}
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center justify-start">
+            <SidebarMenuItem className="marker:content-none list-none">
+              <SidebarMenuButton
+                asChild
+                tooltip="Logout"
+                onClick={handleLogoutClick}
+              >
+                <div>
+                  <Logout size={16} />
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </div>
         </SidebarFooter>
         <SidebarRail />
