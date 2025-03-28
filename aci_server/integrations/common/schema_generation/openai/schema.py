@@ -136,6 +136,7 @@ def get_openai_function_schemas(
     
     if input_schema_class:
         schema = openai.pydantic_function_tool(input_schema_class)
+        
         schema['function']['name'] = route_name
         schema['function']['description'] = route_description
         

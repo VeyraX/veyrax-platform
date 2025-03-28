@@ -997,7 +997,7 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
   }
 }
 
-export const validateCustomAuth = async (providerId: string, authData: Record<string, any>): Promise<{valid: boolean, message: string}> => {
+export const validateCustomAuthSchema = async (providerId: string, authData: Record<string, any>): Promise<{valid: boolean, message: string}> => {
   try {
     const { data: provider } = await supabase
       .from('providers')

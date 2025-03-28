@@ -16,6 +16,8 @@ import traceback
 import sentry_sdk
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
+
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
     tools = []
 
@@ -23,7 +25,7 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         if route.path.endswith("/tools"):
             continue
         
-        
+
         tool_schema = get_openai_function_schemas(route)
         try:
             examples = route.endpoint.examples()

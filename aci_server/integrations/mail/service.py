@@ -1,5 +1,6 @@
 from typing import Dict, Any, List, Optional, Union
 import os
+import logging
 from .client import MailSMTPClient, MailSMTPError
 from .schema import (
     GetMessagesParams,
@@ -15,10 +16,13 @@ from .schema import (
     SendMessageResponse,
     GenericResponse,
     ErrorResponse,
-    ApiResponse
+    ApiResponse,
+    EmailBody
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class MailSMTPService:
     def __init__(self, client: MailSMTPClient):
@@ -34,21 +38,78 @@ class MailSMTPService:
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
     
-    def prepare_error_response(self, error: MailSMTPError) -> ApiResponse:
+    def prepare_error_response(self, error: Union[MailSMTPError, Exception]) -> ApiResponse:
+        if isinstance(error, MailSMTPError):
+            error_msg = error.message
+            error_details = error.errors if hasattr(error, "errors") else None
+        else:
+            error_msg = str(error)
+            error_details = None
+        
+        logger.error(f"Mail SMTP Error: {error_msg}")
+        if error_details:
+            logger.error(f"Error details: {error_details}")
+        
         error_response = ErrorResponse(
             success=False,
-            error=error.message,
-            error_details=error.errors if hasattr(error, "errors") else None
+            error=error_msg,
+            error_details=error_details
         )
         return self.prepare_response(error_response, "MailSMTPErrorResult")
     
+    def test_connection(self) -> ApiResponse:
+        """Test SMTP and IMAP connections and report status."""
+        try:
+            # Test SMTP connection
+            smtp_conn = self.client._get_smtp_connection()
+            smtp_conn.quit()
+            
+            # Test IMAP connection
+            imap_conn = self.client._get_imap_connection()
+            imap_conn.logout()
+            
+            response = GenericResponse(
+                success=True,
+                message="Successfully connected to SMTP and IMAP servers"
+            )
+            return self.prepare_response(response, "MailSMTPGenericResult")
+        except MailSMTPError as e:
+            return self.prepare_error_response(e)
+        except Exception as e:
+            return self.prepare_error_response(e)
+    
+    def _short_body(self, body: dict) -> EmailBody:
+        # Handle text content
+        text = None
+        if body.get('text'):
+            text = body['text'][:500] + "..." if len(body['text']) > 500 else body['text']
+        
+        # Handle HTML content
+        html = None
+        if body.get('html'):
+            # Extract first part of HTML content
+            html = body['html'][:500] + "..." if len(body['html']) > 500 else body['html']
+            
+        return EmailBody(html=html, text=text)
+    
     def get_messages(self, params: GetMessagesParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
+            # Filter out authentication parameters
+            processed_params = {
+                k: v for k, v in params.model_dump(exclude_none=True).items()
+                if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
+            }
             response = self.client.get_messages(**processed_params)
             
+            # Create messages with shortened bodies without duplicate body parameter
+            messages = []
+            for msg in response["messages"]:
+                msg_copy = {k: v for k, v in msg.items() if k != 'body'}
+                short_body = self._short_body(msg['body'])
+                messages.append(EmailMessage(**msg_copy, body=short_body))
+            
             validated_response = EmailMessageList(
-                messages=[EmailMessage(**msg) for msg in response["messages"]],
+                messages=messages,
                 total=response["total"],
                 offset=response["offset"],
                 limit=response["limit"]
@@ -63,7 +124,11 @@ class MailSMTPService:
     
     def get_message(self, params: GetMessageParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
+            # Filter out authentication parameters
+            processed_params = {
+                k: v for k, v in params.model_dump(exclude_none=True).items()
+                if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
+            }
             response = self.client.get_message(**processed_params)
             
             validated_response = EmailMessage(**response)
@@ -76,8 +141,12 @@ class MailSMTPService:
     
     def send_message(self, params: SendMessageParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
-            response = self.client.send_message(processed_params)
+            # Filter out authentication parameters and prepare message data
+            message_data = {
+                k: v for k, v in params.model_dump(exclude_none=True).items()
+                if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
+            }
+            response = self.client.send_message(message_data)
             
             validated_response = SendMessageResponse(**response)
             return self.prepare_response(validated_response, "MailSMTPSendResult")
@@ -89,7 +158,11 @@ class MailSMTPService:
     
     def get_folders(self, params: GetFoldersParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
+            # Filter out authentication parameters
+            processed_params = {
+                k: v for k, v in params.model_dump(exclude_none=True).items()
+                if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
+            }
             response = self.client.get_folders(**processed_params)
             
             validated_response = FolderList(
@@ -105,8 +178,9 @@ class MailSMTPService:
     
     def create_folder(self, params: CreateFolderParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
-            response = self.client.create_folder(**processed_params)
+            # Extract just the folder_name
+            folder_name = params.folder_name
+            response = self.client.create_folder(folder_name)
             
             validated_response = GenericResponse(**response)
             return self.prepare_response(validated_response, "MailSMTPGenericResult")
@@ -118,8 +192,11 @@ class MailSMTPService:
     
     def delete_message(self, params: DeleteMessageParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
-            response = self.client.delete_message(**processed_params)
+            # Extract parameters
+            message_id = params.message_id
+            folder = params.folder if hasattr(params, 'folder') else 'INBOX'
+            
+            response = self.client.delete_message(message_id, folder)
             
             validated_response = GenericResponse(**response)
             return self.prepare_response(validated_response, "MailSMTPGenericResult")
@@ -131,8 +208,12 @@ class MailSMTPService:
     
     def move_message(self, params: MoveMessageParams) -> ApiResponse:
         try:
-            processed_params = params.model_dump(exclude_none=True)
-            response = self.client.move_message(**processed_params)
+            # Extract the required parameters
+            message_id = params.message_id
+            source_folder = params.source_folder if hasattr(params, 'source_folder') else 'INBOX'
+            target_folder = params.destination_folder
+            
+            response = self.client.move_message(message_id, source_folder, target_folder)
             
             validated_response = GenericResponse(**response)
             return self.prepare_response(validated_response, "MailSMTPGenericResult")

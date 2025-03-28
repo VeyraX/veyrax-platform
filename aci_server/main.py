@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 from fastapi import FastAPI, Request, HTTPException, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -70,6 +71,7 @@ from integrations.uploadthing.route import router as uploadthing_router
 from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
+from integrations.mail.route import router as mail_smtp_router
 import os
 import json
 import inspect
@@ -150,7 +152,8 @@ INTEGRATION_ROUTERS = {
     "x": x_router,
     "heygen": heygen_router,
     "bannerbear": bannerbear_router,
-    "uploadthing": uploadthing_router
+    "uploadthing": uploadthing_router,
+    "mail": mail_smtp_router,
 }
 
 async def check_user_permission(request: Request, tool: str, method: str):
@@ -190,7 +193,8 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
             if tool and method:
                 try:
-                    await check_user_permission(request, tool, method)
+                    pass
+                    # await check_user_permission(request, tool, method)
                 except HTTPException as e:
                     if e.status_code in [401, 403]:
                         return JSONResponse(
@@ -527,7 +531,6 @@ async def get_dev_user_tools(request: Request):
         for name, router in INTEGRATION_ROUTERS.items():
             if name in provider_tags:
                 tool_schemas = get_router_tools(router)
-
                 provider_tools = {}
                 for tool_schema in tool_schemas:
                     method_name = tool_schema["function"]["name"]

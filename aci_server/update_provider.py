@@ -6,6 +6,7 @@ from pathlib import Path
 import argparse
 from typing import List, Dict, Any, Optional
 import yaml
+import datetime
 
 sys.path.append('/app')
 
@@ -201,12 +202,15 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
         supabase = get_supabase()
         
         # Create or update provider
-        provider_record = {
-            "name": provider_data["name"],
-            "provider_tag": provider_data["provider_tag"],
-            "description": provider_data.get("description", ""),
-            "auth_method": provider_data.get("auth_method", "none")
-        }
+        # Start with all fields from provider_data
+        provider_record = provider_data.copy()
+        
+        # Ensure critical fields have expected values
+        provider_record["name"] = provider_data["name"]
+        provider_record["provider_tag"] = provider_data["provider_tag"]
+        provider_record["description"] = provider_data.get("description", "")
+        provider_record["auth_method"] = provider_data.get("auth_method", "none")
+        provider_record['created_at'] = int(datetime.datetime.now().timestamp())
         
         # Check if provider exists
         existing_provider = supabase.table("providers").select("*")\

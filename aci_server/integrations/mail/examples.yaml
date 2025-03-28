@@ -1,12 +1,12 @@
 routes:
-  - endpoint: /mail_smtp/get_messages
+  - endpoint: /mail/get_messages
     examples:
       - scenario: "Get Messages from INBOX"
         description: "Fetch emails from the INBOX folder"
         input_json: |
           {
             "folder": "INBOX",
-            "limit": 10,
+            "limit": 5,
             "offset": 0,
             "mark_as_read": false
           }
@@ -82,7 +82,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/get_message
+  - endpoint: /mail/get_message
     examples:
       - scenario: "Get Single Email Message"
         description: "Fetch a specific email by its ID"
@@ -142,7 +142,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/send_message
+  - endpoint: /mail/send_message
     examples:
       - scenario: "Send Simple Email"
         description: "Send a plain text email to a recipient"
@@ -215,7 +215,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/get_folders
+  - endpoint: /mail/get_folders
     examples:
       - scenario: "Get Mail Folders"
         description: "List all mail folders with message counts"
@@ -279,7 +279,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/create_folder
+  - endpoint: /mail/create_folder
     examples:
       - scenario: "Create New Folder"
         description: "Create a new mail folder"
@@ -298,7 +298,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/delete_message
+  - endpoint: /mail/delete_message
     examples:
       - scenario: "Move Message to Trash"
         description: "Delete an email (move to trash)"
@@ -335,7 +335,7 @@ routes:
             }
           }
 
-  - endpoint: /mail_smtp/move_message
+  - endpoint: /mail/move_message
     examples:
       - scenario: "Move Message to Another Folder"
         description: "Move an email to a different folder"
@@ -352,5 +352,230 @@ routes:
             },
             "component": {
               "name": "MailSMTPGenericResult"
+            }
+          }
+
+  - endpoint: /mail/get_default_settings
+    examples:
+      - scenario: "Get Settings for Gmail"
+        description: "Get default settings for Gmail"
+        input_json: |
+          {
+            "service": "gmail"
+          }
+        output_json: |
+          {
+            "service": "gmail",
+            "settings": {
+              "smtp_host": "smtp.gmail.com",
+              "smtp_port": 587,
+              "imap_host": "imap.gmail.com",
+              "imap_port": 993,
+              "use_ssl": false,
+              "use_tls": true,
+              "imap_use_ssl": true,
+              "notes": "For Gmail accounts with 2FA enabled, you need to use an App Password instead of your regular password."
+            }
+          }
+      - scenario: "List All Services"
+        description: "Get settings for all supported email services"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "available_services": ["gmail", "outlook", "yahoo", "zoho", "aol", "protonmail", "gmx"],
+            "settings": {
+              "gmail": {
+                "smtp_host": "smtp.gmail.com",
+                "smtp_port": 587,
+                "imap_host": "imap.gmail.com",
+                "imap_port": 993,
+                "use_ssl": false,
+                "use_tls": true,
+                "imap_use_ssl": true,
+                "notes": "For Gmail accounts with 2FA enabled, you need to use an App Password instead of your regular password."
+              },
+              "outlook": {
+                "smtp_host": "smtp-mail.outlook.com",
+                "smtp_port": 587,
+                "imap_host": "outlook.office365.com",
+                "imap_port": 993,
+                "use_ssl": false,
+                "use_tls": true,
+                "imap_use_ssl": true,
+                "notes": "Use your full email address as the username."
+              }
+            }
+          }
+
+  - endpoint: /mail/list_services
+    examples:
+      - scenario: "List Email Services"
+        description: "Get a list of supported email services"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "services": [
+              {"id": "gmail", "name": "Gmail", "domain": "gmail.com"},
+              {"id": "outlook", "name": "Outlook / Office 365", "domain": "outlook.com"},
+              {"id": "yahoo", "name": "Yahoo Mail", "domain": "yahoo.com"},
+              {"id": "zoho", "name": "Zoho Mail", "domain": "zoho.com"},
+              {"id": "aol", "name": "AOL Mail", "domain": "aol.com"},
+              {"id": "protonmail", "name": "ProtonMail", "domain": "protonmail.com"},
+              {"id": "gmx", "name": "GMX Mail", "domain": "gmx.com"}
+            ]
+          }
+
+  - endpoint: /mail/detect_settings
+    examples:
+      - scenario: "Detect Settings for Gmail"
+        description: "Auto-detect settings for a Gmail address"
+        input_json: |
+          {
+            "email": "user@gmail.com"
+          }
+        output_json: |
+          {
+            "email": "user@gmail.com",
+            "detected_service": "gmail",
+            "settings": {
+              "smtp_host": "smtp.gmail.com",
+              "smtp_port": 587,
+              "imap_host": "imap.gmail.com",
+              "imap_port": 993,
+              "use_ssl": false,
+              "use_tls": true,
+              "imap_use_ssl": true,
+              "notes": "For Gmail accounts with 2FA enabled, you need to use an App Password instead of your regular password."
+            },
+            "success": true
+          }
+      - scenario: "Detect Settings for Corporate Email"
+        description: "Auto-detect settings for a company email"
+        input_json: |
+          {
+            "email": "user@company.com"
+          }
+        output_json: |
+          {
+            "email": "user@company.com",
+            "detected_service": "unknown_corporate",
+            "possible_settings": [
+              {
+                "smtp_host": "smtp.company.com",
+                "smtp_port": 587,
+                "imap_host": "imap.company.com",
+                "imap_port": 993,
+                "use_ssl": false,
+                "use_tls": true,
+                "imap_use_ssl": true,
+                "notes": "These are guessed settings. Check with your email provider for accurate information."
+              },
+              {
+                "smtp_host": "mail.company.com",
+                "smtp_port": 587,
+                "imap_host": "mail.company.com",
+                "imap_port": 993,
+                "use_ssl": false,
+                "use_tls": true,
+                "imap_use_ssl": true,
+                "notes": "Alternative settings to try if the first option doesn't work."
+              }
+            ],
+            "success": true
+          }
+
+  - endpoint: /mail/test_connection
+    examples:
+      - scenario: "Test Mail Connection"
+        description: "Test connection to SMTP and IMAP servers"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "SMTP and IMAP connections successful",
+              "details": {
+                "smtp": "Connected to smtp.gmail.com:587",
+                "imap": "Connected to imap.gmail.com:993"
+              }
+            },
+            "component": {
+              "name": "MailSMTPGenericResult"
+            }
+          }
+
+  - endpoint: /mail/validate_key
+    examples:
+      - scenario: "Validate Gmail Credentials"
+        description: "Validate SMTP and IMAP credentials for Gmail"
+        input_json: |
+          {
+            "username": "user@gmail.com",
+            "password": "app-password-here",
+            "service": "gmail"
+          }
+        output_json: |
+          {
+            "valid": true,
+            "message": "SMTP and IMAP connections successful",
+            "settings_used": {
+              "smtp_host": "smtp.gmail.com",
+              "smtp_port": 587,
+              "imap_host": "imap.gmail.com",
+              "imap_port": 993,
+              "use_ssl": false,
+              "use_tls": true,
+              "imap_use_ssl": true
+            }
+          }
+      - scenario: "Validate Custom Mail Server"
+        description: "Validate credentials for a custom mail server"
+        input_json: |
+          {
+            "username": "user@example.com",
+            "password": "password",
+            "smtp_host": "mail.example.com",
+            "smtp_port": 587,
+            "imap_host": "mail.example.com",
+            "imap_port": 993,
+            "use_tls": true
+          }
+        output_json: |
+          {
+            "valid": true,
+            "message": "SMTP and IMAP connections successful",
+            "settings_used": {
+              "smtp_host": "mail.example.com",
+              "smtp_port": 587,
+              "imap_host": "mail.example.com",
+              "imap_port": 993,
+              "use_ssl": false,
+              "use_tls": true,
+              "imap_use_ssl": true
+            }
+          }
+      - scenario: "Invalid Credentials"
+        description: "Example of failed validation with incorrect credentials"
+        input_json: |
+          {
+            "username": "user@gmail.com",
+            "password": "wrong-password",
+            "service": "gmail"
+          }
+        output_json: |
+          {
+            "valid": false,
+            "message": "SMTP Error: (535, b'5.7.8 Username and Password not accepted')",
+            "settings_used": {
+              "smtp_host": "smtp.gmail.com",
+              "smtp_port": 587,
+              "imap_host": "imap.gmail.com",
+              "imap_port": 993,
+              "use_ssl": false,
+              "use_tls": true,
+              "imap_use_ssl": true
             }
           } 
