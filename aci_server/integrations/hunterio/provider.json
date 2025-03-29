@@ -1,0 +1,7 @@
+{
+    "name": "Hunter.io",
+    "provider_tag": "hunterio",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//hunterio-logo.png",
+    "description": "Find and verify professional email addresses. Search for email addresses from a domain, find emails of specific people, verify deliverability, and gather detailed information.",
+    "auth_method": "api_key"
+} 
