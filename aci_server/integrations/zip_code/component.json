@@ -1,0 +1,28 @@
+[
+  {
+    "name": "ZipCodeResponseView",
+    "version": "1.0.0",
+    "description": "A React component for displaying postal code location information",
+    "related_endpoints": ["get_by_zipcode", "get_by_city"],
+    "component": {
+      "jsx": "function ZipCodeResponseView(props) {\n  const response = props.data;\n  if (!response) return null;\n\n  const postCode = response['post code'];\n  const country = response.country;\n  const countryAbbreviation = response['country abbreviation'];\n  const places = response.places || [];\n\n  const styles = {\n    container: {\n      backgroundColor: '#ffffff',\n      padding: '16px',\n      borderRadius: '6px',\n      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif'\n    },\n    header: {\n      borderBottom: '1px solid #e2e8f0',\n      paddingBottom: '12px',\n      marginBottom: '16px'\n    },\n    title: {\n      fontSize: '20px',\n      fontWeight: '600',\n      color: '#1e293b',\n      margin: '0 0 4px 0'\n    },\n    subtitle: {\n      fontSize: '14px',\n      color: '#64748b',\n      margin: 0\n    },\n    section: {\n      marginBottom: '16px'\n    },\n    sectionTitle: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#334155',\n      marginBottom: '8px'\n    },\n    placesGrid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',\n      gap: '12px'\n    },\n    placeCard: {\n      backgroundColor: '#f8fafc',\n      borderRadius: '4px',\n      padding: '12px',\n      border: '1px solid #e2e8f0'\n    },\n    placeName: {\n      fontSize: '16px',\n      fontWeight: '500',\n      color: '#334155',\n      margin: '0 0 8px 0'\n    },\n    infoGrid: {\n      display: 'grid',\n      gridTemplateColumns: '1fr 1fr',\n      gap: '8px'\n    },\n    infoItem: {\n      marginBottom: '4px'\n    },\n    infoLabel: {\n      fontSize: '12px',\n      color: '#64748b',\n      marginBottom: '2px'\n    },\n    infoValue: {\n      fontSize: '14px',\n      color: '#334155'\n    },\n    flag: {\n      fontSize: '24px',\n      marginRight: '8px',\n      verticalAlign: 'middle'\n    },\n    mapLink: {\n      display: 'inline-block',\n      marginTop: '8px',\n      textDecoration: 'none',\n      fontSize: '13px',\n      color: '#3b82f6',\n      padding: '4px 8px',\n      backgroundColor: '#eff6ff',\n      borderRadius: '4px'\n    }\n  };\n\n  // Get flag emoji for country code\n  const getFlagEmoji = (countryCode) => {\n    if (!countryCode) return '';\n    // Convert country code to regional indicator symbols\n    // which will be displayed as flag emoji\n    const codePoints = countryCode\n      .toUpperCase()\n      .split('')\n      .map(char => 127397 + char.charCodeAt());\n    return String.fromCodePoint(...codePoints);\n  };\n\n  // Create Google Maps link from coordinates\n  const getMapLink = (latitude, longitude) => {\n    return `https://www.google.com/maps?q=${latitude},${longitude}`;\n  };\n\n  return React.createElement('div', { style: styles.container },\n    // Header section with postal code and country\n    React.createElement('div', { style: styles.header },\n      React.createElement('h1', { style: styles.title },\n        React.createElement('span', { style: styles.flag }, getFlagEmoji(countryAbbreviation)),\n        postCode ? `${postCode} - ${country}` : country\n      ),\n      React.createElement('p', { style: styles.subtitle },\n        `${countryAbbreviation} · ${places.length} location${places.length !== 1 ? 's' : ''}`\n      )\n    ),\n    \n    // Places section\n    places.length > 0 && React.createElement('div', { style: styles.section },\n      React.createElement('h2', { style: styles.sectionTitle }, 'Locations'),\n      React.createElement('div', { style: styles.placesGrid },\n        places.map((place, index) => {\n          return React.createElement('div', { key: index, style: styles.placeCard },\n            React.createElement('h3', { style: styles.placeName }, place['place name']),\n            React.createElement('div', { style: styles.infoGrid },\n              // State\n              React.createElement('div', { style: styles.infoItem },\n                React.createElement('div', { style: styles.infoLabel }, 'State'),\n                React.createElement('div', { style: styles.infoValue }, \n                  `${place.state} (${place['state abbreviation']})`\n                )\n              ),\n              // Coordinates\n              React.createElement('div', { style: styles.infoItem },\n                React.createElement('div', { style: styles.infoLabel }, 'Coordinates'),\n                React.createElement('div', { style: styles.infoValue }, \n                  `${parseFloat(place.latitude).toFixed(4)}, ${parseFloat(place.longitude).toFixed(4)}`\n                )\n              )\n            ),\n            // Map link\n            React.createElement('a', {\n              href: getMapLink(place.latitude, place.longitude),\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: styles.mapLink\n            }, 'View on Map')\n          );\n        })\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "post code": "90210",
+        "country": "United States",
+        "country abbreviation": "US",
+        "places": [
+          {
+            "place name": "Beverly Hills",
+            "longitude": "-118.4065",
+            "state": "California",
+            "state abbreviation": "CA",
+            "latitude": "34.0901"
+          }
+        ]
+      }
+    },
+    "schemaRef": "schema.ZipCodeResponse"
+  }
+] 
