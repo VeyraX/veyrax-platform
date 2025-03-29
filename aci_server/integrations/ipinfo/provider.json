@@ -1,0 +1,7 @@
+{
+    "name": "IPinfo",
+    "provider_tag": "ipinfo",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//ipinfo-logo.svg",
+    "description": "Get accurate IP address data including geolocation, ASN information, and more. Access detailed information about any IP address.",
+    "auth_method": "none"
+} 

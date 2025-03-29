@@ -1,0 +1,88 @@
+[
+  {
+    "name": "IpInfoView",
+    "version": "1.0.0",
+    "description": "A React component for displaying IP address information",
+    "related_endpoints": ["get_ip_info"],
+    "component": {
+      "jsx": "function IpInfoView(props) {\n  const data = props.data;\n  if (!data) return null;\n\n  // Format location coordinates\n  const formatLocation = (locStr) => {\n    if (!locStr) return null;\n    const [lat, lng] = locStr.split(',');\n    return {\n      lat: parseFloat(lat),\n      lng: parseFloat(lng)\n    };\n  };\n\n  const location = formatLocation(data.loc);\n  \n  const styles = {\n    container: {\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      padding: '20px',\n      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',\n      maxWidth: '800px',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '20px'\n    },\n    ipAddress: {\n      fontSize: '22px',\n      fontWeight: '600',\n      margin: '0'\n    },\n    hostname: {\n      color: '#666',\n      marginLeft: '10px',\n      fontSize: '14px'\n    },\n    grid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',\n      gap: '20px'\n    },\n    card: {\n      backgroundColor: '#f8f9fa',\n      borderRadius: '6px',\n      padding: '15px',\n      border: '1px solid #eaeaea'\n    },\n    cardTitle: {\n      fontSize: '14px',\n      color: '#666',\n      marginBottom: '8px',\n      textTransform: 'uppercase',\n      fontWeight: '500'\n    },\n    cardValue: {\n      fontSize: '16px',\n      fontWeight: '500',\n      margin: '0',\n      wordBreak: 'break-word'\n    },\n    map: {\n      width: '100%',\n      height: '300px',\n      marginTop: '20px',\n      borderRadius: '6px',\n      overflow: 'hidden',\n      border: '1px solid #eaeaea'\n    },\n    flag: {\n      width: '24px',\n      height: '18px',\n      marginRight: '8px',\n      verticalAlign: 'middle',\n      borderRadius: '2px',\n      border: '1px solid #eaeaea'\n    },\n    flagContainer: {\n      display: 'flex',\n      alignItems: 'center'\n    }\n  };\n\n  // Function to render a card\n  const renderCard = (title, value, icon = null) => {\n    if (value === undefined || value === null) return null;\n    \n    return React.createElement('div', { style: styles.card },\n      React.createElement('div', { style: styles.cardTitle }, title),\n      React.createElement('div', { style: styles.cardValue }, \n        icon,\n        value\n      )\n    );\n  };\n\n  // Function to render a map\n  const renderMap = (lat, lng) => {\n    if (!lat || !lng) return null;\n    \n    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;\n    \n    return React.createElement('div', { style: styles.map },\n      React.createElement('iframe', {\n        width: '100%',\n        height: '100%',\n        frameBorder: '0',\n        scrolling: 'no',\n        marginHeight: '0',\n        marginWidth: '0',\n        src: mapUrl\n      })\n    );\n  };\n\n  // Function to render country flag\n  const renderFlag = (countryCode) => {\n    if (!countryCode) return null;\n    \n    const flagUrl = `https://flagcdn.com/24x18/${countryCode.toLowerCase()}.png`;\n    \n    return React.createElement('span', { style: styles.flagContainer },\n      React.createElement('img', {\n        src: flagUrl,\n        alt: `${countryCode} flag`,\n        style: styles.flag\n      })\n    );\n  };\n\n  return React.createElement('div', { style: styles.container },\n    // Header with IP address and hostname\n    React.createElement('div', { style: styles.header },\n      React.createElement('h2', { style: styles.ipAddress }, data.ip),\n      data.hostname && React.createElement('span', { style: styles.hostname }, data.hostname)\n    ),\n    \n    // Information grid\n    React.createElement('div', { style: styles.grid },\n      data.city && renderCard('City', data.city),\n      data.region && renderCard('Region', data.region),\n      data.country && renderCard('Country', data.country, renderFlag(data.country)),\n      data.postal && renderCard('Postal Code', data.postal),\n      data.timezone && renderCard('Timezone', data.timezone),\n      data.org && renderCard('Organization', data.org)\n    ),\n    \n    // Map (if location data is available)\n    location && renderMap(location.lat, location.lng)\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "ip": "8.8.8.8",
+        "hostname": "dns.google",
+        "city": "Mountain View",
+        "region": "California",
+        "country": "US",
+        "loc": "37.4056,-122.0775",
+        "org": "AS15169 Google LLC",
+        "postal": "94043",
+        "timezone": "America/Los_Angeles"
+      }
+    },
+    "schemaRef": "schema.IpInfoResponse"
+  },
+  {
+    "name": "IpInfoBulkView",
+    "version": "1.0.0",
+    "description": "A React component for displaying bulk IP address information",
+    "related_endpoints": ["get_bulk_info"],
+    "component": {
+      "jsx": "function IpInfoBulkView(props) {\n  const { data } = props;\n  if (!data || !data.items) return null;\n  \n  const styles = {\n    container: {\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      padding: '20px',\n      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',\n      maxWidth: '800px',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif'\n    },\n    header: {\n      fontSize: '18px',\n      fontWeight: '600',\n      marginBottom: '20px',\n      borderBottom: '1px solid #eaeaea',\n      paddingBottom: '10px',\n      color: '#333'\n    },\n    ipContainer: {\n      marginBottom: '30px',\n      borderBottom: '1px solid #f0f0f0',\n      paddingBottom: '20px'\n    },\n    ipHeader: {\n      display: 'flex',\n      alignItems: 'center',\n      marginBottom: '10px'\n    },\n    ipAddress: {\n      fontSize: '16px',\n      fontWeight: '600',\n      margin: '0'\n    },\n    hostname: {\n      color: '#666',\n      marginLeft: '10px',\n      fontSize: '14px'\n    },\n    grid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',\n      gap: '10px'\n    },\n    infoItem: {\n      backgroundColor: '#f8f9fa',\n      borderRadius: '4px',\n      padding: '8px 12px',\n      fontSize: '14px'\n    },\n    label: {\n      fontWeight: '500',\n      color: '#666',\n      marginBottom: '4px',\n      fontSize: '12px'\n    },\n    value: {\n      fontWeight: '400',\n      wordBreak: 'break-word'\n    },\n    flag: {\n      width: '16px',\n      height: '12px',\n      marginRight: '5px',\n      verticalAlign: 'middle',\n      borderRadius: '2px',\n      border: '1px solid #eaeaea'\n    }\n  };\n\n  const renderInfoItem = (label, value) => {\n    if (value === undefined || value === null) return null;\n    \n    let flagElement = null;\n    if (label === 'Country' && value) {\n      const flagUrl = `https://flagcdn.com/16x12/${value.toLowerCase()}.png`;\n      flagElement = React.createElement('img', {\n        src: flagUrl,\n        alt: `${value} flag`,\n        style: styles.flag\n      });\n    }\n    \n    return React.createElement('div', { style: styles.infoItem },\n      React.createElement('div', { style: styles.label }, label),\n      React.createElement('div', { style: styles.value }, \n        flagElement,\n        value\n      )\n    );\n  };\n\n  const renderIpInfo = (ipData, ip) => {\n    return React.createElement('div', { style: styles.ipContainer, key: ip },\n      React.createElement('div', { style: styles.ipHeader },\n        React.createElement('h3', { style: styles.ipAddress }, ip),\n        ipData.hostname && React.createElement('span', { style: styles.hostname }, ipData.hostname)\n      ),\n      React.createElement('div', { style: styles.grid },\n        ipData.city && renderInfoItem('City', ipData.city),\n        ipData.region && renderInfoItem('Region', ipData.region),\n        ipData.country && renderInfoItem('Country', ipData.country),\n        ipData.postal && renderInfoItem('Postal', ipData.postal),\n        ipData.timezone && renderInfoItem('Timezone', ipData.timezone),\n        ipData.org && renderInfoItem('Organization', ipData.org)\n      )\n    );\n  };\n\n  const ipCount = Object.keys(data.items).length;\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header }, `IP Information (${ipCount} addresses)`),\n    Object.entries(data.items).map(([ip, ipData]) => renderIpInfo(ipData, ip))\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "items": {
+          "1.1.1.1": {
+            "ip": "1.1.1.1",
+            "hostname": "one.one.one.one",
+            "city": "Los Angeles",
+            "region": "California",
+            "country": "US",
+            "loc": "34.0544,-118.2441",
+            "org": "AS13335 Cloudflare, Inc.",
+            "postal": "90076",
+            "timezone": "America/Los_Angeles"
+          },
+          "8.8.8.8": {
+            "ip": "8.8.8.8",
+            "hostname": "dns.google",
+            "city": "Mountain View",
+            "region": "California",
+            "country": "US",
+            "loc": "37.4056,-122.0775",
+            "org": "AS15169 Google LLC",
+            "postal": "94043",
+            "timezone": "America/Los_Angeles"
+          }
+        }
+      }
+    },
+    "schemaRef": "schema.BulkIpInfoResponse"
+  },
+  {
+    "name": "IpInfoAsnView",
+    "version": "1.0.0",
+    "description": "A React component for displaying ASN information",
+    "related_endpoints": ["get_asn_info"],
+    "component": {
+      "jsx": "function IpInfoAsnView(props) {\n  const { data } = props;\n  if (!data) return null;\n  \n  const styles = {\n    container: {\n      backgroundColor: '#ffffff',\n      borderRadius: '8px',\n      padding: '20px',\n      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',\n      maxWidth: '800px',\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif'\n    },\n    header: {\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'space-between',\n      marginBottom: '20px',\n      borderBottom: '1px solid #eaeaea',\n      paddingBottom: '15px'\n    },\n    title: {\n      fontSize: '22px',\n      fontWeight: '600',\n      margin: '0',\n      color: '#333'\n    },\n    subtitle: {\n      fontSize: '16px',\n      color: '#666',\n      marginTop: '5px'\n    },\n    infoContainer: {\n      marginBottom: '20px'\n    },\n    infoRow: {\n      display: 'flex',\n      marginBottom: '10px',\n      padding: '8px 0',\n      borderBottom: '1px solid #f0f0f0'\n    },\n    infoLabel: {\n      width: '120px',\n      fontWeight: '500',\n      color: '#666',\n      flexShrink: 0\n    },\n    infoValue: {\n      flex: '1',\n      wordBreak: 'break-word'\n    },\n    prefixesContainer: {\n      marginTop: '20px'\n    },\n    prefixesTitle: {\n      fontSize: '16px',\n      fontWeight: '600',\n      marginBottom: '10px',\n      color: '#333'\n    },\n    prefixesGrid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',\n      gap: '10px'\n    },\n    prefixItem: {\n      backgroundColor: '#f8f9fa',\n      borderRadius: '4px',\n      padding: '8px 12px',\n      fontSize: '14px'\n    },\n    flag: {\n      width: '24px',\n      height: '18px',\n      marginRight: '8px',\n      verticalAlign: 'middle',\n      borderRadius: '2px',\n      border: '1px solid #eaeaea'\n    },\n    badge: {\n      backgroundColor: '#e9f7fe',\n      color: '#3498db',\n      padding: '4px 8px',\n      borderRadius: '4px',\n      fontSize: '12px',\n      fontWeight: '500',\n      marginLeft: '8px'\n    }\n  };\n\n  const renderInfoRow = (label, value, render = null) => {\n    if (value === undefined || value === null) return null;\n    \n    return React.createElement('div', { style: styles.infoRow },\n      React.createElement('div', { style: styles.infoLabel }, label),\n      React.createElement('div', { style: styles.infoValue }, render ? render(value) : value)\n    );\n  };\n\n  const renderCountry = (countryCode) => {\n    if (!countryCode) return countryCode;\n    \n    const flagUrl = `https://flagcdn.com/24x18/${countryCode.toLowerCase()}.png`;\n    \n    return React.createElement('span', {},\n      React.createElement('img', {\n        src: flagUrl,\n        alt: `${countryCode} flag`,\n        style: styles.flag\n      }),\n      countryCode\n    );\n  };\n\n  const renderPrefixes = (prefixes) => {\n    if (!prefixes || !prefixes.length) return null;\n    \n    return React.createElement('div', { style: styles.prefixesContainer },\n      React.createElement('div', { style: styles.prefixesTitle }, \n        'Network Prefixes ',\n        React.createElement('span', { style: styles.badge }, `${prefixes.length} total`)\n      ),\n      React.createElement('div', { style: styles.prefixesGrid },\n        prefixes.slice(0, 20).map((prefix, index) => {\n          return React.createElement('div', { style: styles.prefixItem, key: index },\n            prefix.netblock\n          );\n        })\n      ),\n      prefixes.length > 20 && React.createElement('div', { \n        style: {\n          marginTop: '10px',\n          color: '#666',\n          fontSize: '14px',\n          fontStyle: 'italic'\n        }\n      }, `+ ${prefixes.length - 20} more prefixes`)\n    );\n  };\n\n  return React.createElement('div', { style: styles.container },\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', {},\n        React.createElement('h2', { style: styles.title }, data.asn),\n        data.name && React.createElement('div', { style: styles.subtitle }, data.name)\n      ),\n      data.type && React.createElement('div', { style: styles.badge }, data.type.toUpperCase())\n    ),\n    \n    React.createElement('div', { style: styles.infoContainer },\n      renderInfoRow('Country', data.country, renderCountry),\n      renderInfoRow('Domain', data.domain),\n      renderInfoRow('Routes', data.routes)\n    ),\n    \n    renderPrefixes(data.prefixes)\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "asn": "AS15169",
+        "name": "Google LLC",
+        "country": "US",
+        "domain": "google.com",
+        "routes": 232,
+        "type": "business",
+        "prefixes": [
+          {"netblock": "172.217.0.0/24"},
+          {"netblock": "8.8.8.0/24"},
+          {"netblock": "8.8.4.0/24"}
+        ]
+      }
+    },
+    "schemaRef": "schema.AsnInfoResponse"
+  }
+] 
