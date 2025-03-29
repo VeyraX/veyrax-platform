@@ -16,7 +16,6 @@ import {
   getProviderBaseUrl,
   getProviderCustomAuth,
   updateProviderCustomAuth,
-  validateCustomAuth,
   validateCustomAuthSchema
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
