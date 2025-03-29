@@ -1,0 +1,25 @@
+{
+    "name": "Gmail (SMTP/IMAP)",
+    "provider_tag": "mail",
+    "description": "Connect Gmail, Outlook, Proton mail and other emails via SMTP and IMAP. Note: some services like gmail may require app password",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//mail-logo.svg",
+    "categories": "Communication",
+    "created_at": 1711641600,
+    "auth_method": "custom",
+    "auth_schema": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "text",
+          "required": true,
+          "placeholder": "Enter service account email"
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true,
+          "placeholder": "Enter app email secret"
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+routes:
+  - endpoint: /duckduckgo/search
+    examples:
+      - scenario: "Basic Search"
+        description: "Search for information using DuckDuckGo"
+        input_json: |
+          {
+            "query": "artificial intelligence",
+            "max_results": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "title": "Artificial Intelligence",
+                  "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+                  "description": "Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans.",
+                  "source": "Wikipedia",
+                  "icon": "https://icons.duckduckgo.com/ip3/en.wikipedia.org.ico"
+                },
+                {
+                  "title": "What is Artificial Intelligence (AI)?",
+                  "url": "https://www.ibm.com/cloud/learn/what-is-artificial-intelligence",
+                  "description": "Artificial intelligence is a field of computer science that aims to create systems capable of performing tasks that normally require human intelligence.",
+                  "source": "DuckDuckGo",
+                  "icon": "https://icons.duckduckgo.com/ip3/www.ibm.com.ico"
+                }
+              ]
+            },
+            "component": {
+              "name": "DuckDuckGoSearchResults"
+            }
+          }
+
+  - endpoint: /duckduckgo/fetch_content
+    examples:
+      - scenario: "Fetch Webpage Content"
+        description: "Retrieve and extract the content of a webpage"
+        input_json: |
+          {
+            "url": "https://en.wikipedia.org/wiki/Artificial_intelligence"
+          }
+        output_json: |
+          {
+            "data": {
+              "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+              "title": "Artificial intelligence - Wikipedia",
+              "content": "Artificial intelligence (AI) is intelligence demonstrated by machines, as opposed to natural intelligence displayed by animals including humans. AI research has been defined as the field of study of intelligent agents, which refers to any system that perceives its environment and takes actions that maximize its chance of achieving its goals.",
+              "html": "<!DOCTYPE html><html lang=\"en\">...",
+              "source": "duckduckgo"
+            },
+            "component": {
+              "name": "DuckDuckGoContent"
+            }
+          }

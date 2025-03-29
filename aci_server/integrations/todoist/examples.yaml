@@ -669,3 +669,178 @@ routes:
           {
             "data": true
           }
+
+  - endpoint: /todoist/get_personal_labels
+    examples:
+      - scenario: "Get All Personal Labels"
+        description: "Retrieve all personal labels from Todoist"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "labels": [
+                {
+                  "id": "2995104339",
+                  "name": "Priority",
+                  "color": "red",
+                  "item_order": 1,
+                  "is_favorite": false
+                },
+                {
+                  "id": "2995104340",
+                  "name": "Work",
+                  "color": "blue",
+                  "item_order": 2,
+                  "is_favorite": true
+                },
+                {
+                  "id": "2995104341",
+                  "name": "Personal",
+                  "color": "green",
+                  "item_order": 3,
+                  "is_favorite": false
+                }
+              ]
+            }
+          }
+
+  - endpoint: /todoist/get_personal_label
+    examples:
+      - scenario: "Get Personal Label by ID"
+        description: "Retrieve a specific personal label by its ID"
+        input_json: |
+          {
+            "label_id": "2995104339"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104339",
+              "name": "Priority",
+              "color": "red",
+              "item_order": 1,
+              "is_favorite": false
+            }
+          }
+
+  - endpoint: /todoist/create_personal_label
+    examples:
+      - scenario: "Create New Personal Label"
+        description: "Create a new personal label in Todoist"
+        input_json: |
+          {
+            "name": "Urgent",
+            "color": "berry_red",
+            "favorite": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104342",
+              "name": "Urgent",
+              "color": "berry_red",
+              "item_order": 4,
+              "is_favorite": true
+            }
+          }
+
+  - endpoint: /todoist/update_personal_label
+    examples:
+      - scenario: "Update Personal Label"
+        description: "Update an existing personal label"
+        input_json: |
+          {
+            "label_id": "2995104342",
+            "name": "Critical",
+            "color": "red",
+            "favorite": true
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "2995104342",
+              "name": "Critical",
+              "color": "red",
+              "item_order": 4,
+              "is_favorite": true
+            }
+          }
+
+  - endpoint: /todoist/delete_personal_label
+    examples:
+      - scenario: "Delete Personal Label"
+        description: "Delete a personal label by its ID"
+        input_json: |
+          {
+            "label_id": "2995104342"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /todoist/get_shared_labels
+    examples:
+      - scenario: "Get Shared Labels"
+        description: "Retrieve all shared labels from a project"
+        input_json: |
+          {
+            "project_id": "2203306141"
+          }
+        output_json: |
+          {
+            "data": {
+              "labels": [
+                {
+                  "name": "Team",
+                  "color": "blue"
+                },
+                {
+                  "name": "Release",
+                  "color": "green"
+                },
+                {
+                  "name": "Bug",
+                  "color": "red"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /todoist/rename_shared_label
+    examples:
+      - scenario: "Rename Shared Label"
+        description: "Rename a shared label in a project"
+        input_json: |
+          {
+            "project_id": "2203306141",
+            "old_name": "Bug",
+            "new_name": "Defect"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "name": "Defect",
+              "color": "red"
+            }
+          }
+
+  - endpoint: /todoist/remove_shared_label
+    examples:
+      - scenario: "Remove Shared Label"
+        description: "Remove a shared label from a project"
+        input_json: |
+          {
+            "project_id": "2203306141",
+            "name": "Release"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }

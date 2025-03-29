@@ -68,12 +68,13 @@ from integrations.x.route import router as x_router
 from integrations.heygen.route import router as heygen_router
 from integrations.bannerbear.route import router as bannerbear_router
 from integrations.uploadthing.route import router as uploadthing_router
-from debug_routes import router as debug_router
-from celery_app import celery_app
-from integrations.common.get_memory import get_user_memories
 from integrations.mail.route import router as mail_smtp_router
 from integrations.neondb.route import router as neondb_router
 from integrations.supabase.route import router as supabase_router
+from integrations.duckduckgo.route import router as duckduckgo_router
+from debug_routes import router as debug_router
+from celery_app import celery_app
+from integrations.common.get_memory import get_user_memories
 import os
 import json
 import inspect
@@ -157,7 +158,8 @@ INTEGRATION_ROUTERS = {
     "uploadthing": uploadthing_router,
     "mail": mail_smtp_router,
     "neondb": neondb_router,
-    "supabase": supabase_router
+    "supabase": supabase_router,
+    "duckduckgo": duckduckgo_router
 }
 
 async def check_user_permission(request: Request, tool: str, method: str):

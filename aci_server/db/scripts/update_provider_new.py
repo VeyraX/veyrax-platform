@@ -121,23 +121,42 @@ def get_provider_schemas(provider_tag: str) -> Dict[str, Any]:
                                     }
                                     
                                     if "input_json" in example:
-                                        example_entry["input"] = (
-                                            json.loads(example["input_json"])
-                                            if isinstance(example["input_json"], str)
-                                            else example["input_json"]
-                                        )
+                                        try:
+                                            # Handle both string and parsed JSON
+                                            if isinstance(example["input_json"], str):
+                                                # Try to parse JSON from string
+                                                example_entry["input"] = json.loads(example["input_json"])
+                                            else:
+                                                # Already parsed by YAML loader
+                                                example_entry["input"] = example["input_json"]
+                                            print(f"Successfully parsed input example for {endpoint_name}")
+                                        except json.JSONDecodeError as e:
+                                            print(f"Error parsing input JSON for {endpoint_name}: {str(e)}")
+                                            # Store as-is if JSON parsing fails
+                                            example_entry["input"] = example["input_json"]
                                     
                                     if "output_json" in example:
-                                        example_entry["output"] = (
-                                            json.loads(example["output_json"])
-                                            if isinstance(example["output_json"], str)
-                                            else example["output_json"]
-                                        )
+                                        try:
+                                            # Handle both string and parsed JSON
+                                            if isinstance(example["output_json"], str):
+                                                # Try to parse JSON from string
+                                                example_entry["output"] = json.loads(example["output_json"])
+                                            else:
+                                                # Already parsed by YAML loader
+                                                example_entry["output"] = example["output_json"]
+                                            print(f"Successfully parsed output example for {endpoint_name}")
+                                        except json.JSONDecodeError as e:
+                                            print(f"Error parsing output JSON for {endpoint_name}: {str(e)}")
+                                            # Store as-is if JSON parsing fails
+                                            example_entry["output"] = example["output_json"]
                                     
                                     endpoint_examples.append(example_entry)
                                 
                                 if endpoint_examples:
                                     example_schemas[endpoint_name] = endpoint_examples
+                                    print(f"Added {len(endpoint_examples)} examples for {endpoint_name}")
+                                else:
+                                    print(f"No examples found for {endpoint_name}")
                     break
                 except Exception as e:
                     print(f"Error loading examples from {path}: {str(e)}")
@@ -161,6 +180,13 @@ def get_provider_schemas(provider_tag: str) -> Dict[str, Any]:
                             del input_schema['examples']
                         
                         input_schemas[endpoint_name] = input_schema
+        
+        # Add examples to the actions
+        for endpoint_name, schemas in input_schemas.items():
+            if endpoint_name in example_schemas:
+                if 'function' in schemas:
+                    schemas['function']['examples'] = example_schemas[endpoint_name]
+                    print(f"Attached examples to {endpoint_name}")
         
         # Get component data
         component_data = None
@@ -255,7 +281,8 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
                         "action_slug": action_slug,
                         "action_name": action_name,
                         "input_schema": schema,
-                        "output_schema": schemas["output_schemas"].get(endpoint_name, {})
+                        "output_schema": schemas["output_schemas"].get(endpoint_name, {}),
+                        "examples": schemas["example_schemas"].get(endpoint_name, [])
                     }
                     
                     if action_slug in existing_actions:
@@ -263,7 +290,7 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
                         supabase.table("provider_actions").update(action_record)\
                             .eq("id", action_id).execute()
                         actions_updated += 1
-                        print(f"Updated action: {action_name}")
+                        print(f"Updated action: {action_name} with {len(schemas['example_schemas'].get(endpoint_name, []))} examples")
                     else:
                         result = supabase.table("provider_actions").insert(action_record).execute()
                         actions_added += 1

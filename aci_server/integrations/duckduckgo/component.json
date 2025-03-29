@@ -1,0 +1,10 @@
+[
+    {
+      "name": "DuckDuckGoSearchResults",
+      "version": "1.0.0",
+      "description": "A React component for displaying DuckDuckGo search results",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]
