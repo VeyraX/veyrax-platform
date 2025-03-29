@@ -74,7 +74,7 @@ from integrations.supabase.route import router as supabase_router
 from integrations.duckduckgo.route import router as duckduckgo_router
 from integrations.ipinfo.route import router as ipinfo_router
 from integrations.hunterio.route import router as hunterio_router
-
+from integrations.zip_code.route import router as zip_code_router
 from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
@@ -164,7 +164,8 @@ INTEGRATION_ROUTERS = {
     "supabase": supabase_router,
     "duckduckgo": duckduckgo_router,
     "ipinfo": ipinfo_router,
-    "hunterio": hunterio_router
+    "hunterio": hunterio_router,
+    "zip_code": zip_code_router
 }
 
 

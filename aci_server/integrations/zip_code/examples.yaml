@@ -1,0 +1,156 @@
+routes:
+  - endpoint: /zip_code/get_by_zipcode
+    examples:
+      - scenario: "US Zip Code"
+        description: "Get information for Beverly Hills, CA"
+        input_json: |
+          {
+            "country": "US",
+            "postal_code": "90210"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "post code": "90210",
+              "country": "United States",
+              "country abbreviation": "US",
+              "places": [
+                {
+                  "place name": "Beverly Hills",
+                  "longitude": "-118.4065",
+                  "state": "California",
+                  "state abbreviation": "CA",
+                  "latitude": "34.0901"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "ZipCodeResponseView"
+            }
+          }
+
+      - scenario: "Canadian Postal Code"
+        description: "Get information for a Canadian postal code"
+        input_json: |
+          {
+            "country": "CA",
+            "postal_code": "M5S"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "post code": "M5S",
+              "country": "Canada",
+              "country abbreviation": "CA",
+              "places": [
+                {
+                  "place name": "Central Toronto (University of Toronto)",
+                  "longitude": "-79.3956",
+                  "state": "Ontario",
+                  "state abbreviation": "ON",
+                  "latitude": "43.6629"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "ZipCodeResponseView"
+            }
+          }
+
+      - scenario: "German Postal Code"
+        description: "Get information for a German postal code"
+        input_json: |
+          {
+            "country": "DE",
+            "postal_code": "10115"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "post code": "10115",
+              "country": "Germany",
+              "country abbreviation": "DE",
+              "places": [
+                {
+                  "place name": "Berlin",
+                  "longitude": "13.3833",
+                  "state": "Berlin",
+                  "state abbreviation": "BE",
+                  "latitude": "52.5167"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "ZipCodeResponseView"
+            }
+          }
+
+  - endpoint: /zip_code/get_by_city
+    examples:
+      - scenario: "US City"
+        description: "Get postal codes for Belmont, MA"
+        input_json: |
+          {
+            "country": "US",
+            "state": "MA",
+            "city": "Belmont"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "post code": "02178",
+              "country": "United States", 
+              "country abbreviation": "US",
+              "places": [
+                {
+                  "place name": "Belmont",
+                  "longitude": "-71.1785",
+                  "state": "Massachusetts",
+                  "state abbreviation": "MA",
+                  "latitude": "42.3976"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "ZipCodeResponseView"
+            }
+          }
+
+      - scenario: "French City"
+        description: "Get postal codes for Paris, France"
+        input_json: |
+          {
+            "country": "FR",
+            "state": "Île-de-France",
+            "city": "Paris"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "post code": "75000",
+              "country": "France",
+              "country abbreviation": "FR",
+              "places": [
+                {
+                  "place name": "Paris",
+                  "longitude": "2.3488",
+                  "state": "Île-de-France",
+                  "state abbreviation": "IF",
+                  "latitude": "48.8534"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "ZipCodeResponseView"
+            }
+          } 

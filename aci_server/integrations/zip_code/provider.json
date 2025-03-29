@@ -1,0 +1,7 @@
+{
+    "name": "Zip Codes",
+    "provider_tag": "zip_code",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//zip_code_logo.png",
+    "description": "Lookup postal code information for countries around the world. Get details about locations based on postal codes or find postal codes for cities. Supports over 60 countries. Integrated with Zippopotam API.",
+    "auth_method": "none"
+} 
