@@ -1,0 +1,628 @@
+routes:
+  - endpoint: /hunterio/domain_search
+    examples:
+      - scenario: "Basic Domain Search"
+        description: "Search for email addresses from a domain using only required parameters"
+        input_json: |
+          {
+            "domain": "intercom.com"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "domain": "intercom.com",
+              "disposable": false,
+              "webmail": false,
+              "accept_all": true,
+              "pattern": "{first}",
+              "organization": "Intercom",
+              "description": "Faster resolutions, higher CSAT, and lighter support volumes with the only platform to combine the power of automation and human customer support.",
+              "industry": "Software Development",
+              "technologies": ["amazon-web-services", "facebook", "intercom", "marketo", "node-js", "react", "recaptcha", "sentry"],
+              "emails": [
+                {
+                  "value": "ciaran@intercom.com",
+                  "type": "personal",
+                  "confidence": 92,
+                  "sources": [
+                    {
+                      "domain": "github.com",
+                      "uri": "http://github.com/ciaranlee",
+                      "extracted_on": "2015-07-29",
+                      "last_seen_on": "2017-07-01",
+                      "still_on_page": true
+                    }
+                  ],
+                  "first_name": "Ciaran",
+                  "last_name": "Lee",
+                  "position": "Support Engineer",
+                  "seniority": "senior",
+                  "department": "it",
+                  "twitter": "ciaran_lee",
+                  "verification": {
+                    "date": "2019-12-06",
+                    "status": "valid"
+                  }
+                },
+                {
+                  "value": "support@intercom.com",
+                  "type": "generic",
+                  "confidence": 100,
+                  "sources": [
+                    {
+                      "domain": "intercom.com",
+                      "uri": "https://www.intercom.com/contact",
+                      "extracted_on": "2015-01-25",
+                      "last_seen_on": "2020-02-02",
+                      "still_on_page": true
+                    }
+                  ],
+                  "verification": {
+                    "date": "2020-02-02",
+                    "status": "valid"
+                  }
+                }
+              ],
+              "linked_domains": []
+            },
+            "message": null,
+            "component": {
+              "name": "DomainSearchResultView"
+            }
+          }
+
+      - scenario: "Domain Search with Filters"
+        description: "Search for email addresses from a domain with type and department filters"
+        input_json: |
+          {
+            "domain": "intercom.com",
+            "limit": 5,
+            "type": "personal",
+            "department": "executive"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "domain": "intercom.com",
+              "disposable": false,
+              "webmail": false,
+              "accept_all": true,
+              "pattern": "{first}",
+              "organization": "Intercom",
+              "emails": [
+                {
+                  "value": "des@intercom.com",
+                  "type": "personal",
+                  "confidence": 95,
+                  "sources": [
+                    {
+                      "domain": "intercom.com",
+                      "uri": "https://www.intercom.com/about",
+                      "extracted_on": "2015-02-14",
+                      "last_seen_on": "2020-02-02",
+                      "still_on_page": true
+                    }
+                  ],
+                  "first_name": "Des",
+                  "last_name": "Traynor",
+                  "position": "Co-founder & Chief Strategy Officer",
+                  "seniority": "executive",
+                  "department": "executive",
+                  "verification": {
+                    "date": "2020-02-02",
+                    "status": "valid"
+                  }
+                }
+              ],
+              "linked_domains": []
+            },
+            "message": null,
+            "component": {
+              "name": "DomainSearchResultView"
+            }
+          }
+
+  - endpoint: /hunterio/email_finder
+    examples:
+      - scenario: "Basic Email Finder"
+        description: "Find an email address using domain, first name, and last name"
+        input_json: |
+          {
+            "domain": "reddit.com",
+            "first_name": "Alexis",
+            "last_name": "Ohanian"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "first_name": "Alexis",
+              "last_name": "Ohanian",
+              "email": "alexis@reddit.com",
+              "score": 97,
+              "domain": "reddit.com",
+              "accept_all": false,
+              "position": "Cofounder",
+              "sources": [
+                {
+                  "domain": "redditblog.com",
+                  "uri": "http://redditblog.com/2008/10/22/widgets-get-an-upgrade-and-a-firefox-extension-that-will-rock-your-world",
+                  "extracted_on": "2018-10-19",
+                  "last_seen_on": "2021-05-18",
+                  "still_on_page": true
+                }
+              ],
+              "verification": {
+                "date": "2021-06-14",
+                "status": "valid"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "EmailFinderResultView"
+            }
+          }
+
+      - scenario: "Email Finder with Company Name"
+        description: "Find an email address using company name, first name, and last name"
+        input_json: |
+          {
+            "company": "Stripe",
+            "first_name": "Patrick",
+            "last_name": "Collison"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "first_name": "Patrick",
+              "last_name": "Collison",
+              "email": "patrick@stripe.com",
+              "score": 94,
+              "domain": "stripe.com",
+              "accept_all": false,
+              "position": "CEO",
+              "company": "Stripe",
+              "sources": [
+                {
+                  "domain": "beta.paganresearch.io",
+                  "uri": "http://beta.paganresearch.io/details/stripe",
+                  "extracted_on": "2020-06-17",
+                  "last_seen_on": "2020-06-17",
+                  "still_on_page": true
+                }
+              ],
+              "verification": {
+                "date": "2020-06-17",
+                "status": "valid"
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "EmailFinderResultView"
+            }
+          }
+
+  - endpoint: /hunterio/email_verifier
+    examples:
+      - scenario: "Basic Email Verification"
+        description: "Verify the deliverability of an email address"
+        input_json: |
+          {
+            "email": "patrick@stripe.com"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "valid",
+              "result": "deliverable",
+              "score": 100,
+              "email": "patrick@stripe.com",
+              "regexp": true,
+              "gibberish": false,
+              "disposable": false,
+              "webmail": false,
+              "mx_records": true,
+              "smtp_server": true,
+              "smtp_check": true,
+              "accept_all": false,
+              "block": false,
+              "sources": [
+                {
+                  "domain": "beta.paganresearch.io",
+                  "uri": "http://beta.paganresearch.io/details/stripe",
+                  "extracted_on": "2020-06-17",
+                  "last_seen_on": "2020-06-17",
+                  "still_on_page": true
+                },
+                {
+                  "domain": "icloudnewz.blogspot.com",
+                  "uri": "http://icloudnewz.blogspot.com/2017/11/follow-patrick-collison-mike-birbiglia.html",
+                  "extracted_on": "2020-03-25",
+                  "last_seen_on": "2020-06-29",
+                  "still_on_page": true
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "EmailVerifierResultView"
+            }
+          }
+
+      - scenario: "Verification of Invalid Email"
+        description: "Verify an email address that is not deliverable"
+        input_json: |
+          {
+            "email": "nonexistent@example.com"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "status": "invalid",
+              "result": "undeliverable",
+              "score": 0,
+              "email": "nonexistent@example.com",
+              "regexp": true,
+              "gibberish": false,
+              "disposable": false,
+              "webmail": false,
+              "mx_records": false,
+              "smtp_server": false,
+              "smtp_check": false,
+              "accept_all": false,
+              "block": false,
+              "sources": []
+            },
+            "message": null,
+            "component": {
+              "name": "EmailVerifierResultView"
+            }
+          }
+
+  - endpoint: /hunterio/email_count
+    examples:
+      - scenario: "Basic Email Count"
+        description: "Get the count of email addresses available for a domain"
+        input_json: |
+          {
+            "domain": "stripe.com"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "total": 81,
+              "personal_emails": 65,
+              "generic_emails": 16,
+              "department": {
+                "executive": 10,
+                "it": 0,
+                "finance": 8,
+                "management": 0,
+                "sales": 0,
+                "legal": 0,
+                "support": 6,
+                "hr": 0,
+                "marketing": 0,
+                "communication": 2,
+                "education": 0,
+                "design": 0,
+                "health": 0,
+                "operations": 0
+              },
+              "seniority": {
+                "junior": 13,
+                "senior": 5,
+                "executive": 2
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "EmailCountResultView"
+            }
+          }
+
+      - scenario: "Email Count with Company Name"
+        description: "Get the count of email addresses available for a company name"
+        input_json: |
+          {
+            "company": "Intercom"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "total": 42,
+              "personal_emails": 30,
+              "generic_emails": 12,
+              "department": {
+                "executive": 5,
+                "it": 8,
+                "finance": 2,
+                "management": 0,
+                "sales": 4,
+                "legal": 0,
+                "support": 6,
+                "hr": 2,
+                "marketing": 3,
+                "communication": 0,
+                "education": 0,
+                "design": 0,
+                "health": 0,
+                "operations": 0
+              },
+              "seniority": {
+                "junior": 15,
+                "senior": 10,
+                "executive": 5
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "EmailCountResultView"
+            }
+          }
+
+  - endpoint: /hunterio/email_enrichment
+    examples:
+      - scenario: "Basic Email Enrichment"
+        description: "Get enriched data for an email address"
+        input_json: |
+          {
+            "email": "francois@hunter.io"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "16210bd7-67c0-5b56-ba90-aa80ed9395a8",
+              "name": {
+                "fullName": "François Grante",
+                "givenName": "François",
+                "familyName": "Grante"
+              },
+              "email": "francois@hunter.io",
+              "location": "Tokyo, Japan",
+              "timeZone": "Asia/Tokyo",
+              "utcOffset": 9,
+              "geo": {
+                "city": "Tokyo",
+                "state": null,
+                "stateCode": null,
+                "country": "Japan",
+                "countryCode": "JP",
+                "lat": 35.6895,
+                "lng": 139.69171
+              },
+              "employment": {
+                "domain": "hunter.io",
+                "name": "Hunter",
+                "title": "Co-Founder",
+                "role": "executive"
+              },
+              "twitter": {
+                "handle": "fgrante"
+              },
+              "linkedin": {
+                "handle": "françois-grante-028a364a"
+              },
+              "emailProvider": "google.com",
+              "indexedAt": "2024-12-11"
+            },
+            "message": null,
+            "component": {
+              "name": "EmailEnrichmentResultView"
+            }
+          }
+
+  - endpoint: /hunterio/company_enrichment
+    examples:
+      - scenario: "Basic Company Enrichment"
+        description: "Get enriched data for a company domain"
+        input_json: |
+          {
+            "domain": "hunter.io"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "95ca56a8-a019-5c41-881e-293d9ca4741a",
+              "name": "Hunter",
+              "legalName": "Hunter",
+              "domain": "hunter.io",
+              "site": {
+                "phoneNumbers": [
+                  "+1 415 712 0049"
+                ],
+                "emailAddresses": [
+                  "support@hunter.io",
+                  "contact@hunter.io",
+                  "first@hunter.io"
+                ]
+              },
+              "category": {
+                "sector": "Information Technology",
+                "industryGroup": "Software & Services",
+                "industry": "Internet Software & Services",
+                "subIndustry": "Internet"
+              },
+              "tags": [
+                "email marketing",
+                "lead generation",
+                "data enrichment",
+                "sales intelligence",
+                "business tools"
+              ],
+              "description": "Hunter is an email marketing company that specializes in lead generation and data enrichment.",
+              "foundedYear": 2015,
+              "location": "Wilmington, Delaware, United States",
+              "timeZone": "America/New_York",
+              "utcOffset": -5,
+              "geo": {
+                "city": "Wilmington",
+                "state": "Delaware",
+                "stateCode": "DE",
+                "country": "United States",
+                "countryCode": "US",
+                "lat": 39.74595,
+                "lng": -75.54659
+              },
+              "logo": "https://logo.clearbit.com/hunter.io",
+              "linkedin": {
+                "handle": "company/hunterio"
+              },
+              "type": "private",
+              "phone": "+1 415 712 0049",
+              "metrics": {
+                "trafficRank": "very_high",
+                "employees": "11-50"
+              },
+              "tech": [
+                "cloudflare",
+                "ruby",
+                "stimulus"
+              ],
+              "techCategories": [
+                "analytics",
+                "dns",
+                "programming_framework",
+                "security",
+                "web_servers"
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "CompanyEnrichmentResultView"
+            }
+          }
+
+  - endpoint: /hunterio/combined_enrichment
+    examples:
+      - scenario: "Basic Combined Enrichment"
+        description: "Get enriched data for both an email address and its company"
+        input_json: |
+          {
+            "email": "francois@hunter.io"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "person": {
+                "id": "16210bd7-67c0-5b56-ba90-aa80ed9395a8",
+                "name": {
+                  "fullName": "François Grante",
+                  "givenName": "François",
+                  "familyName": "Grante"
+                },
+                "email": "francois@hunter.io",
+                "location": "Tokyo, Japan",
+                "timeZone": "Asia/Tokyo",
+                "utcOffset": 9,
+                "geo": {
+                  "city": "Tokyo",
+                  "state": null,
+                  "stateCode": null,
+                  "country": "Japan",
+                  "countryCode": "JP",
+                  "lat": 35.6895,
+                  "lng": 139.69171
+                },
+                "employment": {
+                  "domain": "hunter.io",
+                  "name": "Hunter",
+                  "title": "Co-Founder",
+                  "role": "executive"
+                },
+                "twitter": {
+                  "handle": "fgrante"
+                },
+                "linkedin": {
+                  "handle": "françois-grante-028a364a"
+                },
+                "emailProvider": "google.com",
+                "indexedAt": "2024-12-11"
+              },
+              "company": {
+                "id": "95ca56a8-a019-5c41-881e-293d9ca4741a",
+                "name": "Hunter",
+                "legalName": "Hunter",
+                "domain": "hunter.io",
+                "site": {
+                  "phoneNumbers": [
+                    "+1 415 712 0049"
+                  ],
+                  "emailAddresses": [
+                    "support@hunter.io",
+                    "contact@hunter.io",
+                    "first@hunter.io"
+                  ]
+                },
+                "category": {
+                  "sector": "Information Technology",
+                  "industryGroup": "Software & Services",
+                  "industry": "Internet Software & Services",
+                  "subIndustry": "Internet"
+                },
+                "description": "Hunter is an email marketing company that specializes in lead generation and data enrichment.",
+                "foundedYear": 2015,
+                "location": "Wilmington, Delaware, United States",
+                "timeZone": "America/New_York",
+                "type": "private",
+                "phone": "+1 415 712 0049",
+                "metrics": {
+                  "trafficRank": "very_high",
+                  "employees": "11-50"
+                }
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "CombinedEnrichmentResultView"
+            }
+          }
+
+  - endpoint: /hunterio/account_information
+    examples:
+      - scenario: "Get Account Information"
+        description: "Retrieve information about your Hunter.io account"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "first_name": "Antoine",
+              "last_name": "Finkelstein",
+              "email": "antoine@hunter.io",
+              "plan_name": "Pro",
+              "plan_level": 3,
+              "reset_date": "2025-04-06",
+              "team_id": 1,
+              "calls": {
+                "_deprecation_notice": "Sums the searches and the verifications, giving an unprecise look of the requests available",
+                "used": 18526,
+                "available": 20000
+              },
+              "requests": {
+                "searches": {
+                  "used": 14260,
+                  "available": 10000
+                },
+                "verifications": {
+                  "used": 4266,
+                  "available": 10000
+                }
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "AccountInformationResultView"
+            }
+          } 

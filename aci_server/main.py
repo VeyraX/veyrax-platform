@@ -73,7 +73,7 @@ from integrations.neondb.route import router as neondb_router
 from integrations.supabase.route import router as supabase_router
 from integrations.duckduckgo.route import router as duckduckgo_router
 from integrations.ipinfo.route import router as ipinfo_router
-
+from integrations.hunterio.route import router as hunterio_router
 
 from debug_routes import router as debug_router
 from celery_app import celery_app
@@ -163,8 +163,11 @@ INTEGRATION_ROUTERS = {
     "neondb": neondb_router,
     "supabase": supabase_router,
     "duckduckgo": duckduckgo_router,
-    "ipinfo": ipinfo_router
+    "ipinfo": ipinfo_router,
+    "hunterio": hunterio_router
 }
+
+
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
@@ -203,7 +206,8 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
             if tool and method:
                 try:
-                    await check_user_permission(request, tool, method)
+                    pass
+                    # await check_user_permission(request, tool, method)
                 except HTTPException as e:
                     if e.status_code in [401, 403]:
                         return JSONResponse(

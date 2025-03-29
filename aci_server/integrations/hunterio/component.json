@@ -1,0 +1,139 @@
+[
+  {
+    "name": "DomainSearchResultView",
+    "version": "1.0.0",
+    "description": "A React component for displaying domain search results from Hunter.io API",
+    "related_endpoints": ["domain_search"],
+    "component": {
+      "jsx": "function DomainSearchResultView(props) {\n  const data = props.data;\n  if (!data) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      backgroundColor: '#ffffff',\n      borderRadius: '4px',\n      padding: '16px',\n      width: '100%',\n      boxSizing: 'border-box'\n    },\n    header: {\n      borderBottom: '1px solid #e2e8f0',\n      marginBottom: '16px',\n      paddingBottom: '12px'\n    },\n    domainInfo: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px',\n      marginBottom: '8px'\n    },\n    domainName: {\n      fontSize: '18px',\n      fontWeight: 'bold',\n      color: '#1a202c'\n    },\n    badge: {\n      backgroundColor: '#e2e8f0',\n      color: '#4a5568',\n      borderRadius: '4px',\n      padding: '2px 6px',\n      fontSize: '12px',\n      fontWeight: '500'\n    },\n    organization: {\n      color: '#4a5568',\n      fontSize: '14px',\n      marginBottom: '8px'\n    },\n    description: {\n      color: '#718096',\n      fontSize: '14px',\n      marginBottom: '12px'\n    },\n    section: {\n      marginBottom: '16px'\n    },\n    sectionTitle: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#2d3748',\n      marginBottom: '8px'\n    },\n    emailList: {\n      marginTop: '8px'\n    },\n    emailItem: {\n      marginBottom: '12px',\n      padding: '12px',\n      borderRadius: '4px',\n      backgroundColor: '#f7fafc',\n      border: '1px solid #edf2f7'\n    },\n    emailHeader: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      marginBottom: '8px'\n    },\n    emailValue: {\n      fontWeight: '600',\n      color: '#3182ce'\n    },\n    emailType: {\n      fontSize: '12px',\n      padding: '2px 6px',\n      borderRadius: '4px',\n      fontWeight: '500'\n    },\n    personal: {\n      backgroundColor: '#c6f6d5',\n      color: '#2f855a'\n    },\n    generic: {\n      backgroundColor: '#e9d8fd',\n      color: '#6b46c1'\n    },\n    personInfo: {\n      display: 'flex',\n      gap: '8px',\n      flexWrap: 'wrap',\n      marginBottom: '8px'\n    },\n    infoItem: {\n      fontSize: '13px',\n      color: '#4a5568'\n    },\n    confidence: {\n      marginTop: '8px',\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '4px'\n    },\n    confidenceLabel: {\n      fontSize: '12px',\n      color: '#718096',\n      display: 'flex',\n      justifyContent: 'space-between',\n      alignItems: 'center'\n    },\n    confidenceBar: {\n      height: '6px',\n      width: '100%',\n      backgroundColor: '#edf2f7',\n      borderRadius: '3px',\n      overflow: 'hidden'\n    },\n    confidenceFill: {\n      height: '100%',\n      backgroundColor: '#4299e1'\n    },\n    techSection: {\n      marginTop: '16px'\n    },\n    techTags: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '6px'\n    },\n    techTag: {\n      backgroundColor: '#ebf4ff',\n      color: '#3182ce',\n      borderRadius: '4px',\n      padding: '4px 8px',\n      fontSize: '12px'\n    }\n  };\n\n  // Helper function to get confidence level color\n  const getConfidenceColor = (score) => {\n    if (score >= 90) return '#48bb78';\n    if (score >= 75) return '#4299e1';\n    if (score >= 50) return '#ecc94b';\n    return '#f56565';\n  };\n\n  return React.createElement('div', { style: styles.container },\n    // Header with domain info\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.domainInfo },\n        React.createElement('h2', { style: styles.domainName }, data.domain),\n        data.pattern && React.createElement('span', { style: styles.badge }, `Pattern: ${data.pattern}`)\n      ),\n      data.organization && React.createElement('div', { style: styles.organization }, data.organization),\n      data.description && React.createElement('div', { style: styles.description }, data.description)\n    ),\n    \n    // Email list section\n    React.createElement('div', { style: styles.section },\n      React.createElement('h3', { style: styles.sectionTitle }, `Email Addresses (${data.emails ? data.emails.length : 0})`),\n      React.createElement('div', { style: styles.emailList },\n        data.emails && data.emails.map((email, index) =>\n          React.createElement('div', { key: index, style: styles.emailItem },\n            React.createElement('div', { style: styles.emailHeader },\n              React.createElement('div', { style: styles.emailValue }, email.value),\n              React.createElement('span', { \n                style: {\n                  ...styles.emailType,\n                  ...(email.type === 'personal' ? styles.personal : styles.generic)\n                }\n              }, email.type)\n            ),\n            email.first_name && React.createElement('div', { style: styles.personInfo },\n              React.createElement('div', { style: styles.infoItem },\n                `${email.first_name} ${email.last_name || ''}`\n              ),\n              email.position && React.createElement('div', { style: styles.infoItem },\n                `• ${email.position}`\n              ),\n              email.department && React.createElement('div', { style: styles.infoItem },\n                `• ${email.department}`\n              ),\n              email.seniority && React.createElement('div', { style: styles.infoItem },\n                `• ${email.seniority}`\n              )\n            ),\n            React.createElement('div', { style: styles.confidence },\n              React.createElement('div', { style: styles.confidenceLabel },\n                React.createElement('span', {}, 'Confidence Score'),\n                React.createElement('span', {}, `${email.confidence}%`)\n              ),\n              React.createElement('div', { style: styles.confidenceBar },\n                React.createElement('div', { \n                  style: {\n                    ...styles.confidenceFill,\n                    width: `${email.confidence}%`,\n                    backgroundColor: getConfidenceColor(email.confidence)\n                  }\n                })\n              )\n            )\n          )\n        )\n      )\n    ),\n    \n    // Technology section (if available)\n    data.technologies && data.technologies.length > 0 && React.createElement('div', { style: styles.techSection },\n      React.createElement('h3', { style: styles.sectionTitle }, 'Technologies'),\n      React.createElement('div', { style: styles.techTags },\n        data.technologies.map((tech, index) =>\n          React.createElement('div', { key: index, style: styles.techTag }, tech)\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "domain": "intercom.com",
+        "disposable": false,
+        "webmail": false,
+        "accept_all": true,
+        "pattern": "{first}",
+        "organization": "Intercom",
+        "description": "Faster resolutions, higher CSAT, and lighter support volumes with the only platform to combine the power of automation and human customer support.",
+        "industry": "Software Development",
+        "technologies": ["amazon-web-services", "facebook", "intercom", "marketo", "node-js", "react", "recaptcha", "sentry"],
+        "emails": [
+          {
+            "value": "ciaran@intercom.com",
+            "type": "personal",
+            "confidence": 92,
+            "sources": [
+              {
+                "domain": "github.com",
+                "uri": "http://github.com/ciaranlee",
+                "extracted_on": "2015-07-29",
+                "last_seen_on": "2017-07-01",
+                "still_on_page": true
+              }
+            ],
+            "first_name": "Ciaran",
+            "last_name": "Lee",
+            "position": "Support Engineer",
+            "seniority": "senior",
+            "department": "it",
+            "twitter": "ciaran_lee",
+            "verification": {
+              "date": "2019-12-06",
+              "status": "valid"
+            }
+          },
+          {
+            "value": "support@intercom.com",
+            "type": "generic",
+            "confidence": 100,
+            "sources": [
+              {
+                "domain": "intercom.com",
+                "uri": "https://www.intercom.com/contact",
+                "extracted_on": "2015-01-25",
+                "last_seen_on": "2020-02-02",
+                "still_on_page": true
+              }
+            ],
+            "verification": {
+              "date": "2020-02-02",
+              "status": "valid"
+            }
+          }
+        ]
+      }
+    },
+    "schemaRef": "schema.DomainSearchResult"
+  },
+  {
+    "name": "EmailFinderResultView",
+    "version": "1.0.0",
+    "description": "A React component for displaying email finder results from Hunter.io API",
+    "related_endpoints": ["email_finder"],
+    "component": {
+      "jsx": "function EmailFinderResultView(props) {\n  const data = props.data;\n  if (!data) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      backgroundColor: '#ffffff',\n      borderRadius: '4px',\n      padding: '16px',\n      width: '100%',\n      boxSizing: 'border-box'\n    },\n    header: {\n      marginBottom: '16px'\n    },\n    email: {\n      fontSize: '18px',\n      fontWeight: 'bold',\n      color: '#3182ce',\n      marginBottom: '4px'\n    },\n    person: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#1a202c',\n      marginBottom: '8px'\n    },\n    infoRow: {\n      display: 'flex',\n      flexWrap: 'wrap',\n      gap: '16px',\n      marginBottom: '12px'\n    },\n    infoItem: {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '4px'\n    },\n    infoLabel: {\n      fontSize: '12px',\n      color: '#718096',\n      fontWeight: '500'\n    },\n    infoValue: {\n      fontSize: '14px',\n      color: '#4a5568'\n    },\n    scoreSection: {\n      marginTop: '16px',\n      marginBottom: '16px',\n      padding: '12px',\n      borderRadius: '4px',\n      backgroundColor: '#f7fafc',\n      border: '1px solid #edf2f7'\n    },\n    scoreHeader: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      marginBottom: '8px'\n    },\n    scoreLabel: {\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#2d3748'\n    },\n    scoreValue: {\n      fontSize: '14px',\n      fontWeight: '600'\n    },\n    scoreBar: {\n      height: '8px',\n      width: '100%',\n      backgroundColor: '#edf2f7',\n      borderRadius: '4px',\n      overflow: 'hidden'\n    },\n    scoreFill: {\n      height: '100%'\n    },\n    sourcesSection: {\n      marginTop: '16px'\n    },\n    sectionTitle: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#2d3748',\n      marginBottom: '8px'\n    },\n    sourcesList: {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px'\n    },\n    sourceItem: {\n      fontSize: '13px',\n      color: '#4a5568',\n      padding: '8px',\n      borderRadius: '4px',\n      backgroundColor: '#f7fafc'\n    },\n    sourceLink: {\n      color: '#4299e1',\n      textDecoration: 'none',\n      wordBreak: 'break-all'\n    },\n    sourceDates: {\n      fontSize: '12px',\n      color: '#718096',\n      marginTop: '4px'\n    },\n    badge: {\n      display: 'inline-block',\n      padding: '2px 6px',\n      borderRadius: '4px',\n      fontSize: '12px',\n      fontWeight: '500',\n      marginLeft: '8px'\n    },\n    verified: {\n      backgroundColor: '#c6f6d5',\n      color: '#2f855a'\n    },\n    unverified: {\n      backgroundColor: '#fed7d7',\n      color: '#c53030'\n    }\n  };\n\n  // Helper function to get score color\n  const getScoreColor = (score) => {\n    if (score >= 90) return '#48bb78';\n    if (score >= 75) return '#4299e1';\n    if (score >= 50) return '#ecc94b';\n    return '#f56565';\n  };\n\n  // Get verification badge color\n  const getVerificationBadge = () => {\n    if (!data.verification || !data.verification.status) return null;\n    \n    const isValid = data.verification.status === 'valid' || \n                   data.verification.status === 'deliverable';\n    \n    return React.createElement('span', {\n      style: {\n        ...styles.badge,\n        ...(isValid ? styles.verified : styles.unverified)\n      }\n    }, isValid ? 'Verified' : 'Unverified');\n  };\n\n  const scoreColor = getScoreColor(data.score);\n\n  return React.createElement('div', { style: styles.container },\n    // Header with email and person info\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.email }, \n        data.email,\n        getVerificationBadge()\n      ),\n      React.createElement('div', { style: styles.person }, \n        `${data.first_name} ${data.last_name}`\n      )\n    ),\n    \n    // Info section\n    React.createElement('div', { style: styles.infoRow },\n      data.position && React.createElement('div', { style: styles.infoItem },\n        React.createElement('div', { style: styles.infoLabel }, 'Position'),\n        React.createElement('div', { style: styles.infoValue }, data.position)\n      ),\n      data.company && React.createElement('div', { style: styles.infoItem },\n        React.createElement('div', { style: styles.infoLabel }, 'Company'),\n        React.createElement('div', { style: styles.infoValue }, data.company)\n      ),\n      React.createElement('div', { style: styles.infoItem },\n        React.createElement('div', { style: styles.infoLabel }, 'Domain'),\n        React.createElement('div', { style: styles.infoValue }, data.domain)\n      )\n    ),\n    \n    // Confidence score section\n    React.createElement('div', { style: styles.scoreSection },\n      React.createElement('div', { style: styles.scoreHeader },\n        React.createElement('div', { style: styles.scoreLabel }, 'Confidence Score'),\n        React.createElement('div', { style: styles.scoreValue }, `${data.score}%`)\n      ),\n      React.createElement('div', { style: styles.scoreBar },\n        React.createElement('div', { \n          style: {\n            ...styles.scoreFill,\n            width: `${data.score}%`,\n            backgroundColor: scoreColor\n          }\n        })\n      )\n    ),\n    \n    // Sources section (if available)\n    data.sources && data.sources.length > 0 && React.createElement('div', { style: styles.sourcesSection },\n      React.createElement('h3', { style: styles.sectionTitle }, 'Sources'),\n      React.createElement('div', { style: styles.sourcesList },\n        data.sources.map((source, index) =>\n          React.createElement('div', { key: index, style: styles.sourceItem },\n            React.createElement('a', { \n              href: source.uri,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: styles.sourceLink \n            }, source.uri),\n            React.createElement('div', { style: styles.sourceDates }, \n              `First seen: ${source.extracted_on} • Last seen: ${source.last_seen_on}`\n            )\n          )\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "first_name": "Alexis",
+        "last_name": "Ohanian",
+        "email": "alexis@reddit.com",
+        "score": 97,
+        "domain": "reddit.com",
+        "accept_all": false,
+        "position": "Cofounder",
+        "sources": [
+          {
+            "domain": "redditblog.com",
+            "uri": "http://redditblog.com/2008/10/22/widgets-get-an-upgrade-and-a-firefox-extension-that-will-rock-your-world",
+            "extracted_on": "2018-10-19",
+            "last_seen_on": "2021-05-18",
+            "still_on_page": true
+          }
+        ],
+        "verification": {
+          "date": "2021-06-14",
+          "status": "valid"
+        }
+      }
+    },
+    "schemaRef": "schema.EmailFinderResult"
+  },
+  {
+    "name": "EmailVerifierResultView",
+    "version": "1.0.0",
+    "description": "A React component for displaying email verification results from Hunter.io API",
+    "related_endpoints": ["email_verifier"],
+    "component": {
+      "jsx": "function EmailVerifierResultView(props) {\n  const data = props.data;\n  if (!data) return null;\n\n  const styles = {\n    container: {\n      fontFamily: '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif',\n      backgroundColor: '#ffffff',\n      borderRadius: '4px',\n      padding: '16px',\n      width: '100%',\n      boxSizing: 'border-box'\n    },\n    header: {\n      marginBottom: '16px'\n    },\n    email: {\n      fontSize: '18px',\n      fontWeight: 'bold',\n      color: '#1a202c',\n      marginBottom: '8px'\n    },\n    statusSection: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '12px',\n      marginBottom: '16px'\n    },\n    statusBadge: {\n      padding: '6px 12px',\n      borderRadius: '4px',\n      fontSize: '14px',\n      fontWeight: '600',\n      textTransform: 'capitalize'\n    },\n    valid: {\n      backgroundColor: '#c6f6d5',\n      color: '#2f855a'\n    },\n    invalid: {\n      backgroundColor: '#fed7d7',\n      color: '#c53030'\n    },\n    risky: {\n      backgroundColor: '#feebc8',\n      color: '#c05621'\n    },\n    unknown: {\n      backgroundColor: '#e2e8f0',\n      color: '#4a5568'\n    },\n    scoreSection: {\n      marginBottom: '16px',\n      padding: '12px',\n      borderRadius: '4px',\n      backgroundColor: '#f7fafc',\n      border: '1px solid #edf2f7'\n    },\n    scoreHeader: {\n      display: 'flex',\n      justifyContent: 'space-between',\n      marginBottom: '8px'\n    },\n    scoreLabel: {\n      fontSize: '14px',\n      fontWeight: '600',\n      color: '#2d3748'\n    },\n    scoreValue: {\n      fontSize: '14px',\n      fontWeight: '600'\n    },\n    scoreBar: {\n      height: '8px',\n      width: '100%',\n      backgroundColor: '#edf2f7',\n      borderRadius: '4px',\n      overflow: 'hidden'\n    },\n    scoreFill: {\n      height: '100%'\n    },\n    checksGrid: {\n      display: 'grid',\n      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',\n      gap: '12px',\n      marginBottom: '20px'\n    },\n    checkItem: {\n      display: 'flex',\n      alignItems: 'center',\n      gap: '8px'\n    },\n    checkIcon: {\n      width: '20px',\n      height: '20px',\n      borderRadius: '50%',\n      display: 'flex',\n      alignItems: 'center',\n      justifyContent: 'center',\n      color: 'white',\n      fontWeight: 'bold',\n      fontSize: '12px'\n    },\n    checkPass: {\n      backgroundColor: '#48bb78'\n    },\n    checkFail: {\n      backgroundColor: '#f56565'\n    },\n    checkLabel: {\n      fontSize: '14px',\n      color: '#4a5568'\n    },\n    sourcesSection: {\n      marginTop: '16px'\n    },\n    sectionTitle: {\n      fontSize: '16px',\n      fontWeight: '600',\n      color: '#2d3748',\n      marginBottom: '8px'\n    },\n    sourcesList: {\n      display: 'flex',\n      flexDirection: 'column',\n      gap: '8px'\n    },\n    sourceItem: {\n      fontSize: '13px',\n      color: '#4a5568',\n      padding: '8px',\n      borderRadius: '4px',\n      backgroundColor: '#f7fafc'\n    },\n    sourceLink: {\n      color: '#4299e1',\n      textDecoration: 'none',\n      wordBreak: 'break-all'\n    },\n    sourceDates: {\n      fontSize: '12px',\n      color: '#718096',\n      marginTop: '4px'\n    }\n  };\n\n  // Helper function to get status style\n  const getStatusStyle = (status) => {\n    if (status === 'valid' || status === 'deliverable') return styles.valid;\n    if (status === 'invalid' || status === 'undeliverable') return styles.invalid;\n    if (status === 'risky') return styles.risky;\n    return styles.unknown;\n  };\n\n  // Helper function to get score color\n  const getScoreColor = (score) => {\n    if (score >= 90) return '#48bb78';\n    if (score >= 75) return '#4299e1';\n    if (score >= 50) return '#ecc94b';\n    return '#f56565';\n  };\n\n  // Get display status\n  const getDisplayStatus = () => {\n    if (data.status === 'valid' || data.status === 'deliverable') return 'Valid';\n    if (data.status === 'invalid' || data.status === 'undeliverable') return 'Invalid';\n    if (data.status === 'accept_all') return 'Accept All';\n    if (data.status === 'webmail') return 'Webmail';\n    if (data.status === 'disposable') return 'Disposable';\n    return 'Unknown';\n  };\n\n  // Create a check item\n  const createCheckItem = (label, passed) => {\n    return React.createElement('div', { style: styles.checkItem },\n      React.createElement('div', { \n        style: {\n          ...styles.checkIcon,\n          ...(passed ? styles.checkPass : styles.checkFail)\n        }\n      }, passed ? '✓' : '✕'),\n      React.createElement('div', { style: styles.checkLabel }, label)\n    );\n  };\n\n  return React.createElement('div', { style: styles.container },\n    // Header with email and status\n    React.createElement('div', { style: styles.header },\n      React.createElement('div', { style: styles.email }, data.email),\n      React.createElement('div', { style: styles.statusSection },\n        React.createElement('div', { \n          style: {\n            ...styles.statusBadge,\n            ...getStatusStyle(data.status)\n          }\n        }, getDisplayStatus())\n      )\n    ),\n    \n    // Confidence score section\n    React.createElement('div', { style: styles.scoreSection },\n      React.createElement('div', { style: styles.scoreHeader },\n        React.createElement('div', { style: styles.scoreLabel }, 'Deliverability Score'),\n        React.createElement('div', { style: styles.scoreValue }, `${data.score}%`)\n      ),\n      React.createElement('div', { style: styles.scoreBar },\n        React.createElement('div', { \n          style: {\n            ...styles.scoreFill,\n            width: `${data.score}%`,\n            backgroundColor: getScoreColor(data.score)\n          }\n        })\n      )\n    ),\n    \n    // Checks grid\n    React.createElement('div', { style: styles.checksGrid },\n      createCheckItem('Format Check', data.regexp),\n      createCheckItem('Not Gibberish', !data.gibberish),\n      createCheckItem('Not Disposable', !data.disposable),\n      createCheckItem('Not Webmail', !data.webmail),\n      createCheckItem('MX Records', data.mx_records),\n      createCheckItem('SMTP Server', data.smtp_server),\n      createCheckItem('SMTP Check', data.smtp_check),\n      createCheckItem('Not Accept All', !data.accept_all),\n      createCheckItem('Not Blocked', !data.block)\n    ),\n    \n    // Sources section (if available)\n    data.sources && data.sources.length > 0 && React.createElement('div', { style: styles.sourcesSection },\n      React.createElement('h3', { style: styles.sectionTitle }, 'Sources'),\n      React.createElement('div', { style: styles.sourcesList },\n        data.sources.map((source, index) =>\n          React.createElement('div', { key: index, style: styles.sourceItem },\n            React.createElement('a', { \n              href: source.uri,\n              target: '_blank',\n              rel: 'noopener noreferrer',\n              style: styles.sourceLink \n            }, source.uri),\n            React.createElement('div', { style: styles.sourceDates }, \n              `First seen: ${source.extracted_on} • Last seen: ${source.last_seen_on}`\n            )\n          )\n        )\n      )\n    )\n  );\n}"
+    },
+    "exampleProps": {
+      "data": {
+        "status": "valid",
+        "result": "deliverable",
+        "score": 100,
+        "email": "patrick@stripe.com",
+        "regexp": true,
+        "gibberish": false,
+        "disposable": false,
+        "webmail": false,
+        "mx_records": true,
+        "smtp_server": true,
+        "smtp_check": true,
+        "accept_all": false,
+        "block": false,
+        "sources": [
+          {
+            "domain": "beta.paganresearch.io",
+            "uri": "http://beta.paganresearch.io/details/stripe",
+            "extracted_on": "2020-06-17",
+            "last_seen_on": "2020-06-17",
+            "still_on_page": true
+          }
+        ]
+      }
+    },
+    "schemaRef": "schema.EmailVerifierResult"
+  }
+] 
