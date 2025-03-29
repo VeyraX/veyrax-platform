@@ -1,0 +1,125 @@
+routes:
+  - endpoint: /ipinfo/get_ip_info
+    examples:
+      - scenario: "Get information for a specific IP address"
+        description: "Retrieve geolocation and network information for a given IP address"
+        input_json: |
+          {
+            "ip_address": "8.8.8.8"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "ip": "8.8.8.8",
+              "hostname": "dns.google",
+              "city": "Mountain View",
+              "region": "California",
+              "country": "US",
+              "loc": "37.4056,-122.0775",
+              "org": "AS15169 Google LLC",
+              "postal": "94043",
+              "timezone": "America/Los_Angeles"
+            },
+            "message": null,
+            "component": {
+              "name": "IpInfoView"
+            }
+          }
+
+      - scenario: "Get information for the caller's IP"
+        description: "Retrieve information about the caller's IP address (no IP specified)"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "ip": "203.0.113.10",
+              "hostname": "example-isp.com",
+              "city": "New York",
+              "region": "New York",
+              "country": "US",
+              "loc": "40.7128,-74.0060",
+              "org": "AS12345 Example ISP",
+              "postal": "10001",
+              "timezone": "America/New_York"
+            },
+            "message": null,
+            "component": {
+              "name": "IpInfoView"
+            }
+          }
+
+  - endpoint: /ipinfo/get_bulk_info
+    examples:
+      - scenario: "Get information for multiple IP addresses"
+        description: "Retrieve information about multiple IP addresses in a single request"
+        input_json: |
+          {
+            "ip_addresses": ["8.8.8.8", "1.1.1.1"]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": {
+                "8.8.8.8": {
+                  "ip": "8.8.8.8",
+                  "hostname": "dns.google",
+                  "city": "Mountain View",
+                  "region": "California",
+                  "country": "US",
+                  "loc": "37.4056,-122.0775",
+                  "org": "AS15169 Google LLC",
+                  "postal": "94043",
+                  "timezone": "America/Los_Angeles"
+                },
+                "1.1.1.1": {
+                  "ip": "1.1.1.1",
+                  "hostname": "one.one.one.one",
+                  "city": "Los Angeles",
+                  "region": "California",
+                  "country": "US",
+                  "loc": "34.0544,-118.2441",
+                  "org": "AS13335 Cloudflare, Inc.",
+                  "postal": "90076",
+                  "timezone": "America/Los_Angeles"
+                }
+              }
+            },
+            "message": null,
+            "component": {
+              "name": "IpInfoBulkView"
+            }
+          }
+
+  - endpoint: /ipinfo/get_asn_info
+    examples:
+      - scenario: "Get information for an ASN"
+        description: "Retrieve information about an Autonomous System Number (ASN)"
+        input_json: |
+          {
+            "asn": "AS15169"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "asn": "AS15169",
+              "name": "Google LLC",
+              "country": "US",
+              "domain": "google.com",
+              "routes": 232,
+              "type": "business",
+              "prefixes": [
+                {"netblock": "172.217.0.0/24"},
+                {"netblock": "8.8.8.0/24"},
+                {"netblock": "8.8.4.0/24"}
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "IpInfoAsnView"
+            }
+          } 
