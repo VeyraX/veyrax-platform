@@ -206,8 +206,8 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
             if tool and method:
                 try:
-                    pass
-                    # await check_user_permission(request, tool, method)
+                    # pass
+                    await check_user_permission(request, tool, method)
                 except HTTPException as e:
                     if e.status_code in [401, 403]:
                         return JSONResponse(
