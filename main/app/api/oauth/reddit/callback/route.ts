@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
                 access_token: encryptedAccessToken,
                 refresh_token: encryptedRefreshToken,
                 expires_at: Math.floor(Date.now() / 1000) + expiresIn,
-                scopes: Array.isArray(scopes) ? scopes.join(' ') : scopes,
+                scopes: Array.isArray(scopes) ? scopes.join(',') : scopes,
                 raw_token_data: encryptedTokenData,
             }, {
                 onConflict: 'user_id,provider_id'
@@ -103,6 +103,8 @@ export async function GET(request: NextRequest) {
             console.error('Upsert error:', upsertError);
             throw upsertError;
         }
+
+        console.log("Adding actions user");
 
         await addActionsUser(provider_id);
 
