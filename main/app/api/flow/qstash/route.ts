@@ -8,6 +8,7 @@ const supabase = createClient(
 );
 
 const BASE_URL = process.env.FRONTEND_URL;
+const ACI_SERVER_URL = process.env.ACI_SERVER_URL || 'http://localhost:8000';
 
 async function handler(req: Request) {
   
@@ -63,17 +64,28 @@ async function handler(req: Request) {
       throw initialError;
     }
     
-    const response = await fetch(`${BASE_URL}/api/flow/run-flow`, {
+    // Call the flow agent route directly
+    const response = await fetch(`${ACI_SERVER_URL}/flow/run-flow/${flowId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'VEYRAX_API_KEY': apiKey,
         'X-Flow-Run-ID': initialFlowRun.id
       },
-      body: JSON.stringify({ flowId })
+      body: JSON.stringify({ 
+        query: "Run the flow automatically triggered by qstash",
+        include_debug_info: true
+      })
     });
 
     const responseBody = await response.text();
+    let parsedResponse;
+    
+    try {
+      parsedResponse = JSON.parse(responseBody);
+    } catch (e) {
+      parsedResponse = { error: 'Invalid JSON response', raw: responseBody };
+    }
 
     if (!response.ok) {
       await supabase
@@ -97,9 +109,12 @@ async function handler(req: Request) {
       throw new Error(`Failed to run flow: ${response.status} ${response.statusText} - ${responseBody}`);
     }
 
+    // We don't need to update flow run status here as the agent handles it
+
     return NextResponse.json({ 
       success: true, 
-      flowRunId: initialFlowRun.id 
+      flowRunId: initialFlowRun.id,
+      agentResponse: parsedResponse
     });
   } catch (error) {
     console.error('Detailed error in QStash webhook:', {

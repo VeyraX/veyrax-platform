@@ -77,6 +77,7 @@ from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
+from agent.routes import router as agent_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -200,7 +201,6 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         path = request.url.path.strip("/")
         segments = path.split("/")
         
-        # Skip non-tool routes like root, healthcheck, etc.
         if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] == "tool-call"):
             if segments[0] == "tool-call" and len(segments) >= 3:
                 tool, method = segments[1], segments[2]
@@ -237,7 +237,7 @@ app.add_middleware(
 
 app.include_router(debug_router)
 app.include_router(flow_router)
-
+app.include_router(agent_router)
 app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
