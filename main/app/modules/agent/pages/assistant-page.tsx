@@ -8,7 +8,7 @@ import { ChatMessages } from "../components/messages/chat-messages"
 import { type Message } from 'ai/react'
 import { AssistantEmptyState } from "./assistant-empty-state";
 import { createChat } from "../api/api.agent";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createChatMessage } from "../api/api.agent";
 import { getChatMessages } from "../api/api.agent";
 import { Loader2, AlertCircle } from "lucide-react"
@@ -33,9 +33,14 @@ export default function AssistantPage({
   const chatId = params.chatId;
   const isNewChat = chatId === 'new';
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get('query');
   
   const currentChatIdRef = useRef<string | null>(isNewChat ? null : chatId);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [initialInput, setInitialInput] = useState<string | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [isJustCreated, setIsJustCreated] = useState(() => {
@@ -253,6 +258,30 @@ export default function AssistantPage({
     fetchTools();
   }, []);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isNewChat && queryParam) {
+      setInitialInput(queryParam);
+    }
+  }, [isNewChat, queryParam]);
+
+  useEffect(() => {
+    if (isMounted && typeof window !== 'undefined' && isNewChat && queryParam && !hasSubmitted) {
+      if (queryParam.startsWith('Run Flow')) {
+        const timer = setTimeout(() => {
+          if (!hasSubmitted) {
+            handleNewMessage(queryParam);
+          }
+        }, 1000);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isMounted, isNewChat, queryParam, hasSubmitted]);
+
   return (
     <div className="flex h-full">
       <div className="flex-1 flex flex-col relative h-[100vh] w-full">
@@ -280,6 +309,7 @@ export default function AssistantPage({
             userTools={userTools}
             connectedTools={connectedTools}
             onToolClick={() => {}}
+            initialInput={initialInput}
           />
         ) : (
           <>
@@ -301,12 +331,14 @@ export default function AssistantPage({
               <div className="flex flex-col p-4 mx-auto w-full max-w-5xl">
                 
                 <AIInputWithSearch
+                  ref={inputRef}
                   placeholder={"Ask about anything..."}
                   onSubmit={handleNewMessage}
                   className="max-w-none"
                   isLoading={isLoading}
                   onStop={stop}
                   userTools={userTools}
+                  initialInput={initialInput}
                 />
               </div>
             </div>

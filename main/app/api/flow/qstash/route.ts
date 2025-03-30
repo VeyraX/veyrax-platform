@@ -14,34 +14,61 @@ async function handler(req: Request) {
   try {
     const body = await req.json();
     
-    const { flowId, apiKey } = body;
+    const { flowId, apiKey, allowDraft } = body;
 
     if (!flowId || !apiKey) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
+    const { data: apiKeyData, error: apiKeyError } = await supabase
+      .from('users_api_keys')
+      .select('user_id')
+      .eq('api_key', apiKey)
+      .single();
+      
+    if (apiKeyError || !apiKeyData) {
+      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+    }
+    
     const { data: flow, error: flowError } = await supabase
       .from('user_flows')
-      .select('status')
+      .select('id, name, description, plain_description, user_id, status')
       .eq('id', flowId)
+      .eq('user_id', apiKeyData.user_id)
       .single();
 
     if (flowError) {
       throw new Error(`Failed to get flow status: ${flowError.message}`);
     }
 
-    if (flow.status === 'Draft') {
+    if (flow.status === 'Draft' && !allowDraft) {
       return NextResponse.json({ 
         success: true, 
         message: 'Flow is in draft mode, skipping execution' 
       });
     }
     
+    const { data: initialFlowRun, error: initialError } = await supabase
+      .from('user_flow_runs')
+      .insert({
+        flow_id: flowId,
+        run_status: 'running',
+        run_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (initialError) {
+      console.error('Initial flow run save error:', initialError);
+      throw initialError;
+    }
+    
     const response = await fetch(`${BASE_URL}/api/flow/run-flow`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'VEYRAX_API_KEY': apiKey
+        'VEYRAX_API_KEY': apiKey,
+        'X-Flow-Run-ID': initialFlowRun.id
       },
       body: JSON.stringify({ flowId })
     });
@@ -49,10 +76,31 @@ async function handler(req: Request) {
     const responseBody = await response.text();
 
     if (!response.ok) {
+      await supabase
+        .from('user_flow_runs')
+        .update({
+          run_status: 'failed',
+          completed_at: new Date().toISOString(),
+          payload: {
+            message_id: `qstash-error-${Date.now()}`,
+            sender: 'system',
+            message_text: `Failed to run flow: ${response.status} ${response.statusText}`,
+            parts: [],
+            metadata: {
+              finishReason: 'error',
+              error: `Failed to run flow: ${response.status} ${response.statusText} - ${responseBody}`
+            }
+          }
+        })
+        .eq('id', initialFlowRun.id);
+        
       throw new Error(`Failed to run flow: ${response.status} ${response.statusText} - ${responseBody}`);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true, 
+      flowRunId: initialFlowRun.id 
+    });
   } catch (error) {
     console.error('Detailed error in QStash webhook:', {
       error: error instanceof Error ? error.message : 'Unknown error',

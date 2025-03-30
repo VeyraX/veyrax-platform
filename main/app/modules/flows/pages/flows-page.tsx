@@ -30,8 +30,22 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("My Flows")
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   
   const categories = ["Templates", "My Flows", "Active", "Scheduled", "Shared"]
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const filterParam = params.get('filter')
+    if (filterParam) {
+      const matchedCategory = categories.find(
+        category => category.toLowerCase() === filterParam.toLowerCase()
+      )
+      if (matchedCategory) {
+        setSelectedCategory(matchedCategory)
+      }
+    }
+  }, [])
 
   const fetchFlows = async () => {
     setIsLoading(true)
@@ -139,7 +153,7 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
 
   useEffect(() => {
     fetchFlows()
-  }, [])
+  }, [refreshTrigger])
 
   useEffect(() => {
     const filtered = filterFlows(flows, searchQuery, selectedCategory)
@@ -148,10 +162,18 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category)
+    // Update URL query parameter without navigation using lowercase
+    const url = new URL(window.location.href)
+    url.searchParams.set('filter', category.toLowerCase())
+    window.history.pushState({}, '', url)
   }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
+  }
+
+  const handleFlowChange = () => {
+    setRefreshTrigger(prev => prev + 1)
   }
 
   return (
@@ -229,7 +251,7 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
                 key={flow.id}
                 {...flow}
                 flowTools={flow.tools || []}
-                onFlowChange={fetchFlows}
+                onFlowChange={handleFlowChange}
               />
             ))
           )}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ScheduleSheet } from "./schedule-sheet";
 
 interface ScheduleViewProps {
-  schedule: FlowSchedule;
+  schedule?: FlowSchedule | null;
   flowName: string;
   flowRuns: UserFlowRun[];
 }
@@ -17,10 +17,12 @@ export function ScheduleView({ schedule, flowName, flowRuns }: ScheduleViewProps
   return (
     <>
       <div className="overflow-x-auto">
-        <div className="mb-4">
-          <ScheduleInfo schedule={schedule} />
-        </div>
-        <table className="min-w-full divide-y divide-gray-200">
+        {schedule && (
+          <div className="mb-4">
+            <ScheduleInfo schedule={schedule} />
+          </div>
+        )}
+        <table className="min-w-full divide-y divide-gray-200 mt-4">
           <thead>
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-sm font-medium">

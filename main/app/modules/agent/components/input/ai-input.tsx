@@ -24,6 +24,7 @@ interface AIInputWithSearchProps {
   onStop?: () => void;
   onShowSuggestions?: (show: boolean) => void;
   userTools: Record<string, any>;
+  initialInput?: string | null;
 }
 
 export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWithSearchProps>(({
@@ -39,8 +40,9 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
   onStop,
   onShowSuggestions,
   userTools,
+  initialInput = null,
 }, ref) => {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialInput || "");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight,
     maxHeight,
@@ -51,6 +53,13 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
 
   React.useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement);
+
+  React.useEffect(() => {
+    if (initialInput && !value) {
+      setValue(initialInput);
+      adjustHeight();
+    }
+  }, [initialInput, value, adjustHeight]);
 
   const handleSubmit = () => {
     const trimmedValue = value.trim();

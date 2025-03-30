@@ -22,7 +22,7 @@ const defaultEndpoints: ApiEndpoint[] = [
   {
     name: "Get All Flows",
     value: "get-flows",
-    example: `curl -X GET "https://veyaraxapp.com/api/flows" \\
+    example: `curl -X GET "https://veyaraxapp.com/get-flows" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`,
     responseSchema: `{
@@ -44,7 +44,7 @@ const defaultEndpoints: ApiEndpoint[] = [
   {
     name: "Get Flow by ID",
     value: "get-flow",
-    example: (flowId: string) => `curl -X GET "https://veyaraxapp.com/api/flows/${flowId}" \\
+    example: (flowId: string) => `curl -X GET "https://veyaraxapp.com/flow/get-flow/${flowId}" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`,
     responseSchema: `{

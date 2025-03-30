@@ -24,7 +24,13 @@ export function ScheduleSheet({ isOpen, onClose, flowRun }: ScheduleSheetProps) 
           <SheetTitle>Flow Run Details</SheetTitle>
         </SheetHeader>
         <div className="mt-6 pb-8">
-          <FlowRunParts parts={parts} />
+          {parts && parts.length > 0 ? (
+            <FlowRunParts parts={parts} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Payload will appear soon... Flow is running.</p>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

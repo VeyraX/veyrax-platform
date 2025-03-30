@@ -34,6 +34,37 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
   const [activeTab, setActiveTab] = useState("overview");
   const [flowStatus, setFlowStatus] = useState<'Active' | 'Draft'>('Draft');
   
+  useEffect(() => {
+    // Handle URL query parameter for tab selection
+    const searchParams = new URLSearchParams(window.location.search);
+    const tabParam = searchParams.get('tab');
+    
+    if (tabParam === 'runs') {
+      setActiveTab('flow-runs');
+    } else if (tabParam === 'schedule') {
+      setActiveTab('schedule');
+    } else if (tabParam === 'overview' || !tabParam) {
+      setActiveTab('overview');
+    }
+    
+    // Force reload if refresh parameter is present
+    const refreshParam = searchParams.get('refresh');
+    if (refreshParam && flowId) {
+      setIsLoadingFlow(true);
+      getFlowById(flowId)
+        .then(flowData => {
+          if (flowData) {
+            setFlow(flowData);
+            if (flowData.status) {
+              setFlowStatus(flowData.status);
+            }
+          }
+        })
+        .catch(error => console.error('Error refreshing flow data:', error))
+        .finally(() => setIsLoadingFlow(false));
+    }
+  }, [flowId]);
+  
   const loadScheduleAndRuns = async () => {
     if (!flowId) return;
     
@@ -250,7 +281,22 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
             <Tabs 
               defaultValue="overview" 
               className="w-full"
-              onValueChange={(value) => setActiveTab(value)}
+              value={activeTab}
+              onValueChange={(value) => {
+                setActiveTab(value);
+                // Update URL query parameter when tab changes
+                const url = new URL(window.location.href);
+                
+                if (value === 'flow-runs') {
+                  url.searchParams.set('tab', 'flowRuns');
+                } else if (value === 'schedule') {
+                  url.searchParams.set('tab', 'schedule');
+                } else {
+                  url.searchParams.set('tab', 'overview');
+                }
+                
+                window.history.pushState({}, '', url);
+              }}
             >
               <div className="mb-6">
                 <TabsList className="h-auto gap-4 rounded-none bg-transparent px-0 py-0 text-foreground">
@@ -290,14 +336,14 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
               <TabsContent value="flow-runs" className="mt-0">
                 <div className="bg-white rounded-md border p-6">
                   <h2 className="text-lg font-medium text-foreground">Runs</h2>
-                  {schedule ? (
+                  {flowRuns.length > 0 ? (
                     <ScheduleView
                       schedule={schedule}
                       flowName={flow?.name || ""}
                       flowRuns={flowRuns}
                     />
                   ) : (
-                    <div className="text-muted-foreground text-sm">No schedule configured for this flow.</div>
+                    <div className="text-muted-foreground text-sm mt-4">No runs recorded for this flow.</div>
                   )}
                 </div>
               </TabsContent>

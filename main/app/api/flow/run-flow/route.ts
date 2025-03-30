@@ -6,7 +6,7 @@ import { type Message } from 'ai';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 
 
-export const maxDuration = 150;
+export const maxDuration = 300;
 
 
 const openrouter = createOpenRouter({
@@ -53,6 +53,9 @@ export async function POST(req: Request) {
     const { flowId } = body;
     console.log('Flow ID:', flowId);
 
+    const flowRunId = req.headers.get('X-Flow-Run-ID');
+    console.log('Flow Run ID from header:', flowRunId);
+
     const { data: flowData, error: flowError } = await supabase
       .from('user_flows')
       .select('id, name, description, plain_description')
@@ -95,13 +98,13 @@ export async function POST(req: Request) {
 
       ${flowContextInfo}
 
-      You are tester. You main goal is first call get flows, and then call test flow with the id provided.
+      You main goal is first call get flows, and then call flow with the id provided to run.
       
-      ${flowData ? 'The service account already has a flow they want to test. Use the current flow ID for testing.' : 'Get flow first, then tool-call to test this out.'}
+      ${flowData ? 'The service account already has a flow they want to run. Use the current flow ID for running.' : 'Get flow first, then tool-call to run this out.'}
 
       ${flowRunPrompt}
 
-      If flow is empty, you should respond with an error message indicating the flow needs to be created first.
+      If flow is empty, you should respond with an error message indicating the flow needs to be created first. It is not test. It is production run.
     `;
 
     console.log('SystemMainPrompt:', SystemMainPrompt);
@@ -151,6 +154,63 @@ export async function POST(req: Request) {
           });
         }
 
+        let initialFlowRunId = flowRunId;
+
+        // If we already have a flow run ID from QStash, update it
+        if (flowRunId) {
+          try {
+            const { data: flowRunData, error: flowRunError } = await supabase
+              .from('user_flow_runs')
+              .update({
+                run_status: 'completed',
+                completed_at: new Date().toISOString(),
+                payload: {
+                  message_id: lastAiMessage.id,
+                  sender: 'assistant',
+                  message_text: lastAiMessage.content,
+                  parts: parts,
+                  metadata: {
+                    toolInvocations: lastAiMessage.toolInvocations,
+                    finishReason: 'success',
+                    isServiceAccount: true
+                  }
+                }
+              })
+              .eq('id', flowRunId)
+              .select();
+
+            if (flowRunError) {
+              console.error('Flow run update error:', flowRunError);
+              throw flowRunError;
+            }
+
+            console.log('Flow run completed successfully:', flowRunData);
+            return;
+          } catch (error) {
+            console.error('Error updating existing flow run:', error);
+            await supabase
+              .from('user_flow_runs')
+              .update({
+                run_status: 'failed',
+                completed_at: new Date().toISOString(),
+                payload: {
+                  message_id: lastAiMessage.id,
+                  sender: 'assistant',
+                  message_text: lastAiMessage.content,
+                  parts: parts,
+                  metadata: {
+                    toolInvocations: lastAiMessage.toolInvocations,
+                    finishReason: 'error',
+                    error: error instanceof Error ? error.message : 'Unknown error occurred'
+                  }
+                }
+              })
+              .eq('id', flowRunId);
+            return;
+          }
+        }
+
+        // If no flow run ID from QStash, create a new one
         // First create a flow run with 'running' status
         const { data: initialFlowRun, error: initialError } = await supabase
           .from('user_flow_runs')
@@ -178,6 +238,8 @@ export async function POST(req: Request) {
           throw initialError;
         }
 
+        initialFlowRunId = initialFlowRun.id;
+
         try {
           const { data: flowRunData, error: flowRunError } = await supabase
             .from('user_flow_runs')
@@ -196,7 +258,7 @@ export async function POST(req: Request) {
                 }
               }
             })
-            .eq('id', initialFlowRun.id)
+            .eq('id', initialFlowRunId)
             .select();
 
           if (flowRunError) {
@@ -213,15 +275,18 @@ export async function POST(req: Request) {
               run_status: 'failed',
               completed_at: new Date().toISOString(),
               payload: {
-                ...initialFlowRun.payload,
+                message_id: lastAiMessage.id,
+                sender: 'assistant',
+                message_text: lastAiMessage.content,
+                parts: parts,
                 metadata: {
-                  ...initialFlowRun.payload.metadata,
+                  toolInvocations: lastAiMessage.toolInvocations,
                   finishReason: 'error',
                   error: error instanceof Error ? error.message : 'Unknown error occurred'
                 }
               }
             })
-            .eq('id', initialFlowRun.id);
+            .eq('id', initialFlowRunId);
         }
       }
     });

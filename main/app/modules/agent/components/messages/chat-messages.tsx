@@ -1,4 +1,5 @@
 import { MessageFormatter } from "./message-formatter"
+import { UserMessageFormatter } from "./user-message-formatter"
 import { Button } from "@/components/ui/button"
 import { ThumbsDown, ThumbsUp, Copy, Check } from "lucide-react"
 import React, { useRef } from "react"
@@ -114,10 +115,12 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                   <div className="flex justify-between items-start gap-2">
                     <div className={`${
                       message.role === 'user' 
-                        ? 'bg-[#2A2B2C] text-white rounded-3xl rounded-br-sm px-4 py-2 text-[15px] min-w-[60px] text-left'
+                        ? 'bg-[#2A2B2C] text-white rounded-3xl rounded-br-sm px-4 py-2 text-[15px] min-w-[60px] text-left break-words overflow-hidden'
                         : ''
                     } flex-1`}>
-                      {(message.parts?.length ?? 0) > 0 ? (
+                      {message.role === 'user' ? (
+                        <UserMessageFormatter content={message.content} />
+                      ) : (message.parts?.length ?? 0) > 0 ? (
                         message.parts?.map((part, partIndex) => {
                           if (part.type === 'text') {
                             return (
@@ -264,6 +267,23 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                             <div className="flex items-center gap-2">
                                               <Check className="h-4 w-4" />
                                               <span>Schedule deleted</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+
+                                    case 'run_flow':
+                                      return (
+                                        <div className="flex items-center gap-2">
+                                          {['partial-call', 'call'].includes(state) ? (
+                                            <div className="flex items-center gap-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                              <span>Running flow...</span>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2">
+                                              <Check className="h-4 w-4" />
+                                              <span>Flow started</span>
                                             </div>
                                           )}
                                         </div>

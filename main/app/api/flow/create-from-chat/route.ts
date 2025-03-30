@@ -11,7 +11,7 @@ import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flo
 import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
 
 
-export const maxDuration = 150;
+export const maxDuration = 300;
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || ''
@@ -76,13 +76,18 @@ export async function POST(request: Request) {
       ${scheduleInfo}
 
       Available actions:
-      ${actions.map((action: any) => `- ${action.action_slug} (Provider: ${action.provider_name}, Logo URL: ${action.logo_url}). Input schema: ${action.input_schema}. Examples: ${action.examples}.`).join('\n')}
+      ${actions.map((action: any) => `- ${action.action_slug} (Provider: ${action.provider_name}, provider_tag: ${action.provider_tag}, Logo URL: ${action.logo_url}). Input schema: ${JSON.stringify(action.input_schema)}.`).join('\n')}
 
       ${flow_builder_prompt}
       Never add title to the flow description. Start with text and description, bullect points. No titles.
 
       You MUST generate HTML for each action to fit the flow. MUST.
+
+      Try to convince user use ID of their entities in the flow, not in the right time. Ask user about IDs and propose help if user doesn't remember.
+
+      Because it will redundant work find ID all the time if we can specify it right away.
     `;
+    console.log(SystemMainPrompt);
 
     const openrouter = createOpenRouter({
       apiKey: process.env.OPENROUTER_API_KEY || ''
@@ -98,9 +103,7 @@ export async function POST(request: Request) {
       messages: allMessages,
       tools: {
         flow_improve_description,
-        tool_call_builder,
-        flowScheduleTool,
-        deleteFlowScheduleTool
+        tool_call_builder
       },
       experimental_toolCallStreaming: true,
       maxSteps: 25,

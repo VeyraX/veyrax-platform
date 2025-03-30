@@ -18,8 +18,10 @@ export async function getProviderActionsForFlow(userId?: string) {
     
     const { data, error } = await supabase
       .from('user_actions_view')
-      .select('provider_id, provider_name, action_slug, input_schema, examples, logo_url')
+      .select('provider_id, provider_tag, provider_name, action_slug, input_schema, examples, logo_url')
       .eq('user_id', queryUserId);
+
+    console.log(data);
 
     if (error) throw error;
     return { data: data || [], error: null };

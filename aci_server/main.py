@@ -75,6 +75,7 @@ from integrations.duckduckgo.route import router as duckduckgo_router
 from integrations.ipinfo.route import router as ipinfo_router
 from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
+from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
@@ -85,6 +86,7 @@ import sentry_sdk
 import random
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
+import httpx
 
 load_dotenv()
 
@@ -234,6 +236,7 @@ app.add_middleware(
 )
 
 app.include_router(debug_router)
+app.include_router(flow_router)
 
 app.add_middleware(PermissionMiddleware)
 
@@ -639,86 +642,3 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
                 )
             except Exception as log_error:
                 print(f"Error logging API call for Supabase: {str(log_error)}")
-
-@app.get("/get-flows")
-async def get_user_flows_endpoint(request: Request):
-    try:
-        user_id = await get_user_from_request(request)
-    except Exception as e:  
-        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
-    
-    try:
-        flows = get_user_flows_actions(user_id)
-        print(flows)
-        
-        if isinstance(flows, dict) and "error" in flows:
-            raise Exception(flows["error"])
-        
-        log_api_call(
-            user_id=user_id,
-            endpoint="/get-flows",
-            success=1
-        )
-        
-        response = {
-            "flows": flows,
-            "examples": json.loads(get_tools_example_prompt)
-        }
-        
-        return response
-    except Exception as e:
-        log_api_call(
-            user_id=user_id,
-            endpoint="/get-flows",
-            success=0,
-            error_message=str(e)
-        )
-        raise HTTPException(status_code=500, detail=f"Failed to get user flows: {str(e)}")
-
-@app.get("/get-flow/{flow_id}")
-async def get_flow_by_id(flow_id: str, request: Request):
-    try:
-        user_id = await get_user_from_request(request)
-    except Exception as e:  
-        raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
-    
-    try:
-        flow = get_user_flows_actions(user_id, flow_id)
-        
-        if isinstance(flow, dict) and "error" in flow:
-            raise Exception(flow["error"])
-            
-        if not flow:
-            raise HTTPException(status_code=404, detail="Flow not found")
-            
-        log_api_call(
-            user_id=user_id,
-            endpoint=f"/get-flow/{flow_id}",
-            success=1
-        )
-        
-        response = {
-            "flows": flow,
-            "examples": json.loads(get_tools_example_prompt)
-        }
-        
-        return response
-        
-    except HTTPException as http_exc:
-        log_api_call(
-            user_id=user_id,
-            endpoint=f"/get-flow/{flow_id}",
-            success=0,
-            error_message=str(http_exc.detail)
-        )
-        raise
-        
-    except Exception as e:
-        log_api_call(
-            user_id=user_id,
-            endpoint=f"/get-flow/{flow_id}",
-            success=0,
-            error_message=str(e)
-        )
-        raise HTTPException(status_code=500, detail=f"Failed to get flow: {str(e)}")
-

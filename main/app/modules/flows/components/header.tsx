@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { updateFlowStatus, cloneFlow, deleteFlow } from "../api/api.flows";
-import { Loader2, MoreVertical } from "lucide-react";
+import { Loader2, MoreVertical, PlayCircle } from "lucide-react";
 import { SharePopover } from "./share-popover";
 import { toast } from "sonner";
 import { FlowSchedule } from "../api/types.flows";
@@ -155,6 +155,12 @@ export function FlowHeader({
     }
   };
 
+  const handleTryInPlayground = () => {
+    if (flowId) {
+      router.push(`/agent/new?query=Run Flow ${flowId}`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
@@ -222,6 +228,14 @@ export function FlowHeader({
             <div className="flex items-center gap-2">
               {flowId && (
                 <>
+                  <Button
+                    onClick={handleTryInPlayground}
+                    size="sm"
+                    className="rounded-full"
+                    variant="outline"
+                  >
+                    Run in Playground
+                  </Button>
                   <Button
                     onClick={handleEditClick}
                     size="sm"

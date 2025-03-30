@@ -9,6 +9,7 @@ interface AssistantEmptyStateProps {
   userTools: Record<string, any>
   onToolClick: (tool: string) => void
   connectedTools: { providerTag: string, logoUrl: string, isConnected: boolean }[]
+  initialInput?: string | null
 }
 
 export function AssistantEmptyState({
@@ -16,7 +17,9 @@ export function AssistantEmptyState({
   isLoading,
   onStop,
   userTools,
-  connectedTools
+  connectedTools,
+  onToolClick,
+  initialInput
 }: AssistantEmptyStateProps) {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
@@ -57,6 +60,7 @@ export function AssistantEmptyState({
           isLoading={isLoading}
           onStop={onStop}
           userTools={userTools}
+          initialInput={initialInput}
         />
 
         <SuggestionsEmptyState 

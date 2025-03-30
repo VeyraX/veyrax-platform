@@ -64,6 +64,10 @@ const FlowCard: React.FC<FlowCardProps> = ({
   const [isShared, setIsShared] = useState(is_shared)
   const [isDuplicating, setIsDuplicating] = useState(false)
   
+  useEffect(() => {
+    setCurrentStatus(status)
+  }, [status])
+
   const handleEdit = () => {
     router.push(`/flow/${id}/edit`)
   }
@@ -92,7 +96,10 @@ const FlowCard: React.FC<FlowCardProps> = ({
       await updateFlowStatus(id, newStatus)
       setCurrentStatus(newStatus)
       toast.success(`Flow is now ${newStatus}`)
-      onFlowChange?.()
+      
+      if (onFlowChange) {
+        onFlowChange()
+      }
     } catch (error) {
       console.error('Error updating flow status:', error)
       toast.error('Failed to update flow status')

@@ -112,7 +112,7 @@ export const get_flow = tool({
     try {
       const headers = await getAuthHeaders();
       
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/get-flow/${flowId}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/flow/get-flow/${flowId}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -221,6 +221,46 @@ export const get_tools = tool({
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch tools'
+      };
+    }
+  }
+});
+
+export const run_flow = tool({
+  description: 'Run the flow with the given ID',
+  parameters: z.object({
+    flowId: z.string().describe('ID of the flow to run')
+  }),
+  execute: async function({ flowId }) {
+    try {
+      const headers = await getAuthHeaders();
+      
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/flow/run-flow/${flowId}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        success: true,
+        status: data.status,
+        message: data.message,
+        flowId: data.flowId,
+        url: data.url
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to run flow'
       };
     }
   }
