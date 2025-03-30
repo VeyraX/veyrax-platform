@@ -41,14 +41,14 @@ async def execute_agent_query(
             api_key=api_key,
             instructions=enhanced_instructions
         )
+
         query = "Run the flow."
         response = await run_flow_agent(agent, query)
-        
         response_data = json.loads(response)
         
         result = {
-            "status": "success",
-            "response": response_data.get("response", "")
+            "status": response_data.get("status", "success"),
+            "response": response_data.get("response", "") or response_data.get("error", "") 
         }
         
         if "tool_invocations" in response_data:
