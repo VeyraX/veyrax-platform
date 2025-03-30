@@ -20,8 +20,7 @@ async def get_user_flows_endpoint(request: Request):
     
     try:
         flows = get_user_flows_actions(user_id)
-        print(flows)
-        
+
         if isinstance(flows, dict) and "error" in flows:
             raise Exception(flows["error"])
         
@@ -117,8 +116,6 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
         
         api_key = api_key_response.data['api_key']
 
-        print("[api_key_response] Running flow...", api_key, api_key_response)
-
         if skipping_draft and flow_data.data['status'] == 'Draft':
             return {"status": "skipped", "message": "Draft flow execution skipped"}
         
@@ -132,8 +129,6 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
             "Content-Type": "application/json",
             "VEYRAX_API_KEY": api_key
         }
-
-        print("Running flow...", headers)
         
         agent_url = f"{os.environ.get('API_URL', 'http://localhost:8000')}/agent/run-flow/{flow_id}"
         
@@ -206,8 +201,6 @@ async def run_flow_sync(flow_id: str, request: Request, skipping_draft: bool = F
             .execute()
         
         api_key = api_key_response.data['api_key']
-
-        print("[api_key] Running flow...", api_key, api_key_response)
 
         if skipping_draft and flow_data.data['status'] == 'Draft':
             return {"status": "skipped", "message": "Draft flow execution skipped"}
