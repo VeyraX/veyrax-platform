@@ -8,6 +8,10 @@ services:
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -17,10 +21,21 @@ services:
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
     depends_on:
       - redis
       - aci_server
+    working_dir: /app
     command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   celery_flower:
     build: ./aci_server
@@ -29,10 +44,15 @@ services:
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
     depends_on:
       - redis
       - celery_worker
-    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0"]
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0", "--persistent=True", "--max_tasks=10000"]
 
   redis:
     image: redis:7-alpine

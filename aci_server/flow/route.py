@@ -7,7 +7,7 @@ import json
 import httpx
 from integrations.common.prompt_example import get_tools_example_prompt
 from agent.queries import create_flow_run, update_flow_run_completed
-import asyncio
+from .tasks import run_flow_task
 
 router = APIRouter(prefix="/flow", tags=["Flow"])
 
@@ -126,36 +126,7 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
         if "NEXT_PUBLIC_APP_URL" in os.environ:
             FRONTEND_URL = os.environ.get("NEXT_PUBLIC_APP_URL")
         
-        headers = {
-            "Content-Type": "application/json",
-            "VEYRAX_API_KEY": api_key
-        }
-        
-        agent_url = f"{os.environ.get('API_URL', 'http://localhost:8000')}/agent/run-flow/{flow_id}"
-        
-        async def run_agent_task():
-            try:
-                async with httpx.AsyncClient(timeout=30.0) as client:
-                    response = await client.post(
-                        agent_url,
-                        headers=headers,
-                        json={"run_id": run_id}
-                    )
-                    
-                    if response.status_code >= 400:
-                        error_payload = {
-                            "status": "error",
-                            "error": f"Agent request failed with status {response.status_code}: {response.text}"
-                        }
-                        update_flow_run_completed(run_id, error_payload)
-            except Exception as e:
-                error_payload = {
-                    "status": "error",
-                    "error": f"Agent execution error: {str(e)}"
-                }
-                update_flow_run_completed(run_id, error_payload)
-        
-        asyncio.create_task(run_agent_task())
+        run_flow_task.delay(flow_id, run_id, api_key)
         
         log_api_call(
             user_id=user_id,
