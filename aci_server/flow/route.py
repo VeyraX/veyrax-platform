@@ -271,9 +271,9 @@ async def get_run_status(run_id: str, request: Request):
     try:
         supabase = get_supabase()
         
-        run_data = supabase.table('flow_runs') \
-            .select('status, flow_id') \
-            .eq('id', run_id) \
+        run_data = supabase.table('user_flow_runs') \
+            .select('run_status, flow_id') \
+            .eq('run_id', run_id) \
             .single() \
             .execute()
             
@@ -297,7 +297,7 @@ async def get_run_status(run_id: str, request: Request):
         )
         
         return {
-            "status": run_data.data['status'],
+            "status": run_data.data['run_status'],
             "run_id": run_id,
             "flow_id": run_data.data['flow_id']
         }
@@ -330,7 +330,7 @@ async def get_run_details(run_id: str, request: Request):
     try:
         supabase = get_supabase()
         
-        run_data = supabase.table('flow_runs') \
+        run_data = supabase.table('user_flow_runs') \
             .select('*') \
             .eq('id', run_id) \
             .single() \
