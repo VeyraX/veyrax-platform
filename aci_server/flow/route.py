@@ -20,8 +20,7 @@ async def get_user_flows_endpoint(request: Request):
     
     try:
         flows = get_user_flows_actions(user_id)
-        print(flows)
-        
+
         if isinstance(flows, dict) and "error" in flows:
             raise Exception(flows["error"])
         

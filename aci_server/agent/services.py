@@ -9,6 +9,9 @@ def setup_openrouter_client():
     set_tracing_disabled(True)
     
     openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not openrouter_api_key:
+        raise ValueError("OPENROUTER_API_KEY environment variable is not set or empty")
+    
     site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
     site_name = os.environ.get("SITE_NAME", "Veyrax")
     
