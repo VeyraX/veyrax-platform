@@ -9,7 +9,7 @@ import { ActionItem } from "@/app/modules/flows/components/action-item";
 import { Loader2 } from "lucide-react";
 import { useChat } from 'ai/react';
 import { useActionsMention } from "./use-action-mention";
-import { useToolsDetector, ToolsList } from "../flow-description-tool-detector";
+import { useToolsDetector, ToolsList, MissingToolsAlert } from "../flow-description-tool-detector";
 import { extractTextFromHTML, isEmptyHTML } from "../flow-description-html";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type Message } from 'ai/react';
@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
 import { ProviderAction } from "../../api/types.flows";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { SimpleIntegrationsList } from "@/app/modules/integrations/components/integration-dialog";
 
 interface UnifiedFlowCreatorProps {
   onSave?: (config: { name: string; description: string; plain_description?: string; id?: string }) => void;
@@ -70,6 +72,7 @@ export function UnifiedFlowCreator({
   const [isImproving, setIsImproving] = useState(false);
   const [flowId, setFlowId] = useState<string | undefined>(initialData?.id);
   const [isSaving, setIsSaving] = useState(false);
+  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
   
   const contentEditableRef = useRef<any>(null);
   const lastHtml = useRef("");
@@ -180,7 +183,7 @@ export function UnifiedFlowCreator({
     processEditorChange
   } = useActionsMention(contentEditableRef, actions);
 
-  const { usedTools } = useToolsDetector(html, actions);
+  const { usedTools, missingTools } = useToolsDetector(html, actions);
 
   const handleChange = (evt: any) => {
     const newHtml = evt.target.value;
@@ -377,6 +380,13 @@ export function UnifiedFlowCreator({
         
         <TabsContent value="configure" className="mt-0 flex-1 overflow-auto">
           <div className="flex flex-col h-full">
+            {missingTools.length > 0 && activeTab === "configure" && (
+              <MissingToolsAlert 
+                missingTools={missingTools} 
+                onConnectClick={() => setIsIntegrationsOpen(true)}
+              />
+            )}
+            
             <div className="space-y-4 flex-grow">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Flow Name</label>
@@ -470,6 +480,15 @@ export function UnifiedFlowCreator({
                 </Button>
               </div>
             </div>
+
+            <Dialog open={isIntegrationsOpen} onOpenChange={setIsIntegrationsOpen}>
+              <DialogContent className="max-w-3xl h-[600px] overflow-hidden p-0">
+                <SimpleIntegrationsList 
+                  onClose={() => setIsIntegrationsOpen(false)} 
+                  return_url={typeof window !== 'undefined' ? window.location.pathname : ''}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </TabsContent>
       </Tabs>

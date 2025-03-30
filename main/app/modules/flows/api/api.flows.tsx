@@ -513,11 +513,6 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     if (flowError) throw flowError;
     
-
-    if (flowToClone.user_id === user.id) {
-      throw new Error('You cannot clone your own flow. Please edit the existing flow instead.');
-    }
-    
     // 2. Fetch actions associated with the flow
     const { data: flowActions, error: actionsError } = await supabase
       .from('flow_actions')
@@ -661,5 +656,75 @@ export const getTemplateById = async (flowId: string): Promise<UserFlow | null> 
   } catch (error) {
     console.error('Error fetching template:', error);
     return null;
+  }
+};
+
+export const getTemplateActions = async (templateId: string): Promise<ProviderAction[]> => {
+  try {
+    // First check if this is actually a template
+    const { data: templateData, error: templateError } = await supabase
+      .from('user_flows')
+      .select('is_template, is_shared')
+      .eq('id', templateId)
+      .single();
+    
+    if (templateError) throw templateError;
+    
+    if (!templateData || !templateData.is_template || !templateData.is_shared) {
+      return [];
+    }
+    
+    // Get all action IDs for this template
+    const { data: actionData, error: actionError } = await supabase
+      .from('flow_actions')
+      .select('action_id')
+      .eq('flow_id', templateId);
+    
+    if (actionError) throw actionError;
+    
+    const actionIds = actionData?.map(item => item.action_id) || [];
+    
+    if (actionIds.length === 0) {
+      return [];
+    }
+    
+    // Get action details with provider information
+    const { data: actions, error } = await supabase
+      .from('provider_actions')
+      .select('id, action_name, action_slug, provider_id')
+      .in('id', actionIds);
+    
+    if (error) throw error;
+    
+    const providerIds = Array.from(new Set(actions?.map(item => item.provider_id) || []));
+    
+    if (providerIds.length === 0) {
+      return [];
+    }
+    
+    // Get provider details including logos
+    const { data: providersData, error: providersError } = await supabase
+      .from('providers')
+      .select('id, name, logo_url')
+      .in('id', providerIds);
+    
+    if (providersError) throw providersError;
+    
+    // Map everything together to return ProviderAction objects
+    return (actions || []).map(action => {
+      const provider = providersData?.find(p => p.id === action.provider_id) || { name: '', logo_url: '' };
+      return {
+        action_id: action.id,
+        action_name: action.action_name,
+        action_slug: action.action_slug,
+        provider_id: action.provider_id,
+        provider_name: provider.name,
+        logo_url: provider.logo_url,
+        user_id: '' // Not used for templates
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching template actions:', error);
+    return [];
   }
 };

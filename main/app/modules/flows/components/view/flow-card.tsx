@@ -6,7 +6,7 @@ import { UserFlow } from '../../api/types.flows'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getFlowActions, getUserActions } from '../../api/api.flows'
+import { getFlowActions, getUserActions, cloneFlow } from '../../api/api.flows'
 import { ProviderAction } from '../../api/types.flows'
 import { Button } from '@/components/ui/button'
 import { Play, MoreHorizontal } from 'lucide-react'
@@ -62,6 +62,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
   const router = useRouter()
   const [currentStatus, setCurrentStatus] = useState(status)
   const [isShared, setIsShared] = useState(is_shared)
+  const [isDuplicating, setIsDuplicating] = useState(false)
   
   const handleEdit = () => {
     router.push(`/flow/${id}/edit`)
@@ -97,6 +98,22 @@ const FlowCard: React.FC<FlowCardProps> = ({
       toast.error('Failed to update flow status')
     }
   }
+
+  const handleDuplicate = async () => {
+    if (!id) return;
+    
+    try {
+      setIsDuplicating(true);
+      const newFlowId = await cloneFlow(id);
+      onFlowChange?.();
+      router.push(`/flow/${newFlowId}/edit`);
+    } catch (error) {
+      console.error('Error duplicating flow:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to duplicate the flow');
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
 
   const formatSchedule = (schedule: any) => {
     if (!schedule) return null
@@ -214,6 +231,9 @@ const FlowCard: React.FC<FlowCardProps> = ({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleEdit}>
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDuplicate} disabled={isDuplicating}>
+                    {isDuplicating ? 'Duplicating...' : 'Duplicate'}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusChange(currentStatus === 'Active' ? 'Draft' : 'Active')}>
                     {currentStatus === 'Active' ? 'Disable' : 'Activate'}

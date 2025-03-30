@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getActionElementsFromHTML, getProviderInfoFromActionElements } from './flow-description-html';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 interface Tool {
   provider_id: string;
@@ -9,11 +11,17 @@ interface Tool {
 
 export function useToolsDetector(html: string, actions: any[]) {
   const [usedTools, setUsedTools] = useState<Tool[]>([]);
+  const [missingTools, setMissingTools] = useState<{providerName: string; actionSlug: string}[]>([]);
 
   useEffect(() => {
-    if (!actions.length || !html) return;
+    if (!actions.length || !html) {
+      setUsedTools([]);
+      setMissingTools([]);
+      return;
+    }
 
     const detectedProviders = new Map<string, Tool>();
+    const missing: {providerName: string; actionSlug: string}[] = [];
     
     const actionElements = getActionElementsFromHTML(html);
     const providersInfo = getProviderInfoFromActionElements(actionElements);
@@ -29,13 +37,17 @@ export function useToolsDetector(html: string, actions: any[]) {
           provider_name: matchingAction.provider_name,
           logo_url: matchingAction.logo_url
         });
+      } else {
+        // Add to missing tools if user doesn't have this tool
+        missing.push({ providerName, actionSlug });
       }
     });
     
     setUsedTools(Array.from(detectedProviders.values()));
+    setMissingTools(missing);
   }, [html, actions]);
 
-  return { usedTools };
+  return { usedTools, missingTools };
 }
 
 export function ToolsList({ tools }: { tools: Tool[] }) {
@@ -65,5 +77,38 @@ export function ToolsList({ tools }: { tools: Tool[] }) {
         </div>
       )}
     </>
+  );
+}
+
+export function MissingToolsAlert({ 
+  missingTools, 
+  onConnectClick 
+}: { 
+  missingTools: {providerName: string; actionSlug: string}[];
+  onConnectClick?: () => void;
+}) {
+  if (missingTools.length === 0) return null;
+  
+  // Group by provider name to avoid duplicates
+  const uniqueProviders = Array.from(new Set(missingTools.map(t => t.providerName)));
+
+  return (
+    <Alert variant="default" className="mb-4 border-yellow-500 bg-yellow-50 text-yellow-800">
+      <div className="flex items-center">
+        <AlertDescription className="flex items-center justify-between w-full">
+          <span>
+            {uniqueProviders.length === 1 
+              ? `${uniqueProviders[0]} tool used in description is not connected.` 
+              : `${uniqueProviders.join(', ')} tools used in description are not connected.`}
+          </span>
+          <button 
+            onClick={onConnectClick}
+            className="text-sm font-medium underline text-yellow-800 hover:text-yellow-900 ml-2 flex-shrink-0"
+          >
+            Connect now
+          </button>
+        </AlertDescription>
+      </div>
+    </Alert>
   );
 }

@@ -433,34 +433,31 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       );
     }
 
-    // // Use EmailAuthForm specifically for mail provider
-    // if (provider.provider_tag === "mail") {
-    //   return (
-    //     <EmailAuthForm
-    //       authSchema={provider.auth_schema}
-    //       authData={customAuthData}
-    //       onChange={(authData) => {
-    //         setCustomAuthData(authData);
-    //         setCustomAuthChanged(true);
-    //         setValidationError(null);
-    //       }}
-    //       disabled={isValidating || isLoading}
-    //     />
-    //   );
-    // }
-
-    // Default to CustomAuthForm for other providers
+    const isMail = provider.provider_tag === 'mail' || provider.name?.toLowerCase().includes('gmail') || provider.name?.toLowerCase().includes('smtp');
+    
     return (
-      <CustomAuthForm
-        authSchema={provider.auth_schema}
-        authData={customAuthData}
-        onChange={(authData) => {
-          setCustomAuthData(authData);
-          setCustomAuthChanged(true);
-          setValidationError(null);
-        }}
-        disabled={isValidating || isLoading}
-      />
+      <>
+        {isMail && (
+          <div className="p-3 border rounded-lg bg-amber-50 border-amber-200 -mt-2 mb-3">
+            <p className="text-sm text-amber-700">
+              To connect your email, enter your Gmail address and an app password.
+              {provider.name?.toLowerCase().includes('gmail') && (
+                <> You can generate an app password at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline">myaccount.google.com/apppasswords</a>.</>
+              )}
+            </p>
+          </div>
+        )}
+        <CustomAuthForm
+          authSchema={provider.auth_schema}
+          authData={customAuthData}
+          onChange={(authData) => {
+            setCustomAuthData(authData);
+            setCustomAuthChanged(true);
+            setValidationError(null);
+          }}
+          disabled={isValidating || isLoading}
+        />
+      </>
     );
   };
 

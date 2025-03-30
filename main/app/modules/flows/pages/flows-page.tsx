@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Search, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import FlowCard, { FlowSkeleton } from '../components/view/flow-card'
-import { getUserFlows, getUserActions, getFlowActions, getPublicTemplates } from '../api/api.flows'
+import { getUserFlows, getUserActions, getFlowActions, getPublicTemplates, getTemplateActions } from '../api/api.flows'
 import { getAllFlowSchedules } from '../api/api.schedule.flows'
 import { UserFlow } from '../api/types.flows'
 import { FlowSchedule } from '../api/types.flows'
@@ -43,7 +43,7 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
         getUserActions()
       ])
 
-      const flowsData = [...userFlows, ...templates]
+      const flowsData = [...userFlows]
       const flowIds = flowsData.map(flow => flow.id)
       const flowActionsPromises = flowIds.map(id => getFlowActions(id))
       const flowActionsResults = await Promise.all(flowActionsPromises)
@@ -63,11 +63,34 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
         flowToolsMap.set(flowId, Array.from(uniqueProviders.values()))
       })
 
-      const flowsWithSchedulesAndTools = flowsData.map(flow => ({
-        ...flow,
-        schedule: schedulesData.find(s => s.flow_id === flow.id)?.schedule,
-        tools: flowToolsMap.get(flow.id) || []
-      }))
+      const templateIds = templates.map(template => template.id)
+      const templateActionsPromises = templateIds.map(id => getTemplateActions(id))
+      const templateActionsResults = await Promise.all(templateActionsPromises)
+      
+      templateActionsResults.forEach((actions, index) => {
+        const templateId = templateIds[index]
+        const uniqueProviders = new Map()
+        
+        actions.forEach(tool => {
+          if (!uniqueProviders.has(tool.provider_id)) {
+            uniqueProviders.set(tool.provider_id, tool)
+          }
+        })
+        
+        flowToolsMap.set(templateId, Array.from(uniqueProviders.values()))
+      })
+
+      const flowsWithSchedulesAndTools = [
+        ...flowsData.map(flow => ({
+          ...flow,
+          schedule: schedulesData.find(s => s.flow_id === flow.id)?.schedule,
+          tools: flowToolsMap.get(flow.id) || []
+        })),
+        ...templates.map(template => ({
+          ...template,
+          tools: flowToolsMap.get(template.id) || []
+        }))
+      ]
 
       const sortedData = [...flowsWithSchedulesAndTools].sort((a, b) => {
         return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()

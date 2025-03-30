@@ -222,6 +222,14 @@ export function FlowHeader({
             <div className="flex items-center gap-2">
               {flowId && (
                 <>
+                  <Button
+                    onClick={handleEditClick}
+                    size="sm"
+                    className="rounded-full"
+                    variant="outline"
+                  >
+                    Edit
+                  </Button>
                   <SharePopover 
                     flowId={flowId} 
                     isShared={currentIsShared}
@@ -234,9 +242,6 @@ export function FlowHeader({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={handleEditClick}>
-                        Edit
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusChange(status === 'Active' ? 'Draft' : 'Active')}>
                         {status === 'Active' ? 'Disable' : 'Activate'}
                       </DropdownMenuItem>
