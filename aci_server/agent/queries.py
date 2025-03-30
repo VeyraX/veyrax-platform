@@ -6,46 +6,61 @@ from datetime import datetime
 client = get_supabase()
 
 def get_flow_by_id(flow_id: str) -> List[Dict[str, Any]]:
-    flow_data = client.table('user_flows') \
-        .select('*') \
-        .eq('id', flow_id) \
-        .execute()
+    try:
+        flow_data = client.table('user_flows') \
+            .select('*') \
+            .eq('id', flow_id) \
+            .execute()
+            
+        if not flow_data.data:
+            return []
         
-    if not flow_data.data:
+        return flow_data.data
+    except Exception as e:
+        print(f"Error getting flow by id: {e}")
         return []
-        
-    return flow_data.data
 
 
 def get_user_api_key(user_id: str) -> str:
-    api_key_response = client.table('users_api_keys') \
-        .select('api_key') \
-        .eq('user_id', user_id) \
-        .single() \
-        .execute()
+    try:
+        api_key_response = client.table('users_api_keys') \
+            .select('api_key') \
+            .eq('user_id', user_id) \
+            .single() \
+            .execute()
     
-    return api_key_response.data['api_key']
+        return api_key_response.data['api_key']
+    except Exception as e:
+        print(f"Error getting user api key: {e}")
+        return None
 
 def create_flow_run(flow_id: str) -> str:
-    run_id = str(uuid.uuid4())
-    now = datetime.now().isoformat()
-    
-    client.table('user_flow_runs').insert({
-        'run_id': run_id,
-        'flow_id': flow_id,
-        'run_status': 'running',
-        'run_at': now,
-        'payload': None,
-        'completed_at': None
-    }).execute()
-    
-    return run_id
+    try:    
+        run_id = str(uuid.uuid4())
+        now = datetime.now().isoformat()
+        
+        client.table('user_flow_runs').insert({
+            'run_id': run_id,
+            'flow_id': flow_id,
+            'run_status': 'started',
+            'run_at': now,
+            'payload': None,
+            'completed_at': None
+        }).execute()
+        
+        return run_id
+    except Exception as e:
+        print(f"Error creating flow run: {e}")
+        return None
 
-def update_flow_run_completed(run_id: str, payload: Dict[str, Any]) -> None:
-    now = datetime.now().isoformat()
+def update_flow_run_completed(run_id: str, payload: Dict[str, Any], status: str = 'completed') -> None:
+    try:
+        now = datetime.now().isoformat()
     
-    client.table('user_flow_runs').update({
-        'run_status': 'completed',
-        'completed_at': now,
-        'payload': payload
-    }).eq('run_id', run_id).execute()
+        client.table('user_flow_runs').update({
+            'run_status': status,
+            'completed_at': now,
+            'payload': payload
+        }).eq('run_id', run_id).execute()
+    except Exception as e:
+        print(f"Error updating flow run completed: {e}")

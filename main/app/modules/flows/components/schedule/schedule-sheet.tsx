@@ -9,7 +9,7 @@ interface ScheduleSheetProps {
 }
 
 export function ScheduleSheet({ isOpen, onClose, flowRun }: ScheduleSheetProps) {
-  const parts = flowRun?.payload?.parts.map(part => ({
+  const parts = flowRun?.payload?.parts?.map(part => ({
     ...part,
     toolInvocation: part.toolInvocation ? {
       ...part.toolInvocation,

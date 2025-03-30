@@ -8,7 +8,7 @@ import re
 def setup_openrouter_client():
     set_tracing_disabled(True)
     
-    openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "***REMOVED***")
+    openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
     site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
     site_name = os.environ.get("SITE_NAME", "Veyrax")
     

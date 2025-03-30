@@ -24,7 +24,6 @@ async def run_flow_agent(agent: Agent, user_input: str) -> str:
     try:
         result = await Runner.run(agent, user_input, max_turns=30)
 
-        
         formatted_result = format_agent_result(result)
         
         api_response = {

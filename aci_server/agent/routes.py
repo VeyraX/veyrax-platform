@@ -17,11 +17,12 @@ router = APIRouter(prefix="/agent", tags=["Agent"])
 async def execute_agent_query(
     request: Request,
     flow_id: str,
-    
+    run_id: str = None
 ):
     user_id = await get_user_from_request(request)
     
-    run_id = create_flow_run(flow_id)
+    body = await request.json()
+    run_id = body.get("run_id")
     
     try:
         api_key = get_user_api_key(user_id)
@@ -54,7 +55,8 @@ async def execute_agent_query(
             result["tool_invocations"] = response_data["tool_invocations"]
         
         formatted_result = response_data.get("formatted_result", {})
-        update_flow_run_completed(run_id, formatted_result)
+        if run_id:
+            update_flow_run_completed(run_id, formatted_result)
         
         return result
     except Exception as e:
@@ -62,7 +64,8 @@ async def execute_agent_query(
             "status": "error",
             "error": str(e)
         }
-        update_flow_run_completed(run_id, error_payload)
+        if run_id:
+            update_flow_run_completed(run_id, error_payload, status="failed")
         
         result = {
             "status": "error",

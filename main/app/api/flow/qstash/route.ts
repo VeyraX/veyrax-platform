@@ -64,7 +64,7 @@ async function handler(req: Request) {
       throw initialError;
     }
     
-    // Call the flow agent route directly
+
     const response = await fetch(`${ACI_SERVER_URL}/flow/run-flow/${flowId}`, {
       method: 'POST',
       headers: {
@@ -108,8 +108,6 @@ async function handler(req: Request) {
         
       throw new Error(`Failed to run flow: ${response.status} ${response.statusText} - ${responseBody}`);
     }
-
-    // We don't need to update flow run status here as the agent handles it
 
     return NextResponse.json({ 
       success: true, 

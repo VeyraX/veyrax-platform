@@ -24,6 +24,14 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`;
 
+  const getRunStatusExample = `curl -X GET "https://veyaraxapp.com/flow/get-run-status/{run_id}" \\
+-H "Content-Type: application/json" \\
+-H "Authorization: VEYRAX_API_KEY"`;
+
+  const getRunDetailsExample = `curl -X GET "https://veyaraxapp.com/flow/get-run-details/{run_id}" \\
+-H "Content-Type: application/json" \\
+-H "Authorization: VEYRAX_API_KEY"`;
+
   return (
     <div className="flex flex-col space-y-6">
       <QuickStart 
@@ -47,6 +55,18 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
                 value="run-flow"
               >
                 Run Flow by ID
+              </TabsTrigger>
+              <TabsTrigger 
+                className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+                value="get-run-status"
+              >
+                Get Run Status
+              </TabsTrigger>
+              <TabsTrigger 
+                className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+                value="get-run-details"
+              >
+                Get Run Details
               </TabsTrigger>
             </TabsList>
           </div>
@@ -165,10 +185,12 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
                 <Button 
                   onClick={() => {
                     navigator.clipboard.writeText(`{
-                    "status": "started",
-                    "message": "Flow execution has been started",
-                    "flowId": "${flowId}"
-                  }`);
+  "status": "started",
+  "message": "Flow execution has been started",
+  "flow_id": "${flowId}",
+  "run_id": "string",
+  "url": "string"
+}`);
                     setCopiedStates(prev => ({ ...prev, "run-flow-response": true }));
                     setTimeout(() => {
                       setCopiedStates(prev => ({ ...prev, "run-flow-response": false }));
@@ -189,7 +211,159 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
                 {`{
   "status": "started",
   "message": "Flow execution has been started",
-  "flowId": "${flowId}"
+  "flow_id": "${flowId}",
+  "run_id": "string",
+  "url": "string"
+}`}
+              </SyntaxHighlighter>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="get-run-status" className="mt-0">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium">Example</h3>
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(getRunStatusExample);
+                    setCopiedStates(prev => ({ ...prev, "get-run-status": true }));
+                    setTimeout(() => {
+                      setCopiedStates(prev => ({ ...prev, "get-run-status": false }));
+                    }, 2000);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6"
+                >
+                  {copiedStates["get-run-status"] ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                </Button>
+              </div>
+              <SyntaxHighlighter 
+                language="bash" 
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, borderRadius: '0.375rem' }}
+              >
+                {getRunStatusExample}
+              </SyntaxHighlighter>
+              
+              <div className="flex justify-between items-center mt-6">
+                <h3 className="text-sm font-medium">Response Schema</h3>
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`{
+  "status": "string", // pending, running, completed, error
+  "run_id": "string",
+  "flow_id": "string"
+}`);
+                    setCopiedStates(prev => ({ ...prev, "get-run-status-response": true }));
+                    setTimeout(() => {
+                      setCopiedStates(prev => ({ ...prev, "get-run-status-response": false }));
+                    }, 2000);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6"
+                >
+                  {copiedStates["get-run-status-response"] ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                </Button>
+              </div>
+              <SyntaxHighlighter 
+                language="javascript" 
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, borderRadius: '0.375rem' }}
+              >
+                {`{
+  "status": "string", // pending, running, completed, error
+  "run_id": "string",
+  "flow_id": "string"
+}`}
+              </SyntaxHighlighter>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="get-run-details" className="mt-0">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium">Example</h3>
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(getRunDetailsExample);
+                    setCopiedStates(prev => ({ ...prev, "get-run-details": true }));
+                    setTimeout(() => {
+                      setCopiedStates(prev => ({ ...prev, "get-run-details": false }));
+                    }, 2000);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6"
+                >
+                  {copiedStates["get-run-details"] ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                </Button>
+              </div>
+              <SyntaxHighlighter 
+                language="bash" 
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, borderRadius: '0.375rem' }}
+              >
+                {getRunDetailsExample}
+              </SyntaxHighlighter>
+              
+              <div className="flex justify-between items-center mt-6">
+                <h3 className="text-sm font-medium">Response Schema</h3>
+                <Button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`{
+  "run": {
+    "id": "string",
+    "flow_id": "string",
+    "status": "string",
+    "created_at": "string",
+    "updated_at": "string",
+    "result": {...}
+  },
+  "flow": {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "user_id": "string",
+    "status": "string",
+    // ... other flow properties
+  }
+}`);
+                    setCopiedStates(prev => ({ ...prev, "get-run-details-response": true }));
+                    setTimeout(() => {
+                      setCopiedStates(prev => ({ ...prev, "get-run-details-response": false }));
+                    }, 2000);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6"
+                >
+                  {copiedStates["get-run-details-response"] ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                </Button>
+              </div>
+              <SyntaxHighlighter 
+                language="javascript" 
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, borderRadius: '0.375rem' }}
+              >
+                {`{
+  "run": {
+    "id": "string",
+    "flow_id": "string",
+    "status": "string",
+    "created_at": "string",
+    "updated_at": "string",
+    "result": {...}
+  },
+  "flow": {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "user_id": "string",
+    "status": "string",
+    // ... other flow properties
+  }
 }`}
               </SyntaxHighlighter>
             </div>
