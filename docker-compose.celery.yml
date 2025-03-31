@@ -37,7 +37,7 @@ services:
       - redis
       - celery_worker
     working_dir: /app
-    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0", "--persistent=True", "--max_tasks=10000"]
+    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0", "--basic_auth=${FLOWER_USER}:${FLOWER_PASSWORD}", "--persistent=True", "--max_tasks=10000"]
     restart: unless-stopped
 
   redis:
