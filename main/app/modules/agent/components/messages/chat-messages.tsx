@@ -71,7 +71,7 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
   });
 
   useEffect(() => {
-    const timeoutDuration = 30000; // 30 seconds timeout
+    const timeoutDuration = 150000; // 2.5 minutes timeout
     
     messages.forEach(message => {
       if (message.parts) {
