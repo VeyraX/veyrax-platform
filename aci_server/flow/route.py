@@ -121,9 +121,7 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
         
         run_id = create_flow_run(flow_id)
         trace_id = str(uuid.uuid4())
-        FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://veyrax.com")
-        if "NEXT_PUBLIC_APP_URL" in os.environ:
-            FRONTEND_URL = os.environ.get("NEXT_PUBLIC_APP_URL")
+        FRONTEND_URL = os.environ.get("FRONTEND_URL")
         
         run_flow_task.delay(flow_id, run_id, api_key, trace_id, user_id)
         
@@ -178,9 +176,7 @@ async def run_flow_sync(flow_id: str, request: Request, skipping_draft: bool = F
         
         run_id = create_flow_run(flow_id)
         
-        FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://veyrax.com")
-        if "NEXT_PUBLIC_APP_URL" in os.environ:
-            FRONTEND_URL = os.environ.get("NEXT_PUBLIC_APP_URL")
+        FRONTEND_URL = os.environ.get("FRONTEND_URL")
         
         headers = {
             "Content-Type": "application/json",

@@ -7,8 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-const BASE_URL = process.env.FRONTEND_URL;
-const ACI_SERVER_URL = process.env.ACI_SERVER_URL || 'http://localhost:8000';
+const API_URL = process.env.API_URL;
 
 async function handler(req: Request) {
   
@@ -65,7 +64,7 @@ async function handler(req: Request) {
     }
     
 
-    const response = await fetch(`${ACI_SERVER_URL}/flow/run-flow/${flowId}`, {
+    const response = await fetch(`${API_URL}/flow/run-flow/${flowId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

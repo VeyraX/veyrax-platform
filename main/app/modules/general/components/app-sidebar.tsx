@@ -51,11 +51,6 @@ const items = [
         icon: <Sparkles size={16} />,
       },
       {
-        title: "Flows",
-        url: "/flows",
-        icon: <Layers size={16} />,
-      },
-      {
         title: "Integrations",
         url: "/integrations",
         icon: <Connect size={16} />,
@@ -255,7 +250,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ))}
         </SidebarContent>
 
-        <FlowsAnnouncement />
+        {/* <FlowsAnnouncement /> */}
 
         <SidebarFooter>
           <div className="flex items-center justify-start">
