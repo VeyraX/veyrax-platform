@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  celery_worker:
+    build: ./aci_server
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - PYTHONPATH=/app
+    depends_on:
+      - redis
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=debug", "--concurrency=1"]
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 400MB
+    restart: unless-stopped
+
+  celery_flower:
+    build: ./aci_server
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - PYTHONPATH=/app
+    depends_on:
+      - redis
+      - celery_worker
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0", "--persistent=True", "--max_tasks=10000"]
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    sysctls:
+      net.core.somaxconn: 1024
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+volumes:
+  redis_data:
+    driver: local

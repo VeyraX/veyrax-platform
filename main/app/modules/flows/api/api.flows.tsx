@@ -523,67 +523,7 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     const actionIds = flowActions?.map(item => item.action_id) || [];
     
-    // 3. Check if the user has access to all of these actions
-    const { data: userActions, error: userActionsError } = await supabase
-      .from('user_actions_view')
-      .select('action_id, provider_name, action_name')
-      .eq('user_id', user.id)
-      .in('action_id', actionIds);
-    
-    if (userActionsError) throw userActionsError;
-    
-    const userActionIds = userActions?.map(item => item.action_id) || [];
-    
-    const missingActions = actionIds.filter(id => !userActionIds.includes(id));
-    console.log(missingActions);
-    
-    if (missingActions.length > 0) {
-      // 1. Получаем детали действий из таблицы provider_actions
-      const { data: actionDetails, error: actionDetailsError } = await supabase
-        .from('provider_actions')
-        .select('id, provider_id, action_name, action_slug')
-        .in('id', missingActions);
-      
-      if (actionDetailsError) throw actionDetailsError;
-      console.log('Action details:', actionDetails);
-      
-      if (!actionDetails || actionDetails.length === 0) {
-        throw new Error('Failed to find action details for missing actions');
-      }
-      
-      // 2. Собираем уникальные provider_id из полученных действий
-      const providerIds = Array.from(new Set(actionDetails.map(item => item.provider_id)));
-      
-      // 3. Получаем информацию о провайдерах из таблицы providers
-      const { data: providersData, error: providersError } = await supabase
-        .from('providers')
-        .select('id, name')
-        .in('id', providerIds);
-      
-      if (providersError) throw providersError;
-      console.log('Providers data:', providersData);
-      
-      // 4. Сопоставляем действия с названиями провайдеров
-      const missingActionDetails = actionDetails.map(action => {
-        const provider = providersData?.find(p => p.id === action.provider_id) || { name: 'Unknown Provider' };
-        return {
-          action_id: action.id,
-          action_name: action.action_name,
-          action_slug: action.action_slug,
-          provider_id: action.provider_id,
-          provider_name: provider.name
-        };
-      });
-      
-      console.log('Missing action details:', missingActionDetails);
-      
-      // 5. Формируем список провайдеров для сообщения об ошибке
-      const uniqueProviders = Array.from(new Set(missingActionDetails.map(item => item.provider_name)));
-      const toolsToConnect = uniqueProviders.join(', ');
-      
-      throw new Error(`Please connect the following tools before cloning: ${toolsToConnect}`);
-    }
-    
+    // Create new flow as a copy
     const { data: newFlow, error: createError } = await supabase
       .from('user_flows')
       .insert({
@@ -601,7 +541,6 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     const newFlowId = newFlow.id;
     
-    // 5. Create flow action associations
     if (actionIds.length > 0) {
       const actionsToInsert = actionIds.map(actionId => ({
         flow_id: newFlowId,
@@ -661,7 +600,6 @@ export const getTemplateById = async (flowId: string): Promise<UserFlow | null> 
 
 export const getTemplateActions = async (templateId: string): Promise<ProviderAction[]> => {
   try {
-    // First check if this is actually a template
     const { data: templateData, error: templateError } = await supabase
       .from('user_flows')
       .select('is_template, is_shared')
@@ -674,7 +612,6 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
       return [];
     }
     
-    // Get all action IDs for this template
     const { data: actionData, error: actionError } = await supabase
       .from('flow_actions')
       .select('action_id')
@@ -688,7 +625,6 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
       return [];
     }
     
-    // Get action details with provider information
     const { data: actions, error } = await supabase
       .from('provider_actions')
       .select('id, action_name, action_slug, provider_id')
@@ -702,7 +638,6 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
       return [];
     }
     
-    // Get provider details including logos
     const { data: providersData, error: providersError } = await supabase
       .from('providers')
       .select('id, name, logo_url')
@@ -710,7 +645,6 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
     
     if (providersError) throw providersError;
     
-    // Map everything together to return ProviderAction objects
     return (actions || []).map(action => {
       const provider = providersData?.find(p => p.id === action.provider_id) || { name: '', logo_url: '' };
       return {
@@ -720,7 +654,7 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
         provider_id: action.provider_id,
         provider_name: provider.name,
         logo_url: provider.logo_url,
-        user_id: '' // Not used for templates
+        user_id: ''
       };
     });
   } catch (error) {

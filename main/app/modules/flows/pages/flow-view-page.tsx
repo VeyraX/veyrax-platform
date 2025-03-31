@@ -288,7 +288,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                 const url = new URL(window.location.href);
                 
                 if (value === 'flow-runs') {
-                  url.searchParams.set('tab', 'flowRuns');
+                  url.searchParams.set('tab', 'runs');
                 } else if (value === 'schedule') {
                   url.searchParams.set('tab', 'schedule');
                 } else {

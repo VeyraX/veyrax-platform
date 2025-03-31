@@ -5,7 +5,8 @@ import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 import { getFlowForPrompt } from '@/app/modules/flows/api/api.server.flow';
 import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/utils/supabase/server';
+import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
 
 export const maxDuration = 150;
 
@@ -17,37 +18,12 @@ const modelName = 'anthropic/claude-3.7-sonnet';
 
 export async function POST(request: Request) {
   try {
-    // Check for service account API key first
-    const apiKey = request.headers.get('VEYRAX_API_KEY');
-    let userId = null;
-    let isServiceAccount = false;
+    const supabase = createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (apiKey) {
-      console.log('Service account API key detected');
-      
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-        console.error('Missing Supabase environment variables');
-        return new Response('Server configuration error', { status: 500 });
-      }
-
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_KEY
-      );
-
-      const { data: apiKeyData, error: apiKeyError } = await supabase
-        .from('users_api_keys')
-        .select('user_id')
-        .eq('api_key', apiKey)
-        .single();
-
-      if (apiKeyError || !apiKeyData) {
-        console.error('API Key validation error:', apiKeyError);
-        return new Response('Invalid API key', { status: 401 });
-      }
-
-      userId = apiKeyData.user_id;
-      isServiceAccount = true;
+    if (userError || !user) {
+      console.error('User not found');
+      return new Response('User not found', { status: 401 });
     }
 
     const { messages, chatId, flowId } = await request.json();
@@ -61,10 +37,11 @@ export async function POST(request: Request) {
 
     let currentFlowId = flowId;
 
-    if (!currentFlowId && chatId && !isServiceAccount) {
+    if (!currentFlowId && chatId) {
       const urlMatch = chatId.match(/flow\/([^\/]+)\/edit/);
       if (urlMatch && urlMatch[1]) {
         currentFlowId = urlMatch[1];
+        console.log('currentFlowId:', currentFlowId);
       }
     }
     
@@ -78,25 +55,25 @@ export async function POST(request: Request) {
       - Name: ${flow.name}
       - Description: ${flow.plain_description || ''}
       
-      This is the flow that ${isServiceAccount ? 'the service account' : 'user'} wants to test. Use the ID provided above when calling the tool_call_test_flow tool.
+      This is the flow that user wants to test. Use the ID provided above when calling the tool_call_test_flow tool.
       `;
     }
 
     console.log('flowContextInfo:', flowContextInfo);
 
     const SystemMainPrompt = `
-      You are a helpful assistant that helps ${isServiceAccount ? 'service accounts' : 'users'} test automated workflows.
+      You are a helpful assistant that helps users test automated workflows.
       Your task is to understand the flow and test its functionality.
 
       ${flowContextInfo}
 
-      You are tester. You main goal is first call get flows, and then call test flow with the id that ${isServiceAccount ? 'service account' : 'user'} choose.
+      You are tester. You main goal is first call get flows, and then call test flow with the id that user choose.
       
-      ${flow ? `The ${isServiceAccount ? 'service account' : 'user'} already has a flow they want to test. Use the current flow ID for testing.` : 'Get flow first, then tool-call to test this out.'}
+      ${flow ? `The user already has a flow they want to test. Use the current flow ID for testing.` : 'Get flow first, then tool-call to test this out.'}
 
       ${flow_testing_prompt}
 
-      If flow is empty, you should ask ${isServiceAccount ? 'service account' : 'user'} to create a flow first.
+      If flow is empty, you should ask user to create a flow first.
 
       It is VERY important to use the same param and methods and args that you have received from the get_flow tool.
 
@@ -111,9 +88,19 @@ export async function POST(request: Request) {
       { role: 'system', content: SystemMainPrompt, id: 'system' },
       ...messages
     ];
+    const traceId = generateTraceId();
+    console.log('Generated trace ID for test flow:', traceId);
+    console.log('for user id:', user.id);
+
+    const model = traceModel(openrouter(modelName) as any, user.id, {
+      trace_id: traceId,
+      flow_id: currentFlowId,
+      user_email: user.email,
+      endpoint: 'flow-test'
+    });
 
     const response = streamText({
-      model: openrouter(modelName) as any,
+      model: model,
       messages: allMessages,
       tools: {
         get_flow,

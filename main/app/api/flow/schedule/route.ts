@@ -29,19 +29,22 @@ export async function POST(request: Request) {
       }
     }
 
-    const destination = process.env.FRONTEND_URL;
+    const API_URL = process.env.API_URL;
     console.log('Creating QStash schedule:', {
       cron: cronExpression,
-      destination: `${destination}/api/flow/qstash`,
-      body: { flowId, apiKey }
+      destination: `${API_URL}/flow/run-flow/${flowId}`,
+      body: { apiKey }
     });
     
     const qstashSchedule = await qstash.schedules.create({
       cron: cronExpression,
-      destination: `${destination}/api/flow/qstash`,
+      destination: `${API_URL}/flow/run-flow/${flowId}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'VEYRAX_API_KEY': apiKey
+      },
       body: JSON.stringify({
-        flowId,
-        apiKey
+        skipping_draft: true
       })
     });
 

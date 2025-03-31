@@ -9,8 +9,8 @@ import { tool_call_builder, get_tools } from '@/lib/ai/tools/tool-call';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flows';
 import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
-
-
+import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
+import { createClient } from '@/lib/utils/supabase/server';
 export const maxDuration = 300;
 
 const openrouter = createOpenRouter({
@@ -20,8 +20,21 @@ const openrouter = createOpenRouter({
 const modelName = 'anthropic/claude-3.7-sonnet';
 
 export async function POST(request: Request) {
+  const clonedReq = request.clone();
+  
   try {
-    const { messages, flowId, chatId } = await request.json();
+    let reqBody;
+    try {
+      reqBody = await clonedReq.json();
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { messages, flowId, chatId } = reqBody;
     
     if (!messages || messages.length === 0) {
       return NextResponse.json(
@@ -39,7 +52,7 @@ export async function POST(request: Request) {
       }
     }
 
-    let scheduleInfo = 'No schedule set';
+    let scheduleInfo = 'No schedule set'; 
     if (currentFlowId) {
       try {
         const flowSchedule = await getFlowSchedule(currentFlowId);
@@ -50,6 +63,16 @@ export async function POST(request: Request) {
       }
     }
 
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     const { data: flow } = await getFlowForPrompt(currentFlowId);
 
     let flowContextInfo = '';
@@ -87,19 +110,26 @@ export async function POST(request: Request) {
 
       Because it will redundant work find ID all the time if we can specify it right away.
     `;
-    console.log(SystemMainPrompt);
-
-    const openrouter = createOpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY || ''
-    });
 
     const allMessages = [
       { role: 'system', content: SystemMainPrompt, id: 'system' },
       ...messages
     ];
 
+    let model = openrouter(modelName) as any;
+    
+    const traceId = generateTraceId();
+    console.log('Generated trace ID for create flow:', traceId);
+    
+    model = traceModel(model, user.id, {
+      trace_id: traceId,
+      flow_id: currentFlowId,
+      endpoint: 'flow-create',
+      user_email: user.email
+    });
+
     const response = streamText({
-      model: openrouter(modelName) as any,
+      model: model,
       messages: allMessages,
       tools: {
         flow_improve_description,
@@ -115,6 +145,15 @@ export async function POST(request: Request) {
     return response.toDataStreamResponse({
       getErrorMessage: (error: unknown) => {
         if (error instanceof Error) {
+          if (error.message.includes('context_length_exceeded') || 
+              error.message.includes('maximum context length')) {
+            return "The workflow description is too long. Please simplify your requirements or split them into smaller workflows.";
+          }
+          
+          if (error.message.includes('rate_limit')) {
+            return "We're experiencing high demand. Please try again in a few moments.";
+          }
+          
           return error.message;
         }
         return 'An unknown error occurred';

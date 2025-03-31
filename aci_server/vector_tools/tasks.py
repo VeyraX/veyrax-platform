@@ -1,18 +1,18 @@
 from celery_app import celery_app
-from vector_tools.vector_tools import VectorStoreActions
-from vector_tools.data_sources.google_drive import GoogleDriveSource
+from .vector_tools import VectorStoreActions
+from .data_sources.google_drive import GoogleDriveSource
 from integrations.google_drive.service import DriveService, DriveClient
 from db.supabase import get_supabase
 import os
 from google.oauth2.credentials import Credentials
-from vector_tools.data_sources.notion import NotionSource
+from .data_sources.notion import NotionSource
 from integrations.notion.service import NotionService
 from integrations.notion.client import NotionClient
 from fastapi import HTTPException
 from datetime import datetime
 from integrations.confluence.service import ConfluenceService
 from integrations.confluence.client import ConfluenceClient
-from vector_tools.data_sources.confluence import ConfluenceSource
+from .data_sources.confluence import ConfluenceSource
 
 
 def update_index_status(user_id: str, collection_name: str, status: str, processed_entities: int = None) -> None:

@@ -4,34 +4,59 @@ import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
 import { tools } from '@/lib/ai/tools';
+import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
 
 export const maxDuration = 150;
 
 export async function POST(req: Request) {
-  const supabase = createClient();
+  const clonedReq = req.clone();
   
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  if (userError || !user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  const body = await req.json();
-  const { messages, chatId } = body;
-
   try {
+    const supabase = createClient();
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    let body;
+    try {
+      body = await clonedReq.json();
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      return new Response('Invalid JSON in request body', { status: 400 });
+    }
+    
+    const { messages, chatId } = body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return new Response('Invalid messages format', { status: 400 });
+    }
+
     const userTools = await getUserTools();
     
     const customSystemPrompt = `${main_system_prompt}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
 
+    let model = openai('gpt-4o');
+    
+    const traceId = generateTraceId();
+    console.log('Generated trace ID for chat:', traceId);
+    
+    model = traceModel(model, user.id, {
+      trace_id: traceId,
+      chat_id: chatId,
+      user_email: user.email,
+      endpoint: 'chat'
+    });
+
     const result = streamText({
-      model: openai('gpt-4o'),
+      model: model,
       messages,
       system: customSystemPrompt,
       tools: tools,
       experimental_toolCallStreaming: true,
       maxSteps: 25,
-      experimental_telemetry: { isEnabled: true },
       async onFinish({ response }) {
         const allMessages = appendResponseMessages({
           messages,
@@ -63,45 +88,48 @@ export async function POST(req: Request) {
           });
         }
 
-        await supabase
-          .from('chats_messages')
-          .insert({
-            message_id: lastAiMessage.id,
-            chat_id: chatId,
-            sender: 'assistant',
-            message_text: lastAiMessage.content,
-            parts: parts,
-            metadata: {
-              toolInvocations: lastAiMessage.toolInvocations,
-              finishReason: null
-            }
-          });
+        try {
+          await supabase
+            .from('chats_messages')
+            .insert({
+              message_id: lastAiMessage.id,
+              chat_id: chatId,
+              sender: 'assistant',
+              message_text: lastAiMessage.content,
+              parts: parts,
+              metadata: {
+                toolInvocations: lastAiMessage.toolInvocations,
+                finishReason: null
+              }
+            });
+        } catch (error) {
+          console.error('Error saving message to Supabase:', error);
+        }
       }
     });
 
     return result.toDataStreamResponse({
       getErrorMessage: (error: unknown) => {
         if (error instanceof Error) {
-          // Check for OpenAI's context length error format
+          let errorMessage = error.message;
           try {
-            const errorObj = JSON.parse(error.message);
+            const errorObj = JSON.parse(errorMessage);
             if (errorObj.error?.code === 'context_length_exceeded' || 
                 errorObj.error?.message?.includes('maximum context length')) {
               return "The conversation is too long. Please start a new chat or try rephrasing your last question more concisely.";
             }
           } catch (e) {
-            // If error message isn't JSON, check the raw message
-            if (error.message.includes('maximum context length') || 
-                error.message.includes('context_length_exceeded')) {
+            if (errorMessage.includes('maximum context length') || 
+                errorMessage.includes('context_length_exceeded')) {
               return "The conversation is too long. Please start a new chat or try rephrasing your last question more concisely.";
             }
           }
           
-          if (error.message.includes('ToolInvocation')) {
+          if (errorMessage.includes('ToolInvocation')) {
             return "Error processing tool invocation. Please try again.";
           }
           
-          return error.message;
+          return errorMessage;
         }
         
         return 'An unknown error occurred';

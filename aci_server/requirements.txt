@@ -3,8 +3,8 @@ aiosqlite==0.20.0
 alembic==1.13.2
 asyncpg==0.29.0
 fastapi==0.115.8
-pydantic==2.8.2
-pydantic_core==2.20.1
+pydantic==2.10.0
+pydantic_core==2.27.0
 SQLAlchemy==2.0.32
 uvicorn==0.30.6
 gunicorn==23.0.0
@@ -19,7 +19,8 @@ slack-sdk==3.34.0
 httpx==0.28.1
 python-multipart==0.0.20
 qdrant-client==1.10.1
-openai[datalib]==1.63.0
+openai[datalib]==1.66.2
+openai-agents==0.0.3
 celery[redis]==5.4.0
 redis==5.2.1
 flower==2.0.1
@@ -45,3 +46,4 @@ packaging==24.2
 python-amazon-paapi==5.0.1
 pympler==1.1 # for memory profiling
 objgraph==3.6.2
+posthog==3.23.0

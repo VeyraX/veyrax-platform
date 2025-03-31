@@ -24,6 +24,8 @@ services:
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
+    env_file:
+      - .env
     restart: always
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "3"]
 
@@ -32,6 +34,10 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email ${CERTBOT_EMAIL} -d veyraxapp.com -d www.veyraxapp.com --agree-tos --no-eff-email
+    command: >
+      certonly --webroot -w /var/www/certbot --force-renewal 
+      --email ${CERTBOT_EMAIL} 
+      -d veyraxapp.com -d www.veyraxapp.com -d flower.veyraxapp.com 
+      --agree-tos --no-eff-email
     depends_on:
       - nginx

@@ -136,7 +136,7 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
           <TabsContent value="run-flow" className="mt-0">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-medium">Example</h3>
+                <h3 className="text-sm font-medium">Request</h3>
                 <Button 
                   onClick={() => {
                     navigator.clipboard.writeText(runFlowExample);
@@ -161,7 +161,7 @@ export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: Flow
               </SyntaxHighlighter>
               
               <div className="flex justify-between items-center mt-6">
-                <h3 className="text-sm font-medium">Response Schema</h3>
+                <h3 className="text-sm font-medium">Response</h3>
                 <Button 
                   onClick={() => {
                     navigator.clipboard.writeText(`{

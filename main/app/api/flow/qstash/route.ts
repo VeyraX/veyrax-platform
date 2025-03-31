@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-const BASE_URL = process.env.FRONTEND_URL;
+const API_URL = process.env.API_URL;
 
 async function handler(req: Request) {
   
@@ -63,17 +63,28 @@ async function handler(req: Request) {
       throw initialError;
     }
     
-    const response = await fetch(`${BASE_URL}/api/flow/run-flow`, {
+
+    const response = await fetch(`${API_URL}/flow/run-flow/${flowId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'VEYRAX_API_KEY': apiKey,
         'X-Flow-Run-ID': initialFlowRun.id
       },
-      body: JSON.stringify({ flowId })
+      body: JSON.stringify({ 
+        query: "Run the flow automatically triggered by qstash",
+        include_debug_info: true
+      })
     });
 
     const responseBody = await response.text();
+    let parsedResponse;
+    
+    try {
+      parsedResponse = JSON.parse(responseBody);
+    } catch (e) {
+      parsedResponse = { error: 'Invalid JSON response', raw: responseBody };
+    }
 
     if (!response.ok) {
       await supabase
@@ -99,7 +110,8 @@ async function handler(req: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      flowRunId: initialFlowRun.id 
+      flowRunId: initialFlowRun.id,
+      agentResponse: parsedResponse
     });
   } catch (error) {
     console.error('Detailed error in QStash webhook:', {

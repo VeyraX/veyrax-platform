@@ -2,7 +2,7 @@ import { MessageFormatter } from "./message-formatter"
 import { UserMessageFormatter } from "./user-message-formatter"
 import { Button } from "@/components/ui/button"
 import { ThumbsDown, ThumbsUp, Copy, Check } from "lucide-react"
-import React, { useRef } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { type Message } from 'ai/react'
 import { updateMessageAccuracy } from "../../api/api.agent"
@@ -62,12 +62,39 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
   const [copiedMessageId, setCopiedMessageId] = React.useState<string | null>(null);
   const [ratedMessages, setRatedMessages] = React.useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [timedOutTools, setTimedOutTools] = useState<Set<string>>(new Set());
 
   const { shouldAutoScroll } = useAutoScroll({
     messagesEndRef,
     isLoading,
     messages
   });
+
+  useEffect(() => {
+    const timeoutDuration = 300000; // 5 minutes timeout
+    
+    messages.forEach(message => {
+      if (message.parts) {
+        message.parts.forEach(part => {
+          if (part.type === 'tool-invocation') {
+            const { toolCallId, state } = part.toolInvocation;
+            
+            if (['partial-call', 'call'].includes(state)) {
+              const timer = setTimeout(() => {
+                setTimedOutTools(prev => {
+                  const newSet = new Set(prev);
+                  newSet.add(toolCallId);
+                  return newSet;
+                });
+              }, timeoutDuration);
+              
+              return () => clearTimeout(timer);
+            }
+          }
+        });
+      }
+    });
+  }, [messages]);
 
   const handleRate = async (messageId: string, chatId: string, isAccurate: boolean) => {
     try {
@@ -142,7 +169,19 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                       return (
                                           <div className="max-w-3xl w-full">
                                             {['partial-call', 'call'].includes(state) ? (
-                                              <Skeleton className="h-32 w-full" />
+                                              <div className="flex items-center gap-2">
+                                                {timedOutTools.has(toolCallId) ? (
+                                                  <>
+                                                    <span className="text-red-500">⚠️</span>
+                                                    <span>This operation failed, please try again.</span>
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                    <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                                  </>
+                                                )}
+                                              </div>
                                             ) : (
                                               result?.success && result.result?.component && (
                                                 <DynamicComponentRender component={result.result.component} />
@@ -156,8 +195,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation failed, please try again.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -173,8 +221,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                         {['partial-call', 'call'].includes(state) ? (
                                           <div className="flex items-center gap-2">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                            <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                            {timedOutTools.has(toolCallId) ? (
+                                              <>
+                                                <span className="text-red-500">⚠️</span>
+                                                <span>This operation failed, please try again.</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                <span>Running {args?.params?.tool || ""} {args?.params?.method || ""}...</span>
+                                              </>
+                                            )}
                                           </div>
                                         ) : (
                                           <div className="flex items-center gap-2">
@@ -191,8 +248,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Getting the tools...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation failed, please try again.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Getting the tools...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -208,8 +274,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Getting the flow data...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation failed, please try again.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Getting the flow data...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -226,8 +301,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Generating flow...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation failed, please try again.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Generating flow...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -243,8 +327,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Setting up flow schedule...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation failed, please try again.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Setting up flow schedule...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -260,8 +353,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Deleting flow schedule...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation is taking longer than expected or may have failed.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Deleting flow schedule...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
@@ -277,8 +379,17 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                                         <div className="flex items-center gap-2">
                                           {['partial-call', 'call'].includes(state) ? (
                                             <div className="flex items-center gap-2">
-                                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                                              <span>Running flow...</span>
+                                              {timedOutTools.has(toolCallId) ? (
+                                                <>
+                                                  <span className="text-red-500">⚠️</span>
+                                                  <span>This operation is taking longer than expected or may have failed.</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                                                  <span>Running flow...</span>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <div className="flex items-center gap-2">
