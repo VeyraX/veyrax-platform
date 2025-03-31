@@ -77,7 +77,11 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
         flowToolsMap.set(flowId, Array.from(uniqueProviders.values()))
       })
 
-      const templateIds = templates.map(template => template.id)
+      const uniqueTemplates = templates.filter(template => {
+        return !flowsData.some(flow => flow.id === template.id)
+      })
+
+      const templateIds = uniqueTemplates.map(template => template.id)
       const templateActionsPromises = templateIds.map(id => getTemplateActions(id))
       const templateActionsResults = await Promise.all(templateActionsPromises)
       
@@ -100,7 +104,7 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
           schedule: schedulesData.find(s => s.flow_id === flow.id)?.schedule,
           tools: flowToolsMap.get(flow.id) || []
         })),
-        ...templates.map(template => ({
+        ...uniqueTemplates.map(template => ({
           ...template,
           tools: flowToolsMap.get(template.id) || []
         }))

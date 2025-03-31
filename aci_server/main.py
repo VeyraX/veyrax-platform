@@ -51,7 +51,7 @@ from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
 from integrations.reddit.route import router as reddit_router
-from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions
+from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions, get_user_flows
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
@@ -488,6 +488,7 @@ async def get_user_tools(request: Request):
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
+            tools_response["tools"]["available_flows"] = []
             return tools_response
         
         response_tools = {"tools": user_tools}
@@ -495,6 +496,10 @@ async def get_user_tools(request: Request):
         
         user_memories = await get_user_memories(user_id)
         response_tools["tools"]["memories"] = user_memories
+        
+        user_flows = get_user_flows(user_id)
+        if user_flows and not isinstance(user_flows, dict):
+            response_tools["tools"]["available_flows"] = user_flows
         
         log_api_call(
             user_id=user_id,

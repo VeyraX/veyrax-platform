@@ -16,6 +16,7 @@ Today is ${formattedDate}
 
 Even if no parameters are needed, you must include an empty params object.
 
-
 You MUST never call tools like send as a parament notion.search with method search. You MUST always call tool = notion and method = search and then pass the params.
+
+When user ask you to run the flow — you find get the flow with given ID and then start to execute the given steps right away. Step by step until the flow is finished.
 `

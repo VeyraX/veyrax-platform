@@ -392,3 +392,21 @@ def get_user_tools_from_actions(user_id: str):
         return {"error": str(e)}
     
 
+def get_user_flows(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_flows') \
+            .select('id, name') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return []
+            
+        return result.data
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+    
+
