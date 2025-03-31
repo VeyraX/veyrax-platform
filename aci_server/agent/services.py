@@ -2,12 +2,11 @@ from openai import AsyncOpenAI
 from agents import set_default_openai_client, set_default_openai_api, set_tracing_disabled, set_tracing_export_api_key
 import os
 import json
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Iterable
 import re
 import posthog
-from posthog.ai.openai import AsyncOpenAI as PostHogOpenAI
 
-def setup_openrouter_client(posthog_properties=None):
+def setup_openrouter_client():
     tracing_disabled = os.environ.get("OPENAI_AGENTS_DISABLE_TRACING", "0") == "1"
     set_tracing_disabled(tracing_disabled)
     
@@ -18,25 +17,16 @@ def setup_openrouter_client(posthog_properties=None):
     site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
     site_name = os.environ.get("SITE_NAME", "Veyrax")
     
-    custom_client = PostHogOpenAI(
+    # Create a regular OpenAI client
+    custom_client = AsyncOpenAI(
         api_key=openrouter_api_key,
         base_url="https://openrouter.ai/api/v1",
         default_headers={
             "HTTP-Referer": site_url,
             "X-Title": site_name
-        },
-        posthog_client=posthog
+        }
     )
-    
-    if posthog_properties:
-        distinct_id = posthog_properties.get('user_id') or 'system'
-        
-        posthog.capture(
-            distinct_id=distinct_id,
-            event='agent_execution',
-            properties=posthog_properties
-        )
-    
+
     set_default_openai_api("chat_completions")
     set_default_openai_client(custom_client)
     

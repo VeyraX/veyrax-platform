@@ -9,15 +9,7 @@ def create_agent(api_key: str, instructions: str = None, flow_id: str = None, ru
     set_api_key(api_key)
     
     setup_posthog_tracing()
-    
-    posthog_properties = {
-        "flow_id": flow_id, 
-        "run_id": run_id, 
-        "user_id": user_id,
-        "trace_id": trace_id
-    }
-    
-    setup_openrouter_client(posthog_properties=posthog_properties)
+    setup_openrouter_client()
     
     tools = [get_flow_by_id, tool_call]
     
@@ -75,4 +67,3 @@ async def run_flow_agent(agent: Agent, user_input: str, flow_id: str = None, tra
             "trace_id": trace_id
         }
         return json.dumps(error_response)
-

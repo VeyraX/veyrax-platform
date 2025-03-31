@@ -21,7 +21,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/agent/') || 
     pathname.startsWith('/components/') || 
     pathname.startsWith('/integrations') ||
-    pathname.startsWith('/integrations/')
+    pathname.startsWith('/integrations/') ||
+    pathname.startsWith('/flows') ||
+    (pathname.startsWith('/flow/') && !pathname.includes('/shared'))
   ) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -46,5 +48,7 @@ export const config = {
     '/marketplace',
     '/integrations',
     '/integrations/:path*',
+    '/flows',
+    '/flow/:path*',
   ]
 }

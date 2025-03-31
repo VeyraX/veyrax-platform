@@ -12,7 +12,8 @@ function SidebarStateController({ children }: { children: ReactNode }) {
     if (pathname && (
       pathname.startsWith('/flow') || 
       pathname.startsWith('/flows') ||
-      pathname.startsWith('/integrations')
+      pathname.startsWith('/integrations') ||
+      pathname.startsWith('/shared')
     )) {
       setOpen(false);
     }
@@ -30,7 +31,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const shouldBeCollapsed = pathname && (
     pathname.startsWith('/flow') || 
     pathname.startsWith('/flows') ||
-    pathname.startsWith('/integrations')
+    pathname.startsWith('/integrations') ||
+    pathname.startsWith('/shared')
   );
   const initialOpen = shouldBeCollapsed ? false : defaultOpen;
   

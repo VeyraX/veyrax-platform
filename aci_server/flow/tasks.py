@@ -32,7 +32,7 @@ def run_flow_task(flow_id, run_id, api_key, trace_id, user_id):
             trace_id=trace_id
         )
         
-        response_str = asyncio.run(run_flow_agent(agent, flow_id, "Run the flow.", trace_id=trace_id, user_id=user_id))
+        response_str = asyncio.run(run_flow_agent(agent, "Run the flow.", flow_id=flow_id, trace_id=trace_id, user_id=user_id))
         
         response_data = json.loads(response_str)
         
