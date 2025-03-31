@@ -8,7 +8,7 @@ import httpx
 from integrations.common.prompt_example import get_tools_example_prompt
 from agent.queries import create_flow_run, update_flow_run_completed
 from .tasks import run_flow_task
-
+import uuid
 router = APIRouter(prefix="/flow", tags=["Flow"])
 
 @router.get("/get-flows")
@@ -120,12 +120,12 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
             return {"status": "skipped", "message": "Draft flow execution skipped"}
         
         run_id = create_flow_run(flow_id)
-        
+        trace_id = str(uuid.uuid4())
         FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://veyrax.com")
         if "NEXT_PUBLIC_APP_URL" in os.environ:
             FRONTEND_URL = os.environ.get("NEXT_PUBLIC_APP_URL")
         
-        run_flow_task.delay(flow_id, run_id, api_key)
+        run_flow_task.delay(flow_id, run_id, api_key, trace_id, user_id)
         
         log_api_call(
             user_id=user_id,

@@ -1,12 +1,15 @@
 from openai import AsyncOpenAI
-from agents import set_default_openai_client, set_default_openai_api, set_tracing_disabled
+from agents import set_default_openai_client, set_default_openai_api, set_tracing_disabled, set_tracing_export_api_key
 import os
 import json
 from typing import Dict, Any, List, Optional, Union
 import re
+import posthog
+from posthog.ai.openai import AsyncOpenAI as PostHogOpenAI
 
-def setup_openrouter_client():
-    set_tracing_disabled(True)
+def setup_openrouter_client(posthog_properties=None):
+    tracing_disabled = os.environ.get("OPENAI_AGENTS_DISABLE_TRACING", "0") == "1"
+    set_tracing_disabled(tracing_disabled)
     
     openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
     if not openrouter_api_key:
@@ -15,17 +18,26 @@ def setup_openrouter_client():
     site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
     site_name = os.environ.get("SITE_NAME", "Veyrax")
     
-    custom_client = AsyncOpenAI(
-        base_url="https://openrouter.ai/api/v1",
+    custom_client = PostHogOpenAI(
         api_key=openrouter_api_key,
+        base_url="https://openrouter.ai/api/v1",
         default_headers={
             "HTTP-Referer": site_url,
             "X-Title": site_name
-        }
+        },
+        posthog_client=posthog
     )
     
-    set_default_openai_api("chat_completions")
+    if posthog_properties:
+        distinct_id = posthog_properties.get('user_id') or 'system'
+        
+        posthog.capture(
+            distinct_id=distinct_id,
+            event='agent_execution',
+            properties=posthog_properties
+        )
     
+    set_default_openai_api("chat_completions")
     set_default_openai_client(custom_client)
     
     return custom_client
@@ -156,3 +168,22 @@ def format_agent_result(result: Any) -> Dict[str, Any]:
     }
     
     return formatted_result
+
+def setup_posthog_tracing(api_key=None, host=None):
+    try:
+        set_tracing_disabled(True)
+        
+        project_api_key = api_key or os.environ.get("POSTHOG_API_KEY")
+        if not project_api_key:
+            print("Warning: PostHog API key not provided. PostHog tracing will not be enabled.")
+            return False
+            
+        posthog.project_api_key = project_api_key
+        
+        posthog_host = host or os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+        posthog.host = posthog_host
+        
+        return True
+    except Exception as e:
+        print(f"Error configuring PostHog tracing: {str(e)}")
+        return False

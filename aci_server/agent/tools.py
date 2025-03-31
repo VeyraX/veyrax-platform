@@ -19,7 +19,7 @@ async def get_flow_by_id(flow_id: str) -> Dict[str, Any]:
             f"{base_url}/flow/get-flow/{flow_id}",
             headers=headers
         )   
-        
+        response.raise_for_status()
         return response.json()
 
 @function_tool
@@ -32,7 +32,7 @@ async def get_available_tools() -> Dict[str, Any]:
             f"{base_url}/get-tools",
             headers=headers
         )
-        
+        response.raise_for_status()
         return response.json()
 
 @function_tool
@@ -62,5 +62,7 @@ async def tool_call(tool: str, method: str, params_json: str) -> Dict[str, Any]:
             headers=headers,
             json=payload
         )
-        
+        response.raise_for_status()
         return response.json()
+    
+    

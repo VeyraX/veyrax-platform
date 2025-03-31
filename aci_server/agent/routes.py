@@ -23,6 +23,7 @@ async def execute_agent_query(
     
     body = await request.json()
     run_id = body.get("run_id")
+    trace_id = body.get("trace_id")
     
     try:
         api_key = get_user_api_key(user_id)
@@ -43,12 +44,18 @@ async def execute_agent_query(
         )
 
         query = "Run the flow."
-        response = await run_flow_agent(agent, query)
+        response = await run_flow_agent(
+            agent=agent, 
+            user_input=query,
+            trace_id=trace_id,
+            user_id=user_id
+        )
         response_data = json.loads(response)
         
         result = {
             "status": response_data.get("status", "success"),
-            "response": response_data.get("response", "") or response_data.get("error", "") 
+            "response": response_data.get("response", "") or response_data.get("error", ""),
+            "trace_id": response_data.get("debug_info", {}).get("trace_id")
         }
         
         if "tool_invocations" in response_data:
@@ -56,6 +63,12 @@ async def execute_agent_query(
         
         formatted_result = response_data.get("formatted_result", {})
         if run_id:
+            if "metadata" not in formatted_result:
+                formatted_result["metadata"] = {}
+            
+            if "trace_id" not in formatted_result["metadata"] and "trace_id" in result:
+                formatted_result["metadata"]["trace_id"] = result["trace_id"]
+                
             update_flow_run_completed(run_id, formatted_result)
         
         return result

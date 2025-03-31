@@ -32,13 +32,13 @@ export async function POST(request: Request) {
     const ACI_SERVER_URL = 'https://your-tunnel.example.com';
     console.log('Creating QStash schedule:', {
       cron: cronExpression,
-      destination: `${ACI_SERVER_URL}/flow/run-flow-sync/${flowId}`,
+      destination: `${ACI_SERVER_URL}/flow/run-flow/${flowId}`,
       body: { apiKey }
     });
     
     const qstashSchedule = await qstash.schedules.create({
       cron: cronExpression,
-      destination: `${ACI_SERVER_URL}/flow/run-flow-sync/${flowId}`,
+      destination: `${ACI_SERVER_URL}/flow/run-flow/${flowId}`,
       headers: {
         'Content-Type': 'application/json',
         'VEYRAX_API_KEY': apiKey
