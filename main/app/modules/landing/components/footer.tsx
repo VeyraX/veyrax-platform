@@ -24,17 +24,13 @@ export const Footer = () => {
           <nav className="mb-8 flex flex-wrap justify-center gap-6">
             <a href="/" className="transition-colors hover:text-gray-300">Home</a>
             <a 
-              href="#text-block" 
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('text-block');
-              }} 
+              href="/mcp" 
               className="transition-colors hover:text-gray-300"
             >
-              ACI
+              MCP
             </a>
-            <a href="/marketplace" className="transition-colors hover:text-gray-300">Marketplace</a>
-            <a href="https://status.aci.so" className="transition-colors hover:text-gray-300">Status</a>
+            <a href="/marketplace" className="transition-colors hover:text-gray-300">Integrations</a>
+            <a href="/web/flow" className="transition-colors hover:text-gray-300">Flow</a>
           </nav>
           <div className="mb-8 flex space-x-4">
             <Button

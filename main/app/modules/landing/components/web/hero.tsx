@@ -32,9 +32,9 @@ export const Hero = () => {
               />
               
               <div className="flex gap-4 flex-col mb-2 md:mb-4">
-                <Link href="/mcp" className="self-center">
+                <Link href="/web/flow" className="self-center">
                   <span className="text-spektr-cyan-50 text-sm md:text-base px-4 py-1.5 rounded-full bg-spektr-cyan-50/10 border border-spektr-cyan-50/20 flex items-center gap-1.5 transition-colors hover:bg-black hover:text-white hover:border-black cursor-pointer group">
-                    Introducing VeyraX MCP <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /> 
+                    Introducing VeyraX Flow <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /> 
                   </span>
                 </Link>
                 
