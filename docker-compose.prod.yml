@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     restart: always
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "3"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
 
   certbot:
     image: certbot/certbot
