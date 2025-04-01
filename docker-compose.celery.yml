@@ -65,6 +65,9 @@ services:
       - DD_API_KEY=${DD_API_KEY}
       - DD_SITE=us5.datadoghq.com
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DD_REDIS_HOST=redis
+      - DD_REDIS_PORT=6379
     volumes:
       - ./.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock:ro
