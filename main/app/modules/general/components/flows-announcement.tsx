@@ -46,7 +46,7 @@ export function FlowsAnnouncement() {
         <div className="p-3">
           <h4 className="text-sm font-medium mb-1">New Feature</h4>
           <p className="text-xs text-muted-foreground leading-snug mb-2">
-            Create any workflow you want with our new Flows
+            Create any workflow you want with our new Flow feature. 
           </p>
           <p className="text-xs font-medium text-primary hover:opacity-80 transition-opacity">
             Learn more
