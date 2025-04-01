@@ -82,7 +82,7 @@ export function CTA() {
             <CardContent className="relative z-10 flex flex-col items-center gap-8 text-center py-16 px-8 sm:py-20 sm:px-12">
               {/* Heading */}
               <h2 className="text-5xl md:text-7xl max-w-3xl tracking-tighter text-center">
-                <span className="font-regular">What routine do you want </span> <span className="font-semibold">automate?</span>
+                <span className="font-regular">What routine do you want </span> <span className="font-semibold">to automate?</span>
               </h2>
 
               {/* Description */}
