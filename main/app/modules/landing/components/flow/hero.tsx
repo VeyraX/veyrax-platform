@@ -189,7 +189,7 @@ export const Hero = () => {
               <div className="flex gap-4 flex-col items-center">
                 <div className="flex flex-col items-center gap-3">
                   <h1 className="text-5xl md:text-7xl max-w-3xl tracking-tighter text-center font-bold">
-                    Imagine... like <span className="text-orange-500 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleZapierClick}>Zapier</span>, but without clicking...
+                    Imagine... like <span className="text-orange-500 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleZapierClick}>Zapier</span>, but without clicking
                   </h1>
                 </div>
 
@@ -199,27 +199,38 @@ export const Hero = () => {
               </div>
 
               <div className="flex flex-row items-center gap-4 w-full max-w-md justify-center">
-                <Button 
-                  className="gap-2"
-                  onClick={handleEmailSignUp}
-                >
-                  {profile ? 'Go to Flows' : 'Sign up with email'}
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2"
-                  onClick={handleGoogleSignUp}
-                  disabled={isGoogleLoading}
-                >
-                  <Image 
-                    src="/logos/google-logo.svg" 
-                    alt="Google logo" 
-                    width={16} 
-                    height={16} 
-                  />
-                  <span>{profile ? 'Go to Flows' : 'Sign up with Google'}</span>
-                </Button>
+                {profile ? (
+                  <Button 
+                    className="gap-2"
+                    onClick={() => router.push('/flows')}
+                  >
+                    Go to Flows
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      className="gap-2"
+                      onClick={handleEmailSignUp}
+                    >
+                      Sign up with email
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={handleGoogleSignUp}
+                      disabled={isGoogleLoading}
+                    >
+                      <Image 
+                        src="/logos/google-logo.svg" 
+                        alt="Google logo" 
+                        width={16} 
+                        height={16} 
+                      />
+                      <span>Sign up with Google</span>
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="relative w-full max-w-7xl z-10">
