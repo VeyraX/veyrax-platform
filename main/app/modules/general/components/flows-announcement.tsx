@@ -53,14 +53,13 @@ export function FlowsAnnouncement() {
           </p>
         </div>
       </Card>
-
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[800px] p-0">
           <div className="aspect-video">
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              src="https://www.youtube.com/embed/rDYBVFQ8izI"
               title="Flows Announcement"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
