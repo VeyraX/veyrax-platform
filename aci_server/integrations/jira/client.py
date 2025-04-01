@@ -64,7 +64,18 @@ class JiraClient:
         
         response = self.session.request(method, url, **kwargs)
         
-        response.raise_for_status()
+        if not response.ok:
+            try:
+                error_data = response.json()
+                error_message = error_data.get('errorMessages', [])
+                if error_message:
+                    error_message = error_message[0]
+                else:
+                    error_message = error_data.get('errors', {}).get('error', str(response.text))
+                response.reason = error_message
+            except:
+                pass
+            response.raise_for_status()
         
         return response.json() if response.content else None
 
