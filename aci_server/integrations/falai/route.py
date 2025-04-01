@@ -31,8 +31,7 @@ examples = ExamplesLoader()
 
 async def get_falai_service(request: FastAPIRequest):
     try:
-        #api_key = await validate_provider_api_key(request, "falai")
-        api_key = "67c9d73c-8535-439e-bfbd-d6d5dd3c054d:784b69bc1ea1f07f843ad5def7e79d93"
+        api_key = await validate_provider_api_key(request, "falai")
         client = FalAIClient(api_key)
         apply_error_handler_to_client(client)
         service = FalAIService(client)
