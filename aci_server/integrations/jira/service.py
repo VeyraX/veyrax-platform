@@ -101,9 +101,7 @@ class JiraService:
         optional_fields = {
             'description': issue_create.description,
             'assignee': {'id': issue_create.assignee_id} if issue_create.assignee_id else None,
-            'priority': {'id': issue_create.priority_id} if issue_create.priority_id else None,
             'parent': {'key': issue_create.parent_issue_key} if issue_create.parent_issue_key else None,
-            'status': {'id': issue_create.status_id} if issue_create.status_id else None,
             'labels': issue_create.labels,
             'components': [{'name': c} for c in issue_create.components] if issue_create.components else None
         }
@@ -112,9 +110,16 @@ class JiraService:
         
         response = self.client.create_issue(fields)
         
+        # Handle priority and status after issue creation
+        issue_key = response['key']
+        
+        # Apply status change through transition if provided
         if issue_create.status_id:
-            issue_key = response['key']
             self.client.transition_issue(issue_key, issue_create.status_id)
+        
+        # Set priority if provided (through update operation)
+        if issue_create.priority_id:
+            self.client.update_issue(issue_key, {'priority': {'id': issue_create.priority_id}})
         
         issue_data = self.get_issue(response['id'])
         

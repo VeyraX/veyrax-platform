@@ -118,15 +118,28 @@ def handle_api_error(func):
             return response
         except HTTPException as e:
             raise e
-        except (requests.exceptions.HTTPError, HTTPException) as e:
+        except requests.exceptions.HTTPError as e:
+            if not hasattr(e, 'response'):
+                raise ClientUnknowError(
+                    message=str(e),
+                    errors={
+                        "status": "error",
+                        "message": str(e),
+                        "error_code": "API_UNKNOWN_ERROR"
+                    }
+                )
             try:
                 error_data = e.response.json()
+                error_message = str(e)
+                if 'errorMessages' in error_data and error_data['errorMessages']:
+                    error_message = error_data['errorMessages'][0]
+                elif isinstance(error_data, dict):
+                    if "error" in error_data:
+                        error_message = error_data["error"]
+                    elif "message" in error_data:
+                        error_message = error_data["message"]
             except:
-                error_data = {"message": e.response.text or str(e)}
-                
-            error_message = error_data.get("message", str(e))
-            if isinstance(error_data, dict) and "error" in error_data:
-                error_message = error_data["error"]
+                error_message = e.response.text or str(e)
             
             raise ClientNonCriticalError(
                 message=error_message,
