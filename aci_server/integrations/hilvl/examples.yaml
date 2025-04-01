@@ -1,0 +1,165 @@
+# Business endpoints
+/hilvl/get_business:
+  - request:
+      business_id: "b12345"
+    response:
+      data:
+        business:
+          id: "b12345"
+          name: "Sample Business"
+          locationId: "loc123"
+          phone: "+12345678901"
+          email: "business@example.com"
+
+/hilvl/get_conversation_messages:
+  - request:
+      conversation_id: "conv123"
+      limit: 10
+    response:
+      data:
+        lastMessageId: "msg789"
+        nextPage: false
+        messages:
+          - id: "msg123"
+            type: 1
+            messageType: "text"
+            locationId: "loc123"
+            contactId: "contact456"
+            conversationId: "conv123"
+            dateAdded: "2023-05-15T10:30:00Z"
+            body: "Hello, this is a test message"
+            direction: "inbound"
+            status: "delivered"
+            contentType: "text/plain"
+          - id: "msg456"
+            type: 1
+            messageType: "text"
+            locationId: "loc123"
+            contactId: "contact456"
+            conversationId: "conv123"
+            dateAdded: "2023-05-15T10:35:00Z"
+            body: "This is a response message"
+            direction: "outbound"
+            status: "delivered"
+            contentType: "text/plain"
+
+/hilvl/get_message:
+  - request:
+      message_id: "msg123"
+    response:
+      data:
+        id: "msg123"
+        type: 1
+        messageType: "text"
+        locationId: "loc123"
+        contactId: "contact456"
+        conversationId: "conv123"
+        dateAdded: "2023-05-15T10:30:00Z"
+        body: "Hello, this is a test message"
+        direction: "inbound"
+        status: "delivered"
+        contentType: "text/plain"
+
+/hilvl/get_email_message:
+  - request:
+      email_id: "email123"
+    response:
+      data:
+        id: "email123"
+        altId: "alt456"
+        threadId: "thread789"
+        locationId: "loc123"
+        contactId: "contact456"
+        conversationId: "conv123"
+        dateAdded: "2023-05-15T10:30:00Z"
+        subject: "Sample Email Subject"
+        body: "<p>This is the email content</p>"
+        direction: "outbound"
+        status: "delivered"
+        contentType: "text/html"
+        from_field: "sender@example.com"
+        to: ["recipient@example.com"]
+
+/hilvl/cancel_scheduled_email:
+  - request:
+      email_message_id: "email123"
+    response:
+      data:
+        status: 200
+        message: "Email successfully canceled"
+
+/hilvl/send_message:
+  - request:
+      message_type: "email"
+      contact_id: "contact456"
+      subject: "Test Email"
+      message: "This is a test email message"
+      email_from: "sender@example.com"
+      email_to: "recipient@example.com"
+    response:
+      data:
+        conversationId: "conv123"
+        messageId: "msg123"
+        emailMessageId: "email123"
+
+/hilvl/search_conversations:
+  - request:
+      location_id: "loc123"
+      limit: 10
+    response:
+      data:
+        conversations:
+          - id: "conv123"
+            contactId: "contact456"
+            locationId: "loc123"
+            lastMessageBody: "This is the latest message"
+            unreadCount: 2
+        total: 1
+
+/hilvl/get_conversation:
+  - request:
+      conversation_id: "conv123"
+    response:
+      data:
+        id: "conv123"
+        contactId: "contact456"
+        locationId: "loc123"
+        unreadCount: 2
+        lastMessageBody: "This is the latest message"
+        lastMessageDate: "2023-05-15T10:35:00Z"
+
+/hilvl/update_conversation:
+  - request:
+      conversation_id: "conv123"
+      location_id: "loc123"
+      unread_count: 0
+      starred: true
+    response:
+      data:
+        success: true
+        conversation:
+          id: "conv123"
+          contactId: "contact456"
+          locationId: "loc123"
+          unreadCount: 0
+          starred: true
+
+/hilvl/delete_conversation:
+  - request:
+      conversation_id: "conv123"
+    response:
+      data:
+        success: true
+
+/hilvl/create_conversation:
+  - request:
+      location_id: "loc123"
+      contact_id: "contact456"
+    response:
+      data:
+        success: true
+        conversation:
+          id: "conv789"
+          contactId: "contact456"
+          locationId: "loc123"
+          unreadCount: 0
