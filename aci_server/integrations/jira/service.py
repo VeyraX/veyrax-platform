@@ -109,8 +109,6 @@ class JiraService:
         fields.update({k: v for k, v in optional_fields.items() if v is not None})
         
         response = self.client.create_issue(fields)
-
-        print("[create issue] response", response)
         
         # Handle priority and status after issue creation
         issue_key = response['key']
