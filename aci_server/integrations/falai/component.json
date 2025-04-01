@@ -1,0 +1,10 @@
+[
+    {
+      "name": "FalAI",
+      "version": "1.0.0",
+      "description": "A React component for displaying a list of projects",
+      "related_endpoints":"",
+      "component": {
+      }
+    }
+]

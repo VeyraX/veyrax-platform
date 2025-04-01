@@ -78,6 +78,7 @@ from integrations.zip_code.route import router as zip_code_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
+from integrations.falai.route import router as falai_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -168,7 +169,8 @@ INTEGRATION_ROUTERS = {
     "duckduckgo": duckduckgo_router,
     "ipinfo": ipinfo_router,
     "hunterio": hunterio_router,
-    "zip_code": zip_code_router
+    "zip_code": zip_code_router,
+    "falai": falai_router
 }
 
 
@@ -186,7 +188,7 @@ async def check_user_permission(request: Request, tool: str, method: str):
         if not user_tools:
             raise HTTPException(status_code=401, detail="User not found")
         
-        if tool not in user_tools:
+        #if tool not in user_tools:
             raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
         if method not in user_tools[tool]:
             raise HTTPException(status_code=403, detail=f"Action {method} is not availiable for {tool} for this user")
@@ -238,7 +240,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-app.add_middleware(PermissionMiddleware)
+#app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)

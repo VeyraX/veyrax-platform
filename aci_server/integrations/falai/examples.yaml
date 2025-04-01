@@ -1,0 +1,303 @@
+routes:
+  - endpoint: /falai/get_models
+    examples:
+      - scenario: "List Available Models"
+        description: "Get a paginated list of available models"
+        input_json: |
+          {
+            "page": 1,
+            "total": 5,
+            "max_results": 30
+          }
+        output_json: |
+          {
+            "data": {
+              "models": [
+                {
+                  "id": "fal-ai/fast-sdxl",
+                  "name": "Fast SDXL",
+                  "description": "Fast inference version of Stable Diffusion XL",
+                  "owner": "fal-ai",
+                  "created_at": "2023-09-01T12:00:00Z",
+                  "visibility": "public",
+                  "tags": ["image", "text-to-image", "diffusion"]
+                },
+                {
+                  "id": "fal-ai/clip-image-search",
+                  "name": "CLIP Image Search",
+                  "description": "CLIP-based image search and embedding extraction",
+                  "owner": "fal-ai",
+                  "created_at": "2023-08-15T14:30:00Z",
+                  "visibility": "public",
+                  "tags": ["embedding", "search", "clip"]
+                }
+              ]
+            },
+            "component": {
+              "name": "FalAIModelsList"
+            }
+          }
+
+  - endpoint: /falai/search_models
+    examples:
+      - scenario: "Search for Image Generation Models"
+        description: "Search for image generation models"
+        input_json: |
+          {
+            "keywords": "image generation stable diffusion"
+          }
+        output_json: |
+          {
+            "data": {
+              "models": [
+                {
+                  "id": "fal-ai/fast-sdxl",
+                  "name": "Fast SDXL",
+                  "description": "Fast inference version of Stable Diffusion XL",
+                  "owner": "fal-ai",
+                  "created_at": "2023-09-01T12:00:00Z",
+                  "visibility": "public",
+                  "tags": ["image", "text-to-image", "diffusion"]
+                },
+                {
+                  "id": "fal-ai/stable-diffusion-v1-5",
+                  "name": "Stable Diffusion v1.5",
+                  "description": "Stable Diffusion v1.5 with various samplers",
+                  "owner": "fal-ai",
+                  "created_at": "2023-07-22T09:15:00Z",
+                  "visibility": "public",
+                  "tags": ["image", "text-to-image", "diffusion"]
+                }
+              ]
+            },
+            "component": {
+              "name": "FalAIModelsList"
+            }
+          }
+
+  - endpoint: /falai/get_schema
+    examples:
+      - scenario: "Get Model Schema"
+        description: "Retrieve the OpenAPI schema for a specific model"
+        input_json: |
+          {
+            "model_id": "fal-ai/fast-sdxl"
+          }
+        output_json: |
+          {
+            "data": {
+              "openapi": "3.0.0",
+              "info": {
+                "title": "Fast SDXL API",
+                "description": "Fast inference version of Stable Diffusion XL",
+                "version": "1.0.0"
+              },
+              "paths": {
+                "/": {
+                  "post": {
+                    "summary": "Generate images with SDXL",
+                    "parameters": [
+                      {
+                        "name": "prompt",
+                        "required": true,
+                        "schema": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "name": "negative_prompt",
+                        "required": false,
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "components": {
+                "schemas": {
+                  "Image": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "component": {
+              "name": "FalAISchemaViewer"
+            }
+          }
+
+  - endpoint: /falai/generate
+    examples:
+      - scenario: "Generate Image with SDXL"
+        description: "Generate an image using Fast SDXL model"
+        input_json: |
+          {
+            "model": "fal-ai/fast-sdxl",
+            "parameters": {
+              "prompt": "A serene landscape with mountains and a lake at sunset",
+              "negative_prompt": "blurry, low quality",
+              "width": 1024,
+              "height": 768,
+              "num_inference_steps": 25
+            },
+            "queue": false
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "completed": true,
+              "result": {
+                "images": [
+                  {
+                    "url": "https://fal-cdn.s3.amazonaws.com/f47a82dd-9675-4a34-9b33-68c42a4a1eb9/image.png",
+                    "width": 1024,
+                    "height": 768
+                  }
+                ],
+                "seed": 42
+              }
+            },
+            "component": {
+              "name": "FalAIImageResult"
+            }
+          }
+      - scenario: "Generate Image with Queuing"
+        description: "Generate an image using queue for processing"
+        input_json: |
+          {
+            "model": "fal-ai/fast-sdxl",
+            "parameters": {
+              "prompt": "A futuristic cityscape with flying vehicles",
+              "negative_prompt": "blurry, ugly, bad anatomy",
+              "width": 1024,
+              "height": 768
+            },
+            "queue": true
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "queued",
+              "completed": false,
+              "status_url": "https://queue.fal.run/status/abc123",
+              "response_url": "https://queue.fal.run/response/abc123",
+              "cancel_url": "https://queue.fal.run/cancel/abc123"
+            },
+            "component": {
+              "name": "FalAIQueuedRequest"
+            }
+          }
+
+  - endpoint: /falai/get_result
+    examples:
+      - scenario: "Get Result of Queued Request"
+        description: "Retrieve the result of a previously queued request"
+        input_json: |
+          {
+            "url": "https://queue.fal.run/response/abc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "completed",
+              "completed": true,
+              "result": {
+                "images": [
+                  {
+                    "url": "https://fal-cdn.s3.amazonaws.com/abc123/image.png",
+                    "width": 1024, 
+                    "height": 768
+                  }
+                ],
+                "seed": 12345
+              }
+            },
+            "component": {
+              "name": "FalAIImageResult"
+            }
+          }
+
+  - endpoint: /falai/get_status
+    examples:
+      - scenario: "Check Status of Queued Request"
+        description: "Check the current status of a queued request"
+        input_json: |
+          {
+            "url": "https://queue.fal.run/status/abc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "in_progress",
+              "completed": false,
+              "status_url": "https://queue.fal.run/status/abc123",
+              "response_url": "https://queue.fal.run/response/abc123",
+              "cancel_url": "https://queue.fal.run/cancel/abc123"
+            },
+            "component": {
+              "name": "FalAIQueueStatus"
+            }
+          }
+
+  - endpoint: /falai/cancel
+    examples:
+      - scenario: "Cancel Queued Request"
+        description: "Cancel a request that is queued or in progress"
+        input_json: |
+          {
+            "url": "https://queue.fal.run/cancel/abc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "cancelled",
+              "completed": false,
+              "result": {
+                "message": "Request successfully cancelled"
+              }
+            },
+            "component": null
+          }
+
+  - endpoint: /falai/upload
+    examples:
+      - scenario: "Upload Image File"
+        description: "Upload a file to fal.ai storage for use in model requests"
+        input_json: |
+          {
+            "path": "/tmp/reference_image.jpg"
+          }
+        output_json: |
+          {
+            "data": {
+              "file_url": "https://fal-cdn.s3.amazonaws.com/xyz987/reference_image.jpg",
+              "file_name": "reference_image.jpg",
+              "file_size": 245789,
+              "content_type": "image/jpeg"
+            },
+            "component": {
+              "name": "FalAIFileUpload"
+            }
+          }
+
+  - endpoint: /falai/validate_key
+    examples:
+      - scenario: "Validate API Key"
+        description: "Check if the provided API key is valid"
+        input_json: |
+          {
+            "api_key": "fal.eyJhbGciOiJIUzI1..."
+          }
+        output_json: |
+          {
+            "valid": true,
+            "message": "API key is valid"
+          }
