@@ -70,7 +70,9 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
     if (props.auth_method === 'api_key' || 
         props.auth_method === 'api_key_with_base' || 
         props.auth_method === 'db_access' ||
-        props.auth_method === 'custom') {
+        props.auth_method === 'custom' ||
+        props.auth_method === 'whatsapp-qr'
+      ) {
       setShowManage(true);
     } else if (props.auth_method === 'none') {
       setIsConnecting(true);
@@ -220,6 +222,7 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
          props.auth_method === 'db_access' || 
          props.auth_method === 'custom' ||
          (props.provider_tag && props.provider_tag.toLowerCase() === 'veyrax') ||
+         (props.provider_tag && props.provider_tag.toLowerCase() === 'whatsapp') ||
          (props.auth_method === 'none' && props.connected)) && (
           <ManageDialog
             provider={props}

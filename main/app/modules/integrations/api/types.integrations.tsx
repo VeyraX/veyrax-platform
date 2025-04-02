@@ -11,7 +11,7 @@ export interface Provider {
   description: string;
   logo_url?: string;
   provider_tag: string;
-  auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none' | 'custom';
+  auth_method: 'oauth' | 'api_key' | 'api_key_with_base' | 'db_access' | 'none' | 'custom' | 'whatsapp-qr';
   scopes?: ProviderScope[];
   user_scopes?: ProviderScope[];
   auth_schema?: CustomAuthField[];

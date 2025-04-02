@@ -1235,3 +1235,120 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
   }
 };
+
+export const enableWhatsapp = async (authData: any): Promise<boolean> => {
+  if (!authData || !authData.isLoggedIn) {
+    return false;
+  }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
+      console.error("User not authenticated");
+      return false;
+    }
+
+    // Get the provider ID for WhatsApp
+    const { data: provider } = await supabase
+      .from('providers')
+      .select('id')
+      .eq('provider_tag', 'whatsapp')
+      .single();
+      
+    if (!provider) {
+      console.error("WhatsApp provider not found");
+      return false;
+    }
+    
+    // Ensure user is connected to WhatsApp provider
+    await supabase
+      .from('users_providers')
+      .upsert({
+        user_id: user.id,
+        provider_id: provider.id
+      }, {
+        onConflict: 'provider_id,user_id'
+      });
+      
+    // Save all returned data as raw_data
+    await supabase
+      .from('user_provider_custom_auth')
+      .upsert({
+        user_id: user.id,
+        provider_id: provider.id,
+        raw_data: authData
+      }, {
+        onConflict: 'user_id,provider_id'
+      });
+      
+    // Enable provider actions
+    await addActionsUser(provider.id);
+    
+    return true;
+  } catch (error) {
+    console.error("Error enabling WhatsApp:", error);
+    return false;
+  }
+};
+
+export const authenticateWhatsApp = async (): Promise<{success: boolean, qrImageBase64?: string, qrData?: string, isLoggedIn?: boolean, message?: string}> => {
+  try {
+    const response = await fetch(`/api/integrations/whatsapp/authenticate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+    }
+
+    const result = await response.json();
+    
+    return {
+      success: true,
+      qrImageBase64: result.data?.qr_image_base64,
+      qrData: result.data?.qr_data,
+      isLoggedIn: result.data?.is_logged_in,
+      message: result.message || 'Authentication started'
+    };
+  } catch (error) {
+    console.error('Error authenticating WhatsApp:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to authenticate WhatsApp'
+    };
+  }
+};
+
+export const checkWhatsAppStatus = async (): Promise<{success: boolean, isLoggedIn: boolean, phone?: string, message?: string}> => {
+  try {
+    const response = await fetch(`/api/integrations/whatsapp/check_status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+    }
+
+    const result = await response.json();
+    
+    return {
+      success: true,
+      isLoggedIn: result.data?.is_logged_in || false,
+      phone: result.data?.phone,
+      message: result.message || 'Status check completed'
+    };
+  } catch (error) {
+    console.error('Error checking WhatsApp status:', error);
+    return {
+      success: false,
+      isLoggedIn: false,
+      message: error instanceof Error ? error.message : 'Failed to check WhatsApp status'
+    };
+  }
+};
