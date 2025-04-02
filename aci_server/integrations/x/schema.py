@@ -292,6 +292,8 @@ class CommunityTimelineData(BaseModel):
     
     
 class CommunityTimelineResponse(BaseModel):
+    success: Optional[bool] = True
+    message: Optional[str] = None
     data: CommunityTimelineData
     
     
@@ -320,6 +322,8 @@ class ListFollowersData(BaseModel):
     
     
 class ListFollowersResponse(BaseModel):
+    success: Optional[bool] = True
+    message: Optional[str] = None
     data: ListFollowersData
     
     
@@ -348,6 +352,8 @@ class ListMembersData(BaseModel):
     
     
 class ListMembersResponse(BaseModel):
+    success: Optional[bool] = True
+    message: Optional[str] = None
     data: ListMembersData
     
     
@@ -414,10 +420,13 @@ class ApiResponse(BaseModel):
         ListTimelineData,
         ListTimelineResponse,
         ListFollowersData,
+        ListFollowersResponse,
         ListMembersData,
+        ListMembersResponse,
 
         # Spaces
-        SpaceData
+        SpaceData,
+        SpaceResponse
     ]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
         None,
