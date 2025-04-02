@@ -71,3 +71,4 @@ venv/
 
 /services/whatsapp-bridge/store
 /services/whatsapp-bridge/store/*
+/services/whatsapp-bridge/whatsapp-client
