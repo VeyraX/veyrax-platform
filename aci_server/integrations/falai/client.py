@@ -70,7 +70,24 @@ class FalAIClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, headers=self.headers)
             response.raise_for_status()
-            return response.json()
+        
+            data = response.json()
+            
+            if "video" in data and isinstance(data["video"], dict):
+                return {
+                    "status": "COMPLETED",
+                    "completed": True,
+                    "result": data
+                }
+                
+            if "audio" in data and isinstance(data["audio"], dict):
+                return {
+                    "status": "COMPLETED",
+                    "completed": True,
+                    "result": data
+                }
+            
+            return data
     
     async def get_status(self, url: str) -> Dict[str, Any]:
         async with httpx.AsyncClient() as client:

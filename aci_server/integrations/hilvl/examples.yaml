@@ -1,165 +1,1423 @@
-# Business endpoints
-/hilvl/get_business:
-  - request:
-      business_id: "b12345"
-    response:
-      data:
-        business:
-          id: "b12345"
-          name: "Sample Business"
-          locationId: "loc123"
-          phone: "+12345678901"
-          email: "business@example.com"
+routes:
+  - endpoint: /hilvl/get_business
+    examples:
+      - scenario: "Retrieve business details"
+        description: "Get detailed information about a specific business"
+        input_json: |
+          {
+            "business_id": "b12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "business": {
+                "id": "b12345",
+                "name": "Sample Business",
+                "locationId": "loc123",
+                "phone": "+12345678901",
+                "email": "business@example.com"
+              }
+            }
+          }
 
-/hilvl/get_conversation_messages:
-  - request:
-      conversation_id: "conv123"
-      limit: 10
-    response:
-      data:
-        lastMessageId: "msg789"
-        nextPage: false
-        messages:
-          - id: "msg123"
-            type: 1
-            messageType: "text"
-            locationId: "loc123"
-            contactId: "contact456"
-            conversationId: "conv123"
-            dateAdded: "2023-05-15T10:30:00Z"
-            body: "Hello, this is a test message"
-            direction: "inbound"
-            status: "delivered"
-            contentType: "text/plain"
-          - id: "msg456"
-            type: 1
-            messageType: "text"
-            locationId: "loc123"
-            contactId: "contact456"
-            conversationId: "conv123"
-            dateAdded: "2023-05-15T10:35:00Z"
-            body: "This is a response message"
-            direction: "outbound"
-            status: "delivered"
-            contentType: "text/plain"
+  - endpoint: /hilvl/get_businesses_by_location
+    examples:
+      - scenario: "List businesses by location"
+        description: "Get all businesses associated with a specific location"
+        input_json: |
+          {
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "businesses": [
+                {
+                  "id": "b12345",
+                  "name": "Sample Business",
+                  "locationId": "loc123",
+                  "phone": "+12345678901",
+                  "email": "business@example.com"
+                },
+                {
+                  "id": "b67890",
+                  "name": "Another Business",
+                  "locationId": "loc123",
+                  "phone": "+19876543210",
+                  "email": "another@example.com"
+                }
+              ]
+            }
+          }
 
-/hilvl/get_message:
-  - request:
-      message_id: "msg123"
-    response:
-      data:
-        id: "msg123"
-        type: 1
-        messageType: "text"
-        locationId: "loc123"
-        contactId: "contact456"
-        conversationId: "conv123"
-        dateAdded: "2023-05-15T10:30:00Z"
-        body: "Hello, this is a test message"
-        direction: "inbound"
-        status: "delivered"
-        contentType: "text/plain"
+  - endpoint: /hilvl/create_business
+    examples:
+      - scenario: "Create a new business"
+        description: "Create a new business with full details"
+        input_json: |
+          {
+            "name": "New Business",
+            "locationId": "loc123",
+            "phone": "+12345678901",
+            "email": "new@example.com",
+            "website": "https://www.example.com",
+            "address": "123 Main St",
+            "city": "New York",
+            "state": "NY",
+            "postalCode": "10001",
+            "country": "USA",
+            "description": "This is a new business"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "buiseness": {
+                "id": "b54321",
+                "name": "New Business",
+                "locationId": "loc123",
+                "phone": "+12345678901",
+                "email": "new@example.com",
+                "website": "https://www.example.com",
+                "address": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "postalCode": "10001",
+                "country": "USA",
+                "description": "This is a new business"
+              }
+            }
+          }
 
-/hilvl/get_email_message:
-  - request:
-      email_id: "email123"
-    response:
-      data:
-        id: "email123"
-        altId: "alt456"
-        threadId: "thread789"
-        locationId: "loc123"
-        contactId: "contact456"
-        conversationId: "conv123"
-        dateAdded: "2023-05-15T10:30:00Z"
-        subject: "Sample Email Subject"
-        body: "<p>This is the email content</p>"
-        direction: "outbound"
-        status: "delivered"
-        contentType: "text/html"
-        from_field: "sender@example.com"
-        to: ["recipient@example.com"]
+  - endpoint: /hilvl/update_business
+    examples:
+      - scenario: "Update business information"
+        description: "Update specific fields of an existing business"
+        input_json: |
+          {
+            "business_id": "b12345",
+            "name": "Updated Business Name",
+            "phone": "+19876543210",
+            "email": "updated@example.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "buiseness": {
+                "id": "b12345",
+                "name": "Updated Business Name",
+                "locationId": "loc123",
+                "phone": "+19876543210",
+                "email": "updated@example.com"
+              }
+            }
+          }
 
-/hilvl/cancel_scheduled_email:
-  - request:
-      email_message_id: "email123"
-    response:
-      data:
-        status: 200
-        message: "Email successfully canceled"
+  - endpoint: /hilvl/delete_business
+    examples:
+      - scenario: "Delete a business"
+        description: "Permanently remove a business from the system"
+        input_json: |
+          {
+            "business_id": "b12345"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
 
-/hilvl/send_message:
-  - request:
-      message_type: "email"
-      contact_id: "contact456"
-      subject: "Test Email"
-      message: "This is a test email message"
-      email_from: "sender@example.com"
-      email_to: "recipient@example.com"
-    response:
-      data:
-        conversationId: "conv123"
-        messageId: "msg123"
-        emailMessageId: "email123"
+  - endpoint: /hilvl/get_calendars
+    examples:
+      - scenario: "List calendars for location"
+        description: "Get all calendars associated with a specific location"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "show_drafted": true
+          }
+        output_json: |
+          {
+            "data": {
+              "calendars": [
+                {
+                  "id": "cal123",
+                  "name": "Sales Team Calendar",
+                  "description": "Calendar for scheduling sales team meetings",
+                  "locationId": "loc123",
+                  "isActive": true,
+                  "slotDuration": 30,
+                  "slotDurationUnit": "mins",
+                  "eventColor": "#039be5",
+                  "appoinmentPerSlot": 1,
+                  "autoConfirm": true
+                },
+                {
+                  "id": "cal456",
+                  "name": "Customer Support Calendar",
+                  "description": "Calendar for scheduling customer support calls",
+                  "locationId": "loc123",
+                  "isActive": true,
+                  "slotDuration": 60,
+                  "slotDurationUnit": "mins",
+                  "eventColor": "#4caf50",
+                  "appoinmentPerSlot": 1,
+                  "autoConfirm": true
+                }
+              ]
+            }
+          }
 
-/hilvl/search_conversations:
-  - request:
-      location_id: "loc123"
-      limit: 10
-    response:
-      data:
-        conversations:
-          - id: "conv123"
-            contactId: "contact456"
-            locationId: "loc123"
-            lastMessageBody: "This is the latest message"
-            unreadCount: 2
-        total: 1
+  - endpoint: /hilvl/get_calendar
+    examples:
+      - scenario: "Retrieve calendar details"
+        description: "Get detailed information about a specific calendar"
+        input_json: |
+          {
+            "calendar_id": "cal123"
+          }
+        output_json: |
+          {
+            "data": {
+              "calendar": {
+                "id": "cal123",
+                "name": "Sales Team Calendar",
+                "description": "Calendar for scheduling sales team meetings",
+                "locationId": "loc123",
+                "isActive": true,
+                "eventColor": "#039be5",
+                "slotDuration": 30,
+                "slotDurationUnit": "mins",
+                "slotInterval": 30,
+                "slotIntervalUnit": "mins",
+                "appoinmentPerSlot": 1,
+                "openHours": [
+                  {
+                    "daysOfTheWeek": [1, 2, 3, 4, 5],
+                    "hours": [
+                      {
+                        "openHour": 9,
+                        "openMinute": 0,
+                        "closeHour": 17,
+                        "closeMinute": 0
+                      }
+                    ]
+                  }
+                ],
+                "autoConfirm": true,
+                "allowReschedule": true,
+                "allowCancellation": true
+              }
+            }
+          }
 
-/hilvl/get_conversation:
-  - request:
-      conversation_id: "conv123"
-    response:
-      data:
-        id: "conv123"
-        contactId: "contact456"
-        locationId: "loc123"
-        unreadCount: 2
-        lastMessageBody: "This is the latest message"
-        lastMessageDate: "2023-05-15T10:35:00Z"
+  - endpoint: /hilvl/create_calendar
+    examples:
+      - scenario: "Create a new calendar"
+        description: "Create a new calendar with availability settings"
+        input_json: |
+          {
+            "name": "Marketing Team Calendar",
+            "locationId": "loc123",
+            "description": "Calendar for scheduling marketing team meetings",
+            "slotDuration": 45,
+            "slotDurationUnit": "mins",
+            "eventColor": "#ff9800",
+            "openHours": [
+              {
+                "daysOfTheWeek": [1, 2, 3, 4, 5],
+                "hours": [
+                  {
+                    "openHour": 9,
+                    "openMinute": 0,
+                    "closeHour": 17,
+                    "closeMinute": 0
+                  }
+                ]
+              }
+            ],
+            "autoConfirm": true,
+            "allowReschedule": true,
+            "allowCancellation": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "calendar": {
+                "id": "cal789",
+                "name": "Marketing Team Calendar",
+                "locationId": "loc123",
+                "description": "Calendar for scheduling marketing team meetings",
+                "isActive": true,
+                "slotDuration": 45,
+                "slotDurationUnit": "mins",
+                "eventColor": "#ff9800",
+                "openHours": [
+                  {
+                    "daysOfTheWeek": [1, 2, 3, 4, 5],
+                    "hours": [
+                      {
+                        "openHour": 9,
+                        "openMinute": 0,
+                        "closeHour": 17,
+                        "closeMinute": 0
+                      }
+                    ]
+                  }
+                ],
+                "autoConfirm": true,
+                "allowReschedule": true,
+                "allowCancellation": true
+              }
+            }
+          }
 
-/hilvl/update_conversation:
-  - request:
-      conversation_id: "conv123"
-      location_id: "loc123"
-      unread_count: 0
-      starred: true
-    response:
-      data:
-        success: true
-        conversation:
-          id: "conv123"
-          contactId: "contact456"
-          locationId: "loc123"
-          unreadCount: 0
-          starred: true
+  - endpoint: /hilvl/update_calendar
+    examples:
+      - scenario: "Update calendar settings"
+        description: "Update settings for an existing calendar"
+        input_json: |
+          {
+            "calendar_id": "cal123",
+            "name": "Updated Sales Calendar",
+            "description": "Updated description for the sales calendar",
+            "slotDuration": 60,
+            "eventColor": "#673ab7"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "calendar": {
+                "id": "cal123",
+                "name": "Updated Sales Calendar",
+                "description": "Updated description for the sales calendar",
+                "locationId": "loc123",
+                "isActive": true,
+                "slotDuration": 60,
+                "slotDurationUnit": "mins",
+                "eventColor": "#673ab7",
+                "autoConfirm": true
+              }
+            }
+          }
 
-/hilvl/delete_conversation:
-  - request:
-      conversation_id: "conv123"
-    response:
-      data:
-        success: true
+  - endpoint: /hilvl/delete_calendar
+    examples:
+      - scenario: "Delete a calendar"
+        description: "Permanently remove a calendar from the system"
+        input_json: |
+          {
+            "calendar_id": "cal123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
 
-/hilvl/create_conversation:
-  - request:
-      location_id: "loc123"
-      contact_id: "contact456"
-    response:
-      data:
-        success: true
-        conversation:
-          id: "conv789"
-          contactId: "contact456"
-          locationId: "loc123"
-          unreadCount: 0
+  - endpoint: /hilvl/get_free_slots
+    examples:
+      - scenario: "Get available time slots"
+        description: "Get all available time slots for a calendar within a date range"
+        input_json: |
+          {
+            "calendar_id": "cal123",
+            "start_date": "2023-06-01",
+            "end_date": "2023-06-07",
+            "timezone": "America/New_York"
+          }
+        output_json: |
+          {
+            "data": {
+              "_dates_": {
+                "slots": [
+                  "2023-06-01T09:00:00-04:00",
+                  "2023-06-01T09:30:00-04:00",
+                  "2023-06-01T10:00:00-04:00",
+                  "2023-06-01T10:30:00-04:00",
+                  "2023-06-01T11:00:00-04:00",
+                  "2023-06-02T14:00:00-04:00",
+                  "2023-06-02T14:30:00-04:00",
+                  "2023-06-02T15:00:00-04:00",
+                  "2023-06-05T13:00:00-04:00",
+                  "2023-06-05T13:30:00-04:00"
+                ]
+              }
+            }
+          }
+
+  - endpoint: /hilvl/create_block_slot
+    examples:
+      - scenario: "Block calendar time slot"
+        description: "Block a time slot on a calendar to prevent scheduling"
+        input_json: |
+          {
+            "locationId": "loc123",
+            "title": "Team Meeting",
+            "startTime": "2023-06-01T10:00:00-04:00",
+            "endTime": "2023-06-01T11:30:00-04:00",
+            "calendarId": "cal123"
+          }
+        output_json: |
+          {
+            "data": {
+              "slot": {
+                "id": "block123",
+                "locationId": "loc123",
+                "title": "Team Meeting",
+                "startTime": "2023-06-01T10:00:00-04:00",
+                "endTime": "2023-06-01T11:30:00-04:00",
+                "calendarId": "cal123"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/get_contact
+    examples:
+      - scenario: "Retrieve contact details"
+        description: "Get detailed information about a specific contact"
+        input_json: |
+          {
+            "contact_id": "contact456"
+          }
+        output_json: |
+          {
+            "data": {
+              "contact": {
+                "id": "contact456",
+                "locationId": "loc123",
+                "firstName": "John",
+                "lastName": "Doe",
+                "name": "John Doe",
+                "email": "john.doe@example.com",
+                "phone": "+12025550123",
+                "dateOfBirth": "1985-04-15",
+                "address1": "123 Main St",
+                "city": "New York",
+                "state": "NY",
+                "postalCode": "10001",
+                "country": "USA",
+                "tags": ["customer", "premium"],
+                "dateAdded": "2023-01-15T08:30:00Z",
+                "dateUpdated": "2023-05-20T15:45:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/get_contacts_by_business
+    examples:
+      - scenario: "List contacts for a business"
+        description: "Get all contacts associated with a specific business"
+        input_json: |
+          {
+            "business_id": "b12345",
+            "location_id": "loc123",
+            "limit": 10,
+            "skip": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "contacts": [
+                {
+                  "id": "contact456",
+                  "locationId": "loc123",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "phone": "+12025550123"
+                },
+                {
+                  "id": "contact789",
+                  "locationId": "loc123",
+                  "firstName": "Jane",
+                  "lastName": "Smith",
+                  "name": "Jane Smith",
+                  "email": "jane.smith@example.com",
+                  "phone": "+12025550456"
+                }
+              ],
+              "total": 2
+            }
+          }
+
+  - endpoint: /hilvl/create_contact
+    examples:
+      - scenario: "Create a new contact"
+        description: "Create a new contact with complete profile information"
+        input_json: |
+          {
+            "locationId": "loc123",
+            "firstName": "Alice",
+            "lastName": "Johnson",
+            "email": "alice.johnson@example.com",
+            "phone": "+12025551234",
+            "address1": "456 Oak Avenue",
+            "city": "Boston",
+            "state": "MA",
+            "postalCode": "02108",
+            "country": "USA",
+            "dateOfBirth": "1990-08-20",
+            "tags": ["prospect", "real-estate"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "contact": {
+                "id": "contact999",
+                "locationId": "loc123",
+                "firstName": "Alice",
+                "lastName": "Johnson",
+                "name": "Alice Johnson",
+                "email": "alice.johnson@example.com",
+                "phone": "+12025551234",
+                "address1": "456 Oak Avenue",
+                "city": "Boston",
+                "state": "MA",
+                "postalCode": "02108",
+                "country": "USA",
+                "dateOfBirth": "1990-08-20",
+                "tags": ["prospect", "real-estate"],
+                "dateAdded": "2023-06-15T10:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/update_contact
+    examples:
+      - scenario: "Update contact information"
+        description: "Update specific fields of an existing contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "firstName": "Jonathan",
+            "email": "jonathan.doe@example.com",
+            "phone": "+12025559876",
+            "address1": "789 New Street",
+            "city": "Chicago",
+            "state": "IL",
+            "postalCode": "60601"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "contact": {
+                "id": "contact456",
+                "locationId": "loc123",
+                "firstName": "Jonathan",
+                "lastName": "Doe",
+                "name": "Jonathan Doe",
+                "email": "jonathan.doe@example.com",
+                "phone": "+12025559876",
+                "address1": "789 New Street",
+                "city": "Chicago",
+                "state": "IL",
+                "postalCode": "60601",
+                "country": "USA",
+                "dateUpdated": "2023-06-15T14:45:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/delete_contact
+    examples:
+      - scenario: "Delete a contact"
+        description: "Permanently remove a contact from the system"
+        input_json: |
+          {
+            "contact_id": "contact456"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /hilvl/upsert_contact
+    examples:
+      - scenario: "Add or update contact"
+        description: "Create a new contact or update if it already exists"
+        input_json: |
+          {
+            "locationId": "loc123",
+            "email": "robert.brown@example.com",
+            "firstName": "Robert",
+            "lastName": "Brown",
+            "phone": "+12025557890",
+            "address1": "567 Pine Street",
+            "city": "Seattle",
+            "state": "WA",
+            "postalCode": "98101"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "contact": {
+                "id": "contact777",
+                "locationId": "loc123",
+                "firstName": "Robert",
+                "lastName": "Brown",
+                "name": "Robert Brown",
+                "email": "robert.brown@example.com",
+                "phone": "+12025557890",
+                "address1": "567 Pine Street",
+                "city": "Seattle",
+                "state": "WA",
+                "postalCode": "98101",
+                "isNew": true
+              }
+            }
+          }
+
+  - endpoint: /hilvl/search_contacts
+    examples:
+      - scenario: "Search for contacts"
+        description: "Find contacts matching specific criteria"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "query": "Smith",
+            "limit": 10,
+            "skip": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "contacts": [
+                {
+                  "id": "contact789",
+                  "locationId": "loc123",
+                  "firstName": "Jane",
+                  "lastName": "Smith",
+                  "name": "Jane Smith",
+                  "email": "jane.smith@example.com",
+                  "phone": "+12025550456"
+                },
+                {
+                  "id": "contact888",
+                  "locationId": "loc123",
+                  "firstName": "Michael",
+                  "lastName": "Smith",
+                  "name": "Michael Smith",
+                  "email": "michael.smith@example.com",
+                  "phone": "+12025553456"
+                }
+              ],
+              "total": 2
+            }
+          }
+
+  - endpoint: /hilvl/get_duplicate_contact
+    examples:
+      - scenario: "Find duplicate contacts"
+        description: "Check if a contact might be a duplicate of an existing one"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "email": "john.doe@example.com",
+            "phone": "+12025550123"
+          }
+        output_json: |
+          {
+            "data": {
+              "contact": {
+                "id": "contact456",
+                "locationId": "loc123",
+                "firstName": "John",
+                "lastName": "Doe",
+                "name": "John Doe",
+                "email": "john.doe@example.com",
+                "phone": "+12025550123"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/get_tasks
+    examples:
+      - scenario: "List tasks"
+        description: "Get all tasks for a location or contact"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "limit": 10,
+            "skip": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "tasks": [
+                {
+                  "id": "task123",
+                  "locationId": "loc123",
+                  "title": "Follow up with client",
+                  "description": "Call the client to discuss proposal",
+                  "status": "pending",
+                  "dueDate": "2023-06-15T15:00:00Z",
+                  "assignedTo": "user456",
+                  "contactId": "contact456"
+                },
+                {
+                  "id": "task456",
+                  "locationId": "loc123",
+                  "title": "Send contract",
+                  "description": "Email the contract documents",
+                  "status": "completed",
+                  "dueDate": "2023-06-10T12:00:00Z",
+                  "completedDate": "2023-06-10T11:45:00Z",
+                  "assignedTo": "user789",
+                  "contactId": "contact789"
+                }
+              ],
+              "total": 2
+            }
+          }
+
+  - endpoint: /hilvl/get_task
+    examples:
+      - scenario: "Retrieve task details"
+        description: "Get detailed information about a specific task"
+        input_json: |
+          {
+            "task_id": "task123"
+          }
+        output_json: |
+          {
+            "data": {
+              "task": {
+                "id": "task123",
+                "locationId": "loc123",
+                "title": "Follow up with client",
+                "description": "Call the client to discuss proposal",
+                "status": "pending",
+                "dueDate": "2023-06-15T15:00:00Z",
+                "assignedTo": "user456",
+                "contactId": "contact456",
+                "createdAt": "2023-06-05T10:00:00Z",
+                "updatedAt": "2023-06-05T10:00:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/create_task
+    examples:
+      - scenario: "Create a new task"
+        description: "Create a new task for a contact"
+        input_json: |
+          {
+            "locationId": "loc123",
+            "title": "Schedule demo",
+            "description": "Set up product demonstration for the client",
+            "dueDate": "2023-06-20T14:00:00Z",
+            "assignedTo": "user456",
+            "contactId": "contact456",
+            "status": "pending"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "task": {
+                "id": "task789",
+                "locationId": "loc123",
+                "title": "Schedule demo",
+                "description": "Set up product demonstration for the client",
+                "dueDate": "2023-06-20T14:00:00Z",
+                "assignedTo": "user456",
+                "contactId": "contact456",
+                "status": "pending",
+                "createdAt": "2023-06-15T09:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/update_task
+    examples:
+      - scenario: "Update task details"
+        description: "Update specific fields of an existing task"
+        input_json: |
+          {
+            "task_id": "task123",
+            "title": "Urgent: Follow up with client",
+            "dueDate": "2023-06-14T15:00:00Z",
+            "description": "Call the client to discuss proposal revisions"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "task": {
+                "id": "task123",
+                "locationId": "loc123",
+                "title": "Urgent: Follow up with client",
+                "description": "Call the client to discuss proposal revisions",
+                "status": "pending",
+                "dueDate": "2023-06-14T15:00:00Z",
+                "assignedTo": "user456",
+                "contactId": "contact456",
+                "updatedAt": "2023-06-15T10:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/delete_task
+    examples:
+      - scenario: "Delete a task"
+        description: "Permanently remove a task from the system"
+        input_json: |
+          {
+            "task_id": "task123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /hilvl/update_task_completed
+    examples:
+      - scenario: "Mark task as completed"
+        description: "Update the completion status of a task"
+        input_json: |
+          {
+            "task_id": "task123",
+            "completed": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "task": {
+                "id": "task123",
+                "locationId": "loc123",
+                "title": "Urgent: Follow up with client",
+                "status": "completed",
+                "completedDate": "2023-06-15T11:30:00Z",
+                "updatedAt": "2023-06-15T11:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/add_tags
+    examples:
+      - scenario: "Add tags to contact"
+        description: "Add one or more tags to a contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "tags": ["vip", "follow-up", "sales-opportunity"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "tagsAdded": ["vip", "follow-up", "sales-opportunity"],
+              "contact": {
+                "id": "contact456",
+                "tags": ["customer", "premium", "vip", "follow-up", "sales-opportunity"]
+              }
+            }
+          }
+
+  - endpoint: /hilvl/remove_tags
+    examples:
+      - scenario: "Remove tags from contact"
+        description: "Remove one or more tags from a contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "tags": ["premium"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "tagsRemoved": ["premium"],
+              "contact": {
+                "id": "contact456",
+                "tags": ["customer", "vip", "follow-up", "sales-opportunity"]
+              }
+            }
+          }
+
+  - endpoint: /hilvl/get_notes
+    examples:
+      - scenario: "List contact notes"
+        description: "Get all notes associated with a specific contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "limit": 10,
+            "skip": 0
+          }
+        output_json: |
+          {
+            "data": {
+              "notes": [
+                {
+                  "id": "note123",
+                  "locationId": "loc123",
+                  "contactId": "contact456",
+                  "userId": "user789",
+                  "body": "Client is interested in premium package.",
+                  "dateAdded": "2023-05-15T14:30:00Z"
+                },
+                {
+                  "id": "note456",
+                  "locationId": "loc123",
+                  "contactId": "contact456",
+                  "userId": "user789",
+                  "body": "Follow-up call scheduled for next week.",
+                  "dateAdded": "2023-05-20T10:15:00Z"
+                }
+              ],
+              "total": 2
+            }
+          }
+
+  - endpoint: /hilvl/get_note
+    examples:
+      - scenario: "Retrieve note details"
+        description: "Get detailed information about a specific note"
+        input_json: |
+          {
+            "note_id": "note123"
+          }
+        output_json: |
+          {
+            "data": {
+              "note": {
+                "id": "note123",
+                "locationId": "loc123",
+                "contactId": "contact456",
+                "userId": "user789",
+                "body": "Client is interested in premium package.",
+                "dateAdded": "2023-05-15T14:30:00Z",
+                "dateUpdated": "2023-05-15T14:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/create_note
+    examples:
+      - scenario: "Create a new note"
+        description: "Add a new note to a contact's record"
+        input_json: |
+          {
+            "contactId": "contact456",
+            "locationId": "loc123",
+            "body": "Client requested more information about enterprise plans."
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "note": {
+                "id": "note789",
+                "locationId": "loc123",
+                "contactId": "contact456",
+                "userId": "user123",
+                "body": "Client requested more information about enterprise plans.",
+                "dateAdded": "2023-06-15T15:30:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/update_note
+    examples:
+      - scenario: "Update note content"
+        description: "Modify the content of an existing note"
+        input_json: |
+          {
+            "note_id": "note123",
+            "body": "Client is very interested in premium package and requested pricing."
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "note": {
+                "id": "note123",
+                "locationId": "loc123",
+                "contactId": "contact456",
+                "userId": "user789",
+                "body": "Client is very interested in premium package and requested pricing.",
+                "dateAdded": "2023-05-15T14:30:00Z",
+                "dateUpdated": "2023-06-15T16:45:00Z"
+              }
+            }
+          }
+
+  - endpoint: /hilvl/delete_note
+    examples:
+      - scenario: "Delete a note"
+        description: "Permanently remove a note from a contact's record"
+        input_json: |
+          {
+            "note_id": "note123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /hilvl/get_appointments
+    examples:
+      - scenario: "List appointments"
+        description: "Get all appointments for a specific time period"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "start_date": "2023-06-01",
+            "end_date": "2023-06-30"
+          }
+        output_json: |
+          {
+            "data": {
+              "appointments": [
+                {
+                  "id": "appt123",
+                  "locationId": "loc123",
+                  "calendarId": "cal123",
+                  "title": "Product Demo",
+                  "startTime": "2023-06-15T14:00:00Z",
+                  "endTime": "2023-06-15T15:00:00Z",
+                  "contactId": "contact456",
+                  "status": "confirmed",
+                  "createdAt": "2023-06-10T09:30:00Z"
+                },
+                {
+                  "id": "appt456",
+                  "locationId": "loc123",
+                  "calendarId": "cal456",
+                  "title": "Follow-up Meeting",
+                  "startTime": "2023-06-20T10:00:00Z",
+                  "endTime": "2023-06-20T11:00:00Z",
+                  "contactId": "contact789",
+                  "status": "confirmed",
+                  "createdAt": "2023-06-12T14:45:00Z"
+                }
+              ],
+              "total": 2
+            }
+          }
+
+  - endpoint: /hilvl/add_contact_to_campaign
+    examples:
+      - scenario: "Add contact to marketing campaign"
+        description: "Add a contact to a specific marketing campaign"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "campaign_id": "camp123",
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Contact added to campaign successfully"
+            }
+          }
+
+  - endpoint: /hilvl/remove_contact_from_campaign
+    examples:
+      - scenario: "Remove contact from marketing campaign"
+        description: "Remove a contact from a specific marketing campaign"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "campaign_id": "camp123",
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Contact removed from campaign successfully"
+            }
+          }
+
+  - endpoint: /hilvl/remove_contact_from_all_campaigns
+    examples:
+      - scenario: "Remove contact from all campaigns"
+        description: "Remove a contact from all marketing campaigns"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Contact removed from all campaigns successfully"
+            }
+          }
+
+  - endpoint: /hilvl/add_contact_to_workflow
+    examples:
+      - scenario: "Add contact to workflow"
+        description: "Add a contact to a specific workflow automation"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "workflow_id": "flow123",
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Contact added to workflow successfully"
+            }
+          }
+
+  - endpoint: /hilvl/remove_contact_from_workflow
+    examples:
+      - scenario: "Remove contact from workflow"
+        description: "Remove a contact from a specific workflow automation"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "workflow_id": "flow123",
+            "location_id": "loc123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "Contact removed from workflow successfully"
+            }
+          }
+
+  - endpoint: /hilvl/update_contacts_tags
+    examples:
+      - scenario: "Bulk update contact tags"
+        description: "Update tags for multiple contacts at once"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "contact_ids": ["contact456", "contact789", "contact999"],
+            "add_tags": ["summer-promo", "webinar-attendee"],
+            "remove_tags": ["prospect"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "contactsUpdated": 3,
+              "tagsAdded": ["summer-promo", "webinar-attendee"],
+              "tagsRemoved": ["prospect"]
+            }
+          }
+
+  - endpoint: /hilvl/update_contacts_business
+    examples:
+      - scenario: "Bulk update contact business association"
+        description: "Associate multiple contacts with a business"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "business_id": "b12345",
+            "contact_ids": ["contact456", "contact789", "contact999"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "contactsUpdated": 3,
+              "businessId": "b12345"
+            }
+          }
+
+  - endpoint: /hilvl/add_followers
+    examples:
+      - scenario: "Add followers to contact"
+        description: "Add users as followers of a contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "location_id": "loc123",
+            "user_ids": ["user123", "user456"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "followersAdded": ["user123", "user456"]
+            }
+          }
+
+  - endpoint: /hilvl/remove_followers
+    examples:
+      - scenario: "Remove followers from contact"
+        description: "Remove users as followers of a contact"
+        input_json: |
+          {
+            "contact_id": "contact456",
+            "location_id": "loc123",
+            "user_ids": ["user456"]
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "followersRemoved": ["user456"]
+            }
+          }
+
+  - endpoint: /hilvl/get_conversation_messages
+    examples:
+      - scenario: "Retrieve conversation messages"
+        description: "Get all messages from a specific conversation"
+        input_json: |
+          {
+            "conversation_id": "conv123",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "lastMessageId": "msg789",
+              "nextPage": false,
+              "messages": [
+                {
+                  "id": "msg123",
+                  "type": 1,
+                  "messageType": "text",
+                  "locationId": "loc123",
+                  "contactId": "contact456",
+                  "conversationId": "conv123",
+                  "dateAdded": "2023-05-15T10:30:00Z",
+                  "body": "Hello, this is a test message",
+                  "direction": "inbound",
+                  "status": "delivered",
+                  "contentType": "text/plain"
+                },
+                {
+                  "id": "msg456",
+                  "type": 1,
+                  "messageType": "text",
+                  "locationId": "loc123",
+                  "contactId": "contact456",
+                  "conversationId": "conv123",
+                  "dateAdded": "2023-05-15T10:35:00Z",
+                  "body": "This is a response message",
+                  "direction": "outbound",
+                  "status": "delivered",
+                  "contentType": "text/plain"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /hilvl/get_message
+    examples:
+      - scenario: "Retrieve specific message"
+        description: "Get details of a specific message by ID"
+        input_json: |
+          {
+            "message_id": "msg123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "msg123",
+              "type": 1,
+              "messageType": "text",
+              "locationId": "loc123",
+              "contactId": "contact456",
+              "conversationId": "conv123",
+              "dateAdded": "2023-05-15T10:30:00Z",
+              "body": "Hello, this is a test message",
+              "direction": "inbound",
+              "status": "delivered",
+              "contentType": "text/plain"
+            }
+          }
+
+  - endpoint: /hilvl/get_email_message
+    examples:
+      - scenario: "Retrieve email message"
+        description: "Get details of a specific email message"
+        input_json: |
+          {
+            "email_id": "email123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "email123",
+              "altId": "alt456",
+              "threadId": "thread789",
+              "locationId": "loc123",
+              "contactId": "contact456",
+              "conversationId": "conv123",
+              "dateAdded": "2023-05-15T10:30:00Z",
+              "subject": "Sample Email Subject",
+              "body": "<p>This is the email content</p>",
+              "direction": "outbound",
+              "status": "delivered",
+              "contentType": "text/html",
+              "from_field": "sender@example.com",
+              "to": ["recipient@example.com"]
+            }
+          }
+
+  - endpoint: /hilvl/cancel_scheduled_email
+    examples:
+      - scenario: "Cancel scheduled email"
+        description: "Cancel a previously scheduled email that hasn't been sent yet"
+        input_json: |
+          {
+            "email_message_id": "email123"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": 200,
+              "message": "Email successfully canceled"
+            }
+          }
+
+  - endpoint: /hilvl/send_message
+    examples:
+      - scenario: "Send email message"
+        description: "Send an email message to a contact"
+        input_json: |
+          {
+            "message_type": "email",
+            "contact_id": "contact456",
+            "subject": "Test Email",
+            "message": "This is a test email message",
+            "email_from": "sender@example.com",
+            "email_to": "recipient@example.com"
+          }
+        output_json: |
+          {
+            "data": {
+              "conversationId": "conv123",
+              "messageId": "msg123",
+              "emailMessageId": "email123"
+            }
+          }
+
+  - endpoint: /hilvl/search_conversations
+    examples:
+      - scenario: "Search conversations"
+        description: "Find conversations in a specific location"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "limit": 10
+          }
+        output_json: |
+          {
+            "data": {
+              "conversations": [
+                {
+                  "id": "conv123",
+                  "contactId": "contact456",
+                  "locationId": "loc123",
+                  "lastMessageBody": "This is the latest message",
+                  "unreadCount": 2
+                }
+              ],
+              "total": 1
+            }
+          }
+
+  - endpoint: /hilvl/get_conversation
+    examples:
+      - scenario: "Retrieve conversation details"
+        description: "Get detailed information about a specific conversation"
+        input_json: |
+          {
+            "conversation_id": "conv123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "conv123",
+              "contactId": "contact456",
+              "locationId": "loc123",
+              "unreadCount": 2,
+              "lastMessageBody": "This is the latest message",
+              "lastMessageDate": "2023-05-15T10:35:00Z"
+            }
+          }
+
+  - endpoint: /hilvl/update_conversation
+    examples:
+      - scenario: "Update conversation"
+        description: "Update conversation properties such as read status"
+        input_json: |
+          {
+            "conversation_id": "conv123",
+            "location_id": "loc123",
+            "unread_count": 0,
+            "starred": true
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "conversation": {
+                "id": "conv123",
+                "contactId": "contact456",
+                "locationId": "loc123",
+                "unreadCount": 0,
+                "starred": true
+              }
+            }
+          }
+
+  - endpoint: /hilvl/delete_conversation
+    examples:
+      - scenario: "Delete conversation"
+        description: "Remove a conversation and all its messages"
+        input_json: |
+          {
+            "conversation_id": "conv123"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true
+            }
+          }
+
+  - endpoint: /hilvl/create_conversation
+    examples:
+      - scenario: "Create new conversation"
+        description: "Start a new conversation with a contact"
+        input_json: |
+          {
+            "location_id": "loc123",
+            "contact_id": "contact456"
+          }
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "conversation": {
+                "id": "conv789",
+                "contactId": "contact456",
+                "locationId": "loc123",
+                "unreadCount": 0
+              }
+            }
+          }

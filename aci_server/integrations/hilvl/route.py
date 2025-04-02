@@ -442,7 +442,7 @@ async def upsert_contact(
 @schema(
     input_schema_class=GetTasksParams,
     output_schema_class=TasksResponse,
-    examples=examples.get("/hilvl/get_tasks", {})
+    examples=examples["/hilvl/get_tasks"]
 )
 async def get_tasks(
     params: Dict[str, Any] = Body(...),
@@ -456,7 +456,7 @@ async def get_tasks(
 @schema(
     input_schema_class=GetTaskParams,
     output_schema_class=TaskResponse,
-    examples=examples.get("/hilvl/get_task", {})
+    examples=examples["/hilvl/get_task"]
 )
 async def get_task(
     params: Dict[str, Any] = Body(...),
@@ -470,7 +470,7 @@ async def get_task(
 @schema(
     input_schema_class=CreateTaskParams,
     output_schema_class=CreateTaskResponse,
-    examples=examples.get("/hilvl/create_task", {})
+    examples=examples["/hilvl/create_task"]
 )
 async def create_task(
     params: Dict[str, Any] = Body(...),
@@ -484,7 +484,7 @@ async def create_task(
 @schema(
     input_schema_class=UpdateTaskParams,
     output_schema_class=UpdateTaskResponse,
-    examples=examples.get("/hilvl/update_task", {})
+    examples=examples["/hilvl/update_task"]
 )
 async def update_task(
     params: Dict[str, Any] = Body(...),
@@ -498,7 +498,7 @@ async def update_task(
 @schema(
     input_schema_class=DeleteTaskParams,
     output_schema_class=DeleteTaskResponse,
-    examples=examples.get("/hilvl/delete_task", {})
+    examples=examples["/hilvl/delete_task"]
 )
 async def delete_task(
     params: Dict[str, Any] = Body(...),
@@ -512,7 +512,7 @@ async def delete_task(
 @schema(
     input_schema_class=UpdateTaskCompletedParams,
     output_schema_class=UpdateTaskCompletedResponse,
-    examples=examples.get("/hilvl/update_task_completed", {})
+    examples=examples["/hilvl/update_task_completed"]
 )
 async def update_task_completed(
     params: Dict[str, Any] = Body(...),
@@ -527,7 +527,7 @@ async def update_task_completed(
 @schema(
     input_schema_class=GetAppointmentsParams,
     output_schema_class=AppointmentsResponse,
-    examples=examples.get("/hilvl/get_appointments", {})
+    examples=examples["/hilvl/get_appointments"]
 )
 async def get_appointments(
     params: Dict[str, Any] = Body(...),
@@ -542,7 +542,7 @@ async def get_appointments(
 @schema(
     input_schema_class=AddTagsParams,
     output_schema_class=TagsResponse,
-    examples=examples.get("/hilvl/add_tags", {})
+    examples=examples["/hilvl/add_tags"]
 )
 async def add_tags(
     params: Dict[str, Any] = Body(...),
@@ -556,7 +556,7 @@ async def add_tags(
 @schema(
     input_schema_class=RemoveTagsParams,
     output_schema_class=TagsResponse,
-    examples=examples.get("/hilvl/remove_tags", {})
+    examples=examples["/hilvl/remove_tags"]
 )
 async def remove_tags(
     params: Dict[str, Any] = Body(...),
@@ -571,7 +571,7 @@ async def remove_tags(
 @schema(
     input_schema_class=GetNotesParams,
     output_schema_class=NotesResponse,
-    examples=examples.get("/hilvl/get_notes", {})
+    examples=examples["/hilvl/get_notes"]
 )
 async def get_notes(
     params: Dict[str, Any] = Body(...),
@@ -585,7 +585,7 @@ async def get_notes(
 @schema(
     input_schema_class=GetNoteParams,
     output_schema_class=NoteResponse,
-    examples=examples.get("/hilvl/get_note", {})
+    examples=examples["/hilvl/get_note"]
 )
 async def get_note(
     params: Dict[str, Any] = Body(...),
@@ -599,7 +599,7 @@ async def get_note(
 @schema(
     input_schema_class=CreateNoteParams,
     output_schema_class=CreateNoteResponse,
-    examples=examples.get("/hilvl/create_note", {})
+    examples=examples["/hilvl/create_note"]
 )
 async def create_note(
     params: Dict[str, Any] = Body(...),
@@ -613,7 +613,7 @@ async def create_note(
 @schema(
     input_schema_class=UpdateNoteParams,
     output_schema_class=UpdateNoteResponse,
-    examples=examples.get("/hilvl/update_note", {})
+    examples=examples["/hilvl/update_note"]
 )
 async def update_note(
     params: Dict[str, Any] = Body(...),
@@ -627,7 +627,7 @@ async def update_note(
 @schema(
     input_schema_class=DeleteNoteParams,
     output_schema_class=DeleteNoteResponse,
-    examples=examples.get("/hilvl/delete_note", {})
+    examples=examples["/hilvl/delete_note"]
 )
 async def delete_note(
     params: Dict[str, Any] = Body(...),
@@ -642,7 +642,7 @@ async def delete_note(
 @schema(
     input_schema_class=AddContactToCampaignParams,
     output_schema_class=CampaignSuccessResponse,
-    examples=examples.get("/hilvl/add_contact_to_campaign", {})
+    examples=examples["/hilvl/add_contact_to_campaign"]
 )
 async def add_contact_to_campaign(
     params: Dict[str, Any] = Body(...),
@@ -656,7 +656,7 @@ async def add_contact_to_campaign(
 @schema(
     input_schema_class=RemoveContactFromCampaignParams,
     output_schema_class=CampaignSuccessResponse,
-    examples=examples.get("/hilvl/remove_contact_from_campaign", {})
+    examples=examples["/hilvl/remove_contact_from_campaign"]
 )
 async def remove_contact_from_campaign(
     params: Dict[str, Any] = Body(...),
@@ -670,7 +670,7 @@ async def remove_contact_from_campaign(
 @schema(
     input_schema_class=RemoveContactFromAllCampaignsParams,
     output_schema_class=CampaignSuccessResponse,
-    examples=examples.get("/hilvl/remove_contact_from_all_campaigns", {})
+    examples=examples["/hilvl/remove_contact_from_all_campaigns"]
 )
 async def remove_contact_from_all_campaigns(
     params: Dict[str, Any] = Body(...),
@@ -685,7 +685,7 @@ async def remove_contact_from_all_campaigns(
 @schema(
     input_schema_class=AddContactToWorkflowParams,
     output_schema_class=WorkflowSuccessResponse,
-    examples=examples.get("/hilvl/add_contact_to_workflow", {})
+    examples=examples["/hilvl/add_contact_to_workflow"]
 )
 async def add_contact_to_workflow(
     params: Dict[str, Any] = Body(...),
@@ -699,7 +699,7 @@ async def add_contact_to_workflow(
 @schema(
     input_schema_class=RemoveContactFromWorkflowParams,
     output_schema_class=WorkflowSuccessResponse,
-    examples=examples.get("/hilvl/remove_contact_from_workflow", {})
+    examples=examples["/hilvl/remove_contact_from_workflow"]
 )
 async def remove_contact_from_workflow(
     params: Dict[str, Any] = Body(...),
@@ -714,7 +714,7 @@ async def remove_contact_from_workflow(
 @schema(
     input_schema_class=BulkTagUpdateParams,
     output_schema_class=BulkTagUpdateResponse,
-    examples=examples.get("/hilvl/update_contacts_tags", {})
+    examples=examples["/hilvl/update_contacts_tags"]
 )
 async def update_contacts_tags(
     params: Dict[str, Any] = Body(...),
@@ -741,7 +741,7 @@ async def update_contacts_tags(
 @schema(
     input_schema_class=BulkBusinessUpdateParams,
     output_schema_class=BulkBusinessUpdateResponse,
-    examples=examples.get("/hilvl/update_contacts_business", {})
+    examples=examples["/hilvl/update_contacts_business"]
 )
 async def update_contacts_business(
     params: Dict[str, Any] = Body(...),
@@ -756,7 +756,7 @@ async def update_contacts_business(
 @schema(
     input_schema_class=ContactSearchParams,
     output_schema_class=ContactSearchResponse,
-    examples=examples.get("/hilvl/search_contacts", {})
+    examples=examples["/hilvl/search_contacts"]
 )
 async def search_contacts(
     params: Dict[str, Any] = Body(...),
@@ -793,7 +793,7 @@ async def search_contacts(
 @schema(
     input_schema_class=GetDuplicateContactParams,
     output_schema_class=ContactSearchResult,
-    examples=examples.get("/hilvl/get_duplicate_contact", {})
+    examples=examples["/hilvl/get_duplicate_contact"]
 )
 async def get_duplicate_contact(
     params: Dict[str, Any] = Body(...),
@@ -808,7 +808,7 @@ async def get_duplicate_contact(
 @schema(
     input_schema_class=AddFollowersParams,
     output_schema_class=FollowersResponse,
-    examples=examples.get("/hilvl/add_followers", {})
+    examples=examples["/hilvl/add_followers"]
 )
 async def add_followers(
     params: Dict[str, Any] = Body(...),
@@ -822,7 +822,7 @@ async def add_followers(
 @schema(
     input_schema_class=RemoveFollowersParams,
     output_schema_class=FollowersResponse,
-    examples=examples.get("/hilvl/remove_followers", {})
+    examples=examples["/hilvl/remove_followers"]
 )
 async def remove_followers(
     params: Dict[str, Any] = Body(...),
@@ -837,7 +837,7 @@ async def remove_followers(
 @schema(
     input_schema_class=GetConversationParams,
     output_schema_class=Conversation,
-    examples=examples.get("/hilvl/get_conversation", {})
+    examples=examples["/hilvl/get_conversation"]
 )
 async def get_conversation(
     params: Dict[str, Any] = Body(...),
@@ -853,7 +853,7 @@ async def get_conversation(
 @schema(
     input_schema_class=UpdateConversationParams,
     output_schema_class=ConversationSuccess,
-    examples=examples.get("/hilvl/update_conversation", {})
+    examples=examples["/hilvl/update_conversation"]
 )
 async def update_conversation(
     params: Dict[str, Any] = Body(...),
@@ -869,7 +869,7 @@ async def update_conversation(
 @schema(
     input_schema_class=DeleteConversationParams,
     output_schema_class=ConversationSuccess,
-    examples=examples.get("/hilvl/delete_conversation", {})
+    examples=examples["/hilvl/delete_conversation"]
 )
 async def delete_conversation(
     params: Dict[str, Any] = Body(...),
@@ -885,7 +885,7 @@ async def delete_conversation(
 @schema(
     input_schema_class=CreateConversationParams,
     output_schema_class=ConversationSuccess,
-    examples=examples.get("/hilvl/create_conversation", {})
+    examples=examples["/hilvl/create_conversation"]
 )
 async def create_conversation(
     params: Dict[str, Any] = Body(...),
@@ -901,7 +901,7 @@ async def create_conversation(
 @schema(
     input_schema_class=SearchConversationsParams,
     output_schema_class=ConversationsSearchResponse,
-    examples=examples.get("/hilvl/search_conversations", {})
+    examples=examples["/hilvl/search_conversations"]
 )
 async def search_conversations(
     params: Dict[str, Any] = Body(...),
@@ -946,7 +946,7 @@ async def search_conversations(
 @schema(
     input_schema_class=GetMessageByIdParams,
     output_schema_class=ConversationMessage,
-    examples=examples.get("/hilvl/get_message", {})
+    examples=examples["/hilvl/get_message"]
 )
 async def get_message(
     params: Dict[str, Any] = Body(...),
@@ -962,7 +962,7 @@ async def get_message(
 @schema(
     input_schema_class=GetEmailByIdParams,
     output_schema_class=EmailMessage,
-    examples=examples.get("/hilvl/get_email_message", {})
+    examples=examples["/hilvl/get_email_message"]
 )
 async def get_email_message(
     params: Dict[str, Any] = Body(...),
@@ -978,7 +978,7 @@ async def get_email_message(
 @schema(
     input_schema_class=CancelScheduledEmailParams,
     output_schema_class=CancelEmailResult,
-    examples=examples.get("/hilvl/cancel_scheduled_email", {})
+    examples=examples["/hilvl/cancel_scheduled_email"]
 )
 async def cancel_scheduled_email(
     params: Dict[str, Any] = Body(...),
@@ -994,7 +994,7 @@ async def cancel_scheduled_email(
 @schema(
     input_schema_class=GetMessagesByConversationParams,
     output_schema_class=ConversationMessagesList,
-    examples=examples.get("/hilvl/get_conversation_messages", {})
+    examples=examples["/hilvl/get_conversation_messages"]
 )
 async def get_conversation_messages(
     params: Dict[str, Any] = Body(...),
@@ -1028,7 +1028,7 @@ async def get_conversation_messages(
 @schema(
     input_schema_class=SendMessageParams,
     output_schema_class=SendMessageResponse,
-    examples=examples.get("/hilvl/send_message", {})
+    examples=examples["/hilvl/send_message"]
 )
 async def send_message(
     params: Dict[str, Any] = Body(...),

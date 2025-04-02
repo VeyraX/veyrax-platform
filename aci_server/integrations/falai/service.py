@@ -24,6 +24,7 @@ from .schema import (
     ApiResponse
 )
 import os
+import re
 from ..common.component_handler import load_components, prepare_components_auto
 
 class FalAIService:
@@ -85,7 +86,6 @@ class FalAIService:
             queue=params.queue
         )
         
-        # Convert to generation result
         generation_result = GenerationResult(**response)
         
         return self.prepare_response(generation_result)
@@ -93,15 +93,40 @@ class FalAIService:
     async def get_result(self, params: ResultParams) -> ApiResponse:
         response = await self.client.get_result(url=params.url)
         
-        # Convert to generation result
+        is_pixverse = False
+        if params.url and "pixverse" in params.url.lower():
+            is_pixverse = True
+            
+        if is_pixverse and "result" in response and response["result"] and "video" in response["result"]:
+            component_name = "FalAIVideoResult"
+        else:
+            component_name = self._determine_component(response)
+            
         generation_result = GenerationResult(**response)
         
-        return self.prepare_response(generation_result)
+        return self.prepare_response(generation_result, component_name)
+    
+    def _determine_component(self, response: Dict[str, Any]) -> Optional[str]:
+        if "result" in response and response["result"]:
+            result = response["result"]
+            if "images" in result:
+                return "FalAIImageResult"
+            elif "video" in result:
+                return "FalAIVideoResult"
+            elif "audio" in result:
+                return "FalAIAudioResult"
+        
+        if "status" in response:
+            if response["status"] == "queued" or response["status"] == "IN_QUEUE":
+                return "FalAIQueuedRequest"
+            elif response["status"] == "in_progress" or response["status"] == "IN_PROGRESS":
+                return "FalAIQueueStatus"
+                
+        return None
 
     async def get_status(self, params: StatusParams) -> ApiResponse:
         response = await self.client.get_status(url=params.url)
         
-        # Convert to generation result
         generation_result = GenerationResult(**response)
         
         return self.prepare_response(generation_result)
@@ -109,7 +134,6 @@ class FalAIService:
     async def cancel_request(self, params: CancelParams) -> ApiResponse:
         response = await self.client.cancel_request(url=params.url)
         
-        # Convert to generation result
         generation_result = GenerationResult(**response)
         
         return self.prepare_response(generation_result)
@@ -117,7 +141,6 @@ class FalAIService:
     async def upload_file(self, params: UploadParams) -> ApiResponse:
         response = await self.client.upload_file(path=params.path)
         
-        # Convert to upload result
         upload_result = UploadResult(**response)
         
         return self.prepare_response(upload_result)

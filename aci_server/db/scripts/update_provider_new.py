@@ -73,13 +73,23 @@ def get_existing_provider_data(supabase, provider_id: str) -> tuple:
     
     return existing_actions, existing_scopes
 
-def get_existing_action_scopes(supabase, action_id: str) -> set:
-    """Get existing scope links for an action"""
+def get_existing_action_scopes(supabase, action_id: str) -> dict:
+    """Get existing scope links for an action with their scope_ids"""
     links = supabase.table("provider_action_scopes").select(
-        "scope_id"
+        "id, scope_id"
     ).eq("action_id", action_id).execute()
     
-    return {link["scope_id"] for link in links.data}
+    # Get the actual scope_id strings from provider_scopes table
+    scope_links = {}
+    for link in links.data:
+        scope = supabase.table("provider_scopes").select(
+            "scope_id"
+        ).eq("id", link["scope_id"]).execute()
+        if scope.data:
+            scope_id_string = scope.data[0]["scope_id"]
+            scope_links[scope_id_string] = link["scope_id"]
+    
+    return scope_links
 
 def get_provider_schemas(provider_tag: str) -> Dict[str, Any]:
     """Get all schemas and examples for a provider from the integration router"""
@@ -220,6 +230,12 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
         # Start with all fields from provider_data
         provider_record = provider_data.copy()
         
+        # Remove fields that are not columns in the providers table
+        if "action_scopes" in provider_record:
+            del provider_record["action_scopes"]
+        if "scopes" in provider_record:
+            del provider_record["scopes"]
+        
         # Ensure critical fields have expected values
         provider_record["name"] = provider_data["name"]
         provider_record["provider_tag"] = provider_data["provider_tag"]
@@ -242,10 +258,52 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
             provider_id = provider["id"]
             print(f"\n=== Created new provider: {provider['name']} ===")
         
+        # Create or update scopes
+        existing_actions, existing_scopes = get_existing_provider_data(supabase, provider_id)
+        
+        # Process scopes from the provider data
+        scopes_added = 0
+        scopes_updated = 0
+        
+        # Check if provider uses OAuth auth method
+        auth_method = provider_data.get("auth_method", "").lower()
+        oauth_enabled = auth_method == "oauth"
+        
+        if "scopes" in provider_data:
+            for scope in provider_data["scopes"]:
+                scope_id = scope["scope_id"]
+                scope_name = scope["scope_name"]
+                
+                scope_record = {
+                    "provider_id": provider_id,
+                    "scope_id": scope_id,
+                    "scope_name": scope_name
+                }
+                
+                if scope_id in existing_scopes:
+                    # Update existing scope
+                    supabase.table("provider_scopes").update(scope_record)\
+                        .eq("id", existing_scopes[scope_id]).execute()
+                    scopes_updated += 1
+                    print(f"Updated scope: {scope_name}")
+                else:
+                    # Create new scope
+                    result = supabase.table("provider_scopes").insert(scope_record).execute()
+                    # Store the new scope ID for action-scope mapping
+                    existing_scopes[scope_id] = result.data[0]["id"]
+                    scopes_added += 1
+                    print(f"Added scope: {scope_name}")
+            
+            print(f"\nScopes added: {scopes_added}")
+            print(f"Scopes updated: {scopes_updated}")
+        
         # Get schemas and examples from integration router
         schemas = get_provider_schemas(provider_data["provider_tag"])
+        actions_added = 0
+        actions_updated = 0
         
-        if schemas:
+        # Process schemas if available
+        if schemas and schemas.get("input_schemas"):
             update_data = {}
             
             if schemas.get("input_schemas"):
@@ -266,40 +324,92 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
                 print(f"Updated provider schemas: {list(update_data.keys())}")
             
             # Create actions from input schemas
-            if schemas.get("input_schemas"):
-                existing_actions, existing_scopes = get_existing_provider_data(supabase, provider_id)
+            for endpoint_name, schema in schemas["input_schemas"].items():
+                action_slug = endpoint_name
+                action_name = generate_action_name(action_slug)
                 
-                actions_added = 0
-                actions_updated = 0
+                action_record = {
+                    "provider_id": provider_id,
+                    "action_slug": action_slug,
+                    "action_name": action_name,
+                    "input_schema": schema,
+                    "output_schema": schemas["output_schemas"].get(endpoint_name, {}),
+                    "examples": schemas["example_schemas"].get(endpoint_name, [])
+                }
                 
-                for endpoint_name, schema in schemas["input_schemas"].items():
-                    action_slug = endpoint_name
+                if action_slug in existing_actions:
+                    action_id = existing_actions[action_slug]
+                    supabase.table("provider_actions").update(action_record)\
+                        .eq("id", action_id).execute()
+                    actions_updated += 1
+                    print(f"Updated action: {action_name} with {len(schemas['example_schemas'].get(endpoint_name, []))} examples")
+                else:
+                    result = supabase.table("provider_actions").insert(action_record).execute()
+                    action_id = result.data[0]["id"]
+                    existing_actions[action_slug] = action_id
+                    actions_added += 1
+                    print(f"Added action: {action_name}")
+        else:
+            print("No schemas found for provider")
+        
+        # Create actions manually from action_scopes if no schemas available or as a fallback
+        if "action_scopes" in provider_data:
+            print("\n=== Creating actions from action_scopes ===")
+            for action_slug in provider_data["action_scopes"].keys():
+                if action_slug not in existing_actions:
                     action_name = generate_action_name(action_slug)
                     
                     action_record = {
                         "provider_id": provider_id,
                         "action_slug": action_slug,
                         "action_name": action_name,
-                        "input_schema": schema,
-                        "output_schema": schemas["output_schemas"].get(endpoint_name, {}),
-                        "examples": schemas["example_schemas"].get(endpoint_name, [])
+                        "input_schema": {},
+                        "output_schema": {},
+                        "examples": []
                     }
                     
+                    result = supabase.table("provider_actions").insert(action_record).execute()
+                    action_id = result.data[0]["id"]
+                    existing_actions[action_slug] = action_id
+                    actions_added += 1
+                    print(f"Added action: {action_name}")
+        
+        print(f"\nActions added: {actions_added}")
+        print(f"Actions updated: {actions_updated}")
+        
+        # Process action_scopes mapping if provided
+        if "action_scopes" in provider_data:
+            action_scope_links_added = 0
+            
+            # Only link actions to scopes if OAuth is enabled
+            if oauth_enabled:
+                print("\n=== Creating action-scope links for OAuth ===")
+                for action_slug, required_scopes in provider_data["action_scopes"].items():
                     if action_slug in existing_actions:
                         action_id = existing_actions[action_slug]
-                        supabase.table("provider_actions").update(action_record)\
-                            .eq("id", action_id).execute()
-                        actions_updated += 1
-                        print(f"Updated action: {action_name} with {len(schemas['example_schemas'].get(endpoint_name, []))} examples")
+                        
+                        # Get existing scope links for this action
+                        existing_action_scopes = get_existing_action_scopes(supabase, action_id)
+                        
+                        # Create links for each scope
+                        for scope_id in required_scopes:
+                            # Check if the scope exists and if there's already a link for this scope_id string
+                            if scope_id in existing_scopes and scope_id not in existing_action_scopes:
+                                # Create new link
+                                link_record = {
+                                    "action_id": action_id,
+                                    "scope_id": existing_scopes[scope_id]
+                                }
+                                supabase.table("provider_action_scopes").insert(link_record).execute()
+                                action_scope_links_added += 1
+                                print(f"Linked action '{action_slug}' to scope '{scope_id}'")
                     else:
-                        result = supabase.table("provider_actions").insert(action_record).execute()
-                        actions_added += 1
-                        print(f"Added action: {action_name}")
+                        print(f"Warning: Action '{action_slug}' not found, cannot link to scopes")
                 
-                print(f"\nActions added: {actions_added}")
-                print(f"Actions updated: {actions_updated}")
-        else:
-            print("No schemas found for provider")
+                print(f"\nAction-scope links added: {action_scope_links_added}")
+            else:
+                print("\n=== Skipping action-scope links (OAuth not enabled) ===")
+                print("With API Key authentication, all actions are available without scope restrictions.")
         
     except Exception as e:
         print(f"\nError creating/updating provider: {str(e)}")

@@ -457,18 +457,24 @@ class UpsertContactResponse(BaseModel):
 class Task(BaseModel):
     id: str
     title: str
-    body: Optional[str] = None
-    assignedTo: Optional[str] = None
+    description: Optional[str] = None
+    status: str
     dueDate: Optional[str] = None
-    completed: bool
-    contactId: str
+    completedDate: Optional[str] = None
+    contactId: Optional[str] = None
+    assignedTo: Optional[str] = None
+    createdAt: Optional[str] = None
+    updatedAt: Optional[str] = None
 
 class TaskList(BaseModel):
     tasks: List[Task]
 
 # Input schemas - Task
 class GetTasksParams(BaseModel):
-    contact_id: str = Field(..., description="Contact ID")
+    contact_id: Optional[str] = Field(None, description="Contact ID")
+    location_id: Optional[str] = Field(None, description="Location ID")
+    limit: Optional[int] = Field(25, description="Limit")
+    skip: Optional[int] = Field(0, description="Skip")
 
 class GetTaskParams(BaseModel):
     contact_id: str = Field(..., description="Contact ID")

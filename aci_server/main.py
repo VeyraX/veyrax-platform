@@ -60,6 +60,7 @@ from integrations.posthog.route import router as posthog_router
 from integrations.amazon.route import router as amazon_affiliates_router
 from integrations.revid.route import router as revid_ai_router
 from integrations.cloudinary.route import router as cloudinary_router
+from integrations.airbnb.route import router as airbnb_router
 from integrations.airtable.route import router as airtable_router
 from integrations.todoist.route import router as todoist_router
 from integrations.google_sheets.route import router as google_sheets_router
@@ -170,7 +171,8 @@ INTEGRATION_ROUTERS = {
     "ipinfo": ipinfo_router,
     "hunterio": hunterio_router,
     "zip_code": zip_code_router,
-    "falai": falai_router
+    "falai": falai_router,
+    "airbnb": airbnb_router
 }
 
 
@@ -240,7 +242,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-#app.add_middleware(PermissionMiddleware)
+app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)

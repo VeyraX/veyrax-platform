@@ -195,6 +195,65 @@ routes:
               "name": "FalAIQueuedRequest"
             }
           }
+      - scenario: "Generate Video with Pixverse"
+        description: "Generate a text-to-video using Pixverse model"
+        input_json: |
+          {
+            "model": "fal-ai/pixverse/v4/text-to-video",
+            "parameters": {
+              "prompt": "A majestic eagle soaring through a mountain landscape at sunset",
+              "aspect_ratio": "16:9",
+              "resolution": "720p",
+              "duration": "5",
+              "negative_prompt": "blurry, low quality, distorted",
+              "style": "3d_animation"
+            },
+            "queue": true
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "IN_QUEUE",
+              "completed": false,
+              "result": null,
+              "status_url": "https://queue.fal.run/fal-ai/pixverse/v4/text-to-video/requests/abc123xyz/status",
+              "response_url": "https://queue.fal.run/fal-ai/pixverse/v4/text-to-video/requests/abc123xyz",
+              "cancel_url": "https://queue.fal.run/fal-ai/pixverse/v4/text-to-video/requests/abc123xyz/cancel",
+              "queue_position": 2
+            },
+            "component": {
+              "name": "FalAIQueuedRequest"
+            }
+          }
+      - scenario: "Generate Audio"
+        description: "Generate audio using a text-to-speech model"
+        input_json: |
+          {
+            "model": "fal-ai/bark",
+            "parameters": {
+              "prompt": "Welcome to the future of AI-generated audio. This sounds completely natural and realistic.",
+              "voice_preset": "v2/en_speaker_6",
+              "history_prompt": null,
+              "temperature": 0.7,
+              "silent_start": false
+            },
+            "queue": true
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "IN_QUEUE",
+              "completed": false,
+              "result": null,
+              "status_url": "https://queue.fal.run/fal-ai/bark/requests/def456xyz/status",
+              "response_url": "https://queue.fal.run/fal-ai/bark/requests/def456xyz",
+              "cancel_url": "https://queue.fal.run/fal-ai/bark/requests/def456xyz/cancel",
+              "queue_position": 1
+            },
+            "component": {
+              "name": "FalAIQueuedRequest"
+            }
+          }
 
   - endpoint: /falai/get_result
     examples:
@@ -222,6 +281,54 @@ routes:
             },
             "component": {
               "name": "FalAIImageResult"
+            }
+          }
+      - scenario: "Get Result of Text-to-Video Request"
+        description: "Retrieve the result of a completed Pixverse text-to-video request"
+        input_json: |
+          {
+            "url": "https://queue.fal.run/fal-ai/pixverse/v4/text-to-video/requests/abc123xyz"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "COMPLETED",
+              "completed": true,
+              "result": {
+                "video": {
+                  "url": "https://fal-cdn.s3.amazonaws.com/abc123xyz/video.mp4",
+                  "content_type": "video/mp4",
+                  "file_name": "generated_video.mp4",
+                  "file_size": 2578945
+                }
+              }
+            },
+            "component": {
+              "name": "FalAIVideoResult"
+            }
+          }
+      - scenario: "Get Result of Audio Generation Request"
+        description: "Retrieve the result of a completed audio generation request"
+        input_json: |
+          {
+            "url": "https://queue.fal.run/fal-ai/bark/requests/def456xyz"
+          }
+        output_json: |
+          {
+            "data": {
+              "status": "COMPLETED",
+              "completed": true,
+              "result": {
+                "audio": {
+                  "url": "https://fal-cdn.s3.amazonaws.com/def456xyz/output.wav",
+                  "content_type": "audio/wav",
+                  "file_name": "generated_speech.wav",
+                  "file_size": 1654820
+                }
+              }
+            },
+            "component": {
+              "name": "FalAIAudioResult"
             }
           }
 
@@ -286,18 +393,4 @@ routes:
             "component": {
               "name": "FalAIFileUpload"
             }
-          }
-
-  - endpoint: /falai/validate_key
-    examples:
-      - scenario: "Validate API Key"
-        description: "Check if the provided API key is valid"
-        input_json: |
-          {
-            "api_key": "fal.eyJhbGciOiJIUzI1..."
-          }
-        output_json: |
-          {
-            "valid": true,
-            "message": "API key is valid"
           }

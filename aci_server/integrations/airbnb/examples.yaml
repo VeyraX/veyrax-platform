@@ -1,0 +1,291 @@
+routes:
+  - endpoint: "/airbnb/search"
+    examples:
+      - scenario: "Search for listings in New York"
+        description: "Search for Airbnb listings in New York City for 2 adults"
+        input_json: |
+          {
+            "location": "New York, NY",
+            "checkin": "2023-07-15",
+            "checkout": "2023-07-20",
+            "adults": 2,
+            "children": 0,
+            "infants": 0,
+            "pets": 0,
+            "min_price": 100,
+            "max_price": 300
+          }
+        output_json: |
+          {
+            "data": {
+              "search_url": "https://www.airbnb.com/s/New%20York%2C%20NY/homes?checkin=2023-07-15&checkout=2023-07-20&adults=2&price_min=100&price_max=300",
+              "listings": [
+                {
+                  "id": "12345678",
+                  "name": "Cozy Apartment in Manhattan",
+                  "title": "Cozy Apartment in Manhattan",
+                  "url": "https://www.airbnb.com/rooms/12345678",
+                  "coordinate": {
+                    "latitude": 40.7128,
+                    "longitude": -74.0060
+                  },
+                  "structured_content": {
+                    "primaryLine": {
+                      "body": "Entire apartment"
+                    },
+                    "secondaryLine": {
+                      "body": "2 beds"
+                    }
+                  },
+                  "avg_rating": "4.85 out of 5 stars",
+                  "price_info": {
+                    "primaryLine": {
+                      "accessibilityLabel": "$250 per night"
+                    },
+                    "secondaryLine": {
+                      "accessibilityLabel": "$1,250 total"
+                    }
+                  }
+                },
+                {
+                  "id": "87654321",
+                  "name": "Modern Loft in Brooklyn",
+                  "title": "Modern Loft in Brooklyn",
+                  "url": "https://www.airbnb.com/rooms/87654321",
+                  "coordinate": {
+                    "latitude": 40.6782,
+                    "longitude": -73.9442
+                  },
+                  "structured_content": {
+                    "primaryLine": {
+                      "body": "Entire loft"
+                    },
+                    "secondaryLine": {
+                      "body": "1 bed"
+                    }
+                  },
+                  "avg_rating": "4.92 out of 5 stars",
+                  "price_info": {
+                    "primaryLine": {
+                      "accessibilityLabel": "$195 per night"
+                    },
+                    "secondaryLine": {
+                      "accessibilityLabel": "$975 total"
+                    }
+                  }
+                }
+              ],
+              "pagination_info": {
+                "hasNextPage": true,
+                "nextPageCursor": "eyJzZWN0aW9uX29mZnNldCI6MCwiaXRlbXNfb2Zmc2V0IjoyMCwid"
+              }
+            },
+            "component": {
+              "name": "AirbnbSearchResults"
+            }
+          }
+      - scenario: "Search with Google Maps Place ID"
+        description: "Search for Airbnb listings using a Google Maps Place ID for San Francisco"
+        input_json: |
+          {
+            "location": "San Francisco",
+            "place_id": "ChIJIQBpAG2ahYAR_6128GcTUEo",
+            "checkin": "2023-08-10",
+            "checkout": "2023-08-15",
+            "adults": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "search_url": "https://www.airbnb.com/s/San%20Francisco/homes?place_id=ChIJIQBpAG2ahYAR_6128GcTUEo&checkin=2023-08-10&checkout=2023-08-15&adults=1",
+              "listings": [
+                {
+                  "id": "56789012",
+                  "name": "Stylish Studio in Mission District",
+                  "title": "Stylish Studio in Mission District",
+                  "url": "https://www.airbnb.com/rooms/56789012",
+                  "coordinate": {
+                    "latitude": 37.7599,
+                    "longitude": -122.4148
+                  },
+                  "structured_content": {
+                    "primaryLine": {
+                      "body": "Private room"
+                    },
+                    "secondaryLine": {
+                      "body": "1 bed"
+                    }
+                  },
+                  "avg_rating": "4.78 out of 5 stars",
+                  "price_info": {
+                    "primaryLine": {
+                      "accessibilityLabel": "$140 per night"
+                    },
+                    "secondaryLine": {
+                      "accessibilityLabel": "$700 total"
+                    }
+                  }
+                }
+              ],
+              "pagination_info": {
+                "hasNextPage": true,
+                "nextPageCursor": "eyJzZWN0aW9uX29mZnNldCI6MCwiaXRlbXNfb2Zmc2V0IjoyMCwid"
+              }
+            },
+            "component": {
+              "name": "AirbnbSearchResults"
+            }
+          }
+
+  - endpoint: "/airbnb/listing_details"
+    examples:
+      - scenario: "Get details for a specific listing"
+        description: "Get detailed information about an Airbnb listing in Manhattan"
+        input_json: |
+          {
+            "id": "12345678",
+            "checkin": "2023-07-15",
+            "checkout": "2023-07-20",
+            "adults": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "listing_url": "https://www.airbnb.com/rooms/12345678?check_in=2023-07-15&check_out=2023-07-20&adults=2",
+              "details": [
+                {
+                  "id": "DESCRIPTION_DEFAULT",
+                  "type": "description",
+                  "content": {
+                    "htmlDescription": {
+                      "htmlText": "<p>Enjoy this beautiful apartment in the heart of Manhattan. Close to restaurants, shopping, and major attractions.</p>"
+                    }
+                  }
+                },
+                {
+                  "id": "LOCATION_DEFAULT",
+                  "type": "location",
+                  "content": {
+                    "lat": 40.7128,
+                    "lng": -74.0060,
+                    "title": "Manhattan, New York",
+                    "subtitle": "Great location, 95% of recent guests gave the location a 5-star rating"
+                  }
+                },
+                {
+                  "id": "AMENITIES_DEFAULT",
+                  "type": "amenities",
+                  "content": {
+                    "title": "What this place offers",
+                    "seeAllAmenitiesGroups": {
+                      "title": "All amenities",
+                      "amenities": {
+                        "title": "Kitchen, Wifi, Free street parking, TV, Air conditioning, Washer, Dryer"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "HIGHLIGHTS_DEFAULT",
+                  "type": "highlights",
+                  "content": {
+                    "highlights": {
+                      "title": "Entire home, Free cancellation before July 10, Self check-in"
+                    }
+                  }
+                },
+                {
+                  "id": "POLICIES_DEFAULT",
+                  "type": "policies",
+                  "content": {
+                    "title": "House rules",
+                    "houseRulesSections": {
+                      "title": "Rules to follow",
+                      "items": {
+                        "title": "No smoking, No pets, No parties or events, Check-in after 3:00 PM"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "AirbnbListingDetails"
+            }
+          }
+      - scenario: "Get listing details for family stay"
+        description: "Get details for a family-friendly listing with multiple guests"
+        input_json: |
+          {
+            "id": "87654321",
+            "checkin": "2023-08-01",
+            "checkout": "2023-08-08",
+            "adults": 2,
+            "children": 2,
+            "infants": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "listing_url": "https://www.airbnb.com/rooms/87654321?check_in=2023-08-01&check_out=2023-08-08&adults=2&children=2&infants=1",
+              "details": [
+                {
+                  "id": "DESCRIPTION_DEFAULT",
+                  "type": "description",
+                  "content": {
+                    "htmlDescription": {
+                      "htmlText": "<p>Spacious family-friendly home with backyard. Perfect for families with children.</p>"
+                    }
+                  }
+                },
+                {
+                  "id": "LOCATION_DEFAULT",
+                  "type": "location",
+                  "content": {
+                    "lat": 40.6782,
+                    "lng": -73.9442,
+                    "title": "Brooklyn, New York",
+                    "subtitle": "Quiet residential neighborhood, close to parks and playgrounds"
+                  }
+                },
+                {
+                  "id": "AMENITIES_DEFAULT",
+                  "type": "amenities",
+                  "content": {
+                    "title": "What this place offers",
+                    "seeAllAmenitiesGroups": {
+                      "title": "All amenities",
+                      "amenities": {
+                        "title": "Kitchen, Wifi, Free street parking, TV, Air conditioning, Washer, Dryer, Crib, High chair, Backyard"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "HIGHLIGHTS_DEFAULT",
+                  "type": "highlights",
+                  "content": {
+                    "highlights": {
+                      "title": "Entire home, Family-friendly, Free cancellation before July 25"
+                    }
+                  }
+                },
+                {
+                  "id": "POLICIES_DEFAULT",
+                  "type": "policies",
+                  "content": {
+                    "title": "House rules",
+                    "houseRulesSections": {
+                      "title": "Rules to follow",
+                      "items": {
+                        "title": "No smoking, Small pets allowed, No parties or events, Check-in after 2:00 PM"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "AirbnbListingDetails"
+            }
+          }

@@ -103,7 +103,8 @@ from .schema import (
     GetMessagesByConversationParams,
     ConversationMessagesList,
     SendMessageParams,
-    SendMessageResponse
+    SendMessageResponse,
+    GetTasksParams
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -234,17 +235,20 @@ class HilvlService:
         return self.prepare_response(result)
 
     async def get_tasks(self, params: GetTasksParams) -> ApiResponse:
-        """Get tasks for a contact"""
-        response = await self.client.get_tasks(params.contact_id)
-        return ApiResponse(data=TasksResponse(tasks=response["tasks"]))
+        if params.contact_id:
+            response = await self.client.get_tasks(params.contact_id)
+            return ApiResponse(data=TasksResponse(tasks=response["tasks"]))
+        if params.location_id:
+            response = {"tasks": []}
+            return ApiResponse(data=TasksResponse(tasks=response["tasks"]))
+        else:
+            raise ValueError("Either contact_id or location_id must be provided")
     
     async def get_task(self, params: GetTaskParams) -> ApiResponse:
-        """Get a specific task for a contact"""
         response = await self.client.get_task(params.contact_id, params.task_id)
         return ApiResponse(data=TaskResponse(task=response["task"]))
     
     async def create_task(self, params: CreateTaskParams) -> ApiResponse:
-        """Create a new task for a contact"""
         response = await self.client.create_task(
             params.contact_id,
             params.title,
@@ -256,7 +260,6 @@ class HilvlService:
         return ApiResponse(data=CreateTaskResponse(task=response["task"]))
     
     async def update_task(self, params: UpdateTaskParams) -> ApiResponse:
-        """Update an existing task for a contact"""
         task_data = params.dict(exclude_unset=True, exclude={'contact_id', 'task_id'})
         response = await self.client.update_task(
             params.contact_id,
@@ -266,12 +269,10 @@ class HilvlService:
         return ApiResponse(data=UpdateTaskResponse(task=response["task"]))
     
     async def delete_task(self, params: DeleteTaskParams) -> ApiResponse:
-        """Delete a task for a contact"""
         response = await self.client.delete_task(params.contact_id, params.task_id)
         return ApiResponse(data=DeleteTaskResponse(succeded=response["succeeded"]))
     
     async def update_task_completed(self, params: UpdateTaskCompletedParams) -> ApiResponse:
-        """Update task completion status"""
         response = await self.client.update_task_completed(
             params.contact_id,
             params.task_id,
@@ -280,7 +281,6 @@ class HilvlService:
         return ApiResponse(data=UpdateTaskCompletedResponse(task=response["task"]))
 
     async def get_appointments(self, params: GetAppointmentsParams) -> ApiResponse:
-        """Get appointments for a contact"""
         response = await self.client.get_appointments(params.contact_id)
         return ApiResponse(data=AppointmentsResponse(events=response["events"]))
     
