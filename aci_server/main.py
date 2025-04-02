@@ -76,6 +76,7 @@ from integrations.duckduckgo.route import router as duckduckgo_router
 from integrations.ipinfo.route import router as ipinfo_router
 from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
+from integrations.docusign.route import router as docusign_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
@@ -172,7 +173,8 @@ INTEGRATION_ROUTERS = {
     "hunterio": hunterio_router,
     "zip_code": zip_code_router,
     "falai": falai_router,
-    "airbnb": airbnb_router
+    "airbnb": airbnb_router,
+    "docusign": docusign_router
 }
 
 
