@@ -337,6 +337,7 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
          provider.auth_method === 'api_key_with_base' || 
          provider.auth_method === 'db_access' || 
          provider.auth_method === 'custom' || 
+         (provider.provider_tag && provider.provider_tag.toLowerCase() === 'whatsapp') ||
          (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax') ||
          (provider.auth_method === 'none' && isConnected)) && (
           <ManageDialog
