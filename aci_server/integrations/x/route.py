@@ -2,23 +2,7 @@ from fastapi import APIRouter, Depends, Body, Request, HTTPException
 from typing import Dict, Any
 from .service import TwitterService
 from .client import TwitterClient
-from .schema import (
-    ApiResponse,
-    GetUserProfileParams,
-    GetUserTimelineParams,
-    GetUserFollowingParams,
-    GetUserFollowersParams,
-    GetTweetParams,
-    GetTweetRetweetsParams,
-    SearchTweetsParams,
-    GetTweetThreadParams,
-    GetLatestRepliesParams,
-    GetListTimelineParams,
-    GetCommunityTimelineParams,
-    GetListFollowersParams,
-    GetListMembersParams,
-    GetSpaceParams
-)
+from .schema import *
 from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
@@ -94,7 +78,7 @@ async def get_user_followers(
 @router.post("/get_tweet", response_model=ApiResponse)
 @schema(
     input_schema_class=GetTweetParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=TweetResponse,
     examples=examples["/x/get_tweet"]
 )
 async def get_tweet(
