@@ -12,7 +12,7 @@ class DocuSignClient:
 
     def get_user_info(self) -> Dict[str, Any]:
         """Get user information to validate token"""
-        url = "https://account.docusign.com/oauth/userinfo"
+        url = "https://account-d.docusign.com/oauth/userinfo"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
         return response.json()

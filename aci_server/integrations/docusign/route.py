@@ -37,7 +37,6 @@ async def get_docusign_service(request: FastAPIRequest):
         client = DocuSignClient(access_token)
         apply_error_handler_to_client(client)
         
-        # Get account ID from user info
         user_info = client.get_user_info()
         account_id = user_info["accounts"][0]["account_id"]
         
@@ -87,7 +86,11 @@ async def get_document(
     service: DocuSignService = Depends(get_docusign_service)
 ):
     validated_params = GetDocumentParams(**params)
-    return service.get_document(validated_params.envelope_id, validated_params.document_id)
+    return service.get_document(
+        validated_params.envelope_id,
+        validated_params.document_id,
+        validated_params.return_format
+    )
 
 @router.post("/create_view", response_model=ApiResponse)
 @schema(

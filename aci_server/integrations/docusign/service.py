@@ -1,5 +1,8 @@
 from typing import Dict, Any, List, Optional
 import os
+import base64
+import io
+from PyPDF2 import PdfReader
 from .client import DocuSignClient
 from .schema import (
     CreateEnvelopeParams,
@@ -33,7 +36,7 @@ class DocuSignService:
             "emailBlurb": params.email_body,
             "documents": [
                 {
-                    "documentBase64": doc.document_base64,
+                    "documentBase64": doc.get_document_base64,
                     "name": doc.name,
                     "fileExtension": doc.file_extension,
                     "documentId": str(i + 1)
@@ -46,7 +49,8 @@ class DocuSignService:
                         "name": signer.name,
                         "recipientId": str(i + 1),
                         "routingOrder": signer.routing_order,
-                        "roleName": signer.role_name
+                        "roleName": signer.role_name,
+                        "clientUserId": signer.client_user_id
                     } for i, signer in enumerate(params.signers)
                 ]
             },
@@ -74,15 +78,38 @@ class DocuSignService:
         )
         return self.prepare_response(envelope_info)
 
-    def get_document(self, envelope_id: str, document_id: str) -> ApiResponse:
+    def get_document(self, envelope_id: str, document_id: str, return_format: str = "base64") -> ApiResponse:
+        """Get document from envelope with specified format"""
         document_content = self.client.get_document(self.account_id, envelope_id, document_id)
-        document = Document(
-            document_base64=document_content,
-            name=f"document_{document_id}.pdf",
-            file_extension="pdf",
-            document_id=document_id
-        )
-        return self.prepare_response(document)
+        
+        response_data = {
+            "name": f"document_{document_id}.pdf",
+            "file_extension": "pdf",
+            "document_id": document_id
+        }
+
+        if return_format == "text":
+            try:
+                if document_content.startswith(b'%PDF'):
+                    pdf_file = io.BytesIO(document_content)
+                    pdf_reader = PdfReader(pdf_file)
+                    text_content = ""
+                    for page in pdf_reader.pages:
+                        text_content += page.extract_text() + "\n"
+                    response_data["document_content"] = text_content
+                else:
+                    try:
+                        text_content = document_content.decode('utf-8')
+                    except UnicodeDecodeError:
+                        text_content = document_content.decode('latin-1')
+                    response_data["document_content"] = text_content
+            except Exception as e:
+                response_data["document_base64"] = base64.b64encode(document_content).decode('utf-8')
+                response_data["document_content"] = f"Failed to extract text: {str(e)}"
+        else:
+            response_data["document_base64"] = base64.b64encode(document_content).decode('utf-8')
+
+        return self.prepare_response(response_data)
 
     def create_recipient_view(self, envelope_id: str, view_request: RecipientViewRequest) -> ApiResponse:
         request_body = {
@@ -102,6 +129,21 @@ class DocuSignService:
         form_data = FormData(form_data=response)
         return self.prepare_response(form_data)
 
-    def get_user_info(self) -> Dict[str, Any]:
+    def get_user_info(self) -> ApiResponse:
         """Get user information to validate token"""
-        return self.client.get_user_info()
+        response = self.client.get_user_info()
+        user_info = {
+            "sub": response["sub"],
+            "name": response["name"],
+            "given_name": response["given_name"],
+            "family_name": response["family_name"],
+            "email": response["email"],
+            "created": response["created"],
+            "accounts": [{
+                "account_id": account["account_id"],
+                "account_name": account["account_name"],
+                "base_uri": account["base_uri"],
+                "is_default": account["is_default"]
+            } for account in response["accounts"]]
+        }
+        return self.prepare_response(user_info, "user_info")

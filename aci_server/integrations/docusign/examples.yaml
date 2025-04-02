@@ -1,8 +1,8 @@
 routes:
   - endpoint: /docusign/create_envelope
     examples:
-      - scenario: "Create and Send Document for Signing"
-        description: "Create an envelope with a document and send it for signing"
+      - scenario: "Create and Send Document for Email Signing"
+        description: "Create an envelope that will be sent via email for signing"
         input_json: |
           {
             "documents": [
@@ -30,6 +30,37 @@ routes:
               "created_datetime": "2024-04-02T10:00:00Z"
             }
           }
+      
+      - scenario: "Create Envelope for Embedded Signing"
+        description: "Create an envelope for embedded signing (no email sent, requires create_view call)"
+        input_json: |
+          {
+            "documents": [
+              {
+                "document_content": "AGREEMENT\n\nThis agreement is made on April 2, 2024\n\nBetween:\nCompany X ('the Company')\n\nAnd:\nJohn Doe ('the Signatory')\n\n1. Purpose\nThis is a test document.\n\n2. Signature\n\n_________________\nJohn Doe\nDate: _____________",
+                "name": "Agreement.txt",
+                "file_extension": "txt"
+              }
+            ],
+            "signers": [
+              {
+                "email": "signer@example.com",
+                "name": "John Doe",
+                "routing_order": 1,
+                "client_user_id": "1"
+              }
+            ],
+            "email_subject": "Please sign this document",
+            "email_body": "Please review and sign the document"
+          }
+        output_json: |
+          {
+            "data": {
+              "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+              "status": "sent",
+              "created_datetime": "2024-04-02T10:00:00Z"
+            }
+          }
 
   - endpoint: /docusign/get_envelope
     examples:
@@ -52,12 +83,13 @@ routes:
 
   - endpoint: /docusign/get_document
     examples:
-      - scenario: "Download Signed Document"
-        description: "Download a signed document from an envelope"
+      - scenario: "Download Signed Document as Base64"
+        description: "Download a signed document from an envelope in base64 format"
         input_json: |
           {
             "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
-            "document_id": "1"
+            "document_id": "1",
+            "return_format": "base64"
           }
         output_json: |
           {
@@ -69,13 +101,31 @@ routes:
             }
           }
 
-  - endpoint: /docusign/create_view
-    examples:
-      - scenario: "Get Embedded Signing URL"
-        description: "Get a URL for embedded signing experience"
+      - scenario: "Download Signed Document as Text"
+        description: "Download a signed document from an envelope in text format (if possible)"
         input_json: |
           {
             "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+            "document_id": "1",
+            "return_format": "text"
+          }
+        output_json: |
+          {
+            "data": {
+              "document_content": "AGREEMENT\n\nThis agreement is made...",
+              "name": "document_1.pdf",
+              "file_extension": "pdf",
+              "document_id": "1"
+            }
+          }
+
+  - endpoint: /docusign/create_view
+    examples:
+      - scenario: "Get Embedded Signing URL"
+        description: "Get a URL for embedded signing experience (requires envelope created with client_user_id)"
+        input_json: |
+          {
+            "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
             "return_url": "https://example.com/after-signing",
             "email": "signer@example.com",
             "name": "John Doe"
