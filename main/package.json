@@ -81,8 +81,6 @@
     "posthog-js": "^1.223.3",
     "posthog-node": "^4.11.1",
     "prismjs": "^1.29.0",
-    "qrcode": "^1.5.4",
-    "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-contenteditable": "^3.3.7",
     "react-day-picker": "^8.10.1",
