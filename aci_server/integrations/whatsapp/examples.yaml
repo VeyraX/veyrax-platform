@@ -43,6 +43,22 @@ routes:
             }
           }
 
+  - endpoint: /whatsapp/disconnect
+    examples:
+      - scenario: "Disconnect WhatsApp User"
+        description: "Disconnect a user from WhatsApp and delete all their data"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true,
+              "message": "User disconnected and database deleted"
+            },
+            "message": null
+          }
+
   - endpoint: /whatsapp/send_message
     examples:
       - scenario: "Send a Text Message"

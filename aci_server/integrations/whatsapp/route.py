@@ -1,19 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from typing import Dict, Any
 import asyncio
-from .schema import (
-    AuthenticateRequest, SendMessageRequest, GetChatsRequest, GetMessagesRequest,
-    SearchContactsRequest, GetChatRequest, ValidateKeyRequest, GetRecentMessagesRequest,
-    CheckStatusRequest, ApiResponse, AuthenticateResponse, SendMessageResponseSchema,
-    GetChatsResponse, GetMessagesResponse, SearchContactsResponse, GetChatResponse,
-    GetRecentMessagesResponse, CheckStatusResponse, ListUsersResponse
-)
+from .schema import *
 from .service import WhatsAppService
 from .client import WhatsAppClient
-from ..common.input_schema_decorator import schema, input_schema, output_schema
+from ..common.input_schema_decorator import schema
 from ..common.auth import get_user_from_request
-from pydantic import ValidationError
-from ..common.utils import format_validation_error, apply_error_handler_to_service, apply_error_handler_to_router
+from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router
 from ..common.examples_handler import ExamplesLoader
 
 router = APIRouter(prefix="/whatsapp", tags=["whatsapp"])
@@ -72,15 +65,16 @@ async def verify_whatsapp_connection(
     return service
 
 @router.post("/authenticate", response_model=ApiResponse)
-@schema(output_schema_class=AuthenticateResponse, examples=examples["/whatsapp/authenticate"])
+@schema(input_schema_class=AuthenticateRequest, output_schema_class=AuthenticateResponse, examples=examples["/whatsapp/authenticate"])
 async def authenticate(
-    request: Request,
+    params: Dict[str, Any] = Body(...),
     service: WhatsAppService = Depends(get_whatsapp_service)
 ):
-    return service.authenticate()
+    validated_params = AuthenticateRequest(**params)
+    return service.authenticate(validated_params.include_qr_base64, validated_params.include_qr_ascii, validated_params.include_component)
 
 @router.post("/check_status", response_model=ApiResponse)
-@schema(output_schema_class=CheckStatusResponse, examples=examples["/whatsapp/check_status"])
+@schema(input_schema_class=CheckStatusRequest, output_schema_class=CheckStatusResponse, examples=examples["/whatsapp/check_status"])
 async def check_status(
     request: Request,
     service: WhatsAppService = Depends(get_whatsapp_service)
@@ -97,13 +91,15 @@ async def send_message(
     validated_params = SendMessageRequest(**params)
     return service.send_message(validated_params.recipient, validated_params.message)
 
-@router.post("/list_users", response_model=ApiResponse)
-@schema(output_schema_class=ListUsersResponse, examples=examples["/whatsapp/list_users"])
-async def list_users(
-    request: Request,
-    service: WhatsAppService = Depends(verify_whatsapp_connection)
-):
-    return service.list_users()
+
+# SYSTEM TOOL, DON'T DELETE
+# @router.post("/list_users", response_model=ApiResponse)
+# @schema(input_schema_class=ListUsersRequest, output_schema_class=ListUsersResponse, examples=examples["/whatsapp/list_users"])
+# async def list_users(
+#     request: Request,
+#     service: WhatsAppService = Depends(verify_whatsapp_connection)
+# ):
+#     return service.list_users()
 
 @router.post("/get_chats", response_model=ApiResponse)
 @schema(input_schema_class=GetChatsRequest, output_schema_class=GetChatsResponse, examples=examples["/whatsapp/get_chats"])
@@ -191,5 +187,14 @@ async def validate_user(request: Request):
             return {"valid": False, "message": "User is not logged in"}
     except Exception as e:
         return {"valid": False, "message": f"Error validating user: {str(e)}"}
+
+@router.post("/disconnect", response_model=ApiResponse)
+@schema(input_schema_class=DisconnectRequest, output_schema_class=DisconnectResponse, examples=examples["/whatsapp/disconnect"])
+async def disconnect(
+    request: Request,
+    service: WhatsAppService = Depends(verify_whatsapp_connection)
+):
+    """Disconnect a user from WhatsApp and delete all their data."""
+    return service.disconnect()
 
 apply_error_handler_to_router(router) 

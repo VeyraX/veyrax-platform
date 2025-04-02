@@ -18,7 +18,8 @@ import {
   updateProviderCustomAuth,
   validateCustomAuthSchema,
   authenticateWhatsApp,
-  checkWhatsAppStatus
+  checkWhatsAppStatus,
+  disconnectWhatsAppProvider
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode } from "lucide-react";
@@ -404,7 +405,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   const handleDisconnect = async () => {
     try {
-      await disconnectProvider(provider.id);
+
+      console.log("Disconnecting provider:", provider.provider_tag, provider);
+      if (provider.provider_tag === 'whatsapp') {
+        await disconnectWhatsAppProvider(provider.id);
+      } else {
+        await disconnectProvider(provider.id);
+      }
       onUpdate();
       onClose();
     } catch (error) {

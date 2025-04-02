@@ -11,13 +11,13 @@ from .lib.whatsapp import (
     search_contacts,
     get_chat,
     print_recent_messages,
-    WhatsAppSession
+    WhatsAppSession,
+    disconnect_whatsapp_user
 )
 
 class WhatsAppClient:
     def __init__(self, user_id: str):
         self.user_id = user_id
-        self.base_url = "http://localhost:8080/api"
         
     def authenticate(self) -> WhatsAppSession:
         """Authenticate WhatsApp for a user, returns QR code data if needed"""
@@ -75,4 +75,8 @@ class WhatsAppClient:
         
     def get_recent_messages(self, limit: int = 10) -> Any:
         """Get recent messages for a user"""
-        return print_recent_messages(self.user_id, limit) 
+        return print_recent_messages(self.user_id, limit)
+        
+    def disconnect(self) -> Tuple[bool, str]:
+        """Disconnect the user from WhatsApp and delete their data"""
+        return disconnect_whatsapp_user(self.user_id) 

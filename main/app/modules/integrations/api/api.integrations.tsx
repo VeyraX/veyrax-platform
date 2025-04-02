@@ -228,6 +228,20 @@ export const deleteActions = async (providerId: string): Promise<void> => {
   }
 };
 
+export const disconnectWhatsAppProvider = async (providerId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  await fetch('/api/integrations/whatsapp/disconnect', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ providerId })
+  });
+
+  await disconnectProvider(providerId);
+}
+
 export const disconnectProvider = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
 

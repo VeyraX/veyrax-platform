@@ -169,37 +169,6 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
     }, 2000);
   };
 
-  const handleDisconnect = async () => {
-    if (!providerId) {
-      setError("Provider ID is missing, cannot disconnect WhatsApp");
-      return;
-    }
-    
-    setIsDisconnecting(true);
-    setError(null);
-    
-    try {
-      await disconnectProvider(providerId);
-      
-      // Update the config
-      onChange({
-        isLoggedIn: false,
-        phone: undefined
-      });
-      
-      setIsAuthenticated(false);
-      
-      // Call onUpdate callback if provided
-      if (onUpdate) {
-        onUpdate();
-      }
-    } catch (error) {
-      console.error("Error disconnecting WhatsApp:", error);
-      setError(error instanceof Error ? error.message : "Failed to disconnect WhatsApp");
-    } finally {
-      setIsDisconnecting(false);
-    }
-  };
 
   return (
     <div className="space-y-4">

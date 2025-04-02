@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,7 +34,23 @@ import (
 var (
 	clients      = make(map[string]*ClientInfo)
 	clientsMutex sync.RWMutex
+
+	// Add tracking for active QR sessions
+	qrSessions      = make(map[string]*QRSession)
+	qrSessionsMutex sync.RWMutex
+
+	// Track active authentication processes
+	authProcesses      = make(map[string]bool)
+	authProcessesMutex sync.Mutex
 )
+
+// QRSession tracks an active WhatsApp authentication session
+type QRSession struct {
+	QRCode        string
+	QRImageBase64 string
+	ExpiresAt     time.Time
+	Client        *whatsmeow.Client
+}
 
 // Message represents a chat message for our client
 type Message struct {
@@ -58,17 +75,27 @@ type ClientInfo struct {
 
 // Initialize message store for a specific user
 func NewMessageStore(userID string) (*MessageStore, error) {
-	// Create directory for database if it doesn't exist
-	if err := os.MkdirAll("store", 0755); err != nil {
-		return nil, fmt.Errorf("failed to create store directory: %v", err)
-	}
+	// Use the new user-specific directory structure
+	dbPath := getUserDBPath(userID)
+	log.Printf("Creating message store with DB path: %s", dbPath)
 
-	// Open SQLite database for messages with user-specific filename
-	dbPath := fmt.Sprintf("store/messages_%s.db", userID)
+	// Create directory if it doesn't exist (handled in getUserDBPath)
+
+	// Open the database
 	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", dbPath))
 	if err != nil {
-		return nil, fmt.Errorf("failed to open message database: %v", err)
+		log.Printf("Error opening database at %s: %v", dbPath, err)
+		return nil, fmt.Errorf("error opening database: %w", err)
 	}
+
+	// Verify connection is working
+	if err := db.Ping(); err != nil {
+		log.Printf("Error pinging database at %s: %v", dbPath, err)
+		db.Close()
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	log.Printf("Successfully connected to database at %s", dbPath)
 
 	// Create tables if they don't exist
 	_, err = db.Exec(`
@@ -90,10 +117,12 @@ func NewMessageStore(userID string) (*MessageStore, error) {
 		);
 	`)
 	if err != nil {
+		log.Printf("Error creating tables in database at %s: %v", dbPath, err)
 		db.Close()
 		return nil, fmt.Errorf("failed to create tables: %v", err)
 	}
 
+	log.Printf("Successfully created tables in database at %s", dbPath)
 	return &MessageStore{db: db}, nil
 }
 
@@ -265,6 +294,17 @@ type ContactsListResponse struct {
 	Items []ContactResponse `json:"items"`
 }
 
+// DisconnectResponse represents the response for the disconnect endpoint
+type DisconnectResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// DisconnectRequest represents the request for the disconnect endpoint
+type DisconnectRequest struct {
+	UserID string `json:"user_id"`
+}
+
 // Function to send a WhatsApp message
 func sendWhatsAppMessage(client *whatsmeow.Client, recipient string, message string) (bool, string) {
 	if client == nil || !client.IsConnected() {
@@ -293,7 +333,7 @@ func sendWhatsAppMessage(client *whatsmeow.Client, recipient string, message str
 	}
 
 	// Send the message
-	_, err = client.SendMessage(context.Background(), recipientJID, &waProto.Message{
+	msgInfo, err := client.SendMessage(context.Background(), recipientJID, &waProto.Message{
 		Conversation: proto.String(message),
 	})
 
@@ -301,14 +341,101 @@ func sendWhatsAppMessage(client *whatsmeow.Client, recipient string, message str
 		return false, fmt.Sprintf("Error sending message: %v", err)
 	}
 
+	// Since we already have the client passed as a parameter,
+	// we need to find which clientInfo it corresponds to
+	// We'll iterate through all clients to find the matching one
+	clientsMutex.RLock()
+	var foundClientInfo *ClientInfo
+
+	// Need to find the client in our map to get access to the message store
+	for _, clientInfo := range clients {
+		if clientInfo.Client == client {
+			foundClientInfo = clientInfo
+			break
+		}
+	}
+	clientsMutex.RUnlock()
+
+	if foundClientInfo != nil && foundClientInfo.MessageStore != nil {
+		// Get chat JID as string
+		chatJID := recipientJID.String()
+
+		// Get sender from the phone number in the WhatsApp client
+		var sender string
+		if client.Store != nil && client.Store.ID != nil {
+			sender = client.Store.ID.User
+		} else {
+			sender = foundClientInfo.UserID
+		}
+
+		log.Printf("Storing outgoing message from user %s (UUID: %s) to %s",
+			sender, foundClientInfo.UserID, chatJID)
+
+		// Get appropriate chat name
+		name := GetChatName(foundClientInfo, recipientJID, chatJID, nil, "")
+
+		// Update chat in database with the current timestamp
+		timestamp := time.Now()
+		err := foundClientInfo.MessageStore.StoreChat(chatJID, name, timestamp)
+		if err != nil {
+			log.Printf("Failed to store chat for outgoing message: %v", err)
+		}
+
+		// Store the message in database
+		err = foundClientInfo.MessageStore.StoreMessage(
+			msgInfo.ID, // Message ID from WhatsApp
+			chatJID,    // Chat JID
+			sender,     // Sender is the current user's phone number
+			message,    // Message content
+			timestamp,  // Current time
+			true,       // IsFromMe = true for outgoing messages
+		)
+		if err != nil {
+			log.Printf("Failed to store outgoing message: %v", err)
+		} else {
+			log.Printf("Stored outgoing message from %s to %s: %s",
+				foundClientInfo.UserID, chatJID, message)
+		}
+	} else {
+		log.Printf("Could not find matching client info for storing outgoing message")
+	}
+
 	return true, fmt.Sprintf("Message sent to %s", recipient)
+}
+
+// Get the database path for a specific user, creating directories if needed
+func getUserDBPath(userID string) string {
+	// First ensure the main store directory exists
+	storeDir := "store"
+	if _, err := os.Stat(storeDir); os.IsNotExist(err) {
+		log.Printf("Creating main store directory: %s", storeDir)
+		if err := os.MkdirAll(storeDir, 0755); err != nil {
+			log.Printf("Error creating main store directory: %v", err)
+		}
+	}
+
+	// Create user-specific directory
+	userDir := fmt.Sprintf("%s/%s", storeDir, userID)
+	if _, err := os.Stat(userDir); os.IsNotExist(err) {
+		log.Printf("Creating user directory: %s", userDir)
+		if err := os.MkdirAll(userDir, 0755); err != nil {
+			log.Printf("Error creating user directory for %s: %v", userID, err)
+		}
+	}
+
+	dbPath := fmt.Sprintf("%s/messages.db", userDir)
+	log.Printf("Database path for user %s: %s", userID, dbPath)
+	return dbPath
 }
 
 // Load or create a new WhatsApp client for a user
 func loadClientForUser(userID string) (*ClientInfo, error, bool) {
+	log.Printf("Loading WhatsApp client for user %s", userID)
+
 	// Check if client already exists and is connected
 	clientsMutex.RLock()
 	if clientInfo, exists := clients[userID]; exists && clientInfo.Client.IsConnected() {
+		log.Printf("Found existing connected client for user %s", userID)
 		clientsMutex.RUnlock()
 		return clientInfo, nil, true // Client exists and is connected
 	}
@@ -316,6 +443,7 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 
 	// Create directory for database if it doesn't exist
 	if err := os.MkdirAll("store", 0755); err != nil {
+		log.Printf("Failed to create store directory: %v", err)
 		return nil, fmt.Errorf("failed to create store directory: %v", err), false
 	}
 
@@ -323,12 +451,15 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 	logger := waLog.Stdout(fmt.Sprintf("Client-%s", userID), "INFO", true)
 	dbLog := waLog.Stdout(fmt.Sprintf("DB-%s", userID), "INFO", true)
 
+	log.Printf("Creating store and client for user %s", userID)
+
 	// DB path for this user's session
-	dbPath := fmt.Sprintf("file:store/whatsapp_%s.db?_foreign_keys=on", userID)
+	dbPath := getUserDBPath(userID)
 
 	// Create message store
 	messageStore, err := NewMessageStore(userID)
 	if err != nil {
+		log.Printf("Failed to create message store for user %s: %v", userID, err)
 		return nil, fmt.Errorf("failed to create message store: %v", err), false
 	}
 
@@ -336,6 +467,7 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 	container, err := sqlstore.New("sqlite3", dbPath, dbLog)
 	if err != nil {
 		messageStore.Close()
+		log.Printf("Failed to create WhatsApp container for user %s: %v", userID, err)
 		return nil, fmt.Errorf("failed to connect to database: %v", err), false
 	}
 
@@ -347,6 +479,7 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 			logger.Infof("Created new device for user %s", userID)
 		} else {
 			messageStore.Close()
+			log.Printf("Failed to get device for user %s: %v", userID, err)
 			return nil, fmt.Errorf("failed to get device: %v", err), false
 		}
 	}
@@ -360,18 +493,36 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 		UserID:       userID,
 	}
 
+	log.Printf("Setting up event handlers for user %s", userID)
+
 	// Set up event handling
 	client.AddEventHandler(func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
+			log.Printf("Received message event for user %s", userID)
 			handleMessage(clientInfo, v)
 		case *events.HistorySync:
+			log.Printf("Received history sync event for user %s", userID)
 			handleHistorySync(clientInfo, v)
 		case *events.Connected:
 			logger.Infof("Connected to WhatsApp for user %s", userID)
 		case *events.LoggedOut:
 			logger.Warnf("Device logged out for user %s", userID)
 			// Could implement auto-reconnect here
+		case *events.Receipt:
+			if len(v.MessageIDs) > 0 {
+				log.Printf("Received receipt event for user %s: messages %v were %s",
+					userID, v.MessageIDs, v.Type)
+			} else {
+				log.Printf("Received receipt event for user %s with type %s",
+					userID, v.Type)
+			}
+		case *events.Presence:
+			log.Printf("Received presence event for user %s: %s is %s",
+				userID, v.From.User, v.Unavailable)
+		case *events.ChatPresence:
+			log.Printf("Received chat presence event for user %s: %s",
+				userID, v.State)
 		}
 	})
 
@@ -380,14 +531,19 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 	clients[userID] = clientInfo
 	clientsMutex.Unlock()
 
+	log.Printf("Client for user %s created and stored", userID)
+
 	// Only connect if there's already a session
 	isLoggedIn := client.Store.ID != nil
 	if isLoggedIn {
+		log.Printf("User %s is already logged in, connecting...", userID)
 		go func() {
 			if err := client.Connect(); err != nil {
 				logger.Errorf("Failed to connect: %v", err)
 			}
 		}()
+	} else {
+		log.Printf("User %s is not logged in yet", userID)
 	}
 
 	return clientInfo, nil, isLoggedIn
@@ -395,6 +551,9 @@ func loadClientForUser(userID string) (*ClientInfo, error, bool) {
 
 // Start a REST API server to expose the WhatsApp client functionality
 func startRESTServer(port int) {
+	// Start background goroutine to clean up expired QR sessions
+	go cleanupExpiredQRSessions()
+
 	// Handler for sending messages
 	http.HandleFunc("/api/send", func(w http.ResponseWriter, r *http.Request) {
 		// Only allow POST requests
@@ -416,18 +575,23 @@ func startRESTServer(port int) {
 			return
 		}
 
+		log.Printf("Received message send request from user %s to recipient %s", req.UserID, req.Recipient)
+
 		// Get client for the user
 		clientsMutex.RLock()
 		clientInfo, exists := clients[req.UserID]
 		clientsMutex.RUnlock()
 
 		if !exists || !clientInfo.Client.IsConnected() {
+			log.Printf("User %s not connected, unable to send message", req.UserID)
 			http.Error(w, "User not connected", http.StatusBadRequest)
 			return
 		}
 
 		// Send the message
+		log.Printf("Sending message from user %s to %s: %s", req.UserID, req.Recipient, req.Message)
 		success, message := sendWhatsAppMessage(clientInfo.Client, req.Recipient, req.Message)
+		log.Printf("Message send result: success=%v, message=%s", success, message)
 
 		// Set response headers
 		w.Header().Set("Content-Type", "application/json")
@@ -462,6 +626,63 @@ func startRESTServer(port int) {
 			return
 		}
 
+		// Check if we're already processing an auth request for this user
+		authProcessesMutex.Lock()
+		isProcessing := authProcesses[req.UserID]
+		if !isProcessing {
+			authProcesses[req.UserID] = true
+		}
+		authProcessesMutex.Unlock()
+
+		if isProcessing {
+			// Another process is already handling auth, check if QR is ready
+			time.Sleep(500 * time.Millisecond) // Brief wait to let the other process generate QR
+
+			qrSessionsMutex.RLock()
+			session, hasQR := qrSessions[req.UserID]
+			qrSessionsMutex.RUnlock()
+
+			if hasQR && time.Now().Before(session.ExpiresAt) {
+				// Return the existing QR code
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(AuthResponse{
+					Success:       true,
+					QRString:      session.QRCode,
+					QRImageBase64: session.QRImageBase64,
+					Message:       "Please scan this QR code with your WhatsApp app",
+					IsLoggedIn:    false,
+				})
+				return
+			}
+
+			// If we don't have a valid QR yet, continue and generate one
+		}
+
+		// Make sure we mark auth process as completed when done
+		defer func() {
+			authProcessesMutex.Lock()
+			delete(authProcesses, req.UserID)
+			authProcessesMutex.Unlock()
+		}()
+
+		// Check for existing valid QR session first
+		qrSessionsMutex.RLock()
+		session, hasQR := qrSessions[req.UserID]
+		qrSessionsMutex.RUnlock()
+
+		// Return existing QR if valid
+		if hasQR && time.Now().Before(session.ExpiresAt) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(AuthResponse{
+				Success:       true,
+				QRString:      session.QRCode,
+				QRImageBase64: session.QRImageBase64,
+				Message:       "Please scan this QR code with your WhatsApp app",
+				IsLoggedIn:    false,
+			})
+			return
+		}
+
 		// Load or create client
 		clientInfo, err, isLoggedIn := loadClientForUser(req.UserID)
 		if err != nil {
@@ -470,9 +691,10 @@ func startRESTServer(port int) {
 		}
 
 		// If already logged in, just return success
-		if isLoggedIn {
+		if isLoggedIn && clientInfo != nil && clientInfo.Client != nil && clientInfo.Client.Store != nil && clientInfo.Client.Store.ID != nil {
+			// Try to connect (ignore already connected errors)
 			err = clientInfo.Client.Connect()
-			if err != nil {
+			if err != nil && !strings.Contains(err.Error(), "websocket is already connected") {
 				http.Error(w, fmt.Sprintf("Failed to connect: %v", err), http.StatusInternalServerError)
 				return
 			}
@@ -486,12 +708,24 @@ func startRESTServer(port int) {
 			return
 		}
 
-		// Not logged in yet, generate QR code
+		// Not logged in, need to generate a new QR code
+		if clientInfo == nil || clientInfo.Client == nil {
+			http.Error(w, "Client initialization error", http.StatusInternalServerError)
+			return
+		}
+
+		// Reset connection before requesting new QR code to avoid "already connected" errors
+		resetClientConnection(req.UserID)
+
+		// Get QR channel and connect
 		qrChan, _ := clientInfo.Client.GetQRChannel(context.Background())
 		err = clientInfo.Client.Connect()
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to connect: %v", err), http.StatusInternalServerError)
-			return
+			// Only treat as an error if it's not "already connected"
+			if !strings.Contains(err.Error(), "websocket is already connected") {
+				http.Error(w, fmt.Sprintf("Failed to connect: %v", err), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		// Wait for QR code with timeout
@@ -501,6 +735,16 @@ func startRESTServer(port int) {
 				// Generate QR code as Base64 string
 				qrCode := evt.Code
 				qrBase64 := generateQRAsBase64(qrCode)
+
+				// Store this QR session
+				qrSessionsMutex.Lock()
+				qrSessions[req.UserID] = &QRSession{
+					QRCode:        qrCode,
+					QRImageBase64: qrBase64,
+					ExpiresAt:     time.Now().Add(55 * time.Second), // QR codes valid for ~60 seconds
+					Client:        clientInfo.Client,
+				}
+				qrSessionsMutex.Unlock()
 
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(AuthResponse{
@@ -531,22 +775,61 @@ func startRESTServer(port int) {
 		clientsMutex.RUnlock()
 
 		w.Header().Set("Content-Type", "application/json")
-		if !exists {
+		if !exists || clientInfo == nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success":   true,
 				"connected": false,
+				"logged_in": false,
+				"user_id":   userID,
 				"message":   "User not found",
 			})
 			return
 		}
 
+		// Check for nil pointers
+		if clientInfo.Client == nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success":   true,
+				"connected": false,
+				"logged_in": false,
+				"user_id":   userID,
+				"message":   "Client not initialized",
+			})
+			return
+		}
+
 		isConnected := clientInfo.Client.IsConnected()
-		isLoggedIn := clientInfo.Client.Store.ID != nil
+		isLoggedIn := clientInfo.Client.Store != nil && clientInfo.Client.Store.ID != nil
+
+		// If not connected but should be logged in, try to reconnect
+		if !isConnected && isLoggedIn {
+			err := clientInfo.Client.Connect()
+			if err == nil {
+				isConnected = true
+			} else {
+				fmt.Printf("Failed to reconnect client for user %s: %v\n", userID, err)
+			}
+		}
+
+		// If user is logged in, we can clean up any QR sessions
+		if isLoggedIn {
+			qrSessionsMutex.Lock()
+			delete(qrSessions, userID)
+			qrSessionsMutex.Unlock()
+		}
+
+		// Get phone number safely
+		var phoneNumber string
+		if isLoggedIn && clientInfo.Client.Store != nil && clientInfo.Client.Store.ID != nil {
+			phoneNumber = clientInfo.Client.Store.ID.User
+		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":     true,
 			"connected":   isConnected,
 			"logged_in":   isLoggedIn,
 			"user_id":     userID,
-			"phone":       clientInfo.Client.Store.ID.User,
+			"phone":       phoneNumber,
 			"client_info": fmt.Sprintf("%p", clientInfo.Client),
 		})
 	})
@@ -1451,7 +1734,33 @@ func startRESTServer(port int) {
 		json.NewEncoder(w).Encode(message)
 	})
 
-	// Add helper function for getting message context
+	// Handler for disconnecting a user
+	http.HandleFunc("/api/disconnect", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req DisconnectRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if req.UserID == "" {
+			http.Error(w, "UserID is required", http.StatusBadRequest)
+			return
+		}
+
+		success, message := disconnectUser(req.UserID)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(DisconnectResponse{
+			Success: success,
+			Message: message,
+		})
+	})
+
 	// Start the server
 	serverAddr := fmt.Sprintf(":%d", port)
 	fmt.Printf("Starting REST API server on %s...\n", serverAddr)
@@ -1694,9 +2003,14 @@ func GetChatName(clientInfo *ClientInfo, jid types.JID, chatJID string, conversa
 
 // Handle regular incoming messages
 func handleMessage(clientInfo *ClientInfo, msg *events.Message) {
+	// Log that we've received a message to help with debugging
+	clientInfo.Logger.Infof("Received message event from %s in chat %s",
+		msg.Info.Sender.User, msg.Info.Chat.String())
+
 	// Extract text content
 	content := extractTextContent(msg.Message)
 	if content == "" {
+		clientInfo.Logger.Infof("Skipping non-text message from %s", msg.Info.Sender.User)
 		return // Skip non-text messages
 	}
 
@@ -1710,13 +2024,13 @@ func handleMessage(clientInfo *ClientInfo, msg *events.Message) {
 	// Update chat in database with the message timestamp (keeps last message time updated)
 	err := clientInfo.MessageStore.StoreChat(chatJID, name, msg.Info.Timestamp)
 	if err != nil {
-		clientInfo.Logger.Warnf("Failed to store chat: %v", err)
+		clientInfo.Logger.Errorf("Failed to store chat: %v", err)
 	}
 
 	// Check if this message already exists in database before storing it
 	exists, err := messageExists(clientInfo.MessageStore.db, msg.Info.ID, chatJID)
 	if err != nil {
-		clientInfo.Logger.Warnf("Failed to check if message exists: %v", err)
+		clientInfo.Logger.Errorf("Failed to check if message exists: %v", err)
 	}
 
 	if !exists {
@@ -1730,7 +2044,7 @@ func handleMessage(clientInfo *ClientInfo, msg *events.Message) {
 			msg.Info.IsFromMe,
 		)
 		if err != nil {
-			clientInfo.Logger.Warnf("Failed to store message: %v", err)
+			clientInfo.Logger.Errorf("Failed to store message: %v", err)
 		} else {
 			// Log message reception
 			timestamp := msg.Info.Timestamp.Format("2006-01-02 15:04:05")
@@ -1747,12 +2061,28 @@ func handleMessage(clientInfo *ClientInfo, msg *events.Message) {
 
 // Helper function to check if a message exists
 func messageExists(db *sql.DB, id string, chatJID string) (bool, error) {
+	if db == nil {
+		log.Printf("ERROR: Database connection is nil in messageExists")
+		return false, fmt.Errorf("database connection is nil")
+	}
+
+	if id == "" || chatJID == "" {
+		log.Printf("WARNING: Empty message ID (%s) or chat JID (%s) in messageExists", id, chatJID)
+		return false, nil
+	}
+
+	log.Printf("Checking if message %s exists in chat %s", id, chatJID)
+
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM messages WHERE id = ? AND chat_jid = ?", id, chatJID).Scan(&count)
 	if err != nil {
+		log.Printf("Error checking if message exists: %v", err)
 		return false, err
 	}
-	return count > 0, nil
+
+	exists := count > 0
+	log.Printf("Message %s in chat %s exists: %v", id, chatJID, exists)
+	return exists, nil
 }
 
 // Handle history sync events
@@ -1894,4 +2224,185 @@ func generateQRAsBase64(text string) string {
 
 	// Convert to base64
 	return base64.StdEncoding.EncodeToString(buf.Bytes())
+}
+
+// Helper function to check if a user already has an active QR session
+func getActiveQRSession(userID string) *QRSession {
+	qrSessionsMutex.RLock()
+	defer qrSessionsMutex.RUnlock()
+
+	session, exists := qrSessions[userID]
+	if !exists {
+		return nil
+	}
+
+	// Check if session has expired
+	if time.Now().After(session.ExpiresAt) {
+		// Clean up expired session
+		delete(qrSessions, userID)
+		return nil
+	}
+
+	return session
+}
+
+// Helper function to store a new QR session
+func storeQRSession(userID string, qrCode string, qrBase64 string, client *whatsmeow.Client) {
+	qrSessionsMutex.Lock()
+	defer qrSessionsMutex.Unlock()
+
+	// QR codes are typically valid for 60 seconds, but we'll use 55 to be safe
+	qrSessions[userID] = &QRSession{
+		QRCode:        qrCode,
+		QRImageBase64: qrBase64,
+		ExpiresAt:     time.Now().Add(55 * time.Second),
+		Client:        client,
+	}
+}
+
+// Periodically clean up expired QR sessions
+func cleanupExpiredQRSessions() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			now := time.Now()
+
+			// Get a list of expired sessions to avoid holding lock during cleanup
+			var expiredSessions []string
+
+			qrSessionsMutex.RLock()
+			for userID, session := range qrSessions {
+				if now.After(session.ExpiresAt) {
+					expiredSessions = append(expiredSessions, userID)
+				}
+			}
+			qrSessionsMutex.RUnlock()
+
+			// Process expired sessions
+			for _, userID := range expiredSessions {
+				fmt.Printf("Cleaning up expired QR session for user %s\n", userID)
+
+				// Check if the client is logged in before disconnecting
+				clientsMutex.RLock()
+				clientInfo, exists := clients[userID]
+				clientsMutex.RUnlock()
+
+				// If the client exists but is not logged in, disconnect it
+				if exists && clientInfo != nil && clientInfo.Client != nil {
+					isLoggedIn := clientInfo.Client.Store != nil && clientInfo.Client.Store.ID != nil
+
+					if !isLoggedIn && clientInfo.Client.IsConnected() {
+						// Disconnect the client to free up the socket
+						fmt.Printf("Disconnecting abandoned client for user %s\n", userID)
+						clientInfo.Client.Disconnect()
+					}
+				}
+
+				// Remove the session
+				qrSessionsMutex.Lock()
+				delete(qrSessions, userID)
+				qrSessionsMutex.Unlock()
+			}
+		}
+	}
+}
+
+// Reset client connection to ensure we can get a fresh QR code
+func resetClientConnection(userID string) {
+	clientsMutex.Lock()
+	defer clientsMutex.Unlock()
+
+	clientInfo, exists := clients[userID]
+	if !exists || clientInfo == nil || clientInfo.Client == nil {
+		return
+	}
+
+	// Only disconnect if not logged in
+	if clientInfo.Client.Store == nil || clientInfo.Client.Store.ID == nil {
+		if clientInfo.Client.IsConnected() {
+			clientInfo.Client.Disconnect()
+			fmt.Printf("Disconnected client for user %s to reset connection\n", userID)
+		}
+	}
+}
+
+// disconnectUser removes the WhatsApp connection and deletes the database for a user
+func disconnectUser(userID string) (bool, string) {
+	// Get client info
+	clientInfo, exists := clients[userID]
+	if !exists {
+		// If client doesn't exist in active connections, just delete the database
+		dbPath := getUserDBPath(userID)
+		userDir := fmt.Sprintf("store/%s", userID)
+
+		if _, err := os.Stat(dbPath); err == nil {
+			// Delete the database file
+			if err := os.Remove(dbPath); err != nil {
+				return false, fmt.Sprintf("Failed to delete database: %v", err)
+			}
+
+			// Remove directory if empty
+			if files, err := os.ReadDir(userDir); err == nil && len(files) == 0 {
+				if err := os.Remove(userDir); err != nil {
+					log.Printf("Failed to remove empty user directory: %v", err)
+				}
+			}
+
+			return true, "User disconnected and database deleted"
+		}
+		return false, "User not connected"
+	}
+
+	// Logout the client if it exists and is connected
+	if clientInfo.Client != nil {
+		// Check if the client is logged in
+		if clientInfo.Client.IsConnected() {
+			err := clientInfo.Client.Logout()
+			if err != nil {
+				log.Printf("Error logging out user %s: %v", userID, err)
+				// Continue anyway to clean up resources
+			}
+		}
+
+		// Disconnect the client
+		clientInfo.Client.Disconnect()
+	}
+
+	// Close the message store
+	if clientInfo.MessageStore != nil {
+		if err := clientInfo.MessageStore.Close(); err != nil {
+			log.Printf("Error closing message store for user %s: %v", userID, err)
+		}
+	}
+
+	// Remove from active connections
+	delete(clients, userID)
+
+	// Delete the QR session if it exists
+	delete(qrSessions, userID)
+
+	// Skip device store deletion since we don't have access to the correct container variable
+	// This will be handled on next connection attempt
+
+	// Delete the database file using the new path structure
+	dbPath := getUserDBPath(userID)
+	userDir := fmt.Sprintf("store/%s", userID)
+
+	if _, err := os.Stat(dbPath); err == nil {
+		if err := os.Remove(dbPath); err != nil {
+			return false, fmt.Sprintf("User disconnected but failed to delete database: %v", err)
+		}
+	}
+
+	// Optionally remove the user directory if it's empty
+	if files, err := os.ReadDir(userDir); err == nil && len(files) == 0 {
+		if err := os.Remove(userDir); err != nil {
+			log.Printf("Failed to remove empty user directory: %v", err)
+		}
+	}
+
+	return true, "User disconnected and database deleted"
 }

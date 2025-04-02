@@ -55,15 +55,17 @@ class WhatsAppSession:
     user_id: str
     is_logged_in: bool
     qr_data: Optional[str] = None
-    qr_image_base64: Optional[str] = None
+    qr_image_ascii: Optional[str] = None
     phone: Optional[str] = None
     error: Optional[str] = None
 
 def get_messages_db_path(user_id: str) -> str:
     """Get the database path for a specific user"""
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'whatsapp-bridge', 'store', f'messages_{user_id}.db')
-    print('[get_messages_db_path]', path)
-    return path
+    base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'whatsapp-bridge', 'store')
+    user_dir = os.path.join(base_path, user_id)
+    db_path = os.path.join(user_dir, 'messages.db')
+    print('[get_messages_db_path]', db_path)
+    return db_path
 
 def print_message(message: Message, show_chat_info: bool = True) -> None:
     """Print a single message with consistent formatting."""
@@ -159,7 +161,7 @@ def authenticate_whatsapp_user(user_id: str, timeout: int = DEFAULT_TIMEOUT) -> 
                 user_id=user_id,
                 is_logged_in=data.get("is_logged_in", False),
                 qr_data=data.get("qr_string"),
-                qr_image_base64=data.get("qr_image_base64"),
+                qr_image_ascii=data.get("qr_image_base64"),
                 error=None
             )
         else:
@@ -660,6 +662,38 @@ def send_message(user_id: str, recipient: str, message: str, timeout: int = DEFA
             "user_id": user_id,
             "recipient": recipient,
             "message": message
+        }
+        
+        response = requests.post(url, json=payload, timeout=timeout)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            result = response.json()
+            return result.get("success", False), result.get("message", "Unknown response")
+        else:
+            return False, f"Error: HTTP {response.status_code} - {response.text}"
+            
+    except requests.RequestException as e:
+        return False, f"Request error: {str(e)}"
+    except json.JSONDecodeError:
+        return False, f"Error parsing response: {response.text}"
+    except Exception as e:
+        return False, f"Unexpected error: {str(e)}"
+
+def disconnect_whatsapp_user(user_id: str, timeout: int = DEFAULT_TIMEOUT) -> Tuple[bool, str]:
+    """Disconnect a WhatsApp user and delete their data.
+    
+    Args:
+        user_id: The user ID to disconnect
+        timeout: Request timeout in seconds
+        
+    Returns:
+        Tuple[bool, str]: A tuple containing success status and a status message
+    """
+    try:
+        url = f"{WHATSAPP_API_BASE_URL}/disconnect"
+        payload = {
+            "user_id": user_id
         }
         
         response = requests.post(url, json=payload, timeout=timeout)

@@ -3,6 +3,11 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 class AuthenticateRequest(BaseModel):
+    include_qr_base64: Optional[bool] = Field(True, description="Whether to include the QR image in the response")
+    include_qr_ascii: Optional[bool] = Field(True, description="Whether to include the QR image in the response")
+    include_component: Optional[bool] = Field(True, description="Whether to include the component in the response")
+
+class CheckStatusRequest(BaseModel):
     pass
 
 class SendMessageRequest(BaseModel):
@@ -71,6 +76,7 @@ class SessionModel(BaseModel):
     is_logged_in: bool
     qr_data: Optional[str] = None
     qr_image_base64: Optional[str] = None
+    qr_image_ascii: Optional[str] = None
     phone: Optional[str] = None
     error: Optional[str] = None
 
@@ -130,4 +136,11 @@ class CheckStatusResponse(BaseModel):
 
 class ListUsersResponse(BaseModel):
     data: SessionListResponse
-    message: Optional[str] = None 
+    message: Optional[str] = None
+
+class DisconnectRequest(BaseModel):
+    pass    
+
+class DisconnectResponse(BaseModel):
+    success: bool
+    message: str 

@@ -10,6 +10,10 @@ from .schema import (
 import os
 from ..common.component_handler import load_components, prepare_components_auto
 from datetime import datetime
+from io import BytesIO
+import base64
+import qrcode
+import qrcode.constants
 
 class WhatsAppService:
     def __init__(self, client: WhatsAppClient):
@@ -64,15 +68,38 @@ class WhatsAppService:
             user_id=session.user_id,
             is_logged_in=session.is_logged_in,
             qr_data=session.qr_data,
-            qr_image_base64=session.qr_image_base64,
+            qr_image_ascii=session.qr_image_ascii,
             phone=session.phone,
             error=session.error
         )
+    
+    def _make_qr_code_bas64(self, text: str | None) -> str | None:
+        if text is None or len(text) == 0:
+            return None
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(text)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
         
-    def authenticate(self) -> AuthenticateResponse:
+    def authenticate(self, include_qr_base64: bool = True, include_qr_ascii: bool = True, include_component: bool = True) -> AuthenticateResponse:
         session = self.client.authenticate()
         session_model = self._convert_session(session)
-        return self.prepare_response(session_model, "WhatsAppQRCodeView")
+        if include_qr_base64:
+            session_model.qr_image_base64 = self._make_qr_code_bas64(text=session.qr_data)
+        if not include_qr_ascii:
+            session_model.qr_image_ascii = None
+        if include_component:
+            return self.prepare_response(session_model, "WhatsAppQRCodeView")
+        else:
+            return self.prepare_response(session_model)
         
     def check_status(self) -> CheckStatusResponse:
         session = self.client.check_status()
@@ -148,4 +175,13 @@ class WhatsAppService:
         messages = self.client.get_recent_messages(limit)
         message_models = [self._convert_message(message) for message in messages]
         response = MessageListResponse(items=message_models)
-        return self.prepare_response(response, "WhatsAppMessagesView") 
+        return self.prepare_response(response, "WhatsAppMessagesView")
+    
+    def disconnect(self) -> ApiResponse:
+        """Disconnect a user from WhatsApp and delete their data."""
+        success, message = self.client.disconnect()
+        response = {
+            "success": success,
+            "message": message
+        }
+        return self.prepare_response(response) 
