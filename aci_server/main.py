@@ -80,6 +80,7 @@ from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
 from integrations.falai.route import router as falai_router
+from integrations.whatsapp.route import router as whatsapp_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 import os
@@ -172,7 +173,8 @@ INTEGRATION_ROUTERS = {
     "hunterio": hunterio_router,
     "zip_code": zip_code_router,
     "falai": falai_router,
-    "airbnb": airbnb_router
+    "airbnb": airbnb_router,
+    "whatsapp": whatsapp_router
 }
 
 
@@ -182,6 +184,9 @@ async def check_user_permission(request: Request, tool: str, method: str):
         
         if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
             return
+        
+        if tool == "whatsapp":
+            return
 
         
         user_id = await get_user_from_request(request)
@@ -190,8 +195,9 @@ async def check_user_permission(request: Request, tool: str, method: str):
         if not user_tools:
             raise HTTPException(status_code=401, detail="User not found")
         
-        #if tool not in user_tools:
+        if tool not in user_tools:
             raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
+        
         if method not in user_tools[tool]:
             raise HTTPException(status_code=403, detail=f"Action {method} is not availiable for {tool} for this user")
     except HTTPException as e:

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  whatsapp-bridge:
+    build:
+      context: ./services/whatsapp-bridge
+      dockerfile: Dockerfile
+    image: whatsapp-bridge:latest
+    container_name: whatsapp-bridge
+    ports:
+      - "8080:8080"  # Expose to public in production
+    volumes:
+      - whatsapp_data:/app/store
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # For improved security, consider adding these options:
+    # user: "nonroot:nonroot"  # Run as non-root user
+    # read_only: true  # Make the container filesystem read-only
+    # security_opt:
+    #   - no-new-privileges:true  # Prevent gaining new privileges
+
+networks:
+  default:
+    name: whatsapp-bridge-network
+
+volumes:
+  whatsapp_data:
+    name: whatsapp_data_prod 
