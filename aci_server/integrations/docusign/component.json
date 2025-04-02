@@ -1,0 +1,10 @@
+[
+    {
+      "name": "DocuSign",
+      "version": "1.0.0",
+      "description": "A React component for displaying DocuSign files",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]

@@ -573,6 +573,53 @@ class AirtableTokenRefresher(BaseTokenRefresher):
             logging.error(f"Error refreshing Airtable token: {str(e)}")
             raise ValueError(f"Failed to refresh Airtable token: {str(e)}")
 
+class DocuSignTokenRefresher(BaseTokenRefresher):
+    @staticmethod
+    async def refresh(request: Request, token_data: dict) -> dict:
+        try:
+            refresh_token = token_data.get('refresh_token')
+            if not refresh_token:
+                raise ValueError("No refresh token available")
+                
+            client_id = os.getenv('DOCUSIGN_CLIENT_ID')
+            client_secret = os.getenv('DOCUSIGN_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                raise ValueError("Missing DocuSign client credentials")
+                
+            token_url = "https://account.docusign.com/oauth/token"
+            payload = {
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token,
+                'client_id': client_id,
+                'client_secret': client_secret
+            }
+            
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(token_url, headers=headers, data=payload) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise ValueError(f"Failed to refresh token: {error_text}")
+                        
+                    token_response = await response.json()
+                    
+            new_token_data = {
+                'access_token': token_response['access_token'],
+                'refresh_token': token_response.get('refresh_token', refresh_token),
+                'expires_at': int(time.time()) + token_response.get('expires_in', 3600),
+                'raw_token_data': token_response
+            }
+            
+            return await TokenService.update_token(request, token_data, new_token_data)
+            
+        except Exception as e:
+            print(f"Error refreshing DocuSign token: {str(e)}")
+            raise HTTPException(status_code=401, detail=f"Failed to refresh token: {str(e)}")
+
 class TokenRefresherFactory:
     _refreshers = {
         'google': GoogleTokenRefresher,
@@ -586,6 +633,7 @@ class TokenRefresherFactory:
         "sentry": SentryTokenRefresher,
         "reddit": RedditTokenRefresher,
         "airtable": AirtableTokenRefresher,
+        "docusign": DocuSignTokenRefresher,
     }
 
     @classmethod
