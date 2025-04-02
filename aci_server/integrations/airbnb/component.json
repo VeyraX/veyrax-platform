@@ -1,0 +1,10 @@
+[
+    {
+      "name": "Airbnb",
+      "version": "1.0.0",
+      "description": "A React component for displaying Airbnb listings",
+      "related_endpoints":[""],
+      "component": {
+      }
+    }
+]
