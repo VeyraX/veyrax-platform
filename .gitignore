@@ -69,6 +69,10 @@ venv/
 .env*
 *.env*
 
+# celery redis config
+conf.d/redisdb.d/conf.yaml
+
+# whatsapp
 /services/whatsapp-bridge/store
 /services/whatsapp-bridge/store/*
 /services/whatsapp-bridge/whatsapp-client
