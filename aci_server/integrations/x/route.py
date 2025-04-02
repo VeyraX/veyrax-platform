@@ -26,7 +26,7 @@ async def get_twitter_service(request: Request):
 @router.post("/get_user_profile", response_model=ApiResponse)
 @schema(
     input_schema_class=GetUserProfileParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=UserProfileResponse,
     examples=examples["/x/get_user_profile"]
 )
 async def get_user_profile(
@@ -39,7 +39,7 @@ async def get_user_profile(
 @router.post("/get_user_timeline", response_model=ApiResponse)
 @schema(
     input_schema_class=GetUserTimelineParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=UserTimelineResponse,
     examples=examples["/x/get_user_timeline"]
 )
 async def get_user_timeline(
@@ -52,7 +52,7 @@ async def get_user_timeline(
 @router.post("/get_user_following", response_model=ApiResponse)
 @schema(
     input_schema_class=GetUserFollowingParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=UserFollowingResponse,
     examples=examples["/x/get_user_following"]
 )
 async def get_user_following(
@@ -65,7 +65,7 @@ async def get_user_following(
 @router.post("/get_user_followers", response_model=ApiResponse)
 @schema(
     input_schema_class=GetUserFollowersParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=UserFollowersResponse,
     examples=examples["/x/get_user_followers"]
 )
 async def get_user_followers(
@@ -91,7 +91,7 @@ async def get_tweet(
 @router.post("/get_tweet_retweets", response_model=ApiResponse)
 @schema(
     input_schema_class=GetTweetRetweetsParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=TweetRetweetsResponse,
     examples=examples["/x/get_tweet_retweets"]
 )
 async def get_tweet_retweets(
@@ -104,7 +104,7 @@ async def get_tweet_retweets(
 @router.post("/search_tweets", response_model=ApiResponse)
 @schema(
     input_schema_class=SearchTweetsParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=SearchTweetsResponse,
     examples=examples["/x/search_tweets"]
 )
 async def search_tweets(
@@ -117,7 +117,7 @@ async def search_tweets(
 @router.post("/get_tweet_thread", response_model=ApiResponse)
 @schema(
     input_schema_class=GetTweetThreadParams,
-    output_schema_class=ApiResponse,
+    output_schema_class=TweetThreadResponse,
     examples=examples["/x/get_tweet_thread"]
 )
 async def get_tweet_thread(
@@ -127,6 +127,11 @@ async def get_tweet_thread(
     return service.get_tweet_thread(params)
 
 @router.post("/get_latest_replies", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetLatestRepliesParams,
+    output_schema_class=LatestRepliesResponse,
+    examples=examples["/x/get_latest_replies"]
+)
 async def get_latest_replies(
     params: GetLatestRepliesParams,
     service: TwitterService = Depends(get_twitter_service)
@@ -134,6 +139,11 @@ async def get_latest_replies(
     return service.get_latest_replies(params)
 
 @router.post("/get_list_timeline", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetListTimelineParams,
+    output_schema_class=ListTimelineResponse,
+    examples=examples["/x/get_list_timeline"]
+)
 async def get_list_timeline(
     params: GetListTimelineParams,
     service: TwitterService = Depends(get_twitter_service)
@@ -141,6 +151,11 @@ async def get_list_timeline(
     return service.get_list_timeline(params)
 
 @router.post("/get_community_timeline", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetCommunityTimelineParams,
+    output_schema_class=CommunityTimelineResponse,
+    examples=examples["/x/get_community_timeline"]
+)
 async def get_community_timeline(
     params: GetCommunityTimelineParams,
     service: TwitterService = Depends(get_twitter_service)
@@ -148,6 +163,11 @@ async def get_community_timeline(
     return service.get_community_timeline(params)
 
 @router.post("/get_list_followers", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetListFollowersParams,
+    output_schema_class=ListFollowersResponse,
+    examples=examples["/x/get_list_followers"]
+)
 async def get_list_followers(
     params: GetListFollowersParams,
     service: TwitterService = Depends(get_twitter_service)
@@ -155,6 +175,11 @@ async def get_list_followers(
     return service.get_list_followers(params)
 
 @router.post("/get_list_members", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetListMembersParams,
+    output_schema_class=ListMembersResponse,
+    examples=examples["/x/get_list_members"]
+)
 async def get_list_members(
     params: GetListMembersParams,
     service: TwitterService = Depends(get_twitter_service)
@@ -162,6 +187,11 @@ async def get_list_members(
     return service.get_list_members(params)
 
 @router.post("/get_space", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetSpaceParams,
+    output_schema_class=SpaceResponse,
+    examples=examples["/x/get_space"]
+)
 async def get_space(
     params: GetSpaceParams,
     service: TwitterService = Depends(get_twitter_service)
