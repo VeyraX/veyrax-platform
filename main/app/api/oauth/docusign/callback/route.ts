@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
 
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes, return_url } = JSON.parse(decodedState);
+        const { provider_id, scopes, return_url, code_verifier } = JSON.parse(decodedState);
+
+        if (!code_verifier) {
+            throw new Error('Missing code verifier');
+        }
 
         const { data: provider, error: providerError } = await supabase
             .from('providers')
@@ -46,7 +50,8 @@ export async function GET(request: NextRequest) {
                 client_secret: process.env.DOCUSIGN_CLIENT_SECRET!,
                 redirect_uri: redirectUri,
                 code,
-                grant_type: 'authorization_code'
+                grant_type: 'authorization_code',
+                code_verifier: code_verifier
             }).toString(),
         });
 
