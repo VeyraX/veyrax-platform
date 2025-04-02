@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from typing import Dict, Any
+import asyncio
 from .schema import (
     AuthenticateRequest, SendMessageRequest, GetChatsRequest, GetMessagesRequest,
     SearchContactsRequest, GetChatRequest, ValidateKeyRequest, GetRecentMessagesRequest,
@@ -21,7 +22,7 @@ examples = ExamplesLoader()
 
 async def get_whatsapp_service(request: Request):
     try:
-        # Get user_id from the authentication session
+        # Get user_id from the authentication session 
         user_id = await get_user_from_request(request)
         
         if not user_id:
@@ -41,17 +42,32 @@ async def verify_whatsapp_connection(
     """
     Dependency to verify user's WhatsApp connection status.
     Excluded from authenticate and check_status endpoints.
+    With a 15-second timeout to prevent hanging requests.
     """
     # Skip verification for authenticate and check_status
     if request.url.path.endswith("/authenticate") or request.url.path.endswith("/check_status"):
         return service
-        
-    status = service.client.check_status()
-    if not status.is_logged_in:
-        error_message = "WhatsApp connection is not active"
-        if status.error:
-            error_message = f"WhatsApp connection error: {status.error}"
-        raise HTTPException(status_code=403, detail=error_message)
+    
+    try:
+        # Add a 15-second timeout for the verify operation
+        async with asyncio.timeout(15):
+            status = service.client.check_status()
+            if not status.is_logged_in:
+                # Try to authenticate if not logged in (useful after server restart)
+                auth_response = service.authenticate()
+                # Check if authentication was successful
+                if not getattr(auth_response.data, "is_logged_in", False):
+                    # If authentication wasn't successful, still throw the error
+                    error_message = "WhatsApp connection is not active"
+                    if status.error:
+                        error_message = f"WhatsApp connection error: {status.error}"
+                    raise HTTPException(status_code=403, detail=error_message)
+    except asyncio.TimeoutError:
+        # If the operation times out, return a service unavailable error
+        raise HTTPException(status_code=503, detail="WhatsApp service unavailable: operation timed out after 15 seconds")
+    except Exception as e:
+        # For other errors, return a more specific error if possible
+        raise HTTPException(status_code=503, detail=f"WhatsApp service error: {str(e)}")
     
     return service
 

@@ -11,6 +11,8 @@ from io import BytesIO
 
 # Use environment variable for the API base URL with fallback
 WHATSAPP_API_BASE_URL = os.environ.get("WHATSAPP_API_BASE_URL", "http://localhost:8080/api")
+# Default timeout for API requests (in seconds)
+DEFAULT_TIMEOUT = 5
 
 @dataclass
 class Message:
@@ -145,11 +147,11 @@ CREATE TABLE chats (
 		)
 """
 
-def authenticate_whatsapp_user(user_id: str) -> WhatsAppSession:
+def authenticate_whatsapp_user(user_id: str, timeout: int = DEFAULT_TIMEOUT) -> WhatsAppSession:
     """Authenticate WhatsApp for a user, returns QR code data if needed"""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/auth"
-        response = requests.post(url, json={"user_id": user_id})
+        response = requests.post(url, json={"user_id": user_id}, timeout=timeout)
         
         if response.status_code == 200:
             data = response.json()
@@ -173,11 +175,11 @@ def authenticate_whatsapp_user(user_id: str) -> WhatsAppSession:
             error=f"Request error: {str(e)}"
         )
 
-def check_whatsapp_status(user_id: str) -> WhatsAppSession:
+def check_whatsapp_status(user_id: str, timeout: int = DEFAULT_TIMEOUT) -> WhatsAppSession:
     """Check status of a WhatsApp user"""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/status?user_id={user_id}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code == 200:
             data = response.json()
@@ -200,11 +202,11 @@ def check_whatsapp_status(user_id: str) -> WhatsAppSession:
             error=f"Request error: {str(e)}"
         )
 
-def list_whatsapp_users() -> List[WhatsAppSession]:
+def list_whatsapp_users(timeout: int = DEFAULT_TIMEOUT) -> List[WhatsAppSession]:
     """List all active WhatsApp users"""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/users"
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code == 200:
             data = response.json()
@@ -222,11 +224,11 @@ def list_whatsapp_users() -> List[WhatsAppSession]:
     except requests.RequestException:
         return []
 
-def print_recent_messages(user_id: str, limit=10) -> List[Message]:
+def print_recent_messages(user_id: str, limit=10, timeout: int = DEFAULT_TIMEOUT) -> List[Message]:
     """Get recent messages for a user"""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/messages/recent?user_id={user_id}&limit={limit}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             print(f"Error fetching recent messages: HTTP {response.status_code} - {response.text}")
@@ -276,7 +278,8 @@ def list_messages(
     page: int = 0,
     include_context: bool = True,
     context_before: int = 1,
-    context_after: int = 1
+    context_after: int = 1,
+    timeout: int = DEFAULT_TIMEOUT
 ) -> List[Message]:
     """Get messages matching the specified criteria with optional context."""
     try:
@@ -299,7 +302,7 @@ def list_messages(
         url += f"&context_before={context_before}&context_after={context_after}"
         
         # Make API request
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             print(f"Error fetching messages: HTTP {response.status_code} - {response.text}")
@@ -335,13 +338,14 @@ def get_message_context(
     user_id: str,
     message_id: str,
     before: int = 5,
-    after: int = 5
+    after: int = 5,
+    timeout: int = DEFAULT_TIMEOUT
 ) -> MessageContext:
     """Get context around a specific message."""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/messages/context?user_id={user_id}&message_id={message_id}&before={before}&after={after}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             raise ValueError(f"Error fetching message context: HTTP {response.status_code} - {response.text}")
@@ -413,7 +417,8 @@ def list_chats(
     limit: int = 20,
     page: int = 0,
     include_last_message: bool = True,
-    sort_by: str = "last_active"
+    sort_by: str = "last_active",
+    timeout: int = DEFAULT_TIMEOUT
 ) -> List[Chat]:
     """Get chats matching the specified criteria."""
     try:
@@ -427,7 +432,7 @@ def list_chats(
         url += f"&sort_by={sort_by}"
         
         # Make API request
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             print(f"Error fetching chats: HTTP {response.status_code} - {response.text}")
@@ -458,12 +463,12 @@ def list_chats(
         return []
 
 
-def search_contacts(user_id: str, query: str) -> List[Contact]:
+def search_contacts(user_id: str, query: str, timeout: int = DEFAULT_TIMEOUT) -> List[Contact]:
     """Search contacts by name or phone number."""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/contacts/search?user_id={user_id}&query={query}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             print(f"Error searching contacts: HTTP {response.status_code} - {response.text}")
@@ -491,7 +496,7 @@ def search_contacts(user_id: str, query: str) -> List[Contact]:
         return []
 
 
-def get_contact_chats(user_id: str, jid: str, limit: int = 20, page: int = 0) -> List[Chat]:
+def get_contact_chats(user_id: str, jid: str, limit: int = 20, page: int = 0, timeout: int = DEFAULT_TIMEOUT) -> List[Chat]:
     """Get all chats involving the contact.
     
     Args:
@@ -503,7 +508,7 @@ def get_contact_chats(user_id: str, jid: str, limit: int = 20, page: int = 0) ->
     try:
         url = f"{WHATSAPP_API_BASE_URL}/contacts/chats?user_id={user_id}&jid={jid}&limit={limit}&page={page}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code != 200:
             print(f"Error getting contact chats: HTTP {response.status_code} - {response.text}")
@@ -534,12 +539,12 @@ def get_contact_chats(user_id: str, jid: str, limit: int = 20, page: int = 0) ->
         return []
 
 
-def get_last_interaction(user_id: str, jid: str) -> Optional[Message]:
+def get_last_interaction(user_id: str, jid: str, timeout: int = DEFAULT_TIMEOUT) -> Optional[Message]:
     """Get most recent message involving the contact."""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/contacts/last-interaction?user_id={user_id}&jid={jid}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code == 404:
             return None
@@ -568,12 +573,12 @@ def get_last_interaction(user_id: str, jid: str) -> Optional[Message]:
         return None
 
 
-def get_chat(user_id: str, chat_jid: str, include_last_message: bool = True) -> Optional[Chat]:
+def get_chat(user_id: str, chat_jid: str, include_last_message: bool = True, timeout: int = DEFAULT_TIMEOUT) -> Optional[Chat]:
     """Get chat metadata by JID."""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/chats/get?user_id={user_id}&chat_jid={chat_jid}&include_last_message={'true' if include_last_message else 'false'}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code == 404:
             return None
@@ -601,12 +606,12 @@ def get_chat(user_id: str, chat_jid: str, include_last_message: bool = True) -> 
         return None
 
 
-def get_direct_chat_by_contact(user_id: str, sender_phone_number: str) -> Optional[Chat]:
+def get_direct_chat_by_contact(user_id: str, sender_phone_number: str, timeout: int = DEFAULT_TIMEOUT) -> Optional[Chat]:
     """Get chat metadata by sender phone number."""
     try:
         url = f"{WHATSAPP_API_BASE_URL}/chats/get-by-contact?user_id={user_id}&phone_number={sender_phone_number}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         
         if response.status_code == 404:
             return None
@@ -633,7 +638,7 @@ def get_direct_chat_by_contact(user_id: str, sender_phone_number: str) -> Option
         print(f"Unexpected error: {e}")
         return None
 
-def send_message(user_id: str, recipient: str, message: str) -> Tuple[bool, str]:
+def send_message(user_id: str, recipient: str, message: str, timeout: int = DEFAULT_TIMEOUT) -> Tuple[bool, str]:
     """Send a WhatsApp message to the specified recipient. For group messages use the JID.
     
     Args:
@@ -657,7 +662,7 @@ def send_message(user_id: str, recipient: str, message: str) -> Tuple[bool, str]
             "message": message
         }
         
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=timeout)
         
         # Check if the request was successful
         if response.status_code == 200:
