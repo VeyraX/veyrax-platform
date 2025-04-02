@@ -48,3 +48,5 @@ pympler==1.1 # for memory profiling
 objgraph==3.6.2
 posthog==3.23.0
 beautifulsoup4==4.13.0
+
+qrcode==8.1  # whatsapp qr code

@@ -1,0 +1,289 @@
+routes:
+  - endpoint: /whatsapp/authenticate
+    examples:
+      - scenario: "Authenticate a New User"
+        description: "Authenticate a WhatsApp user and get a QR code for scanning"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "user_id": "user123",
+              "is_logged_in": false,
+              "qr_data": "1@abcdefg123456789",
+              "qr_image_base64": "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAABlBMVEX///8AAABVwtN+AAAB+UlEQVR42uyZQYrDMAxF5Rnu0rfo3Rwod+lZ5tZzszlI7RiHSDObyUJU9Bw+Soin/nw+j8fj8Xi8yQurEaxKj2IlZCGmtKBbSgJLAtHq+lK7tNoKA0vRxPe6vZiylAIWXxD7AbJI7Ae+oMJSa8ivRKwgWy4WsZ+k1AJlNUhKCLWFdsFM7R8t7dG4Uptt+v+yjizIcg1aALH7vPcAlE1H4VXQz5CUAe2ZZUCZFWiA3eGqfZhHyGLLyGqueTfKC5RF0uaizYRcKAi6pdQEtH7aHG4+k2Lhw1ISSFtpCG0RyhqgdChtCrVBtV5MKVYBXVUoBWgLIWS1BenobEDbFWQxC0KqfZRyXAO9Xg0NiGNS2nHKBp8DWoV2xLpbBJUWMj/WmRWnAJLOXdIOS2pLthSVCooBcnQOZ5UpNNmQZYPUNV+n11aA9o8VGpqLOmdKDX2+/nPBTUBSa/CORtGgLAVSzVn2kJAhpFiKVS+ZZV+MZXN7DpRV8mXDCv2LScyHpQiQVXpgAq1PWYFN8uqRu0HJR5/fL3gBbVCWrTQbWIyFYCnmDR1NpgXhgHjAYiuJxjcbsHF1b+pRDqh3A9qHrQiQ/FKK3gRkQ1MqrHGXpYVkKfJqjWz6XTkbtF1IUu7nBZRdoH+Fx+PxeDwe3+IXSYChVVHJYb0AAAAASUVORK5CYII=",
+              "phone": null,
+              "error": null
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppQRCodeView"
+            }
+          }
+
+  - endpoint: /whatsapp/check_status
+    examples:
+      - scenario: "Check Status of Connected User"
+        description: "Check the connection status of a WhatsApp user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "user_id": "user123",
+              "is_logged_in": true,
+              "phone": "+1234567890",
+              "error": null
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppStatusView"
+            }
+          }
+
+  - endpoint: /whatsapp/disconnect
+    examples:
+      - scenario: "Disconnect WhatsApp User"
+        description: "Disconnect a user from WhatsApp and delete all their data"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true,
+              "message": "User disconnected and database deleted"
+            },
+            "message": null
+          }
+
+  - endpoint: /whatsapp/send_message
+    examples:
+      - scenario: "Send a Text Message"
+        description: "Send a message to a WhatsApp contact"
+        input_json: |
+          {
+            "recipient": "9876543210@s.whatsapp.net",
+            "message": "Hello! How are you doing today?"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "success": true,
+              "message": "Message sent successfully"
+            },
+            "message": null
+          }
+
+  - endpoint: /whatsapp/list_users
+    examples:
+      - scenario: "List Active WhatsApp Users"
+        description: "List all active WhatsApp users in the system"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "user_id": "user123",
+                  "is_logged_in": true,
+                  "phone": "+1234567890",
+                  "error": null
+                },
+                {
+                  "user_id": "user456",
+                  "is_logged_in": false,
+                  "error": "Session expired"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppUsersView"
+            }
+          }
+
+  - endpoint: /whatsapp/get_chats
+    examples:
+      - scenario: "Get User's WhatsApp Chats"
+        description: "Retrieve the list of WhatsApp chats for a user"
+        input_json: |
+          {
+            "limit": 10,
+            "page": 0,
+            "include_last_message": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "jid": "1234567890@s.whatsapp.net",
+                  "name": "John Doe",
+                  "last_message_time": "2023-07-10T15:30:00.000Z",
+                  "last_message": "See you tomorrow at the meeting!",
+                  "last_sender": "1234567890@s.whatsapp.net",
+                  "last_is_from_me": false,
+                  "is_group": false
+                },
+                {
+                  "jid": "9876543210@g.us",
+                  "name": "Work Team",
+                  "last_message_time": "2023-07-10T14:45:00.000Z",
+                  "last_message": "I'll prepare the presentation for next week",
+                  "last_sender": "5551234567@s.whatsapp.net",
+                  "last_is_from_me": false,
+                  "is_group": true
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppChatsView"
+            }
+          }
+
+  - endpoint: /whatsapp/get_messages
+    examples:
+      - scenario: "Get Messages from a Chat"
+        description: "Retrieve messages from a specific WhatsApp chat"
+        input_json: |
+          {
+            "chat_jid": "1234567890@s.whatsapp.net",
+            "limit": 20,
+            "page": 0,
+            "include_context": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "message1",
+                  "timestamp": "2023-07-10T14:30:00.000Z",
+                  "sender": "John Doe",
+                  "content": "Hello! How are you doing today?",
+                  "is_from_me": false,
+                  "chat_jid": "1234567890@s.whatsapp.net",
+                  "chat_name": "John Doe"
+                },
+                {
+                  "id": "message2",
+                  "timestamp": "2023-07-10T14:32:00.000Z",
+                  "sender": "Me",
+                  "content": "Hi John! I'm doing well, thanks for asking. How about you?",
+                  "is_from_me": true,
+                  "chat_jid": "1234567890@s.whatsapp.net",
+                  "chat_name": "John Doe"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppMessagesView"
+            }
+          }
+
+  - endpoint: /whatsapp/search_contacts
+    examples:
+      - scenario: "Search WhatsApp Contacts"
+        description: "Search for contacts by name or phone number"
+        input_json: |
+          {
+            "query": "John"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "phone_number": "1234567890",
+                  "name": "John Doe",
+                  "jid": "1234567890@s.whatsapp.net"
+                },
+                {
+                  "phone_number": "9876543210",
+                  "name": "Johnny Smith",
+                  "jid": "9876543210@s.whatsapp.net"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppContactsView"
+            }
+          }
+
+  - endpoint: /whatsapp/get_chat
+    examples:
+      - scenario: "Get Single Chat Details"
+        description: "Get details of a specific WhatsApp chat"
+        input_json: |
+          {
+            "chat_jid": "1234567890@s.whatsapp.net",
+            "include_last_message": true
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "jid": "1234567890@s.whatsapp.net",
+              "name": "John Doe",
+              "last_message_time": "2023-07-10T15:30:00.000Z",
+              "last_message": "See you tomorrow at the meeting!",
+              "last_sender": "1234567890@s.whatsapp.net",
+              "last_is_from_me": false,
+              "is_group": false
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppChatView"
+            }
+          }
+
+  - endpoint: /whatsapp/get_recent_messages
+    examples:
+      - scenario: "Get Recent Messages"
+        description: "Get most recent messages across all chats"
+        input_json: |
+          {
+            "limit": 5
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "items": [
+                {
+                  "id": "recent1",
+                  "timestamp": "2023-07-10T15:30:00.000Z",
+                  "sender": "John Doe",
+                  "content": "See you tomorrow at the meeting!",
+                  "is_from_me": false,
+                  "chat_jid": "1234567890@s.whatsapp.net",
+                  "chat_name": "John Doe"
+                },
+                {
+                  "id": "recent2",
+                  "timestamp": "2023-07-10T14:45:00.000Z",
+                  "sender": "Alice Smith",
+                  "content": "I'll prepare the presentation for next week",
+                  "is_from_me": false,
+                  "chat_jid": "5551234567@s.whatsapp.net",
+                  "chat_name": "Work Team"
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "WhatsAppMessagesView"
+            }
+          } 

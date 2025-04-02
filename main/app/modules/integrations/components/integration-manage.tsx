@@ -16,10 +16,13 @@ import {
   getProviderBaseUrl,
   getProviderCustomAuth,
   updateProviderCustomAuth,
-  validateCustomAuthSchema
+  validateCustomAuthSchema,
+  authenticateWhatsApp,
+  checkWhatsAppStatus,
+  disconnectWhatsAppProvider
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +30,13 @@ import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-confi
 import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
 import { CustomAuthForm } from "./provider-connection-forms/custom-auth-form";
 import { EmailAuthForm } from "./provider-connection-forms/email-auth-form";
+import { WhatsAppConfigForm } from "./provider-connection-forms/whatsapp-config";
+
+// Match the interface from whatsapp-config.tsx
+interface WhatsAppConfig {
+  phone?: string;
+  isLoggedIn: boolean;
+}
 
 export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
   const [apiKey, setApiKey] = useState<string>("");
@@ -55,6 +65,10 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   const [validationError, setValidationError] = useState<string | null>(null);
   const [baseUrl, setBaseUrl] = useState<string>("");
   const [originalBaseUrl, setOriginalBaseUrl] = useState<string>("");
+  const [whatsappConfig, setWhatsappConfig] = useState<WhatsAppConfig>({
+    isLoggedIn: false,
+    phone: undefined
+  });
 
   useEffect(() => {
     if (open) {
@@ -71,9 +85,12 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       } else if (provider.auth_method === 'custom') {
         fetchCustomAuth();
         setCustomAuthChanged(false);
+      } else if (provider.provider_tag === 'whatsapp') {
+        // Don't reset WhatsApp config - we'll fetch the current status
+        checkWhatsAppConnectionStatus();
       }
     }
-  }, [open, provider.id, provider.auth_method]);
+  }, [open, provider.id, provider.auth_method, provider.provider_tag, provider.connected]);
 
   const fetchApiKey = async () => {
     if (provider.auth_method !== 'api_key' && provider.auth_method !== 'api_key_with_base') return;
@@ -157,6 +174,65 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       }
     } catch (error) {
       console.error('Failed to fetch custom auth data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkWhatsAppConnectionStatus = async () => {
+    setIsLoading(true);
+    setValidationError(null);
+    
+    try {
+      // First try to get data from custom auth
+      const customAuthData = await getProviderCustomAuth(provider.id);
+      
+      console.log("WhatsApp customAuthData:", customAuthData);
+      
+      // Handle various formats of is_logged_in which might be stored in the DB
+      const isLoggedIn = 
+        customAuthData?.is_logged_in === true || 
+        customAuthData?.is_logged_in === 'true' || 
+        customAuthData?.isLoggedIn === true || 
+        customAuthData?.isLoggedIn === 'true';
+      
+      if (customAuthData && isLoggedIn) {
+        setWhatsappConfig({
+          isLoggedIn: true,
+          phone: customAuthData.phone || customAuthData.phoneNumber
+        });
+        
+        // Update provider connection status if it's now connected
+        if (!provider.connected) {
+          onUpdate();
+        }
+        
+        setIsLoading(false);
+        return;
+      }
+      
+      // If no custom auth data or not logged in, check status from API
+      const result = await checkWhatsAppStatus();
+      
+      if (result.success) {
+        setWhatsappConfig({
+          isLoggedIn: result.isLoggedIn,
+          phone: result.phone
+        });
+        
+        if (result.isLoggedIn) {
+          // Update provider connection status if it's now connected
+          if (!provider.connected) {
+            onUpdate();
+          }
+        }
+      } else {
+        console.warn("WhatsApp status check returned error:", result.message);
+        // Don't show error to user as this is just an initial check
+      }
+    } catch (error) {
+      console.error("Error checking WhatsApp status:", error);
+      // Don't show error to user as this is just an initial check
     } finally {
       setIsLoading(false);
     }
@@ -329,7 +405,13 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   const handleDisconnect = async () => {
     try {
-      await disconnectProvider(provider.id);
+
+      console.log("Disconnecting provider:", provider.provider_tag, provider);
+      if (provider.provider_tag === 'whatsapp') {
+        await disconnectWhatsAppProvider(provider.id);
+      } else {
+        await disconnectProvider(provider.id);
+      }
       onUpdate();
       onClose();
     } catch (error) {
@@ -512,6 +594,16 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             />
           )}
 
+          {provider.provider_tag === 'whatsapp' && (
+            <WhatsAppConfigForm 
+              providerId={provider.id}
+              config={whatsappConfig}
+              onChange={setWhatsappConfig}
+              disabled={isLoading}
+              onUpdate={onUpdate}
+            />
+          )}
+
           {(provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') && (
             <div className="space-y-4">
               {validationError && (
@@ -599,6 +691,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
             provider.auth_method === 'api_key' ||
             provider.auth_method === 'api_key_with_base' ||
             provider.auth_method === 'custom' ||
+            provider.provider_tag === 'whatsapp' ||
             (provider.provider_tag && provider.provider_tag.toLowerCase() === 'veyrax')
           ) && (
             <div className="flex gap-2">

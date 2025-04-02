@@ -25,17 +25,20 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
         if route.path.endswith("/tools"):
             continue
         
-
-        tool_schema = get_openai_function_schemas(route)
         try:
-            examples = route.endpoint.examples()
-            tool_schema["examples"] = examples
+            tool_schema = get_openai_function_schemas(route)
+            try:
+                examples = route.endpoint.examples()
+                tool_schema["examples"] = examples
+            except Exception as e:
+                if "validate_key" not in route.path: 
+                    print(f"Error getting examples for {route.path}: {e}")
+                tool_schema["examples"] = []
+            
+            tools.append(tool_schema)
         except Exception as e:
-            if "validate_key" not in route.path: 
-                print(f"Error getting examples for {route.path}: {e}")
-            tool_schema["examples"] = []
-        
-        tools.append(tool_schema)
+            print(f"Error generating schema for {route.path}: {str(e)}")
+            # Continue with other routes instead of failing completely
 
     return tools
 
