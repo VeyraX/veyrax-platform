@@ -217,7 +217,8 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
       ) : (
         <div className="flex flex-col items-center p-4 border rounded">
           <h3 className="text-xl font-semibold mb-2">Login to WhatsApp</h3>
-          <p className="text-sm text-gray-500 mb-2">Scan this QR code to link an existing WhatsApp account with this device.</p>
+          <p className="text-sm text-gray-500 mb-2 text-center">Scan this QR code to link an existing WhatsApp account with this device.</p>
+          <p className="text-sm text-gray-500 mb-2 text-center">If you will receivie an issue «Can't link this device», please try to close window, open and scan the QR code again.</p>
           
           <div className="mb-2">
             <a href="https://faq.whatsapp.com/1317564962315842/?locale=en_US&cms_platform=web" 
