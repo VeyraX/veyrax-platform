@@ -118,6 +118,7 @@ export default function IntegrationDetailSummary({ providerDetails, isPublic = f
       
       if (provider.auth_method === 'api_key' || 
           provider.auth_method === 'api_key_with_base' || 
+          provider.auth_method === 'whatsapp-qr' ||
           provider.auth_method === 'db_access' ||
           provider.auth_method === 'custom') {
         setShowManage(true);
