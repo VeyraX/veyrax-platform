@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const redirectUri = `${request.nextUrl.origin}/api/oauth/docusign/callback`;
 
-    const authUrl = `https://account-d.docusign.com/oauth/auth?` +
+    const authUrl = `https://account.docusign.com/oauth/auth?` +
         `client_id=${process.env.DOCUSIGN_CLIENT_ID}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `scope=${encodeURIComponent(Array.isArray(scopes) ? scopes.join(' ') : scopes)}&` +

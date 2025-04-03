@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
         const redirectUri = `${request.nextUrl.origin}/api/oauth/docusign/callback`;
 
-        const tokenResponse = await fetch('https://account-d.docusign.com/oauth/token', {
+        const tokenResponse = await fetch('https://account.docusign.com/oauth/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({

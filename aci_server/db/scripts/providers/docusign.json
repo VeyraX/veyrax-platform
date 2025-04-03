@@ -23,6 +23,7 @@
         "get_document": ["signature"],
         "get_form": ["signature"],
         "create_view": ["signature", "impersonation"],
-        "get_me": ["impersonation"]
+        "get_me": ["impersonation"],
+        "get_envelopes": ["signature"]
     }
 } 
