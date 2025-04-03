@@ -6,12 +6,12 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
+import { useRouter } from "next/navigation";
 export function FlowsAnnouncement() {
   const [isVisible, setIsVisible] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { state } = useSidebar();
-
+  const router = useRouter();
   useEffect(() => {
     const isAnnouncementClosed = localStorage.getItem('feature_announcement_closed');
     if (!isAnnouncementClosed) {
@@ -32,7 +32,7 @@ export function FlowsAnnouncement() {
       <Card 
         className="mx-3 mb-2 relative cursor-pointer group shadow-none border"
         style={{ maxWidth: '240px' }}
-        onClick={() => setDialogOpen(true)}
+        onClick={() => window.open('https://x.com/veyraxai/status/1907843695644201141', '_blank')}
       >
         <Button
           variant="ghost"
@@ -44,9 +44,9 @@ export function FlowsAnnouncement() {
         </Button>
 
         <div className="p-3">
-          <h4 className="text-sm font-medium mb-1">New Feature</h4>
+          <h4 className="text-sm font-medium mb-1">WhatsApp Integration</h4>
           <p className="text-xs text-muted-foreground leading-snug mb-2">
-            Create any workflow you want with our new Flow feature. 
+            We rolled out a new WhatsApp integration.
           </p>
           <p className="text-xs font-medium text-primary hover:opacity-80 transition-opacity">
             Learn more
