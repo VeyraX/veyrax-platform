@@ -28,9 +28,6 @@ WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=builder /app/whatsapp-bridge .
 
-# Copy store directory if it exists and contains initial data
-COPY store/ /app/store/
-
 # Create store directory if needed
 RUN mkdir -p /app/store
 
