@@ -20,12 +20,10 @@ async def get_mail_smtp_service(request: FastAPIRequest):
     try:
         auth_params = await get_provider_custom_auth(request, "mail")
         
-        # Get authentication from request
         username = auth_params.get("username")
         password = auth_params.get("password")
         service = auth_params.get("service", "").lower()
 
-        # Validate username and password - required for all services
         if not username:
             raise HTTPException(
                 status_code=401, 
@@ -38,39 +36,31 @@ async def get_mail_smtp_service(request: FastAPIRequest):
                 detail="Missing required parameter: password"
             )
         
-        # List of known services
         known_services = ["gmail", "outlook", "yahoo", "zoho", "aol", "protonmail", "gmx"]
         
-        # If service not specified or not in known services, default to Gmail
         if not service or service not in known_services:
             service = "gmail"
         
-        # Get the default settings for this service
         default_settings_response = await get_default_settings({"service": service})
         service_defaults = default_settings_response.get("settings", {})
         
-        # Apply the service defaults if not specified in auth_params
         smtp_host = auth_params.get("smtp_host") or service_defaults.get("smtp_host")
         smtp_port = auth_params.get("smtp_port") or service_defaults.get("smtp_port")
         imap_host = auth_params.get("imap_host") or service_defaults.get("imap_host")
         imap_port = auth_params.get("imap_port") or service_defaults.get("imap_port")
         
-        # For SSL and TLS settings, use auth_params if specified, otherwise use service defaults
         use_ssl = auth_params.get("use_ssl") if auth_params.get("use_ssl") is not None else service_defaults.get("use_ssl", False)
         use_tls = auth_params.get("use_tls") if auth_params.get("use_tls") is not None else service_defaults.get("use_tls", True)
         
-        # Set default ports if not provided
         if not smtp_port:
             smtp_port = 587 if use_tls else (465 if use_ssl else 25)
             
         if not imap_port:
             imap_port = 993 if use_ssl else 143
         
-        # For Gmail's IMAP, always use SSL
         if imap_host and "gmail" in imap_host.lower() and int(imap_port) == 993:
             use_ssl = True
             
-        # Create client with proper settings
         try:
             client = MailSMTPClient(
                 smtp_host=smtp_host,
@@ -89,7 +79,6 @@ async def get_mail_smtp_service(request: FastAPIRequest):
             
             return service
         except MailSMTPError as e:
-            # Get specific error message from the SMTP/IMAP error
             raise HTTPException(
                 status_code=401,
                 detail=f"Mail connection error: {e.message}"
@@ -197,10 +186,6 @@ async def move_message(
 async def validate_key(
     params: Dict[str, Any] = Body(...),
 ):
-    """
-    Validate SMTP and IMAP credentials against a mail server.
-    Can automatically detect settings from email address or use a specific service.
-    """
     try:
         username = params.get("username")
         password = params.get("password")

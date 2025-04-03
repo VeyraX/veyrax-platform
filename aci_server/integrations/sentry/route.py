@@ -250,5 +250,44 @@ async def get_dsn(
     validated_params = GetDsnParams(**params)
     return service.get_project_dsn(validated_params.project_slug)
 
+@router.post("/validate_key")
+async def validate_key(
+    params: Dict[str, Any] = Body(...),
+):
+    try:
+        api_key = params.get("api_key")
+        org_slug = params.get("org_slug")
+        
+        if not api_key:
+            return {
+                "valid": False,
+                "message": "Missing required parameter: api_key"
+            }
+            
+        if not org_slug:
+            return {
+                "valid": False,
+                "message": "Missing required parameter: org_slug"
+            }
+            
+        client = SentryClient(api_key, org_slug)
+        try:
+            client.list_teams()
+            return {
+                "valid": True,
+                "message": "Successfully connected to Sentry"
+            }
+        except Exception as e:
+            return {
+                "valid": False,
+                "message": f"Failed to validate credentials: {str(e)}"
+            }
+            
+    except Exception as e:
+        return {
+            "valid": False,
+            "message": f"Validation failed: {str(e)}"
+        }
+
 apply_error_handler_to_router(router)
 

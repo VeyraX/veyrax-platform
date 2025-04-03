@@ -79,3 +79,6 @@ conf.d/redisdb.d/conf.yaml
 /store/
 /store
 /store/*
+
+
+/aci_server/flower

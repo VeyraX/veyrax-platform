@@ -406,7 +406,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
   const handleDisconnect = async () => {
     try {
 
-      console.log("Disconnecting provider:", provider.provider_tag, provider);
       if (provider.provider_tag === 'whatsapp') {
         await disconnectWhatsAppProvider(provider.id);
       } else {

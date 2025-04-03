@@ -245,6 +245,8 @@ export const disconnectWhatsAppProvider = async (providerId: string): Promise<vo
 export const disconnectProvider = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
 
+  console.log('Disconnecting provider:', { userId: user?.id, providerId });
+
   await deleteActions(providerId);
   
   await supabase
@@ -263,13 +265,19 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
       provider_id: providerId 
     });
 
-  await supabase
+  const { data: customAuthData, error: customAuthError } = await supabase
     .from('user_provider_custom_auth')
     .delete()
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
     });
+
+  console.log('Custom auth delete result:', { customAuthData, customAuthError });
+
+  if (customAuthError) {
+    console.error('Error deleting custom auth data:', customAuthError);
+  }
 
   await supabase
     .from('users_providers')
@@ -1024,9 +1032,7 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
     
     const authSchema = Array.isArray(provider.auth_schema) ? provider.auth_schema : [];
     
-    // Check for required fields
     const missingRequiredFields = [];
-    
     for (const field of authSchema) {
       if (field.required) {
         const value = authData[field.key];
@@ -1042,59 +1048,30 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
         message: `Missing required fields: ${missingRequiredFields.join(', ')}` 
       };
     }
-    
-    // Validate field types
-    const typeErrors = [];
-    
-    for (const field of authSchema) {
-      const value = authData[field.key];
-      if (value !== undefined && value !== null && value !== '') {
-        // Basic type validation
-        switch (field.type) {
-          case 'number':
-            if (isNaN(Number(value))) {
-              typeErrors.push(`${field.label || field.key} must be a number`);
-            }
-            break;
-          case 'email':
-            // Simple email validation
-            if (!/\S+@\S+\.\S+/.test(value)) {
-              typeErrors.push(`${field.label || field.key} must be a valid email address`);
-            }
-            break;
-          case 'url':
-            // Simple URL validation
-            try {
-              new URL(value);
-            } catch (error) {
-              typeErrors.push(`${field.label || field.key} must be a valid URL`);
-            }
-            break;
-          case 'json':
-            // Validate JSON
-            if (typeof value === 'string') {
-              try {
-                JSON.parse(value);
-              } catch (error) {
-                typeErrors.push(`${field.label || field.key} must be valid JSON`);
-              }
-            }
-            break;
-        }
-      }
-    }
-    
-    if (typeErrors.length > 0) {
+
+    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${baseApiUrl}/${provider.provider_tag}/validate_key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(authData),
+    });
+
+    if (!response.ok) {
+      console.error('API validation response not OK:', response.status, response.statusText);
       return { 
         valid: false, 
-        message: typeErrors.join('; ') 
+        message: `API validation failed: ${response.status} ${response.statusText}` 
       };
     }
-    
+
+    const data = await response.json();
     return {
-      valid: true,
-      message: 'Authentication validation completed'
+      valid: data.valid,
+      message: data.message || 'Authentication validation completed'
     };
+
   } catch (error) {
     console.error('Error validating custom auth:', error);
     return { 
@@ -1102,7 +1079,7 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
       message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
     };
   }
-}
+};
 
 export const validateApiKey = async (providerId: string, apiKey: string, baseUrl?: string): Promise<{valid: boolean, message: string}> => {
   try {

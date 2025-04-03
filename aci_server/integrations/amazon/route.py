@@ -141,7 +141,6 @@ async def validate_key(
             country=country
         )
         
-        # Test the API key with a simple search
         client.search_items("test")
         return {"valid": True, "message": "API credentials are valid"}
     except Exception as e:
