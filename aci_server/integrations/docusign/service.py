@@ -11,7 +11,9 @@ from .schema import (
     RecipientViewResponse,
     Document,
     FormData,
-    ApiResponse
+    ApiResponse,
+    EnvelopeList,
+    EnvelopeStatus
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -20,6 +22,18 @@ class DocuSignService:
         self.client = client
         self.account_id = account_id
         self.components_data = self._load_components()
+
+    def _map_status(self, docusign_status: str) -> EnvelopeStatus:
+        """Map DocuSign status to our EnvelopeStatus enum"""
+        status_mapping = {
+            "created": EnvelopeStatus.sent,
+            "sent": EnvelopeStatus.sent,
+            "delivered": EnvelopeStatus.delivered,
+            "completed": EnvelopeStatus.completed,
+            "declined": EnvelopeStatus.declined,
+            "voided": EnvelopeStatus.voided
+        }
+        return status_mapping.get(docusign_status.lower(), EnvelopeStatus.sent)
 
     def _load_components(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -60,7 +74,7 @@ class DocuSignService:
         response = self.client.create_envelope(self.account_id, envelope_definition)
         envelope_info = EnvelopeInfo(
             envelope_id=response["envelopeId"],
-            status=response["status"],
+            status=self._map_status(response["status"]),
             created_datetime=response["statusDateTime"]
         )
         return self.prepare_response(envelope_info)
@@ -69,7 +83,7 @@ class DocuSignService:
         response = self.client.get_envelope(self.account_id, envelope_id)
         envelope_info = EnvelopeInfo(
             envelope_id=response["envelopeId"],
-            status=response["status"],
+            status=self._map_status(response["status"]),
             created_datetime=response["createdDateTime"],
             sent_datetime=response.get("sentDateTime"),
             completed_datetime=response.get("completedDateTime"),
@@ -117,7 +131,7 @@ class DocuSignService:
             "authenticationMethod": "none",
             "email": view_request.email,
             "userName": view_request.name,
-            "clientUserId": "1"
+            "clientUserId": view_request.client_user_id
         }
 
         response = self.client.create_recipient_view(self.account_id, envelope_id, request_body)
@@ -128,6 +142,41 @@ class DocuSignService:
         response = self.client.get_form_data(self.account_id, envelope_id)
         form_data = FormData(form_data=response)
         return self.prepare_response(form_data)
+
+    def get_envelopes(
+        self, 
+        from_date: Optional[str] = None,
+        status: Optional[str] = None,
+        folder_ids: Optional[List[str]] = None,
+        transaction_ids: Optional[List[str]] = None,
+        envelope_ids: Optional[List[str]] = None
+    ) -> ApiResponse:
+        """Get list of envelopes with optional filters"""
+        response = self.client.get_envelopes(
+            self.account_id,
+            from_date=from_date,
+            status=status,
+            folder_ids=folder_ids,
+            transaction_ids=transaction_ids,
+            envelope_ids=envelope_ids
+        )
+        
+        # Convert DocuSign response to our schema
+        envelopes = []
+        for env in response.get('envelopes', []):
+            envelope_info = EnvelopeInfo(
+                envelope_id=env['envelopeId'],
+                status=self._map_status(env['status']),
+                created_datetime=env['createdDateTime'],
+                sent_datetime=env.get('sentDateTime'),
+                completed_datetime=env.get('completedDateTime'),
+                declined_datetime=env.get('declinedDateTime'),
+                voided_datetime=env.get('voidedDateTime')
+            )
+            envelopes.append(envelope_info)
+            
+        envelope_list = EnvelopeList(envelopes=envelopes)
+        return self.prepare_response(envelope_list, "envelopes_list")
 
     def get_user_info(self) -> ApiResponse:
         """Get user information to validate token"""

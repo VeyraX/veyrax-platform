@@ -587,7 +587,8 @@ class DocuSignTokenRefresher(BaseTokenRefresher):
             if not client_id or not client_secret:
                 raise ValueError("Missing DocuSign client credentials")
                 
-            token_url = "https://account.docusign.com/oauth/token"
+            # Use demo/sandbox environment token URL
+            token_url = "https://account-d.docusign.com/oauth/token"
             payload = {
                 'grant_type': 'refresh_token',
                 'refresh_token': refresh_token,

@@ -128,7 +128,8 @@ routes:
             "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
             "return_url": "https://example.com/after-signing",
             "email": "signer@example.com",
-            "name": "John Doe"
+            "name": "John Doe",
+            "client_user_id": "1"
           }
         output_json: |
           {
@@ -185,6 +186,135 @@ routes:
                   "is_default": true,
                   "account_name": "John Doe's Account",
                   "base_uri": "https://demo.docusign.net/restapi/v2.1"
+                }
+              ]
+            }
+          }
+
+  - endpoint: /docusign/get_envelopes
+    examples:
+      - scenario: "Get All Envelopes"
+        description: "Get list of all envelopes without filters"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "envelopes": [
+                {
+                  "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+                  "status": "completed",
+                  "created_datetime": "2024-04-02T10:00:00Z",
+                  "sent_datetime": "2024-04-02T10:00:05Z",
+                  "completed_datetime": "2024-04-02T11:30:00Z"
+                },
+                {
+                  "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+                  "status": "sent",
+                  "created_datetime": "2024-04-02T12:00:00Z",
+                  "sent_datetime": "2024-04-02T12:00:05Z"
+                }
+              ]
+            }
+          }
+
+      - scenario: "Get Filtered Envelopes"
+        description: "Get envelopes filtered by date and status"
+        input_json: |
+          {
+            "from_date": "2024-04-01",
+            "status": "completed"
+          }
+        output_json: |
+          {
+            "data": {
+              "envelopes": [
+                {
+                  "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+                  "status": "completed",
+                  "created_datetime": "2024-04-02T10:00:00Z",
+                  "sent_datetime": "2024-04-02T10:00:05Z",
+                  "completed_datetime": "2024-04-02T11:30:00Z"
+                }
+              ]
+            }
+          }
+
+      - scenario: "Get All Recent Envelopes"
+        description: "Get list of all envelopes from the last 30 days"
+        input_json: |
+          {
+            "from_date": "2024-03-01T00:00:00Z"
+          }
+        output_json: |
+          {
+            "data": {
+              "envelopes": [
+                {
+                  "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+                  "status": "completed",
+                  "created_datetime": "2024-03-15T10:00:00Z",
+                  "sent_datetime": "2024-03-15T10:00:05Z",
+                  "completed_datetime": "2024-03-15T11:30:00Z"
+                },
+                {
+                  "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+                  "status": "sent",
+                  "created_datetime": "2024-03-20T12:00:00Z",
+                  "sent_datetime": "2024-03-20T12:00:05Z"
+                }
+              ]
+            }
+          }
+
+      - scenario: "Get Filtered Envelopes by Status"
+        description: "Get completed envelopes from a specific date"
+        input_json: |
+          {
+            "from_date": "2024-03-01T00:00:00Z",
+            "status": "completed"
+          }
+        output_json: |
+          {
+            "data": {
+              "envelopes": [
+                {
+                  "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+                  "status": "completed",
+                  "created_datetime": "2024-03-15T10:00:00Z",
+                  "sent_datetime": "2024-03-15T10:00:05Z",
+                  "completed_datetime": "2024-03-15T11:30:00Z"
+                }
+              ]
+            }
+          }
+
+      - scenario: "Get Specific Envelopes by IDs"
+        description: "Get envelopes by their IDs"
+        input_json: |
+          {
+            "from_date": "2024-03-01T00:00:00Z",
+            "envelope_ids": [
+              "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+              "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q"
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "envelopes": [
+                {
+                  "envelope_id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+                  "status": "completed",
+                  "created_datetime": "2024-03-15T10:00:00Z",
+                  "sent_datetime": "2024-03-15T10:00:05Z",
+                  "completed_datetime": "2024-03-15T11:30:00Z"
+                },
+                {
+                  "envelope_id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+                  "status": "sent",
+                  "created_datetime": "2024-03-20T12:00:00Z",
+                  "sent_datetime": "2024-03-20T12:00:05Z"
                 }
               ]
             }

@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from starlette.requests import Request as FastAPIRequest
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from .schema import (
     CreateEnvelopeParams,
     GetEnvelopeParams,
@@ -11,7 +11,8 @@ from .schema import (
     EnvelopeResponse,
     DocumentResponse,
     RecipientViewUrlResponse,
-    FormDataResponse
+    FormDataResponse,
+    GetEnvelopesParams
 )
 from .service import DocuSignService
 from .client import DocuSignClient
@@ -126,5 +127,18 @@ async def get_me(
     service: DocuSignService = Depends(get_docusign_service)
 ):
     return service.get_user_info()
+
+@router.post("/get_envelopes", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetEnvelopesParams,
+    output_schema_class=EnvelopeResponse,
+    examples=examples["/docusign/get_envelopes"]
+)
+async def get_envelopes(
+    params: Dict[str, Any] = Body(...),
+    service: DocuSignService = Depends(get_docusign_service)
+):
+    validated_params = GetEnvelopesParams(**params)
+    return service.get_envelopes(validated_params.from_date, validated_params.status)
 
 apply_error_handler_to_router(router)
