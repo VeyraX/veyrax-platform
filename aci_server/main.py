@@ -92,6 +92,7 @@ import random
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
 import httpx
+import asyncio
 
 load_dotenv()
 
@@ -387,7 +388,26 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                     if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
                         dep_func = param.default.dependency
                         try:
-                            dependency_result = await dep_func(request)
+                            # Define recursive dependency resolution function
+                            async def resolve_dependency_recursively(dep_func, req):
+                                sig = inspect.signature(dep_func)
+                                dep_args = {}
+                                
+                                for dep_name, dep_param in sig.parameters.items():
+                                    if dep_param.default != inspect.Parameter.empty and hasattr(dep_param.default, "__class__") and dep_param.default.__class__.__name__ == "Depends":
+                                        nested_dep_func = dep_param.default.dependency
+                                        dep_args[dep_name] = await resolve_dependency_recursively(nested_dep_func, req)
+                                    elif dep_name == "request":
+                                        dep_args[dep_name] = req
+                                
+                                # Check if function is a coroutine function that needs to be awaited
+                                if asyncio.iscoroutinefunction(dep_func):
+                                    return await dep_func(**dep_args)
+                                else:
+                                    return dep_func(**dep_args)
+                            
+                            # Use recursive resolution instead of simple awaiting
+                            dependency_result = await resolve_dependency_recursively(dep_func, request)
                             
                             if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
                                 error_message = f"Dependency resolution error: got Depends object instead of service instance"
