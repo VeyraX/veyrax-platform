@@ -119,7 +119,6 @@ class GitHubService:
         response = self.client.get_pull_request(owner, repo, pull_number)
         pull_request = PullRequestSchema(**response)
 
-        print("Pull request:", pull_request)
         
         return self.prepare_response(pull_request, "GitHubPullRequestCard")
 
@@ -202,7 +201,6 @@ class GitHubService:
             data=update_data
         )
 
-        print("Update pull request response:", response)
         
         pull_request = PullRequestSchema(**response)
         return self.prepare_response(pull_request, "GitHubPullRequestCard")
@@ -316,7 +314,6 @@ class GitHubService:
 
     def get_blob(self, owner: str, repo: str, file_sha: str, auto_decode: bool = False) -> ApiResponse:
         response = self.client.get_blob(owner, repo, file_sha)
-        print("Get blob response:", response)
         blob_data = GetBlobResponse(**response)
         
         if auto_decode and blob_data.encoding == "base64":

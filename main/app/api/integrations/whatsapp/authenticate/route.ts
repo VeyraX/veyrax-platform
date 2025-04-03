@@ -38,10 +38,6 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    console.log("[WhatsApp authenticate] data", data);
-    
-    // Process the response and extract relevant information
-    // The response should include QR code data or authentication status
     return NextResponse.json({
       success: true,
       data: {

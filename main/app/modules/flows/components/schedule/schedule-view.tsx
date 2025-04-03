@@ -12,8 +12,6 @@ interface ScheduleViewProps {
 export function ScheduleView({ schedule, flowName, flowRuns }: ScheduleViewProps) {
   const [selectedRun, setSelectedRun] = useState<UserFlowRun | null>(null);
 
-  console.log('ScheduleView received flow runs:', flowRuns);
-  
   return (
     <>
       <div className="overflow-x-auto">

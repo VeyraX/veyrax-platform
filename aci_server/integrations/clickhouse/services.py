@@ -83,10 +83,8 @@ class ClickHouseService:
             host = self.client.connection_params.get('host', '')
             port = self.client.connection_params.get('port', '')
             secure = self.client.connection_params.get('secure', False)
-            print(f"Testing ClickHouse connection to {host}:{port} (secure={secure})")
             
             result = self.client.execute_query("SELECT 1")
-            print(f"Test query successful, result: {result}")
             
             test_result = TestConnectionResult(
                 success=True,
@@ -97,7 +95,6 @@ class ClickHouseService:
         except Exception as e:
             import traceback
             error_details = traceback.format_exc()
-            print(f"Connection error details: {error_details}")
             
             error_message = str(e)
             if "Query execution failed: " in error_message:

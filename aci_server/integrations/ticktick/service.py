@@ -45,9 +45,7 @@ class TickTickService:
 
     def get_projects(self) -> ApiResponse:
         response = self.client.get_projects()
-        print("Get Projects Response: ", response)
         projects = [ProjectResponse(**p) for p in response]
-        print("Projects: ", projects)
         return self.prepare_response(ProjectListResponse(items=projects), "TickTickProjectCard")
 
     def get_project(self, project_id: str) -> ApiResponse:

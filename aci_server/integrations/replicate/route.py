@@ -440,7 +440,6 @@ async def create_minimax_video_prediction(
     try:
         # Only extract input field for Minimax - this is the key change
         input_data = params.get("input", {})
-        print(f"Starting Minimax Video prediction with input: {input_data}")
         
         # Create minimal params with just the input field
         minimized_params = {
@@ -456,11 +455,8 @@ async def create_minimax_video_prediction(
             request=validated_params
         )
         
-        print(f"Successfully processed Minimax Video prediction")
         return result
     except Exception as e:
-        # Log the error
-        print(f"Error processing Minimax Video prediction: {str(e)}")
         
         # For this specific endpoint, we'll return a more friendly error instead of raising an exception
         try:

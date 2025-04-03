@@ -139,7 +139,6 @@ class LinkedInService:
         response = self.client.get_connection_count(
             username=params.username
         )
-        print("[get_connection_count] response", response)
         
         # Transform response data to match our schema
         connection_count_response = ConnectionCountResponse(**response)
@@ -271,8 +270,6 @@ class LinkedInService:
             job_id=params.id,
             job_url=params.url
         )
-
-        print("[get_hiring_team] response", response)
         
         # Handle case where items is None by converting to empty list
         if response.get('data', {}).get('items') is None:

@@ -314,7 +314,6 @@ class ReplicateService:
         
         # Special handling for Minimax video model which may return partial data
         if is_minimax_video and missing_fields:
-            print(f"Creating placeholder response for Minimax video model. Missing fields: {missing_fields}")
             # Create placeholder data for missing fields
             if "id" not in response:
                 response["id"] = f"placeholder-{model_owner}-{model_name}-{int(time.time())}"
@@ -352,8 +351,6 @@ class ReplicateService:
             prediction_response = PredictionResponse(**response)
             return self.prepare_response(prediction_response, "ReplicatePredictionView")
         except Exception as e:
-            print(f"Failed to parse response: {e}")
-            print(f"Response data: {response}")
             raise ValueError(f"Failed to parse Replicate API response: {str(e)}")
     
     def list_models(self) -> ApiResponse:

@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
 
     const { scopes, return_url } = await request.json();
 
-    console.log('[DocuSign route] scopes', scopes);
     
     const { data: provider } = await supabase
         .from('providers')

@@ -114,7 +114,6 @@ export const outlook_sendMessage = tool({
       }
 
       const data = await response.json();
-      console.log(data);
       return {
         success: true,
         message: data
@@ -208,8 +207,7 @@ export const outlook_createEvent = tool({
       if (!response.ok) throw new Error('Failed to create event');
 
       const data = await response.json();
-      console.log(data);
-      return {
+        return {
         success: true,
         event: data
       };
@@ -258,7 +256,6 @@ export const outlook_updateEvent = tool({
       if (!response.ok) throw new Error('Failed to update event');
 
       const data = await response.json();
-      console.log(data);
       return {
         success: true,
         event: data

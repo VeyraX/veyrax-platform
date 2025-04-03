@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
     try {
         const { token } = await request.json();
         
-        console.log('Received token:', { tokenReceived: !!token });
         
         if (!token) {
             console.error('Missing token');
@@ -36,9 +35,7 @@ export async function POST(request: NextRequest) {
         }
 
         const provider_id = provider.id;
-        console.log('Found Trello provider:', { provider_id });
 
-        console.log('Verifying token with Trello API...');
         const verifyResponse = await fetch(`https://api.trello.com/1/members/me?key=${process.env.TRELLO_API_KEY}&token=${token}`);
         
         if (!verifyResponse.ok) {
@@ -52,12 +49,8 @@ export async function POST(request: NextRequest) {
         }
         
         const userData = await verifyResponse.json();
-        console.log('Token verified successfully. User data:', {
-            id: userData.id,
-            username: userData.username
-        });
 
-        console.log('Upserting provider connection...');
+
         const { error: providerUpsertError } = await supabase
             .from('users_providers')
             .upsert({
@@ -75,7 +68,6 @@ export async function POST(request: NextRequest) {
         const encryptedAccessToken = encrypt(token);
         const tenYearsInSeconds = 10 * 365 * 24 * 60 * 60;
         
-        console.log('Saving token to database...');
         const { error: upsertError } = await supabase
             .from('users_oauth_tokens')
             .upsert({
@@ -97,7 +89,6 @@ export async function POST(request: NextRequest) {
 
         await addActionsUser(provider_id);
 
-        console.log('Token saved successfully');
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Save token error:', error);

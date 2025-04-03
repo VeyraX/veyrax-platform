@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { scopes, return_url } = await request.json();
-
-    console.log('[HighLevel route] scopes', scopes);
     
     const { data: provider } = await supabase
         .from('providers')

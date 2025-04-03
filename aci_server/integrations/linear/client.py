@@ -18,7 +18,6 @@ class LinearClient:
         )
 
         result = response.json()
-        print("[LinearClient] Result", result)
         if 'errors' in result:
             # errors = "\n".join([e['message'] for e in result['errors']])
             raise HTTPException(status_code=422, detail=f"GraphQL Errors: {(str(result))}")

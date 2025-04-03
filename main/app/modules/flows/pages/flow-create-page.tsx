@@ -147,18 +147,13 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
           '', 
           newUrl
         );
-        console.log("URL updated without page re-render:", newUrl);
       } else {
-        console.log("Update data without URL change");
       }
     }
   };
 
   const handleCreateFlow = () => {
-    console.log('Creating new flow with name:', flowName);
-    
     if (flow?.id) {
-      console.log('Flow already exists, letting the header handle it');
       return;
     }
     
@@ -166,7 +161,6 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   };
 
   const handlePublishFlow = (publishedFlowId: string) => {
-    console.log('Flow published with ID:', publishedFlowId);
     router.push('/agent');
   };
 

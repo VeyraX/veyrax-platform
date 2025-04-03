@@ -22,8 +22,7 @@ class ClickHouseClient:
             user = self.connection_params.get('user', 'default')
             password = self.connection_params.get('password', '')
             secure = self.connection_params.get('secure', False)
-            
-            print(f"Connecting to ClickHouse at {host}:{port} (secure={secure})")
+    
             
             self.client = clickhouse_driver.Client(
                 host=host,
@@ -57,7 +56,6 @@ class ClickHouseClient:
 
     def get_tables(self) -> List[Dict[str, Any]]:
         database = self.connection_params.get('dbname', 'default')
-        print(f"Getting tables from {database}")
         query = f"SHOW TABLES FROM `{database}`"
             
         result = self.execute_query(query)

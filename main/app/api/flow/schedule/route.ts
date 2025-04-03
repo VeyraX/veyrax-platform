@@ -13,28 +13,20 @@ export async function POST(request: Request) {
     if (schedule.type === 'once') {
       const date = new Date(schedule.oneTime!.datetime);
       cronExpression = `${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth() + 1} *`;
-      console.log('One-time cron:', cronExpression, 'for date:', date);
     } else {
       const { recurrence } = schedule;
       const [hours, minutes] = recurrence!.time.split(':');
       if (recurrence!.dayOfWeek !== undefined) {
         cronExpression = `${minutes} ${hours} * * ${recurrence!.dayOfWeek}`;
-        console.log('Weekly cron:', cronExpression);
       } else if (recurrence!.dayOfMonth !== undefined) {
         cronExpression = `${minutes} ${hours} ${recurrence!.dayOfMonth} * *`;
-        console.log('Monthly cron:', cronExpression);
       } else {
         cronExpression = `${minutes} ${hours} * * *`;
-        console.log('Daily cron:', cronExpression);
       }
     }
 
     const API_URL = process.env.API_URL;
-    console.log('Creating QStash schedule:', {
-      cron: cronExpression,
-      destination: `${API_URL}/flow/run-flow/${flowId}`,
-      body: { apiKey }
-    });
+      
     
     const qstashSchedule = await qstash.schedules.create({
       cron: cronExpression,

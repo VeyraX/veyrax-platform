@@ -73,7 +73,6 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
         getFlowSchedule(flowId),
         getFlowRuns(flowId)
       ]);
-      console.log('Loaded schedule and runs:', { schedule: scheduleData, runs: runsData });
       setSchedule(scheduleData);
       setFlowRuns(runsData || []);
     } catch (error) {

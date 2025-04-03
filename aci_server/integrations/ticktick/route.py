@@ -51,9 +51,7 @@ async def create_task(
     params: Dict[str, Any] = Body(...),
     service: TickTickService = Depends(get_ticktick_service)
 ):
-    print("Creating task with params: ", params)
     validated = TaskCreate(**params)
-    print("Validated task: ", validated)
     return service.create_task(validated)
 
 @router.post("/tasks-update", response_model=ApiResponse)

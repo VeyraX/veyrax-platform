@@ -78,7 +78,6 @@ def test_comment_issue(base_setup, created_issue_id):
         }
     }
 
-    print(comment_payload)
     comment_resp = base_setup.post("/linear/comment_issue", payload=comment_payload)
     assert comment_resp.status_code == 200, (
         f"Route /linear/comment_issue failed. "

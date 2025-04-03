@@ -82,7 +82,6 @@ async def get_profile_posts(
     params: Dict[str, Any] = Body(...),
     service: LinkedInService = Depends(get_linkedin_service)
 ):
-    print("[get_profile_posts] params", params)
     validated_params = GetProfilePostsParams(**params)
     return service.get_profile_posts(validated_params)
 

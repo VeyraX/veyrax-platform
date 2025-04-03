@@ -25,12 +25,10 @@ examples = ExamplesLoader()
 async def get_docs_service(request: FastAPIRequest):
     try:
         token_data = await TokenService.get_user_token(request, 'google-docs')
-        print(f"token data: {token_data}")
         
         if TokenService.is_token_expired(token_data):
             try:
                 token_data = await GoogleTokenRefresher.refresh(request, token_data)
-                print(f"new token data: {token_data}")
             except Exception as e:
                 raise HTTPException(status_code=401, detail="Failed to refresh token")
             

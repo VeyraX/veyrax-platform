@@ -149,7 +149,6 @@ export function UnifiedFlowCreator({
       setIsActionsLoading(true);
       try {
         const fetchedActions = await getUserActions();
-        console.log(fetchedActions);
         setActions(fetchedActions);
       } catch (error) {
         console.error('Error loading actions:', error);

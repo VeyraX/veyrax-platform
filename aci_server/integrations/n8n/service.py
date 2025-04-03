@@ -121,7 +121,6 @@ class N8nService:
         user_id = params.id
         role = params.role
         response = self.client.update_user_role(user_id, role)
-        print("update_user_role response: ", response)
         validated = User(**response)
         return self.prepare_response(validated, "N8nUserCard")
     

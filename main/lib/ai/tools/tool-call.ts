@@ -72,8 +72,6 @@ export const tool_call_test_flow = tool({
       });
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/tool-call/${tool}/${method}`;
-      console.log('url', url);
-      console.log('params', params);
       const response = await fetch(url, {
         method: 'POST',
         headers,

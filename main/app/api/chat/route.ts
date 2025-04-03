@@ -41,7 +41,6 @@ export async function POST(req: Request) {
     let model = openai('gpt-4o');
     
     const traceId = generateTraceId();
-    console.log('Generated trace ID for chat:', traceId);
     
     model = traceModel(model, user.id, {
       trace_id: traceId,

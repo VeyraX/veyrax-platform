@@ -93,8 +93,6 @@ class ConfluenceService:
             data['ancestors'] = [{'id': page_data.parentId}]
             
         response = self.client.create_page(data)
-
-        print("create page response", response)
         
         if '_links' in response and 'webui' in response.get('_links', {}):
             response['html_link'] = f"{self.base_url}{response['_links']['webui']}"

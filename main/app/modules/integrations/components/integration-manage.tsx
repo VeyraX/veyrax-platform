@@ -72,7 +72,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   useEffect(() => {
     if (open) {
-      console.log('Provider data on dialog open:', provider);
       if (provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') {
         fetchApiKey();
         setApiKeyChanged(false);
@@ -186,8 +185,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     try {
       // First try to get data from custom auth
       const customAuthData = await getProviderCustomAuth(provider.id);
-      
-      console.log("WhatsApp customAuthData:", customAuthData);
       
       // Handle various formats of is_logged_in which might be stored in the DB
       const isLoggedIn = 
@@ -373,12 +370,9 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       
       // If there are no changes, just close the dialog
       if (Object.keys(changedFields).length === 0) {
-        console.log("No changes detected in custom auth data");
         onClose();
         return;
       }
-      
-      console.log("Sending changed fields:", Object.keys(changedFields));
       
       const validateSchema = await validateCustomAuthSchema(provider.id, customAuthData);
       if (!validateSchema.valid) {

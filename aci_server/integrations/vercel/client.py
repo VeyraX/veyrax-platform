@@ -80,7 +80,6 @@ class VercelClient:
             params=self._clean_params(params or {})
         )
         response.raise_for_status()
-        print(response.json())
         return response.json()
 
     def add_domain_to_project(self, project_id_or_name: str, data: Dict[str, Any], params: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -107,14 +106,12 @@ class VercelClient:
 
     def create_env_vars(self, project_id_or_name: str, data: Dict[str, Any], params: Dict[str, Any] = None) -> Dict[str, Any]:
         """Create one or more environment variables for a project"""
-        print(data)
         response = requests.post(
             f"{self.BASE_URL}/v10/projects/{project_id_or_name}/env",
             headers=self.headers,
             json=data,
             params=self._clean_params(params or {})
         )
-        print(response.json())
         
         response.raise_for_status()
         return response.json()

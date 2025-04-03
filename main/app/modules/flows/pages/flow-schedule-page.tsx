@@ -23,8 +23,6 @@ export default function FlowSchedulePage({ flowId, flow }: FlowSchedulePageProps
           getFlowSchedule(flowId),
           getFlowRuns(flowId)
         ]);
-        console.log('Loaded schedule:', scheduleData);
-        console.log('Loaded flow runs:', runsData);
         setSchedule(scheduleData);
         setFlowRuns(runsData);
       } catch (error) {
@@ -38,7 +36,6 @@ export default function FlowSchedulePage({ flowId, flow }: FlowSchedulePageProps
   }, [flowId]);
 
   const handleViewDetails = (runId: string) => {
-    console.log('Viewing details for run:', runId);
     router.push(`/flows/${flowId}/runs/${runId}`);
   };
 
@@ -49,8 +46,6 @@ export default function FlowSchedulePage({ flowId, flow }: FlowSchedulePageProps
       </div>
     );
   }
-
-  console.log('Rendering with flow runs:', flowRuns);
 
   if (!schedule) {
     return (

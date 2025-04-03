@@ -104,8 +104,6 @@ export async function GET(request: NextRequest) {
             throw upsertError;
         }
 
-        console.log("Adding actions user");
-
         await addActionsUser(provider_id);
 
         return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);

@@ -16,7 +16,6 @@ const openrouter = createOpenRouter({
 const modelName = 'anthropic/claude-3.7-sonnet';  
 
 export async function POST(req: Request) {
-  console.log('Received request to run-flow');
   
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     console.error('Missing Supabase environment variables');
@@ -29,7 +28,6 @@ export async function POST(req: Request) {
   );
 
   const apiKey = req.headers.get('VEYRAX_API_KEY');
-  console.log('API Key present:', !!apiKey);
   
   if (!apiKey) {
     return new Response('API key is required', { status: 401 });
@@ -42,7 +40,6 @@ export async function POST(req: Request) {
       .eq('api_key', apiKey)
       .single();
 
-    console.log('API Key validation:', apiKeyError ? 'failed' : 'success');
     
     if (apiKeyError || !apiKeyData) {
       console.error('API Key validation error:', apiKeyError);
@@ -51,10 +48,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { flowId } = body;
-    console.log('Flow ID:', flowId);
 
     const flowRunId = req.headers.get('X-Flow-Run-ID');
-    console.log('Flow Run ID from header:', flowRunId);
 
     const { data: flowData, error: flowError } = await supabase
       .from('user_flows')
@@ -63,7 +58,6 @@ export async function POST(req: Request) {
       .eq('user_id', apiKeyData.user_id)
       .single();
 
-    console.log('Flow validation:', flowError ? 'failed' : 'success');
     
     if (flowError || !flowData) {
       console.error('Flow validation error:', flowError);
@@ -90,7 +84,6 @@ export async function POST(req: Request) {
       }
     ];
 
-    console.log('Starting flow test with message:', messages[0].content);
 
     const SystemMainPrompt = `
       You are a helpful assistant that helps service accounts test automated workflows.
@@ -107,7 +100,6 @@ export async function POST(req: Request) {
       If flow is empty, you should respond with an error message indicating the flow needs to be created first. It is not test. It is production run.
     `;
 
-    console.log('SystemMainPrompt:', SystemMainPrompt);
 
     const result = streamText({
       model: openrouter(modelName) as any,
@@ -123,7 +115,6 @@ export async function POST(req: Request) {
       maxSteps: 25,
       experimental_telemetry: { isEnabled: true },
       async onFinish({ response }) {
-        console.log('Flow test completed, saving results');
         
         const allMessages = appendResponseMessages({
           messages,
@@ -184,7 +175,6 @@ export async function POST(req: Request) {
               throw flowRunError;
             }
 
-            console.log('Flow run completed successfully:', flowRunData);
             return;
           } catch (error) {
             console.error('Error updating existing flow run:', error);
@@ -266,7 +256,6 @@ export async function POST(req: Request) {
             throw flowRunError;
           }
 
-          console.log('Flow run completed successfully:', flowRunData);
         } catch (error) {
           console.error('Error updating flow run:', error);
           await supabase
@@ -291,7 +280,6 @@ export async function POST(req: Request) {
       }
     });
 
-    console.log('Streaming response back to client');
     return result.toDataStreamResponse({
       getErrorMessage: (error: unknown) => {
         console.error('Error in strea m response:', error);

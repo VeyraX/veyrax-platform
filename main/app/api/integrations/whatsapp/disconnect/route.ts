@@ -35,8 +35,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-
-    console.log("[WhatsApp disconnect] data", data);
     
     // Return the response data
     return NextResponse.json({

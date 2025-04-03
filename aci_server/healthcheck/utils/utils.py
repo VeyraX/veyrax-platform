@@ -127,9 +127,7 @@ if __name__ == "__main__":
 
     # Assume the project root is three directories up from this file
     root_dir = Path(__file__).resolve().parents[3]
-    print(f"Loading environment variables from: {root_dir / '.env'}")
     load_dotenv(root_dir / '.env')
 
     # Execute the calendar endpoint healthcheck and print the results
     result = check_calendar_endpoint()
-    print(result)

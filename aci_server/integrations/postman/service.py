@@ -165,8 +165,6 @@ class PostmanService:
         
         response = self.client.delete_collection(collection_id, params_dict)
         
-        print(f"API Delete Response: {response}")
-        
         delete_response = DeleteCollectionResponse(
             id=response.get('collection', {}).get('id', '') or response.get('id', ''),
             uid=response.get('collection', {}).get('uid') or response.get('uid'),

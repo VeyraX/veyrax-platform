@@ -138,8 +138,6 @@ class FirecrawlService:
         
         if 'schema' in params_dict:
             params_dict['schema'] = self._convert_schema_to_json_schema(params_dict['schema'])
-        
-        print(params_dict)
         response = self.client.extract(**params_dict)
         return ApiResponse(data=response)
 

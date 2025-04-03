@@ -21,13 +21,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Invalid request - missing parameters`);
     }
 
-    // Log the received parameters for debugging
-    console.log('Sentry callback received:', { 
-        code: 'present', 
-        state: 'present',
-        searchParams
-    });
-
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -140,7 +133,6 @@ export async function GET(request: NextRequest) {
 
         // Mark the installation as officially installed
         try {
-            console.log('Verifying installation:', installationId);
             const verifyResponse = await fetch(`https://sentry.io/api/0/sentry-app-installations/${installationId}/`, {
                 method: 'PUT',
                 headers: { 
@@ -153,8 +145,6 @@ export async function GET(request: NextRequest) {
             if (!verifyResponse.ok) {
                 const verifyError = await verifyResponse.json();
                 console.error('Installation verification failed:', verifyError);
-            } else {
-                console.log('Installation verified successfully');
             }
         } catch (verifyError) {
             console.error('Failed to verify installation:', verifyError);

@@ -12,7 +12,6 @@ from agent.prompts import flow_prompt
 @shared_task(name='flow.tasks.run_flow_task')
 def run_flow_task(flow_id, run_id, api_key, trace_id, user_id):
     try:
-        print(f"Running flow task for flow_id: {flow_id}, run_id: {run_id}, api_key: {api_key}")
         user_flows = get_flow_by_id(flow_id)
         system_prompt = flow_prompt
         

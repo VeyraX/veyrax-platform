@@ -177,13 +177,9 @@ class ReplicateClient:
             # For Minimax, ensure we only send the input field
             if "input" in data:
                 data = {"input": data["input"]}
-            print(f"[CLIENT] Creating prediction for Minimax video model with data: {data}")
         
         try:    
             url = f"{self.base_url}/models/{model_owner}/{model_name}/predictions"
-            if is_minimax_video:
-                print(f"[CLIENT] Making request to URL: {url}")
-                print(f"[CLIENT] Headers: {headers}")
             
             response = requests.post(
                 url,
@@ -195,20 +191,14 @@ class ReplicateClient:
             
             response_data = response.json()
             
-            # Additional validation for Minimax video model
-            if is_minimax_video:
-                print(f"[CLIENT] Response JSON: {response_data}")
-            
             return response_data
             
         except HTTPError as e:
             error_msg = f"HTTP error in create_official_model_prediction: {e}"
-            print(error_msg)
             if is_minimax_video:
                 print(f"[CLIENT] Minimax HTTP error: {e}")
                 if hasattr(e, 'response'):
                     print(f"[CLIENT] Error response status: {e.response.status_code}")
-                    print(f"[CLIENT] Error response headers: {e.response.headers}")
                     try:
                         print(f"[CLIENT] Error response content: {e.response.text}")
                     except:

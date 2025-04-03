@@ -114,8 +114,6 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
     const statusInterval = setInterval(async () => {
       try {
         const statusResult = await checkWhatsAppStatus();
-
-        console.log("statusResult", statusResult);
         
         if (statusResult.success && statusResult.isLoggedIn) {
           // Clear the interval
@@ -124,9 +122,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
           
           // Call enableWhatsapp once when authentication completes
           try {
-            console.log("Calling enableWhatsapp with data:", statusResult);
             const enableResult = await enableWhatsapp(statusResult);
-            console.log("enableWhatsapp result:", enableResult);
           } catch (enableError) {
             console.error("Failed to enable WhatsApp:", enableError);
           }
@@ -140,11 +136,9 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
     
     // Store interval ID in state
     setPollingIntervalId(statusInterval);
-    console.log("Started polling with interval ID:", statusInterval);
   };
 
   const handleAuthenticationSuccess = () => {
-    console.log("Authentication successful, updating state...");
     // Update authentication state
     setIsAuthenticated(true);
     
@@ -157,13 +151,11 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
       isLoggedIn: true
     };
     onChange(newConfig);
-    console.log("Updated config with isLoggedIn=true");
     
     // After 2 seconds, hide animation and call onUpdate
     setTimeout(() => {
       setShowSuccessAnimation(false);
       if (onUpdate) {
-        console.log("Calling onUpdate callback");
         onUpdate();
       }
     }, 2000);

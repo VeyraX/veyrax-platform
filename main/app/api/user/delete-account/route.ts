@@ -46,13 +46,10 @@ export async function POST(request: Request) {
       )
     }
     
-    console.log(`Found ${tables?.length || 0} tables with user data for deletion`)
-    
     const deletionErrors = []
     
     if (tables && tables.length > 0) {
       for (const { table_name } of tables) {
-        console.log(`Deleting user data from ${table_name}`)
         
         try {
           const { error: deleteError } = await adminClient

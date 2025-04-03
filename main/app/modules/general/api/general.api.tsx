@@ -21,7 +21,6 @@ export const submitFeedback = async (feedbackData: FeedbackSubmitData): Promise<
       })
       .select()
       .single()
-    console.log(data)
     if (error) {
       console.error('Error submitting feedback:', error)
       throw error

@@ -245,8 +245,6 @@ export const disconnectWhatsAppProvider = async (providerId: string): Promise<vo
 export const disconnectProvider = async (providerId: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
 
-  console.log('Disconnecting provider:', { userId: user?.id, providerId });
-
   await deleteActions(providerId);
   
   await supabase
@@ -265,19 +263,13 @@ export const disconnectProvider = async (providerId: string): Promise<void> => {
       provider_id: providerId 
     });
 
-  const { data: customAuthData, error: customAuthError } = await supabase
+  await supabase
     .from('user_provider_custom_auth')
     .delete()
     .match({ 
       user_id: user?.id,
       provider_id: providerId 
     });
-
-  console.log('Custom auth delete result:', { customAuthData, customAuthError });
-
-  if (customAuthError) {
-    console.error('Error deleting custom auth data:', customAuthError);
-  }
 
   await supabase
     .from('users_providers')

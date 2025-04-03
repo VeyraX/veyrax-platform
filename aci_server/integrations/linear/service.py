@@ -171,8 +171,6 @@ class LinearService:
                 transformed_data[new_key] = value
         
         response = self.client.update_issue(issue_id, transformed_data)
-
-        print(f"Response: {response}")
         
         if 'errors' in response:
             error_msg = response.get('errors', [{}])[0].get('message', 'Unknown error')

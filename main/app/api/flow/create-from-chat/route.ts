@@ -119,7 +119,6 @@ export async function POST(request: Request) {
     let model = openrouter(modelName) as any;
     
     const traceId = generateTraceId();
-    console.log('Generated trace ID for create flow:', traceId);
     
     model = traceModel(model, user.id, {
       trace_id: traceId,

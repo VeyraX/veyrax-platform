@@ -41,7 +41,6 @@ export async function POST(request: Request) {
       const urlMatch = chatId.match(/flow\/([^\/]+)\/edit/);
       if (urlMatch && urlMatch[1]) {
         currentFlowId = urlMatch[1];
-        console.log('currentFlowId:', currentFlowId);
       }
     }
     
@@ -58,8 +57,6 @@ export async function POST(request: Request) {
       This is the flow that user wants to test. Use the ID provided above when calling the tool_call_test_flow tool.
       `;
     }
-
-    console.log('flowContextInfo:', flowContextInfo);
 
     const SystemMainPrompt = `
       You are a helpful assistant that helps users test automated workflows.
@@ -82,15 +79,11 @@ export async function POST(request: Request) {
       For example, if provider slug is "google-calendar" it means that you should use the google-calendar tool, and methods as action_slug. 
     `;
 
-    console.log('SystemMainPrompt:', SystemMainPrompt);
-
     const allMessages = [
       { role: 'system', content: SystemMainPrompt, id: 'system' },
       ...messages
     ];
     const traceId = generateTraceId();
-    console.log('Generated trace ID for test flow:', traceId);
-    console.log('for user id:', user.id);
 
     const model = traceModel(openrouter(modelName) as any, user.id, {
       trace_id: traceId,
