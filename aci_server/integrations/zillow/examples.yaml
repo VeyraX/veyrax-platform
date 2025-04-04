@@ -1,0 +1,1219 @@
+routes:
+  - endpoint: /zillow/get_property
+    examples:
+      - scenario: "Get Property by ZPID"
+        description: "Retrieve property details using a Zillow Property ID"
+        input_json: |
+          {
+            "zpid": 197832
+          }
+        output_json: |
+          {
+            "data": {
+              "zpid": 197832,
+              "streetAddress": "123 Example St",
+              "zipcode": "12345",
+              "city": "Los Angeles",
+              "state": "CA",
+              "latitude": 34.052235,
+              "longitude": -118.243683,
+              "price": 750000,
+              "homeStatus": "FOR_SALE",
+              "homeType": "SINGLE_FAMILY",
+              "livingArea": 2000,
+              "livingAreaUnits": "sqft",
+              "bedrooms": 3,
+              "bathrooms": 2,
+              "yearBuilt": 1980,
+              "url": "https://www.zillow.com/homedetails/123-Example-St-Los-Angeles-CA-12345/197832_zpid/",
+              "imgSrc": "https://photos.zillowstatic.com/fp/example-image.jpg",
+              "description": "Beautiful single family home in Los Angeles with 3 bedrooms and 2 bathrooms.",
+              "timeOnZillow": "30 days",
+              "monthlyHoaFee": 150,
+              "currency": "USD",
+              "address": {
+                "city": "Los Angeles",
+                "state": "CA",
+                "streetAddress": "123 Example St",
+                "zipcode": "12345"
+              }
+            },
+            "component": {
+              "name": "PropertyDetails"
+            }
+          }
+      
+      - scenario: "Get Property by URL"
+        description: "Retrieve property details using a Zillow property URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/101-California-Ave-UNIT-506-Santa-Monica-CA-90403/20485717_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "zpid": 20485717,
+              "streetAddress": "101 California Ave UNIT 506",
+              "zipcode": "90403",
+              "city": "Santa Monica",
+              "state": "CA",
+              "latitude": 34.0195,
+              "longitude": -118.4912,
+              "price": 1250000,
+              "homeStatus": "FOR_SALE",
+              "homeType": "CONDO",
+              "livingArea": 1200,
+              "livingAreaUnits": "sqft",
+              "bedrooms": 2,
+              "bathrooms": 2,
+              "yearBuilt": 2005,
+              "url": "https://www.zillow.com/homedetails/101-California-Ave-UNIT-506-Santa-Monica-CA-90403/20485717_zpid/",
+              "imgSrc": "https://photos.zillowstatic.com/fp/sample-image.jpg",
+              "description": "Luxury condo in Santa Monica with 2 bedrooms and 2 bathrooms.",
+              "timeOnZillow": "14 days",
+              "monthlyHoaFee": 450,
+              "currency": "USD",
+              "address": {
+                "city": "Santa Monica",
+                "state": "CA",
+                "streetAddress": "101 California Ave UNIT 506",
+                "zipcode": "90403"
+              }
+            },
+            "component": {
+              "name": "PropertyDetails"
+            }
+          }
+
+  - endpoint: /zillow/search_properties
+    examples:
+      - scenario: "Search Properties in Los Angeles"
+        description: "Search for houses for sale in Los Angeles"
+        input_json: |
+          {
+            "location": "Los Angeles, CA",
+            "status_type": "ForSale",
+            "home_type": "Houses"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": {
+                "props": [
+                  {
+                    "zpid": "20477746",
+                    "address": "443 Euclid St, Santa Monica, CA 90402",
+                    "bedrooms": 4,
+                    "bathrooms": 3,
+                    "price": 4495000,
+                    "homeStatus": null,
+                    "homeType": null,
+                    "livingArea": 2683,
+                    "lotAreaValue": 7501.032,
+                    "lotAreaUnit": "sqft",
+                    "latitude": 34.034992,
+                    "longitude": -118.49976,
+                    "imgSrc": "https://photos.zillowstatic.com/fp/fcb17e90b0a065b9e0a7eea321e24b40-p_e.jpg",
+                    "hasImage": true,
+                    "currency": "USD",
+                    "country": "USA",
+                    "dateSold": null,
+                    "daysOnZillow": -1,
+                    "propertyType": "SINGLE_FAMILY",
+                    "listingStatus": "FOR_SALE"
+                  }
+                ],
+                "resultsPerPage": 40,
+                "totalPages": 1,
+                "totalResultCount": 1,
+                "currentPage": 1
+              }
+            },
+            "component": {
+              "name": "PropertySearchResults"
+            }
+          }
+      
+      - scenario: "Search Properties with Filters"
+        description: "Search for properties with specific price and bedroom filters"
+        input_json: |
+          {
+            "location": "Los Angeles, CA",
+            "status_type": "ForSale",
+            "home_type": "Houses",
+            "minPrice": 1000000,
+            "maxPrice": 2000000,
+            "bedsMin": 3,
+            "bathsMin": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "results": {
+                "props": [
+                  {
+                    "zpid": "20477123",
+                    "address": "123 Main St, Los Angeles, CA 90001",
+                    "bedrooms": 3,
+                    "bathrooms": 2,
+                    "price": 1200000,
+                    "homeStatus": null,
+                    "homeType": null,
+                    "livingArea": 1800,
+                    "lotAreaValue": 6000,
+                    "lotAreaUnit": "sqft",
+                    "latitude": 34.05,
+                    "longitude": -118.25,
+                    "imgSrc": "https://photos.zillowstatic.com/fp/example-home-p_e.jpg",
+                    "hasImage": true,
+                    "currency": "USD",
+                    "country": "USA",
+                    "dateSold": null,
+                    "daysOnZillow": 14,
+                    "propertyType": "SINGLE_FAMILY",
+                    "listingStatus": "FOR_SALE"
+                  },
+                  {
+                    "zpid": "20478456",
+                    "address": "456 Oak St, Los Angeles, CA 90002",
+                    "bedrooms": 4,
+                    "bathrooms": 3,
+                    "price": 1500000,
+                    "homeStatus": null,
+                    "homeType": null,
+                    "livingArea": 2200,
+                    "lotAreaValue": 7500,
+                    "lotAreaUnit": "sqft",
+                    "latitude": 34.06,
+                    "longitude": -118.26,
+                    "imgSrc": "https://photos.zillowstatic.com/fp/another-example-p_e.jpg",
+                    "hasImage": true,
+                    "currency": "USD",
+                    "country": "USA",
+                    "dateSold": null,
+                    "daysOnZillow": 7,
+                    "propertyType": "SINGLE_FAMILY",
+                    "listingStatus": "FOR_SALE"
+                  }
+                ],
+                "resultsPerPage": 40,
+                "totalPages": 1,
+                "totalResultCount": 2,
+                "currentPage": 1
+              }
+            },
+            "component": {
+              "name": "PropertySearchResults"
+            }
+          }
+
+  - endpoint: /zillow/get_zestimate
+    examples:
+      - scenario: "Get Zestimate by ZPID"
+        description: "Retrieve Zillow's estimated market value for a property using its Zillow Property ID"
+        input_json: |
+          {
+            "zpid": "87788805"
+          }
+        output_json: |
+          {
+            "data": {
+              "value": 287300
+            },
+            "component": {
+              "name": "ZestimateCard"
+            }
+          }
+
+      - scenario: "Get Zestimate by URL"
+        description: "Retrieve Zillow's estimated market value for a property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/123-Main-St-Anytown-USA-12345/87788805_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "value": 325000
+            },
+            "component": {
+              "name": "ZestimateCard"
+            }
+          }
+
+  - endpoint: /zillow/get_zestimate_history
+    examples:
+      - scenario: "Get Zestimate History by ZPID"
+        description: "Retrieve historical Zestimate values for a property using its Zillow Property ID"
+        input_json: |
+          {
+            "zpid": 13172523
+          }
+        output_json: |
+          {
+            "data": {
+              "history": [
+                {
+                  "t": 1577836800000,
+                  "v": 450000
+                },
+                {
+                  "t": 1580515200000,
+                  "v": 455000
+                },
+                {
+                  "t": 1583020800000,
+                  "v": 460000
+                },
+                {
+                  "t": 1585699200000,
+                  "v": 458000
+                },
+                {
+                  "t": 1588291200000,
+                  "v": 463000
+                },
+                {
+                  "t": 1590969600000,
+                  "v": 472000
+                }
+              ]
+            },
+            "component": {
+              "name": "ZestimateHistoryChart"
+            }
+          }
+
+      - scenario: "Get Zestimate History by URL"
+        description: "Retrieve historical Zestimate values for a property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/7646-S-Cook-Way-Centennial-CO-80122/13172523_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "history": [
+                {
+                  "t": 1577836800000,
+                  "v": 450000
+                },
+                {
+                  "t": 1580515200000,
+                  "v": 455000
+                },
+                {
+                  "t": 1583020800000,
+                  "v": 460000
+                },
+                {
+                  "t": 1585699200000,
+                  "v": 458000
+                },
+                {
+                  "t": 1588291200000,
+                  "v": 463000
+                },
+                {
+                  "t": 1590969600000,
+                  "v": 472000
+                }
+              ]
+            },
+            "component": {
+              "name": "ZestimateHistoryChart"
+            }
+          }
+
+  - endpoint: /zillow/get_price_and_tax_history
+    examples:
+      - scenario: "Get Price and Tax History by ZPID"
+        description: "Retrieve price and tax history for a property using its Zillow Property ID"
+        input_json: |
+          {
+            "zpid": "49000475"
+          }
+        output_json: |
+          {
+            "data": {
+              "priceAndTaxHistory": {
+                "priceHistory": [
+                  {
+                    "priceChangeRate": 0,
+                    "date": "2023-08-22",
+                    "source": "Zillow Rentals",
+                    "postingIsRental": true,
+                    "time": 1692662400000,
+                    "showCountyLink": false,
+                    "event": "Listing removed",
+                    "price": null
+                  },
+                  {
+                    "priceChangeRate": -0.042,
+                    "date": "2023-08-18",
+                    "source": "Zillow Rentals",
+                    "postingIsRental": true,
+                    "time": 1692316800000,
+                    "showCountyLink": false,
+                    "pricePerSquareFoot": 4,
+                    "event": "Price change",
+                    "price": 2395
+                  },
+                  {
+                    "priceChangeRate": 0,
+                    "date": "2023-07-29",
+                    "source": "Zillow Rentals",
+                    "postingIsRental": true,
+                    "time": 1690588800000,
+                    "showCountyLink": false,
+                    "pricePerSquareFoot": 4,
+                    "event": "Listed for rent",
+                    "price": 2500
+                  }
+                ],
+                "taxHistory": [
+                  {
+                    "time": 1680548895772,
+                    "valueIncreaseRate": -0.03380282,
+                    "taxIncreaseRate": 0.07655524,
+                    "taxPaid": 3217.07,
+                    "value": 343000
+                  },
+                  {
+                    "time": 1649012895772,
+                    "valueIncreaseRate": 1.8422738,
+                    "taxIncreaseRate": 7.2145805,
+                    "taxPaid": 2988.3,
+                    "value": 355000
+                  },
+                  {
+                    "time": 1617476895772,
+                    "valueIncreaseRate": 0,
+                    "taxIncreaseRate": -0.020279547,
+                    "taxPaid": 363.78,
+                    "value": 124900
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "PriceAndTaxHistoryChart"
+            }
+          }
+
+      - scenario: "Get Price and Tax History by URL"
+        description: "Retrieve price and tax history for a property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/123-Main-St-Anytown-USA-12345/49000475_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "priceAndTaxHistory": {
+                "priceHistory": [
+                  {
+                    "priceChangeRate": -0.021134593993326,
+                    "date": "2023-07-27",
+                    "source": "NWMLS",
+                    "postingIsRental": false,
+                    "time": 1690416000000,
+                    "showCountyLink": false,
+                    "pricePerSquareFoot": 647,
+                    "event": "Sold",
+                    "price": 440000
+                  },
+                  {
+                    "priceChangeRate": 0,
+                    "date": "2023-06-28",
+                    "source": "NWMLS",
+                    "postingIsRental": false,
+                    "time": 1687910400000,
+                    "showCountyLink": false,
+                    "pricePerSquareFoot": 661,
+                    "event": "Pending sale",
+                    "price": 449500
+                  }
+                ],
+                "taxHistory": [
+                  {
+                    "time": 1680548895772,
+                    "valueIncreaseRate": -0.03380282,
+                    "taxIncreaseRate": 0.07655524,
+                    "taxPaid": 3217.07,
+                    "value": 343000
+                  },
+                  {
+                    "time": 1649012895772,
+                    "valueIncreaseRate": 1.8422738,
+                    "taxIncreaseRate": 7.2145805,
+                    "taxPaid": 2988.3,
+                    "value": 355000
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "PriceAndTaxHistoryChart"
+            }
+          }
+
+  - endpoint: /zillow/get_property_comps
+    examples:
+      - scenario: "Get Property Comparables"
+        description: "Retrieve comparable properties to a specific property"
+        input_json: |
+          {
+            "zpid": "197764"
+          }
+        output_json: |
+          {
+            "data": {
+              "propertyComps": {
+                "comps": [
+                  {
+                    "bathrooms": 3,
+                    "lotAreaUnits": "Acres",
+                    "hdpUrl": "/homedetails/206-Stonecroft-Dr-Helena-AL-35080/197764_zpid/",
+                    "lotAreaValue": 0.28,
+                    "address": {
+                      "city": "Helena",
+                      "state": "AL",
+                      "streetAddress": "206 Stonecroft Dr",
+                      "zipcode": "35080"
+                    },
+                    "state": "AL",
+                    "latitude": 33.27437,
+                    "homeStatus": "RECENTLY_SOLD",
+                    "price": 339900,
+                    "bedrooms": 4,
+                    "propertyTypeDimension": "Single Family",
+                    "lotSize": 12196,
+                    "miniCardPhotos": [
+                      {
+                        "url": "https://photos.zillowstatic.com/fp/fd5353aab53e1bab305d95150defabb5-p_c.jpg"
+                      }
+                    ],
+                    "zpid": 197764,
+                    "livingArea": 2326,
+                    "longitude": -86.85863,
+                    "livingAreaUnitsShort": "sqft",
+                    "homeType": "SINGLE_FAMILY",
+                    "currency": "USD",
+                    "livingAreaUnits": "Square Feet",
+                    "livingAreaValue": 2326
+                  },
+                  {
+                    "bathrooms": 3,
+                    "lotAreaUnits": "Square Feet",
+                    "hdpUrl": "/homedetails/8237-Wynwood-Dr-Helena-AL-35080/50892258_zpid/",
+                    "lotAreaValue": 0,
+                    "address": {
+                      "city": "Helena",
+                      "state": "AL",
+                      "streetAddress": "8237 Wynwood Dr",
+                      "zipcode": "35080"
+                    },
+                    "state": "AL",
+                    "latitude": 33.276287,
+                    "homeStatus": "RECENTLY_SOLD",
+                    "price": 350000,
+                    "bedrooms": 4,
+                    "propertyTypeDimension": "Single Family",
+                    "lotSize": 0,
+                    "miniCardPhotos": [
+                      {
+                        "url": "https://photos.zillowstatic.com/fp/c315a009c38e72727ac021135314acf7-p_c.jpg"
+                      }
+                    ],
+                    "zpid": 50892258,
+                    "livingArea": 2300,
+                    "longitude": -86.84627,
+                    "livingAreaUnitsShort": "sqft",
+                    "homeType": "SINGLE_FAMILY",
+                    "currency": "USD",
+                    "livingAreaUnits": "Square Feet",
+                    "livingAreaValue": 2300
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "PropertyCompsGrid"
+            }
+          }
+
+      - scenario: "Get Property Comparables by Address"
+        description: "Retrieve comparable properties using an address"
+        input_json: |
+          {
+            "address": "206 Stonecroft Dr, Helena, AL 35080"
+          }
+        output_json: |
+          {
+            "data": {
+              "propertyComps": {
+                "comps": [
+                  {
+                    "bathrooms": 3,
+                    "lotAreaUnits": "Acres",
+                    "hdpUrl": "/homedetails/206-Stonecroft-Dr-Helena-AL-35080/197764_zpid/",
+                    "lotAreaValue": 0.28,
+                    "address": {
+                      "city": "Helena",
+                      "state": "AL",
+                      "streetAddress": "206 Stonecroft Dr",
+                      "zipcode": "35080"
+                    },
+                    "state": "AL",
+                    "latitude": 33.27437,
+                    "homeStatus": "RECENTLY_SOLD",
+                    "price": 339900,
+                    "bedrooms": 4,
+                    "propertyTypeDimension": "Single Family",
+                    "lotSize": 12196,
+                    "miniCardPhotos": [
+                      {
+                        "url": "https://photos.zillowstatic.com/fp/fd5353aab53e1bab305d95150defabb5-p_c.jpg"
+                      }
+                    ],
+                    "zpid": 197764,
+                    "livingArea": 2326,
+                    "longitude": -86.85863,
+                    "livingAreaUnitsShort": "sqft",
+                    "homeType": "SINGLE_FAMILY",
+                    "currency": "USD",
+                    "livingAreaUnits": "Square Feet",
+                    "livingAreaValue": 2326
+                  },
+                  {
+                    "bathrooms": 3,
+                    "lotAreaUnits": "Square Feet",
+                    "hdpUrl": "/homedetails/2008-Stonecreek-Ct-Helena-AL-35080/71017660_zpid/",
+                    "lotAreaValue": 7405.2,
+                    "address": {
+                      "city": "Helena",
+                      "state": "AL",
+                      "streetAddress": "2008 Stonecreek Ct",
+                      "zipcode": "35080"
+                    },
+                    "state": "AL",
+                    "latitude": 33.278584,
+                    "homeStatus": "RECENTLY_SOLD",
+                    "price": 369000,
+                    "bedrooms": 4,
+                    "propertyTypeDimension": "Single Family",
+                    "lotSize": 7405,
+                    "miniCardPhotos": [
+                      {
+                        "url": "https://photos.zillowstatic.com/fp/816ccf05d301e88b6a04dd347d55d8f6-p_c.jpg"
+                      }
+                    ],
+                    "zpid": 71017660,
+                    "livingArea": 2369,
+                    "longitude": -86.87439,
+                    "livingAreaUnitsShort": "sqft",
+                    "homeType": "SINGLE_FAMILY",
+                    "currency": "USD",
+                    "livingAreaUnits": "Square Feet",
+                    "livingAreaValue": 2369
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "PropertyCompsGrid"
+            }
+          }
+
+  - endpoint: /zillow/get_property_value_range
+    examples:
+      - scenario: "Get Property Value Range by Address"
+        description: "Retrieve property value range information for a neighborhood based on an address"
+        input_json: |
+          {
+            "address": "465 Harkness Ave, San Francisco, CA 94134",
+            "propertyType": "SingleFamily"
+          }
+        output_json: |
+          {
+            "data": {
+              "valueRange": {
+                "percentile_25": 1000700,
+                "skippedRecords": 8,
+                "lowValue": 758400,
+                "lat": 37.718147,
+                "long": -122.406387,
+                "highValue": 1806600,
+                "comparableProperties": 34,
+                "percentile_75": 1245900,
+                "median": 1102250
+              }
+            },
+            "component": {
+              "name": "PropertyValueRangeCard"
+            }
+          }
+
+      - scenario: "Get Property Value Range by Coordinates"
+        description: "Retrieve property value range information for a neighborhood based on coordinates"
+        input_json: |
+          {
+            "lat": 37.718147,
+            "long": -122.406387,
+            "d": 0.5,
+            "propertyType": "SingleFamily",
+            "beds": 3,
+            "baths": 2
+          }
+        output_json: |
+          {
+            "data": {
+              "valueRange": {
+                "percentile_25": 950500,
+                "skippedRecords": 5,
+                "lowValue": 700000,
+                "lat": 37.718147,
+                "long": -122.406387,
+                "highValue": 1750000,
+                "comparableProperties": 28,
+                "percentile_75": 1300000,
+                "median": 1125000
+              }
+            },
+            "component": {
+              "name": "PropertyValueRangeCard"
+            }
+          }
+
+  - endpoint: /zillow/get_similar_properties
+    examples:
+      - scenario: "Get Similar Properties by ZPID"
+        description: "Retrieve properties similar to a specific property using its Zillow Property ID"
+        input_json: |
+          {
+            "zpid": 197764
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 4,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/4f1647b25f17dc293368d57a36a56dd1-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 48749498,
+                  "longitude": -122.346914,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "1512 5th Ave N",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.632692,
+                  "livingArea": 1838,
+                  "homeType": "TOWNHOUSE",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1699900
+                },
+                {
+                  "bathrooms": 2,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/a858c5891065c3ef02a5e9e3b831d7d6-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 48981675,
+                  "longitude": -122.345224,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "1405 6th Ave N",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.631587,
+                  "livingArea": 1585,
+                  "homeType": "TOWNHOUSE",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1045000
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarPropertiesGrid"
+            }
+          }
+
+      - scenario: "Get Similar Properties by URL"
+        description: "Retrieve properties similar to a specific property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/206-Stonecroft-Dr-Helena-AL-35080/197764_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 3,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/654232d84cf0d6e542a955d33dd91aed-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 2071171617,
+                  "longitude": -122.347073,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "508 Prospect St #B",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.629101,
+                  "livingArea": 2121,
+                  "homeType": "SINGLE_FAMILY",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1850000
+                },
+                {
+                  "bathrooms": 2,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/4652b5cbdd0d56de00a71d25c9891bd0-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 48981685,
+                  "longitude": -122.346838,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "514 Lee St",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.631603,
+                  "livingArea": 1450,
+                  "homeType": "TOWNHOUSE",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1049000
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarPropertiesGrid"
+            }
+          }
+
+  - endpoint: /zillow/get_similar_sales
+    examples:
+      - scenario: "Get Similar Sales by ZPID"
+        description: "Retrieve recently sold properties similar to a specific property"
+        input_json: |
+          {
+            "zpid": 19959099
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 4,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/3f72608fc949954a2bceedb6ca58d1c1-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 124790533,
+                  "longitude": -122.347321,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "1000 5th Ave N",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.628163,
+                  "livingArea": 2254,
+                  "homeType": "SINGLE_FAMILY",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1875000,
+                  "homeStatus": "RECENTLY_SOLD"
+                },
+                {
+                  "bathrooms": 3,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/654232d84cf0d6e542a955d33dd91aed-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 2071171617,
+                  "longitude": -122.347073,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "508 Prospect St #B",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.629101,
+                  "livingArea": 2121,
+                  "homeType": "SINGLE_FAMILY",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1795000,
+                  "homeStatus": "RECENTLY_SOLD"
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarSalesGrid"
+            }
+          }
+
+      - scenario: "Get Similar Sales by URL"
+        description: "Retrieve recently sold properties similar to a specific property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/123-Main-St-Anytown-USA-12345/19959099_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 2,
+                  "bedrooms": 3,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/4652b5cbdd0d56de00a71d25c9891bd0-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 48981685,
+                  "longitude": -122.346838,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "514 Lee St",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.631603,
+                  "livingArea": 1450,
+                  "homeType": "TOWNHOUSE",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1049000,
+                  "homeStatus": "RECENTLY_SOLD"
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarSalesGrid"
+            }
+          }
+
+  - endpoint: /zillow/get_similar_rentals
+    examples:
+      - scenario: "Get Similar Rentals by ZPID"
+        description: "Retrieve rental properties similar to a specific property"
+        input_json: |
+          {
+            "zpid": 246283880
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 2,
+                  "bedrooms": 2,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/e46741ea1901b43d9e602cb8160c7211-p_c.jpg"
+                    }
+                  ],
+                  "zpid": 2081511702,
+                  "longitude": -122.342894,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "2007 Dexter Ave N #A",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.636826,
+                  "livingArea": 1212,
+                  "homeType": "TOWNHOUSE",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 3200,
+                  "homeStatus": "FOR_RENT"
+                },
+                {
+                  "bathrooms": 1,
+                  "bedrooms": 1,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/example-image.jpg"
+                    }
+                  ],
+                  "zpid": 123456789,
+                  "longitude": -122.342500,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "123 Example St #B",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.635000,
+                  "livingArea": 800,
+                  "homeType": "APARTMENT",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 2100,
+                  "homeStatus": "FOR_RENT"
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarRentalsGrid"
+            }
+          }
+
+      - scenario: "Get Similar Rentals by URL"
+        description: "Retrieve rental properties similar to a specific property using its URL"
+        input_json: |
+          {
+            "property_url": "https://www.zillow.com/homedetails/123-Example-St-Seattle-WA-98109/246283880_zpid/"
+          }
+        output_json: |
+          {
+            "data": {
+              "similarProperties": [
+                {
+                  "bathrooms": 1,
+                  "bedrooms": 1,
+                  "miniCardPhotos": [
+                    {
+                      "url": "https://photos.zillowstatic.com/fp/example-rental-image.jpg"
+                    }
+                  ],
+                  "zpid": 987654321,
+                  "longitude": -122.345000,
+                  "address": {
+                    "city": "Seattle",
+                    "state": "WA",
+                    "streetAddress": "456 Sample Ave #C",
+                    "zipcode": "98109"
+                  },
+                  "latitude": 47.633000,
+                  "livingArea": 750,
+                  "homeType": "APARTMENT",
+                  "livingAreaUnits": "Square Feet",
+                  "currency": "USD",
+                  "price": 1950,
+                  "homeStatus": "FOR_RENT"
+                }
+              ]
+            },
+            "component": {
+              "name": "SimilarRentalsGrid"
+            }
+          }
+
+  - endpoint: /zillow/get_market_location
+    examples:
+      - scenario: "Get Market Location for a City"
+        description: "Retrieve market location data for a city"
+        input_json: |
+          {
+            "location": "Orlando, FL"
+          }
+        output_json: |
+          {
+            "data": {
+              "marketLocations": [
+                {
+                  "longName": "Orlando, FL",
+                  "resourceId": "orlando-fl",
+                  "areaId": "2056887690",
+                  "type": "City"
+                }
+              ]
+            },
+            "component": {
+              "name": "MarketLocationList"
+            }
+          }
+
+      - scenario: "Get Market Location for a Zip Code"
+        description: "Retrieve market location data for a zip code"
+        input_json: |
+          {
+            "location": "32810"
+          }
+        output_json: |
+          {
+            "data": {
+              "marketLocations": [
+                {
+                  "longName": "Orlando, FL 32810",
+                  "resourceId": "32810",
+                  "areaId": "16220675",
+                  "type": "Zip"
+                }
+              ]
+            },
+            "component": {
+              "name": "MarketLocationList"
+            }
+          }
+
+  - endpoint: /zillow/get_market_data
+    examples:
+      - scenario: "Get Market Data for a Location"
+        description: "Retrieve market data for a specific location using resourceId"
+        input_json: |
+          {
+            "resourceId": "32810"
+          }
+        output_json: |
+          {
+            "data": {
+              "medianRentPriceOverTime": {
+                "currentYear": [
+                  {
+                    "price": 1275,
+                    "year": "2024",
+                    "month": "Apr"
+                  },
+                  {
+                    "price": 900,
+                    "year": "2024",
+                    "month": "Jul"
+                  },
+                  {
+                    "price": 1037.5,
+                    "year": "2024",
+                    "month": "Aug"
+                  }
+                ]
+              },
+              "date": "2025-03-31",
+              "areaType": "zip",
+              "rentHistogram": {
+                "maxPrice": 1399,
+                "priceAndCount": [
+                  {
+                    "count": 1,
+                    "price": 1300
+                  }
+                ],
+                "minPrice": 1399
+              },
+              "rentCompare": {
+                "medianRent": 1595,
+                "areaName": "US"
+              },
+              "nearByAreas": [
+                {
+                  "city": "Edgewood",
+                  "resourceName": "edgewood-fl",
+                  "areaType": "CITY",
+                  "name": "Edgewood",
+                  "areaId": 2052369429,
+                  "state": "FL"
+                },
+                {
+                  "city": "Winter Park",
+                  "resourceName": "winter-park-fl",
+                  "areaType": "CITY",
+                  "name": "Winter Park",
+                  "areaId": 2059442484,
+                  "state": "FL"
+                }
+              ],
+              "zillowRentalsSrpUrl": "https://www.zillow.com/orlando-fl-32810/rentals/",
+              "marketTemperature": {
+                "temperature": "COOL",
+                "areaName": "32810"
+              },
+              "summary": {
+                "monthlyChange": 1399,
+                "yearlyChange": 124,
+                "avgDaysOnMarket": 6,
+                "availableRentals": 1,
+                "medianRent": 1399
+              }
+            },
+            "component": {
+              "name": "MarketDataChart"
+            }
+          }
+
+      - scenario: "Get Market Data with Filters"
+        description: "Retrieve market data for a specific location with bedroom and property type filters"
+        input_json: |
+          {
+            "resourceId": "32810",
+            "beds": 2,
+            "propertyTypes": "house"
+          }
+        output_json: |
+          {
+            "data": {
+              "medianRentPriceOverTime": {
+                "currentYear": [
+                  {
+                    "price": 1400,
+                    "year": "2024",
+                    "month": "Apr"
+                  },
+                  {
+                    "price": 1450,
+                    "year": "2024",
+                    "month": "May"
+                  }
+                ]
+              },
+              "date": "2025-03-31",
+              "areaType": "zip",
+              "rentHistogram": {
+                "maxPrice": 1500,
+                "priceAndCount": [
+                  {
+                    "count": 2,
+                    "price": 1400
+                  }
+                ],
+                "minPrice": 1400
+              },
+              "rentCompare": {
+                "medianRent": 1595,
+                "areaName": "US"
+              },
+              "marketTemperature": {
+                "temperature": "COOL",
+                "areaName": "32810"
+              },
+              "summary": {
+                "monthlyChange": 50,
+                "yearlyChange": 150,
+                "avgDaysOnMarket": 5,
+                "availableRentals": 2,
+                "medianRent": 1450
+              }
+            },
+            "component": {
+              "name": "MarketDataChart"
+            }
+          }

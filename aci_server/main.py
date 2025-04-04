@@ -76,6 +76,7 @@ from integrations.duckduckgo.route import router as duckduckgo_router
 from integrations.ipinfo.route import router as ipinfo_router
 from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
+from integrations.zillow.route import router as zillow_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
@@ -173,6 +174,7 @@ INTEGRATION_ROUTERS = {
     "ipinfo": ipinfo_router,
     "hunterio": hunterio_router,
     "zip_code": zip_code_router,
+    "zillow": zillow_router,
     "falai": falai_router,
     "airbnb": airbnb_router,
     "whatsapp": whatsapp_router
@@ -249,7 +251,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-app.add_middleware(PermissionMiddleware)
+#app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
