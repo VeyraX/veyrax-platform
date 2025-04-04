@@ -77,6 +77,7 @@ from integrations.ipinfo.route import router as ipinfo_router
 from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
 from integrations.zillow.route import router as zillow_router
+from integrations.veyrax_auth.route import router as veyrax_auth_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
@@ -177,7 +178,8 @@ INTEGRATION_ROUTERS = {
     "zillow": zillow_router,
     "falai": falai_router,
     "airbnb": airbnb_router,
-    "whatsapp": whatsapp_router
+    "whatsapp": whatsapp_router,
+    "veyrax_auth": veyrax_auth_router
 }
 
 
