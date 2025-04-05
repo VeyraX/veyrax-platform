@@ -1,0 +1,10 @@
+{
+    "name": "Veyrax Auth",
+    "provider_tag": "veyrax-auth",
+    "description": "Seamlessly authenticate with VeyraX providers via API Key.",
+    "auth_method": "none",
+    "categories": "Auth",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//logo.svg",
+    "created_at": 1711641600,
+    "is_enabled": false
+  } 

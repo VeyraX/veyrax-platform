@@ -32,8 +32,8 @@ export async function POST(request: Request) {
     }
     
     const adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
     )
     
     const { data: tables, error: tablesError } = await adminClient.rpc('get_tables_with_user_id')
@@ -46,12 +46,59 @@ export async function POST(request: Request) {
       )
     }
     
-    const deletionErrors = []
+    type TableRecord = { table_name: string };
+    const deletionErrors: Array<{ table: string, error: string }> = []
     
     if (tables && tables.length > 0) {
-      for (const { table_name } of tables) {
+      const filteredTables: TableRecord[] = tables.filter(({ table_name }: TableRecord) => {
+        if (table_name.endsWith('_view')) return false;
+        
+        const excludedViews = [
+          'user_available_tools',
+          'user_provider_scopes_view', 
+          'user_actions_flows_view',
+          'user_actions_view'
+        ];
+        
+        return !excludedViews.includes(table_name);
+      });
+      
+      console.log('Tables to delete from:', filteredTables.map((t: TableRecord) => t.table_name));
+      
+      const childTables = ['flow_actions', 'chats_messages'];
+      
+      for (const childTable of childTables) {
+        const tableExists = filteredTables.some((t: TableRecord) => t.table_name === childTable);
+        if (tableExists) {
+          try {
+            console.log(`Deleting from child table: ${childTable}`);
+            const { error: deleteError } = await adminClient
+              .from(childTable)
+              .delete()
+              .eq('user_id', user_id);
+              
+            if (deleteError) {
+              console.warn(`Error deleting data from ${childTable}:`, deleteError);
+              deletionErrors.push({
+                table: childTable,
+                error: deleteError.message
+              });
+            }
+          } catch (error) {
+            console.error(`Exception deleting from ${childTable}:`, error);
+            deletionErrors.push({
+              table: childTable,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+      }
+      
+      for (const { table_name } of filteredTables as TableRecord[]) {
+        if (childTables.includes(table_name)) continue;
         
         try {
+          console.log(`Deleting from table: ${table_name}`);
           const { error: deleteError } = await adminClient
             .from(table_name)
             .delete()

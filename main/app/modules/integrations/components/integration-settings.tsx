@@ -12,6 +12,8 @@ interface ScopeDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (scopes: string[]) => void;
+  encrypted_api_key?: string;
+  code?: string;
 }
 
 export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogProps) {

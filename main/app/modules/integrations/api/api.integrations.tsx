@@ -4,8 +4,6 @@ import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbCo
 const supabase = createClient()
 
 
-
-
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -87,112 +85,86 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   return result as IntegrationCardProps[]
 }
 
-export const enableProvider = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser()
+export const enableProvider = async (providerId: string, user_id?: string, encrypted_api_key?: string, code?: string): Promise<void> => {
+  let userId = user_id;
 
-  await supabase
-    .from('users_providers')
-    .upsert({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    })
-
-    await addActionsUser(providerId);
-}
-
-export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  const { data: provider } = await supabase
-    .from('providers')
-    .select('provider_tag')
-    .eq('id', providerId)
-    .single();
-  
-  const isSnowflake = provider?.provider_tag === 'snowflake';
-  
-  if (isSnowflake) {
-    if (!dbConfig.account || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-      await disconnectProvider(providerId);
-      return;
-    }
-  } else {
-    if (!dbConfig.host || !dbConfig.port || !dbConfig.dbname || !dbConfig.user || !dbConfig.password) {
-      await disconnectProvider(providerId);
-      return;
-    }
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
   }
-  
-  const { error: providerError } = await supabase
-    .from('users_providers')
-    .upsert({
-      user_id: user?.id,
-      provider_id: providerId
-    }, {
-      onConflict: 'provider_id,user_id'
-    });
 
-  if (providerError) throw providerError;
-  
-  const response = await fetch('/api/encrypt', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ apiKey: dbConfig.password })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to encrypt database password');
+  if (!userId) {
+    throw new Error('Unauthorized - User ID not found');
   }
-  
-  const { encryptedKey } = await response.json();
-  
-  const credentials = {
-    ...dbConfig,
-    password: encryptedKey
-  };
-  
-  const { data: existingCredentials } = await supabase
-    .from('users_db_access')
-    .select('id')
-    .eq('user_id', user?.id)
-    .eq('provider_id', providerId)
-    .single();
-  
-  let dbAccessError;
-  
-  if (existingCredentials) {
-    const { error } = await supabase
-      .from('users_db_access')
-      .update({ credentials: JSON.stringify(credentials) })
-      .eq('id', existingCredentials.id);
-    
-    dbAccessError = error;
-  } else {
-    const { error } = await supabase
-      .from('users_db_access')
-      .insert({
-        user_id: user?.id,
+
+  try {
+    const response = await fetch('/api/integrations/enable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
         provider_id: providerId,
-        credentials: JSON.stringify(credentials)
-      });
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
     
-    dbAccessError = error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable provider');
+    }
+  } catch (error) {
+    console.error('Error enabling provider:', error);
+    throw error;
   }
-
-  if (dbAccessError) throw dbAccessError;
-
-  await addActionsUser(providerId);
 }
 
-export const getUserDbCredentials = async (providerId: string): Promise<DbConfig | null> => {
+export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig, encrypted_api_key?: string, code?: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
+  
+  try {
+    const response = await fetch('/api/integrations/enable-db-access', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        provider_id: providerId,
+        db_config: dbConfig,
+        user_id: user?.id,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable database access');
+    }
+  } catch (error) {
+    console.error('Error enabling DB access provider:', error);
+    throw error;
+  }
+}
+
+export const getUserDbCredentials = async (providerId: string, user_id?: string): Promise<DbConfig | null> => {
+  let userId = user_id;
+
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
+
+  if (!userId) {
+    throw new Error('Unauthorized - User ID not found');
+  }
   
   const { data, error } = await supabase
     .from('users_db_access')
     .select('credentials')
-    .eq('user_id', user?.id)
+    .eq('user_id', userId)
     .eq('provider_id', providerId)
     .single();
   
@@ -208,9 +180,17 @@ export const getUserDbCredentials = async (providerId: string): Promise<DbConfig
   }
 }
 
-export const deleteActions = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user?.id) throw new Error('User not authenticated');
+export const deleteActions = async (providerId: string, encrypted_api_key?: string): Promise<void> => {
+  let userId;
+
+  if (!encrypted_api_key) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+    
+    if (!userId) {
+      throw new Error('Unauthorized - User ID not found');
+    }
+  }
 
   const { data: actions } = await supabase
     .from('provider_actions')
@@ -223,150 +203,140 @@ export const deleteActions = async (providerId: string): Promise<void> => {
     await supabase
       .from('users_provider_actions')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .in('action_id', actionIds);
   }
 };
 
-export const disconnectWhatsAppProvider = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
+export const disconnectWhatsAppProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
+  let userId;
+  
+  // Only get user from auth when encrypted_api_key is not provided
+  if (!encrypted_api_key) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+    
+    if (!userId) {
+      throw new Error('Unauthorized - User ID not found');
+    }
+  }
 
-  await fetch('/api/integrations/whatsapp/disconnect', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ providerId })
-  });
-
-  await disconnectProvider(providerId);
+  try {
+    const response = await fetch('/api/integrations/whatsapp/disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        provider_id: providerId, 
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to disconnect WhatsApp provider');
+    }
+  } catch (error) {
+    console.error('Error disconnecting WhatsApp provider:', error);
+    throw error;
+  }
 }
 
-export const disconnectProvider = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
-
-  await deleteActions(providerId);
+export const disconnectProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
+  let userId;
   
-  await supabase
-    .from('users_provider_api_keys')
-    .delete()
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    });
+  // Only get user from auth when encrypted_api_key is not provided
+  if (!encrypted_api_key) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+    
+    if (!userId) {
+      throw new Error('Unauthorized - User ID not found');
+    }
+  }
 
-  await supabase
-    .from('users_db_access')
-    .delete()
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
+  try {
+    const response = await fetch('/api/integrations/disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        provider_id: providerId,
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
     });
-
-  await supabase
-    .from('user_provider_custom_auth')
-    .delete()
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    });
-
-  await supabase
-    .from('users_providers')
-    .delete()
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    });
-
-  await supabase
-    .from('users_oauth_tokens')
-    .delete()
-    .match({ 
-      user_id: user?.id,
-      provider_id: providerId 
-    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to disconnect provider');
+    }
+  } catch (error) {
+    console.error('Error disconnecting provider:', error);
+    throw error;
+  }
 };
 
-export const initiateOAuthFlow = async (providerTag: string, scopes: string[], return_url?: string): Promise<string> => {
+export const initiateOAuthFlow = async (
+  providerTag: string, 
+  scopes: string[], 
+  return_url?: string,
+  encrypted_api_key?: string,
+  code?: string
+): Promise<string> => {
 
-  
   const response = await fetch(`/api/oauth/${providerTag}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ scopes, return_url })
+    body: JSON.stringify({ scopes, return_url, encrypted_api_key, code })
   });
   
   const { url } = await response.json();
   return url;
 }
 
-export const enableApiKeyProvider = async (providerId: string, apiKey: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
+export const enableApiKeyProvider = async (providerId: string, apiKey: string, encrypted_api_key?: string, code?: string): Promise<void> => {
+  let userId;
   
-  if (!apiKey) {
-    await disconnectProvider(providerId);
-    return;
-  }
-  
-  const { error: providerError } = await supabase
-    .from('users_providers')
-    .upsert({
-      user_id: user?.id,
-      provider_id: providerId
-    }, {
-      onConflict: 'provider_id,user_id'
-    });
-
-  if (providerError) throw providerError;
-  
-  const response = await fetch('/api/encrypt', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ apiKey })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to encrypt API key');
-  }
-  
-  const { encryptedKey } = await response.json();
-  
-  const { data: existingKey } = await supabase
-    .from('users_provider_api_keys')
-    .select('id')
-    .eq('user_id', user?.id)
-    .eq('provider_id', providerId)
-    .single();
-  
-  let apiKeyError;
-  
-  if (existingKey) {
-    const { error } = await supabase
-      .from('users_provider_api_keys')
-      .update({ api_key: encryptedKey })
-      .eq('id', existingKey.id);
+  if (!encrypted_api_key) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
     
-    apiKeyError = error;
-  } else {
-    const { error } = await supabase
-      .from('users_provider_api_keys')
-      .insert({
-        user_id: user?.id,
+    if (!userId) {
+      throw new Error('Unauthorized - User ID not found');
+    }
+  }
+  
+  try {
+    const response = await fetch('/api/integrations/enable-api-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
         provider_id: providerId,
-        api_key: encryptedKey
-      });
+        api_key: apiKey,
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
     
-    apiKeyError = error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable API key provider');
+    }
+  } catch (error) {
+    console.error('Error enabling API key provider:', error);
+    throw error;
   }
-
-  if (apiKeyError) throw apiKeyError;
-
-  await addActionsUser(providerId);
 }
 
 export const getUserApiKey = async (providerId: string): Promise<string | null> => {
@@ -623,7 +593,7 @@ export const findComponentForEndpoint = async (providerTag: string, endpointName
   }
 };
 
-export const testDbConnection = async (providerId: string, dbConfig: DbConfig): Promise<{success: boolean, message: string}> => {
+export const testDbConnection = async (providerId: string, dbConfig: DbConfig, encrypted_api_key?: string, code?: string ): Promise<{success: boolean, message: string}> => {
   try {
     const { data: provider, error: providerError } = await supabase
       .from('providers')
@@ -642,7 +612,9 @@ export const testDbConnection = async (providerId: string, dbConfig: DbConfig): 
       },
       body: JSON.stringify({
         providerTag,
-        dbConfig
+        dbConfig,
+        encrypted_api_key,
+        code
       })
     });
     
@@ -762,76 +734,33 @@ export const upsertIntegrationRequest = async (integrationName: string): Promise
   }
 };
 
-export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: string, baseUrl: string): Promise<void> => {
+export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: string, baseUrl: string, encrypted_api_key?: string, code?: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
-  if (!apiKey || !baseUrl) {
-    await disconnectProvider(providerId);
-    return;
-  }
-  
-  const { error: providerError } = await supabase
-    .from('users_providers')
-    .upsert({
-      user_id: user?.id,
-      provider_id: providerId
-    }, {
-      onConflict: 'provider_id,user_id'
-    });
-
-  if (providerError) throw providerError;
-  
-  const response = await fetch('/api/encrypt', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ apiKey })
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to encrypt API key');
-  }
-  
-  const { encryptedKey } = await response.json();
-  
-  const raw_data = JSON.stringify({ base_url: baseUrl });
-  
-  const { data: existingKey } = await supabase
-    .from('users_provider_api_keys')
-    .select('id')
-    .eq('user_id', user?.id)
-    .eq('provider_id', providerId)
-    .single();
-  
-  let apiKeyError;
-  
-  if (existingKey) {
-    const { error } = await supabase
-      .from('users_provider_api_keys')
-      .update({ 
-        api_key: encryptedKey,
-        raw_data: raw_data
-      })
-      .eq('id', existingKey.id);
-    
-    apiKeyError = error;
-  } else {
-    const { error } = await supabase
-      .from('users_provider_api_keys')
-      .insert({
-        user_id: user?.id,
+  try {
+    const response = await fetch('/api/integrations/enable-api-key-with-base', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
         provider_id: providerId,
-        api_key: encryptedKey,
-        raw_data: raw_data
-      });
+        api_key: apiKey,
+        base_url: baseUrl,
+        user_id: user?.id,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
     
-    apiKeyError = error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable API key with base URL');
+    }
+  } catch (error) {
+    console.error('Error enabling API key with base URL:', error);
+    throw error;
   }
-
-  if (apiKeyError) throw apiKeyError;
-
-  await addActionsUser(providerId);
 }
 
 export const getProviderBaseUrl = async (providerId: string): Promise<string | null> => {
@@ -895,115 +824,36 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
   }
 }
 
-export const updateProviderCustomAuth = async (providerId: string, authData: Record<string, any>): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
+export const updateProviderCustomAuth = async (providerId: string, authData: Record<string, any>, encrypted_api_key?: string, code?: string): Promise<void> => {
+  let userId;
   
-  if (!user?.id) {
-    throw new Error("User not authenticated");
+  if (!encrypted_api_key) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+    
+    if (!userId) {
+      throw new Error('Unauthorized - User ID not found');
+    }
   }
   
-  const { data: provider } = await supabase
-    .from('providers')
-    .select('provider_tag, auth_schema')
-    .eq('id', providerId)
-    .single();
-    
-  if (!provider) throw new Error('Provider not found');
-  
   try {
-    // Ensure user is connected to provider
-    const { error: providerError } = await supabase
-      .from('users_providers')
-      .upsert({
-        user_id: user.id,
-        provider_id: providerId
-      }, {
-        onConflict: 'provider_id,user_id'
-      });
-
-    if (providerError) {
-      console.error("Error upserting users_providers:", providerError);
-      throw providerError;
-    }
+    const response = await fetch('/api/integrations/update-custom-auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        provider_id: providerId,
+        auth_data: authData,
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
     
-    // Fetch existing data first
-    const { data: existingRecord, error: fetchError } = await supabase
-      .from('user_provider_custom_auth')
-      .select('id, raw_data')
-      .eq('user_id', user.id)
-      .eq('provider_id', providerId)
-      .single();
-    
-    let existingData: Record<string, any> = {};
-    let recordId: string | null = null;
-    
-    if (!fetchError && existingRecord) {
-      recordId = existingRecord.id;
-      existingData = typeof existingRecord.raw_data === 'string' 
-        ? JSON.parse(existingRecord.raw_data) 
-        : existingRecord.raw_data || {};
-    }
-    
-    // Merge existing data with new data
-    const mergedData = { ...existingData, ...authData };
-    
-    // Process only the new/changed fields to encrypt sensitive values
-    const processedAuthData = { ...mergedData };
-    const authSchema = Array.isArray(provider.auth_schema) ? provider.auth_schema : [];
-    
-    for (const field of authSchema) {
-      const key = field.key;
-      const isSensitive = field.type === 'password' || field.sensitive;
-      const valueChanged = authData[key] !== undefined && authData[key] !== existingData[key];
-      
-      // Only encrypt if: field is sensitive, has a value, and has changed
-      if (isSensitive && processedAuthData[key] && valueChanged) {
-        const response = await fetch('/api/encrypt', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ apiKey: processedAuthData[key] })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to encrypt value for ${key}`);
-        }
-        
-        const { encryptedKey } = await response.json();
-        processedAuthData[key] = encryptedKey;
-      }
-
-      await addActionsUser(providerId);
-    }
-
-    
-    if (recordId) {
-      // Update existing record
-      const { error: updateError } = await supabase
-        .from('user_provider_custom_auth')
-        .update({ raw_data: processedAuthData })
-        .eq('id', recordId)
-        .eq('user_id', user.id); // Ensure we only update our own record
-        
-      if (updateError) {
-        console.error("Error updating custom auth:", updateError);
-        throw updateError;
-      }
-    } else {
-      // Create new record
-      const { error: insertError } = await supabase
-        .from('user_provider_custom_auth')
-        .insert({
-          user_id: user.id,
-          provider_id: providerId,
-          raw_data: processedAuthData
-        });
-        
-      if (insertError) {
-        console.error("Error inserting custom auth:", insertError);
-        throw insertError;
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update custom authentication');
     }
   } catch (error) {
     console.error('Error updating custom auth data:', error);
@@ -1114,15 +964,17 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
 };
 
 
-export const addActionsUser = async (providerId: string): Promise<void> => {
-  const { data: { user } } = await supabase.auth.getUser();
+export const addActionsUser = async (providerId: string, user_id?: string): Promise<void> => {
+  let userId = user_id;
 
-  const userIdToUse = user?.id;
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
 
-  if (!userIdToUse) {
+  if (!userId) {
     throw new Error('Unauthorized - User ID not found');
   }
-  
 
   const { data: provider, error: providersError } = await supabase
         .from('providers')
@@ -1137,7 +989,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     const { data: oauthToken, error: tokenError } = await supabase
       .from('users_oauth_tokens')
       .select('scopes')
-      .eq('user_id', userIdToUse)
+      .eq('user_id', userId)
       .eq('provider_id', providerId)
       .single();
 
@@ -1174,7 +1026,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
 
     const insertData = actions.map(action => ({
-      user_id: user?.id,
+      user_id: userId,
       action_id: action.id
     }));
 
@@ -1202,7 +1054,7 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
     }
 
     const insertData = actions.map(action => ({
-      user_id: user?.id,
+      user_id: userId,
       action_id: action.id
     }));
 
@@ -1219,53 +1071,41 @@ export const addActionsUser = async (providerId: string): Promise<void> => {
   }
 };
 
-export const enableWhatsapp = async (authData: any): Promise<boolean> => {
+export const enableWhatsapp = async (authData: any, encrypted_api_key?: string, code?: string): Promise<boolean> => {
   if (!authData || !authData.isLoggedIn) {
     return false;
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) {
-      console.error("User not authenticated");
-      return false;
+    let userId;
+
+    if (!encrypted_api_key) {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id;
+      
+      if (!userId) {
+        throw new Error('Unauthorized - User ID not found');
+      }
     }
 
-    // Get the provider ID for WhatsApp
-    const { data: provider } = await supabase
-      .from('providers')
-      .select('id')
-      .eq('provider_tag', 'whatsapp')
-      .single();
-      
-    if (!provider) {
-      console.error("WhatsApp provider not found");
+    const response = await fetch('/api/integrations/whatsapp/enable', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        auth_data: authData,
+        user_id: userId,
+        encrypted_api_key: encrypted_api_key,
+        code: code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("WhatsApp enable error:", errorData.error || 'Failed to enable WhatsApp');
       return false;
     }
-    
-    // Ensure user is connected to WhatsApp provider
-    await supabase
-      .from('users_providers')
-      .upsert({
-        user_id: user.id,
-        provider_id: provider.id
-      }, {
-        onConflict: 'provider_id,user_id'
-      });
-      
-    // Save all returned data as raw_data
-    await supabase
-      .from('user_provider_custom_auth')
-      .upsert({
-        user_id: user.id,
-        provider_id: provider.id,
-        raw_data: authData
-      }, {
-        onConflict: 'user_id,provider_id'
-      });
-      
-    // Enable provider actions
-    await addActionsUser(provider.id);
     
     return true;
   } catch (error) {
@@ -1274,13 +1114,24 @@ export const enableWhatsapp = async (authData: any): Promise<boolean> => {
   }
 };
 
-export const authenticateWhatsApp = async (): Promise<{success: boolean, qrImageBase64?: string, qrData?: string, isLoggedIn?: boolean, message?: string}> => {
+export const authenticateWhatsApp = async (encrypted_api_key?: string, code?: string): Promise<{success: boolean, qrImageBase64?: string, qrData?: string, isLoggedIn?: boolean, message?: string, code?: string, encrypted_api_key?: string}> => {
   try {
+    const requestBody: any = {};
+    
+    if (encrypted_api_key) {
+      requestBody.encrypted_api_key = encrypted_api_key;
+    }
+    
+    if (code) {
+      requestBody.code = code;
+    }
+    
     const response = await fetch(`/api/integrations/whatsapp/authenticate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -1294,7 +1145,9 @@ export const authenticateWhatsApp = async (): Promise<{success: boolean, qrImage
       qrImageBase64: result.data?.qr_image_base64,
       qrData: result.data?.qr_data,
       isLoggedIn: result.data?.is_logged_in,
-      message: result.message || 'Authentication started'
+      message: result.message || 'Authentication started',
+      code: result.data?.code,
+      encrypted_api_key: result.data?.encrypted_api_key
     };
   } catch (error) {
     console.error('Error authenticating WhatsApp:', error);
@@ -1305,13 +1158,24 @@ export const authenticateWhatsApp = async (): Promise<{success: boolean, qrImage
   }
 };
 
-export const checkWhatsAppStatus = async (): Promise<{success: boolean, isLoggedIn: boolean, phone?: string, message?: string}> => {
+export const checkWhatsAppStatus = async (encrypted_api_key?: string, code?: string): Promise<{success: boolean, isLoggedIn: boolean, phone?: string, message?: string, encrypted_api_key?: string, code?: string}> => {
   try {
+    const requestBody: any = {};
+    
+    if (encrypted_api_key) {
+      requestBody.encrypted_api_key = encrypted_api_key;
+    }
+    
+    if (code) {
+      requestBody.code = code;
+    }
+    
     const response = await fetch(`/api/integrations/whatsapp/check_status`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -1324,7 +1188,9 @@ export const checkWhatsAppStatus = async (): Promise<{success: boolean, isLogged
       success: true,
       isLoggedIn: result.data?.is_logged_in || false,
       phone: result.data?.phone,
-      message: result.message || 'Status check completed'
+      message: result.message || 'Status check completed',
+      encrypted_api_key: result.data?.encrypted_api_key,
+      code: result.data?.code
     };
   } catch (error) {
     console.error('Error checking WhatsApp status:', error);

@@ -647,6 +647,7 @@ class TokenRefresherFactory:
 async def get_user_from_request(request: Request) -> str:
     try:
         api_key = request.headers.get("VEYRAX_API_KEY")
+        print(request.headers)
         if api_key:
             supabase = get_supabase()
             result = supabase.table('users_api_keys') \

@@ -3,6 +3,7 @@ import secrets
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+import hashlib
 
 
 def encrypt(text: str) -> str:
@@ -51,6 +52,65 @@ def decrypt(encrypted_text: str) -> str:
     decrypted = decrypted[:-padding_length]
     
     return decrypted.decode('utf-8')
+
+def encrypt_with_code(text: str, code: str) -> str:
+    if not text or not code:
+        return text
+
+    encryption_key = os.getenv('ENCRYPTION_KEY')
+    if not encryption_key:
+        raise ValueError("ENCRYPTION_KEY must be set in environment variables")
+    
+    combined_key = hashlib.sha256((encryption_key + code).encode()).hexdigest()
+    
+    key_part = combined_key[:32] 
+    iv_part = combined_key[32:64]
+    
+    key = bytes.fromhex(key_part)
+    iv = bytes.fromhex(iv_part)
+    
+    text_bytes = text.encode('utf-8')
+    
+    block_size = 16
+    padding_length = block_size - (len(text_bytes) % block_size)
+    padded_text = text_bytes + bytes([padding_length]) * padding_length
+    
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    encrypted = encryptor.update(padded_text) + encryptor.finalize()
+    
+    return encrypted.hex()
+
+def decrypt_with_code(encrypted_text: str, code: str) -> str:
+    if not encrypted_text or not code:
+        return encrypted_text
+    
+    try:
+        encryption_key = os.getenv('ENCRYPTION_KEY')
+        if not encryption_key:
+            raise ValueError("ENCRYPTION_KEY must be set in environment variables")
+        
+        combined_key = hashlib.sha256((encryption_key + code).encode()).hexdigest()
+        
+        key_part = combined_key[:32]  
+        iv_part = combined_key[32:64]  
+        
+        key = bytes.fromhex(key_part)
+        iv = bytes.fromhex(iv_part)
+        
+        encrypted_bytes = bytes.fromhex(encrypted_text)
+        
+        cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        decrypted = decryptor.update(encrypted_bytes) + decryptor.finalize()
+        
+        padding_length = decrypted[-1]
+        unpadded = decrypted[:-padding_length]
+        
+        return unpadded.decode('utf-8')
+    except Exception as e:
+        print(f"Error decrypting with code: {str(e)}")
+        return encrypted_text
 
 def is_encrypted(text: str) -> bool:
     if not text:

@@ -168,7 +168,6 @@ export const getPublicFlowActions = async (flowId: string): Promise<string[]> =>
       .select('action_id')
       .eq('flow_id', flowId);
       
-    console.log(data);
     if (error) throw error;
     return data?.map(item => item.action_id) || [];
   } catch (error) {
@@ -186,12 +185,10 @@ export const getActionsByIds = async (actionIds: string[]): Promise<any[]> => {
       .select('id, action_name, action_slug, provider_id')
       .in('id', actionIds);
 
-    console.log(data);
     
     if (error) throw error;
     
     const providerIds = Array.from(new Set(data?.map(item => item.provider_id) || []));
-    console.log(providerIds);
     
     if (!providerIds.length) return [];
     

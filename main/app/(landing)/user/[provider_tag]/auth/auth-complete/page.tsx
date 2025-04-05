@@ -33,12 +33,14 @@ export default function IntegrationAuthComplete() {
         
         setStatus('Saving your authorization...');
         
+        const state = searchParams.get('state');
+        
         const response = await fetch(`/api/oauth/${provider_tag}/save-token`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ token })
+          body: JSON.stringify({ token, state })
         });
         
         const data = await response.json();
@@ -49,8 +51,21 @@ export default function IntegrationAuthComplete() {
         
         setStatus('Authorization successful! Redirecting...');
         
+        let returnTo = '/integrations';
+        if (state) {
+          try {
+            const decodedState = JSON.parse(atob(decodeURIComponent(state)));
+            if (decodedState.return_url) {
+              returnTo = decodedState.return_url;
+            }
+          } catch (e) {
+            console.error('Error parsing state:', e);
+          }
+        } else {
+          returnTo = searchParams.get('return_to') || '/integrations';
+        }
+        
         setTimeout(() => {
-          const returnTo = searchParams.get('return_to') || '/integrations';
           router.push(`${returnTo}?success=true`);
         }, 1000);
       } catch (err: any) {
@@ -64,8 +79,6 @@ export default function IntegrationAuthComplete() {
 
   return (
     <div className="flex-1 flex flex-col relative h-[100vh] w-full">
-      <Header isShowChat={false} />
-
       <div className="flex-1 px-8 py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">{provider_tag} Authorization</h1>

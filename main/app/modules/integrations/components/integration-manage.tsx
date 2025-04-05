@@ -19,7 +19,8 @@ import {
   validateCustomAuthSchema,
   authenticateWhatsApp,
   checkWhatsAppStatus,
-  disconnectWhatsAppProvider
+  disconnectWhatsAppProvider,
+  enableProvider
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode } from "lucide-react";
@@ -38,7 +39,7 @@ interface WhatsAppConfig {
   isLoggedIn: boolean;
 }
 
-export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialogProps) {
+export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_key, code }: ManageDialogProps & { encrypted_api_key?: string, code?: string }) {
   const [apiKey, setApiKey] = useState<string>("");
   const [originalApiKey, setOriginalApiKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -85,7 +86,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         fetchCustomAuth();
         setCustomAuthChanged(false);
       } else if (provider.provider_tag === 'whatsapp') {
-        // Don't reset WhatsApp config - we'll fetch the current status
         checkWhatsAppConnectionStatus();
       }
     }
@@ -166,7 +166,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       const authData = await getProviderCustomAuth(provider.id);
       if (authData) {
         setCustomAuthData(authData);
-        setOriginalCustomAuthData(JSON.parse(JSON.stringify(authData))); // Deep copy
+        setOriginalCustomAuthData(JSON.parse(JSON.stringify(authData)));
       } else {
         setCustomAuthData({});
         setOriginalCustomAuthData({});
@@ -209,7 +209,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       }
       
       // If no custom auth data or not logged in, check status from API
-      const result = await checkWhatsAppStatus();
+      const result = await checkWhatsAppStatus(encrypted_api_key, code);
       
       if (result.success) {
         setWhatsappConfig({
@@ -259,7 +259,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
           return;
         }
 
-        await enableApiKeyProvider(provider.id, apiKey);
+        await enableApiKeyProvider(provider.id, apiKey, encrypted_api_key, code); 
         onUpdate();
         onClose();
       } catch (error) {
@@ -296,7 +296,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
           return;
         }
 
-        await enableApiKeyWithBaseProvider(provider.id, apiKey, baseUrl);
+        await enableApiKeyWithBaseProvider(provider.id, apiKey, baseUrl, encrypted_api_key, code);
         onUpdate();
         onClose();
       } catch (error) {
@@ -313,7 +313,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
     setConnectionError(null);
     
     try {
-      const testResult = await testDbConnection(provider.id, dbConfig);
+      const testResult = await testDbConnection(provider.id, dbConfig, encrypted_api_key, code);
       
       if (!testResult.success) {
         setConnectionError(testResult.message || "Connection test failed");
@@ -321,7 +321,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         return;
       }
       
-      await enableDbAccessProvider(provider.id, dbConfig);
+      await enableDbAccessProvider(provider.id, dbConfig, encrypted_api_key, code);
       setConnectionError(null);
       onUpdate();
       onClose();
@@ -386,7 +386,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
       
 
       // Only send the changed fields to the API
-      await updateProviderCustomAuth(provider.id, changedFields);
+      await updateProviderCustomAuth(provider.id, changedFields, encrypted_api_key, code);
       onUpdate();
       onClose();
     } catch (error) {
@@ -399,11 +399,10 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   const handleDisconnect = async () => {
     try {
-
       if (provider.provider_tag === 'whatsapp') {
-        await disconnectWhatsAppProvider(provider.id);
+        await disconnectWhatsAppProvider(provider.id, encrypted_api_key, code);
       } else {
-        await disconnectProvider(provider.id);
+        await disconnectProvider(provider.id, encrypted_api_key, code );
       }
       onUpdate();
       onClose();
@@ -414,6 +413,22 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
 
   const handleVeyraxUpdate = () => {
     if (onUpdate) onUpdate();
+  };
+
+  const handleConnectSimpleProvider = async () => {
+    setIsLoading(true);
+    try {
+      await enableProvider(provider.id);
+      if (onUpdate) {
+        onUpdate();
+      }
+      onClose();
+    } catch (error) {
+      console.error(`Failed to connect ${provider.name}:`, error);
+      setValidationError(error instanceof Error ? error.message : "Failed to connect to service");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderDbConfigForm = () => {
@@ -551,6 +566,16 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
+          {provider.auth_method === 'none' && (
+            <>
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{validationError}</span>
+                </div>
+              )}
+            </>
+          )}
+
           {provider.auth_method === 'oauth' && provider.user_scopes && (
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
@@ -594,6 +619,8 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
               onChange={setWhatsappConfig}
               disabled={isLoading}
               onUpdate={onUpdate}
+              encrypted_api_key={encrypted_api_key}
+              code={code}
             />
           )}
 
@@ -695,6 +722,19 @@ export function ManageDialog({ provider, open, onClose, onUpdate }: ManageDialog
                 Disconnect
               </Button>
             </div>
+          )}
+          
+          {provider.auth_method === 'none' && !provider.connected && (
+            <Button 
+              onClick={handleConnectSimpleProvider} 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                "Connect"
+              )}
+            </Button>
           )}
           
           {provider.auth_method === 'db_access' && !provider.connected && (

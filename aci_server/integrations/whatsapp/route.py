@@ -15,8 +15,8 @@ examples = ExamplesLoader()
 
 async def get_whatsapp_service(request: Request):
     try:
-        # Get user_id from the authentication session 
         user_id = await get_user_from_request(request)
+        print(f"user_id: {user_id}")
         
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")

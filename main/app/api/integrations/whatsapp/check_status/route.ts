@@ -1,28 +1,96 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { validateUserAuthentication } from '@/app/modules/integrations/api/api.integrations.server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { success: false, message: 'Authentication required' },
-        { status: 401 }
+    const requestData = await request.json();
+    const { encrypted_api_key, code, user_id } = requestData;
+    
+    let headers: Record<string, string> = {};
+    let userId = user_id;
+    let supabase;
+    
+    if (encrypted_api_key) {
+      try {
+        userId = await validateUserAuthentication({
+          encrypted_api_key,
+          code
+        });
+        
+        const supabase = createServiceClient(
+          process.env.SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_KEY!
+        );
+        
+        const { data: userData } = await supabase
+          .from('users_api_keys')
+          .select('api_key')
+          .eq('user_id', userId)
+          .single();
+          
+        if (userData?.api_key) {
+          headers = {
+            'VEYRAX_API_KEY': userData.api_key
+          };
+        }
+      } catch (authError) {
+        console.error('Auth error with API key:', authError);
+        return NextResponse.json({
+          success: false,
+          message: 'Authentication failed'
+        }, { status: 401 });
+      }
+    } else if (user_id) {
+      supabase = createServiceClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_KEY!
       );
+      
+      const { data: userData } = await supabase
+        .from('users_api_keys')
+        .select('api_key')
+        .eq('user_id', userId)
+        .single();
+        
+      if (userData?.api_key) {
+        headers = {
+          'VEYRAX_API_KEY': userData.api_key
+        };
+      } else {
+        return NextResponse.json({
+          success: false,
+          message: 'API key not found for the specified user'
+        }, { status: 401 });
+      }
+    } else {
+      supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        return NextResponse.json(
+          { success: false, message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      
+      userId = session.user.id;
+      headers = {
+        'Authorization': `Bearer ${session.access_token}`
+      };
     }
 
-    const userId = session.user.id;
-
-    // Call the WhatsApp check_status API endpoint
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/whatsapp/check_status`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        ...headers,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        user_id: userId
+      }),
+      credentials: 'include'
     });
 
     if (!response.ok) {
@@ -35,7 +103,6 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     
-    // Return the login status and phone number if available
     return NextResponse.json({
       success: true,
       data: {
