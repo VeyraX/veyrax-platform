@@ -650,6 +650,10 @@ export const saveEnableWhatsapp = async (options: {
   const { user_id, auth_data } = options;
   
   if (!auth_data || !auth_data.isLoggedIn) {
+    console.error('[saveEnableWhatsapp] Invalid WhatsApp auth data:', JSON.stringify({
+      has_auth_data: !!auth_data,
+      is_logged_in: auth_data?.isLoggedIn
+    }));
     throw new Error('Invalid WhatsApp authentication data');
   }
   
@@ -664,6 +668,7 @@ export const saveEnableWhatsapp = async (options: {
     client = createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user?.id) {
+      console.error('[saveEnableWhatsapp] User not found');
       throw new Error('Unauthorized - User ID not found');
     }
   }
@@ -675,6 +680,7 @@ export const saveEnableWhatsapp = async (options: {
     .single();
     
   if (providerError || !provider) {
+    console.error('[saveEnableWhatsapp] WhatsApp provider not found:', providerError);
     throw new Error('WhatsApp provider not found: ' + (providerError?.message || ''));
   }
   
@@ -691,17 +697,38 @@ export const saveEnableWhatsapp = async (options: {
     throw new Error('Failed to connect WhatsApp provider: ' + connectionError.message);
   }
   
-  const { error: customAuthError } = await client
+  const { data: existingAuth } = await client
     .from('user_provider_custom_auth')
-    .upsert({
-      user_id: user_id,
-      provider_id: provider.id,
-      raw_data: auth_data
-    }, {
-      onConflict: 'user_id,provider_id'
-    });
+    .select('id')
+    .eq('user_id', user_id)
+    .eq('provider_id', provider.id)
+    .single();
+    
+  let customAuthError;
+  
+  if (existingAuth) {
+    const { error } = await client
+      .from('user_provider_custom_auth')
+      .update({
+        raw_data: auth_data
+      })
+      .eq('id', existingAuth.id);
+      
+    customAuthError = error;
+  } else {
+    const { error } = await client
+      .from('user_provider_custom_auth')
+      .insert({
+        user_id: user_id,
+        provider_id: provider.id,
+        raw_data: auth_data
+      });
+      
+    customAuthError = error;
+  }
     
   if (customAuthError) {
+    console.error('[saveEnableWhatsapp] Failed to save auth data:', customAuthError);
     throw new Error('Failed to save WhatsApp authentication data: ' + customAuthError.message);
   }
   
@@ -712,22 +739,40 @@ export const saveEnableWhatsapp = async (options: {
 
 export const saveDisconnectWhatsapp = async (options: {
   user_id: string;
+  access_token?: string;
 }) => {
-  const { user_id } = options;
+  const { user_id, access_token } = options;
   
   let client;
+  let accessToken;
+  let userIdToUse = user_id;
+  let apiKey;
   
   if (user_id) {
     client = createServiceClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_KEY!
     );
+    
+    const { data: userData } = await client
+      .from('users_api_keys')
+      .select('api_key')
+      .eq('user_id', user_id)
+      .single();
+      
+    if (userData?.api_key) {
+      apiKey = userData.api_key;
+    }
   } else {
     client = createClient();
     const { data: { user } } = await client.auth.getUser();
+    const { data: { session } } = await client.auth.getSession();
+    
     if (!user?.id) {
       throw new Error('Unauthorized - User ID not found');
     }
+    userIdToUse = user.id;
+    accessToken = session?.access_token;
   }
   
   const { data: provider, error: providerError } = await client
@@ -742,23 +787,37 @@ export const saveDisconnectWhatsapp = async (options: {
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+
+    if (access_token) {
+      headers['Authorization'] = `Bearer ${access_token}`;
+    }
+
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    if (apiKey) {
+      headers['VEYRAX_API_KEY'] = apiKey;
+    }
+
     const response = await fetch(`${apiUrl}/whatsapp/disconnect`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
     });
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('WhatsApp disconnect error:', errorText);
+      console.error('WhatsApp disconnect error:', errorText, headers);
     }
   } catch (error) {
     console.error('Error calling WhatsApp disconnect API:', error);
   }
   
   await disconnectProviderForUser({
-    user_id,
+    user_id: userIdToUse,
     provider_id: provider.id
   });
   
