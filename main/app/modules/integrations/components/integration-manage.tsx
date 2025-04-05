@@ -400,7 +400,6 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
   const handleDisconnect = async () => {
     try {
       if (provider.provider_tag === 'whatsapp') {
-        console.log('Disconnecting WhatsApp provider', encrypted_api_key, code);
         await disconnectWhatsAppProvider(provider.id, encrypted_api_key, code);
       } else {
         await disconnectProvider(provider.id, encrypted_api_key, code );

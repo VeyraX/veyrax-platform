@@ -810,7 +810,7 @@ export const saveDisconnectWhatsapp = async (options: {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('WhatsApp disconnect error:', errorText, headers);
+      console.error('WhatsApp disconnect error:', errorText);
     }
   } catch (error) {
     console.error('Error calling WhatsApp disconnect API:', error);

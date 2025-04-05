@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
   } catch (error) {
+    console.error('Error disconnecting WhatsApp:', error);
     return NextResponse.json(
       { success: false, message: error instanceof Error ? error.message : 'An unexpected error occurred' },
       { status: 500 }
