@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { encrypt } from '@/lib/utils/encryption';
-import { addActionsUser } from '@/app/modules/integrations/api/api.integrations.server';
+import { addActionsUser, validateUserAuthentication } from '@/app/modules/integrations/api/api.integrations.server';
 
 
 export async function GET(request: NextRequest) {
@@ -14,19 +15,46 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Invalid request`);
     }
 
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-        console.error('No user found');
-        return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Unauthorized`);
-    }
-
     try {
         const decodedState = Buffer.from(state, 'base64').toString();
-        const { provider_id, scopes, return_url } = JSON.parse(decodedState);
+        const { provider_id, scopes, return_url, user_id: stateUserId, encrypted_api_key } = JSON.parse(decodedState);
 
-        const { data: provider, error: providerError } = await supabase
+        let user_id;
+        let client;
+        
+        if (encrypted_api_key) {
+            try {
+                user_id = await validateUserAuthentication({
+                    encrypted_api_key
+                });
+                
+                client = createServiceClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.SUPABASE_SERVICE_KEY!
+                );
+            } catch (authError) {
+                console.error('Auth error with API key:', authError);
+                return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Authentication failed`);
+            }
+        } else if (stateUserId) {
+            user_id = stateUserId;
+            client = createServiceClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_KEY!
+            );
+        } else {
+            const supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                console.error('No user found');
+                return NextResponse.redirect(`${request.nextUrl.origin}/integrations?error=Unauthorized`);
+            }
+            user_id = user.id;
+            client = supabase;
+        }
+
+        const { data: provider, error: providerError } = await client
             .from('providers')
             .select('*')
             .eq('id', provider_id)
@@ -57,10 +85,10 @@ export async function GET(request: NextRequest) {
             throw new Error(tokens.error_description || tokens.error);
         }
 
-        const { error: providerUpsertError } = await supabase
+        const { error: providerUpsertError } = await client
             .from('users_providers')
             .upsert({
-                user_id: user.id,
+                user_id: user_id,
                 provider_id: provider_id
             }, {
                 onConflict: 'user_id,provider_id'
@@ -80,10 +108,10 @@ export async function GET(request: NextRequest) {
 
         const expiresAt = Math.floor(Date.now() / 1000) + (10 * 365 * 24 * 60 * 60);
 
-        const { error: upsertError } = await supabase
+        const { error: upsertError } = await client
             .from('users_oauth_tokens')
             .upsert({
-                user_id: user.id,
+                user_id: user_id,
                 provider_id: provider_id,
                 access_token: encryptedAccessToken,
                 refresh_token: null,
@@ -99,7 +127,7 @@ export async function GET(request: NextRequest) {
             throw upsertError;
         }
 
-        await addActionsUser(provider_id);
+        await addActionsUser(provider_id, user_id);
 
         return NextResponse.redirect(`${request.nextUrl.origin}${return_url}?success=true`);
     } catch (error: any) {

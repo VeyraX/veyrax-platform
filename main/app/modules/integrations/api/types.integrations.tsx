@@ -76,6 +76,7 @@ export interface ManageDialogProps {
     indexStatus: null;
     lastSyncDate?: null;
     processedEntities?: null;
+    user_id?: string;
   };
   open: boolean;
   onClose: () => void;

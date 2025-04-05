@@ -17,11 +17,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/integrations', request.url))
   }
 
+  // Исключить маршруты auth-complete из проверки авторизации
+  const isAuthCompletePath = /\/integrations\/[\w-]+\/auth-complete/.test(pathname);
+
   if (
     pathname.startsWith('/agent/') || 
     pathname.startsWith('/components/') || 
-    pathname.startsWith('/integrations') ||
-    pathname.startsWith('/integrations/') ||
+    (pathname.startsWith('/integrations') && !isAuthCompletePath) ||
+    (pathname.startsWith('/integrations/') && !isAuthCompletePath) ||
     pathname.startsWith('/flows') ||
     (pathname.startsWith('/flow/') && !pathname.includes('/shared'))
   ) {

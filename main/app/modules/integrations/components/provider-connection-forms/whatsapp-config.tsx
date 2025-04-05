@@ -14,9 +14,11 @@ interface WhatsAppConfigFormProps {
   onChange: (config: WhatsAppConfig) => void;
   disabled?: boolean;
   onUpdate?: () => void;
+  encrypted_api_key?: string;
+  code?: string;
 }
 
-export function WhatsAppConfigForm({ providerId, config, onChange, disabled = false, onUpdate }: WhatsAppConfigFormProps) {
+export function WhatsAppConfigForm({ providerId, config, onChange, disabled = false, onUpdate, encrypted_api_key, code }: WhatsAppConfigFormProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [qrImageData, setQrImageData] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
     setError(null);
     
     try {
-      const result = await checkWhatsAppStatus();
+      const result = await checkWhatsAppStatus(encrypted_api_key, code);
       
       if (result.success) {
         const newConfig = {
@@ -80,7 +82,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
     setQrImageData(null);
     
     try {
-      const result = await authenticateWhatsApp();
+      const result = await authenticateWhatsApp(encrypted_api_key, code);
       
       if (!result.success) {
         setError(result.message || "Failed to start WhatsApp authentication");
@@ -113,7 +115,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
 
     const statusInterval = setInterval(async () => {
       try {
-        const statusResult = await checkWhatsAppStatus();
+        const statusResult = await checkWhatsAppStatus(encrypted_api_key, code);
         
         if (statusResult.success && statusResult.isLoggedIn) {
           // Clear the interval
@@ -122,7 +124,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
           
           // Call enableWhatsapp once when authentication completes
           try {
-            const enableResult = await enableWhatsapp(statusResult);
+            const enableResult = await enableWhatsapp(statusResult, encrypted_api_key, code);
           } catch (enableError) {
             console.error("Failed to enable WhatsApp:", enableError);
           }

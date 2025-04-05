@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/utils/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { validateUserAuthentication } from '@/app/modules/integrations/api/api.integrations.server';
 import { getAuthHeaders } from '@/lib/actions/actions';
 
 export async function POST(request: NextRequest) {
   try {
-    const headers = await getAuthHeaders();
-    
-    const { providerTag, dbConfig } = await request.json();
+    const { providerTag, dbConfig, encrypted_api_key, code } = await request.json();
     
     if (!providerTag || !dbConfig) {
       return NextResponse.json({ 
@@ -14,6 +15,44 @@ export async function POST(request: NextRequest) {
           message: 'Missing required parameters'
         }
       });
+    }
+    
+    let headers = {};
+    
+    if (encrypted_api_key) {
+      try {
+        const user_id = await validateUserAuthentication({
+          encrypted_api_key,
+          code
+        });
+        
+        const supabase = createServiceClient(
+          process.env.SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_KEY!
+        );
+        
+        const { data: userData } = await supabase
+          .from('users_api_keys')
+          .select('api_key')
+          .eq('id', user_id)
+          .single();
+          
+        if (userData?.api_key) {
+          headers = {
+            'VEYRAX-API-KEY': userData.api_key
+          };
+        }
+      } catch (authError) {
+        console.error('Auth error with API key:', authError);
+        return NextResponse.json({
+          data: {
+            success: false,
+            message: 'Authentication failed'
+          }
+        }, { status: 401 });
+      }
+    } else {
+      headers = await getAuthHeaders();
     }
     
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -40,7 +79,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       data: {
         success: false,
-        message: 'Failed to test connection'
+        message: error instanceof Error ? error.message : 'Failed to test connection'
       }
     });
   }
