@@ -27,12 +27,12 @@ export async function POST(request: NextRequest) {
         const { data: userData } = await supabase
           .from('users_api_keys')
           .select('api_key')
-          .eq('id', userId)
+          .eq('user_id', userId)
           .single();
           
         if (userData?.api_key) {
           headers = {
-            'VEYRAX-API-KEY': userData.api_key
+            'VEYRAX_API_KEY': userData.api_key
           };
         }
       } catch (authError) {
@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
       const { data: userData } = await supabase
         .from('users_api_keys')
         .select('api_key')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
         
       if (userData?.api_key) {
         headers = {
-          'VEYRAX-API-KEY': userData.api_key
+          'VEYRAX_API_KEY': userData.api_key
         };
       } else {
         return NextResponse.json({
@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Call the WhatsApp check_status API endpoint
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/whatsapp/check_status`, {
       method: 'POST',
       headers: {
@@ -104,7 +103,6 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     
-    // Return the login status and phone number if available
     return NextResponse.json({
       success: true,
       data: {

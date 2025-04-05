@@ -27,12 +27,12 @@ export async function POST(request: NextRequest) {
         const { data: userData } = await supabase
           .from('users_api_keys')
           .select('api_key')
-          .eq('id', userId)
+          .eq('user_id', userId)
           .single();
           
         if (userData?.api_key) {
           headers = {
-            'VEYRAX-API-KEY': userData.api_key
+            'VEYRAX_API_KEY': userData.api_key
           };
         }
       } catch (authError) {
@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
       const { data: userData } = await supabase
         .from('users_api_keys')
         .select('api_key')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
         
       if (userData?.api_key) {
         headers = {
-          'VEYRAX-API-KEY': userData.api_key
+          'VEYRAX_API_KEY': userData.api_key
         };
       } else {
         return NextResponse.json({
@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
       }),
       credentials: 'include'
     });
+
+    console.log('headers', headers);
 
     if (!response.ok) {
       const errorText = await response.text();

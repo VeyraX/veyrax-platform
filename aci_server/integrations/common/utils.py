@@ -426,3 +426,46 @@ def get_user_flows(user_id: str):
         return {"error": str(e)}
     
 
+def get_auth_tool():
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('providers') \
+            .select('id, provider_tag') \
+            .eq('provider_tag', 'veyrax-auth') \
+            .execute()
+        
+        if not result.data:
+            return {}
+            
+        provider_id = result.data[0]['id']
+        provider_tag = result.data[0]['provider_tag']
+        
+        actions = supabase.table('provider_actions') \
+            .select('action_slug, input_schema') \
+            .eq('provider_id', provider_id) \
+            .execute()
+            
+        if not actions.data:
+            return {}
+            
+        tools = {}
+        tools[provider_tag] = {}
+        
+        for action in actions.data:
+            action_name = action.get('action_slug')
+            input_schema = action.get('input_schema')
+            
+            if action_name and input_schema:
+                tools[provider_tag][action_name] = {
+                    "type": "function",
+                    "function": {
+                        "name": action_name,
+                        **input_schema
+                    }
+                }
+            
+        return tools
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}

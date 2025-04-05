@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Validate user authentication and get user_id
         let userId;
         try {
             userId = await validateUserAuthentication({
@@ -31,7 +30,6 @@ export async function POST(request: NextRequest) {
             }, { status: 401 });
         }
 
-        // If no API key or base_url provided, disconnect the provider
         if (!api_key || !base_url) {
             const disconnectResponse = await fetch(new URL('/api/integrations/disconnect', request.url).toString(), {
                 method: 'POST',
@@ -56,7 +54,6 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-            // Save API key with base_url using the service function
             const encryptedKey = await saveApiKey({
                 user_id: userId,
                 provider_id,

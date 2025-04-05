@@ -51,7 +51,7 @@ from integrations.n8n.route import router as n8n_router
 from integrations.browserbase.route import router as browser_base_router
 from integrations.typeform.route import router as typeform_router
 from integrations.reddit.route import router as reddit_router
-from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions, get_user_flows
+from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions, get_user_flows, get_auth_tool
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
 from integrations.linkedin.route import router as linkedin_router
@@ -186,13 +186,12 @@ INTEGRATION_ROUTERS = {
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
-        
-        if method in ['validate_key', 'test_connection']:  # skip this paths, reserved for validation checks
+        # skip this paths, reserved for validation checks
+        if method in ['validate_key', 'test_connection', 'authenticate', 'check_status']: 
             return
-        
-        if tool == "whatsapp":
+            
+        if tool == "veyrax_auth": 
             return
-
         
         user_id = await get_user_from_request(request)
         user_tools = get_user_tools_from_actions(user_id)
@@ -253,7 +252,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-#app.add_middleware(PermissionMiddleware)
+app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
@@ -520,13 +519,16 @@ async def get_user_tools(request: Request):
             
         if not user_tools:
             tools_response = {"tools": {}}
+            tools_response["tools"]["veyrax_auth"] = get_auth_tool()
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
             tools_response["tools"]["available_flows"] = []
             return tools_response
         
         response_tools = {"tools": user_tools}
+        response_tools["tools"]["veyrax_auth"] = get_auth_tool()
         response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
+        
         
         user_memories = await get_user_memories(user_id)
         response_tools["tools"]["memories"] = user_memories
@@ -569,6 +571,8 @@ async def get_dev_user_tools(request: Request):
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
+            # Always include veyrax_auth
+            tools_response["tools"]["veyrax_auth"] = get_router_tools(veyrax_auth_router)
             
             return tools_response
             
@@ -583,6 +587,9 @@ async def get_dev_user_tools(request: Request):
         
         user_tools = {}
         user_tools['examples'] = json.loads(get_tools_example_prompt)
+        
+        # Always include veyrax_auth
+        user_tools['veyrax_auth'] = get_router_tools(veyrax_auth_router)
         
         for name, router in INTEGRATION_ROUTERS.items():
             if name in provider_tags:

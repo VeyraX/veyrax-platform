@@ -19,7 +19,8 @@ import {
   validateCustomAuthSchema,
   authenticateWhatsApp,
   checkWhatsAppStatus,
-  disconnectWhatsAppProvider
+  disconnectWhatsAppProvider,
+  enableProvider
 } from "../api/api.integrations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode } from "lucide-react";
@@ -414,6 +415,22 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
     if (onUpdate) onUpdate();
   };
 
+  const handleConnectSimpleProvider = async () => {
+    setIsLoading(true);
+    try {
+      await enableProvider(provider.id);
+      if (onUpdate) {
+        onUpdate();
+      }
+      onClose();
+    } catch (error) {
+      console.error(`Failed to connect ${provider.name}:`, error);
+      setValidationError(error instanceof Error ? error.message : "Failed to connect to service");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderDbConfigForm = () => {
     if (provider.provider_tag === 'snowflake') {
       return (
@@ -549,6 +566,16 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
+          {provider.auth_method === 'none' && (
+            <>
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <span className="block sm:inline">{validationError}</span>
+                </div>
+              )}
+            </>
+          )}
+
           {provider.auth_method === 'oauth' && provider.user_scopes && (
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
@@ -695,6 +722,19 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
                 Disconnect
               </Button>
             </div>
+          )}
+          
+          {provider.auth_method === 'none' && !provider.connected && (
+            <Button 
+              onClick={handleConnectSimpleProvider} 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                "Connect"
+              )}
+            </Button>
           )}
           
           {provider.auth_method === 'db_access' && !provider.connected && (

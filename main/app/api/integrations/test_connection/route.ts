@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
           
         if (userData?.api_key) {
           headers = {
-            'VEYRAX-API-KEY': userData.api_key
+            'VEYRAX_API_KEY': userData.api_key
           };
         }
       } catch (authError) {

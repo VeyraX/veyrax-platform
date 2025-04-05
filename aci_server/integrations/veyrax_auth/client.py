@@ -6,6 +6,9 @@ import uuid
 from datetime import datetime, timedelta
 from db.supabase import get_supabase
 from fastapi import HTTPException
+from ..common.encryption import encrypt, safe_encrypt, encrypt_with_code
+import urllib.parse
+import hashlib
 
 class VeyraxAuthClient:
     def __init__(self, user_id: str):
@@ -47,6 +50,15 @@ class VeyraxAuthClient:
             raise HTTPException(status_code=400, detail=f"Provider with tag {provider_tag} is already connected")
         
         code = str(uuid.uuid4())
+        
+        encrypted_user_id = encrypt_with_code(self.user_id, code)
+        
+        api_key_str = f"{encrypted_user_id}:{provider_id}:{code}"
+        
+        encrypted_api_key = safe_encrypt(api_key_str)
+        
+        url_safe_key = urllib.parse.quote(encrypted_api_key)
+        
         expires_at = datetime.now() + timedelta(minutes=60)
         
         data = {
@@ -54,7 +66,8 @@ class VeyraxAuthClient:
             "user_id": self.user_id,
             "provider_id": provider_id,
             "expires_at": expires_at.isoformat(),
-            "used": False
+            "used": False,
+            "encrypted_api_key": encrypted_api_key
         }
         
         result = self.supabase.table("user_auth_codes").insert(data).execute()
@@ -62,6 +75,6 @@ class VeyraxAuthClient:
         if not result.data or len(result.data) == 0:
             raise HTTPException(status_code=500, detail="Failed to create auth code")
         
-        auth_url = f"{self.frontend_url}/user/{provider_tag}/auth?code={code}"
+        auth_url = f"{self.frontend_url}/user/{provider_tag}/auth?code={code}&api_key={url_safe_key}"
         
         return {"connection_url": auth_url}

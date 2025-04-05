@@ -3,11 +3,9 @@ from datetime import datetime
 
 today_day = datetime.now().strftime("%Y-%m-%d")
 
-
-
 get_tools_example_prompt = f"""
 {{
-  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question. For G-Tools pagination, simply use page number. The date is today's date: {today_day}",
+  "instruction": "Here is a structure of the prompt that you should follow to call and execute tools properly. You MUST call tool, method and relevant parameters depends on the tool, method and user question. For G-Tools pagination, simply use page number. The date is today's date: {today_day}. If user requested a tool that is not available, please call veyrax-auth tool to check if requested tool is avaliable at all on the platform and generate a connection url for the tool.",
   "examples": [
     {{
     "user_question": "I need to find a 5 pages in Confluence about the API documentation. Please search for it.",

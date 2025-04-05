@@ -15,6 +15,8 @@ interface UserAuthPageProps {
 export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('Authenticating...');
+  const [initialized, setInitialized] = useState<boolean>(false);
+  const [connectionComplete, setConnectionComplete] = useState<boolean>(false);
   const router = useRouter();
   
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
@@ -25,17 +27,34 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   const verificationAttempted = useRef(false);
 
   useEffect(() => {
+    setMessage('Authenticating...');
+    setInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (!initialized) return;
+    
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const success = urlParams.get('success');
+      const url = window.location.href;
+      console.log("Current URL:", url);
       
-      if (success === 'true') {
+      if (url.includes('oauth_return=success') && url.includes('status_code=200')) {
+        console.log("Detected successful OAuth return");
+        setConnectionComplete(true);
         setStatus('success');
-        setMessage(`Provider successfully connected.`);
+        setMessage('Provider successfully connected.');
+        return;
+      }
+      
+      if (url.includes('success=true')) {
+        console.log("Detected success=true parameter");
+        setConnectionComplete(true);
+        setStatus('success');
+        setMessage('Provider successfully connected.');
         return;
       }
     }
-  }, []);
+  }, [initialized]);
 
   useEffect(() => {
     const loadProviderDetails = async () => {
@@ -54,13 +73,22 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true' || verificationAttempted.current) {
+      if (verificationAttempted.current) {
         return;
       }
     }
 
+    if (connectionComplete) {
+      return;
+    }
+
     if (!code && !apiKey) {
+      if (typeof window !== 'undefined') {
+        const url = window.location.href;
+        if (url.includes('oauth_return=success') || url.includes('success=true')) {
+          return;
+        }
+      }
       return;
     }
     
@@ -80,6 +108,7 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
         });
 
         if (!response.ok) {
+          router.push(`/user/${providerTag}/auth?status_code=401&error=true`);
           throw new Error(`Authentication code is invalid or expired. Please generate a new url.`);
         }
 
@@ -124,25 +153,46 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
     };
 
     verifyAuth();
-  }, [code, apiKey, providerTag]);
+  }, [code, apiKey, providerTag, connectionComplete]);
+
+  const handleUpdateIntegration = () => {
+    console.log('Integration update triggered');
+    
+    setShowIntegrationDialog(false);
+    setShowScopeDialog(false);
+    
+    setConnectionComplete(true);
+    setStatus('success');
+    setMessage('Provider successfully connected.');
+    
+    try {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('success', 'true');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {
+      console.error("Failed to update URL:", e);
+    }
+  };
 
   const handleCloseDialog = () => {
     setShowIntegrationDialog(false);
     setShowScopeDialog(false);
-    router.push(`/user/${providerTag}/auth?success=true`);
-  };
-
-  const handleUpdateIntegration = () => {
-    setShowIntegrationDialog(false);
-    setShowScopeDialog(false);
-    router.push(`/user/${providerTag}/auth?success=true`);
+    
+    if (!connectionComplete) {
+      setStatus('error');
+      setMessage('Integration setup was cancelled.');
+    }
   };
 
   const handleScopeSelection = async (scopes: string[]) => {
     setShowScopeDialog(false);
     
     try {
-      const returnUrl = `/user/${providerTag}/auth`;
+      const baseReturnUrl = `/user/${providerTag}/auth`;
+      const returnUrl = `${baseReturnUrl}?status_code=200&oauth_return=success`;
+      
       const url = await initiateOAuthFlow(providerTag, scopes, returnUrl, encryptedApiKey || undefined, verificationCode || undefined);
       window.location.href = url;
     } catch (error) {
@@ -152,12 +202,44 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
     }
   };
 
+  const shouldShowMissingAuthMessage = () => {
+    if (connectionComplete || showScopeDialog || showIntegrationDialog) {
+      return false;
+    }
+    
+    if (!code && !apiKey) {
+      if (typeof window !== 'undefined') {
+        const url = window.location.href;
+        return !(url.includes('oauth_return=success') || url.includes('success=true'));
+      }
+      return true;
+    }
+    
+    return false;
+  };
+
+  const getDisplayMessage = () => {
+    if (!initialized) {
+      return '';
+    }
+
+    if (shouldShowMissingAuthMessage()) {
+      return 'Authentication code missing. Please use a valid authentication link.';
+    }
+    
+    return message;
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      {showScopeDialog || showIntegrationDialog ? (
-        <p className="text-black">Loading provider settings...</p>
+      {connectionComplete ? (
+        <div className="text-center">
+          <p suppressHydrationWarning>Provider successfully connected.</p>
+        </div>
+      ) : showScopeDialog || showIntegrationDialog ? (
+        <p className="text-black" suppressHydrationWarning>Loading provider settings...</p>
       ) : (
-        <p className="text-black">{message}</p>
+        <p className="text-black" suppressHydrationWarning>{getDisplayMessage()}</p>
       )}
       
       {showScopeDialog && providerDetails && (

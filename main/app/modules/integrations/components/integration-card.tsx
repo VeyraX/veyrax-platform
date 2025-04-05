@@ -71,22 +71,11 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
         props.auth_method === 'api_key_with_base' || 
         props.auth_method === 'db_access' ||
         props.auth_method === 'custom' ||
-        props.auth_method === 'whatsapp-qr'
+        props.auth_method === 'whatsapp-qr' ||
+        props.auth_method === 'none'
       ) {
       setShowManage(true);
-    } else if (props.auth_method === 'none') {
-      setIsConnecting(true);
-      try {
-        await enableProvider(props.id);
-        if (props.onConnectionChange) {
-          props.onConnectionChange();
-        }
-      } catch (error) {
-        console.error(`Failed to connect ${props.name}:`, error);
-      } finally {
-        setIsConnecting(false);
-      }
-    } else {
+    } else if (props.auth_method === 'oauth') {
       handleShowSettings(props as Provider);
     }
   };
@@ -221,9 +210,9 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
          props.auth_method === 'api_key_with_base' ||
          props.auth_method === 'db_access' || 
          props.auth_method === 'custom' ||
+         props.auth_method === 'none' ||
          (props.provider_tag && props.provider_tag.toLowerCase() === 'veyrax') ||
-         (props.provider_tag && props.provider_tag.toLowerCase() === 'whatsapp') ||
-         (props.auth_method === 'none' && props.connected)) && (
+         (props.provider_tag && props.provider_tag.toLowerCase() === 'whatsapp')) && (
           <ManageDialog
             provider={props}
             open={showManage}
