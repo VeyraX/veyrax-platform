@@ -31,8 +31,8 @@ examples = ExamplesLoader()
 
 async def get_google_maps_service(request: FastAPIRequest):
     try:
-        #api_key = await validate_provider_api_key(request, "google-maps")
-        api_key = '***REMOVED***'
+        api_key = await validate_provider_api_key(request, "google-maps")
+        
         client = GoogleMapsClient(api_key)
         apply_error_handler_to_client(client)
         service = GoogleMapsService(client)
