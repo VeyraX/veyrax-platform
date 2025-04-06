@@ -203,7 +203,7 @@ async def check_user_permission(request: Request, tool: str, method: str):
             return
         
 
-        if os.getenv("NEXT_PUBLIC_SENTRY_ENVIRONMENT").lower() == 'development':
+        if os.getenv("NEXT_PUBLIC_SENTRY_ENVIRONMENT") and os.getenv("NEXT_PUBLIC_SENTRY_ENVIRONMENT") == 'development':
             return
             
         if tool == "veyrax-auth": 
