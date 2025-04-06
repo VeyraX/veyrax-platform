@@ -46,7 +46,7 @@ class DriveService:
                     parent = self.client.get_file(parent_id)
                     parent_names.append(parent['name'])
                 except Exception:
-                    parent_names.append(None)
+                    parent_names.append("Unknown folder")
             prepared_data['parent_names'] = parent_names
         
         return prepared_data
@@ -91,7 +91,7 @@ class DriveService:
                     parent = self.client.get_file(parent_id)
                     parent_names_map[parent_id] = parent['name']
                 except Exception:
-                    parent_names_map[parent_id] = None
+                    parent_names_map[parent_id] = "Unknown folder"
         
         files = []
         for file_data in files_data:
