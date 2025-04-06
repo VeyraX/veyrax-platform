@@ -1,0 +1,106 @@
+routes:
+  - endpoint: /bybit_p2p/get_p2p_offers
+    examples:
+      - scenario: "Get USDT sell offers in UAH"
+        description: "Retrieve P2P orders from users selling USDT for UAH on ByBit"
+        input_json: |
+          {
+            "fiat": "uah",
+            "crypto": "usdt",
+            "trade_type": "sell",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "offers": [
+                {
+                  "exchange": "bybit",
+                  "order_id": "12741896509679648768",
+                  "trade_type": "SELL",
+                  "price": 41.35,
+                  "available_amount": 50.22,
+                  "min_amount": 500,
+                  "max_amount": 2000,
+                  "payment_methods": ["Monobank", "PrivatBank"],
+                  "trader": {
+                    "nickname": "BybitTrader1",
+                    "completion_rate": 99.5,
+                    "orders_count": 120
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "UAH"
+                  }
+                },
+                {
+                  "exchange": "bybit",
+                  "order_id": "12742205789652930560",
+                  "trade_type": "SELL",
+                  "price": 41.4,
+                  "available_amount": 200,
+                  "min_amount": 1000,
+                  "max_amount": 8000,
+                  "payment_methods": ["Monobank"],
+                  "trader": {
+                    "nickname": "BybitPro",
+                    "completion_rate": 100,
+                    "orders_count": 45
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "UAH"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "P2POffersView"
+            }
+          }
+
+      - scenario: "Get USDT buy offers in USD"
+        description: "Retrieve P2P orders from users buying USDT for USD on ByBit"
+        input_json: |
+          {
+            "fiat": "usd",
+            "crypto": "usdt",
+            "trade_type": "buy",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "offers": [
+                {
+                  "exchange": "bybit",
+                  "order_id": "12742205789652930560",
+                  "trade_type": "BUY",
+                  "price": 0.992,
+                  "available_amount": 15000,
+                  "min_amount": 100,
+                  "max_amount": 1000,
+                  "payment_methods": ["BankTransfer", "Revolut"],
+                  "trader": {
+                    "nickname": "USDbybitTrader",
+                    "completion_rate": 99.2,
+                    "orders_count": 352
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "USD"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "P2POffersView"
+            }
+          } 

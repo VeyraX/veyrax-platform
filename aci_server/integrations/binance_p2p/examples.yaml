@@ -1,0 +1,168 @@
+routes:
+  - endpoint: /binance_p2p/get_p2p_offers
+    examples:
+      - scenario: "Get USDT sell offers in UAH"
+        description: "Retrieve P2P orders from users selling USDT for UAH on Binance"
+        input_json: |
+          {
+            "fiat": "uah",
+            "crypto": "usdt",
+            "trade_type": "sell",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "offers": [
+                {
+                  "exchange": "binance",
+                  "order_id": "12741896509679648768",
+                  "trade_type": "SELL",
+                  "price": 41.15,
+                  "available_amount": 79.22,
+                  "min_amount": 400,
+                  "max_amount": 600,
+                  "payment_methods": ["ABank", "izibank"],
+                  "trader": {
+                    "nickname": "Maksim-R",
+                    "completion_rate": 100,
+                    "orders_count": 30
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "UAH"
+                  }
+                },
+                {
+                  "exchange": "binance",
+                  "order_id": "12742205789652930560",
+                  "trade_type": "SELL",
+                  "price": 41.2,
+                  "available_amount": 100,
+                  "min_amount": 4100,
+                  "max_amount": 4120,
+                  "payment_methods": ["ABank"],
+                  "trader": {
+                    "nickname": "o_traffic",
+                    "completion_rate": 100,
+                    "orders_count": 8
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "UAH"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "BinanceP2POffersView"
+            }
+          }
+
+      - scenario: "Get USDT buy offers in USD"
+        description: "Retrieve P2P orders from users buying USDT for USD on Binance"
+        input_json: |
+          {
+            "fiat": "usd",
+            "crypto": "usdt",
+            "trade_type": "buy",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "offers": [
+                {
+                  "exchange": "binance",
+                  "order_id": "12742205789652930560",
+                  "trade_type": "BUY",
+                  "price": 0.995,
+                  "available_amount": 10000,
+                  "min_amount": 100,
+                  "max_amount": 1000,
+                  "payment_methods": ["WiseBankTransfer", "Revolut"],
+                  "trader": {
+                    "nickname": "CryptoTrader123",
+                    "completion_rate": 99.8,
+                    "orders_count": 563
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "USD"
+                  }
+                },
+                {
+                  "exchange": "binance",
+                  "order_id": "42567129856145930560",
+                  "trade_type": "BUY",
+                  "price": 0.994,
+                  "available_amount": 50000,
+                  "min_amount": 500,
+                  "max_amount": 5000,
+                  "payment_methods": ["BankTransfer", "SWIFT"],
+                  "trader": {
+                    "nickname": "GlobalExchange",
+                    "completion_rate": 100,
+                    "orders_count": 1245
+                  },
+                  "payment_timeout": 30,
+                  "metadata": {
+                    "base_currency": "USDT",
+                    "quote_currency": "USD"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "BinanceP2POffersView"
+            }
+          }
+
+      - scenario: "Get BTC sell offers in EUR"
+        description: "Retrieve P2P orders from users selling BTC for EUR on Binance"
+        input_json: |
+          {
+            "fiat": "eur",
+            "crypto": "btc",
+            "trade_type": "sell",
+            "page": 1
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "offers": [
+                {
+                  "exchange": "binance",
+                  "order_id": "98273645109679648768",
+                  "trade_type": "SELL",
+                  "price": 57200.5,
+                  "available_amount": 0.5,
+                  "min_amount": 100,
+                  "max_amount": 10000,
+                  "payment_methods": ["SEPA", "Revolut"],
+                  "trader": {
+                    "nickname": "EuroTrader",
+                    "completion_rate": 99.5,
+                    "orders_count": 284
+                  },
+                  "payment_timeout": 15,
+                  "metadata": {
+                    "base_currency": "BTC",
+                    "quote_currency": "EUR"
+                  }
+                }
+              ]
+            },
+            "message": null,
+            "component": {
+              "name": "BinanceP2POffersView"
+            }
+          } 

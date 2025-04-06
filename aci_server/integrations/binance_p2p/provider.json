@@ -1,0 +1,7 @@
+{
+    "name": "Binance P2P",
+    "provider_tag": "binance_p2p",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//binance-icon-logo-png_seeklogo-598330.png",
+    "description": "Get real-time data from Binance P2P marketplace. View buy and sell offers for cryptocurrencies across different fiat currencies.",
+    "auth_method": "none"
+} 
