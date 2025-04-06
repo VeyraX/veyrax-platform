@@ -195,6 +195,10 @@ async def check_user_permission(request: Request, tool: str, method: str):
         # skip this paths, reserved for validation checks
         if method in ['validate_key', 'test_connection', 'authenticate', 'check_status']: 
             return
+        
+
+        if os.getenv("NEXT_PUBLIC_SENTRY_ENVIRONMENT").lower() == 'development':
+            return
             
         if tool == "veyrax-auth": 
             return

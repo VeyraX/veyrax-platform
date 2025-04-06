@@ -84,6 +84,16 @@ class NotionClient:
         return response.json()
 
     def append_block_children(self, block_id: str, children: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Append blocks to a page or block.
+        
+        Args:
+            block_id: The ID of the block or page
+            children: List of block objects to append
+            
+        Returns:
+            API response
+        """
         response = requests.patch(
             f"{self.base_url}/blocks/{block_id}/children",
             headers=self.headers,
