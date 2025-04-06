@@ -22,7 +22,6 @@ async def get_mail_smtp_service(request: FastAPIRequest):
         
         username = auth_params.get("username")
         password = auth_params.get("password")
-        service = auth_params.get("service", "").lower()
 
         if not username:
             raise HTTPException(
@@ -36,30 +35,14 @@ async def get_mail_smtp_service(request: FastAPIRequest):
                 detail="Missing required parameter: password"
             )
         
-        known_services = ["gmail", "outlook", "yahoo", "zoho", "aol", "protonmail", "gmx"]
-        
-        if not service or service not in known_services:
-            service = "gmail"
-        
-        default_settings_response = await get_default_settings({"service": service})
-        service_defaults = default_settings_response.get("settings", {})
-        
-        smtp_host = auth_params.get("smtp_host") or service_defaults.get("smtp_host")
-        smtp_port = auth_params.get("smtp_port") or service_defaults.get("smtp_port")
-        imap_host = auth_params.get("imap_host") or service_defaults.get("imap_host")
-        imap_port = auth_params.get("imap_port") or service_defaults.get("imap_port")
-        
-        use_ssl = auth_params.get("use_ssl") if auth_params.get("use_ssl") is not None else service_defaults.get("use_ssl", False)
-        use_tls = auth_params.get("use_tls") if auth_params.get("use_tls") is not None else service_defaults.get("use_tls", True)
-        
-        if not smtp_port:
-            smtp_port = 587 if use_tls else (465 if use_ssl else 25)
-            
-        if not imap_port:
-            imap_port = 993 if use_ssl else 143
-        
-        if imap_host and "gmail" in imap_host.lower() and int(imap_port) == 993:
-            use_ssl = True
+        # Always use Gmail settings regardless of provided parameters
+        smtp_host = "smtp.gmail.com"
+        smtp_port = 587
+        imap_host = "imap.gmail.com"
+        imap_port = 993
+        use_ssl = False
+        use_tls = True
+        imap_use_ssl = True
             
         try:
             client = MailSMTPClient(
@@ -70,7 +53,8 @@ async def get_mail_smtp_service(request: FastAPIRequest):
                 username=username,
                 password=password,
                 use_ssl=use_ssl,
-                use_tls=use_tls
+                use_tls=use_tls,
+                imap_use_ssl=imap_use_ssl
             )
             apply_error_handler_to_client(client)
             
@@ -190,7 +174,6 @@ async def validate_key(
         username = params.get("username")
         password = params.get("password")
         
-        # Validate required parameters
         if not username:
             return {
                 "valid": False,
@@ -203,47 +186,21 @@ async def validate_key(
                 "message": "Missing required parameter: password"
             }
         
-        # Get connection settings either from service or by detecting from email
-        settings = {}
-        if "service" in params and params["service"]:
-            # Get settings for specific service
-            service_response = await get_default_settings({"service": params["service"]})
-            if "settings" in service_response:
-                settings = service_response["settings"]
-            else:
-                return {
-                    "valid": False,
-                    "message": f"Unknown service: {params['service']}",
-                    "available_services": service_response.get("available_services", [])
-                }
-        elif "@" in username:
-            # Try to detect settings from email address
-            detect_response = await detect_settings({"email": username})
-            if detect_response["success"]:
-                if "settings" in detect_response:
-                    settings = detect_response["settings"]
-                elif "possible_settings" in detect_response and detect_response["possible_settings"]:
-                    settings = detect_response["possible_settings"][0]
-            
-        # If no settings found or provided, use manual settings or defaults (Gmail)
-        if not settings:
-            settings = {
-                "smtp_host": params.get("smtp_host", "smtp.gmail.com"),
-                "smtp_port": int(params.get("smtp_port", 587)),
-                "imap_host": params.get("imap_host", "imap.gmail.com"),
-                "imap_port": int(params.get("imap_port", 993)),
-                "use_ssl": params.get("use_ssl", False),
-                "use_tls": params.get("use_tls", True),
-                "imap_use_ssl": params.get("imap_use_ssl", True)
-            }
+
+        settings = {
+            "smtp_host": "smtp.gmail.com",
+            "smtp_port": 587,
+            "imap_host": "imap.gmail.com", 
+            "imap_port": 993,
+            "use_ssl": False,
+            "use_tls": True,
+            "imap_use_ssl": True
+        }
         
-        # Test connections separately to provide more detailed feedback
         smtp_error = None
         imap_error = None
         
-        # Test SMTP connection
         try:
-            # For SMTP testing
             if settings.get("use_ssl", False):
                 smtp_client = smtplib.SMTP_SSL(settings["smtp_host"], settings["smtp_port"], timeout=30)
             else:
@@ -256,9 +213,7 @@ async def validate_key(
         except Exception as e:
             smtp_error = str(e)
         
-        # Test IMAP connection and attempt to fetch emails
         try:
-            # For IMAP testing
             if settings.get("imap_use_ssl", True):
                 imap_client = imaplib.IMAP4_SSL(settings["imap_host"], settings["imap_port"], timeout=30)
             else:
@@ -268,26 +223,20 @@ async def validate_key(
             
             imap_client.login(username, password)
             
-            # Try to actually fetch emails as an additional validation step
             try:
-                # Select the INBOX folder
                 result, data = imap_client.select('INBOX', readonly=True)
                 if result != 'OK':
                     raise Exception(f"Failed to select INBOX: {data[0].decode() if data else 'Unknown error'}")
                 
-                # Try to fetch the most recent 1 message (just to verify we can access emails)
                 result, data = imap_client.search(None, 'ALL')
                 if result != 'OK':
                     raise Exception(f"Failed to search messages: {data[0].decode() if data else 'Unknown error'}")
                 
-                # Get count of messages
                 message_count = len(data[0].split())
                 
-                # Close the mailbox and logout
                 imap_client.close()
                 imap_client.logout()
                 
-                # Include the message count in the success response
                 return {
                     "valid": True,
                     "message": f"SMTP and IMAP connections successful. Found {message_count} messages in inbox.",
@@ -296,7 +245,6 @@ async def validate_key(
                 }
                 
             except Exception as fetch_error:
-                # If we can connect but can't fetch emails, report this issue
                 imap_client.logout()
                 return {
                     "valid": False,
@@ -307,7 +255,6 @@ async def validate_key(
         except Exception as e:
             imap_error = str(e)
         
-        # Check for errors and return appropriate response
         if smtp_error and imap_error:
             return {
                 "valid": False,
@@ -327,7 +274,6 @@ async def validate_key(
                 "settings_used": settings
             }
         
-        # Shouldn't reach here since we return earlier after successful email fetch
         return {
             "valid": True,
             "message": "SMTP and IMAP connections successful",
@@ -482,125 +428,23 @@ async def detect_settings(
     # Extract domain from email
     domain = email.split("@")[-1].lower()
     
-    # Common domain to service mappings
-    domain_mappings = {
-        "gmail.com": "gmail",
-        "googlemail.com": "gmail",
-        "outlook.com": "outlook",
-        "hotmail.com": "outlook",
-        "live.com": "outlook",
-        "msn.com": "outlook",
-        "yahoo.com": "yahoo",
-        "ymail.com": "yahoo",
-        "zoho.com": "zoho",
-        "aol.com": "aol",
-        "aim.com": "aol",
-        "protonmail.com": "protonmail",
-        "protonmail.ch": "protonmail",
-        "pm.me": "protonmail",
-        "gmx.com": "gmx",
-        "gmx.net": "gmx",
-        "gmx.de": "gmx",
-        "icloud.com": {
-            "smtp_host": "smtp.mail.me.com",
-            "smtp_port": 587,
-            "imap_host": "imap.mail.me.com",
-            "imap_port": 993,
-            "use_ssl": False,
-            "use_tls": True,
-            "imap_use_ssl": True,
-            "notes": "For iCloud accounts with 2FA, you need to generate an app-specific password."
-        },
-        "mail.ru": {
-            "smtp_host": "smtp.mail.ru",
-            "smtp_port": 465,
-            "imap_host": "imap.mail.ru",
-            "imap_port": 993,
-            "use_ssl": True,
-            "use_tls": False,
-            "imap_use_ssl": True,
-            "notes": "Use your full email address as the username."
-        }
+    # Always use Gmail settings regardless of domain
+    gmail_settings = {
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 587,
+        "imap_host": "imap.gmail.com", 
+        "imap_port": 993,
+        "use_ssl": False,
+        "use_tls": True,
+        "imap_use_ssl": True,
+        "notes": "Using Gmail settings for all domains. For accounts with 2FA enabled, you need to use an App Password instead of your regular password."
     }
-    
-    # Get the default settings
-    default_settings_response = await get_default_settings({"service": ""})
-    all_settings = default_settings_response.get("settings", {})
-    
-    if domain in domain_mappings:
-        service_or_settings = domain_mappings[domain]
-        
-        # Check if direct settings or reference to another service
-        if isinstance(service_or_settings, str) and service_or_settings in all_settings:
-            return {
-                "email": email,
-                "detected_service": service_or_settings,
-                "settings": all_settings[service_or_settings],
-                "success": True
-            }
-        elif isinstance(service_or_settings, dict):
-            return {
-                "email": email,
-                "detected_service": "custom",
-                "settings": service_or_settings,
-                "success": True
-            }
-    
-    # Try to guess based on common email providers
-    if domain.endswith(".edu"):
-        return {
-            "email": email,
-            "detected_service": "unknown_educational",
-            "possible_settings": [
-                {
-                    "smtp_host": f"smtp.{domain}",
-                    "smtp_port": 587,
-                    "imap_host": f"imap.{domain}",
-                    "imap_port": 993,
-                    "use_ssl": False,
-                    "use_tls": True,
-                    "imap_use_ssl": True,
-                    "notes": "These are guessed settings. You might need to contact your institution's IT department."
-                }
-            ],
-            "success": True
-        }
-    elif any(domain.endswith(f".{tld}") for tld in ["com", "org", "net", "io"]):
-        # Best guess for corporate emails
-        return {
-            "email": email,
-            "detected_service": "unknown_corporate",
-            "possible_settings": [
-                {
-                    "smtp_host": f"smtp.{domain}",
-                    "smtp_port": 587,
-                    "imap_host": f"imap.{domain}",
-                    "imap_port": 993,
-                    "use_ssl": False,
-                    "use_tls": True,
-                    "imap_use_ssl": True,
-                    "notes": "These are guessed settings. Check with your email provider for accurate information."
-                },
-                {
-                    "smtp_host": f"mail.{domain}",
-                    "smtp_port": 587,
-                    "imap_host": f"mail.{domain}",
-                    "imap_port": 993,
-                    "use_ssl": False,
-                    "use_tls": True,
-                    "imap_use_ssl": True,
-                    "notes": "Alternative settings to try if the first option doesn't work."
-                }
-            ],
-            "success": True
-        }
     
     return {
         "email": email,
-        "detected_service": "unknown",
-        "available_services": list(all_settings.keys()),
-        "success": False,
-        "message": "Could not detect settings automatically. Please select a service from the list or enter settings manually."
+        "detected_service": "gmail",
+        "settings": gmail_settings,
+        "success": True
     }
 
 apply_error_handler_to_router(router) 

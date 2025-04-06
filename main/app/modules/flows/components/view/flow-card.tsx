@@ -63,10 +63,22 @@ const FlowCard: React.FC<FlowCardProps> = ({
   const [currentStatus, setCurrentStatus] = useState(status)
   const [isShared, setIsShared] = useState(is_shared)
   const [isDuplicating, setIsDuplicating] = useState(false)
+  const [displayTools, setDisplayTools] = useState<Array<any>>([])
   
   useEffect(() => {
+    
+    if (flowTools && flowTools.length > 0) {
+      setDisplayTools(flowTools)
+    } else {
+      setDisplayTools([{
+        provider_id: 'default',
+        provider_name: 'Tool',
+        logo_url: '/logo.svg'
+      }])
+    }
+    
     setCurrentStatus(status)
-  }, [status])
+  }, [status, id, name, flowTools, is_template])
 
   const handleEdit = () => {
     router.push(`/flow/${id}/edit`)
@@ -164,7 +176,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
       <CardContent className="p-4 h-full flex flex-col">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2 min-h-[24px] min-w-[72px]">
-            {flowTools.slice(0, 3).map((tool) => (
+            {displayTools.slice(0, 3).map((tool) => (
               <div 
                 key={tool.provider_id} 
                 className="h-6 w-6 rounded-full overflow-hidden flex items-center justify-center bg-white border border-gray-200"

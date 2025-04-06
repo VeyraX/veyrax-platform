@@ -63,7 +63,6 @@ export async function POST(request: Request) {
         return !excludedViews.includes(table_name);
       });
       
-      console.log('Tables to delete from:', filteredTables.map((t: TableRecord) => t.table_name));
       
       const childTables = ['flow_actions', 'chats_messages'];
       
@@ -71,7 +70,6 @@ export async function POST(request: Request) {
         const tableExists = filteredTables.some((t: TableRecord) => t.table_name === childTable);
         if (tableExists) {
           try {
-            console.log(`Deleting from child table: ${childTable}`);
             const { error: deleteError } = await adminClient
               .from(childTable)
               .delete()
@@ -98,7 +96,6 @@ export async function POST(request: Request) {
         if (childTables.includes(table_name)) continue;
         
         try {
-          console.log(`Deleting from table: ${table_name}`);
           const { error: deleteError } = await adminClient
             .from(table_name)
             .delete()
@@ -112,7 +109,6 @@ export async function POST(request: Request) {
             })
           }
         } catch (error) {
-          console.error(`Exception deleting from ${table_name}:`, error)
           deletionErrors.push({
             table: table_name,
             error: error instanceof Error ? error.message : String(error)

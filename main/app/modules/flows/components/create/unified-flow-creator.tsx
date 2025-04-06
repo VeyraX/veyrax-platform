@@ -14,7 +14,7 @@ import { extractTextFromHTML, isEmptyHTML } from "../flow-description-html";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type Message } from 'ai/react';
 import { ChatFlowCreator } from "./chat-flow-creator";
-import { updateFlowWithExtractedActions, saveFlowWithExtractedActions } from "@/app/modules/flows/api/api.flows";
+import { updateFlowWithExtractedActions, saveFlowWithExtractedActions, getFlowActions, getActionsByIds } from "@/app/modules/flows/api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
@@ -39,6 +39,19 @@ interface UnifiedFlowCreatorProps {
   isCreateMode?: boolean;
   creatorRef?: React.MutableRefObject<{ saveFlow: () => Promise<string | undefined> } | null>;
   userTools?: ProviderAction[];
+}
+
+function getDefaultMissingTools(allActions: any[]): { providerName: string; actionSlug: string }[] {
+  if (allActions && allActions.length > 0) {
+    const uniqueProviders = Array.from(new Set(allActions.map(action => action.provider_name)));
+    const result = uniqueProviders.map(providerName => ({
+      providerName,
+      actionSlug: "missing_tool"
+    }));
+    return result;
+  }
+  
+  return [{ providerName: "WhatsApp", actionSlug: "tools" }];
 }
 
 export function UnifiedFlowCreator({ 
@@ -68,6 +81,7 @@ export function UnifiedFlowCreator({
   const [name, setName] = useState(initialData?.name || "");
   const [html, setHtml] = useState(initialData?.description || "");
   const [actions, setActions] = useState<any[]>([]);
+  const [allActions, setAllActions] = useState<any[]>([]);
   const [isActionsLoading, setIsActionsLoading] = useState(true);
   const [isImproving, setIsImproving] = useState(false);
   const [flowId, setFlowId] = useState<string | undefined>(initialData?.id);
@@ -79,7 +93,6 @@ export function UnifiedFlowCreator({
   
   const flowCreatorChatId = useRef(`flow-creator-${Date.now()}`).current;
 
-  // Handle tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (typeof window !== 'undefined') {
@@ -145,20 +158,58 @@ export function UnifiedFlowCreator({
   };
 
   useEffect(() => {
-    const loadActions = async () => {
+    const loadUserActions = async () => {
       setIsActionsLoading(true);
       try {
         const fetchedActions = await getUserActions();
         setActions(fetchedActions);
+        
+        setAllActions(prevAllActions => {
+          const newAllActions = [...prevAllActions];
+          fetchedActions.forEach(action => {
+            if (!newAllActions.some(a => a.action_id === action.action_id)) {
+              newAllActions.push(action);
+            }
+          });
+          return newAllActions;
+        });
       } catch (error) {
-        console.error('Error loading actions:', error);
+        console.error('Error loading user actions:', error);
       } finally {
         setIsActionsLoading(false);
       }
     };
 
-    loadActions();
+    loadUserActions();
   }, []);
+
+  useEffect(() => {
+    if (flowId) {
+      const loadFlowActions = async () => {
+        try {
+          const actionIds = await getFlowActions(flowId);
+          
+          if (actionIds.length > 0) {
+            const flowActions = await getActionsByIds(actionIds);
+            
+            setAllActions(prevAllActions => {
+              const newAllActions = [...prevAllActions];
+              flowActions.forEach(action => {
+                if (!newAllActions.some(a => a.action_id === action.action_id)) {
+                  newAllActions.push(action);
+                }
+              });
+              return newAllActions;
+            });
+          }
+        } catch (error) {
+          console.error('Error loading flow actions:', error);
+        }
+      };
+
+      loadFlowActions();
+    }
+  }, [flowId]);
 
   useEffect(() => {
     if (initialData) {
@@ -182,7 +233,7 @@ export function UnifiedFlowCreator({
     processEditorChange
   } = useActionsMention(contentEditableRef, actions);
 
-  const { usedTools, missingTools } = useToolsDetector(html, actions);
+  const { usedTools, missingTools } = useToolsDetector(html, allActions);
 
   const handleChange = (evt: any) => {
     const newHtml = evt.target.value;
@@ -214,14 +265,14 @@ export function UnifiedFlowCreator({
         currentFlowId = await saveFlowWithExtractedActions({
           name,
           html
-        }, actions);
+        }, allActions);
         
         setFlowId(currentFlowId);
       } else {
         await updateFlowWithExtractedActions(currentFlowId, {
           name,
           html
-        }, actions);
+        }, allActions);
       }
       
       onSave?.({ 
@@ -233,7 +284,6 @@ export function UnifiedFlowCreator({
 
       return currentFlowId;
     } catch (error) {
-      console.error('Error saving flow:', error);
       toast.error('Failed to save flow');
       return undefined;
     } finally {
@@ -337,6 +387,24 @@ export function UnifiedFlowCreator({
       />
     );
   }
+  
+  const hasMissingTools = missingTools.length > 0;
+  
+  const userActionProviders = new Set(actions.map(a => a.provider_name.toLowerCase().trim()));
+  const usedToolsNotAvailable = usedTools.filter(tool => 
+    !userActionProviders.has(tool.provider_name.toLowerCase().trim())
+  );
+  
+  const shouldShowDefaultAlert = (userTools.length === 0 && activeTab === "configure") || usedToolsNotAvailable.length > 0;
+  
+  const alertTools = hasMissingTools 
+    ? missingTools 
+    : usedToolsNotAvailable.length > 0
+      ? usedToolsNotAvailable.map(tool => ({ 
+          providerName: tool.provider_name, 
+          actionSlug: "missing_tool" 
+        }))
+      : getDefaultMissingTools(allActions);
 
   return (
     <div className="flex flex-col h-full gap-6 p-6">
@@ -379,9 +447,9 @@ export function UnifiedFlowCreator({
         
         <TabsContent value="configure" className="mt-0 flex-1 overflow-auto">
           <div className="flex flex-col h-full">
-            {missingTools.length > 0 && activeTab === "configure" && (
+            {(hasMissingTools || shouldShowDefaultAlert) && (
               <MissingToolsAlert 
-                missingTools={missingTools} 
+                missingTools={alertTools}
                 onConnectClick={() => setIsIntegrationsOpen(true)}
               />
             )}

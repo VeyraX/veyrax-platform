@@ -1,0 +1,311 @@
+routes:
+  - endpoint: /google-maps/geocode
+    examples:
+      - scenario: "Geocode an address"
+        description: "Convert an address to geographic coordinates"
+        input_json: |
+          {
+            "address": "1600 Amphitheatre Parkway, Mountain View, CA"
+          }
+        output_json: |
+          {
+            "data": {
+              "location": {
+                "lat": 37.4223878,
+                "lng": -122.0841877
+              },
+              "formatted_address": "1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA",
+              "place_id": "ChIJ2eUgeAK6j4ARbn5u_wAGqWA"
+            },
+            "component": {
+              "name": "GeocodeResult"
+            }
+          }
+
+  - endpoint: /google-maps/reverse_geocode
+    examples:
+      - scenario: "Reverse geocode coordinates"
+        description: "Convert geographic coordinates to an address"
+        input_json: |
+          {
+            "latitude": 37.4223878,
+            "longitude": -122.0841877
+          }
+        output_json: |
+          {
+            "data": {
+              "formatted_address": "1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA",
+              "place_id": "ChIJ2eUgeAK6j4ARbn5u_wAGqWA",
+              "address_components": [
+                {
+                  "long_name": "1600",
+                  "short_name": "1600",
+                  "types": ["street_number"]
+                },
+                {
+                  "long_name": "Amphitheatre Parkway",
+                  "short_name": "Amphitheatre Pkwy",
+                  "types": ["route"]
+                },
+                {
+                  "long_name": "Mountain View",
+                  "short_name": "Mountain View",
+                  "types": ["locality", "political"]
+                }
+              ]
+            },
+            "component": {
+              "name": "ReverseGeocodeResult"
+            }
+          }
+
+  - endpoint: /google-maps/search_places
+    examples:
+      - scenario: "Search for places"
+        description: "Find places matching a query"
+        input_json: |
+          {
+            "query": "restaurants in Mountain View",
+            "radius": 5000
+          }
+        output_json: |
+          {
+            "data": {
+              "places": [
+                {
+                  "name": "Eureka!",
+                  "formatted_address": "191 Castro St, Mountain View, CA 94041, USA",
+                  "location": {
+                    "lat": 37.3938094,
+                    "lng": -122.0786896
+                  },
+                  "place_id": "ChIJv2oeaTS3j4ARBk2AvxOs7TQ",
+                  "rating": 4.4,
+                  "types": ["restaurant", "food", "point_of_interest", "establishment"]
+                },
+                {
+                  "name": "Zareen's",
+                  "formatted_address": "2039 Broadway, Redwood City, CA 94063, USA",
+                  "location": {
+                    "lat": 37.4861207,
+                    "lng": -122.2278335
+                  },
+                  "place_id": "ChIJafBVTJKij4ARXw3vz7uRY5Y",
+                  "rating": 4.6,
+                  "types": ["restaurant", "food", "point_of_interest", "establishment"]
+                }
+              ]
+            },
+            "component": {
+              "name": "PlaceList"
+            }
+          }
+
+  - endpoint: /google-maps/place_details
+    examples:
+      - scenario: "Get place details"
+        description: "Retrieve detailed information about a specific place"
+        input_json: |
+          {
+            "place_id": "ChIJv2oeaTS3j4ARBk2AvxOs7TQ"
+          }
+        output_json: |
+          {
+            "data": {
+              "name": "Eureka!",
+              "formatted_address": "191 Castro St, Mountain View, CA 94041, USA",
+              "location": {
+                "lat": 37.3938094,
+                "lng": -122.0786896
+              },
+              "formatted_phone_number": "(650) 426-1555",
+              "website": "https://www.eurekarestaurantgroup.com/",
+              "rating": 4.4,
+              "reviews": [
+                {
+                  "author_name": "John Smith",
+                  "rating": 5,
+                  "text": "Great burgers and excellent service!",
+                  "time": 1613490000
+                }
+              ],
+              "opening_hours": {
+                "weekday_text": [
+                  "Monday: 11:00 AM – 10:00 PM",
+                  "Tuesday: 11:00 AM – 10:00 PM",
+                  "Wednesday: 11:00 AM – 10:00 PM",
+                  "Thursday: 11:00 AM – 10:00 PM",
+                  "Friday: 11:00 AM – 11:00 PM",
+                  "Saturday: 11:00 AM – 11:00 PM",
+                  "Sunday: 11:00 AM – 10:00 PM"
+                ],
+                "open_now": true
+              }
+            },
+            "component": {
+              "name": "PlaceDetail"
+            }
+          }
+
+  - endpoint: /google-maps/distance_matrix
+    examples:
+      - scenario: "Calculate distance and travel time"
+        description: "Get distance and travel time between multiple origins and destinations"
+        input_json: |
+          {
+            "origins": ["San Francisco, CA"],
+            "destinations": ["Mountain View, CA", "Palo Alto, CA"],
+            "mode": "driving"
+          }
+        output_json: |
+          {
+            "data": {
+              "origin_addresses": ["San Francisco, CA, USA"],
+              "destination_addresses": ["Mountain View, CA, USA", "Palo Alto, CA, USA"],
+              "results": [
+                {
+                  "elements": [
+                    {
+                      "status": "OK",
+                      "duration": {
+                        "text": "38 mins",
+                        "value": 2280
+                      },
+                      "distance": {
+                        "text": "38.8 mi",
+                        "value": 62394
+                      }
+                    },
+                    {
+                      "status": "OK",
+                      "duration": {
+                        "text": "35 mins",
+                        "value": 2100
+                      },
+                      "distance": {
+                        "text": "33.4 mi",
+                        "value": 53763
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "DistanceMatrixResult"
+            }
+          }
+
+  - endpoint: /google-maps/elevation
+    examples:
+      - scenario: "Get elevation data"
+        description: "Get elevation data for specific locations"
+        input_json: |
+          {
+            "locations": [
+              {
+                "latitude": 37.7749,
+                "longitude": -122.4194
+              },
+              {
+                "latitude": 36.1699,
+                "longitude": -115.1398
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "elevation": 60.41349411010742,
+                  "location": {
+                    "lat": 37.7749,
+                    "lng": -122.4194
+                  },
+                  "resolution": 19.08790397644043
+                },
+                {
+                  "elevation": 609.9672241210938,
+                  "location": {
+                    "lat": 36.1699,
+                    "lng": -115.1398
+                  },
+                  "resolution": 19.08790397644043
+                }
+              ]
+            },
+            "component": {
+              "name": "ElevationList"
+            }
+          }
+
+  - endpoint: /google-maps/directions
+    examples:
+      - scenario: "Get driving directions"
+        description: "Get step-by-step directions between two points"
+        input_json: |
+          {
+            "origin": "San Francisco, CA",
+            "destination": "Mountain View, CA",
+            "mode": "driving"
+          }
+        output_json: |
+          {
+            "data": {
+              "routes": [
+                {
+                  "summary": "US-101 S",
+                  "distance": {
+                    "text": "38.8 mi",
+                    "value": 62394
+                  },
+                  "duration": {
+                    "text": "38 mins",
+                    "value": 2280
+                  },
+                  "steps": [
+                    {
+                      "instructions": "Head northeast on Market St toward Front St",
+                      "distance": {
+                        "text": "0.2 mi",
+                        "value": 322
+                      },
+                      "duration": {
+                        "text": "1 min",
+                        "value": 60
+                      },
+                      "travel_mode": "DRIVING"
+                    },
+                    {
+                      "instructions": "Turn right onto California St",
+                      "distance": {
+                        "text": "1.5 mi",
+                        "value": 2414
+                      },
+                      "duration": {
+                        "text": "5 mins",
+                        "value": 300
+                      },
+                      "travel_mode": "DRIVING"
+                    },
+                    {
+                      "instructions": "Take the US-101 S ramp",
+                      "distance": {
+                        "text": "0.3 mi",
+                        "value": 483
+                      },
+                      "duration": {
+                        "text": "1 min",
+                        "value": 60
+                      },
+                      "travel_mode": "DRIVING"
+                    }
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "DirectionsList"
+            }
+          }

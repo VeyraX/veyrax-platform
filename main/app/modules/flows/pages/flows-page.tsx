@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Search, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import FlowCard, { FlowSkeleton } from '../components/view/flow-card'
-import { getUserFlows, getUserActions, getFlowActions, getPublicTemplates, getTemplateActions } from '../api/api.flows'
+import { getUserFlows, getUserActions, getFlowActions, getPublicTemplates, getTemplateActions, getActionsByIds } from '../api/api.flows'
 import { getAllFlowSchedules } from '../api/api.schedule.flows'
 import { UserFlow } from '../api/types.flows'
 import { FlowSchedule } from '../api/types.flows'
@@ -63,9 +63,28 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
       const flowActionsResults = await Promise.all(flowActionsPromises)
       
       const flowToolsMap = new Map()
+      
+      // Сначала соберем все ID экшенов из всех потоков
+      const allActionIds = flowActionsResults.flat()
+      
+      // Если есть хотя бы один экшен, получим детальную информацию обо всех сразу
+      let actionDetailsMap = new Map()
+      if (allActionIds.length > 0) {
+        const actionDetails = await getActionsByIds(allActionIds)
+        // Создаем Map для быстрого доступа к деталям экшена по ID
+        actionDetails.forEach(action => {
+          actionDetailsMap.set(action.action_id, action)
+        })
+      }
+      
       flowActionsResults.forEach((actionIds, index) => {
         const flowId = flowIds[index]
-        const toolsUsed = allActions.filter(action => actionIds.includes(action.action_id))
+        
+        // Используем экшены из actionDetailsMap вместо фильтрации по allActions
+        const toolsUsed = actionIds
+          .map(id => actionDetailsMap.get(id))
+          .filter(Boolean) // Удаляем undefined
+        
         
         const uniqueProviders = new Map()
         toolsUsed.forEach(tool => {

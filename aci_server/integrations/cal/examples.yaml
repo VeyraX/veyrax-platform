@@ -1,0 +1,497 @@
+routes:
+  - endpoint: /cal/get_bookings
+    examples:
+      - scenario: "Get upcoming bookings"
+        description: "Get a list of upcoming bookings with filters"
+        input_json: |
+          {
+            "status": "upcoming",
+            "take": 5,
+            "sortStart": "asc"
+          }
+        output_json: |
+          {
+            "data": {
+              "bookings": [
+                {
+                  "id": 123,
+                  "uid": "booking_uid_123",
+                  "title": "Consultation",
+                  "description": "Learn how to integrate scheduling into marketplace.",
+                  "hosts": [
+                    {
+                      "id": 1,
+                      "name": "Jane Doe",
+                      "email": "jane@example.com",
+                      "username": "jane",
+                      "timeZone": "America/Los_Angeles"
+                    }
+                  ],
+                  "status": "accepted",
+                  "start": "2024-08-13T15:30:00Z",
+                  "end": "2024-08-13T16:30:00Z",
+                  "duration": 60,
+                  "eventTypeId": 50,
+                  "eventType": {
+                    "id": 1,
+                    "slug": "consultation"
+                  },
+                  "createdAt": "2024-08-01T15:30:00Z",
+                  "updatedAt": "2024-08-01T15:30:00Z",
+                  "attendees": [
+                    {
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "timeZone": "America/New_York"
+                    }
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "CalBookingList"
+            }
+          }
+
+  - endpoint: /cal/get_booking
+    examples:
+      - scenario: "Get booking details"
+        description: "Get details of a specific booking by UID"
+        input_json: |
+          {
+            "bookingUid": "booking_uid_123"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "uid": "booking_uid_123",
+              "title": "Consultation",
+              "description": "Learn how to integrate scheduling into marketplace.",
+              "hosts": [
+                {
+                  "id": 1,
+                  "name": "Jane Doe",
+                  "email": "jane@example.com",
+                  "username": "jane",
+                  "timeZone": "America/Los_Angeles"
+                }
+              ],
+              "status": "accepted",
+              "start": "2024-08-13T15:30:00Z",
+              "end": "2024-08-13T16:30:00Z",
+              "duration": 60,
+              "eventTypeId": 50,
+              "eventType": {
+                "id": 1,
+                "slug": "consultation"
+              },
+              "location": "https://meet.google.com/abc-defg-hij",
+              "createdAt": "2024-08-01T15:30:00Z",
+              "updatedAt": "2024-08-01T15:30:00Z",
+              "attendees": [
+                {
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "timeZone": "America/New_York"
+                }
+              ],
+              "guests": [
+                "guest1@example.com",
+                "guest2@example.com"
+              ]
+            },
+            "component": {
+              "name": "CalBookingDetail"
+            }
+          }
+
+  - endpoint: /cal/create_booking
+    examples:
+      - scenario: "Create a new booking"
+        description: "Schedule a new appointment"
+        input_json: |
+          {
+            "start": "2024-09-15T14:00:00Z",
+            "eventTypeId": 50,
+            "attendee": {
+              "name": "John Doe",
+              "email": "john.doe@example.com",
+              "timeZone": "America/New_York",
+              "phoneNumber": "+1234567890"
+            },
+            "guests": [
+              "guest1@example.com",
+              "guest2@example.com"
+            ],
+            "location": {
+              "type": "googlemeet"
+            },
+            "metadata": {
+              "source": "api_integration"
+            }
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 456,
+              "uid": "booking_uid_456",
+              "title": "Consultation",
+              "description": "Learn how to integrate scheduling into marketplace.",
+              "hosts": [
+                {
+                  "id": 1,
+                  "name": "Jane Doe",
+                  "email": "jane@example.com",
+                  "username": "jane",
+                  "timeZone": "America/Los_Angeles"
+                }
+              ],
+              "status": "accepted",
+              "start": "2024-09-15T14:00:00Z", 
+              "end": "2024-09-15T15:00:00Z",
+              "duration": 60,
+              "eventTypeId": 50,
+              "eventType": {
+                "id": 1,
+                "slug": "consultation"
+              },
+              "meetingUrl": "https://meet.google.com/xyz-abcd-efg",
+              "location": "https://meet.google.com/xyz-abcd-efg",
+              "createdAt": "2024-08-13T15:30:00Z",
+              "updatedAt": "2024-08-13T15:30:00Z",
+              "metadata": {
+                "source": "api_integration"
+              },
+              "attendees": [
+                {
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "timeZone": "America/New_York",
+                  "phoneNumber": "+1234567890"
+                }
+              ],
+              "guests": [
+                "guest1@example.com",
+                "guest2@example.com"
+              ]
+            },
+            "component": {
+              "name": "CalBookingDetail"
+            }
+          }
+
+  - endpoint: /cal/reschedule_booking
+    examples:
+      - scenario: "Reschedule a booking"
+        description: "Change the time of an existing booking"
+        input_json: |
+          {
+            "bookingUid": "booking_uid_123",
+            "start": "2024-09-20T16:00:00Z",
+            "rescheduledBy": "john.doe@example.com",
+            "reschedulingReason": "User requested reschedule"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "uid": "booking_uid_123",
+              "title": "Consultation",
+              "description": "Learn how to integrate scheduling into marketplace.",
+              "hosts": [
+                {
+                  "id": 1,
+                  "name": "Jane Doe",
+                  "email": "jane@example.com",
+                  "username": "jane",
+                  "timeZone": "America/Los_Angeles"
+                }
+              ],
+              "status": "accepted",
+              "reschedulingReason": "User requested reschedule",
+              "rescheduledByEmail": "john.doe@example.com",
+              "rescheduledFromUid": "previous_uid_123",
+              "start": "2024-09-20T16:00:00Z", 
+              "end": "2024-09-20T17:00:00Z",
+              "duration": 60,
+              "eventTypeId": 50,
+              "eventType": {
+                "id": 1,
+                "slug": "consultation"
+              },
+              "meetingUrl": "https://meet.google.com/abc-defg-hij",
+              "location": "https://meet.google.com/abc-defg-hij",
+              "createdAt": "2024-08-01T15:30:00Z",
+              "updatedAt": "2024-08-13T10:00:00Z",
+              "attendees": [
+                {
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "timeZone": "America/New_York"
+                }
+              ],
+              "guests": [
+                "guest1@example.com",
+                "guest2@example.com"
+              ]
+            },
+            "component": {
+              "name": "CalBookingDetail"
+            }
+          }
+          
+  - endpoint: /cal/cancel_booking
+    examples:
+      - scenario: "Cancel a booking"
+        description: "Cancel an existing booking"
+        input_json: |
+          {
+            "bookingUid": "booking_uid_123",
+            "cancellationReason": "User requested cancellation"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "uid": "booking_uid_123",
+              "title": "Consultation",
+              "description": "Learn how to integrate scheduling into marketplace.",
+              "hosts": [
+                {
+                  "id": 1,
+                  "name": "Jane Doe",
+                  "email": "jane@example.com",
+                  "username": "jane",
+                  "timeZone": "America/Los_Angeles"
+                }
+              ],
+              "status": "cancelled",
+              "cancellationReason": "User requested cancellation",
+              "cancelledByEmail": "john.doe@example.com",
+              "start": "2024-09-20T16:00:00Z", 
+              "end": "2024-09-20T17:00:00Z",
+              "duration": 60,
+              "eventTypeId": 50,
+              "eventType": {
+                "id": 1,
+                "slug": "consultation"
+              },
+              "createdAt": "2024-08-01T15:30:00Z",
+              "updatedAt": "2024-08-13T10:30:00Z",
+              "attendees": [
+                {
+                  "name": "John Doe",
+                  "email": "john.doe@example.com",
+                  "timeZone": "America/New_York"
+                }
+              ],
+              "guests": [
+                "guest1@example.com",
+                "guest2@example.com"
+              ]
+            },
+            "component": {
+              "name": "CalBookingDetail"
+            }
+          }
+
+  - endpoint: /cal/get_profile
+    examples:
+      - scenario: "Get user profile"
+        description: "Get details about the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "id": 123,
+              "username": "jane",
+              "email": "jane@example.com",
+              "timeFormat": 12,
+              "defaultScheduleId": 456,
+              "weekStart": "Monday",
+              "timeZone": "America/Los_Angeles",
+              "organizationId": 789,
+              "organization": {
+                "isPlatform": true,
+                "id": 789
+              }
+            },
+            "component": {
+              "name": "CalUserProfile"
+            }
+          }
+
+  - endpoint: /cal/get_schedules
+    examples:
+      - scenario: "Get all schedules"
+        description: "Get a list of all schedules for the authenticated user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "schedules": [
+                {
+                  "id": 254,
+                  "ownerId": 478,
+                  "name": "Catch up hours",
+                  "timeZone": "Europe/Rome",
+                  "availability": [
+                    {
+                      "days": [
+                        "Monday",
+                        "Tuesday"
+                      ],
+                      "startTime": "17:00",
+                      "endTime": "19:00"
+                    },
+                    {
+                      "days": [
+                        "Wednesday",
+                        "Thursday"
+                      ],
+                      "startTime": "16:00",
+                      "endTime": "20:00"
+                    }
+                  ],
+                  "isDefault": true,
+                  "overrides": [
+                    {
+                      "date": "2024-05-20",
+                      "startTime": "18:00",
+                      "endTime": "21:00"
+                    }
+                  ]
+                },
+                {
+                  "id": 255,
+                  "ownerId": 478,
+                  "name": "Weekend hours",
+                  "timeZone": "Europe/Rome",
+                  "availability": [
+                    {
+                      "days": [
+                        "Saturday",
+                        "Sunday"
+                      ],
+                      "startTime": "10:00",
+                      "endTime": "14:00"
+                    }
+                  ],
+                  "isDefault": false,
+                  "overrides": []
+                }
+              ]
+            },
+            "component": {
+              "name": "CalScheduleList"
+            }
+          }
+
+  - endpoint: /cal/get_schedule
+    examples:
+      - scenario: "Get schedule details"
+        description: "Get details of a specific schedule by ID"
+        input_json: |
+          {
+            "scheduleId": 254
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 254,
+              "ownerId": 478,
+              "name": "Catch up hours",
+              "timeZone": "Europe/Rome",
+              "availability": [
+                {
+                  "days": [
+                    "Monday",
+                    "Tuesday"
+                  ],
+                  "startTime": "17:00",
+                  "endTime": "19:00"
+                },
+                {
+                  "days": [
+                    "Wednesday",
+                    "Thursday"
+                  ],
+                  "startTime": "16:00",
+                  "endTime": "20:00"
+                }
+              ],
+              "isDefault": true,
+              "overrides": [
+                {
+                  "date": "2024-05-20",
+                  "startTime": "18:00",
+                  "endTime": "21:00"
+                }
+              ]
+            },
+            "component": {
+              "name": "CalScheduleDetail"
+            }
+          }
+
+  - endpoint: /cal/update_schedule
+    examples:
+      - scenario: "Update a schedule"
+        description: "Modify an existing schedule"
+        input_json: |
+          {
+            "scheduleId": 254,
+            "name": "One-on-one coaching",
+            "timeZone": "Europe/Rome",
+            "availability": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "isDefault": true,
+            "overrides": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ]
+          }
+        output_json: |
+          {
+            "data": {
+              "id": 254,
+              "ownerId": 478,
+              "name": "One-on-one coaching",
+              "timeZone": "Europe/Rome",
+              "availability": [
+                {
+                  "days": [
+                    "Monday",
+                    "Tuesday"
+                  ],
+                  "startTime": "09:00",
+                  "endTime": "10:00"
+                }
+              ],
+              "isDefault": true,
+              "overrides": [
+                {
+                  "date": "2024-05-20",
+                  "startTime": "12:00",
+                  "endTime": "14:00"
+                }
+              ]
+            },
+            "component": {
+              "name": "CalScheduleDetail"
+            }
+          }

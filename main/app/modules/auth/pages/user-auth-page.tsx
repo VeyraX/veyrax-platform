@@ -36,10 +36,8 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
     
     if (typeof window !== 'undefined') {
       const url = window.location.href;
-      console.log("Current URL:", url);
       
       if (url.includes('oauth_return=success') && url.includes('status_code=200')) {
-        console.log("Detected successful OAuth return");
         setConnectionComplete(true);
         setStatus('success');
         setMessage('Provider successfully connected.');
@@ -47,7 +45,6 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
       }
       
       if (url.includes('success=true')) {
-        console.log("Detected success=true parameter");
         setConnectionComplete(true);
         setStatus('success');
         setMessage('Provider successfully connected.');
@@ -156,7 +153,6 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   }, [code, apiKey, providerTag, connectionComplete]);
 
   const handleUpdateIntegration = () => {
-    console.log('Integration update triggered');
     
     setShowIntegrationDialog(false);
     setShowScopeDialog(false);

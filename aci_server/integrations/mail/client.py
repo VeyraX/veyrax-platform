@@ -31,7 +31,8 @@ class MailSMTPClient:
         username: str,
         password: str,
         use_ssl: bool = True,
-        use_tls: bool = False
+        use_tls: bool = False,
+        imap_use_ssl: bool = True
     ):
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
@@ -41,8 +42,8 @@ class MailSMTPClient:
         self.password = password
         self.use_ssl = use_ssl
         self.use_tls = use_tls
+        self.imap_use_ssl = imap_use_ssl
         
-        # Test connection when initialized
         self._test_connections()
     
     def _test_connections(self):
@@ -50,21 +51,18 @@ class MailSMTPClient:
         smtp_error = None
         imap_error = None
         
-        # Test SMTP connection
         try:
             smtp_conn = self._get_smtp_connection()
             smtp_conn.quit()
         except Exception as e:
             smtp_error = e
         
-        # Test IMAP connection
         try:
             imap_conn = self._get_imap_connection()
             imap_conn.logout()
         except Exception as e:
             imap_error = e
         
-        # Report errors appropriately
         if smtp_error and imap_error:
             raise MailSMTPError(
                 f"Failed to connect to mail servers. SMTP: {str(smtp_error)}, IMAP: {str(imap_error)}"
@@ -74,7 +72,6 @@ class MailSMTPClient:
         elif imap_error:
             raise MailSMTPError(f"Failed to connect to IMAP server: {str(imap_error)}")
             
-        # Both connections successful
     
     def _get_smtp_connection(self):
         try:
@@ -118,9 +115,8 @@ class MailSMTPClient:
     
     def _get_imap_connection(self):
         try:
-            # For Gmail, always use SSL for IMAP (port 993)
-            # Add timeout to prevent hanging connections
-            if self.use_ssl:
+            # Use imap_use_ssl instead of use_ssl for IMAP connection
+            if self.imap_use_ssl:
                 server = imaplib.IMAP4_SSL(self.imap_host, self.imap_port, timeout=30)
             else:
                 server = imaplib.IMAP4(self.imap_host, self.imap_port, timeout=30)

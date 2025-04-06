@@ -35,6 +35,7 @@ export function ChatFlowCreator({
 }: ChatFlowCreatorProps) {
   const temporaryFlowChatId = useRef(`flow-chat-${Date.now()}`).current;
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const { messages: localMessages, append, isLoading: localIsLoading, stop: localStop, setMessages } = useChat({
     api: '/api/flow/create-from-chat',
@@ -110,6 +111,28 @@ export function ChatFlowCreator({
     }
   };
 
+  useEffect(() => {
+    const handleInputValueChange = (e: any) => {
+      if (e.detail && e.detail.value) {
+        setInputValue(e.detail.value);
+      }
+    };
+
+    window.addEventListener('inputValueChange', handleInputValueChange);
+    return () => {
+      window.removeEventListener('inputValueChange', handleInputValueChange);
+    };
+  }, []);
+
+  const handleInputSubmit = (value: string) => {
+    setInputValue("");
+    handleSendMessage(value);
+  };
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+  };
+
   return (
     <div className="flex flex-col h-full relative">
       <div className="absolute inset-0 flex flex-col">
@@ -136,7 +159,9 @@ export function ChatFlowCreator({
         <div className="sticky bottom-0 px-4 pt-2 bg-background">
           <AIInputWithSearch
             placeholder="Describe the flow you want to create..."
-            onSubmit={handleSendMessage}
+            onSubmit={handleInputSubmit}
+            onChange={handleInputChange}
+            value={inputValue}
             className="max-w-none"
             isLoading={isLoading}
             onStop={handleStop}

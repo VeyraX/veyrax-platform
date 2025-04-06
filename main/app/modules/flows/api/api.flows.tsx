@@ -405,9 +405,14 @@ export const extractActionsFromHTML = (html: string, availableActions: ProviderA
       const providerName = element.getAttribute('data-provider');
       const actionSlug = element.getAttribute('data-action');
       
+      
       if (providerName && actionSlug) {
+        const normalizedProviderName = providerName.toLowerCase().trim();
+        const normalizedActionSlug = actionSlug.trim();
+        
         const matchingAction = availableActions.find(action => 
-          action.provider_name === providerName && action.action_slug === actionSlug
+          action.provider_name.toLowerCase().trim() === normalizedProviderName && 
+          action.action_slug === normalizedActionSlug
         );
         
         if (matchingAction && matchingAction.action_id) {
@@ -544,10 +549,9 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
         action_id: actionId
       }));
       
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('flow_actions')
         .insert(actionsToInsert);
-      
       if (insertError) throw insertError;
     }
     

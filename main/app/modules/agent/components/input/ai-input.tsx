@@ -25,6 +25,8 @@ interface AIInputWithSearchProps {
   onShowSuggestions?: (show: boolean) => void;
   userTools: Record<string, any>;
   initialInput?: string | null;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWithSearchProps>(({
@@ -41,8 +43,11 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
   onShowSuggestions,
   userTools,
   initialInput = null,
+  value: controlledValue,
+  onChange,
 }, ref) => {
-  const [value, setValue] = useState(initialInput || "");
+  const [internalValue, setInternalValue] = useState(initialInput || "");
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight,
     maxHeight,
@@ -56,7 +61,7 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
 
   React.useEffect(() => {
     if (initialInput && !value) {
-      setValue(initialInput);
+      setInternalValue(initialInput);
       adjustHeight();
     }
   }, [initialInput, value, adjustHeight]);
@@ -65,7 +70,9 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
     const trimmedValue = value.trim();
     if (trimmedValue) {
       onSubmit?.(trimmedValue);
-      setValue("");
+      if (controlledValue === undefined) {
+        setInternalValue("");
+      }
       textareaRef.current?.style.height && 
         (textareaRef.current.style.height = `${minHeight}px`);
     }
@@ -90,7 +97,7 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
       
       const data = await response.json();
       if (data.text) {
-        setValue(data.text);
+        setInternalValue(data.text);
         onVoiceText?.(data.text);
         adjustHeight();
       }
@@ -141,7 +148,11 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    setValue(newValue);
+    if (onChange) {
+      onChange(newValue);
+    } else {
+      setInternalValue(newValue);
+    }
     
     onShowSuggestions?.(true);
     

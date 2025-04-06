@@ -17,7 +17,8 @@ from .schema import (
     GenericResponse,
     ErrorResponse,
     ApiResponse,
-    EmailBody
+    EmailBody,
+    EmailFolder
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -99,6 +100,7 @@ class MailSMTPService:
                 k: v for k, v in params.model_dump(exclude_none=True).items()
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
             }
+
             response = self.client.get_messages(**processed_params)
             
             # Create messages with shortened bodies without duplicate body parameter
@@ -124,13 +126,11 @@ class MailSMTPService:
     
     def get_message(self, params: GetMessageParams) -> ApiResponse:
         try:
-            # Filter out authentication parameters
             processed_params = {
                 k: v for k, v in params.model_dump(exclude_none=True).items()
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
             }
             response = self.client.get_message(**processed_params)
-            
             validated_response = EmailMessage(**response)
             return self.prepare_response(validated_response, "MailSMTPMessageDetail")
         except MailSMTPError as e:
@@ -141,7 +141,6 @@ class MailSMTPService:
     
     def send_message(self, params: SendMessageParams) -> ApiResponse:
         try:
-            # Filter out authentication parameters and prepare message data
             message_data = {
                 k: v for k, v in params.model_dump(exclude_none=True).items()
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
@@ -158,7 +157,6 @@ class MailSMTPService:
     
     def get_folders(self, params: GetFoldersParams) -> ApiResponse:
         try:
-            # Filter out authentication parameters
             processed_params = {
                 k: v for k, v in params.model_dump(exclude_none=True).items()
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
@@ -178,7 +176,6 @@ class MailSMTPService:
     
     def create_folder(self, params: CreateFolderParams) -> ApiResponse:
         try:
-            # Extract just the folder_name
             folder_name = params.folder_name
             response = self.client.create_folder(folder_name)
             
@@ -192,7 +189,6 @@ class MailSMTPService:
     
     def delete_message(self, params: DeleteMessageParams) -> ApiResponse:
         try:
-            # Extract parameters
             message_id = params.message_id
             folder = params.folder if hasattr(params, 'folder') else 'INBOX'
             
@@ -208,7 +204,6 @@ class MailSMTPService:
     
     def move_message(self, params: MoveMessageParams) -> ApiResponse:
         try:
-            # Extract the required parameters
             message_id = params.message_id
             source_folder = params.source_folder if hasattr(params, 'source_folder') else 'INBOX'
             target_folder = params.destination_folder

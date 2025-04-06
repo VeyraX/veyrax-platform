@@ -27,8 +27,14 @@ export function useToolsDetector(html: string, actions: any[]) {
     const providersInfo = getProviderInfoFromActionElements(actionElements);
     
     providersInfo.forEach(({ providerName, actionSlug }: { providerName: string; actionSlug: string }) => {
+      // Нормализация имени провайдера для сравнения
+      const normalizedProviderName = providerName.toLowerCase().trim();
+      const normalizedActionSlug = actionSlug.trim();
+      
+      
       const matchingAction = actions.find(a => 
-        a.provider_name === providerName && a.action_slug === actionSlug
+        a.provider_name.toLowerCase().trim() === normalizedProviderName && 
+        a.action_slug === normalizedActionSlug
       );
       
       if (matchingAction) {
@@ -39,11 +45,13 @@ export function useToolsDetector(html: string, actions: any[]) {
         });
       } else {
         // Add to missing tools if user doesn't have this tool
-        missing.push({ providerName, actionSlug });
+        missing.push({ providerName: normalizedProviderName, actionSlug: normalizedActionSlug });
       }
     });
     
-    setUsedTools(Array.from(detectedProviders.values()));
+    const usedToolValues = Array.from(detectedProviders.values());
+    
+    setUsedTools(usedToolValues);
     setMissingTools(missing);
   }, [html, actions]);
 

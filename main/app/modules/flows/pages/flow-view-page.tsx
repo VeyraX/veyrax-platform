@@ -131,6 +131,11 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
               
               const flowActionsData = await getFlowActions(flowId);
               setFlowActions(flowActionsData);
+              
+              
+              if (flowActionsData.length > 0) {
+                const actionsDetails = await getActionsByIds(flowActionsData);
+              }
             }
           } catch (error) {
             console.error('Error fetching flow by ID:', error);
