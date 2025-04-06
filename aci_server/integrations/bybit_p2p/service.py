@@ -10,4 +10,4 @@ class BybitP2PService(BaseP2PService):
         super().__init__(client=client, exchange_name="bybit_p2p")
     
     def get_p2p_offers(self, params: GetP2POffersParams) -> P2PApiResponse:
-        return super().get_p2p_offers(params) 
+        offers = super().get_p2p_offers(params) 

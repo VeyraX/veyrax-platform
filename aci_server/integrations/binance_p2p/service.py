@@ -27,4 +27,10 @@ class BinanceP2PService(BaseP2PService):
         return ApiResponse(data=data, component=components)
     
     def get_p2p_offers(self, params: GetP2POffersParams) -> P2PApiResponse:
-        return super().get_p2p_offers(params) 
+        offers = super().get_p2p_offers(params) 
+        for offer in offers.data.offers:
+            if offer.trade_type.lower() == "sell":
+                offer.url = f"https://p2p.binance.com/trade/sell/{params.crypto}?fiat={params.fiat}&payment=all-payments"
+            else:
+                offer.url = f"https://p2p.binance.com/trade/all-payments/{params.crypto}?fiat={params.fiat}"
+        return offers

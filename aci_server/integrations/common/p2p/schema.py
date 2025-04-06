@@ -26,6 +26,7 @@ class P2POffer(BaseModel):
     trader: Trader
     payment_timeout: int
     metadata: Dict[str, str]
+    url: Optional[str] = None
 
 class P2POffersList(BaseModel):
     offers: List[P2POffer]
