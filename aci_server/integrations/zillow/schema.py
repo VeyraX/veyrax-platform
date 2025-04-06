@@ -220,7 +220,7 @@ class ContactRecipient(BaseModel):
     review_count: Optional[int] = None
     display_name: Optional[str] = None
     zuid: Optional[str] = None
-    rating_average: Optional[int] = None
+    rating_average: Optional[float] = None
     badge_type: Optional[str] = None
     phone: Optional[Phone] = None
     image_url: Optional[str] = None
@@ -233,7 +233,7 @@ class ListedBy(BaseModel):
     display_name: Optional[str] = None
     badge_type: Optional[str] = None
     business_name: Optional[str] = None
-    rating_average: Optional[int] = None
+    rating_average: Optional[float] = None
     phone: Optional[Phone] = None
     zuid: Optional[str] = None
     image_url: Optional[str] = None

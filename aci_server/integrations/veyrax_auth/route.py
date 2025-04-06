@@ -13,7 +13,7 @@ from .schema import (
     ApiResponse
 )
 
-router = APIRouter(prefix="/veyrax_auth", tags=["veyrax_auth"])
+router = APIRouter(prefix="/veyrax-auth", tags=["veyrax-auth"])
 
 examples = ExamplesLoader()
 

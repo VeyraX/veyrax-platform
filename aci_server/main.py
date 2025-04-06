@@ -182,7 +182,7 @@ INTEGRATION_ROUTERS = {
     "falai": falai_router,
     "airbnb": airbnb_router,
     "whatsapp": whatsapp_router,
-    "veyrax_auth": veyrax_auth_router,
+    "veyrax-auth": veyrax_auth_router,
     "skyscanner": skyscanner_router,
     "google-maps": google_maps_router,
     "cal": cal_router
@@ -196,7 +196,7 @@ async def check_user_permission(request: Request, tool: str, method: str):
         if method in ['validate_key', 'test_connection', 'authenticate', 'check_status']: 
             return
             
-        if tool == "veyrax_auth": 
+        if tool == "veyrax-auth": 
             return
         
         user_id = await get_user_from_request(request)
@@ -258,7 +258,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-#app.add_middleware(PermissionMiddleware)
+app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
