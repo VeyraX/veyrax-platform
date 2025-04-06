@@ -17,6 +17,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/integrations', request.url))
   }
 
+  if (pathname === '/integrations/gmail') {
+    return NextResponse.redirect(new URL('integrations/mail', request.url))
+  }
+
   // Исключить маршруты auth-complete из проверки авторизации
   const isAuthCompletePath = /\/integrations\/[\w-]+\/auth-complete/.test(pathname);
 
