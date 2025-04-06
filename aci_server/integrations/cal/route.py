@@ -37,8 +37,7 @@ examples = ExamplesLoader()
 
 async def get_cal_service(request: FastAPIRequest):
     try:
-        #api_key = await validate_provider_api_key(request, "cal")
-        api_key = '***REMOVED***'
+        api_key = await validate_provider_api_key(request, "cal")
         client = CalClient(api_key)
         service = CalService(client)
         
