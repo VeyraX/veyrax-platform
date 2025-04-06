@@ -21,6 +21,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('integrations/mail', request.url))
   }
 
+  if (pathname === '/integrations' && !session) {
+    return NextResponse.redirect(new URL('/marketplace', request.url))
+  }
+
   // Исключить маршруты auth-complete из проверки авторизации
   const isAuthCompletePath = /\/integrations\/[\w-]+\/auth-complete/.test(pathname);
 

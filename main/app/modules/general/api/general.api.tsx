@@ -4,7 +4,6 @@ import { createClient } from '@/lib/utils/supabase/client'
 
 const supabase = createClient()
 
-
 export const submitFeedback = async (feedbackData: FeedbackSubmitData): Promise<UserFeedback> => {
     const { data: { user } } = await supabase.auth.getUser()
     
