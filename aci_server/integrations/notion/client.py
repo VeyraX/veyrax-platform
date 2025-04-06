@@ -171,6 +171,27 @@ class NotionClient:
         
         return response.json()
 
+    def update_database(self, database_id: str, database_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Updates a database's title, description, or properties.
+        
+        Args:
+            database_id: The ID of the database to update
+            database_data: Dictionary containing updates (title, description, properties)
+            
+        Returns:
+            The updated database object
+        """
+        response = requests.patch(
+            f"{self.base_url}/databases/{database_id}",
+            headers=self.headers,
+            json=database_data
+        )
+
+        response.raise_for_status()
+        
+        return response.json()
+
     def get_users(self, **params) -> Dict[str, Any]:
         response = requests.get(
             f"{self.base_url}/users",

@@ -2334,6 +2334,188 @@ routes:
             }
           }
 
+  - endpoint: /notion/update_database
+    examples:
+      - scenario: "Update Database Title and Add Properties"
+        description: "Updates a database's title and adds new properties"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "database_update": {
+              "title": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "Updated Project Database"
+                  }
+                }
+              ],
+              "properties": {
+                "Due Date": {
+                  "type": "date",
+                  "date": {}
+                },
+                "Priority": {
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "name": "High",
+                        "color": "red"
+                      },
+                      {
+                        "name": "Medium",
+                        "color": "yellow"
+                      },
+                      {
+                        "name": "Low",
+                        "color": "blue"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "db123456",
+              "title": "Updated Project Database",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "name": "Name",
+                  "type": "title"
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "name": "Status",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      },
+                      {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "3",
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                },
+                "Due Date": {
+                  "id": "cVRO",
+                  "name": "Due Date",
+                  "type": "date",
+                  "date": {}
+                },
+                "Priority": {
+                  "id": "prty",
+                  "name": "Priority",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "4",
+                        "name": "High",
+                        "color": "red"
+                      },
+                      {
+                        "id": "5",
+                        "name": "Medium",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "6",
+                        "name": "Low",
+                        "color": "blue"
+                      }
+                    ]
+                  }
+                }
+              },
+              "url": "https://www.notion.so/myworkspace/db123456",
+              "created_time": "2023-01-15T08:30:00.000Z",
+              "last_edited_time": "2023-05-25T11:45:30.000Z"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
+          }
+      - scenario: "Update Database Description"
+        description: "Updates a database's description only"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "database_update": {
+              "description": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "This database tracks all company projects and their current status."
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "db123456",
+              "title": "Project Database",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "name": "Name",
+                  "type": "title"
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "name": "Status",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      },
+                      {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "3",
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                }
+              },
+              "url": "https://www.notion.so/myworkspace/db123456",
+              "created_time": "2023-01-15T08:30:00.000Z",
+              "last_edited_time": "2023-05-24T16:20:45.000Z"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
+          }
+
   - endpoint: /notion/append_media
     examples:
       - scenario: "Append Image to Page"

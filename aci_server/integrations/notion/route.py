@@ -10,7 +10,7 @@ from .schema import (
     UpdatePageResponse, SearchResponse, CreateDatabaseParams, CreateDatabaseResponse,
     AppendBlockChildrenParams, AppendBlockChildrenResponse, CreatePageWithDatabaseParams,
     GetUsersParams, GetUsersResponse, GetUserParams, GetUserResponse,
-    AppendMediaParams, AppendMediaResponse,
+    AppendMediaParams, AppendMediaResponse, UpdateDatabaseParams, UpdateDatabaseResponse,
 )
 from .service import NotionService
 from .client import NotionClient
@@ -110,6 +110,18 @@ async def create_database(
 ):
     validated_params = CreateDatabaseParams(**params)
     return service.create_database(validated_params.database)
+
+@router.post("/update_database", response_model=ApiResponse)
+@schema(input_schema_class=UpdateDatabaseParams, output_schema_class=UpdateDatabaseResponse)
+async def update_database(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    validated_params = UpdateDatabaseParams(**params)
+    return service.update_database(
+        validated_params.database_id, 
+        validated_params.database_update
+    )
 
 @router.post("/get_page", response_model=ApiResponse)
 @schema(input_schema_class=GetPageParams, output_schema_class=GetPageResponse, examples=examples["/notion/get_page"])

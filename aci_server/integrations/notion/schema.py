@@ -325,6 +325,39 @@ class PropertyType(BaseModel):
     last_edited_by: Optional[LastEditedByProperty] = None
     status: Optional[StatusProperty] = None
 
+# Property type for database updates with optional id and name
+class PropertyTypeUpdate(BaseModel):
+    id: Optional[str] = Field(None, description="Identifier for the property, optional for new properties")
+    type: PropertyKind = Field(
+        ...,
+        description="REQUIRED. Must match Notion database property type",
+        example=PropertyKind.TITLE
+    )
+    name: Optional[str] = Field(None, description="The name of the property as it appears in Notion")
+    description: Optional[str] = Field(None, description="The description of the property as it appears in Notion")
+    
+    # Type-specific configurations
+    title: Optional[TitleProperty] = None
+    rich_text: Optional[RichTextProperty] = None
+    number: Optional[NumberProperty] = None
+    select: Optional[SelectProperty] = None
+    multi_select: Optional[MultiSelectProperty] = None
+    date: Optional[DateProperty] = None
+    people: Optional[PeopleProperty] = None
+    files: Optional[FilesProperty] = None
+    checkbox: Optional[CheckboxProperty] = None
+    url: Optional[URLProperty] = None
+    email: Optional[EmailProperty] = None
+    phone_number: Optional[PhoneNumberProperty] = None
+    formula: Optional[FormulaProperty] = None
+    relation: Optional[RelationProperty] = None
+    rollup: Optional[RollupProperty] = None
+    created_time: Optional[CreatedTimeProperty] = None
+    created_by: Optional[CreatedByProperty] = None
+    last_edited_time: Optional[LastEditedTimeProperty] = None
+    last_edited_by: Optional[LastEditedByProperty] = None
+    status: Optional[StatusProperty] = None
+
 class DatabaseProperties(BaseModel):
     id: str
     title: str
@@ -419,7 +452,6 @@ class SearchResponse(BaseModel):
     data: SearchResult
     message: Optional[str] = None
 
-# Improved DatabaseCreate model with updated properties field
 class DatabaseCreate(BaseModel):
     parent: Union[PageParent, WorkspaceParent] = Field(
         ...,
@@ -432,7 +464,7 @@ class DatabaseCreate(BaseModel):
         "Must contain exactly one text object with content",
         example=[{"type": "text", "text": {"content": "Project Tracker"}}]
     )
-    properties: Dict[str, Any] = Field(
+    properties: Dict[str, PropertyType] = Field(
         ...,
         description="REQUIRED. Initial database schema. Must include exactly one title property. "
         "Property types must match Notion-supported types"
@@ -883,12 +915,36 @@ class GetUserResponse(BaseModel):
     message: Optional[str] = None
 
 
-class ApiResponse(BaseModel):
-    data: Union[Page, PageList, Database, DatabaseList, SearchResult, UserList, NotionUser, Dict[str, Any], DatabaseProperties]
-    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 class DatabaseBlock(BaseModel):
     """Schema for a database block that can be included in page children"""
     type: str = "database"
     object: str = "block"
     database: Dict[str, Any]
+
+class DatabaseUpdate(BaseModel):
+    title: Optional[List[Dict[str, Any]]] = Field(
+        None,
+        description="Array of rich text objects representing the title. If omitted, title remains unchanged."
+    )
+    description: Optional[List[Dict[str, Any]]] = Field(
+        None,
+        description="Array of rich text objects representing the description. If omitted, description remains unchanged."
+    )
+    properties: Optional[Dict[str, PropertyTypeUpdate]] = Field(
+        None,
+        description="Properties to update or add. Keys are property names/IDs, values are property schema objects."
+    )
+
+class UpdateDatabaseParams(BaseModel):
+    database_id: str = Field(..., description="Identifier for the Notion database to update")
+    database_update: DatabaseUpdate = Field(..., description="The updates to apply to the database")
+
+class UpdateDatabaseResponse(BaseModel):
+    data: Database
+    message: Optional[str] = None
+
+
+class ApiResponse(BaseModel):
+    data: Union[Page, PageList, Database, DatabaseList, SearchResult, UserList, NotionUser, Dict[str, Any], DatabaseProperties, UpdateDatabaseResponse]
+    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None

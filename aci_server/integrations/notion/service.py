@@ -7,7 +7,7 @@ from .client import NotionClient
 from .schema import (
     DatabaseList, Database, PageList, Page, 
     PageCreate, PageUpdate, PageFilters, DatabaseProperties,
-    SearchResult, ApiResponse, DatabaseCreate, UserList, NotionUser
+    SearchResult, ApiResponse, DatabaseCreate, UserList, NotionUser, DatabaseUpdate, UpdateDatabaseParams, UpdateDatabaseResponse
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -120,7 +120,7 @@ class NotionService:
             if filters.filter_by:
                 params["filter"] = filters.filter_by
             if filters.sort_by:
-                params["sorts"] = filters.sort_by
+                params["sorts"] = [filters.sort_by]  # Wrap sort_by in an array
         
         response = self.client.query_database(database_id, params)
         
@@ -303,26 +303,124 @@ class NotionService:
 
     def create_database(self, database_data: DatabaseCreate) -> ApiResponse:
         # Process properties to replace status properties with select properties
+        # and convert PropertyType objects to dictionaries
         processed_properties = {}
+        has_title_property = False
+        
         for prop_name, prop_value in database_data.properties.items():
-            # If it's a status property, replace it with a select property
-            if isinstance(prop_value, dict) and 'status' in prop_value:
-                # Convert status to select
-                select_options = []
-                if 'options' in prop_value.get('status', {}):
-                    select_options = prop_value['status']['options']
+            # Convert PropertyType objects to dictionaries if needed
+            if hasattr(prop_value, "dict") or hasattr(prop_value, "model_dump"):
+                # Convert Pydantic model to dict
+                if hasattr(prop_value, "model_dump"):
+                    # Pydantic v2
+                    prop_dict = prop_value.model_dump(exclude_none=True)
+                else:
+                    # Pydantic v1
+                    prop_dict = prop_value.dict(exclude_none=True)
                 
-                processed_properties[prop_name] = {
-                    'select': {
-                        'options': select_options
+                # Check if this is a title property
+                if prop_dict.get('type') == 'title':
+                    has_title_property = True
+                
+                # If it's a status property, replace it with a select property
+                if prop_dict.get('type') == 'status' and 'status' in prop_dict:
+                    # Convert status to select
+                    select_options = []
+                    if 'options' in prop_dict.get('status', {}):
+                        select_options = prop_dict['status']['options']
+                    
+                    processed_properties[prop_name] = {
+                        'select': {
+                            'options': select_options
+                        }
                     }
-                }
+                else:
+                    # Extract the specific property configuration based on type
+                    # e.g., if type is 'select', include only the 'select' object
+                    prop_type = prop_dict.get('type')
+                    if prop_type and prop_type in prop_dict:
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: prop_dict[prop_type]
+                        }
+                    elif prop_type:
+                        # Fallback to simple type: {} format for empty configs
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: {}
+                        }
+            elif isinstance(prop_value, dict):
+                # It's already a dict
+                # Check if this is a title property
+                if prop_value.get('type') == 'title':
+                    has_title_property = True
+                
+                # Check if it has status and replace
+                if 'status' in prop_value:
+                    # Convert status to select
+                    select_options = []
+                    if 'options' in prop_value.get('status', {}):
+                        select_options = prop_value['status']['options']
+                    
+                    processed_properties[prop_name] = {
+                        'select': {
+                            'options': select_options
+                        }
+                    }
+                else:
+                    processed_properties[prop_name] = prop_value
             else:
+                # Not a dict or PropertyType, just use as is (shouldn't happen)
                 processed_properties[prop_name] = prop_value
         
+        # If no title property, add one
+        if not has_title_property:
+            processed_properties["Name"] = {
+                "id": "title",
+                "name": "Name",
+                "type": "title",
+                "title": {}
+            }
+        
+        # Ensure the title field is correctly formatted with a default if missing
+        title = database_data.title
+        if title is None or title == [] or len(title) == 0:
+            # Set a default title if title is missing
+            title = [{"type": "text", "text": {"content": "Untitled"}}]
+        elif not isinstance(title, list):
+            # Convert title to proper format if it's not already a list
+            title = [{"type": "text", "text": {"content": str(title)}}]
+        else:
+            # Validate and fix title items if they exist but are malformed
+            fixed_title = []
+            for item in title:
+                if isinstance(item, dict):
+                    if "text" in item and "type" in item and isinstance(item["text"], dict) and "content" in item["text"]:
+                        # Correct order of keys if needed
+                        fixed_item = {
+                            "type": item["type"],
+                            "text": item["text"]
+                        }
+                        fixed_title.append(fixed_item)
+                    elif "content" in item:
+                        # Simple content string
+                        fixed_title.append({"type": "text", "text": {"content": item["content"]}})
+                    else:
+                        # Default to empty string if structure is unclear
+                        fixed_title.append({"type": "text", "text": {"content": ""}})
+                else:
+                    # Not a dict, convert to string
+                    fixed_title.append({"type": "text", "text": {"content": str(item)}})
+            
+            if not fixed_title:
+                # If after fixing there are no valid items, use default
+                title = [{"type": "text", "text": {"content": "Untitled"}}]
+            else:
+                title = fixed_title
+        
         payload = {
-            "parent": database_data.parent.dict(),
-            "title": database_data.title,
+            "parent": database_data.parent.dict() if hasattr(database_data.parent, "dict") else database_data.parent,
+            "title": title,
             "properties": processed_properties,
             "is_inline": database_data.is_inline
         }
@@ -833,6 +931,95 @@ class NotionService:
         )
         
         return self.prepare_response(database, "NotionDatabaseTable")
+
+    def update_database(self, database_id: str, database_update: DatabaseUpdate) -> ApiResponse:
+        """Update database title, description, or properties"""
+        # Format the database ID to ensure it has the correct format
+        formatted_database_id = self.format_page_id(database_id)
+        
+        # Prepare the payload with only non-None values
+        payload = {}
+        if database_update.title is not None:
+            payload["title"] = database_update.title
+            
+        if database_update.description is not None:
+            payload["description"] = database_update.description
+            
+        if database_update.properties is not None:
+            # Process properties to convert PropertyType objects to dictionaries if needed
+            processed_properties = {}
+            for prop_name, prop_value in database_update.properties.items():
+                # Convert PropertyType objects to dictionaries if needed
+                if hasattr(prop_value, "dict") or hasattr(prop_value, "model_dump"):
+                    # Convert Pydantic model to dict
+                    if hasattr(prop_value, "model_dump"):
+                        # Pydantic v2
+                        prop_dict = prop_value.model_dump(exclude_none=True)
+                    else:
+                        # Pydantic v1
+                        prop_dict = prop_value.dict(exclude_none=True)
+                    
+                    # If it's a status property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'status':
+                        continue  # Skip status properties as they can't be updated via API
+                        
+                    # If it's a formula property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'formula':
+                        continue  # Skip formula properties as they can't be updated via API
+                    
+                    # If it's a select property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'select':
+                        # You can only add new properties, not update existing ones
+                        if 'id' in prop_dict:
+                            continue  # Skip existing select properties
+                    
+                    # Extract the specific property configuration based on type
+                    prop_type = prop_dict.get('type')
+                    if prop_type and prop_type in prop_dict:
+                        # For new properties in update operations, don't include id/name in the payload
+                        # as they're in the property key already
+                        update_prop = {
+                            'type': prop_type,
+                            prop_type: prop_dict[prop_type]
+                        }
+                        processed_properties[prop_name] = update_prop
+                    elif prop_type:
+                        # Fallback to simple type: {} format for empty configs
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: {}
+                        }
+                else:
+                    # It's already a dict, keep as is
+                    processed_properties[prop_name] = prop_value
+            
+            payload["properties"] = processed_properties
+        
+        # Make the API call only if we have something to update
+        if payload:
+            response = self.client.update_database(formatted_database_id, payload)
+            validated_response = self._handle_notion_response(response)
+            
+            # Extract the title
+            title = " ".join(
+                text.get("plain_text", "")
+                for text in validated_response.get('title', [])
+            )
+            
+            # Create a Database object
+            database = Database(
+                id=validated_response.get('id'),
+                title=title,
+                properties=validated_response.get('properties', {}),
+                url=validated_response.get('url'),
+                created_time=validated_response.get('created_time'),
+                last_edited_time=validated_response.get('last_edited_time')
+            )
+            
+            return self.prepare_response(database, "NotionDatabaseTable")
+        else:
+            # If no updates provided, just get the current database
+            return self.get_database(formatted_database_id)
 
     def query_database(self, database_id: str, filter_data: Dict[str, Any] = None, 
                       sorts: List[Dict[str, Any]] = None, start_cursor: Optional[str] = None, 
