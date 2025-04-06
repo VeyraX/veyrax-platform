@@ -1118,7 +1118,6 @@ routes:
               "name": "NotionPageCard"
             }
           }
-
   - endpoint: /notion/append_block_children
     examples:
       - scenario: "Append Link to Database"
@@ -1259,6 +1258,793 @@ routes:
               "title": "Updated Page",
               "properties": {},
               "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Callout and Quote Blocks with Formatting"
+        description: "Appends callout and quote blocks with rich text formatting"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "callout",
+                "callout": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Important notice"
+                      },
+                      "annotations": {
+                        "bold": true,
+                        "color": "red"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": " - Please review before proceeding"
+                      }
+                    }
+                  ],
+                  "icon": {
+                    "emoji": "🚨"
+                  },
+                  "color": "red_background"
+                }
+              },
+              {
+                "type": "quote",
+                "quote": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "The only way to do great work is to love what you do."
+                      },
+                      "annotations": {
+                        "italic": true
+                      }
+                    }
+                  ],
+                  "color": "blue_background"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Complex Table with Multiple Rows"
+        description: "Appends a table with multiple rows and formatting"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "table",
+                "table": {
+                  "table_width": 3,
+                  "has_column_header": true,
+                  "has_row_header": false
+                },
+                "children": [
+                  {
+                    "type": "table_row",
+                    "table_row": {
+                      "cells": [
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Name"
+                            },
+                            "annotations": {
+                              "bold": true
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Role"
+                            },
+                            "annotations": {
+                              "bold": true
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Department"
+                            },
+                            "annotations": {
+                              "bold": true
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "table_row",
+                    "table_row": {
+                      "cells": [
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "John Doe"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Developer"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Engineering"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "table_row",
+                    "table_row": {
+                      "cells": [
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Jane Smith"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Designer"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Product"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page with Table",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Mixed Media Blocks"
+        description: "Appends various media blocks including image, video, file, and embed"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "image",
+                "image": {
+                  "type": "external",
+                  "external": {
+                    "url": "https://example.com/image.jpg"
+                  },
+                  "caption": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Project diagram"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "video",
+                "video": {
+                  "type": "external",
+                  "external": {
+                    "url": "https://example.com/video.mp4"
+                  }
+                }
+              },
+              {
+                "type": "file",
+                "file": {
+                  "type": "external",
+                  "external": {
+                    "url": "https://example.com/document.pdf"
+                  },
+                  "caption": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Project documentation"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "embed",
+                "embed": {
+                  "url": "https://www.figma.com/file/example"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page with Media",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Task List with To-Do Blocks"
+        description: "Appends a list of to-do items with different states and colors"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "heading_3",
+                "heading_3": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Project Tasks"
+                      }
+                    }
+                  ],
+                  "color": "green"
+                }
+              },
+              {
+                "type": "to_do",
+                "to_do": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Initialize project repository"
+                      }
+                    }
+                  ],
+                  "checked": true,
+                  "color": "green_background"
+                }
+              },
+              {
+                "type": "to_do",
+                "to_do": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Set up CI/CD pipeline"
+                      }
+                    }
+                  ],
+                  "checked": true,
+                  "color": "default"
+                }
+              },
+              {
+                "type": "to_do",
+                "to_do": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Implement authentication system"
+                      }
+                    }
+                  ],
+                  "checked": false,
+                  "color": "yellow_background"
+                }
+              },
+              {
+                "type": "to_do",
+                "to_do": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Deploy to production"
+                      }
+                    }
+                  ],
+                  "checked": false,
+                  "color": "red_background"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page with Tasks",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+      - scenario: "Add Column Layout with Content"
+        description: "Appends a column layout with different content in each column"
+        input_json: |
+          {
+            "block_id": "page123",
+            "children": [
+              {
+                "type": "column_list",
+                "column_list": {},
+                "children": [
+                  {
+                    "type": "column",
+                    "column": {},
+                    "children": [
+                      {
+                        "type": "heading_3",
+                        "heading_3": {
+                          "rich_text": [
+                            {
+                              "type": "text",
+                              "text": {
+                                "content": "Column 1"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "paragraph",
+                        "paragraph": {
+                          "rich_text": [
+                            {
+                              "type": "text",
+                              "text": {
+                                "content": "This is the content for the first column."
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "column",
+                    "column": {},
+                    "children": [
+                      {
+                        "type": "heading_3",
+                        "heading_3": {
+                          "rich_text": [
+                            {
+                              "type": "text",
+                              "text": {
+                                "content": "Column 2"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "bulleted_list_item",
+                        "bulleted_list_item": {
+                          "rich_text": [
+                            {
+                              "type": "text",
+                              "text": {
+                                "content": "Item 1"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "type": "bulleted_list_item",
+                        "bulleted_list_item": {
+                          "rich_text": [
+                            {
+                              "type": "text",
+                              "text": {
+                                "content": "Item 2"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Updated Page with Columns",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Append Toggle with Nested Blocks"
+        description: "Appends a toggle block with multiple nested child blocks"
+        input_json: |
+          {
+            "block_id": "pageABC",
+            "children": [
+              {
+                "type": "toggle",
+                "toggle": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Show more details"
+                      }
+                    }
+                  ],
+                  "color": "default",
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "paragraph": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Hidden paragraph under a toggle."
+                            }
+                          }
+                        ],
+                        "color": "default"
+                      }
+                    },
+                    {
+                      "type": "code",
+                      "code": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "console.log('Nested in toggle');"
+                            }
+                          }
+                        ],
+                        "language": "javascript"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "pageABC",
+              "title": "Updated Page with Toggle",
+              "properties": {},
+              "url": "https://www.notion.so/pageABC"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Append Paragraph with User Mention"
+        description: "Appends a paragraph block that includes a user mention in the text"
+        input_json: |
+          {
+            "block_id": "pageXYZ",
+            "children": [
+              {
+                "type": "paragraph",
+                "paragraph": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Hello "
+                      }
+                    },
+                    {
+                      "type": "mention",
+                      "mention": {
+                        "type": "user",
+                        "user": {
+                          "id": "user_id_111"
+                        }
+                      },
+                      "annotations": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": ", please review the document."
+                      }
+                    }
+                  ],
+                  "color": "default"
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "pageXYZ",
+              "title": "Updated Page with Mention",
+              "properties": {},
+              "url": "https://www.notion.so/pageXYZ"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Append Nested Lists"
+        description: "Appends a mix of bulleted and numbered list items, including nested child blocks"
+        input_json: |
+          {
+            "block_id": "pageNEST",
+            "children": [
+              {
+                "type": "bulleted_list_item",
+                "bulleted_list_item": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "High-Level Tasks"
+                      }
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "numbered_list_item",
+                      "numbered_list_item": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Setup environment"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "numbered_list_item",
+                      "numbered_list_item": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Configure CI/CD"
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                              "rich_text": [
+                                {
+                                  "type": "text",
+                                  "text": {
+                                    "content": "Install dependencies"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "bulleted_list_item",
+                            "bulleted_list_item": {
+                              "rich_text": [
+                                {
+                                  "type": "text",
+                                  "text": {
+                                    "content": "Run initial tests"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "pageNEST",
+              "title": "Updated Page with Nested Lists",
+              "properties": {},
+              "url": "https://www.notion.so/pageNEST"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Append Heading Toggle with Nested Quote"
+        description: "Appends a heading block as a toggle, containing a nested quote block"
+        input_json: |
+          {
+            "block_id": "pageTOGGLE",
+            "children": [
+              {
+                "type": "heading_3",
+                "heading_3": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Expandable Section"
+                      }
+                    }
+                  ],
+                  "is_toggleable": true,
+                  "children": [
+                    {
+                      "type": "quote",
+                      "quote": {
+                        "rich_text": [
+                          {
+                            "type": "text",
+                            "text": {
+                              "content": "Everything you can imagine is real. - Pablo Picasso"
+                            },
+                            "annotations": {
+                              "italic": true
+                            }
+                          }
+                        ],
+                        "color": "default"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "pageTOGGLE",
+              "title": "Updated Page with Heading Toggle",
+              "properties": {},
+              "url": "https://www.notion.so/pageTOGGLE"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Append Code Block with Caption"
+        description: "Appends a code block in Python with a caption underneath"
+        input_json: |
+          {
+            "block_id": "pageCAPTION",
+            "children": [
+              {
+                "type": "code",
+                "code": {
+                  "rich_text": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "def greet(name):\n    return f\"Hello, {name}\""
+                      }
+                    }
+                  ],
+                  "language": "python",
+                  "caption": [
+                    {
+                      "type": "text",
+                      "text": {
+                        "content": "Sample greeting function"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "pageCAPTION",
+              "title": "Updated Page with Code Block",
+              "properties": {},
+              "url": "https://www.notion.so/pageCAPTION"
             },
             "message": null,
             "component": {
@@ -1545,5 +2331,262 @@ routes:
             "message": null,
             "component": {
               "name": "NotionUser"
+            }
+          }
+
+  - endpoint: /notion/update_database
+    examples:
+      - scenario: "Update Database Title and Add Properties"
+        description: "Updates a database's title and adds new properties"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "database_update": {
+              "title": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "Updated Project Database"
+                  }
+                }
+              ],
+              "properties": {
+                "Due Date": {
+                  "type": "date",
+                  "date": {}
+                },
+                "Priority": {
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "name": "High",
+                        "color": "red"
+                      },
+                      {
+                        "name": "Medium",
+                        "color": "yellow"
+                      },
+                      {
+                        "name": "Low",
+                        "color": "blue"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "db123456",
+              "title": "Updated Project Database",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "name": "Name",
+                  "type": "title"
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "name": "Status",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      },
+                      {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "3",
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                },
+                "Due Date": {
+                  "id": "cVRO",
+                  "name": "Due Date",
+                  "type": "date",
+                  "date": {}
+                },
+                "Priority": {
+                  "id": "prty",
+                  "name": "Priority",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "4",
+                        "name": "High",
+                        "color": "red"
+                      },
+                      {
+                        "id": "5",
+                        "name": "Medium",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "6",
+                        "name": "Low",
+                        "color": "blue"
+                      }
+                    ]
+                  }
+                }
+              },
+              "url": "https://www.notion.so/myworkspace/db123456",
+              "created_time": "2023-01-15T08:30:00.000Z",
+              "last_edited_time": "2023-05-25T11:45:30.000Z"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
+          }
+      - scenario: "Update Database Description"
+        description: "Updates a database's description only"
+        input_json: |
+          {
+            "database_id": "db123456",
+            "database_update": {
+              "description": [
+                {
+                  "type": "text",
+                  "text": {
+                    "content": "This database tracks all company projects and their current status."
+                  }
+                }
+              ]
+            }
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "db123456",
+              "title": "Project Database",
+              "properties": {
+                "Name": {
+                  "id": "title",
+                  "name": "Name",
+                  "type": "title"
+                },
+                "Status": {
+                  "id": "KL%5EB",
+                  "name": "Status",
+                  "type": "select",
+                  "select": {
+                    "options": [
+                      {
+                        "id": "1",
+                        "name": "To Do",
+                        "color": "red"
+                      },
+                      {
+                        "id": "2",
+                        "name": "In Progress",
+                        "color": "yellow"
+                      },
+                      {
+                        "id": "3",
+                        "name": "Completed",
+                        "color": "green"
+                      }
+                    ]
+                  }
+                }
+              },
+              "url": "https://www.notion.so/myworkspace/db123456",
+              "created_time": "2023-01-15T08:30:00.000Z",
+              "last_edited_time": "2023-05-24T16:20:45.000Z"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionDatabaseTable"
+            }
+          }
+
+  - endpoint: /notion/append_media
+    examples:
+      - scenario: "Append Image to Page"
+        description: "Adds an image block to a page"
+        input_json: |
+          {
+            "block_id": "page123",
+            "media_type": "image",
+            "url": "https://example.com/image.jpg",
+            "caption": "Project diagram"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Added image block",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+          
+      - scenario: "Append PDF to Page"
+        description: "Adds a PDF document block to a page"
+        input_json: |
+          {
+            "block_id": "page123",
+            "media_type": "pdf",
+            "url": "https://example.com/document.pdf",
+            "caption": "Project documentation"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Added pdf block",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+          
+      - scenario: "Append File to Page"
+        description: "Adds a file block to a page"
+        input_json: |
+          {
+            "block_id": "page123",
+            "media_type": "file",
+            "url": "https://example.com/spreadsheet.xlsx",
+            "caption": "Data analysis",
+            "name": "quarterly_report.xlsx"
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "page123",
+              "title": "Added file block",
+              "properties": {},
+              "url": "https://www.notion.so/page123"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
             }
           } 

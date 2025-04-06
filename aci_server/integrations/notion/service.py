@@ -7,7 +7,7 @@ from .client import NotionClient
 from .schema import (
     DatabaseList, Database, PageList, Page, 
     PageCreate, PageUpdate, PageFilters, DatabaseProperties,
-    SearchResult, ApiResponse, DatabaseCreate, UserList, NotionUser
+    SearchResult, ApiResponse, DatabaseCreate, UserList, NotionUser, DatabaseUpdate, UpdateDatabaseParams, UpdateDatabaseResponse
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -120,7 +120,7 @@ class NotionService:
             if filters.filter_by:
                 params["filter"] = filters.filter_by
             if filters.sort_by:
-                params["sorts"] = filters.sort_by
+                params["sorts"] = [filters.sort_by]  # Wrap sort_by in an array
         
         response = self.client.query_database(database_id, params)
         
@@ -303,26 +303,124 @@ class NotionService:
 
     def create_database(self, database_data: DatabaseCreate) -> ApiResponse:
         # Process properties to replace status properties with select properties
+        # and convert PropertyType objects to dictionaries
         processed_properties = {}
+        has_title_property = False
+        
         for prop_name, prop_value in database_data.properties.items():
-            # If it's a status property, replace it with a select property
-            if isinstance(prop_value, dict) and 'status' in prop_value:
-                # Convert status to select
-                select_options = []
-                if 'options' in prop_value.get('status', {}):
-                    select_options = prop_value['status']['options']
+            # Convert PropertyType objects to dictionaries if needed
+            if hasattr(prop_value, "dict") or hasattr(prop_value, "model_dump"):
+                # Convert Pydantic model to dict
+                if hasattr(prop_value, "model_dump"):
+                    # Pydantic v2
+                    prop_dict = prop_value.model_dump(exclude_none=True)
+                else:
+                    # Pydantic v1
+                    prop_dict = prop_value.dict(exclude_none=True)
                 
-                processed_properties[prop_name] = {
-                    'select': {
-                        'options': select_options
+                # Check if this is a title property
+                if prop_dict.get('type') == 'title':
+                    has_title_property = True
+                
+                # If it's a status property, replace it with a select property
+                if prop_dict.get('type') == 'status' and 'status' in prop_dict:
+                    # Convert status to select
+                    select_options = []
+                    if 'options' in prop_dict.get('status', {}):
+                        select_options = prop_dict['status']['options']
+                    
+                    processed_properties[prop_name] = {
+                        'select': {
+                            'options': select_options
+                        }
                     }
-                }
+                else:
+                    # Extract the specific property configuration based on type
+                    # e.g., if type is 'select', include only the 'select' object
+                    prop_type = prop_dict.get('type')
+                    if prop_type and prop_type in prop_dict:
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: prop_dict[prop_type]
+                        }
+                    elif prop_type:
+                        # Fallback to simple type: {} format for empty configs
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: {}
+                        }
+            elif isinstance(prop_value, dict):
+                # It's already a dict
+                # Check if this is a title property
+                if prop_value.get('type') == 'title':
+                    has_title_property = True
+                
+                # Check if it has status and replace
+                if 'status' in prop_value:
+                    # Convert status to select
+                    select_options = []
+                    if 'options' in prop_value.get('status', {}):
+                        select_options = prop_value['status']['options']
+                    
+                    processed_properties[prop_name] = {
+                        'select': {
+                            'options': select_options
+                        }
+                    }
+                else:
+                    processed_properties[prop_name] = prop_value
             else:
+                # Not a dict or PropertyType, just use as is (shouldn't happen)
                 processed_properties[prop_name] = prop_value
         
+        # If no title property, add one
+        if not has_title_property:
+            processed_properties["Name"] = {
+                "id": "title",
+                "name": "Name",
+                "type": "title",
+                "title": {}
+            }
+        
+        # Ensure the title field is correctly formatted with a default if missing
+        title = database_data.title
+        if title is None or title == [] or len(title) == 0:
+            # Set a default title if title is missing
+            title = [{"type": "text", "text": {"content": "Untitled"}}]
+        elif not isinstance(title, list):
+            # Convert title to proper format if it's not already a list
+            title = [{"type": "text", "text": {"content": str(title)}}]
+        else:
+            # Validate and fix title items if they exist but are malformed
+            fixed_title = []
+            for item in title:
+                if isinstance(item, dict):
+                    if "text" in item and "type" in item and isinstance(item["text"], dict) and "content" in item["text"]:
+                        # Correct order of keys if needed
+                        fixed_item = {
+                            "type": item["type"],
+                            "text": item["text"]
+                        }
+                        fixed_title.append(fixed_item)
+                    elif "content" in item:
+                        # Simple content string
+                        fixed_title.append({"type": "text", "text": {"content": item["content"]}})
+                    else:
+                        # Default to empty string if structure is unclear
+                        fixed_title.append({"type": "text", "text": {"content": ""}})
+                else:
+                    # Not a dict, convert to string
+                    fixed_title.append({"type": "text", "text": {"content": str(item)}})
+            
+            if not fixed_title:
+                # If after fixing there are no valid items, use default
+                title = [{"type": "text", "text": {"content": "Untitled"}}]
+            else:
+                title = fixed_title
+        
         payload = {
-            "parent": database_data.parent.dict(),
-            "title": database_data.title,
+            "parent": database_data.parent.dict() if hasattr(database_data.parent, "dict") else database_data.parent,
+            "title": title,
             "properties": processed_properties,
             "is_inline": database_data.is_inline
         }
@@ -397,13 +495,229 @@ class NotionService:
         
         return self.prepare_response(page, "NotionPageCard")
 
-    def append_block_children(self, block_id: str, children: List[Dict[str, Any]]) -> ApiResponse:
+    def format_people_property(self, user_ids: List[str]) -> List[Dict[str, Any]]:
+        people = []
+        for user_id in user_ids:
+            # Format the user ID to ensure it has the correct format
+            formatted_user_id = self.format_page_id(user_id)
+            
+            # For each user ID, we need to determine if it's a person or bot
+            try:
+                user_response = self.client.get_user(formatted_user_id)
+                
+                if 'object' in user_response and user_response['object'] == 'error':
+                    continue  # Skip this user if there's an error
+                
+                user_type = user_response.get('type')
+                
+                if user_type == 'person':
+                    people.append({
+                        "id": formatted_user_id
+                    })
+                elif user_type == 'bot':
+                    people.append({
+                        "id": formatted_user_id
+                    })
+            except Exception:
+                # If we can't get the user, skip it
+                continue
+                
+        return people
+
+    def _block_to_dict(self, block) -> Dict[str, Any]:
+        """
+        Convert a Block object to a dictionary suitable for the Notion API.
+        
+        Args:
+            block: A Block object
+            
+        Returns:
+            A dictionary representation of the block
+        """
+        # Convert to dict using model_dump if available (Pydantic v2) or dict() (Pydantic v1)
+        if hasattr(block, "model_dump"):
+            block_dict = block.model_dump(exclude_none=True)
+        else:
+            block_dict = block.dict(exclude_none=True)
+            
+        # Add any missing required fields for Notion API
+        if "object" not in block_dict:
+            block_dict["object"] = "block"
+         
+        # Special handling for table blocks
+        if block_dict.get("type") == "table" and "children" in block_dict:
+            # For table blocks, children need to be inside the table property
+            table_rows = block_dict.pop("children", [])
+            
+            # Convert any row children to dictionaries
+            serialized_rows = []
+            for row in table_rows:
+                if hasattr(row, "dict") or hasattr(row, "model_dump"):
+                    serialized_rows.append(self._block_to_dict(row))
+                else:
+                    row_dict = row.copy()
+                    if "object" not in row_dict:
+                        row_dict["object"] = "block"
+                    serialized_rows.append(row_dict)
+            
+            # Add children to the table property
+            block_dict["table"]["children"] = serialized_rows
+            
+        return block_dict
+
+    def _serialize_block(self, block: Any) -> Dict[str, Any]:
+        """
+        Serialize a block object or dictionary to the format required by Notion API.
+        
+        Args:
+            block: A Block object or dictionary
+            
+        Returns:
+            A dictionary representation of the block ready for the Notion API
+        """
+        # Convert block object to dictionary
+        if hasattr(block, "dict") or hasattr(block, "model_dump"):
+            # It's a Block object
+            return self._block_to_dict(block)
+        elif isinstance(block, dict):
+            # It's already a dict, dispatch to specific handler based on type
+            block_type = block.get("type")
+            if block_type == "table":
+                return self._serialize_table_block(block)
+            elif block_type == "column_list":
+                return self._serialize_column_list_block(block)
+            else:
+                # Default handling for other block types
+                block_dict = block.copy()
+                if "object" not in block_dict:
+                    block_dict["object"] = "block"
+                return block_dict
+        else:
+            # Not a dict or Block object, convert to paragraph
+            return {
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [{"type": "text", "text": {"content": str(block)}}]
+                }
+            }
+
+    def _serialize_table_block(self, block: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Serialize a table block, properly handling its children rows.
+        
+        Args:
+            block: A dictionary representing a table block
+            
+        Returns:
+            A properly formatted table block dictionary
+        """
+        # Create a new dict to avoid modifying the original
+        block_dict = {
+            "object": "block",
+            "type": "table",
+            "table": {}
+        }
+        
+        # Copy all table properties (except children)
+        if "table" in block and isinstance(block["table"], dict):
+            for key, value in block["table"].items():
+                if key != "children":  # Don't copy children yet
+                    block_dict["table"][key] = value
+        
+        # Ensure necessary table properties exist
+        if "table_width" not in block_dict["table"] and "table_width" in block:
+            block_dict["table"]["table_width"] = block["table_width"]
+            
+        if "has_column_header" not in block_dict["table"] and "has_column_header" in block:
+            block_dict["table"]["has_column_header"] = block["has_column_header"]
+            
+        if "has_row_header" not in block_dict["table"] and "has_row_header" in block:
+            block_dict["table"]["has_row_header"] = block["has_row_header"]
+        
+        # Process children wherever they might be
+        table_rows = []
+        
+        # First check for children in the table property
+        if "table" in block and isinstance(block["table"], dict) and "children" in block["table"]:
+            table_rows.extend(block["table"]["children"])
+        
+        # Then check for children at the top level
+        if "children" in block:
+            table_rows.extend(block["children"])
+        
+        # Serialize each table row
+        serialized_rows = []
+        for row in table_rows:
+            if isinstance(row, dict) and "object" not in row:
+                row = row.copy()
+                row["object"] = "block"
+            serialized_rows.append(self._serialize_block(row))
+        
+        # Set the children inside the table property
+        block_dict["table"]["children"] = serialized_rows
+        
+        return block_dict
+
+    def _serialize_column_list_block(self, block: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Serialize a column_list block, handling its column children.
+        
+        Args:
+            block: A dictionary representing a column_list block
+            
+        Returns:
+            A properly formatted column_list block dictionary
+        """
+        # Create a new dict to avoid modifying the original
+        block_dict = {
+            "object": "block",
+            "type": "column_list",
+            "column_list": {}
+        }
+        
+        # Copy any column_list properties
+        if "column_list" in block and isinstance(block["column_list"], dict):
+            for key, value in block["column_list"].items():
+                block_dict["column_list"][key] = value
+        
+        # Handle columns if present
+        columns = []
+        if "children" in block:
+            columns.extend(block["children"])
+        
+        # Serialize each column
+        if columns:
+            serialized_columns = []
+            for column in columns:
+                # Process the column block
+                column_dict = self._serialize_block(column)
+                
+                # If this column has children, process them too
+                if "children" in column:
+                    column_children = column.get("children", [])
+                    serialized_column_children = []
+                    
+                    for child in column_children:
+                        serialized_column_children.append(self._serialize_block(child))
+                    
+                    # Replace the children with serialized ones
+                    column_dict["children"] = serialized_column_children
+                
+                serialized_columns.append(column_dict)
+            
+            # Add serialized columns back to the block
+            block_dict["children"] = serialized_columns
+        
+        return block_dict
+
+    def append_block_children(self, block_id: str, children: List[Any]) -> ApiResponse:
         """
         Append blocks to a page or block.
         
         Args:
             block_id: The ID of the block to append to (can be a page ID)
-            children: The blocks to append
+            children: The blocks to append (can be Block objects or dictionaries)
             
         Returns:
             The response from the Notion API
@@ -411,7 +725,74 @@ class NotionService:
         # Format the block ID to ensure it has the correct format
         formatted_block_id = self.format_page_id(block_id)
         
-        response = self.client.append_block_children(formatted_block_id, children)
+        # Enable for troubleshooting
+        debug_mode = False
+        if debug_mode:
+            import json
+            print(f"Original input: {json.dumps(children, indent=2)}")
+        
+        # Process the blocks to match Notion API structure
+        api_formatted_children = []
+        for child in children:
+            if isinstance(child, dict) and child.get("type") == "table":
+                # Special handling for table blocks to match Notion API format
+                table_block = {
+                    "object": "block",
+                    "type": "table",
+                    "table": {
+                        # Copy table properties
+                        "table_width": child.get("table", {}).get("table_width", 3),
+                    }
+                }
+                
+                # Copy other table properties
+                for key in ["has_column_header", "has_row_header"]:
+                    if key in child.get("table", {}):
+                        table_block["table"][key] = child["table"][key]
+                
+                # Get the table rows if they exist
+                if "children" in child and isinstance(child["children"], list):
+                    # Format the rows
+                    formatted_rows = []
+                    for row in child["children"]:
+                        if isinstance(row, dict):
+                            # Ensure each row has required fields
+                            row_copy = row.copy()
+                            row_copy["object"] = "block"
+                            formatted_rows.append(row_copy)
+                    
+                    # Add the formatted rows to the table.children array
+                    table_block["table"]["children"] = formatted_rows
+                else:
+                    # Create a default empty row if no rows provided
+                    table_block["table"]["children"] = [{
+                        "object": "block",
+                        "type": "table_row",
+                        "table_row": {
+                            "cells": [[] for _ in range(table_block["table"]["table_width"])]
+                        }
+                    }]
+                
+                # Add the formatted table block
+                api_formatted_children.append(table_block)
+            else:
+                # For non-table blocks, just ensure object field
+                if isinstance(child, dict):
+                    child_copy = child.copy()
+                    if "object" not in child_copy:
+                        child_copy["object"] = "block"
+                    api_formatted_children.append(child_copy)
+                else:
+                    # Use the normal serializer for other blocks
+                    serialized_child = self._serialize_block(child)
+                    api_formatted_children.append(serialized_child)
+        
+        if debug_mode:
+            import json
+            print(f"API formatted: {json.dumps(api_formatted_children, indent=2)}")
+        
+        # Call the client with the properly formatted children
+        response = self.client.append_block_children(formatted_block_id, api_formatted_children)
         
         if 'object' in response and response['object'] == 'error':
             raise HTTPException(
@@ -420,10 +801,81 @@ class NotionService:
             )
         
         # Create a custom response that matches the ApiResponse model
-        # We'll use a Page object with the block_id as the page ID
         page = Page(
             id=formatted_block_id,
             title="Block updated",
+            properties={},
+            url=f"https://www.notion.so/{formatted_block_id.replace('-', '')}"
+        )
+        
+        return self.prepare_response(page, "NotionPageCard")
+
+    def append_media(self, block_id: str, media_type: str, url: str, caption: Optional[str] = None, name: Optional[str] = None) -> ApiResponse:
+        """
+        Append a media block (file, image, or PDF) to a page or block.
+        
+        Args:
+            block_id: The ID of the block to append to (can be a page ID)
+            media_type: Type of media block: 'file', 'image', or 'pdf'
+            url: URL of the media file
+            caption: Optional caption for the media
+            name: Optional filename for file blocks
+            
+        Returns:
+            The response from the Notion API
+        """
+        # Validate media_type
+        if media_type not in ['file', 'image', 'pdf']:
+            raise ValueError(f"Invalid media_type: {media_type}. Must be one of: 'file', 'image', or 'pdf'")
+        
+        # Format the block ID to ensure it has the correct format
+        formatted_block_id = self.format_page_id(block_id)
+        
+        # Create the caption list if provided
+        caption_list = None
+        if caption:
+            caption_list = [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": caption
+                    }
+                }
+            ]
+        
+        # Create the media block based on the media_type
+        media_block = {
+            "object": "block",
+            "type": media_type,
+            media_type: {
+                "type": "external",
+                "external": {
+                    "url": url
+                }
+            }
+        }
+        
+        # Add caption if provided
+        if caption_list:
+            media_block[media_type]["caption"] = caption_list
+        
+        # Add name if provided for file blocks
+        if name and media_type == "file":
+            media_block[media_type]["name"] = name
+        
+        # Call the client with the properly formatted block
+        response = self.client.append_block_children(formatted_block_id, [media_block])
+        
+        if 'object' in response and response['object'] == 'error':
+            raise HTTPException(
+                status_code=response.get('status', 500),
+                detail=response.get('message', f'Failed to append {media_type} block in Notion')
+            )
+        
+        # Create a custom response that matches the ApiResponse model
+        page = Page(
+            id=formatted_block_id,
+            title=f"Added {media_type} block",
             properties={},
             url=f"https://www.notion.so/{formatted_block_id.replace('-', '')}"
         )
@@ -479,6 +931,95 @@ class NotionService:
         )
         
         return self.prepare_response(database, "NotionDatabaseTable")
+
+    def update_database(self, database_id: str, database_update: DatabaseUpdate) -> ApiResponse:
+        """Update database title, description, or properties"""
+        # Format the database ID to ensure it has the correct format
+        formatted_database_id = self.format_page_id(database_id)
+        
+        # Prepare the payload with only non-None values
+        payload = {}
+        if database_update.title is not None:
+            payload["title"] = database_update.title
+            
+        if database_update.description is not None:
+            payload["description"] = database_update.description
+            
+        if database_update.properties is not None:
+            # Process properties to convert PropertyType objects to dictionaries if needed
+            processed_properties = {}
+            for prop_name, prop_value in database_update.properties.items():
+                # Convert PropertyType objects to dictionaries if needed
+                if hasattr(prop_value, "dict") or hasattr(prop_value, "model_dump"):
+                    # Convert Pydantic model to dict
+                    if hasattr(prop_value, "model_dump"):
+                        # Pydantic v2
+                        prop_dict = prop_value.model_dump(exclude_none=True)
+                    else:
+                        # Pydantic v1
+                        prop_dict = prop_value.dict(exclude_none=True)
+                    
+                    # If it's a status property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'status':
+                        continue  # Skip status properties as they can't be updated via API
+                        
+                    # If it's a formula property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'formula':
+                        continue  # Skip formula properties as they can't be updated via API
+                    
+                    # If it's a select property, Notion API doesn't support updating it
+                    if prop_dict.get('type') == 'select':
+                        # You can only add new properties, not update existing ones
+                        if 'id' in prop_dict:
+                            continue  # Skip existing select properties
+                    
+                    # Extract the specific property configuration based on type
+                    prop_type = prop_dict.get('type')
+                    if prop_type and prop_type in prop_dict:
+                        # For new properties in update operations, don't include id/name in the payload
+                        # as they're in the property key already
+                        update_prop = {
+                            'type': prop_type,
+                            prop_type: prop_dict[prop_type]
+                        }
+                        processed_properties[prop_name] = update_prop
+                    elif prop_type:
+                        # Fallback to simple type: {} format for empty configs
+                        processed_properties[prop_name] = {
+                            'type': prop_type,
+                            prop_type: {}
+                        }
+                else:
+                    # It's already a dict, keep as is
+                    processed_properties[prop_name] = prop_value
+            
+            payload["properties"] = processed_properties
+        
+        # Make the API call only if we have something to update
+        if payload:
+            response = self.client.update_database(formatted_database_id, payload)
+            validated_response = self._handle_notion_response(response)
+            
+            # Extract the title
+            title = " ".join(
+                text.get("plain_text", "")
+                for text in validated_response.get('title', [])
+            )
+            
+            # Create a Database object
+            database = Database(
+                id=validated_response.get('id'),
+                title=title,
+                properties=validated_response.get('properties', {}),
+                url=validated_response.get('url'),
+                created_time=validated_response.get('created_time'),
+                last_edited_time=validated_response.get('last_edited_time')
+            )
+            
+            return self.prepare_response(database, "NotionDatabaseTable")
+        else:
+            # If no updates provided, just get the current database
+            return self.get_database(formatted_database_id)
 
     def query_database(self, database_id: str, filter_data: Dict[str, Any] = None, 
                       sorts: List[Dict[str, Any]] = None, start_cursor: Optional[str] = None, 
@@ -646,33 +1187,4 @@ class NotionService:
         )
         
         return self.prepare_response(user, "NotionUser")
-            
-    def format_people_property(self, user_ids: List[str]) -> List[Dict[str, Any]]:
-        people = []
-        for user_id in user_ids:
-            # Format the user ID to ensure it has the correct format
-            formatted_user_id = self.format_page_id(user_id)
-            
-            # For each user ID, we need to determine if it's a person or bot
-            try:
-                user_response = self.client.get_user(formatted_user_id)
-                
-                if 'object' in user_response and user_response['object'] == 'error':
-                    continue  # Skip this user if there's an error
-                
-                user_type = user_response.get('type')
-                
-                if user_type == 'person':
-                    people.append({
-                        "id": formatted_user_id
-                    })
-                elif user_type == 'bot':
-                    people.append({
-                        "id": formatted_user_id
-                    })
-            except Exception:
-                # If we can't get the user, skip it
-                continue
-                
-        return people
 

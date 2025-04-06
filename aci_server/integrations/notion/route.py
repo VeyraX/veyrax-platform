@@ -10,6 +10,7 @@ from .schema import (
     UpdatePageResponse, SearchResponse, CreateDatabaseParams, CreateDatabaseResponse,
     AppendBlockChildrenParams, AppendBlockChildrenResponse, CreatePageWithDatabaseParams,
     GetUsersParams, GetUsersResponse, GetUserParams, GetUserResponse,
+    AppendMediaParams, AppendMediaResponse, UpdateDatabaseParams, UpdateDatabaseResponse,
 )
 from .service import NotionService
 from .client import NotionClient
@@ -110,6 +111,18 @@ async def create_database(
     validated_params = CreateDatabaseParams(**params)
     return service.create_database(validated_params.database)
 
+@router.post("/update_database", response_model=ApiResponse)
+@schema(input_schema_class=UpdateDatabaseParams, output_schema_class=UpdateDatabaseResponse)
+async def update_database(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    validated_params = UpdateDatabaseParams(**params)
+    return service.update_database(
+        validated_params.database_id, 
+        validated_params.database_update
+    )
+
 @router.post("/get_page", response_model=ApiResponse)
 @schema(input_schema_class=GetPageParams, output_schema_class=GetPageResponse, examples=examples["/notion/get_page"])
 async def get_page(
@@ -155,6 +168,30 @@ async def append_block_children(
     validated_params = AppendBlockChildrenParams(**params)
     return service.append_block_children(validated_params.block_id, validated_params.children)
 
+@router.post("/append_media", response_model=ApiResponse)
+@schema(input_schema_class=AppendMediaParams, output_schema_class=AppendMediaResponse, examples=examples["/notion/append_media"])
+async def append_media(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    validated_params = AppendMediaParams(**params)
+    return service.append_media(
+        validated_params.block_id,
+        validated_params.media_type,
+        validated_params.url,
+        validated_params.caption,
+        validated_params.name
+    )
+
+@router.post("/create_page_with_database", response_model=ApiResponse)
+@schema(input_schema_class=CreatePageWithDatabaseParams, output_schema_class=CreatePageResponse)
+async def create_page_with_database(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    validated_params = CreatePageWithDatabaseParams(**params)
+    return service.create_page_with_database(validated_params.page, validated_params.database)
+
 @router.post("/get_users", response_model=ApiResponse)
 @schema(input_schema_class=GetUsersParams, output_schema_class=GetUsersResponse)
 async def get_users(
@@ -172,5 +209,40 @@ async def get_user(
 ):
     validated_params = GetUserParams(**params)
     return service.get_user(validated_params.user_id)
+
+@router.post("/debug_append_block_children", response_model=Dict[str, Any])
+async def debug_append_block_children(
+    params: Dict[str, Any] = Body(...),
+    service: NotionService = Depends(get_notion_service)
+):
+    """
+    Debug endpoint to examine how blocks are serialized before sending to Notion API.
+    Does not actually make the API call, just returns the serialized children for inspection.
+    """
+    try:
+        # Extract the same parameters as the real endpoint
+        block_id = params.get("block_id", "")
+        children = params.get("children", [])
+        
+        # Process blocks through serializer but don't send to API
+        serializable_children = []
+        for child in children:
+            serialized_child = service._serialize_block(child)
+            serializable_children.append(serialized_child)
+            
+        # Return both original and serialized for comparison
+        return {
+            "status": "debug_only",
+            "original_params": params,
+            "serialized_children": serializable_children,
+            "notion_api_payload": {"children": serializable_children}
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 apply_error_handler_to_router(router)
