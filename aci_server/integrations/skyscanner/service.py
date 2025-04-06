@@ -1,37 +1,29 @@
-from typing import Dict, Any, List, Optional, Union
 import os
+from typing import Dict, Any
 from .client import SkyscannerClient
 from .schema import (
-    SearchOneWayParams,
+    SearchEverywhereParams,
+    SearchEverywhereData,
     SearchRoundtripParams,
-    SearchMultiCityParams,
-    FlightDetailsParams,
+    SearchRoundtripData,
+    SearchOneWayParams,
+    SearchOneWayData,
+    FlightDetailParams,
+    FlightDetailData,
     PriceCalendarParams,
+    PriceCalendarData,
     PriceCalendarReturnParams,
     CheapestOneWayParams,
-    SearchOneWayResponse,
-    SearchRoundtripResponse,
-    SearchMultiCityResponse,
-    FlightDetailsResponse,
-    PriceCalendarResponse,
-    PriceCalendarReturnResponse,
-    CheapestOneWayResponse,
-    ApiResponse,
-    SearchOneWayData,
-    SearchRoundtripData,
-    SearchMultiCityData,
-    FlightDetailsData,
-    PriceCalendarData,
-    PriceCalendarReturnData,
     CheapestOneWayData,
     HotelSearchParams,
-    HotelSearchResponse,
+    HotelSearchData,
     HotelDetailParams,
-    HotelDetailResponse,
+    HotelDetailData,
     HotelPricesParams,
-    HotelPricesResponse,
+    HotelPricesData,
     HotelReviewsParams,
-    HotelReviewsResponse
+    HotelReviewsData,
+    ApiResponse
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -49,139 +41,137 @@ class SkyscannerService:
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
-    def search_one_way(self, params: SearchOneWayParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.search_one_way(processed_params)
+    def search_everywhere(self, params: SearchEverywhereParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
         
-        validated_data = SearchOneWayData(**response)
+        response = self.client.search_everywhere(processed_params)
         
-        return self.prepare_response(validated_data, "FlightSearchResults")
-    
+        if 'everywhereDestination' in response and 'results' in response['everywhereDestination']:
+            results = response['everywhereDestination']['results']
+            if len(results) > params.maxResult:
+                response['everywhereDestination']['results'] = results[:params.maxResult]
+                if 'context' in response['everywhereDestination']:
+                    response['everywhereDestination']['context']['totalResults'] = params.maxResult
+        
+        validated_data = SearchEverywhereData(**response)
+        
+        return self.prepare_response(validated_data, "FlightEverywhereResults")
+        
     def search_roundtrip(self, params: SearchRoundtripParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
+        processed_params = params.model_dump(exclude_none=True)
+        
         response = self.client.search_roundtrip(processed_params)
+        
+        if 'data' in response and 'itineraries' in response['data']:
+            itineraries = response['data']['itineraries']
+            if len(itineraries) > params.maxResult:
+                response['data']['itineraries'] = itineraries[:params.maxResult]
+                if 'context' in response['data']:
+                    response['data']['context']['totalResults'] = params.maxResult
         
         validated_data = SearchRoundtripData(**response)
         
-        return self.prepare_response(validated_data, "FlightSearchResults")
-    
-    def search_multi_city(self, params: SearchMultiCityParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.search_multi_city(processed_params)
+        return self.prepare_response(validated_data, "FlightRoundtripResults")
         
-        validated_data = SearchMultiCityData(**response)
+    def search_one_way(self, params: SearchOneWayParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
         
-        return self.prepare_response(validated_data, "FlightSearchResults")
-    
-    def price_calendar(self, params: PriceCalendarParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.price_calendar(processed_params)
+        response = self.client.search_one_way(processed_params)
+        
+        if 'data' in response and 'itineraries' in response['data']:
+            itineraries = response['data']['itineraries']
+            if len(itineraries) > params.maxResult:
+                response['data']['itineraries'] = itineraries[:params.maxResult]
+                if 'context' in response['data']:
+                    response['data']['context']['totalResults'] = params.maxResult
+        
+        validated_data = SearchOneWayData(**response)
+        
+        return self.prepare_response(validated_data, "FlightOneWayResults")
+        
+    def get_flight_detail(self, params: FlightDetailParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        
+        response = self.client.get_flight_detail(processed_params)
+        
+        validated_data = FlightDetailData(**response)
+        
+        return self.prepare_response(validated_data, "FlightDetailResults")
+        
+    def get_price_calendar(self, params: PriceCalendarParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        
+        response = self.client.get_price_calendar(processed_params)
         
         validated_data = PriceCalendarData(**response)
         
-        return self.prepare_response(validated_data, "PriceCalendar")
-    
-    def price_calendar_return(self, params: PriceCalendarReturnParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.price_calendar_return(processed_params)
+        return self.prepare_response(validated_data, "PriceCalendarResults")
+
+    def get_price_calendar_return(self, params: PriceCalendarReturnParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
         
-        validated_data = PriceCalendarReturnData(**response)
+        response = self.client.get_price_calendar_return(processed_params)
         
-        return self.prepare_response(validated_data, "PriceCalendar")
-    
-    def cheapest_one_way(self, params: CheapestOneWayParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.cheapest_one_way(processed_params)
+        validated_data = PriceCalendarData(**response)
+        
+        return self.prepare_response(validated_data, "PriceCalendarReturnResults")
+
+    def get_cheapest_one_way(self, params: CheapestOneWayParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        
+        response = self.client.get_cheapest_one_way(processed_params)
         
         validated_data = CheapestOneWayData(**response)
         
-        return self.prepare_response(validated_data, "CheapestOneWay")
-    
-    def flight_details(self, params: FlightDetailsParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
-        response = self.client.flight_details(processed_params)
-        
-        validated_data = FlightDetailsData(**response)
-        
-        return self.prepare_response(validated_data, "FlightDetails")
-    
+        return self.prepare_response(validated_data, "CheapestOneWayResults")
+
     def search_hotels(self, params: HotelSearchParams) -> ApiResponse:
-        """
-        Search for hotels using the Skyscanner API
-        
-        Args:
-            params: Validated parameters for hotel search
-            
-        Returns:
-            API response with hotel search results
-        """
-        # Convert params to dict and exclude None values
         processed_params = params.model_dump(exclude_none=True)
         
-        # Call the client with polling
+        # Remove maxResult from API call params but keep for limiting results
+        max_results = processed_params.pop('maxResult', 5) if 'maxResult' in processed_params else 5
+        
         response = self.client.search_hotels(processed_params)
         
-        # Validate response against expected format
-        validated_response = HotelSearchResponse(**response)
+        # Limit results if needed
+        if 'data' in response and 'results' in response['data'] and 'hotelCards' in response['data']['results']:
+            hotel_cards = response['data']['results']['hotelCards']
+            if len(hotel_cards) > max_results:
+                response['data']['results']['hotelCards'] = hotel_cards[:max_results]
+                # Update searchSummary if present
+                if 'searchSummary' in response['data']['results']:
+                    if 'filteredTotal' in response['data']['results']['searchSummary']:
+                        response['data']['results']['searchSummary']['filteredTotal'] = max_results
+                    if 'resultsSummary' in response['data']['results']['searchSummary']:
+                        response['data']['results']['searchSummary']['resultsSummary'] = f"{max_results} places to stay"
         
-        # Prepare and return the API response
-        return self.prepare_response(validated_response, "HotelSearchResults")
-    
-    def hotel_detail(self, params: HotelDetailParams) -> ApiResponse:
+        validated_data = HotelSearchData(**response)
+        
+        return self.prepare_response(validated_data, "HotelSearchResults")
+
+    def get_hotel_detail(self, params: HotelDetailParams) -> ApiResponse:
         processed_params = params.model_dump(exclude_none=True)
         
-        # Call the client
-        response = self.client.hotel_detail(processed_params)
+        response = self.client.get_hotel_detail(processed_params)
         
-        # Validate response against expected format
-        validated_response = HotelDetailResponse(**response)
+        validated_data = HotelDetailData(**response)
         
-        # Prepare and return the API response
-        return self.prepare_response(validated_response, "HotelDetail")
-    
-    def hotel_prices(self, params: HotelPricesParams) -> ApiResponse:
-        """
-        Get pricing information for a specific hotel
-        
-        Args:
-            params: Validated parameters for hotel prices request
-            
-        Returns:
-            API response with hotel pricing details
-        """
-        # Convert params to dict and exclude None values
+        return self.prepare_response(validated_data, "HotelDetailResults")
+
+    def get_hotel_prices(self, params: HotelPricesParams) -> ApiResponse:
         processed_params = params.model_dump(exclude_none=True)
         
-        # Call the client
-        response = self.client.hotel_prices(processed_params)
+        response = self.client.get_hotel_prices(processed_params)
         
-        # Validate response against expected format
-        validated_response = HotelPricesResponse(**response)
+        validated_data = HotelPricesData(**response)
         
-        # Prepare and return the API response
-        return self.prepare_response(validated_response, "HotelPrices")
-    
-    def hotel_reviews(self, params: HotelReviewsParams) -> ApiResponse:
-        """
-        Get reviews for a specific hotel
-        
-        Args:
-            params: Validated parameters for hotel reviews request
-            
-        Returns:
-            API response with hotel reviews
-        """
-        # Convert params to dict and exclude None values
+        return self.prepare_response(validated_data, "HotelPricesResults")
+
+    def get_hotel_reviews(self, params: HotelReviewsParams) -> ApiResponse:
         processed_params = params.model_dump(exclude_none=True)
         
-        # Call the client
-        response = self.client.hotel_reviews(processed_params)
+        response = self.client.get_hotel_reviews(processed_params)
         
-        # Validate response against expected format
-        validated_response = HotelReviewsResponse(**response)
+        validated_data = HotelReviewsData(**response)
         
-        # Prepare and return the API response
-        return self.prepare_response(validated_response, "HotelReviews")
-    
-    def _process_search_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        return params.model_dump(exclude_none=True)
+        return self.prepare_response(validated_data, "HotelReviewsResults")

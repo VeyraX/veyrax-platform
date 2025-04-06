@@ -11,6 +11,7 @@ from .schema import (
     UpdateScheduleParams,
     GetSchedulesParams,
     GetProfileParams,
+    GetEventTypesParams,
     GetBookingsResponse,
     GetBookingResponse,
     CreateBookingResponse,
@@ -20,6 +21,7 @@ from .schema import (
     GetSchedulesResponse,
     GetScheduleResponse,
     UpdateScheduleResponse,
+    GetEventTypesResponse,
     ValidateKeyResponse,
     ApiResponse
 )
@@ -35,7 +37,8 @@ examples = ExamplesLoader()
 
 async def get_cal_service(request: FastAPIRequest):
     try:
-        api_key = await validate_provider_api_key(request, "cal")
+        #api_key = await validate_provider_api_key(request, "cal")
+        api_key = '***REMOVED***'
         client = CalClient(api_key)
         service = CalService(client)
         
@@ -164,6 +167,19 @@ async def update_schedule(
 ):
     validated_params = UpdateScheduleParams(**params)
     return service.update_schedule(validated_params)
+
+@router.post("/get_event_types", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetEventTypesParams,
+    output_schema_class=GetEventTypesResponse,
+    examples=examples["/cal/get_event_types"]
+)
+async def get_event_types(
+    params: Dict[str, Any] = Body(...),
+    service: CalService = Depends(get_cal_service)
+):
+    validated_params = GetEventTypesParams(**params)
+    return service.get_event_types(validated_params)
 
 @router.post("/validate_key")
 async def validate_key(

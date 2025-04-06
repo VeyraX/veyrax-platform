@@ -1,7 +1,5 @@
 import requests
-import time
-from typing import Dict, Any, List, Optional
-from urllib.parse import urlencode
+from typing import Dict, Any
 
 class SkyscannerClient:
     BASE_URL = "https://sky-scanner3.p.rapidapi.com"
@@ -13,9 +11,18 @@ class SkyscannerClient:
             "x-rapidapi-key": api_key,
             "Content-Type": "application/json"
         }
-
-    def search_one_way(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.BASE_URL}/flights/search-one-way"
+    
+    def search_everywhere(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Search for flights to all destinations from a specific location.
+        
+        Args:
+            params: Search parameters including fromEntityId
+            
+        Returns:
+            Dictionary containing search results with destinations and prices
+        """
+        url = f"{self.BASE_URL}/flights/search-everywhere"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
         
@@ -39,21 +46,21 @@ class SkyscannerClient:
         )
         response.raise_for_status()
         return response.json()
-    
-    def search_multi_city(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.BASE_URL}/flights/search-multi-city"
+        
+    def search_one_way(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"{self.BASE_URL}/flights/search-one-way"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
         
-        response = requests.post(
+        response = requests.get(
             url,
             headers=self.headers,
-            json=cleaned_params
+            params=cleaned_params
         )
         response.raise_for_status()
         return response.json()
-    
-    def flight_details(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        
+    def get_flight_detail(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/flights/detail"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
@@ -65,8 +72,8 @@ class SkyscannerClient:
         )
         response.raise_for_status()
         return response.json()
-    
-    def price_calendar(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        
+    def get_price_calendar(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/flights/price-calendar"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
@@ -79,7 +86,7 @@ class SkyscannerClient:
         response.raise_for_status()
         return response.json()
     
-    def price_calendar_return(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def get_price_calendar_return(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/flights/price-calendar-return"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
@@ -92,7 +99,7 @@ class SkyscannerClient:
         response.raise_for_status()
         return response.json()
     
-    def cheapest_one_way(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def get_cheapest_one_way(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/flights/cheapest-one-way"
         
         cleaned_params = {k: v for k, v in params.items() if v is not None}
@@ -104,78 +111,55 @@ class SkyscannerClient:
         )
         response.raise_for_status()
         return response.json()
-
-    def search_hotels(self, params: Dict[str, Any], max_attempts: int = 5, poll_interval: int = 2) -> Dict[str, Any]:
+    
+    def search_hotels(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/hotels/search"
         
-        query_string = urlencode({k: v for k, v in params.items() if v is not None})
-        response = requests.get(f"{url}?{query_string}", headers=self.headers)
-        response.raise_for_status()
-        result = response.json()
+        cleaned_params = {k: v for k, v in params.items() if v is not None}
         
-        response = requests.get(f"{url}?{query_string}", headers=self.headers)
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=cleaned_params
+        )
         response.raise_for_status()
-        result = response.json()
-        
-        return result
-
-    def hotel_detail(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.BASE_URL}/hotels/detail"
-
-        query_string = urlencode({k: v for k, v in params.items() if v is not None})
-        response = requests.get(f"{url}?{query_string}", headers=self.headers)
-        response.raise_for_status()
-        
         return response.json()
-
-    def hotel_prices(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Get pricing information for a specific hotel
+    
+    def get_hotel_detail(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        url = f"{self.BASE_URL}/hotels/detail"
         
-        Args:
-            params: Dictionary containing the hotel ID, check-in/check-out dates, and optional parameters
-            
-        Returns:
-            Hotel prices response
-        """
+        cleaned_params = {k: v for k, v in params.items() if v is not None}
+        
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=cleaned_params
+        )
+        response.raise_for_status()
+        return response.json()
+    
+    def get_hotel_prices(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/hotels/prices"
         
-        # Include specific headers if cookie is provided
-        headers = self.headers.copy()
-        if "cookie" in params and params["cookie"]:
-            headers["cookie"] = params["cookie"]
-            # Remove cookie from params as it's not a query parameter
-            cookie = params.pop("cookie")
+        cleaned_params = {k: v for k, v in params.items() if v is not None}
         
-        # Make the request
-        query_string = urlencode({k: v for k, v in params.items() if v is not None})
-        response = requests.get(f"{url}?{query_string}", headers=headers)
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=cleaned_params
+        )
         response.raise_for_status()
-        
         return response.json()
-
-    def hotel_reviews(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Get reviews for a specific hotel
-        
-        Args:
-            params: Dictionary containing the hotel ID and optional filtering/sorting parameters
-            
-        Returns:
-            Hotel reviews response
-        """
+    
+    def get_hotel_reviews(self, params: Dict[str, Any]) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/hotels/reviews"
         
-        # Include specific headers if cookie is provided
-        headers = self.headers.copy()
-        if "cookie" in params and params["cookie"]:
-            headers["cookie"] = params["cookie"]
-            # Remove cookie from params as it's not a query parameter
-            cookie = params.pop("cookie")
+        cleaned_params = {k: v for k, v in params.items() if v is not None}
         
-        # Make the request
-        query_string = urlencode({k: v for k, v in params.items() if v is not None})
-        response = requests.get(f"{url}?{query_string}", headers=headers)
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=cleaned_params
+        )
         response.raise_for_status()
-        
         return response.json()

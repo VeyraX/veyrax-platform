@@ -1,843 +1,630 @@
 routes:
-  - endpoint: /skyscanner/search_one_way
+  - endpoint: /skyscanner/search_everywhere
     examples:
-      - scenario: "One-Way Flight Search"
-        description: "Search for one-way flights from Paris with economy class"
+      - scenario: "Search Flights to Everywhere"
+        description: "Search for flight options to all destinations from New York"
         input_json: |
           {
-            "fromEntityId": "PARI",
-            "toEntityId": "NYCA",
-            "departDate": "2024-07-15",
-            "cabinClass": "economy",
-            "adults": 1,
-            "children": 0,
-            "infants": 0
+            "fromEntityId": "NYCA",
+            "type": "oneway",
+            "maxResult": 5
           }
         output_json: |
           {
             "data": {
-              "context": {
-                "status": "complete",
-                "sessionId": "abc123xyz",
-                "totalResults": 35,
-                "itineraries": {
-                  "items": [
-                    {
-                      "id": "flight-001",
-                      "price": {
-                        "amount": 458.75,
-                        "currency": "USD",
-                        "formattedPrice": "$458.75"
-                      },
-                      "legs": [
-                        {
-                          "origin": {
-                            "id": "CDG",
-                            "name": "Charles de Gaulle Airport",
-                            "cityName": "Paris"
-                          },
-                          "destination": {
-                            "id": "JFK",
-                            "name": "John F. Kennedy International Airport",
-                            "cityName": "New York"
-                          },
-                          "departure": "2024-07-15T10:30:00",
-                          "arrival": "2024-07-15T13:45:00",
-                          "duration": 530,
-                          "carrier": {
-                            "id": -32753,
-                            "name": "Air France",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png"
-                          },
-                          "flightNumber": "AF123"
-                        }
-                      ]
-                    }
-                  ]
+              "everywhereDestination": {
+                "context": {
+                  "status": "complete",
+                  "sessionId": "UNFOCUSED_SESSION_ID",
+                  "totalResults": 94
                 },
-                "messages": [],
-                "filterStats": {
-                  "duration": {
-                    "min": 530,
-                    "max": 1850,
-                    "multiCityMin": 530,
-                    "multiCityMax": 1850
-                  },
-                  "airports": [
-                    {
-                      "city": "Paris",
-                      "airports": [
-                        {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport"
+                "features": {
+                  "flightsIndicative": "AVAILABLE",
+                  "images": "AVAILABLE",
+                  "ads": "AVAILABLE"
+                },
+                "buckets": [
+                  {
+                    "id": "CHEAPEST_FLIGHTS",
+                    "label": "Cheapest flights",
+                    "category": "NON_CATEGORIZED",
+                    "resultIds": [
+                      "location-29475437",
+                      "location-29475085",
+                      "location-29475418",
+                      "location-29475409",
+                      "location-29475436"
+                    ],
+                    "flightQuotes": "cheapest",
+                    "hotelQuotes": "standard"
+                  }
+                ],
+                "results": [
+                  {
+                    "id": "eyJlIjoiMjk0NzU0MzciLCJzIjoiVVMifQ==",
+                    "type": "LOCATION",
+                    "content": {
+                      "location": {
+                        "id": "29475437",
+                        "skyCode": "US",
+                        "name": "United States",
+                        "type": "Nation"
+                      },
+                      "flightQuotes": {
+                        "cheapest": {
+                          "price": "$18",
+                          "direct": true
                         },
-                        {
-                          "id": "ORY",
-                          "name": "Orly Airport"
+                        "direct": {
+                          "price": "$18",
+                          "direct": true
                         }
-                      ]
+                      },
+                      "image": {
+                        "url": "https://content.skyscnr.com/12b715db2fe88a58ee57ae99b985b32a/GettyImages-153734070.jpg"
+                      }
                     }
-                  ],
-                  "carriers": [
-                    {
-                      "id": -32753,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png",
-                      "name": "Air France"
-                    },
-                    {
-                      "id": -32695,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png",
-                      "name": "Delta Air Lines"
-                    }
-                  ],
-                  "stopPrices": {
-                    "direct": {
-                      "isPresent": true
-                    },
-                    "one": {
-                      "isPresent": true,
-                      "formattedPrice": "$399.99"
-                    },
-                    "twoOrMore": {
-                      "isPresent": true,
-                      "formattedPrice": "$350.50"
+                  },
+                  {
+                    "id": "eyJlIjoiMjk0NzUwODUiLCJzIjoiUFIifQ==",
+                    "type": "LOCATION",
+                    "content": {
+                      "location": {
+                        "id": "29475085",
+                        "skyCode": "PR",
+                        "name": "Puerto Rico",
+                        "type": "Nation"
+                      },
+                      "flightQuotes": {
+                        "cheapest": {
+                          "price": "$54",
+                          "direct": true
+                        },
+                        "direct": {
+                          "price": "$54",
+                          "direct": true
+                        }
+                      },
+                      "image": {
+                        "url": "https://content.skyscnr.com/m/60b0a9f4bc25015a/original/Garita-Old-San-Juan.jpg"
+                      }
                     }
                   }
-                },
-                "flightsSessionId": "fs-abc123xyz",
-                "destinationImageUrl": "https://content.skyscnr.com/m/77e9d11a56ede5c3/original/GettyImages-173635296.jpg",
-                "token": "token-abc123"
+                ]
               },
-              "status": true,
-              "message": "Success"
-            },
-            "component": {
-              "name": "FlightSearchResults"
-            }
-          }
-
-      - scenario: "Budget One-Way Flight Search with Stops Filter"
-        description: "Search for direct one-way budget flights from Paris to anywhere in the US"
-        input_json: |
-          {
-            "fromEntityId": "PARI",
-            "toEntityId": "US",
-            "departDate": "2024-08-01",
-            "cabinClass": "economy",
-            "stops": "direct",
-            "sort": "cheapest_first"
-          }
-        output_json: |
-          {
-            "data": {
               "context": {
                 "status": "complete",
-                "sessionId": "def456abc",
-                "totalResults": 20,
-                "itineraries": {
-                  "items": [
-                    {
-                      "id": "flight-002",
-                      "price": {
-                        "amount": 356.50,
-                        "currency": "USD",
-                        "formattedPrice": "$356.50"
-                      },
-                      "legs": [
-                        {
-                          "origin": {
-                            "id": "ORY",
-                            "name": "Orly Airport",
-                            "cityName": "Paris"
-                          },
-                          "destination": {
-                            "id": "BOS",
-                            "name": "Boston Logan International Airport",
-                            "cityName": "Boston"
-                          },
-                          "departure": "2024-08-01T08:15:00",
-                          "arrival": "2024-08-01T10:35:00",
-                          "duration": 440,
-                          "carrier": {
-                            "id": -32680,
-                            "name": "Norse Atlantic Airways",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/N0.png"
-                          },
-                          "flightNumber": "N0501"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "messages": [],
-                "filterStats": {
-                  "duration": {
-                    "min": 440,
-                    "max": 720,
-                    "multiCityMin": 440,
-                    "multiCityMax": 720
-                  },
-                  "airports": [
-                    {
-                      "city": "Paris",
-                      "airports": [
-                        {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport"
-                        },
-                        {
-                          "id": "ORY",
-                          "name": "Orly Airport"
-                        }
-                      ]
-                    }
-                  ],
-                  "carriers": [
-                    {
-                      "id": -32680,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/N0.png",
-                      "name": "Norse Atlantic Airways"
-                    }
-                  ],
-                  "stopPrices": {
-                    "direct": {
-                      "isPresent": true
-                    },
-                    "one": {
-                      "isPresent": false
-                    },
-                    "twoOrMore": {
-                      "isPresent": false
-                    }
-                  }
-                },
-                "flightsSessionId": "fs-def456",
-                "destinationImageUrl": "https://content.skyscnr.com/m/7a946bf563a61337/original/GettyImages-479404218.jpg",
-                "token": "token-def456"
+                "sessionId": "UNFOCUSED_SESSION_ID",
+                "totalResults": 0
               },
               "status": true,
-              "message": "Success"
+              "message": "Successful"
             },
             "component": {
-              "name": "FlightSearchResults"
+              "name": "FlightEverywhereResults"
             }
           }
-
+          
   - endpoint: /skyscanner/search_roundtrip
     examples:
-      - scenario: "Round-Trip Flight Search"
-        description: "Search for round-trip flights from Paris to New York"
+      - scenario: "Search Roundtrip Flights Between Locations"
+        description: "Search for roundtrip flight options from Paris to a specific destination"
         input_json: |
           {
             "fromEntityId": "PARI",
             "toEntityId": "NYCA",
-            "departDate": "2024-07-15",
-            "returnDate": "2024-07-25",
+            "departDate": "2024-09-15",
+            "returnDate": "2024-09-22",
             "cabinClass": "economy",
-            "adults": 1
-          }
-        output_json: |
-          {
-            "data": {
-              "context": {
-                "status": "complete",
-                "sessionId": "ghi789xyz",
-                "totalResults": 42,
-                "itineraries": {
-                  "items": [
-                    {
-                      "id": "flight-003",
-                      "price": {
-                        "amount": 752.50,
-                        "currency": "USD",
-                        "formattedPrice": "$752.50"
-                      },
-                      "legs": [
-                        {
-                          "origin": {
-                            "id": "CDG",
-                            "name": "Charles de Gaulle Airport",
-                            "cityName": "Paris"
-                          },
-                          "destination": {
-                            "id": "JFK",
-                            "name": "John F. Kennedy International Airport",
-                            "cityName": "New York"
-                          },
-                          "departure": "2024-07-15T11:30:00",
-                          "arrival": "2024-07-15T14:45:00",
-                          "duration": 530,
-                          "carrier": {
-                            "id": -32753,
-                            "name": "Air France",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png"
-                          },
-                          "flightNumber": "AF123"
-                        },
-                        {
-                          "origin": {
-                            "id": "JFK",
-                            "name": "John F. Kennedy International Airport",
-                            "cityName": "New York"
-                          },
-                          "destination": {
-                            "id": "CDG",
-                            "name": "Charles de Gaulle Airport",
-                            "cityName": "Paris"
-                          },
-                          "departure": "2024-07-25T18:30:00",
-                          "arrival": "2024-07-26T07:45:00",
-                          "duration": 470,
-                          "carrier": {
-                            "id": -32695,
-                            "name": "Delta Air Lines",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png"
-                          },
-                          "flightNumber": "DL456"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "messages": [],
-                "filterStats": {
-                  "duration": {
-                    "min": 470,
-                    "max": 1850,
-                    "multiCityMin": 470,
-                    "multiCityMax": 1850
-                  },
-                  "airports": [
-                    {
-                      "city": "Paris",
-                      "airports": [
-                        {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport"
-                        },
-                        {
-                          "id": "ORY",
-                          "name": "Orly Airport"
-                        }
-                      ]
-                    },
-                    {
-                      "city": "New York",
-                      "airports": [
-                        {
-                          "id": "JFK",
-                          "name": "John F. Kennedy International Airport"
-                        },
-                        {
-                          "id": "EWR",
-                          "name": "Newark Liberty International Airport"
-                        },
-                        {
-                          "id": "LGA",
-                          "name": "LaGuardia Airport"
-                        }
-                      ]
-                    }
-                  ],
-                  "carriers": [
-                    {
-                      "id": -32753,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png",
-                      "name": "Air France"
-                    },
-                    {
-                      "id": -32695,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png",
-                      "name": "Delta Air Lines"
-                    }
-                  ],
-                  "stopPrices": {
-                    "direct": {
-                      "isPresent": true
-                    },
-                    "one": {
-                      "isPresent": true,
-                      "formattedPrice": "$650.99"
-                    },
-                    "twoOrMore": {
-                      "isPresent": true,
-                      "formattedPrice": "$580.50"
-                    }
-                  }
-                },
-                "flightsSessionId": "fs-ghi789xyz",
-                "destinationImageUrl": "https://content.skyscnr.com/m/77e9d11a56ede5c3/original/GettyImages-173635296.jpg",
-                "token": "token-ghi789"
-              },
-              "status": true,
-              "message": "Success"
-            },
-            "component": {
-              "name": "FlightSearchResults"
-            }
-          }
-
-      - scenario: "Budget Round-Trip Flight Search for Entire Month"
-        description: "Search for budget round-trip flights from Paris to Rome for a specific month"
-        input_json: |
-          {
-            "fromEntityId": "PARI",
-            "toEntityId": "ROME",
-            "wholeMonthDepart": "2024-08",
-            "wholeMonthReturn": "2024-09",
-            "cabinClass": "economy",
-            "sort": "cheapest_first"
-          }
-        output_json: |
-          {
-            "data": {
-              "context": {
-                "status": "complete",
-                "sessionId": "jkl012abc",
-                "totalResults": 28,
-                "itineraries": {
-                  "items": [
-                    {
-                      "id": "flight-004",
-                      "price": {
-                        "amount": 175.25,
-                        "currency": "USD",
-                        "formattedPrice": "$175.25"
-                      },
-                      "legs": [
-                        {
-                          "origin": {
-                            "id": "ORY",
-                            "name": "Orly Airport",
-                            "cityName": "Paris"
-                          },
-                          "destination": {
-                            "id": "FCO",
-                            "name": "Leonardo da Vinci International Airport",
-                            "cityName": "Rome"
-                          },
-                          "departure": "2024-08-12T06:20:00",
-                          "arrival": "2024-08-12T08:30:00",
-                          "duration": 130,
-                          "carrier": {
-                            "id": -32670,
-                            "name": "Ryanair",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/FR.png"
-                          },
-                          "flightNumber": "FR701"
-                        },
-                        {
-                          "origin": {
-                            "id": "FCO",
-                            "name": "Leonardo da Vinci International Airport",
-                            "cityName": "Rome"
-                          },
-                          "destination": {
-                            "id": "ORY",
-                            "name": "Orly Airport",
-                            "cityName": "Paris"
-                          },
-                          "departure": "2024-09-05T12:15:00",
-                          "arrival": "2024-09-05T14:25:00",
-                          "duration": 130,
-                          "carrier": {
-                            "id": -32670,
-                            "name": "Ryanair",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/FR.png"
-                          },
-                          "flightNumber": "FR702"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "messages": [],
-                "filterStats": {
-                  "duration": {
-                    "min": 130,
-                    "max": 420,
-                    "multiCityMin": 130,
-                    "multiCityMax": 420
-                  },
-                  "airports": [
-                    {
-                      "city": "Paris",
-                      "airports": [
-                        {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport"
-                        },
-                        {
-                          "id": "ORY",
-                          "name": "Orly Airport"
-                        }
-                      ]
-                    },
-                    {
-                      "city": "Rome",
-                      "airports": [
-                        {
-                          "id": "FCO",
-                          "name": "Leonardo da Vinci International Airport"
-                        },
-                        {
-                          "id": "CIA",
-                          "name": "Rome Ciampino Airport"
-                        }
-                      ]
-                    }
-                  ],
-                  "carriers": [
-                    {
-                      "id": -32670,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/FR.png",
-                      "name": "Ryanair"
-                    },
-                    {
-                      "id": -32660,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/VY.png",
-                      "name": "Vueling"
-                    }
-                  ],
-                  "stopPrices": {
-                    "direct": {
-                      "isPresent": true
-                    },
-                    "one": {
-                      "isPresent": true,
-                      "formattedPrice": "$210.99"
-                    },
-                    "twoOrMore": {
-                      "isPresent": false
-                    }
-                  }
-                },
-                "flightsSessionId": "fs-jkl012abc",
-                "destinationImageUrl": "https://content.skyscnr.com/m/12345abcdef/original/Rome-Italy.jpg",
-                "token": "token-jkl012"
-              },
-              "status": true,
-              "message": "Success"
-            },
-            "component": {
-              "name": "FlightSearchResults"
-            }
-          }
-
-  - endpoint: /skyscanner/search_multi_city
-    examples:
-      - scenario: "Multi-City Trip Search"
-        description: "Search for multi-city flights with specific airlines and stops preferences"
-        input_json: |
-          {
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD",
             "adults": 1,
             "children": 0,
             "infants": 0,
-            "cabinClass": "economy",
-            "stops": ["direct", "1stop", "2stops"],
-            "sort": "cheapest_first",
-            "airlines": [-32753, -32695],
-            "flights": [
-              {
-                "fromEntityId": "BCN",
-                "toEntityId": "NUE",
-                "departDate": "2024-06-21"
+            "maxResult": 5
+          }
+        output_json: |
+          {
+            "data": {
+                "context": {
+                  "status": "complete",
+                "sessionId": "12345678-1234-1234-1234-123456789012",
+                "totalResults": 124
               },
-              {
-                "fromEntityId": "PARI",
-                "toEntityId": "MSYA",
-                "departDate": "2024-06-28"
-              }
-            ]
+              "itineraries": [
+                {
+                  "id": "it_12345",
+                  "legs": [
+                    {
+                      "id": "leg_12345_outbound",
+                      "origin": {
+                        "id": "CDG",
+                        "name": "Charles de Gaulle",
+                        "cityName": "Paris",
+                        "cityCode": "PAR"
+                      },
+                      "destination": {
+                        "id": "JFK",
+                        "name": "John F. Kennedy International",
+                        "cityName": "New York",
+                        "cityCode": "NYC"
+                      },
+                      "departureDateTime": {
+                        "year": 2024,
+                        "month": 9,
+                        "day": 15,
+                        "hour": 10,
+                        "minute": 30,
+                        "second": 0
+                      },
+                      "arrivalDateTime": {
+                        "year": 2024,
+                        "month": 9,
+                        "day": 15,
+                        "hour": 13,
+                        "minute": 0,
+                        "second": 0
+                      },
+                      "durationInMinutes": 490,
+                      "stopCount": 0,
+                      "segments": [
+                        {
+                          "id": "seg_12345",
+                          "originStationCode": "CDG",
+                          "destinationStationCode": "JFK",
+                          "departureDateTime": "2024-09-15T10:30:00",
+                          "arrivalDateTime": "2024-09-15T13:00:00",
+                          "flightNumber": "AF123",
+                          "marketingCarrier": {
+                            "id": -32385,
+                            "name": "Air France",
+                            "alternateId": "AF",
+                            "allianceId": -31999
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "leg_12345_return",
+                      "origin": {
+                        "id": "JFK",
+                        "name": "John F. Kennedy International",
+                        "cityName": "New York",
+                        "cityCode": "NYC"
+                      },
+                      "destination": {
+                        "id": "CDG",
+                        "name": "Charles de Gaulle",
+                        "cityName": "Paris",
+                        "cityCode": "PAR"
+                      },
+                      "departureDateTime": {
+                        "year": 2024,
+                        "month": 9,
+                        "day": 22,
+                        "hour": 19,
+                        "minute": 15,
+                        "second": 0
+                      },
+                      "arrivalDateTime": {
+                        "year": 2024,
+                        "month": 9,
+                        "day": 23,
+                        "hour": 8,
+                        "minute": 45,
+                        "second": 0
+                      },
+                      "durationInMinutes": 450,
+                      "stopCount": 0,
+                      "segments": [
+                        {
+                          "id": "seg_67890",
+                          "originStationCode": "JFK",
+                          "destinationStationCode": "CDG",
+                          "departureDateTime": "2024-09-22T19:15:00",
+                          "arrivalDateTime": "2024-09-23T08:45:00",
+                          "flightNumber": "AF456",
+                          "marketingCarrier": {
+                            "id": -32385,
+                            "name": "Air France",
+                            "alternateId": "AF",
+                            "allianceId": -31999
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "price": {
+                    "totalAmount": 895.23,
+                    "totalAmountUsd": 895.23,
+                    "formattedPrice": "$895.23"
+                  }
+                }
+              ],
+              "filterStats": {
+                "duration": {
+                  "min": 450,
+                  "max": 1800
+                },
+                "carriers": [
+                  {
+                    "id": -32385,
+                    "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png",
+                    "name": "Air France"
+                  }
+                ],
+                "stopPrices": {
+                  "direct": {
+                    "isPresent": true,
+                    "formattedPrice": "$895.23"
+                  },
+                  "one": {
+                    "isPresent": true,
+                    "formattedPrice": "$750.12"
+                  },
+                  "twoOrMore": {
+                    "isPresent": true,
+                    "formattedPrice": "$702.45"
+                  }
+                }
+              },
+              "status": true,
+              "message": "Successful"
+            },
+            "component": {
+              "name": "FlightRoundtripResults"
+            }
+          }
+          
+  - endpoint: /skyscanner/search_one_way
+    examples:
+      - scenario: "Search One-way Flights Between Locations"
+        description: "Search for one-way flight options from Paris to New York"
+        input_json: |
+          {
+            "fromEntityId": "PARI",
+            "toEntityId": "NYCA",
+            "departDate": "2024-08-15",
+            "cabinClass": "economy",
+            "adults": 1,
+            "maxResult": 5
           }
         output_json: |
           {
             "data": {
               "context": {
                 "status": "complete",
-                "sessionId": "mno345xyz",
-                "totalResults": 15,
-                "itineraries": {
-                  "items": [
+                "sessionId": "34567890-3456-3456-3456-345678901234",
+                "totalResults": 87
+              },
+              "itineraries": [
+                {
+                  "id": "it_67890",
+                  "legs": [
                     {
-                      "id": "flight-005",
-                      "price": {
-                        "amount": 975.30,
-                        "currency": "USD",
-                        "formattedPrice": "$975.30"
+                      "id": "leg_67890_outbound",
+                      "origin": {
+                        "id": "CDG",
+                        "name": "Charles de Gaulle",
+                        "cityName": "Paris",
+                        "cityCode": "PAR"
                       },
-                      "legs": [
+                      "destination": {
+                        "id": "JFK",
+                        "name": "John F. Kennedy International",
+                        "cityName": "New York",
+                        "cityCode": "NYC"
+                      },
+                      "departureDateTime": {
+                        "year": 2024,
+                        "month": 8,
+                        "day": 15,
+                        "hour": 9,
+                        "minute": 45,
+                        "second": 0
+                      },
+                      "arrivalDateTime": {
+                        "year": 2024,
+                        "month": 8,
+                        "day": 15,
+                        "hour": 12,
+                        "minute": 15,
+                        "second": 0
+                      },
+                      "durationInMinutes": 510,
+                      "stopCount": 0,
+                      "segments": [
                         {
-                          "origin": {
-                            "id": "BCN",
-                            "name": "Barcelona-El Prat Airport",
-                            "cityName": "Barcelona"
-                          },
-                          "destination": {
-                            "id": "NUE",
-                            "name": "Nuremberg Airport",
-                            "cityName": "Nuremberg"
-                          },
-                          "departure": "2024-06-21T09:15:00",
-                          "arrival": "2024-06-21T11:35:00",
-                          "duration": 140,
-                          "carrier": {
-                            "id": -32753,
-                            "name": "Air France",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png"
-                          },
-                          "flightNumber": "AF1303"
-                        },
-                        {
-                          "origin": {
-                            "id": "CDG",
-                            "name": "Charles de Gaulle Airport",
-                            "cityName": "Paris"
-                          },
-                          "destination": {
-                            "id": "MSY",
-                            "name": "Louis Armstrong New Orleans International Airport",
-                            "cityName": "New Orleans"
-                          },
-                          "departure": "2024-06-28T13:45:00",
-                          "arrival": "2024-06-28T17:30:00",
-                          "duration": 645,
-                          "carrier": {
-                            "id": -32695,
-                            "name": "Delta Air Lines",
-                            "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png"
-                          },
-                          "flightNumber": "DL9834"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "messages": [],
-                "filterStats": {
-                  "duration": {
-                    "min": 140,
-                    "max": 780,
-                    "multiCityMin": 785,
-                    "multiCityMax": 1425
-                  },
-                  "airports": [
-                    {
-                      "city": "Barcelona",
-                      "airports": [
-                        {
-                          "id": "BCN",
-                          "name": "Barcelona-El Prat Airport"
-                        }
-                      ]
-                    },
-                    {
-                      "city": "Nuremberg",
-                      "airports": [
-                        {
-                          "id": "NUE",
-                          "name": "Nuremberg Airport"
-                        }
-                      ]
-                    },
-                    {
-                      "city": "Paris",
-                      "airports": [
-                        {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport"
-                        },
-                        {
-                          "id": "ORY",
-                          "name": "Orly Airport"
-                        }
-                      ]
-                    },
-                    {
-                      "city": "New Orleans",
-                      "airports": [
-                        {
-                          "id": "MSY",
-                          "name": "Louis Armstrong New Orleans International Airport"
+                          "id": "seg_67890",
+                          "originStationCode": "CDG",
+                          "destinationStationCode": "JFK",
+                          "departureDateTime": "2024-08-15T09:45:00",
+                          "arrivalDateTime": "2024-08-15T12:15:00",
+                          "flightNumber": "DL123",
+                          "marketingCarrier": {
+                            "id": -32353,
+                            "name": "Delta",
+                            "alternateId": "DL",
+                            "allianceId": -31999
+                          }
                         }
                       ]
                     }
                   ],
-                  "carriers": [
-                    {
-                      "id": -32753,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png",
-                      "name": "Air France"
-                    },
-                    {
-                      "id": -32695,
-                      "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png",
-                      "name": "Delta Air Lines"
-                    }
-                  ],
-                  "stopPrices": {
-                    "direct": {
-                      "isPresent": true
-                    },
-                    "one": {
-                      "isPresent": true,
-                      "formattedPrice": "$1,050.75"
-                    },
-                    "twoOrMore": {
-                      "isPresent": true,
-                      "formattedPrice": "$925.50"
-                    }
+                  "price": {
+                    "totalAmount": 542.75,
+                    "totalAmountUsd": 542.75,
+                    "formattedPrice": "$542.75"
                   }
+                }
+              ],
+              "filterStats": {
+                "duration": {
+                  "min": 510,
+                  "max": 1880
                 },
-                "flightsSessionId": "fs-mno345xyz",
-                "destinationImageUrl": "https://content.skyscnr.com/m/6df11605ae42e893/original/GettyImages-483689306.jpg",
-                "token": "token-mno345"
+                "carriers": [
+                  {
+                    "id": -32353,
+                    "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/DL.png",
+                    "name": "Delta"
+                  }
+                ],
+                "stopPrices": {
+                  "direct": {
+                    "isPresent": true,
+                    "formattedPrice": "$542.75"
+                  },
+                  "one": {
+                    "isPresent": true,
+                    "formattedPrice": "$495.50"
+                  },
+                  "twoOrMore": {
+                    "isPresent": true,
+                    "formattedPrice": "$463.25"
+                  }
+                }
               },
               "status": true,
-              "message": "Success"
+              "message": "Successful"
             },
             "component": {
-              "name": "FlightSearchResults"
+              "name": "FlightOneWayResults"
             }
           }
 
-  - endpoint: /skyscanner/flight_details
+  - endpoint: /skyscanner/get_flight_detail
     examples:
       - scenario: "Get Flight Details"
-        description: "Get detailed information about a specific flight"
+        description: "Get detailed information about a specific flight itinerary"
         input_json: |
           {
-            "token": "eyJhIjoxLCJjIjowLCJpIjowLCJjYyI6ImVjb25vbXkiLCJvIjoiUEFSSSIsImQiOiJOWUNBIiwiZDEiOiIyMDI0LTA3LTE1In0=",
+            "token": "eyJhIjoxLCJjIjowLCJpIjowLCJjYyI6ImVjb25vbXkiLCJvIjoiWU1RQSIsImQiOiJZSFoiLCJkMSI6IjIwMjQtMDctMDgifQ==",
             "itineraryId": "18395-2407081425--31147-0-18169-2407081705"
           }
         output_json: |
           {
             "data": {
               "itinerary": {
-                "id": "18395-2407081425--31147-0-18169-2407081705",
+                "id": "15083-2402151840--30858,-31825-1-14355-2402160020",
                 "legs": [
                   {
-                    "id": "leg-001",
+                    "id": "15083-2402151840--30858,-31825-1-14355-2402160020",
                     "origin": {
-                      "id": "CDG",
-                      "name": "Charles de Gaulle Airport",
-                      "displayCode": "CDG",
+                      "id": "15083",
+                      "name": "Paris Orly",
+                      "displayCode": "ORY",
                       "city": "Paris"
                     },
                     "destination": {
-                      "id": "JFK",
-                      "name": "John F. Kennedy International Airport",
-                      "displayCode": "JFK",
-                      "city": "New York"
+                      "id": "14355",
+                      "name": "New Orleans Louis Armstrong",
+                      "displayCode": "MSY",
+                      "city": "New Orleans"
                     },
                     "segments": [
                       {
-                        "id": "segment-001",
+                        "id": "15083-11442-2402151840-2402152100--30858",
                         "origin": {
-                          "id": "CDG",
-                          "name": "Charles de Gaulle Airport",
-                          "displayCode": "CDG",
+                          "id": "15083",
+                          "name": "Paris Orly",
+                          "displayCode": "ORY",
                           "city": "Paris"
                         },
                         "destination": {
-                          "id": "JFK",
-                          "name": "John F. Kennedy International Airport",
-                          "displayCode": "JFK",
+                          "id": "11442",
+                          "name": "New York Newark",
+                          "displayCode": "EWR",
                           "city": "New York"
                         },
-                        "duration": 530,
+                        "duration": 500,
                         "dayChange": 0,
-                        "flightNumber": "AF123",
-                        "departure": "2024-07-15T10:30:00",
-                        "arrival": "2024-07-15T13:45:00",
+                        "flightNumber": "BF720",
+                        "departure": "2024-02-15T18:40:00",
+                        "arrival": "2024-02-15T21:00:00",
                         "marketingCarrier": {
-                          "id": "-32753",
-                          "name": "Air France",
-                          "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png"
+                          "id": "-30858",
+                          "name": "French Bee",
+                          "displayCode": "BF",
+                          "displayCodeType": "IATA",
+                          "logo": "https://logos.skyscnr.com/images/airlines/favicon/BF.png",
+                          "altId": "BF"
                         },
                         "operatingCarrier": {
-                          "id": "-32753",
-                          "name": "Air France",
-                          "logoUrl": "https://logos.skyscnr.com/images/airlines/favicon/AF.png"
+                          "id": "-30858",
+                          "name": "French Bee",
+                          "displayCode": "BF",
+                          "displayCodeType": "IATA",
+                          "logo": "https://logos.skyscnr.com/images/airlines/favicon/BF.png",
+                          "altId": "BF"
+                        }
+                      },
+                      {
+                        "id": "11442-14355-2402152210-2402160020--31825",
+                        "origin": {
+                          "id": "11442",
+                          "name": "New York Newark",
+                          "displayCode": "EWR",
+                          "city": "New York"
                         },
-                        "goodToKnowItems": []
+                        "destination": {
+                          "id": "14355",
+                          "name": "New Orleans Louis Armstrong",
+                          "displayCode": "MSY",
+                          "city": "New Orleans"
+                        },
+                        "duration": 190,
+                        "dayChange": 1,
+                        "flightNumber": "NK1594",
+                        "departure": "2024-02-15T22:10:00",
+                        "arrival": "2024-02-16T00:20:00",
+                        "marketingCarrier": {
+                          "id": "-31825",
+                          "name": "Spirit Airlines",
+                          "displayCode": "NK",
+                          "displayCodeType": "IATA",
+                          "logo": "https://content.skyscnr.com/334c2066021a7c48713e09d4130783d5/ai-template-spirit-airlines-thumb-1-xxxhdpi.png",
+                          "altId": "NK"
+                        },
+                        "operatingCarrier": {
+                          "id": "-31825",
+                          "name": "Spirit Airlines",
+                          "displayCode": "NK",
+                          "displayCodeType": "IATA",
+                          "logo": "https://content.skyscnr.com/334c2066021a7c48713e09d4130783d5/ai-template-spirit-airlines-thumb-1-xxxhdpi.png",
+                          "altId": "NK"
+                        }
                       }
                     ],
-                    "layovers": [],
-                    "duration": 530,
-                    "stopCount": 0,
-                    "departure": "2024-07-15T10:30:00",
-                    "arrival": "2024-07-15T13:45:00",
-                    "dayChange": 0
+                    "layovers": [
+                      {
+                        "segmentId": "15083-11442-2402151840-2402152100--30858",
+                        "origin": {
+                          "id": "11442",
+                          "name": "New York Newark",
+                          "displayCode": "EWR",
+                          "city": "New York"
+                        },
+                        "destination": {
+                          "id": "11442",
+                          "name": "New York Newark",
+                          "displayCode": "EWR",
+                          "city": "New York"
+                        },
+                        "duration": 70
+                      }
+                    ],
+                    "duration": 760,
+                    "stopCount": 1,
+                    "departure": "2024-02-15T18:40:00",
+                    "arrival": "2024-02-16T00:20:00",
+                    "dayChange": 1
                   }
                 ],
                 "pricingOptions": [
                   {
                     "agents": [
                       {
-                        "id": "agent-001",
-                        "name": "Air France",
-                        "isCarrier": true,
-                        "bookingProposition": "Best Deal",
-                        "url": "https://www.airfrance.com/booking?...",
-                        "price": 45875,
+                        "id": "skyp",
+                        "name": "Kiwi.com",
+                        "isCarrier": false,
+                        "bookingProposition": "PBOOK",
+                        "price": 598,
                         "rating": {
-                          "value": 4.7,
-                          "count": 4568
+                          "value": 3.12,
+                          "count": 5049
                         }
                       }
                     ],
-                    "transferProtection": "PROTECTED",
-                    "isDirectDBookUrl": true,
-                    "quoteAge": 5,
-                    "totalPrice": 45875,
-                    "fare": {
-                      "leg_details": [
-                        {
-                          "fareDetails": {
-                            "fareClass": "Y",
-                            "fareFamily": "ECONOMY"
-                          }
-                        }
-                      ]
-                    }
+                    "totalPrice": 598,
+                    "id": "8JVdsK6G1XjD"
                   }
                 ],
-                "isTransferRequired": false,
-                "destinationImage": "https://content.skyscnr.com/m/77e9d11a56ede5c3/original/GettyImages-173635296.jpg",
-                "operatingCarrierSafetyAttributes": [],
-                "flexibleTicketPolicies": [],
-                "transferProtectionDetails": {
-                  "title": "Transfer Protection",
-                  "body": "This itinerary includes protected connections. If your first flight is delayed, we will rebook you on the next available flight.",
-                  "url": "https://www.skyscanner.com/transfer-protection",
-                  "urlTitle": "Learn more"
-                },
-                "pollingCompleted": true,
-                "bookingSessionId": "booking-session-123"
+                "isTransferRequired": true,
+                "destinationImage": "https://content.skyscnr.com/726b0acdeb8b6912178b2965273c1c2b/GettyImages-56350582.jpg"
               },
+              "pollingCompleted": false,
+              "bookingSessionId": "06469a93-75c9-4a2b-b6a2-ccdfec68f309",
               "status": true,
-              "message": "Success"
+              "message": "Successful"
             },
             "component": {
-              "name": "FlightDetails"
+              "name": "FlightDetailResults"
             }
           }
 
-  - endpoint: /skyscanner/price_calendar
+  - endpoint: /skyscanner/get_price_calendar
     examples:
-      - scenario: "Price Calendar Search"
-        description: "Search for flight prices across a calendar of dates"
+      - scenario: "Get Price Calendar"
+        description: "Get flight price calendar for a month from Paris"
         input_json: |
           {
             "fromEntityId": "CDG",
-            "toEntityId": "JFK",
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
+            "departDate": "2024-05-01"
+          }
+        output_json: |
+          {
+            "data": {
+              "flights": {
+                "noPriceLabel": "No price information",
+                "groups": [
+                  {
+                    "id": "low",
+                    "label": "$"
+                  },
+                  {
+                    "id": "medium",
+                    "label": "$$"
+                  },
+                  {
+                    "id": "high",
+                    "label": "$$$"
+                  }
+                ],
+                "days": [
+                  {
+                    "day": "2024-04-22",
+                    "group": "medium",
+                    "price": 336.54
+                  },
+                  {
+                    "day": "2024-04-26",
+                    "group": "medium",
+                    "price": 376.15
+                  },
+                  {
+                    "day": "2024-04-28",
+                    "group": "medium",
+                    "price": 421.05
+                  },
+                  {
+                    "day": "2024-04-30",
+                    "group": "medium",
+                    "price": 386.81
+                  },
+                  {
+                    "day": "2024-05-06",
+                    "group": "medium",
+                    "price": 390.10
+                  }
+                ],
+                "currency": "USD"
+              },
+              "status": true,
+              "message": "Successful"
+            },
+            "component": {
+              "name": "PriceCalendarResults"
+            }
+          }
+
+  - endpoint: /skyscanner/get_price_calendar_return
+    examples:
+      - scenario: "Get Price Calendar for Return Flights"
+        description: "Get roundtrip flight price calendar from Paris"
+        input_json: |
+          {
+            "fromEntityId": "CDG",
+            "departDate": "2024-05-01",
+            "returnDate": "2024-05-15"
           }
         output_json: |
           {
@@ -891,1496 +678,781 @@ routes:
               "message": "Successful"
             },
             "component": {
-              "name": "PriceCalendar"
+              "name": "PriceCalendarReturnResults"
             }
           }
 
-  - endpoint: /skyscanner/price_calendar_return
+  - endpoint: /skyscanner/get_cheapest_one_way
     examples:
-      - scenario: "Price Calendar Return Search"
-        description: "Search for return flight prices across a calendar of dates"
+      - scenario: "Get Cheapest One-way Flights"
+        description: "Get cheapest one-way flight prices from Paris CDG to New York JFK"
         input_json: |
           {
             "fromEntityId": "CDG",
             "toEntityId": "JFK",
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
+            "departDate": "2024-05-01"
           }
         output_json: |
           {
-            "data": {
-              "flights": {
-                "noPriceLabel": "No price information",
-                "groups": [
-                  {
-                    "id": "low",
-                    "label": "$"
-                  },
-                  {
-                    "id": "medium",
-                    "label": "$$"
-                  },
-                  {
-                    "id": "high",
-                    "label": "$$$"
-                  }
-                ],
-                "days": [
-                  {
-                    "day": "2024-05-18",
-                    "group": "low",
-                    "price": 137.01
-                  },
-                  {
-                    "day": "2024-05-19",
-                    "group": "medium",
-                    "price": 302.47
-                  },
-                  {
-                    "day": "2024-05-20",
-                    "group": "low",
-                    "price": 121.46
-                  },
-                  {
-                    "day": "2024-05-22",
-                    "group": "medium",
-                    "price": 154.15
-                  },
-                  {
-                    "day": "2024-05-23",
-                    "group": "high",
-                    "price": 1034.43
-                  }
-                ],
-                "currency": "USD"
+            "data": [
+              {
+                "day": "2024-04-22",
+                "group": "medium",
+                "price": 336.54
               },
-              "status": true,
-              "message": "Successful"
-            },
+              {
+                "day": "2024-04-26",
+                "group": "medium",
+                "price": 376.15
+              },
+              {
+                "day": "2024-04-28",
+                "group": "medium",
+                "price": 421.05
+              },
+              {
+                "day": "2024-04-30",
+                "group": "medium",
+                "price": 386.81
+              },
+              {
+                "day": "2024-05-06",
+                "group": "low",
+                "price": 277.10
+              }
+            ],
+            "status": true,
+            "message": "Successful",
             "component": {
-              "name": "PriceCalendar"
+              "name": "CheapestOneWayResults"
             }
           }
-
-  - endpoint: /skyscanner/cheapest_one_way
-    examples:
-      - scenario: "Cheapest One-way Flight Search"
-        description: "Search for the cheapest one-way flights between two destinations"
+          
+      - scenario: "Get Cheapest One-way Flights with Currency"
+        description: "Get cheapest one-way flight prices with specific currency"
         input_json: |
           {
             "fromEntityId": "CDG",
             "toEntityId": "JFK",
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
+            "departDate": "2024-05-01",
+            "currency": "EUR"
           }
         output_json: |
           {
-            "data": {
-              "flights": {
-                "noPriceLabel": "No price information",
-                "groups": [
-                  {
-                    "id": "low",
-                    "label": "$"
-                  },
-                  {
-                    "id": "medium",
-                    "label": "$$"
-                  },
-                  {
-                    "id": "high",
-                    "label": "$$$"
-                  }
-                ],
-                "days": [
-                  {
-                    "day": "2024-05-18",
-                    "group": "low",
-                    "price": 137.01
-                  },
-                  {
-                    "day": "2024-05-19",
-                    "group": "medium",
-                    "price": 302.47
-                  },
-                  {
-                    "day": "2024-05-20",
-                    "group": "low",
-                    "price": 121.46
-                  },
-                  {
-                    "day": "2024-05-22",
-                    "group": "medium",
-                    "price": 154.15
-                  },
-                  {
-                    "day": "2024-05-23",
-                    "group": "high",
-                    "price": 1034.43
-                  }
-                ],
-                "currency": "USD"
+            "data": [
+              {
+                "day": "2024-04-22",
+                "group": "medium",
+                "price": 310.37
               },
-              "status": true,
-              "message": "Successful"
-            },
+              {
+                "day": "2024-04-26",
+                "group": "medium",
+                "price": 346.82
+              },
+              {
+                "day": "2024-04-28",
+                "group": "medium",
+                "price": 388.28
+              },
+              {
+                "day": "2024-04-30",
+                "group": "medium",
+                "price": 356.74
+              },
+              {
+                "day": "2024-05-06",
+                "group": "low",
+                "price": 255.52
+              }
+            ],
+            "status": true,
+            "message": "Successful",
             "component": {
-              "name": "PriceCalendar"
+              "name": "CheapestOneWayResults"
             }
           }
 
-  - endpoint: /skyscanner/hotels_search
+  - endpoint: /skyscanner/search_hotels
     examples:
-      - scenario: "Hotel Search in New York"
-        description: "Search for hotels in New York City for a specific date range"
+      - scenario: "Search Hotels with Filters"
+        description: "Search for hotels in New York with specific filters"
         input_json: |
           {
             "entityId": "27537542",
-            "checkin": "2024-06-15",
-            "checkout": "2024-06-20",
-            "adults": 2,
+            "checkin": "2024-05-01",
+            "checkout": "2024-05-05",
             "rooms": 1,
-            "resultsPerPage": 10,
-            "sorting": "-rating",
-            "priceType": "PRICE_PER_NIGHT",
+            "adults": 2,
             "stars": "4,5",
-            "amenities": "WifiService,AirConditioning"
+            "minPrice": "200",
+            "maxPrice": "500",
+            "sorting": "price",
+            "priceType": "PRICE_PER_NIGHT",
+            "maxResult": 2
           }
         output_json: |
           {
             "data": {
               "results": {
                 "priceType": "PRICE_PER_NIGHT",
-                "pricePolicy": "LEAD_IN_PRICE",
+                "pricePolicy": "TOTAL",
                 "searchSummary": {
-                  "total": 1245,
-                  "filteredTotal": 435,
-                  "inboundTotal": 435,
-                  "resultsSummary": "435 properties in New York",
-                  "sortBy": "-rating",
+                  "total": 370,
+                  "filteredTotal": 2,
+                  "inboundTotal": 0,
+                  "resultsSummary": "2 places to stay",
+                  "sortBy": "PRICE",
                   "entity": {
                     "entityId": "27537542",
                     "entityType": "PLACE",
                     "name": "New York",
                     "coordinates": {
-                      "latitude": 40.7127753,
-                      "longitude": -74.0059728
+                      "latitude": 40.71427,
+                      "longitude": -74.00597
                     },
                     "levelOfEntityType": "CITY"
                   },
                   "location": [
                     {
-                      "entityId": "27537542",
-                      "entityType": "PLACE",
-                      "name": "New York"
+                      "entityId": "27539055",
+                      "entityType": "COUNTRY",
+                      "name": "United States"
                     }
                   ]
                 },
-                "mapBoundary": {
-                  "north": 40.9175771,
-                  "east": -73.7002721,
-                  "south": 40.4773953,
-                  "west": -74.2590879
-                },
-                "hotelsRegion": {
-                  "latitude": 40.7127753,
-                  "longitude": -74.0059728,
-                  "longitudeDelta": 0.2794079,
-                  "latitudeDelta": 0.2200909
-                },
                 "hotelCards": [
                   {
-                    "id": "27544008",
-                    "name": "The Plaza",
-                    "stars": "5",
-                    "distance": "0.9 km to Times Square",
+                    "id": "nf/27545998/2024-05-01/2024-05-05",
+                    "name": "Holiday Inn Manhattan Financial District",
+                    "stars": "4",
+                    "distance": "3.6 miles from center",
+                    "relevantPoiDistance": "1.1 miles from Wall Street",
                     "coordinates": {
-                      "latitude": 40.764439,
-                      "longitude": -73.974686
+                      "latitude": 40.7079,
+                      "longitude": -74.0135
                     },
                     "pivot": false,
                     "images": [
-                      "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9494600/9494565/d8567983_b.jpg"
+                      "https://cf.bstatic.com/xdata/images/hotel/square200/91067724.jpg?k=1c3b0b65abe70896ffca13d4464851e84b5a8f1e2c5d58f3dea3c5d163cd8f77&o="
                     ],
-                    "reviewsSummary": {
-                      "score": 4.5,
-                      "count": 1245,
-                      "quality": "excellent"
-                    },
-                    "confidentMessages": [
-                      {
-                        "type": "free_cancellation"
-                      }
-                    ],
-                    "minPriceDbookRoomId": null,
-                    "minPriceDbookPartnerId": null,
-                    "inbound": true,
+                    "inbound": false,
                     "lowestPrice": {
-                      "price": "$895",
-                      "rawPrice": 895,
-                      "partnerId": "booking.com",
-                      "partnerType": "OTA",
-                      "partnerName": "Booking.com",
-                      "partnerLogo": "https://content.skyscnr.com/m/7dca9717672c5222/original/BookingCom.png",
-                      "isOfficial": true,
-                      "funnelType": "DIRECT",
-                      "cug": null,
-                      "discount": null,
-                      "amenities": [
-                        {
-                          "id": "WifiService",
-                          "text": "Free WiFi"
-                        },
-                        {
-                          "id": "AirConditioning",
-                          "text": "Air conditioning"
-                        }
-                      ]
+                      "price": "$200",
+                      "rawPrice": 200,
+                      "partnerId": "h=258151;ho=436;lang=en-us;siteType=Organic;crt=web_click_1;hc=USD;cc=US;rgc=NY;ucp=;uif=;tui=;uod=;uoz=;tz=",
+                      "partnerType": "META_SEARCH",
+                      "partnerName": "Expedia",
+                      "partnerLogo": "https://content.skyscnr.com/m/7a45fcff43c2a661/original/Hotels-com.svg",
+                      "isOfficial": false,
+                      "funnelType": "AVAILABLE_FOR_BOOKING"
                     },
-                    "otherPrices": [],
                     "isUpSorted": false,
-                    "hotelId": "27544008"
+                    "hotelId": "27545998"
                   }
-                ],
-                "filters": [
-                  {
-                    "type": "property_type",
-                    "title": "Accommodation type",
-                    "values": [
-                      {
-                        "id": "Hotel",
-                        "text": "Hotel",
-                        "count": 345
-                      },
-                      {
-                        "id": "Hostel",
-                        "text": "Hostel",
-                        "count": 45
-                      }
-                    ]
-                  },
-                  {
-                    "type": "stars",
-                    "title": "Star rating",
-                    "values": [
-                      {
-                        "id": "5",
-                        "text": "5 stars",
-                        "count": 85
-                      },
-                      {
-                        "id": "4",
-                        "text": "4 stars",
-                        "count": 210
-                      }
-                    ]
-                  }
-                ],
-                "hotelsCoordinates": [
-                  {
-                    "id": "27544008",
-                    "latitude": 40.764439,
-                    "longitude": -73.974686,
-                    "price": "$895"
-                  }
-                ],
-                "sortOptions": [
-                  {
-                    "optionName": "Best",
-                    "type": "-relevance"
-                  },
-                  {
-                    "optionName": "Price (high to low)",
-                    "type": "-price"
-                  },
-                  {
-                    "optionName": "Price (low to high)",
-                    "type": "price"
-                  },
-                  {
-                    "optionName": "Distance from downtown",
-                    "type": "distance"
-                  },
-                  {
-                    "optionName": "Guest rating",
-                    "type": "-rating"
-                  }
-                ],
-                "travelInfos": [],
-                "partnerList": [
-                  "booking.com",
-                  "expedia",
-                  "hotels.com"
                 ]
               },
               "status": {
                 "completionPercentage": 100,
-                "searchId": "12345abcde",
-                "requestId": "req-12345",
-                "fastSearchStatus": "COMPLETE",
-                "finalStatus": "SUCCESS"
+                "searchId": "search-4839d0ec-9446-45a1-96e7-f0f02b91442f",
+                "requestId": "request-5bc6a35c-0b61-4a53-a9ae-0d7e0e8c2c81",
+                "fastSearchStatus": "COMPLETED",
+                "finalStatus": "COMPLETED"
               },
               "error": null
             },
             "meta": {
               "currentPage": 1,
-              "limit": 10,
-              "totalRecords": 435,
-              "totalPage": 44
+              "limit": 25,
+              "totalRecords": 128,
+              "totalPage": 6
             },
             "status": true,
-            "message": "Success",
-            "component": {
-              "name": "HotelSearchResults"
-            }
-          }
-      
-      - scenario: "Budget Hotel Search in Manhattan"
-        description: "Search for budget hotels in Manhattan with specific amenities"
-        input_json: |
-          {
-            "entityId": "27537542",
-            "checkin": "2024-07-10",
-            "checkout": "2024-07-15",
-            "adults": 1,
-            "minPrice": "100",
-            "maxPrice": "250",
-            "district": "27562849",
-            "amenities": "WifiService,Parking",
-            "sorting": "price"
-          }
-        output_json: |
-          {
-            "data": {
-              "results": {
-                "priceType": "PRICE_PER_NIGHT",
-                "pricePolicy": "LEAD_IN_PRICE",
-                "searchSummary": {
-                  "total": 780,
-                  "filteredTotal": 124,
-                  "inboundTotal": 124,
-                  "resultsSummary": "124 properties in Manhattan, New York",
-                  "sortBy": "price",
-                  "entity": {
-                    "entityId": "27537542",
-                    "entityType": "PLACE",
-                    "name": "New York",
-                    "coordinates": {
-                      "latitude": 40.7127753,
-                      "longitude": -74.0059728
-                    },
-                    "levelOfEntityType": "CITY"
-                  },
-                  "location": [
-                    {
-                      "entityId": "27537542",
-                      "entityType": "PLACE",
-                      "name": "New York"
-                    },
-                    {
-                      "entityId": "27562849",
-                      "entityType": "PLACE",
-                      "name": "Manhattan"
-                    }
-                  ]
-                },
-                "mapBoundary": {
-                  "north": 40.9175771,
-                  "east": -73.7002721,
-                  "south": 40.4773953,
-                  "west": -74.2590879
-                },
-                "hotelsRegion": {
-                  "latitude": 40.7830603,
-                  "longitude": -73.9712488,
-                  "longitudeDelta": 0.1540078,
-                  "latitudeDelta": 0.1200909
-                },
-                "hotelCards": [
-                  {
-                    "id": "27550128",
-                    "name": "Pod 51 Hotel",
-                    "stars": "3",
-                    "distance": "1.2 km to Grand Central",
-                    "coordinates": {
-                      "latitude": 40.7559,
-                      "longitude": -73.9709
-                    },
-                    "pivot": false,
-                    "images": [
-                      "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9498700/9498651/6979f5cd_b.jpg"
-                    ],
-                    "reviewsSummary": {
-                      "score": 4.1,
-                      "count": 856,
-                      "quality": "very good"
-                    },
-                    "confidentMessages": [
-                      {
-                        "type": "free_cancellation"
-                      }
-                    ],
-                    "minPriceDbookRoomId": null,
-                    "minPriceDbookPartnerId": null,
-                    "inbound": true,
-                    "lowestPrice": {
-                      "price": "$149",
-                      "rawPrice": 149,
-                      "partnerId": "hotels.com",
-                      "partnerType": "OTA",
-                      "partnerName": "Hotels.com",
-                      "partnerLogo": "https://content.skyscnr.com/m/7a46a95c42b61eb9/original/HotelsCom.png",
-                      "isOfficial": true,
-                      "funnelType": "DIRECT",
-                      "cug": null,
-                      "discount": null,
-                      "amenities": [
-                        {
-                          "id": "WifiService",
-                          "text": "Free WiFi"
-                        },
-                        {
-                          "id": "Parking",
-                          "text": "Parking available"
-                        }
-                      ]
-                    },
-                    "otherPrices": [],
-                    "isUpSorted": false,
-                    "hotelId": "27550128"
-                  }
-                ],
-                "filters": [
-                  {
-                    "type": "district",
-                    "title": "Neighborhoods",
-                    "values": [
-                      {
-                        "id": "27562849",
-                        "text": "Manhattan",
-                        "count": 124
-                      }
-                    ]
-                  },
-                  {
-                    "type": "amenities",
-                    "title": "Amenities",
-                    "values": [
-                      {
-                        "id": "WifiService",
-                        "text": "WiFi",
-                        "count": 124
-                      },
-                      {
-                        "id": "Parking",
-                        "text": "Parking",
-                        "count": 89
-                      }
-                    ]
-                  }
-                ],
-                "hotelsCoordinates": [
-                  {
-                    "id": "27550128",
-                    "latitude": 40.7559,
-                    "longitude": -73.9709,
-                    "price": "$149"
-                  }
-                ],
-                "sortOptions": [
-                  {
-                    "optionName": "Best",
-                    "type": "-relevance"
-                  },
-                  {
-                    "optionName": "Price (high to low)",
-                    "type": "-price"
-                  },
-                  {
-                    "optionName": "Price (low to high)",
-                    "type": "price"
-                  }
-                ],
-                "travelInfos": [],
-                "partnerList": [
-                  "hotels.com",
-                  "expedia",
-                  "booking.com"
-                ]
-              },
-              "status": {
-                "completionPercentage": 100,
-                "searchId": "abcde12345",
-                "requestId": "req-abcde",
-                "fastSearchStatus": "COMPLETE",
-                "finalStatus": "SUCCESS"
-              },
-              "error": null
-            },
-            "meta": {
-              "currentPage": 1,
-              "limit": 10,
-              "totalRecords": 124,
-              "totalPage": 13
-            },
-            "status": true,
-            "message": "Success",
+            "message": "Successful",
             "component": {
               "name": "HotelSearchResults"
             }
           }
 
-  - endpoint: /skyscanner/hotel_detail
+  - endpoint: /skyscanner/get_hotel_detail
     examples:
-      - scenario: "Get Hotel Details"
-        description: "Retrieve detailed information about a specific hotel"
+      - scenario: "Get Hotel Detail"
+        description: "Get detailed information about a specific hotel"
         input_json: |
           {
-            "id": "eyJlbnRpdHlJZCI6IjI3NTM3NTQyIiwiaWQiOiI0Njk0NDY1MyJ9",
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
+            "id": "eyJlbnRpdHlJZCI6IjI3NTM3NTQyIiwiaWQiOiI0Njk0NDY1MyJ9"
           }
         output_json: |
           {
             "data": {
               "general": {
-                "name": "The Plaza Hotel",
-                "stars": 5
+                "name": "The New Yorker, A Wyndham Hotel",
+                "stars": 4
               },
               "goodToKnow": {
                 "title": "Good to know",
                 "checkinTime": {
-                  "title": "Check-in time",
-                  "time": "3:00 PM"
+                  "title": "Check-in",
+                  "time": "16:00"
                 },
                 "checkoutTime": {
-                  "title": "Check-out time",
-                  "time": "12:00 PM"
+                  "title": "Check-out",
+                  "time": "12:00"
                 },
                 "description": {
                   "title": "Property description",
-                  "content": "Ideally situated on Fifth Avenue, The Plaza's prestigious address continues to define elegance with unmatched service and an ever-evolving modern sensibility. A timeless landmark capturing the essence of New York, the iconic hotel has unveiled its newly renovated Legacy Suites. The spacious suites offer remarkable views of Fifth Avenue and architectural elements reminiscent of the original 19th century design.",
-                  "image": "https://content.skyscnr.com/m/7729a8743cbc4550/original/GettyImages-854891812.jpg",
-                  "translated": true,
+                  "content": "Located in Midtown Manhattan, this hotel is an 8-minute walk from Times Square and a 3-minute walk from a subway station. A restaurant, gym and business center are available.\n\nAll rooms at the Wyndham New Yorker Hotel are equipped with a flat-screen TV and free WiFi. Rooms are equipped with a desk and a seating area. Room service is available.\n\nFeaturing a 24-hour front desk, this property also provides guests with a restaurant. The property has a concierge service and a tour desk for guests' convenience.",
+                  "translated": false,
                   "needTranslation": false,
                   "locale": "en-US"
                 },
                 "policies": {
-                  "title": "Hotel policies",
+                  "title": "Policies",
                   "content": [
                     {
-                      "icon": "pets_allowed",
-                      "translated": true,
-                      "needTranslation": false,
-                      "locale": "en-US",
-                      "key": "pets",
-                      "type": "text",
+                      "icon": "Check out",
+                      "key": "checkin_and_checkout",
+                      "type": "multi_value",
                       "values": [
                         {
-                          "content": "Pets allowed. Service animals only."
-                        }
-                      ]
-                    },
-                    {
-                      "icon": "smoking",
-                      "translated": true,
-                      "needTranslation": false,
-                      "locale": "en-US",
-                      "key": "smoking",
-                      "type": "text",
-                      "values": [
+                          "content": "Check-in: 4:00 PM"
+                        },
                         {
-                          "content": "This is a non-smoking property."
+                          "content": "Check-out: 12:00 PM"
                         }
                       ]
                     }
                   ]
                 }
               },
-              "childrenAndExtraBed": {
-                "title": "Children and extra beds",
-                "content": []
-              },
               "location": {
                 "title": "Location",
-                "shortAddress": "5th Avenue at Central Park South, New York, NY 10019",
-                "address": "5th Avenue at Central Park South, New York, NY 10019, United States of America",
+                "shortAddress": "481 8th Avenue, Hell's Kitchen, New York, NY 10001",
+                "address": "481 8th Avenue, Hell's Kitchen, New York, NY 10001, United States",
                 "rawAddress": {
-                  "nation": "United States of America",
+                  "nation": "United States",
                   "city": "New York",
-                  "street_address": "5th Avenue at Central Park South",
-                  "adm1": "NY",
-                  "district": "Manhattan",
-                  "postcode": "10019",
+                  "street_address": "481 8th Avenue",
+                  "adm1": "New York",
+                  "district": "Hell's Kitchen",
+                  "postcode": "10001",
                   "cityId": "27537542"
                 },
                 "coordinates": {
-                  "latitude": 40.764439,
-                  "longitude": -73.974686
+                  "latitude": 40.7527,
+                  "longitude": -73.9936
                 },
-                "cta": "See location on map"
+                "cta": "View on map"
               },
               "gallery": {
                 "images": [
                   {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9494600/9494565/d8567983_b.jpg",
-                    "altText": "Hotel exterior",
-                    "category": "exterior"
-                  },
-                  {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9494600/9494565/9c8a2dcd_b.jpg",
-                    "altText": "Lobby area",
-                    "category": "lobby"
-                  },
-                  {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9494600/9494565/6b13076d_b.jpg",
-                    "altText": "Deluxe Room",
-                    "category": "room"
+                    "url": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/192578029.jpg?k=c86d9ac4a8f0a67d031086db834bfad02ff25e56d17c73f0ceec18ed892409eb&o=",
+                    "thumbnail": "https://cf.bstatic.com/xdata/images/hotel/square200/192578029.jpg?k=c86d9ac4a8f0a67d031086db834bfad02ff25e56d17c73f0ceec18ed892409eb&o=",
+                    "category": "Property building"
                   }
                 ],
                 "categories": [
                   {
-                    "name": "exterior",
-                    "count": 5,
-                    "displayName": "Exterior"
+                    "name": "all",
+                    "count": 80,
+                    "displayName": "All"
+                  },
+                  {
+                    "name": "property_building",
+                    "count": 15,
+                    "displayName": "Property building"
                   },
                   {
                     "name": "room",
-                    "count": 12,
+                    "count": 34,
                     "displayName": "Room"
-                  },
-                  {
-                    "name": "lobby",
-                    "count": 3,
-                    "displayName": "Lobby"
-                  },
-                  {
-                    "name": "pool",
-                    "count": 2,
-                    "displayName": "Pool"
-                  },
-                  {
-                    "name": "restaurant",
-                    "count": 4,
-                    "displayName": "Restaurant"
                   }
                 ]
               },
               "amenities": {
                 "title": "Amenities",
-                "ctaAll": "See all",
-                "ctaLess": "See less",
+                "ctaAll": "See all amenities",
+                "ctaLess": "See fewer amenities",
                 "content": [
                   {
                     "icon": "WifiService",
-                    "description": "Free WiFi"
-                  },
-                  {
-                    "icon": "AirConditioning",
-                    "description": "Air conditioning"
+                    "description": "WiFi"
                   },
                   {
                     "icon": "Parking",
-                    "description": "Parking available"
-                  },
-                  {
-                    "icon": "Restaurant",
-                    "description": "Restaurant"
-                  },
-                  {
-                    "icon": "Spa",
-                    "description": "Spa and wellness center"
-                  }
-                ],
-                "contentV2": [
-                  {
-                    "id": "services",
-                    "category": "Services",
-                    "items": [
-                      {
-                        "id": "WifiService",
-                        "description": "Free WiFi"
-                      },
-                      {
-                        "id": "RoomService",
-                        "description": "Room service"
-                      },
-                      {
-                        "id": "Concierge",
-                        "description": "Concierge service"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "facilities",
-                    "category": "Facilities",
-                    "items": [
-                      {
-                        "id": "Restaurant",
-                        "description": "Restaurant"
-                      },
-                      {
-                        "id": "Spa",
-                        "description": "Spa"
-                      },
-                      {
-                        "id": "Fitness",
-                        "description": "Fitness center"
-                      }
-                    ]
-                  }
-                ]
-              },
-              "reviews": {
-                "title": "Reviews",
-                "newTitle": "Guest reviews",
-                "cta": "See all reviews",
-                "summaryDescription": "This hotel has received excellent reviews from guests",
-                "rating": 5,
-                "ratingDescription": "Exceptional",
-                "ratingDescriptionText": "Guests rated this property 5.0/5 for cleanliness.",
-                "numberOfReviewsLabel": "1,245 verified reviews",
-                "numberOfReviewsLabelExpanded": "Read all 1,245 verified reviews",
-                "badges": [],
-                "guests": {
-                  "title": "Most popular with",
-                  "entries": []
-                },
-                "categories": {
-                  "title": "Review categories",
-                  "entries": []
-                },
-                "explanations": [
-                  {
-                    "title": "Location",
-                    "content": "Perfect location for exploring Central Park and Fifth Avenue shopping."
-                  },
-                  {
-                    "title": "Service",
-                    "content": "Guests consistently praised the exceptional, attentive service."
-                  }
-                ]
-              },
-              "distance": "0.9 km to Times Square",
-              "reviewRatingSummary": {
-                "scoreLogoImageUrl": "https://content.skyscnr.com/m/7a7df7b9a3a2b7b9/original/image.png",
-                "score": "9.2",
-                "formatScore": "9.2",
-                "totalScore": "10",
-                "count": "1245",
-                "countNumber": 1245,
-                "formatCountString": "1,245 reviews",
-                "color": "#528400",
-                "scoreDesc": "Exceptional",
-                "highlights": "Guests love the location and service!",
-                "categories": [
-                  {
-                    "type": "location",
-                    "score": "9.8",
-                    "formatScore": "9.8",
-                    "color": "#528400",
-                    "name": "Location",
-                    "highlights": "Perfect central location"
-                  },
-                  {
-                    "type": "cleanliness",
-                    "score": "9.7",
-                    "formatScore": "9.7",
-                    "color": "#528400",
-                    "name": "Cleanliness",
-                    "highlights": "Exceptionally clean"
-                  },
-                  {
-                    "type": "service",
-                    "score": "9.5",
-                    "formatScore": "9.5",
-                    "color": "#528400",
-                    "name": "Service",
-                    "highlights": "Excellent service"
-                  },
-                  {
-                    "type": "comfort",
-                    "score": "9.4",
-                    "formatScore": "9.4",
-                    "color": "#528400",
-                    "name": "Comfort",
-                    "highlights": "Very comfortable"
-                  },
-                  {
-                    "type": "facilities",
-                    "score": "9.3",
-                    "formatScore": "9.3",
-                    "color": "#528400",
-                    "name": "Facilities",
-                    "highlights": "Excellent facilities"
-                  },
-                  {
-                    "type": "value",
-                    "score": "8.7",
-                    "formatScore": "8.7",
-                    "color": "#528400",
-                    "name": "Value for money",
-                    "highlights": "Good value"
-                  }
-                ],
-                "cleanlinessMessage": "Guests rated this property 9.7/10 for cleanliness.",
-                "locationMessage": "Popular area in New York, rated 9.8/10 by recent guests.",
-                "highScoreReviews": [
-                  {
-                    "type": "location",
-                    "score": "10",
-                    "icon": "location",
-                    "text": "Perfectly located right by Central Park and Fifth Avenue shopping."
-                  },
-                  {
-                    "type": "cleanliness",
-                    "score": "10",
-                    "icon": "cleanliness",
-                    "text": "The rooms are immaculate and well-maintained."
-                  },
-                  {
-                    "type": "service",
-                    "score": "10",
-                    "icon": "service",
-                    "text": "The staff is incredibly attentive and professional."
-                  }
-                ]
-              }
-            },
-            "status": true,
-            "message": "Success",
-            "component": {
-              "name": "HotelDetail"
-            }
-          }
-      
-      - scenario: "Get Budget Hotel Details"
-        description: "Retrieve information about a budget hotel with specific amenities"
-        input_json: |
-          {
-            "id": "eyJlbnRpdHlJZCI6IjI3NTM3NTQyIiwiaWQiOiI0ODY2NTIxMSJ9",
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
-          }
-        output_json: |
-          {
-            "data": {
-              "general": {
-                "name": "Pod 51 Hotel",
-                "stars": 3
-              },
-              "goodToKnow": {
-                "title": "Good to know",
-                "checkinTime": {
-                  "title": "Check-in time",
-                  "time": "3:00 PM"
-                },
-                "checkoutTime": {
-                  "title": "Check-out time",
-                  "time": "12:00 PM"
-                },
-                "description": {
-                  "title": "Property description",
-                  "content": "Pod 51 Hotel is a stylish budget hotel offering compact, efficient rooms in Midtown Manhattan. Our rooms may be small, but they're smartly designed with everything you need and nothing you don't. Located just a short walk from major attractions such as Rockefeller Center, Times Square, and the Museum of Modern Art, our hotel puts you right in the heart of the action.",
-                  "image": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9498700/9498651/6979f5cd_b.jpg",
-                  "translated": true,
-                  "needTranslation": false,
-                  "locale": "en-US"
-                },
-                "policies": {
-                  "title": "Hotel policies",
-                  "content": [
-                    {
-                      "icon": "pets_not_allowed",
-                      "translated": true,
-                      "needTranslation": false,
-                      "locale": "en-US",
-                      "key": "pets",
-                      "type": "text",
-                      "values": [
-                        {
-                          "content": "Pets not allowed"
-                        }
-                      ]
-                    },
-                    {
-                      "icon": "smoking",
-                      "translated": true,
-                      "needTranslation": false,
-                      "locale": "en-US",
-                      "key": "smoking",
-                      "type": "text",
-                      "values": [
-                        {
-                          "content": "This is a non-smoking property"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              },
-              "childrenAndExtraBed": {
-                "title": "Children and extra beds",
-                "content": []
-              },
-              "location": {
-                "title": "Location",
-                "shortAddress": "230 East 51st Street, New York, NY 10022",
-                "address": "230 East 51st Street, New York, NY 10022, United States of America",
-                "rawAddress": {
-                  "nation": "United States of America",
-                  "city": "New York",
-                  "street_address": "230 East 51st Street",
-                  "adm1": "NY",
-                  "district": "Midtown East",
-                  "postcode": "10022",
-                  "cityId": "27537542"
-                },
-                "coordinates": {
-                  "latitude": 40.7559,
-                  "longitude": -73.9709
-                },
-                "cta": "See location on map"
-              },
-              "gallery": {
-                "images": [
-                  {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9498700/9498651/6979f5cd_b.jpg",
-                    "altText": "Hotel exterior",
-                    "category": "exterior"
-                  },
-                  {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9498700/9498651/c4db4612_b.jpg",
-                    "altText": "Pod room",
-                    "category": "room"
-                  },
-                  {
-                    "url": "https://content.skyscnr.com/imageserver/v2/hotels/10000000/9500000/9498700/9498651/26f79abe_b.jpg",
-                    "altText": "Rooftop garden",
-                    "category": "facilities"
-                  }
-                ],
-                "categories": [
-                  {
-                    "name": "exterior",
-                    "count": 3,
-                    "displayName": "Exterior"
-                  },
-                  {
-                    "name": "room",
-                    "count": 8,
-                    "displayName": "Room"
-                  },
-                  {
-                    "name": "facilities",
-                    "count": 5,
-                    "displayName": "Facilities"
-                  },
-                  {
-                    "name": "restaurant",
-                    "count": 2,
-                    "displayName": "Restaurant"
-                  }
-                ]
-              },
-              "amenities": {
-                "title": "Amenities",
-                "ctaAll": "See all",
-                "ctaLess": "See less",
-                "content": [
-                  {
-                    "icon": "WifiService",
-                    "description": "Free WiFi"
+                    "description": "Parking"
                   },
                   {
                     "icon": "AirConditioning",
                     "description": "Air conditioning"
                   },
                   {
-                    "icon": "RooftopTerrace",
-                    "description": "Rooftop terrace"
-                  },
-                  {
-                    "icon": "Restaurant",
-                    "description": "Restaurant"
+                    "icon": "NonsmokerRooms",
+                    "description": "Non-smoking rooms"
                   }
                 ],
                 "contentV2": [
                   {
-                    "id": "services",
-                    "category": "Services",
+                    "id": "most_popular",
+                    "category": "Most popular",
                     "items": [
                       {
                         "id": "WifiService",
+                        "name": "WiFi",
+                        "icon": "WifiService",
                         "description": "Free WiFi"
-                      },
-                      {
-                        "id": "Concierge",
-                        "description": "24-hour front desk"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "facilities",
-                    "category": "Facilities",
-                    "items": [
-                      {
-                        "id": "Restaurant",
-                        "description": "Restaurant"
-                      },
-                      {
-                        "id": "RooftopTerrace",
-                        "description": "Rooftop terrace"
                       }
                     ]
                   }
                 ]
               },
               "reviews": {
-                "title": "Reviews",
-                "newTitle": "Guest reviews",
-                "cta": "See all reviews",
-                "summaryDescription": "This hotel has received good reviews from guests",
-                "rating": 4,
-                "ratingDescription": "Very Good",
-                "ratingDescriptionText": "Guests rated this property 4.1/5 for cleanliness.",
-                "numberOfReviewsLabel": "856 verified reviews",
-                "numberOfReviewsLabelExpanded": "Read all 856 verified reviews",
-                "badges": [],
+                "title": "Guest reviews",
+                "newTitle": "Traveler reviews",
+                "cta": "Read all reviews",
+                "summaryDescription": "Guests are generally happy with their stay at this property, which is rated 7.9/10. Cleanliness and location are particularly well-reviewed.",
+                "rating": 7.9,
+                "ratingDescription": "Good",
+                "ratingDescriptionText": "7.9 of 10",
+                "numberOfReviewsLabel": "20,521 reviews",
+                "numberOfReviewsLabelExpanded": "20,521 verified reviews",
+                "badges": [
+                  "cleanliness",
+                  "location"
+                ],
                 "guests": {
-                  "title": "Most popular with",
-                  "entries": []
+                  "title": "Popular with",
+                  "entries": [
+                    {
+                      "type": "couple",
+                      "title": "Couples",
+                      "description": "8.0",
+                      "iconUrl": "https://cf.bstatic.com/static/img/review/profiles/accounts/couples_medium@2x.png"
+                    }
+                  ]
                 },
                 "categories": {
-                  "title": "Review categories",
-                  "entries": []
-                },
-                "explanations": [
-                  {
-                    "title": "Location",
-                    "content": "Great location near major attractions and public transportation."
-                  },
-                  {
-                    "title": "Value",
-                    "content": "Guests appreciate the excellent value for Manhattan accommodation."
-                  }
-                ]
+                  "title": "Categories",
+                  "entries": [
+                    {
+                      "title": "Location",
+                      "rating": 9.1,
+                      "desc": "Excellent"
+                    }
+                  ]
+                }
               },
-              "distance": "1.2 km to Grand Central",
+              "distance": "0.8 miles from center",
               "reviewRatingSummary": {
-                "scoreLogoImageUrl": "https://content.skyscnr.com/m/7a7df7b9a3a2b7b9/original/image.png",
-                "score": "8.2",
-                "formatScore": "8.2",
+                "score": "7.9",
+                "formatScore": "7.9",
                 "totalScore": "10",
-                "count": "856",
-                "countNumber": 856,
-                "formatCountString": "856 reviews",
-                "color": "#528400",
-                "scoreDesc": "Very Good",
-                "highlights": "Guests praise the location and value!",
-                "categories": [
-                  {
-                    "type": "location",
-                    "score": "9.1",
-                    "formatScore": "9.1",
-                    "color": "#528400",
-                    "name": "Location",
-                    "highlights": "Great location"
-                  },
-                  {
-                    "type": "cleanliness",
-                    "score": "8.6",
-                    "formatScore": "8.6",
-                    "color": "#528400",
-                    "name": "Cleanliness",
-                    "highlights": "Clean rooms"
-                  },
-                  {
-                    "type": "service",
-                    "score": "8.2",
-                    "formatScore": "8.2",
-                    "color": "#528400",
-                    "name": "Service",
-                    "highlights": "Good service"
-                  },
-                  {
-                    "type": "comfort",
-                    "score": "7.5",
-                    "formatScore": "7.5",
-                    "color": "#73a923",
-                    "name": "Comfort",
-                    "highlights": "Rooms are small but comfortable"
-                  },
-                  {
-                    "type": "facilities",
-                    "score": "7.8",
-                    "formatScore": "7.8",
-                    "color": "#73a923",
-                    "name": "Facilities",
-                    "highlights": "Good facilities"
-                  },
-                  {
-                    "type": "value",
-                    "score": "9.2",
-                    "formatScore": "9.2",
-                    "color": "#528400",
-                    "name": "Value for money",
-                    "highlights": "Excellent value"
-                  }
-                ],
-                "cleanlinessMessage": "Guests rated this property 8.6/10 for cleanliness.",
-                "locationMessage": "Popular area in New York, rated 9.1/10 by recent guests.",
-                "highScoreReviews": [
-                  {
-                    "type": "location",
-                    "score": "9",
-                    "icon": "location",
-                    "text": "Great location near major attractions and subway stations."
-                  },
-                  {
-                    "type": "value",
-                    "score": "9",
-                    "icon": "value",
-                    "text": "Excellent value for Manhattan, especially for solo travelers."
-                  },
-                  {
-                    "type": "cleanliness",
-                    "score": "8",
-                    "icon": "cleanliness",
-                    "text": "Rooms are compact but efficiently designed and clean."
-                  }
-                ]
+                "count": "20,521",
+                "countNumber": 20521,
+                "formatCountString": "Based on 20,521 reviews",
+                "color": "GOOD",
+                "scoreDesc": "Good"
               }
             },
             "status": true,
-            "message": "Success",
+            "message": "Successful",
             "component": {
-              "name": "HotelDetail"
+              "name": "HotelDetailResults"
             }
           }
 
-  - endpoint: /skyscanner/hotel_prices
+  - endpoint: /skyscanner/get_hotel_prices
     examples:
       - scenario: "Get Hotel Prices"
-        description: "Retrieve pricing information for a specific hotel"
+        description: "Get price information for a specific hotel"
         input_json: |
           {
             "hotelId": "46944653",
-            "checkin": "2024-08-15",
-            "checkout": "2024-08-20",
-            "adults": 2,
+            "checkin": "2024-05-01",
+            "checkout": "2024-05-05",
             "rooms": 1,
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
+            "adults": 2
           }
         output_json: |
           {
             "data": {
               "metaInfo": {
-                "ratesCta": "See all rates",
-                "rates": []
-              },
-              "roomTypes": [],
-              "cheapestPrice": {
-                "price": "$895",
-                "totalWithTaxes": "$1,073.50",
-                "funnelType": "DIRECT",
-                "partnerId": "booking.com",
-                "rateAttributes": [
+                "ratesCta": "See all prices",
+                "rates": [
                   {
-                    "id": "free_cancellation",
-                    "text": "Free cancellation"
-                  },
-                  {
-                    "id": "pay_at_hotel",
-                    "text": "Pay at the hotel"
+                    "provider": "Hotels.com",
+                    "features": [
+                      "Free cancellation",
+                      "Pay later"
+                    ]
                   }
-                ],
-                "rawPrice": 895
+                ]
               },
-              "exclusiveDeal": null,
+              "cheapestPrice": {
+                "price": "$239",
+                "totalWithTaxes": "$280",
+                "funnelType": "AVAILABLE_FOR_BOOKING",
+                "partnerId": "h=258151;ho=1122;lang=en-us;siteType=Organic;crt=web_click_1;hc=USD;cc=US;rgc=NY;ucp=;uif=;tui=;uod=;uoz=;tz=",
+                "rateAttributes": [
+                  "Free cancellation",
+                  "Pay later"
+                ],
+                "rawPrice": 239
+              },
               "mostPopularRates": [
                 {
-                  "price": "$895",
-                  "totalWithTaxes": "$1,073.50",
-                  "funnelType": "DIRECT",
-                  "partnerId": "booking.com",
-                  "partnerName": "Booking.com",
-                  "partnerLogo": "https://content.skyscnr.com/m/7dca9717672c5222/original/BookingCom.png",
-                  "isOfficial": true,
-                  "rateAttributes": [
-                    {
-                      "id": "free_cancellation",
-                      "text": "Free cancellation"
-                    },
-                    {
-                      "id": "pay_at_hotel",
-                      "text": "Pay at the hotel"
-                    }
-                  ],
-                  "roomTypeName": "Deluxe King Room",
-                  "breakfast": "Breakfast included",
-                  "popularity": "Most booked option"
-                },
-                {
-                  "price": "$925",
-                  "totalWithTaxes": "$1,110.50",
-                  "funnelType": "DIRECT",
-                  "partnerId": "hotels.com",
+                  "logoUrl": "https://content.skyscnr.com/m/7a45fcff43c2a661/original/Hotels-com.svg",
                   "partnerName": "Hotels.com",
-                  "partnerLogo": "https://content.skyscnr.com/m/7a46a95c42b61eb9/original/HotelsCom.png",
-                  "isOfficial": true,
-                  "rateAttributes": [
-                    {
-                      "id": "free_cancellation",
-                      "text": "Free cancellation"
-                    }
-                  ],
-                  "roomTypeName": "Deluxe King Room",
-                  "breakfast": "Breakfast included",
-                  "popularity": "Popular option"
-                }
-              ],
-              "noOfferPartners": [
-                {
-                  "partner_type": "OTA",
-                  "logo": "https://content.skyscnr.com/m/6ce6dfc8b997f927/original/Expedia.png",
-                  "name": "Expedia",
-                  "website_id": "expedia",
-                  "is_dbook": false,
-                  "is_official": true
+                  "showCta": "View Deal",
+                  "price": "$239",
+                  "partnerWebsiteId": "1122",
+                  "isOfficialPartner": false,
+                  "partnerId": "h=258151;ho=1122;lang=en-us;siteType=Organic;crt=web_click_1;hc=USD;cc=US;rgc=NY;ucp=;uif=;tui=;uod=;uoz=;tz=",
+                  "totalWithTaxes": "$280",
+                  "featuresStringify": "[\"Free cancellation\",\"Pay later\"]",
+                  "isSponsored": false
                 },
                 {
-                  "partner_type": "OTA",
-                  "logo": "https://content.skyscnr.com/m/7bd50a75bff9d5df/original/AGODA.png",
-                  "name": "Agoda",
-                  "website_id": "agoda",
-                  "is_dbook": false,
-                  "is_official": true
-                }
-              ],
-              "isShowMostPopularSeeAll": true,
-              "policyInfo": "Prices displayed include taxes and may change based on availability. You can review any additional charges before checkout. Prices are not final until you complete your purchase.",
-              "otaRates": [],
-              "localCurrency": "USD",
-              "searchId": "abcdef123456",
-              "requestId": "req-12345"
-            },
-            "status": true,
-            "message": "Success",
-            "component": {
-              "name": "HotelPrices"
-            }
-          }
-      
-      - scenario: "Get Budget Hotel Prices"
-        description: "Retrieve pricing information for a budget hotel with multiple rate options"
-        input_json: |
-          {
-            "hotelId": "48665211",
-            "checkin": "2024-07-10",
-            "checkout": "2024-07-15",
-            "adults": 1,
-            "rooms": 1,
-            "market": "US",
-            "locale": "en-US",
-            "currency": "USD"
-          }
-        output_json: |
-          {
-            "data": {
-              "metaInfo": {
-                "ratesCta": "See all rates",
-                "rates": []
-              },
-              "roomTypes": [],
-              "cheapestPrice": {
-                "price": "$149",
-                "totalWithTaxes": "$178.80",
-                "funnelType": "DIRECT",
-                "partnerId": "hotels.com",
-                "rateAttributes": [
-                  {
-                    "id": "free_cancellation",
-                    "text": "Free cancellation"
-                  }
-                ],
-                "rawPrice": 149
-              },
-              "exclusiveDeal": null,
-              "mostPopularRates": [
-                {
-                  "price": "$149",
-                  "totalWithTaxes": "$178.80",
-                  "funnelType": "DIRECT",
-                  "partnerId": "hotels.com",
-                  "partnerName": "Hotels.com",
-                  "partnerLogo": "https://content.skyscnr.com/m/7a46a95c42b61eb9/original/HotelsCom.png",
-                  "isOfficial": true,
-                  "rateAttributes": [
-                    {
-                      "id": "free_cancellation",
-                      "text": "Free cancellation"
-                    }
-                  ],
-                  "roomTypeName": "Pod Room",
-                  "breakfast": "Breakfast not included",
-                  "popularity": "Most booked option"
-                },
-                {
-                  "price": "$159",
-                  "totalWithTaxes": "$190.80",
-                  "funnelType": "DIRECT",
-                  "partnerId": "booking.com",
-                  "partnerName": "Booking.com",
-                  "partnerLogo": "https://content.skyscnr.com/m/7dca9717672c5222/original/BookingCom.png",
-                  "isOfficial": true,
-                  "rateAttributes": [
-                    {
-                      "id": "free_cancellation",
-                      "text": "Free cancellation"
-                    },
-                    {
-                      "id": "pay_at_hotel",
-                      "text": "Pay at the hotel"
-                    }
-                  ],
-                  "roomTypeName": "Pod Room with Shared Bathroom",
-                  "breakfast": "Breakfast not included",
-                  "popularity": "Popular option"
-                },
-                {
-                  "price": "$179",
-                  "totalWithTaxes": "$214.80",
-                  "funnelType": "DIRECT",
-                  "partnerId": "expedia",
+                  "logoUrl": "https://content.skyscnr.com/m/7a45fcff43c2a661/original/Hotels-com.svg",
                   "partnerName": "Expedia",
-                  "partnerLogo": "https://content.skyscnr.com/m/6ce6dfc8b997f927/original/Expedia.png",
-                  "isOfficial": true,
-                  "rateAttributes": [
-                    {
-                      "id": "breakfast_included",
-                      "text": "Breakfast included"
-                    }
-                  ],
-                  "roomTypeName": "Queen Pod",
-                  "breakfast": "Breakfast included",
-                  "popularity": "Upgraded option"
+                  "showCta": "View Deal",
+                  "price": "$246",
+                  "partnerWebsiteId": "436",
+                  "isOfficialPartner": false,
+                  "partnerId": "h=258151;ho=436;lang=en-us;siteType=Organic;crt=web_click_2;hc=USD;cc=US;rgc=NY;ucp=;uif=;tui=;uod=;uoz=;tz=",
+                  "totalWithTaxes": "$290",
+                  "featuresStringify": "[\"Free cancellation\",\"Pay later\"]",
+                  "isSponsored": false
                 }
               ],
-              "noOfferPartners": [
-                {
-                  "partner_type": "OTA",
-                  "logo": "https://content.skyscnr.com/m/7bd50a75bff9d5df/original/AGODA.png",
-                  "name": "Agoda",
-                  "website_id": "agoda",
-                  "is_dbook": false,
-                  "is_official": true
-                }
-              ],
+              "noOfferPartners": [],
               "isShowMostPopularSeeAll": true,
-              "policyInfo": "Prices displayed include taxes and may change based on availability. You can review any additional charges before checkout. Prices are not final until you complete your purchase.",
-              "otaRates": [],
+              "policyInfo": "Taxes and fees not included",
+              "otaRates": [
+                {
+                  "logoUrl": "https://content.skyscnr.com/m/7a45fcff43c2a661/original/Hotels-com.svg",
+                  "partnerName": "Hotels.com",
+                  "showCta": "View Deal",
+                  "price": "$239",
+                  "partnerWebsiteId": "1122",
+                  "isOfficialPartner": false,
+                  "partnerId": "h=258151;ho=1122;lang=en-us;siteType=Organic;crt=web_click_1;hc=USD;cc=US;rgc=NY;ucp=;uif=;tui=;uod=;uoz=;tz=",
+                  "totalWithTaxes": "$280",
+                  "featuresStringify": "[\"Free cancellation\",\"Pay later\"]",
+                  "isSponsored": false
+                }
+              ],
               "localCurrency": "USD",
-              "searchId": "ghijkl789012",
-              "requestId": "req-67890"
+              "searchId": "123456789",
+              "requestId": "987654321"
             },
             "status": true,
-            "message": "Success",
+            "message": "Successful",
             "component": {
-              "name": "HotelPrices"
+              "name": "HotelPricesResults"
             }
           }
 
-  - endpoint: /skyscanner/hotel_reviews
+  - endpoint: /skyscanner/get_hotel_reviews
     examples:
-      - scenario: "Hotel Reviews in New York"
-        description: "Get reviews for a specific hotel in New York City"
+      - scenario: "Get Hotel Reviews"
+        description: "Get reviews for a specific hotel"
         input_json: |
           {
-            "hotelId": "hotel123456",
-            "filter": {
-              "guestType": "all",
-              "reviewLanguage": "en"
-            },
-            "sort": "recent",
-            "limit": 10,
-            "offset": 0
+            "hotelId": "106005202"
           }
         output_json: |
           {
             "data": {
               "reviews": [
                 {
-                  "id": "review123",
-                  "title": "Great experience",
-                  "text": "The hotel was amazing with excellent service and amenities.",
-                  "rating": 4.5,
-                  "date": "2023-12-15",
-                  "travelerType": "couple",
-                  "reviewLanguage": "en",
-                  "userInfo": {
-                    "name": "John D.",
-                    "country": "US"
+                  "id": "rev1234567",
+                  "author": {
+                    "name": "John",
+                    "type": "couple",
+                    "nationality": "US"
                   },
-                  "positives": ["Clean", "Great location", "Friendly staff"],
-                  "negatives": ["Breakfast could be better"]
+                  "travelDate": "2023-09",
+                  "submissionDate": "2023-09-30",
+                  "reviewText": "Great location and service. The rooms were clean and comfortable. Would definitely recommend this hotel for anyone visiting the area. Staff was very helpful and friendly.",
+                  "rating": {
+                    "score": 9,
+                    "totalScore": 10,
+                    "label": "Excellent"
+                  },
+                  "categoryRatings": [
+                    {
+                      "categoryId": "location",
+                      "categoryName": "Location",
+                      "score": 9.5
+                    },
+                    {
+                      "categoryId": "cleanliness",
+                      "categoryName": "Cleanliness",
+                      "score": 9.2
+                    },
+                    {
+                      "categoryId": "staff",
+                      "categoryName": "Staff",
+                      "score": 9.0
+                    }
+                  ],
+                  "stayDuration": "3 nights",
+                  "isVerified": true
                 },
                 {
-                  "id": "review456",
-                  "title": "Fantastic stay",
-                  "text": "Loved the central location and comfortable rooms.",
-                  "rating": 5.0,
-                  "date": "2023-11-20",
-                  "travelerType": "family",
-                  "reviewLanguage": "en",
-                  "userInfo": {
-                    "name": "Sarah M.",
-                    "country": "UK"
+                  "id": "rev7654321",
+                  "author": {
+                    "name": "Sarah",
+                    "type": "family",
+                    "nationality": "UK"
                   },
-                  "positives": ["Spacious", "Excellent breakfast", "Helpful concierge"],
-                  "negatives": []
+                  "travelDate": "2023-08",
+                  "submissionDate": "2023-08-22",
+                  "reviewText": "The hotel was nice but the neighborhood was a bit noisy at night. The breakfast buffet was excellent though, with plenty of options for all tastes.",
+                  "rating": {
+                    "score": 7.5,
+                    "totalScore": 10,
+                    "label": "Good"
+                  },
+                  "categoryRatings": [
+                    {
+                      "categoryId": "location",
+                      "categoryName": "Location",
+                      "score": 6.8
+                    },
+                    {
+                      "categoryId": "cleanliness",
+                      "categoryName": "Cleanliness",
+                      "score": 8.5
+                    },
+                    {
+                      "categoryId": "value",
+                      "categoryName": "Value",
+                      "score": 7.0
+                    }
+                  ],
+                  "stayDuration": "5 nights",
+                  "isVerified": true
                 }
               ],
               "searchStatus": {
                 "completed": true,
-                "reviewCount": 245,
-                "averageRating": 4.2
-              },
-              "title": {
-                "text": "Guest Reviews",
-                "subtitle": "Based on 245 verified guest reviews"
-              },
-              "cta": {
-                "text": "View all reviews",
-                "url": "/hotel-reviews/hotel123456"
-              },
-              "filters": {
-                "guestType": [
-                  {"id": "all", "label": "All travelers", "count": 245},
-                  {"id": "couple", "label": "Couples", "count": 120},
-                  {"id": "family", "label": "Families", "count": 75},
-                  {"id": "business", "label": "Business travelers", "count": 30},
-                  {"id": "solo", "label": "Solo travelers", "count": 20}
-                ],
-                "reviewLanguage": [
-                  {"id": "all", "label": "All languages", "count": 245},
-                  {"id": "en", "label": "English", "count": 180},
-                  {"id": "es", "label": "Spanish", "count": 35},
-                  {"id": "fr", "label": "French", "count": 20},
-                  {"id": "de", "label": "German", "count": 10}
+                "reviewPartner": [
+                  {
+                    "partnerId": "booking",
+                    "partnerName": "Booking.com",
+                    "reviewCount": 1503,
+                    "averageRating": 8.2
+                  },
+                  {
+                    "partnerId": "hotels",
+                    "partnerName": "Hotels.com",
+                    "reviewCount": 874,
+                    "averageRating": 7.9
+                  }
                 ]
-              }
+              },
+              "title": "Guest reviews",
+              "cta": "See all reviews",
+              "filters": [
+                {
+                  "type": "sort",
+                  "title": "Sort by",
+                  "values": [
+                    {
+                      "id": "recommended",
+                      "count": 2377,
+                      "label": "Recommended"
+                    },
+                    {
+                      "id": "rating_desc",
+                      "count": 2377,
+                      "label": "Rating (high to low)"
+                    },
+                    {
+                      "id": "rating_asc",
+                      "count": 2377,
+                      "label": "Rating (low to high)"
+                    }
+                  ]
+                },
+                {
+                  "type": "guest_type",
+                  "title": "Traveler type",
+                  "values": [
+                    {
+                      "id": "all",
+                      "count": 2377,
+                      "label": "All travelers"
+                    },
+                    {
+                      "id": "business",
+                      "count": 532,
+                      "label": "Business"
+                    },
+                    {
+                      "id": "couple",
+                      "count": 947,
+                      "label": "Couple"
+                    },
+                    {
+                      "id": "family",
+                      "count": 426,
+                      "label": "Family"
+                    },
+                    {
+                      "id": "group",
+                      "count": 185,
+                      "label": "Group"
+                    },
+                    {
+                      "id": "solo",
+                      "count": 287,
+                      "label": "Solo"
+                    }
+                  ]
+                }
+              ]
             },
+            "status": true,
+            "message": "Successful",
             "component": {
-              "name": "HotelReviews",
-              "displayMode": "list",
-              "showReviews": true,
-              "showReviewFilters": true
+              "name": "HotelReviewsResults"
+            }
+          }
+          
+      - scenario: "Get Hotel Reviews with Filters"
+        description: "Get reviews for a hotel with specific filters"
+        input_json: |
+          {
+            "hotelId": "106005202",
+            "sort": "rating_desc",
+            "guestType": "business",
+            "page": 1
+          }
+        output_json: |
+          {
+            "data": {
+              "reviews": [
+                {
+                  "id": "rev9876543",
+                  "author": {
+                    "name": "Michael",
+                    "type": "business",
+                    "nationality": "US"
+                  },
+                  "travelDate": "2023-10",
+                  "submissionDate": "2023-10-15",
+                  "reviewText": "Excellent business hotel with all necessary amenities. Fast WiFi, convenient desk space, and the meeting rooms were well equipped. Breakfast starts early which was perfect for my schedule.",
+                  "rating": {
+                    "score": 9.2,
+                    "totalScore": 10,
+                    "label": "Excellent"
+                  },
+                  "categoryRatings": [
+                    {
+                      "categoryId": "location",
+                      "categoryName": "Location",
+                      "score": 9.5
+                    },
+                    {
+                      "categoryId": "facilities",
+                      "categoryName": "Facilities",
+                      "score": 9.0
+                    },
+                    {
+                      "categoryId": "internet",
+                      "categoryName": "Internet",
+                      "score": 9.8
+                    }
+                  ],
+                  "stayDuration": "4 nights",
+                  "isVerified": true
+                },
+                {
+                  "id": "rev8765432",
+                  "author": {
+                    "name": "Jennifer",
+                    "type": "business",
+                    "nationality": "CA"
+                  },
+                  "travelDate": "2023-09",
+                  "submissionDate": "2023-09-28",
+                  "reviewText": "Stayed here for a business conference. The hotel's proximity to the convention center was ideal. Room service was prompt and the staff were accommodating with late checkout.",
+                  "rating": {
+                    "score": 8.5,
+                    "totalScore": 10,
+                    "label": "Very Good"
+                  },
+                  "categoryRatings": [
+                    {
+                      "categoryId": "location",
+                      "categoryName": "Location",
+                      "score": 9.2
+                    },
+                    {
+                      "categoryId": "service",
+                      "categoryName": "Service",
+                      "score": 8.7
+                    },
+                    {
+                      "categoryId": "internet",
+                      "categoryName": "Internet",
+                      "score": 7.8
+                    }
+                  ],
+                  "stayDuration": "3 nights",
+                  "isVerified": true
+                }
+              ],
+              "searchStatus": {
+                "completed": true,
+                "reviewPartner": [
+                  {
+                    "partnerId": "booking",
+                    "partnerName": "Booking.com",
+                    "reviewCount": 532,
+                    "averageRating": 8.4
+                  },
+                  {
+                    "partnerId": "tripadvisor",
+                    "partnerName": "TripAdvisor",
+                    "reviewCount": 285,
+                    "averageRating": 8.2
+                  }
+                ]
+              },
+              "title": "Business traveler reviews",
+              "cta": "See all business reviews",
+              "filters": [
+                {
+                  "type": "sort",
+                  "title": "Sort by",
+                  "values": [
+                    {
+                      "id": "recommended",
+                      "count": 532,
+                      "label": "Recommended"
+                    },
+                    {
+                      "id": "rating_desc",
+                      "count": 532,
+                      "label": "Rating (high to low)"
+                    },
+                    {
+                      "id": "rating_asc",
+                      "count": 532,
+                      "label": "Rating (low to high)"
+                    }
+                  ]
+                }
+              ]
+            },
+            "status": true,
+            "message": "Successful",
+            "component": {
+              "name": "HotelReviewsResults"
             }
           }

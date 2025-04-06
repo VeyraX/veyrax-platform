@@ -32,7 +32,6 @@ examples = ExamplesLoader()
 async def get_google_maps_service(request: FastAPIRequest):
     try:
         api_key = await validate_provider_api_key(request, "google-maps")
-        
         client = GoogleMapsClient(api_key)
         apply_error_handler_to_client(client)
         service = GoogleMapsService(client)
@@ -46,11 +45,11 @@ async def get_google_maps_service(request: FastAPIRequest):
             detail=f"Failed to initialize Google Maps service: {str(e)}"
         )
 
-@router.post("/geocode", response_model=ApiResponse)
+@router.post("/get_geocode", response_model=ApiResponse)
 @schema(
     input_schema_class=GeocodeParams,
     output_schema_class=GeocodeResponse,
-    examples=examples.get("/google-maps/geocode", [])
+    examples=examples["/google-maps/get_geocode"]
 )
 async def geocode(
     params: Dict[str, Any] = Body(...),
@@ -59,11 +58,11 @@ async def geocode(
     validated_params = GeocodeParams(**params)
     return service.geocode(validated_params)
 
-@router.post("/reverse_geocode", response_model=ApiResponse)
+@router.post("/get_reverse_geocode", response_model=ApiResponse)
 @schema(
     input_schema_class=ReverseGeocodeParams,
     output_schema_class=ReverseGeocodeResponse,
-    examples=examples.get("/google-maps/reverse_geocode", [])
+    examples=examples["/google-maps/get_reverse_geocode"]
 )
 async def reverse_geocode(
     params: Dict[str, Any] = Body(...),
@@ -76,7 +75,7 @@ async def reverse_geocode(
 @schema(
     input_schema_class=SearchPlacesParams,
     output_schema_class=SearchPlacesResponse,
-    examples=examples.get("/google-maps/search_places", [])
+    examples=examples["/google-maps/search_places"]
 )
 async def search_places(
     params: Dict[str, Any] = Body(...),
@@ -85,11 +84,11 @@ async def search_places(
     validated_params = SearchPlacesParams(**params)
     return service.search_places(validated_params)
 
-@router.post("/place_details", response_model=ApiResponse)
+@router.post("/get_place_details", response_model=ApiResponse)
 @schema(
     input_schema_class=PlaceDetailsParams,
     output_schema_class=PlaceDetailsResponse,
-    examples=examples.get("/google-maps/place_details", [])
+    examples=examples["/google-maps/get_place_details"]
 )
 async def place_details(
     params: Dict[str, Any] = Body(...),
@@ -98,11 +97,11 @@ async def place_details(
     validated_params = PlaceDetailsParams(**params)
     return service.place_details(validated_params)
 
-@router.post("/distance_matrix", response_model=ApiResponse)
+@router.post("/calculate_distance_matrix", response_model=ApiResponse)
 @schema(
     input_schema_class=DistanceMatrixParams,
     output_schema_class=DistanceMatrixResponse,
-    examples=examples.get("/google-maps/distance_matrix", [])
+    examples=examples["/google-maps/calculate_distance_matrix"]
 )
 async def distance_matrix(
     params: Dict[str, Any] = Body(...),
@@ -111,11 +110,11 @@ async def distance_matrix(
     validated_params = DistanceMatrixParams(**params)
     return service.distance_matrix(validated_params)
 
-@router.post("/elevation", response_model=ApiResponse)
+@router.post("/get_elevation", response_model=ApiResponse)
 @schema(
     input_schema_class=ElevationParams,
     output_schema_class=ElevationResponse,
-    examples=examples.get("/google-maps/elevation", [])
+    examples=examples["/google-maps/get_elevation"]
 )
 async def elevation(
     params: Dict[str, Any] = Body(...),
@@ -124,11 +123,11 @@ async def elevation(
     validated_params = ElevationParams(**params)
     return service.elevation(validated_params)
 
-@router.post("/directions", response_model=ApiResponse)
+@router.post("/get_directions", response_model=ApiResponse)
 @schema(
     input_schema_class=DirectionsParams,
     output_schema_class=DirectionsResponse,
-    examples=examples.get("/google-maps/directions", [])
+    examples=examples["/google-maps/get_directions"]
 )
 async def directions(
     params: Dict[str, Any] = Body(...),
@@ -136,6 +135,7 @@ async def directions(
 ):
     validated_params = DirectionsParams(**params)
     return service.directions(validated_params)
+
 
 @router.post("/validate_key")
 async def validate_key(

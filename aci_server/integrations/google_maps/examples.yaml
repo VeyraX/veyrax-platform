@@ -1,5 +1,5 @@
 routes:
-  - endpoint: /google-maps/geocode
+  - endpoint: /google-maps/get_geocode
     examples:
       - scenario: "Geocode an address"
         description: "Convert an address to geographic coordinates"
@@ -22,7 +22,7 @@ routes:
             }
           }
 
-  - endpoint: /google-maps/reverse_geocode
+  - endpoint: /google-maps/get_reverse_geocode
     examples:
       - scenario: "Reverse geocode coordinates"
         description: "Convert geographic coordinates to an address"
@@ -101,7 +101,7 @@ routes:
             }
           }
 
-  - endpoint: /google-maps/place_details
+  - endpoint: /google-maps/get_place_details
     examples:
       - scenario: "Get place details"
         description: "Retrieve detailed information about a specific place"
@@ -147,7 +147,7 @@ routes:
             }
           }
 
-  - endpoint: /google-maps/distance_matrix
+  - endpoint: /google-maps/calculate_distance_matrix
     examples:
       - scenario: "Calculate distance and travel time"
         description: "Get distance and travel time between multiple origins and destinations"
@@ -196,7 +196,7 @@ routes:
             }
           }
 
-  - endpoint: /google-maps/elevation
+  - endpoint: /google-maps/get_elevation
     examples:
       - scenario: "Get elevation data"
         description: "Get elevation data for specific locations"
@@ -240,7 +240,7 @@ routes:
             }
           }
 
-  - endpoint: /google-maps/directions
+  - endpoint: /google-maps/get_directions
     examples:
       - scenario: "Get driving directions"
         description: "Get step-by-step directions between two points"

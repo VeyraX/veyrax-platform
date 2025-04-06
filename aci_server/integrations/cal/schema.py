@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union, Literal
+from pydantic import validator
 
 
 # Common models
@@ -14,6 +15,50 @@ class Host(BaseModel):
 class EventType(BaseModel):
     id: int
     slug: str
+
+
+class DetailedEventType(BaseModel):
+    id: int
+    lengthInMinutes: int
+    lengthInMinutesOptions: Optional[List[int]] = None
+    title: str
+    slug: str
+    description: Optional[str] = None
+    locations: Optional[List[Dict[str, Any]]] = None
+    bookingFields: Optional[List[Dict[str, Any]]] = None
+    disableGuests: Optional[bool] = None
+    slotInterval: Optional[int] = None
+    minimumBookingNotice: Optional[int] = None
+    beforeEventBuffer: Optional[int] = None
+    afterEventBuffer: Optional[int] = None
+    recurrence: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    price: Optional[int] = None
+    currency: Optional[str] = None
+    lockTimeZoneToggleOnBookingPage: Optional[bool] = None
+    seatsPerTimeSlot: Optional[Dict[str, Any]] = None
+    forwardParamsSuccessRedirect: Optional[Union[Dict[str, Any], bool]] = None
+    successRedirectUrl: Optional[Dict[str, Any]] = None
+    isInstantEvent: Optional[bool] = None
+    seatsShowAvailabilityCount: Optional[bool] = None
+    scheduleId: Optional[int] = None
+    bookingLimitsCount: Optional[Dict[str, Any]] = None
+    onlyShowFirstAvailableSlot: Optional[bool] = None
+    bookingLimitsDuration: Optional[Dict[str, Any]] = None
+    bookingWindow: Optional[Union[List[Dict[str, Any]], Dict[str, Any]]] = None
+    bookerLayouts: Optional[Dict[str, Any]] = None
+    confirmationPolicy: Optional[Dict[str, Any]] = None
+    requiresBookerEmailVerification: Optional[bool] = None
+    hideCalendarNotes: Optional[bool] = None
+    color: Optional[Dict[str, str]] = None
+    seats: Optional[Dict[str, Any]] = None
+    offsetStart: Optional[int] = None
+    customName: Optional[str] = None
+    destinationCalendar: Optional[Dict[str, str]] = None
+    useDestinationCalendarEmail: Optional[bool] = None
+    hideCalendarEventDetails: Optional[bool] = None
+    ownerId: Optional[int] = None
+    users: Optional[Union[List[str], List[Dict[str, Any]]]] = None
 
 
 class Attendee(BaseModel):
@@ -63,6 +108,11 @@ class TeamsLocation(BaseModel):
 class DailyLocation(BaseModel):
     type: Literal["daily"]
     value: Optional[str] = None
+
+
+class IntegrationLocation(BaseModel):
+    type: Literal["integration"]
+    integration: str
 
 
 # Organization model
@@ -133,13 +183,23 @@ class Booking(BaseModel):
     location: Optional[str] = None
     absentHost: Optional[bool] = None
     createdAt: str
-    updatedAt: str
+    updatedAt: Any = Field(default="")
     metadata: Optional[Dict[str, Any]] = None
     rating: Optional[int] = None
     icsUid: Optional[str] = None
     attendees: List[Attendee]
     guests: Optional[List[str]] = None
     bookingFieldsResponses: Optional[Dict[str, Any]] = None
+    
+    class Config:
+        # Model configuration
+        arbitrary_types_allowed = True
+    
+    @validator("updatedAt", pre=True)
+    def convert_updated_at_to_string(cls, v):
+        if v is None:
+            return ""
+        return str(v)
 
 
 class BookingList(BaseModel):
@@ -199,7 +259,8 @@ class CreateBookingParams(BaseModel):
         ZoomLocation,
         JitsiLocation,
         TeamsLocation,
-        DailyLocation
+        DailyLocation,
+        IntegrationLocation
     ]] = None
     metadata: Optional[Dict[str, Any]] = None
     bookingFieldsResponses: Optional[Dict[str, Any]] = None
@@ -236,6 +297,20 @@ class GetSchedulesParams(BaseModel):
 
 class GetProfileParams(BaseModel):
     pass
+
+
+# Event Type List
+class EventTypeList(BaseModel):
+    eventTypes: List[DetailedEventType]
+
+
+# Input parameters for get_event_types
+class GetEventTypesParams(BaseModel):
+    username: str  # Required parameter
+    eventSlug: Optional[str] = None
+    usernames: Optional[str] = None
+    orgSlug: Optional[str] = None
+    orgId: Optional[int] = None
 
 
 # Response classes
@@ -280,7 +355,11 @@ class ValidateKeyResponse(BaseModel):
     message: str
 
 
+class GetEventTypesResponse(BaseModel):
+    data: EventTypeList
+
+
 # Main API response model
 class ApiResponse(BaseModel):
-    data: Union[Booking, BookingList, UserProfile, Schedule, ScheduleList]
+    data: Union[Booking, BookingList, UserProfile, Schedule, ScheduleList, EventTypeList, DetailedEventType]
     component: Optional[Dict[str, Any]] = None

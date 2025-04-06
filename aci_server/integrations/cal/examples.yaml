@@ -125,7 +125,8 @@ routes:
               "guest2@example.com"
             ],
             "location": {
-              "type": "googlemeet"
+              "type": "integration",
+              "integration": "google-meet"
             },
             "metadata": {
               "source": "api_integration"
@@ -493,5 +494,103 @@ routes:
             },
             "component": {
               "name": "CalScheduleDetail"
+            }
+          }
+
+  - endpoint: /cal/get_event_types
+    examples:
+      - scenario: "Get all event types"
+        description: "Get a list of all event types for a specific user"
+        input_json: |
+          {
+            "username": "username"
+          }
+        output_json: |
+          {
+            "data": {
+              "eventTypes": [
+                {
+                  "id": 1,
+                  "lengthInMinutes": 60,
+                  "lengthInMinutesOptions": [15, 30, 60],
+                  "title": "Consultation",
+                  "slug": "consultation",
+                  "description": "Learn how to integrate scheduling into marketplace.",
+                  "locations": [
+                    {
+                      "type": "googlemeet",
+                      "address": null,
+                      "public": true
+                    }
+                  ],
+                  "bookingFields": [
+                    {
+                      "type": "name",
+                      "label": "Your name",
+                      "placeholder": "John Doe",
+                      "disableOnPrefill": true,
+                      "isDefault": true,
+                      "slug": "name",
+                      "required": true
+                    }
+                  ],
+                  "disableGuests": false,
+                  "slotInterval": 60,
+                  "minimumBookingNotice": 0,
+                  "beforeEventBuffer": 0,
+                  "afterEventBuffer": 0,
+                  "metadata": {},
+                  "ownerId": 10,
+                  "users": ["korzhov-dm"],
+                  "forwardParamsSuccessRedirect": {},
+                  "bookingWindow": []
+                }
+              ]
+            },
+            "component": {
+              "name": "CalEventTypeList"
+            }
+          }
+
+      - scenario: "Get specific event type"
+        description: "Get a specific event type by username and slug"
+        input_json: |
+          {
+            "username": "korzhov-dm",
+            "eventSlug": "consultation"
+          }
+        output_json: |
+          {
+            "data": {
+              "eventTypes": [
+                {
+                  "id": 1,
+                  "lengthInMinutes": 60,
+                  "lengthInMinutesOptions": [15, 30, 60],
+                  "title": "Consultation",
+                  "slug": "consultation",
+                  "description": "Learn how to integrate scheduling into marketplace.",
+                  "locations": [
+                    {
+                      "type": "googlemeet",
+                      "address": null,
+                      "public": true
+                    }
+                  ],
+                  "disableGuests": false,
+                  "slotInterval": 60,
+                  "minimumBookingNotice": 0,
+                  "beforeEventBuffer": 0,
+                  "afterEventBuffer": 0,
+                  "metadata": {},
+                  "ownerId": 10,
+                  "users": ["korzhov-dm"],
+                  "forwardParamsSuccessRedirect": {},
+                  "bookingWindow": []
+                }
+              ]
+            },
+            "component": {
+              "name": "CalEventTypeList"
             }
           }

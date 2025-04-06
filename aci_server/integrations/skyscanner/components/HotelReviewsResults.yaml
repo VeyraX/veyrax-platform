@@ -1,0 +1,71 @@
+name: HotelReviewsResults
+description: Display hotel reviews
+inputSchema:
+  type: object
+  properties:
+    data:
+      type: object
+      properties:
+        reviews:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier for the review
+              author:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the reviewer
+                  type:
+                    type: string
+                    description: Type of traveler (e.g., couple, family, business)
+              reviewText:
+                type: string
+                description: The review content
+              rating:
+                type: object
+                properties:
+                  score:
+                    type: number
+                    description: Rating score
+                  totalScore:
+                    type: number
+                    description: Maximum possible score
+                  label:
+                    type: string
+                    description: Rating label (e.g., Excellent, Good)
+        title:
+          type: string
+          description: Title for the reviews section
+        searchStatus:
+          type: object
+          properties:
+            completed:
+              type: boolean
+              description: Whether the search completed successfully
+            reviewPartner:
+              type: array
+              items:
+                type: object
+                properties:
+                  partnerId:
+                    type: string
+                  partnerName:
+                    type: string
+                  reviewCount:
+                    type: number
+                  averageRating:
+                    type: number
+outputFormat: list
+outputFormatConfig:
+  title: "{{data.title}}"
+  subtitle: "Hotel Guest Reviews"
+  items:
+    source: data.reviews
+    title: "{{rating.label}} - {{rating.score}}/{{rating.totalScore}}"
+    subtitle: "{{author.name}} - Traveled as {{author.type}}"
+    description: "{{reviewText}}" 

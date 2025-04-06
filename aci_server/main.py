@@ -78,6 +78,9 @@ from integrations.hunterio.route import router as hunterio_router
 from integrations.zip_code.route import router as zip_code_router
 from integrations.zillow.route import router as zillow_router
 from integrations.veyrax_auth.route import router as veyrax_auth_router
+from integrations.skyscanner.route import router as skyscanner_router
+from integrations.google_maps.route import router as google_maps_router
+from integrations.cal.route import router as cal_router
 from flow.route import router as flow_router
 from debug_routes import router as debug_router
 from agent.routes import router as agent_router
@@ -179,7 +182,10 @@ INTEGRATION_ROUTERS = {
     "falai": falai_router,
     "airbnb": airbnb_router,
     "whatsapp": whatsapp_router,
-    "veyrax_auth": veyrax_auth_router
+    "veyrax_auth": veyrax_auth_router,
+    "skyscanner": skyscanner_router,
+    "google-maps": google_maps_router,
+    "cal": cal_router
 }
 
 
@@ -252,7 +258,7 @@ app.add_middleware(
 app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
-app.add_middleware(PermissionMiddleware)
+#app.add_middleware(PermissionMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)

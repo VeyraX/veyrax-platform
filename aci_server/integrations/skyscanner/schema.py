@@ -1,19 +1,19 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Union, Literal
 
-# Input schema
+# Input schema for Search One-Way endpoint
 class SearchOneWayParams(BaseModel):
     fromEntityId: str = Field(
         ...,
-        description="From location (e.g., 'PARI' for Paris)"
+        description="From location ID that can be retrieved from auto-complete or airports endpoints"
     )
     toEntityId: Optional[str] = Field(
         None,
-        description="To location (default: everywhere)"
+        description="To location ID (if not provided, will search everywhere)"
     )
     departDate: Optional[str] = Field(
         None,
-        description="Depart date in YYYY-MM-DD format (default: anytime)"
+        description="Depart date in YYYY-MM-DD format (if not provided, will search anytime)"
     )
     wholeMonthDepart: Optional[str] = Field(
         None,
@@ -21,29 +21,66 @@ class SearchOneWayParams(BaseModel):
     )
     market: Optional[str] = Field(
         "US",
-        description="Market (e.g., 'US')"
+        description="Market (country code)"
     )
     locale: Optional[str] = Field(
         "en-US",
-        description="Locale (e.g., 'en-US')"
+        description="Locale for response language"
     )
     currency: Optional[str] = Field(
         "USD",
-        description="Currency (e.g., 'USD')"
+        description="Currency for prices"
     )
     stops: Optional[str] = Field(
         None,
-        description="Stops filter (e.g., 'direct,1stop')"
+        description="Comma-separated list of stops (direct, 1stop, 2stops)"
+    )
+    adults: Optional[int] = Field(
+        1,
+        description="Number of adults (12+ years)"
     )
     children: Optional[int] = Field(
         0,
-        ge=0,
         description="Number of children (2-12 years)"
     )
     infants: Optional[int] = Field(
         0,
-        ge=0,
         description="Number of infants (under 2 years)"
+    )
+    cabinClass: Optional[Literal["economy", "premium_economy", "business", "first"]] = Field(
+        "economy",
+        description="Cabin class"
+    )
+    airlines: Optional[str] = Field(
+        None,
+        description="Comma-separated list of airline IDs"
+    )
+    sort: Optional[str] = Field(
+        "cheapest_first",
+        description="Sort order (e.g., cheapest_first)"
+    )
+    maxResult: int = Field(
+        5,
+        description="Maximum number of results (default: 5)"
+    )
+
+# Input schema for Search Everywhere endpoint
+class SearchEverywhereParams(BaseModel):
+    fromEntityId: str = Field(
+        ...,
+        description="Origin location ID (e.g., 'NYCA' for New York)"
+    )
+    type: Optional[str] = Field(
+        "oneway",
+        description="Flight type (oneway or roundtrip)"
+    )
+    departDate: Optional[str] = Field(
+        None,
+        description="Departure date in YYYY-MM-DD format (default: anytime)"
+    )
+    returnDate: Optional[str] = Field(
+        None,
+        description="Return date for roundtrip in YYYY-MM-DD format"
     )
     cabinClass: Optional[Literal["economy", "premium_economy", "business", "first"]] = Field(
         "economy",
@@ -51,34 +88,30 @@ class SearchOneWayParams(BaseModel):
     )
     adults: Optional[int] = Field(
         1,
-        ge=1,
-        description="Number of adults (12+ years)"
+        description="Number of adults"
     )
-    sort: Optional[str] = Field(
-        None,
-        description="Sort order (e.g., 'cheapest_first')"
-    )
-    airlines: Optional[str] = Field(
-        None,
-        description="Airline filter (comma-separated airline IDs)"
+    maxResult: int = Field(
+        5,
+        description="Maximum number of results (default: 5)"
     )
 
+# Input schema for Search Roundtrip endpoint
 class SearchRoundtripParams(BaseModel):
     fromEntityId: str = Field(
         ...,
-        description="From location (e.g., 'PARI' for Paris)"
+        description="From location ID that can be retrieved from auto-complete or airports endpoints"
     )
     toEntityId: Optional[str] = Field(
         None,
-        description="To location (default: everywhere)"
+        description="To location ID (if not provided, will search everywhere)"
     )
     departDate: Optional[str] = Field(
         None,
-        description="Depart date in YYYY-MM-DD format (default: anytime)"
+        description="Depart date in YYYY-MM-DD format (if not provided, will search anytime)"
     )
     returnDate: Optional[str] = Field(
         None,
-        description="Return date in YYYY-MM-DD format (default: anytime)"
+        description="Return date in YYYY-MM-DD format (if not provided, will search anytime)"
     )
     wholeMonthDepart: Optional[str] = Field(
         None,
@@ -90,817 +123,496 @@ class SearchRoundtripParams(BaseModel):
     )
     market: Optional[str] = Field(
         "US",
-        description="Market (e.g., 'US')"
+        description="Market (country code)"
     )
     locale: Optional[str] = Field(
         "en-US",
-        description="Locale (e.g., 'en-US')"
+        description="Locale for response language"
     )
     currency: Optional[str] = Field(
         "USD",
-        description="Currency (e.g., 'USD')"
+        description="Currency for prices"
     )
     stops: Optional[str] = Field(
         None,
-        description="Stops filter (e.g., 'direct,1stop')"
+        description="Comma-separated list of stops (direct, 1stop, 2stops)"
     )
     adults: Optional[int] = Field(
         1,
-        ge=1,
         description="Number of adults (12+ years)"
     )
     children: Optional[int] = Field(
         0,
-        ge=0,
         description="Number of children (2-12 years)"
     )
     infants: Optional[int] = Field(
         0,
-        ge=0,
         description="Number of infants (under 2 years)"
     )
     cabinClass: Optional[Literal["economy", "premium_economy", "business", "first"]] = Field(
         "economy",
         description="Cabin class"
     )
-    sort: Optional[str] = Field(
-        None,
-        description="Sort order (e.g., 'cheapest_first')"
-    )
     airlines: Optional[str] = Field(
         None,
-        description="Airline filter (comma-separated airline IDs)"
+        description="Comma-separated list of airline IDs"
+    )
+    sort: Optional[str] = Field(
+        "cheapest_first",
+        description="Sort order (e.g., cheapest_first)"
+    )
+    maxResult: int = Field(
+        5,
+        description="Maximum number of results (default: 5)"
     )
 
-class FlightLeg(BaseModel):
+# Simplified response schema (only important fields)
+class FlightQuote(BaseModel):
+    price: str
+    direct: bool
+
+class FlightQuotes(BaseModel):
+    cheapest: FlightQuote
+    direct: Optional[FlightQuote] = None
+
+class LocationInfo(BaseModel):
+    id: str
+    skyCode: str
+    name: str
+    type: str
+
+class LocationContent(BaseModel):
+    location: LocationInfo
+    flightQuotes: FlightQuotes
+    image: Optional[Dict[str, str]] = None
+
+class LocationResult(BaseModel):
+    id: str
+    type: str
+    content: LocationContent
+
+class ContextInfo(BaseModel):
+    status: str
+    sessionId: str
+    totalResults: int
+
+# Simple response schema with optional fields
+class SearchEverywhereData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+    everywhereDestination: Optional[Dict[str, Any]] = None
+    context: Optional[Dict[str, Any]] = None
+
+# Roundtrip search response schema
+class SearchRoundtripData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
+    itineraries: Optional[List[Dict[str, Any]]] = None
+    messages: Optional[List[Dict[str, Any]]] = None
+    filterStats: Optional[Dict[str, Any]] = None
+    flightsSessionId: Optional[str] = None
+    destinationImageUrl: Optional[str] = None
+    token: Optional[str] = None
+
+# One-way search response schema
+class SearchOneWayData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
+    itineraries: Optional[List[Dict[str, Any]]] = None
+    messages: Optional[List[Dict[str, Any]]] = None
+    filterStats: Optional[Dict[str, Any]] = None
+    flightsSessionId: Optional[str] = None
+    destinationImageUrl: Optional[str] = None
+    token: Optional[str] = None
+
+# Input schema for Flight Detail endpoint
+class FlightDetailParams(BaseModel):
+    token: str = Field(
+        ...,
+        description="Token from search results (data->token)"
+    )
+    itineraryId: str = Field(
+        ...,
+        description="Itinerary ID from search results (data->itineraries->id)"
+    )
+    market: Optional[str] = Field(
+        "US",
+        description="Market (country code)"
+    )
+    locale: Optional[str] = Field(
+        "en-US",
+        description="Locale for response language"
+    )
+    currency: Optional[str] = Field(
+        "USD",
+        description="Currency for prices"
+    )
+    cookie: Optional[str] = Field(
+        None,
+        description="Use in case of captcha (403) errors or slow latency"
+    )
+
+# Flight detail response schema
+class FlightDetailData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+    itinerary: Optional[Dict[str, Any]] = None
+    pollingCompleted: Optional[bool] = None
+    bookingSessionId: Optional[str] = None
+
+# Input schema for Price Calendar endpoint
+class PriceCalendarParams(BaseModel):
     fromEntityId: str = Field(
         ...,
-        description="Origin location ID"
-    )
-    toEntityId: str = Field(
-        ...,
-        description="Destination location ID"
+        description="From location ID (e.g., 'CDG' for Paris Charles de Gaulle)"
     )
     departDate: str = Field(
         ...,
         description="Departure date in YYYY-MM-DD format"
     )
-
-class SearchMultiCityParams(BaseModel):
-    flights: List[FlightLeg] = Field(
-        ...,
-        description="List of flight legs for multi-city itinerary",
-        min_items=2
-    )
-    market: Optional[str] = Field(
-        "US",
-        description="Market (e.g., 'US')"
-    )
-    locale: Optional[str] = Field(
-        "en-US",
-        description="Locale (e.g., 'en-US')"
-    )
-    currency: Optional[str] = Field(
-        "USD",
-        description="Currency (e.g., 'USD')"
-    )
-    adults: Optional[int] = Field(
-        1,
-        ge=1,
-        description="Number of adults (12+ years)"
-    )
-    children: Optional[int] = Field(
-        0,
-        ge=0,
-        description="Number of children (2-12 years)"
-    )
-    infants: Optional[int] = Field(
-        0,
-        ge=0,
-        description="Number of infants (under 2 years)"
-    )
-    cabinClass: Optional[Literal["economy", "premium_economy", "business", "first"]] = Field(
-        "economy",
-        description="Cabin class"
-    )
-    stops: Optional[List[str]] = Field(
-        None,
-        description="Stops filter as list (e.g., ['direct', '1stop', '2stops'])"
-    )
-    sort: Optional[str] = Field(
-        None,
-        description="Sort order (e.g., 'cheapest_first')"
-    )
-    airlines: Optional[List[int]] = Field(
-        None,
-        description="Airline filter as list of airline IDs"
-    )
-    cookie: Optional[str] = Field(
-        "",
-        description="Cookie for handling captcha errors"
-    )
-
-class PriceCalendarParams(BaseModel):
-    fromEntityId: str = Field(
-        ...,
-        description="From location (e.g., 'CDG' for Paris Charles de Gaulle)"
-    )
-    departDate: Optional[str] = Field(
-        None,
-        description="Depart date in YYYY-MM-DD format"
-    )
     toEntityId: Optional[str] = Field(
         None,
-        description="To location (e.g., 'JFK' for New York John F. Kennedy)"
+        description="To location ID (optional if searching for all destinations)"
     )
     market: Optional[str] = Field(
         "US",
-        description="Market (e.g., 'US')"
+        description="Market (country code)"
     )
     locale: Optional[str] = Field(
         "en-US",
-        description="Locale (e.g., 'en-US')"
+        description="Locale for response language"
     )
     currency: Optional[str] = Field(
         "USD",
-        description="Currency (e.g., 'USD')"
+        description="Currency for prices"
     )
     cookie: Optional[str] = Field(
         None,
-        description="Cookie for handling captcha errors"
+        description="Use in case of captcha (403) errors or slow latency"
     )
 
+# Price calendar response schema
+class PriceCalendarData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+    flights: Optional[Dict[str, Any]] = None
+    currency: Optional[str] = None
+    days: Optional[List[Dict[str, Any]]] = None
+    groups: Optional[List[Dict[str, Any]]] = None
+
+# Input schema for Price Calendar Return endpoint
 class PriceCalendarReturnParams(BaseModel):
     fromEntityId: str = Field(
         ...,
-        description="From location (e.g., 'CDG' for Paris Charles de Gaulle)"
+        description="From location ID (e.g., 'CDG' for Paris Charles de Gaulle)"
     )
-    departDate: Optional[str] = Field(
-        None,
-        description="Depart date in YYYY-MM-DD format"
+    departDate: str = Field(
+        ...,
+        description="Departure date in YYYY-MM-DD format"
     )
-    returnDate: Optional[str] = Field(
-        None,
+    returnDate: str = Field(
+        ...,
         description="Return date in YYYY-MM-DD format"
     )
     toEntityId: Optional[str] = Field(
         None,
-        description="To location (e.g., 'JFK' for New York John F. Kennedy)"
+        description="To location ID (optional if searching for all destinations)"
     )
     market: Optional[str] = Field(
         "US",
-        description="Market (e.g., 'US')"
+        description="Market (country code)"
     )
     locale: Optional[str] = Field(
         "en-US",
-        description="Locale (e.g., 'en-US')"
+        description="Locale for response language"
     )
     currency: Optional[str] = Field(
         "USD",
-        description="Currency (e.g., 'USD')"
+        description="Currency for prices"
     )
     cookie: Optional[str] = Field(
         None,
-        description="Cookie for handling captcha errors"
+        description="Use in case of captcha (403) errors or slow latency"
     )
 
-class FlightDetailsParams(BaseModel):
-    token: str = Field(
-        ...,
-        description="Token from search results"
-    )
-    itineraryId: str = Field(
-        ...,
-        description="Itinerary ID from search results"
-    )
-    market: Optional[str] = Field(
-        "US",
-        description="Market (e.g., 'US')"
-    )
-    locale: Optional[str] = Field(
-        "en-US",
-        description="Locale (e.g., 'en-US')"
-    )
-    currency: Optional[str] = Field(
-        "USD",
-        description="Currency (e.g., 'USD')"
-    )
-
+# Input schema for Cheapest One-way endpoint
 class CheapestOneWayParams(BaseModel):
     fromEntityId: str = Field(
         ...,
-        description="From location (e.g., 'CDG' for Paris Charles de Gaulle)"
+        description="From location ID (e.g., 'CDG' for Paris Charles de Gaulle)"
     )
     toEntityId: str = Field(
         ...,
-        description="To location (e.g., 'JFK' for New York John F. Kennedy)"
+        description="To location ID (e.g., 'JFK' for New York John F. Kennedy)"
     )
-    departDate: Optional[str] = Field(
-        None,
-        description="Depart date in YYYY-MM-DD format"
+    departDate: str = Field(
+        ...,
+        description="Departure date in YYYY-MM-DD format"
     )
     market: Optional[str] = Field(
         "US",
-        description="Market (e.g., 'US')"
+        description="Market (country code)"
     )
     locale: Optional[str] = Field(
         "en-US",
-        description="Locale (e.g., 'en-US')"
+        description="Locale for response language"
     )
     currency: Optional[str] = Field(
         "USD",
-        description="Currency (e.g., 'USD')"
+        description="Currency for prices"
+    )
+
+# Cheapest One-way response schema
+class CheapestOneWayData(BaseModel):
+    data: List[Dict[str, Any]]
+    status: Optional[bool] = None
+    message: Optional[str] = None
+
+# Input schema for Hotel Search endpoint
+class HotelSearchParams(BaseModel):
+    entityId: str = Field(
+        ...,
+        description="Location entity ID (e.g., '27537542' for New York)"
+    )
+    checkin: str = Field(
+        ...,
+        description="Check-in date in YYYY-MM-DD format"
+    )
+    checkout: str = Field(
+        ...,
+        description="Check-out date in YYYY-MM-DD format"
+    )
+    resultsPerPage: Optional[int] = Field(
+        25,
+        description="Total number of records per API call"
+    )
+    page: Optional[int] = Field(
+        1,
+        description="The page index for pagination"
+    )
+    rooms: Optional[int] = Field(
+        1,
+        description="Number of rooms"
+    )
+    adults: Optional[int] = Field(
+        1,
+        description="Number of adults"
+    )
+    childrenAges: Optional[str] = Field(
+        None,
+        description="Children ages separated by commas (e.g., '0,11,17')"
+    )
+    market: Optional[str] = Field(
+        "US",
+        description="Market (country code)"
+    )
+    locale: Optional[str] = Field(
+        "en-US",
+        description="Locale for response language"
+    )
+    currency: Optional[str] = Field(
+        "USD",
+        description="Currency for prices"
+    )
+    sorting: Optional[str] = Field(
+        "-relevance",
+        description="Sorting method (e.g., '-price', 'price', '-rating')"
+    )
+    priceType: Optional[str] = Field(
+        "PRICE_PER_NIGHT",
+        description="Price type (PRICE_PER_NIGHT or PRICE_TOTAL)"
+    )
+    minPrice: Optional[str] = Field(
+        None,
+        description="Minimum price"
+    )
+    maxPrice: Optional[str] = Field(
+        None,
+        description="Maximum price"
+    )
+    maxResult: int = Field(
+        5,
+        description="Maximum number of results to return (default: 5)"
+    )
+    confidentType: Optional[str] = Field(
+        None,
+        description="Book with peace of mind options (comma-separated)"
+    )
+    stars: Optional[str] = Field(
+        None,
+        description="Star rating filter (comma-separated)"
+    )
+    mealPlan: Optional[str] = Field(
+        None,
+        description="Meal plan options (comma-separated)"
+    )
+    rating: Optional[str] = Field(
+        None,
+        description="Guest rating filter (comma-separated)"
+    )
+    guestType: Optional[str] = Field(
+        None,
+        description="Popular with specific guests (comma-separated)"
+    )
+    chain: Optional[str] = Field(
+        None,
+        description="Hotel chain filter (comma-separated)"
+    )
+    cancellation: Optional[str] = Field(
+        None,
+        description="Cancellation policy filter (comma-separated)"
+    )
+    amenities: Optional[str] = Field(
+        None,
+        description="Amenities filter (comma-separated)"
+    )
+    propertyType: Optional[str] = Field(
+        None,
+        description="Accommodation type filter (comma-separated)"
+    )
+    district: Optional[str] = Field(
+        None,
+        description="Neighborhoods filter (comma-separated)"
+    )
+    discountTypes: Optional[str] = Field(
+        None,
+        description="Deals filter (comma-separated)"
+    )
+
+# Hotel search response schema
+class HotelSearchData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    meta: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+
+# Input schema for Hotel Detail endpoint
+class HotelDetailParams(BaseModel):
+    id: str = Field(
+        ...,
+        description="Hotel ID from search results (data->results->hotelCards->id)"
+    )
+    market: Optional[str] = Field(
+        "US",
+        description="Market (country code)"
+    )
+    locale: Optional[str] = Field(
+        "en-US",
+        description="Locale for response language"
+    )
+    currency: Optional[str] = Field(
+        "USD",
+        description="Currency for prices"
+    )
+
+# Hotel detail response schema
+class HotelDetailData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
+
+# Input schema for Hotel Prices endpoint
+class HotelPricesParams(BaseModel):
+    hotelId: str = Field(
+        ...,
+        description="Hotel ID from search results (data->results->hotelCards->hotelId)"
+    )
+    checkin: str = Field(
+        ...,
+        description="Check-in date in YYYY-MM-DD format"
+    )
+    checkout: str = Field(
+        ...,
+        description="Check-out date in YYYY-MM-DD format"
+    )
+    rooms: Optional[int] = Field(
+        1,
+        description="Number of rooms"
+    )
+    adults: Optional[int] = Field(
+        1,
+        description="Number of adults"
+    )
+    childrenAges: Optional[str] = Field(
+        None,
+        description="Children ages separated by commas (e.g., '0,11,17')"
+    )
+    market: Optional[str] = Field(
+        "US",
+        description="Market (country code)"
+    )
+    locale: Optional[str] = Field(
+        "en-US",
+        description="Locale for response language"
+    )
+    currency: Optional[str] = Field(
+        "USD",
+        description="Currency for prices"
     )
     cookie: Optional[str] = Field(
         None,
-        description="Cookie for handling captcha errors"
+        description="Cookie for handling captcha or slow latency"
     )
 
-# Output schema
-class Airport(BaseModel):
-    id: str
-    name: str
-
-class City(BaseModel):
-    city: str
-    airports: List[Airport]
-
-class Carrier(BaseModel):
-    id: int
-    logoUrl: str
-    name: str
-
-class PriceInfo(BaseModel):
-    isPresent: bool
-    formattedPrice: Optional[str] = None
-
-class StopPrices(BaseModel):
-    direct: Dict[str, Any]
-    one: Optional[PriceInfo] = None
-    twoOrMore: Optional[PriceInfo] = None
-
-class DurationStats(BaseModel):
-    min: int
-    max: int
-    multiCityMin: int
-    multiCityMax: int
-
-class FilterStats(BaseModel):
-    duration: DurationStats
-    airports: List[City]
-    carriers: List[Carrier]
-    stopPrices: StopPrices
-
-class ItineraryList(BaseModel):
-    items: List[Dict[str, Any]]
-
-class SearchContext(BaseModel):
-    status: str
-    sessionId: str
-    totalResults: int
-    itineraries: ItineraryList
-    messages: List[Any]
-    filterStats: FilterStats
-    flightsSessionId: str
-    destinationImageUrl: Optional[str] = None
-    token: str
-
-class SearchOneWayData(BaseModel):
-    context: SearchContext
-    status: bool
-    message: str
-
-class SearchRoundtripData(BaseModel):
-    context: SearchContext
-    status: bool
-    message: str
-
-class SearchMultiCityData(BaseModel):
-    context: SearchContext
-    status: bool
-    message: str
-
-class PriceGroup(BaseModel):
-    id: str
-    label: str
-
-class PriceDay(BaseModel):
-    day: str
-    group: str
-    price: float
-
-class PriceCalendarFlights(BaseModel):
-    noPriceLabel: str
-    groups: List[PriceGroup]
-    days: List[PriceDay]
-    currency: str
-
-class PriceCalendarData(BaseModel):
-    flights: PriceCalendarFlights
-    status: bool
-    message: str
-
-class PriceCalendarReturnData(BaseModel):
-    flights: PriceCalendarFlights
-    status: bool
-    message: str
-
-class AirportDetail(BaseModel):
-    id: str
-    name: str
-    displayCode: str
-    city: str
-
-class Carrier(BaseModel):
-    id: Optional[str] = None
-    name: Optional[str] = None
-    logoUrl: Optional[str] = None
-
-class Segment(BaseModel):
-    id: str
-    origin: AirportDetail
-    destination: AirportDetail
-    duration: int
-    dayChange: int
-    flightNumber: str
-    departure: str
-    arrival: str
-    marketingCarrier: Carrier
-    operatingCarrier: Optional[Carrier] = None
-    goodToKnowItems: List[Dict[str, Any]] = []
-
-class Layover(BaseModel):
-    segmentId: str
-    origin: AirportDetail
-    destination: AirportDetail
-    duration: int
-
-class Leg(BaseModel):
-    id: str
-    origin: AirportDetail
-    destination: AirportDetail
-    segments: List[Segment]
-    layovers: List[Layover] = []
-    duration: int
-    stopCount: int
-    departure: str
-    arrival: str
-    dayChange: int
-
-class Agent(BaseModel):
-    id: str
-    name: str
-    isCarrier: bool
-    bookingProposition: Optional[str] = None
-    url: str
-    price: int
-    rating: Optional[Dict[str, Any]] = None
-
-class PricingOption(BaseModel):
-    agents: List[Agent]
-    transferProtection: Optional[str] = None
-    isDirectDBookUrl: bool
-    quoteAge: int
-    totalPrice: int
-    fare: Dict[str, Any]
-
-class TransferProtectionDetails(BaseModel):
-    title: str
-    body: str
-    url: str
-    urlTitle: str
-
-class FlightItinerary(BaseModel):
-    id: str
-    legs: List[Leg]
-    pricingOptions: List[PricingOption]
-    isTransferRequired: bool
-    destinationImage: Optional[str] = None
-    operatingCarrierSafetyAttributes: List[Dict[str, Any]] = []
-    flexibleTicketPolicies: List[Any] = []
-    transferProtectionDetails: Optional[TransferProtectionDetails] = None
-    pollingCompleted: bool
-    bookingSessionId: str
-
-class FlightDetailsData(BaseModel):
-    itinerary: FlightItinerary
-    status: bool
-    message: str
-
-class SearchOneWayResponse(BaseModel):
-    data: SearchOneWayData
-
-class SearchRoundtripResponse(BaseModel):
-    data: SearchRoundtripData
-
-class SearchMultiCityResponse(BaseModel):
-    data: SearchMultiCityData
-
-class PriceCalendarResponse(BaseModel):
-    data: PriceCalendarData
-
-class PriceCalendarReturnResponse(BaseModel):
-    data: PriceCalendarReturnData
-
-class FlightDetailsResponse(BaseModel):
-    data: FlightDetailsData
-
-class CheapestOneWayData(BaseModel):
-    flights: PriceCalendarFlights
-    status: bool
-    message: str
-
-class CheapestOneWayResponse(BaseModel):
-    data: CheapestOneWayData
-
-# Input Schemas
-class HotelSearchParams(BaseModel):
-    entityId: str = Field(..., description="Entity ID for location search, can be retrieved from auto-complete endpoint")
-    checkin: str = Field(..., description="Check-in date in YYYY-MM-DD format")
-    checkout: str = Field(..., description="Check-out date in YYYY-MM-DD format")
-    resultsPerPage: Optional[int] = Field(25, description="Total number of records per API call")
-    page: Optional[int] = Field(1, description="The page index, for paging purpose")
-    rooms: Optional[int] = Field(1, description="Number of rooms")
-    adults: Optional[int] = Field(1, description="Number of adults")
-    childrenAges: Optional[str] = Field(None, description="Ages of children, comma-separated (e.g., '0,11,17')")
-    market: Optional[str] = Field("US", description="Market code")
-    locale: Optional[str] = Field("en-US", description="Locale code")
-    currency: Optional[str] = Field("USD", description="Currency code")
-    sorting: Optional[str] = Field("-relevance", description="Sorting option")
-    priceType: Optional[str] = Field("PRICE_PER_NIGHT", description="Price type (PRICE_PER_NIGHT or PRICE_TOTAL)")
-    minPrice: Optional[str] = Field(None, description="Minimum price (with max one decimal digit)")
-    maxPrice: Optional[str] = Field(None, description="Maximum price (with max one decimal digit)")
-    confidentType: Optional[str] = Field(None, description="Book with peace of mind options, comma-separated")
-    stars: Optional[str] = Field(None, description="Star rating, comma-separated")
-    mealPlan: Optional[str] = Field(None, description="Meal plan, comma-separated")
-    rating: Optional[str] = Field(None, description="Guest rating, comma-separated")
-    guestType: Optional[str] = Field(None, description="Popular with, comma-separated")
-    chain: Optional[str] = Field(None, description="Hotel chain, comma-separated")
-    cancellation: Optional[str] = Field(None, description="Cancellation policy, comma-separated")
-    amenities: Optional[str] = Field(None, description="Amenities, comma-separated")
-    propertyType: Optional[str] = Field(None, description="Accommodation type, comma-separated")
-    district: Optional[str] = Field(None, description="Neighborhoods, comma-separated")
-    discountTypes: Optional[str] = Field(None, description="Deals, comma-separated")
-    cookie: Optional[str] = Field(None, description="Cookie for handling captcha errors or slow latency")
-
-# Hotel Data Models
-class Coordinates(BaseModel):
-    latitude: float
-    longitude: float
-
-class EntityInfo(BaseModel):
-    entityId: str
-    entityType: str
-    name: str
-    coordinates: Optional[Coordinates] = None
-    levelOfEntityType: Optional[str] = None
-
-class LocationInfo(BaseModel):
-    entityId: str
-    entityType: str
-    name: str
-
-class SearchSummary(BaseModel):
-    total: int
-    filteredTotal: int
-    inboundTotal: int
-    resultsSummary: str
-    sortBy: str
-    entity: EntityInfo
-    location: List[LocationInfo]
-
-class MapBoundary(BaseModel):
-    north: float
-    east: float
-    south: float
-    west: float
-
-class HotelsRegion(BaseModel):
-    latitude: float
-    longitude: float
-    longitudeDelta: float
-    latitudeDelta: float
-
-class HotelPrice(BaseModel):
-    price: str
-    rawPrice: int
-    partnerId: str
-    partnerType: str
-    partnerName: str
-    partnerLogo: str
-    isOfficial: bool
-    funnelType: str
-    cug: Optional[Any] = None
-    discount: Optional[Any] = None
-    amenities: List[Any]
-
-class HotelCard(BaseModel):
-    id: str
-    name: str
-    stars: str
-    distance: str
-    relevantPoiDistance: Optional[str] = None
-    coordinates: Coordinates
-    pivot: bool
-    images: List[str]
-    reviewsSummary: Dict[str, Any] = {}
-    confidentMessages: List[Any] = []
-    minPriceDbookRoomId: Optional[Any] = None
-    minPriceDbookPartnerId: Optional[Any] = None
-    inbound: bool
-    lowestPrice: HotelPrice
-    otherPrices: List[Any] = []
-    isUpSorted: bool
-    hotelId: str
-
-class SortOption(BaseModel):
-    optionName: str
-    type: str
-
-class FilterOption(BaseModel):
-    # Generic filter object
-    pass
-
-class HotelCoordinate(BaseModel):
-    id: str
-    latitude: float
-    longitude: float
-    price: str
-
-class StatusInfo(BaseModel):
-    completionPercentage: int
-    searchId: str
-    requestId: str
-    fastSearchStatus: str
-    finalStatus: str
-
-class HotelSearchResults(BaseModel):
-    priceType: str
-    pricePolicy: str
-    searchSummary: SearchSummary
-    mapBoundary: MapBoundary
-    hotelsRegion: HotelsRegion
-    hotelCards: List[HotelCard]
-    filters: List[FilterOption] = []
-    hotelsCoordinates: List[HotelCoordinate]
-    sortOptions: List[SortOption]
-    travelInfos: List[Any] = []
-    partnerList: List[str]
-
-class MetaInfo(BaseModel):
-    currentPage: int
-    limit: int
-    totalRecords: int
-    totalPage: int
-
-class HotelSearchData(BaseModel):
-    results: HotelSearchResults
-    status: StatusInfo
-    error: Optional[Any] = None
-
-class HotelSearchResponse(BaseModel):
-    data: HotelSearchData
-    meta: MetaInfo
-    status: bool
-    message: str
-
-# Hotel Detail Input Schema
-class HotelDetailParams(BaseModel):
-    id: str = Field(..., description="Hotel ID from search results")
-    market: Optional[str] = Field("US", description="Market code")
-    locale: Optional[str] = Field("en-US", description="Locale code")
-    currency: Optional[str] = Field("USD", description="Currency code")
-    cookie: Optional[str] = Field(None, description="Cookie for handling captcha errors or slow latency")
-
-# Hotel Detail Data Models
-class CheckinCheckoutTime(BaseModel):
-    title: str
-    time: str
-
-class RawAddress(BaseModel):
-    nation: Optional[str] = None
-    city: Optional[str] = None
-    street_address: Optional[str] = None
-    adm1: Optional[str] = None
-    district: Optional[str] = None
-    postcode: Optional[str] = None
-    cityId: Optional[str] = None
-
-class HotelDescription(BaseModel):
-    title: str
-    content: str
-    image: Optional[str] = None
-    translated: bool
-    needTranslation: bool
-    locale: str
-
-class PolicyValue(BaseModel):
-    content: str
-
-class PolicyContent(BaseModel):
-    icon: Optional[str] = None
-    translated: bool
-    needTranslation: bool
-    locale: str
-    key: str
-    type: str
-    values: List[PolicyValue]
-
-class HotelPolicies(BaseModel):
-    title: str
-    content: List[PolicyContent]
-
-class HotelGoodToKnow(BaseModel):
-    title: str
-    checkinTime: CheckinCheckoutTime
-    checkoutTime: CheckinCheckoutTime
-    description: HotelDescription
-    policies: HotelPolicies
-
-class HotelChildrenAndExtraBed(BaseModel):
-    title: str
-    content: List[Any]
-
-class HotelLocation(BaseModel):
-    title: str
-    shortAddress: str
-    address: str
-    rawAddress: RawAddress
-    coordinates: Coordinates
-    cta: str
-
-class GalleryCategory(BaseModel):
-    name: str
-    count: int
-    displayName: str
-
-class HotelGallery(BaseModel):
-    images: List[Dict[str, Any]]
-    categories: List[GalleryCategory]
-
-class AmenityItem(BaseModel):
-    icon: str
-    description: str
-
-class AmenityCategory(BaseModel):
-    id: str
-    category: str
-    items: List[Dict[str, Any]]
-
-class HotelAmenities(BaseModel):
-    title: str
-    ctaAll: str
-    ctaLess: str
-    content: List[AmenityItem]
-    contentV2: List[AmenityCategory]
-
-class ReviewExplanation(BaseModel):
-    title: str
-    content: str
-
-class ReviewCategory(BaseModel):
-    type: str
-    score: str
-    formatScore: str
-    color: str
-    name: str
-    highlights: str
-    description: Optional[str] = None
-
-class HighScoreReview(BaseModel):
-    type: str
-    score: str
-    icon: str
-    text: str
-
-class ReviewRatingSummary(BaseModel):
-    scoreLogoImageUrl: str
-    score: str
-    formatScore: str
-    totalScore: str
-    count: str
-    countNumber: int
-    formatCountString: str
-    color: str
-    scoreDesc: str
-    highlights: str
-    categories: List[ReviewCategory]
-    cleanlinessMessage: Optional[str] = None
-    locationMessage: Optional[str] = None
-    highScoreReviews: List[HighScoreReview]
-
-class HotelReviews(BaseModel):
-    title: str
-    newTitle: str
-    cta: str
-    summaryDescription: str
-    rating: int
-    ratingDescription: str
-    ratingDescriptionText: str
-    numberOfReviewsLabel: str
-    numberOfReviewsLabelExpanded: str
-    badges: List[Any]
-    guests: Dict[str, Any]
-    categories: Dict[str, Any]
-    explanations: List[ReviewExplanation]
-
-class HotelGeneral(BaseModel):
-    name: str
-    stars: int
-
-class HotelDetailData(BaseModel):
-    general: HotelGeneral
-    goodToKnow: HotelGoodToKnow
-    childrenAndExtraBed: HotelChildrenAndExtraBed
-    location: HotelLocation
-    gallery: HotelGallery
-    amenities: HotelAmenities
-    reviews: HotelReviews
-    distance: str
-    reviewRatingSummary: ReviewRatingSummary
-
-class HotelDetailResponse(BaseModel):
-    data: HotelDetailData
-    status: bool
-    message: str
-
-class HotelPricesParams(BaseModel):
-    hotelId: str = Field(..., description="Hotel ID from search results")
-    checkin: str = Field(..., description="Check-in date in YYYY-MM-DD format")
-    checkout: str = Field(..., description="Check-out date in YYYY-MM-DD format")
-    rooms: Optional[int] = Field(1, description="Number of rooms")
-    adults: Optional[int] = Field(1, description="Number of adults")
-    childrenAges: Optional[str] = Field(None, description="Ages of children, comma-separated (e.g., '0,11,17')")
-    market: Optional[str] = Field("US", description="Market code")
-    locale: Optional[str] = Field("en-US", description="Locale code")
-    currency: Optional[str] = Field("USD", description="Currency code")
-    cookie: Optional[str] = Field(None, description="Cookie for handling captcha errors or slow latency")
-
-class MetaInfoRate(BaseModel):
-    pass
-
-class MetaInfo(BaseModel):
-    ratesCta: str
-    rates: List[MetaInfoRate] = []
-
-class CheapestPrice(BaseModel):
-    price: str
-    totalWithTaxes: str
-    funnelType: str
-    partnerId: str
-    rateAttributes: List[Any] = []
-    rawPrice: int
-
-class NoOfferPartner(BaseModel):
-    partner_type: str
-    logo: str
-    name: str
-    website_id: str
-    is_dbook: bool
-    is_official: bool
-
+# Hotel prices response schema
 class HotelPricesData(BaseModel):
-    metaInfo: MetaInfo
-    roomTypes: List[Any] = []
-    cheapestPrice: CheapestPrice
-    exclusiveDeal: Optional[Any] = None
-    mostPopularRates: List[Dict[str, Any]] = []
-    noOfferPartners: List[NoOfferPartner] = []
-    isShowMostPopularSeeAll: bool
-    policyInfo: str
-    otaRates: List[Dict[str, Any]] = []
-    localCurrency: str
-    searchId: str
-    requestId: str
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
 
-class HotelPricesResponse(BaseModel):
-    data: HotelPricesData
-    status: bool
-    message: str
-
-# Hotel Reviews Input Schema
+# Input schema for Hotel Reviews endpoint
 class HotelReviewsParams(BaseModel):
-    """
-    Parameters for hotel reviews request
-    """
-    hotelId: str = Field(..., description="The ID of the hotel to get reviews for")
-    filter: Optional[Dict[str, Any]] = Field(None, description="Optional filters for the reviews")
-    sort: Optional[str] = Field(None, description="Optional sorting criteria for reviews")
-    limit: Optional[int] = Field(None, description="Optional limit for number of reviews to return")
-    offset: Optional[int] = Field(None, description="Optional offset for pagination")
-    
-class HotelReviewsResponse(BaseModel):
-    """
-    Response model for hotel reviews
-    """
-    data: Dict[str, Any] = Field(..., description="The response data containing reviews information")
-    reviews: List[Dict[str, Any]] = Field(..., description="List of reviews for the hotel")
-    searchStatus: Dict[str, Any] = Field(..., description="Status of the search request")
-    title: Dict[str, Any] = Field(..., description="Title information for the reviews section")
-    cta: Optional[Dict[str, Any]] = Field(None, description="Call to action information")
-    filters: Dict[str, Any] = Field(..., description="Available filters for the reviews")
+    hotelId: str = Field(
+        ...,
+        description="Hotel ID from search results (data->results->hotelCards->hotelId)"
+    )
+    page: Optional[int] = Field(
+        1,
+        description="The page index for pagination"
+    )
+    sort: Optional[str] = Field(
+        "recommended",
+        description="Sort order (e.g., 'recommended', 'rating_desc', 'rating_asc', 'LAST_TWELVE_MONTHS')"
+    )
+    market: Optional[str] = Field(
+        "US",
+        description="Market (country code)"
+    )
+    locale: Optional[str] = Field(
+        "en-US",
+        description="Locale for response language"
+    )
+    currency: Optional[str] = Field(
+        "USD",
+        description="Currency for prices"
+    )
+    guestType: Optional[str] = Field(
+        None,
+        description="Traveler type filter (e.g., 'business', 'couple', 'group')"
+    )
+    filterLocale: Optional[str] = Field(
+        None,
+        description="Language filter (e.g., 'en-GB', 'fr-FR')"
+    )
+    tags: Optional[str] = Field(
+        None,
+        description="Tags filter (e.g., 'room', 'location', 'service')"
+    )
+
+# Hotel reviews response schema
+class HotelReviewsData(BaseModel):
+    data: Optional[Dict[str, Any]] = None
+    status: Optional[bool] = None
+    message: Optional[str] = None
 
 # API Response
 class ApiResponse(BaseModel):
-    data: Union[SearchOneWayData, SearchRoundtripData, SearchMultiCityData, FlightDetailsData, PriceCalendarData, PriceCalendarReturnData, CheapestOneWayData, HotelSearchResponse, HotelDetailResponse, HotelPricesResponse, HotelReviewsResponse]
+    data: Union[SearchEverywhereData, SearchRoundtripData, SearchOneWayData, FlightDetailData, PriceCalendarData, CheapestOneWayData, HotelSearchData, HotelDetailData, HotelPricesData, HotelReviewsData]
     component: Optional[Dict[str, Any]] = None

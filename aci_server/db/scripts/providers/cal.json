@@ -1,0 +1,10 @@
+{
+  "name": "Cal.com",
+  "provider_tag": "cal",
+  "description": "Cal.com is a scheduling platform that helps users schedule meetings without back-and-forth emails. It offers features for managing availability, creating booking links, and syncing with calendars.",
+  "auth_method": "api_key",
+  "categories": "Productivity,Calendar",
+  "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//cal-logo.svg",
+  "created_at": 1712371200,
+  "is_enabled": true
+}

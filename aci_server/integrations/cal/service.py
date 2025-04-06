@@ -9,6 +9,7 @@ from .schema import (
     CancelBookingParams,
     GetScheduleParams,
     UpdateScheduleParams,
+    GetEventTypesParams,
     GetBookingsResponse,
     GetBookingResponse,
     CreateBookingResponse,
@@ -18,11 +19,14 @@ from .schema import (
     GetSchedulesResponse,
     GetScheduleResponse,
     UpdateScheduleResponse,
+    GetEventTypesResponse,
     Booking,
     BookingList,
     UserProfile,
     Schedule,
     ScheduleList,
+    EventTypeList,
+    DetailedEventType,
     ApiResponse
 )
 from ..common.component_handler import load_components, prepare_components_auto
@@ -137,6 +141,16 @@ class CalService:
             return self.prepare_response(schedule, "Schedule")
         
         return self.prepare_response(Schedule(), "Schedule")
+    
+    def get_event_types(self, params: GetEventTypesParams) -> ApiResponse:
+        processed_params = self._process_get_event_types_params(params)
+        response = self.client.get_event_types(processed_params)
+        
+        if "data" in response and isinstance(response["data"], list):
+            event_type_list = EventTypeList(eventTypes=response["data"])
+            return self.prepare_response(event_type_list, "EventTypeList")
+        
+        return self.prepare_response(EventTypeList(eventTypes=[]), "EventTypeList")
 
     def _process_get_bookings_params(self, params: GetBookingsParams) -> Dict[str, Any]:
         return params.model_dump(exclude_none=True)
@@ -145,7 +159,6 @@ class CalService:
         return params.model_dump(exclude_none=True)
     
     def _process_reschedule_booking_params(self, params: RescheduleBookingParams) -> Dict[str, Any]:
-        # Exclude bookingUid as it's used in the URL path
         return params.model_dump(exclude={"bookingUid"}, exclude_none=True)
     
     def _process_cancel_booking_params(self, params: CancelBookingParams) -> Dict[str, Any]:
@@ -153,3 +166,6 @@ class CalService:
     
     def _process_update_schedule_params(self, params: UpdateScheduleParams) -> Dict[str, Any]:
         return params.model_dump(exclude={"scheduleId"}, exclude_none=True)
+    
+    def _process_get_event_types_params(self, params: GetEventTypesParams) -> Dict[str, Any]:
+        return params.model_dump(exclude_none=True)

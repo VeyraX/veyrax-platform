@@ -1,0 +1,92 @@
+name: HotelSearchResults
+description: Results for hotel search
+inputSchema:
+  type: object
+  properties:
+    data:
+      type: object
+      properties:
+        results:
+          type: object
+          properties:
+            searchSummary:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number of hotels
+                filteredTotal:
+                  type: integer
+                  description: Number of hotels after filtering
+                resultsSummary:
+                  type: string
+                  description: Human-readable summary of results
+                entity:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Location name
+            hotelCards:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Hotel name
+                  stars:
+                    type: string
+                    description: Hotel star rating
+                  distance:
+                    type: string
+                    description: Distance from city center
+                  images:
+                    type: array
+                    items:
+                      type: string
+                      description: Hotel image URL
+                  lowestPrice:
+                    type: object
+                    properties:
+                      price:
+                        type: string
+                        description: Formatted lowest price
+                      rawPrice:
+                        type: number
+                        description: Raw price value
+                      partnerName:
+                        type: string
+                        description: Partner offering this price
+        status:
+          type: object
+          properties:
+            completionPercentage:
+              type: integer
+              description: Search completion percentage
+    meta:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          description: Current page number
+        totalRecords:
+          type: integer
+          description: Total number of records
+        totalPage:
+          type: integer
+          description: Total number of pages
+outputFormat: simpleList
+outputFormatConfig:
+  title: "Hotels in {{data.results.searchSummary.entity.name}}"
+  subtitle: "{{data.results.searchSummary.resultsSummary}}"
+  items:
+    source: data.results.hotelCards
+    title: "{{name}}"
+    subtitle: "{{stars}} stars • {{distance}}"
+    description: "Starting from {{lowestPrice.price}} with {{lowestPrice.partnerName}}"
+    imageUrl: "{{images[0]}}"
+  pagination:
+    currentPage: "{{meta.currentPage}}"
+    totalPages: "{{meta.totalPage}}"
+    totalItems: "{{meta.totalRecords}}" 
