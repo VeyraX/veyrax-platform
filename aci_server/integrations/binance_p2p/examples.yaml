@@ -33,7 +33,8 @@ routes:
                   "metadata": {
                     "base_currency": "USDT",
                     "quote_currency": "UAH"
-                  }
+                  },
+                  "url": "https://p2p.binance.com/trade/sell/USDT?fiat=uah&payment=all-payments"
                 },
                 {
                   "exchange": "binance",
@@ -53,7 +54,8 @@ routes:
                   "metadata": {
                     "base_currency": "USDT",
                     "quote_currency": "UAH"
-                  }
+                  },
+                  "url": "https://p2p.binance.com/trade/sell/USDT?fiat=uah&payment=all-payments"
                 }
               ]
             },
@@ -95,7 +97,8 @@ routes:
                   "metadata": {
                     "base_currency": "USDT",
                     "quote_currency": "USD"
-                  }
+                  },
+                  "url": "https://p2p.binance.com/trade/all-payments/USDT?fiat=usd"
                 },
                 {
                   "exchange": "binance",
@@ -115,7 +118,8 @@ routes:
                   "metadata": {
                     "base_currency": "USDT",
                     "quote_currency": "USD"
-                  }
+                  },
+                  "url": "https://p2p.binance.com/trade/all-payments/USDT?fiat=usd"
                 }
               ]
             },
@@ -157,7 +161,8 @@ routes:
                   "metadata": {
                     "base_currency": "BTC",
                     "quote_currency": "EUR"
-                  }
+                  },
+                  "url": "https://p2p.binance.com/trade/sell/BTC?fiat=eur&payment=all-payments"
                 }
               ]
             },
