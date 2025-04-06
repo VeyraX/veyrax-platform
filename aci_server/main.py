@@ -88,6 +88,9 @@ from integrations.falai.route import router as falai_router
 from integrations.whatsapp.route import router as whatsapp_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
+from integrations.binance_p2p.route import router as binance_p2p_router
+from integrations.bybit_p2p.route import router as bybit_p2p_router
+from integrations.okx_p2p.route import router as okx_p2p_router
 import os
 import json
 import inspect
@@ -185,7 +188,10 @@ INTEGRATION_ROUTERS = {
     "veyrax-auth": veyrax_auth_router,
     "skyscanner": skyscanner_router,
     "google-maps": google_maps_router,
-    "cal": cal_router
+    "cal": cal_router,
+    "binance_p2p": binance_p2p_router,
+    "bybit_p2p": bybit_p2p_router,
+    "okx_p2p": okx_p2p_router
 }
 
 

@@ -1,0 +1,120 @@
+routes:
+  - endpoint: get_p2p_offers
+    description: Get USDT sell offers in UAH
+    input:
+      json: |
+        {
+          "fiat_currency": "uah",
+          "crypto_currency": "usdt",
+          "trade_type": "sell",
+          "page": 1
+        }
+    output:
+      json: |
+        {
+          "status_code": 200,
+          "data": {
+            "offers": [
+              {
+                "exchange": "okx",
+                "order_id": "3789234789273",
+                "trade_type": "SELL",
+                "price": 41.10,
+                "available_amount": 1500.0,
+                "min_amount": 1000,
+                "max_amount": 41100,
+                "payment_methods": ["Monobank", "PrivatBank"],
+                "trader": {
+                  "nickname": "OKXTrader",
+                  "completion_rate": 98.2,
+                  "orders_count": 320
+                },
+                "payment_timeout": 15,
+                "metadata": {
+                  "base_currency": "USDT",
+                  "quote_currency": "UAH"
+                }
+              },
+              {
+                "exchange": "okx",
+                "order_id": "7834927349237",
+                "trade_type": "SELL",
+                "price": 41.25,
+                "available_amount": 3000.0,
+                "min_amount": 500,
+                "max_amount": 30000,
+                "payment_methods": ["Monobank"],
+                "trader": {
+                  "nickname": "OKXPro",
+                  "completion_rate": 99.1,
+                  "orders_count": 512
+                },
+                "payment_timeout": 15,
+                "metadata": {
+                  "base_currency": "USDT",
+                  "quote_currency": "UAH"
+                }
+              }
+            ]
+          }
+        }
+
+  - endpoint: get_p2p_offers
+    description: Get USDT buy offers in USD
+    input:
+      json: |
+        {
+          "fiat_currency": "usd",
+          "crypto_currency": "usdt",
+          "trade_type": "buy",
+          "page": 1
+        }
+    output:
+      json: |
+        {
+          "status_code": 200,
+          "data": {
+            "offers": [
+              {
+                "exchange": "okx",
+                "order_id": "5827389127389",
+                "trade_type": "BUY",
+                "price": 0.985,
+                "available_amount": 5000.0,
+                "min_amount": 200,
+                "max_amount": 5000,
+                "payment_methods": ["Bank Transfer", "Zelle"],
+                "trader": {
+                  "nickname": "USDTrader",
+                  "completion_rate": 97.5,
+                  "orders_count": 150
+                },
+                "payment_timeout": 15,
+                "metadata": {
+                  "base_currency": "USDT",
+                  "quote_currency": "USD"
+                }
+              },
+              {
+                "exchange": "okx",
+                "order_id": "6483972184932",
+                "trade_type": "BUY",
+                "price": 0.982,
+                "available_amount": 10000.0,
+                "min_amount": 500,
+                "max_amount": 10000,
+                "payment_methods": ["Bank Transfer"],
+                "trader": {
+                  "nickname": "OKXBuyer",
+                  "completion_rate": 99.8,
+                  "orders_count": 425
+                },
+                "payment_timeout": 15,
+                "metadata": {
+                  "base_currency": "USDT",
+                  "quote_currency": "USD"
+                }
+              }
+            ]
+          }
+        } 
