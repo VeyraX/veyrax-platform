@@ -279,8 +279,18 @@ export async function isUserOnFreePlan(supabase: SupabaseClient): Promise<boolea
 
 export async function getUserPlanName(supabase: SupabaseClient): Promise<string> {
   try {
-    const productInfo = await getUserProductInfo(supabase);
-    return productInfo?.product_tag || 'free';
+    const subscription = await getUserSubscription(supabase);
+    
+    if (!subscription) {
+      return 'free';
+    }
+    
+    if (subscription.lookup_key) {
+      const basePlan = subscription.lookup_key.split('_')[0];
+      return basePlan;
+    }
+    
+    return 'free';
   } catch (error) {
     console.error('Error getting user plan name:', error);
     return 'free';

@@ -43,6 +43,7 @@ export interface UserSubscription {
   amount: number;
   product_name: string;
   currency: string;
+  lookup_key?: string;
 }
 
 export interface ProductAttributes {
