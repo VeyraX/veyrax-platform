@@ -5,208 +5,29 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-updated";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs-updated";
 import { Check, Minus, MoveRight, PhoneCall } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NumberFlow from "@number-flow/react";
-
-// Определяем категории функций
-const FEATURE_CATEGORIES = {
-  "USAGE": [
-    "Monthly Tokens",
-    "API Requests",
-    "Projects"
-  ],
-  "FEATURES": [
-    "Premium Components",
-    "Custom Integrations",
-    "White Labeling"
-  ],
-  "AI TOOLS": [
-    "AI Component Generation",
-    "UI Inspirations",
-    "Code Generation"
-  ],
-  "SUPPORT": [
-    "Response Time",
-    "Priority Support",
-    "Dedicated Manager"
-  ]
-};
-
-interface Plan {
-  name: string;
-  description: string;
-  price: { monthly: number; yearly: number };
-  tokenCount: { monthly: string; yearly: string };
-  tokenRate?: { monthly: string; yearly: string };
-  buttonText: string;
-  buttonAction: () => void;
-  buttonVariant: "default" | "outline" | "secondary";
-  features: Record<string, string | boolean>;
-  isCurrent?: boolean;
-}
+import { 
+  pricingPlans, 
+  FEATURE_CATEGORIES, 
+  getAdvancedFeatures,
+  type PlanInterval
+} from "./pricing-data";
 
 export default function PricingOptionsTable() {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
+  const [billingInterval, setBillingInterval] = useState<PlanInterval>("yearly");
   const isYearly = billingInterval === "yearly";
 
-  const handleSubscription = (packageName: string) => {
-    setLoadingTier(packageName);
+  const handleSubscription = (planId: string) => {
+    setLoadingTier(planId);
     setTimeout(() => {
       setLoadingTier(null);
-      toast.success(`Successfully subscribed to ${packageName} plan!`);
+      toast.success(`Successfully subscribed to ${planId} plan!`);
     }, 1500);
   };
-
-  const plans: Plan[] = [
-    {
-      name: "Free",
-      description: "For personal use, small projects, and testing the platform",
-      price: { monthly: 0, yearly: 0 },
-      tokenCount: { 
-        monthly: "5 tokens included", 
-        yearly: "5 tokens included" 
-      },
-      buttonText: "Current Plan",
-      buttonAction: () => {},
-      buttonVariant: "outline",
-      isCurrent: true,
-      features: {
-        // Usage
-        "Monthly Tokens": "5 free tokens",
-        "API Requests": "1,000 / month",
-        "Projects": "3 projects",
-        
-        // Features
-        "Premium Components": false,
-        "Custom Integrations": false,
-        "White Labeling": false,
-        
-        // AI Tools
-        "AI Component Generation": "5 free generation",
-        "UI Inspirations": true,
-        "Code Generation": false,
-        
-        // Support
-        "Response Time": "48 hours",
-        "Priority Support": false,
-        "Dedicated Manager": false
-      }
-    },
-    {
-      name: "Pro",
-      description: "For professionals who need more tokens and premium features",
-      price: { monthly: 10, yearly: 8 },
-      tokenCount: { 
-        monthly: "50 tokens included", 
-        yearly: "50 tokens included" 
-      },
-      tokenRate: { 
-        monthly: "($0.20/token)", 
-        yearly: "($0.16/token)" 
-      },
-      buttonText: "Upgrade",
-      buttonAction: () => handleSubscription("Pro"),
-      buttonVariant: "default",
-      features: {
-        // Usage
-        "Monthly Tokens": "50 tokens",
-        "API Requests": "10,000 / month",
-        "Projects": "10 projects",
-        
-        // Features
-        "Premium Components": true,
-        "Custom Integrations": false,
-        "White Labeling": false,
-        
-        // AI Tools
-        "AI Component Generation": true,
-        "UI Inspirations": true,
-        "Code Generation": true,
-        
-        // Support
-        "Response Time": "24 hours",
-        "Priority Support": false,
-        "Dedicated Manager": false
-      }
-    },
-    {
-      name: "Pro Plus",
-      description: "For power users and small teams needing more resources",
-      price: { monthly: 29, yearly: 24 },
-      tokenCount: { 
-        monthly: "200 tokens included", 
-        yearly: "200 tokens included" 
-      },
-      tokenRate: { 
-        monthly: "($0.15/token)", 
-        yearly: "($0.12/token)" 
-      },
-      buttonText: "Upgrade",
-      buttonAction: () => handleSubscription("Pro Plus"),
-      buttonVariant: "outline",
-      features: {
-        // Usage
-        "Monthly Tokens": "200 tokens",
-        "API Requests": "50,000 / month",
-        "Projects": "Unlimited",
-        
-        // Features
-        "Premium Components": true,
-        "Custom Integrations": true,
-        "White Labeling": false,
-        
-        // AI Tools
-        "AI Component Generation": true,
-        "UI Inspirations": true,
-        "Code Generation": true,
-        
-        // Support
-        "Response Time": "12 hours",
-        "Priority Support": true,
-        "Dedicated Manager": false
-      }
-    },
-    {
-      name: "Enterprise",
-      description: "For organizations needing custom solutions and support",
-      price: { monthly: 120, yearly: 99 },
-      tokenCount: { 
-        monthly: "1000 tokens included", 
-        yearly: "1000 tokens included" 
-      },
-      tokenRate: { 
-        monthly: "($0.12/token)", 
-        yearly: "($0.10/token)" 
-      },
-      buttonText: "Contact Sales",
-      buttonAction: () => handleSubscription("Enterprise"),
-      buttonVariant: "outline",
-      features: {
-        // Usage
-        "Monthly Tokens": "1000 tokens",
-        "API Requests": "Unlimited",
-        "Projects": "Unlimited",
-        
-        // Features
-        "Premium Components": true,
-        "Custom Integrations": true,
-        "White Labeling": true,
-        
-        // AI Tools
-        "AI Component Generation": true,
-        "UI Inspirations": true,
-        "Code Generation": true,
-        
-        // Support
-        "Response Time": "4 hours",
-        "Priority Support": true,
-        "Dedicated Manager": true
-      }
-    }
-  ];
 
   return (
     <div className="w-full">
@@ -225,8 +46,8 @@ export default function PricingOptionsTable() {
             <Tabs 
               defaultValue={billingInterval}
               value={billingInterval}
-              onValueChange={(value) => setBillingInterval(value as "monthly" | "yearly")}
-              className="w-full max-w-[240px]"
+              onValueChange={(value) => setBillingInterval(value as PlanInterval)}
+              className="w-full max-w-[200px]"
             >
               <TabsList className="h-auto gap-2 rounded-none bg-transparent px-0 py-1 text-foreground mb-4 w-full grid grid-cols-2">
                 <TabsTrigger
@@ -248,41 +69,48 @@ export default function PricingOptionsTable() {
           <div className="grid text-left w-full grid-cols-4 lg:grid-cols-5 divide-x pt-20">
             <div className="col-span-1"></div>
             
-            {plans.map((plan) => (
+            {pricingPlans.map((plan) => (
               <div 
                 key={plan.name} 
-                className="px-3 py-1 md:px-6 md:py-4 gap-2 flex flex-col transition-all duration-500"
+                className="px-3 py-1 md:px-6 md:py-4 gap-2 flex flex-col justify-between transition-all duration-500"
+                style={{ minHeight: "250px" }}
               >
-                <p className="text-2xl">{plan.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {plan.description}
-                </p>
-                <div className="flex flex-col lg:flex-row lg:items-center gap-2 text-xl mt-8">
-                  <NumberFlow
-                    format={{
-                      style: "currency",
-                      currency: "USD",
-                      trailingZeroDisplay: "stripIfInteger",
-                    }}
-                    value={isYearly ? plan.price.yearly : plan.price.monthly}
-                    className="text-4xl font-bold"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    / month {isYearly && "(billed yearly)"}
-                  </span>
+                <div>
+                  <p className="text-2xl font-medium">{plan.name}</p>
+                  <p className="text-sm text-muted-foreground h-14">
+                    {plan.description}
+                  </p>
+                
+                  <div className="mt-8">
+                    {plan.id === "teams" ? (
+                      <p className="text-4xl font-bold">Custom</p>
+                    ) : (
+                      <div className="flex items-baseline">
+                        <NumberFlow
+                          format={{
+                            style: "currency",
+                            currency: "USD",
+                            trailingZeroDisplay: "stripIfInteger",
+                          }}
+                          value={isYearly ? plan.price.yearly : plan.price.monthly}
+                          className="text-4xl font-bold transition-all duration-500"
+                        />
+                        <span className="text-sm text-muted-foreground ml-1">
+                          / month
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {isYearly ? plan.tokenCount.yearly : plan.tokenCount.monthly}
-                  {plan.tokenRate && <span> {isYearly ? plan.tokenRate.yearly : plan.tokenRate.monthly}</span>}
-                </div>
+                  
                 <Button 
-                  variant={plan.name === "Pro" ? "default" : "outline"} 
-                  className="gap-4 mt-8"
+                  variant={plan.buttonVariant} 
+                  className="gap-2 mt-8"
                   disabled={plan.isCurrent}
-                  onClick={plan.buttonAction}
+                  onClick={() => handleSubscription(plan.id)}
                 >
                   {plan.buttonText} 
-                  {plan.name === "Enterprise" ? 
+                  {plan.id === "teams" ? 
                     <PhoneCall className="w-4 h-4" /> : 
                     <MoveRight className="w-4 h-4" />
                   }
@@ -291,14 +119,14 @@ export default function PricingOptionsTable() {
             ))}
             
             {/* Render categories and features */}
-            {Object.entries(FEATURE_CATEGORIES).map(([category, featureList], categoryIndex) => (
+            {Object.entries(FEATURE_CATEGORIES).map(([category, featureList]) => (
               <React.Fragment key={category}>
                 {/* Category header */}
                 <div className="px-3 lg:px-6 col-span-1 py-4 mt-8">
                   <p className="text-xs uppercase font-medium tracking-wider">{category}</p>
                 </div>
-                {plans.map((plan) => (
-                  <div key={`${plan.name}-${category}-header`} className="px-3 py-1 md:px-6 md:py-4 mt-8"></div>
+                {pricingPlans.map((plan) => (
+                  <div key={`${plan.id}-${category}-header`} className="px-3 py-1 md:px-6 md:py-4 mt-8"></div>
                 ))}
                 
                 {/* Features for this category - no borders at all */}
@@ -307,22 +135,31 @@ export default function PricingOptionsTable() {
                     <div className="px-3 lg:px-6 col-span-1 py-4">
                       {feature}
                     </div>
-                    {plans.map((plan) => (
-                      <div 
-                        key={`${plan.name}-${feature}`} 
-                        className="px-3 py-1 md:px-6 md:py-4 flex justify-center"
-                      >
-                        {typeof plan.features[feature] === "boolean" ? (
-                          plan.features[feature] ? (
-                            <Check className="w-4 h-4 text-primary" />
+                    {pricingPlans.map((plan) => {
+                      const planFeature = getAdvancedFeatures(plan, category)
+                        .find(f => f.name === feature);
+                        
+                      return (
+                        <div 
+                          key={`${plan.id}-${feature}`} 
+                          className="px-3 py-1 md:px-6 md:py-4 flex justify-center"
+                        >
+                          {planFeature ? (
+                            typeof planFeature.included === "boolean" ? (
+                              planFeature.included ? (
+                                <Check className="w-4 h-4 text-primary" />
+                              ) : (
+                                <Minus className="w-4 h-4 text-muted-foreground" />
+                              )
+                            ) : (
+                              <p className="text-muted-foreground text-sm">{planFeature.included}</p>
+                            )
                           ) : (
                             <Minus className="w-4 h-4 text-muted-foreground" />
-                          )
-                        ) : (
-                          <p className="text-muted-foreground text-sm">{plan.features[feature]}</p>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      );
+                    })}
                   </React.Fragment>
                 ))}
               </React.Fragment>
