@@ -88,7 +88,7 @@ export function FlowHeader({
         router.push(`/flow/${flowId}/view`);
       } catch (error) {
         console.error("Error activating flow:", error);
-        toast.error("Failed to activate flow");
+        //toast.error("Failed to activate flow");
       }
     }
   };
@@ -101,7 +101,7 @@ export function FlowHeader({
         router.push(`/flow/${flowId}/edit`);
       } catch (error) {
         console.error("Error updating flow status:", error);
-        toast.error("Failed to update flow status");
+        //toast.error("Failed to update flow status");
       }
     }
   };
@@ -138,7 +138,13 @@ export function FlowHeader({
       toast.success(`Flow is now ${newStatus}`);
     } catch (error) {
       console.error('Error updating flow status:', error);
-      toast.error('Failed to update flow status');
+      
+      const errorMsg = error instanceof Error ? error.message : '';
+      if (errorMsg.includes('limit') || errorMsg.includes('maximum')) {
+        toast.info("Could not activate flow due to plan limits. Please upgrade your plan to activate more flows.");
+      } else {
+        toast.error('Failed to update flow status');
+      }
     }
   };
 

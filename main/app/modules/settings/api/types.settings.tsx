@@ -46,9 +46,9 @@ export interface UserSubscription {
 }
 
 export interface ProductAttributes {
-  api_requests: number | string;
-  chats: number | string;
-  flows: number | string;
+  api_call_count: number | string;
+  message_count: number | string;
+  active_flow_count: number | string;
   rent_provider_keys: boolean;
   custom_integrations: boolean;
   custom_branding?: boolean;
@@ -66,5 +66,5 @@ export interface UserUsage {
   user_id: string;
   api_call_count: number;
   active_flow_count: number;
-  chat_count: number;
+  message_count: number;
 }

@@ -486,3 +486,97 @@ def get_auth_tool():
     except Exception as e:
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
+
+def get_user_subscrition_plan(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('users_subscription_status_view') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return 'free'
+            
+        return result.data[0]['price_lookup_key']
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        raise Exception(f"Error getting user subscription plan: {str(e)}")  
+    
+
+def get_product_info(product_tag: str):
+    try:
+        supabase = get_supabase()
+        
+        base_product_tag = product_tag.split('_')[0] if '_' in product_tag else product_tag
+        
+        result = supabase.table('products_info') \
+            .select('*') \
+            .eq('product_tag', base_product_tag) \
+            .execute()
+            
+        if not result.data:
+            return {}
+            
+        return result.data[0]
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        raise Exception(f"Error getting product info: {str(e)}")
+    
+    
+def get_user_usages(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        print(f"[DEBUG get_user_usages] Getting usage for user_id: {user_id}")
+        
+        result = supabase.table('user_monthly_usage_view') \
+            .select('api_call_count') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        print(f"[DEBUG get_user_usages] Raw result: {result}")
+        print(f"[DEBUG get_user_usages] Result data: {result.data}")
+            
+        if not result.data:
+            print(f"[DEBUG get_user_usages] No data found for user_id: {user_id}")
+            return {}
+            
+        print(f"[DEBUG get_user_usages] Returning data: {result.data[0]}")
+        return result.data[0]
+    except Exception as e:
+        print(f"[DEBUG get_user_usages] Error: {str(e)}")
+        print(f"[DEBUG get_user_usages] Traceback: {traceback.format_exc()}")
+        sentry_sdk.capture_exception(e)
+        raise Exception(f"Error getting user usages: {str(e)}")
+    
+    
+def is_usage_limit_exceeded(user_id: str):
+    try:
+        plan = get_user_subscrition_plan(user_id)
+        
+        product_info = get_product_info(plan)
+        
+        usage = get_user_usages(user_id)
+        
+        if not product_info or not usage:
+            return False
+        
+        attrs = product_info.get("attrs", {})
+                
+        api_limit = attrs.get("api_call_count", 0)
+        current_usage = usage.get("api_call_count", 0)
+
+        
+        exceeds = api_limit > 0 and current_usage >= api_limit
+
+        return exceeds
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return False
+    
+
+    
+    
+    

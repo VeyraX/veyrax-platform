@@ -94,7 +94,7 @@ export default function PricingPage() {
       highlight: false,
       features: [
         { name: "600 API requests", included: true },
-        { name: "Unlimited Chats", included: true },
+        { name: "Unlimited Messages", included: true },
         { name: "10 Active Flows", included: true },
         { name: "Rent providers API keys", included: false },
         { name: "Custom integrations", included: false }
@@ -114,7 +114,7 @@ export default function PricingPage() {
       highlight: true,
       features: [
         { name: "1,500 API requests", included: true },
-        { name: "Unlimited Chats", included: true },
+        { name: "Unlimited Messages", included: true },
         { name: "30 Active Flows", included: true },
         { name: "Rent providers API keys", included: true },
         { name: "Custom integrations", included: true }

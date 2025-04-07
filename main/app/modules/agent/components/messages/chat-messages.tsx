@@ -1,7 +1,7 @@
 import { MessageFormatter } from "./message-formatter"
 import { UserMessageFormatter } from "./user-message-formatter"
 import { Button } from "@/components/ui/button"
-import { ThumbsDown, ThumbsUp, Copy, Check } from "lucide-react"
+import { ThumbsDown, ThumbsUp, Copy, Check, AlertOctagon } from "lucide-react"
 import React, { useRef, useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { type Message } from 'ai/react'
@@ -13,6 +13,10 @@ import { FlowChatEmptyState } from "@/app/modules/flows/components/test/flow-cha
 interface ExtendedMessage extends Message {
   image_url?: string;
   is_accurate?: boolean | null;
+  isLimitMessage?: boolean;
+  current?: number;
+  limit?: number | string;
+  needsUpgrade?: boolean;
 }
 
 interface ChatMessagesProps {
@@ -23,6 +27,13 @@ interface ChatMessagesProps {
   chatId: string
   isFlow?: boolean
   hideRatings?: boolean
+  error?: {
+    type: string;
+    message: string;
+    current?: number;
+    limit?: number | string;
+    needsUpgrade?: boolean;
+  } | null
 }
 
 function parseMessageContent(content: string) {
@@ -58,7 +69,7 @@ function parseMessageContent(content: string) {
   return cleanContent;
 }
 
-export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoading, chatId, isFlow = false, hideRatings = false }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoading, chatId, isFlow = false, hideRatings = false, error }: ChatMessagesProps) {
   const [copiedMessageId, setCopiedMessageId] = React.useState<string | null>(null);
   const [ratedMessages, setRatedMessages] = React.useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -127,6 +138,7 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
           const isLastAssistantMessage = message.role === 'assistant' && 
             (index === messages.length - 1 || messages[index + 1]?.role === 'user');
           const isLastMessage = index === messages.length - 1;
+          const isLimitMessage = (message as ExtendedMessage).isLimitMessage;
           
           return (
             <div 
@@ -412,6 +424,11 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                       ) : (
                         <MessageFormatter content={message.content} />
                       )}
+                      
+                      {isLimitMessage && (message as ExtendedMessage).needsUpgrade && (
+                        <div className="mt-4">
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex justify-end gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -436,7 +453,8 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
                  !isLoading && 
                  (!message.hasOwnProperty('is_accurate') || message.is_accurate === null) &&
                  !ratedMessages.has(message.id) && 
-                 !hideRatings && (
+                 !hideRatings &&
+                 !isLimitMessage && (
                   <div className="flex gap-1 -translate-y-4">
                     <Button 
                       variant="ghost" 
@@ -467,6 +485,31 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
           <div className="flex items-center">
             <span className="text-sm text-muted-foreground">is thinking...</span>
           </div>
+        </div>
+      )}
+
+      {error?.type === 'message_limit_exceeded' && (
+        <div className="flex flex-col gap-4 p-6 border border-destructive rounded-lg bg-destructive/10 mt-4">
+          <div className="flex items-center gap-3">
+            <AlertOctagon className="text-destructive h-6 w-6" />
+            <h3 className="font-semibold text-lg">Message limit reached</h3>
+          </div>
+          <p className="text-muted-foreground">
+            {error.message || "You've reached your message limit for your current plan."}
+          </p>
+          {error.current && error.limit && (
+            <p className="text-sm text-muted-foreground">
+              You've used {error.current} of {error.limit} messages.
+            </p>
+          )}
+          {error.needsUpgrade && (
+            <Button 
+              onClick={() => window.location.href = '/pricing'}
+              className="w-full sm:w-auto mt-2"
+            >
+              Upgrade Your Plan
+            </Button>
+          )}
         </div>
       )}
 

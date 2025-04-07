@@ -114,7 +114,11 @@ const FlowCard: React.FC<FlowCardProps> = ({
       }
     } catch (error) {
       console.error('Error updating flow status:', error)
-      toast.error('Failed to update flow status')
+
+      const errorMsg = error instanceof Error ? error.message : '';
+      if (errorMsg.includes('limit') || errorMsg.includes('maximum')) {
+        toast.info("Could not activate flow due to plan limits. Please upgrade your plan to activate more flows.");
+      }
     }
   }
 
@@ -171,8 +175,14 @@ const FlowCard: React.FC<FlowCardProps> = ({
       : plain_description
     : 'No description'
 
+  const truncatedName = name 
+    ? name.length > 60
+      ? name.substring(0, 60) + '...'
+      : name
+    : 'Untitled Flow'
+
   return (
-    <Card className="w-full shadow-none rounded-lg h-[204px]">
+    <Card className="w-full shadow-none rounded-lg min-h-[204px]">
       <CardContent className="p-4 h-full flex flex-col">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2 min-h-[24px] min-w-[72px]">
@@ -209,14 +219,14 @@ const FlowCard: React.FC<FlowCardProps> = ({
         </div>
 
         <div className="flex justify-between items-center mb-2">
-          <h3 className="font-medium text-base">{name}</h3>
+          <h3 className="font-medium text-base" title={name}>{truncatedName}</h3>
         </div>
 
-        <div className="flex-grow">
-          <p className="text-sm text-muted-foreground">{truncatedDescription}</p>
+        <div className="flex-grow overflow-hidden">
+          <p className="text-sm text-muted-foreground line-clamp-2">{truncatedDescription}</p>
         </div>
 
-        <div className="flex justify-between items-center mt-3">
+        <div className="flex justify-between items-center mt-3 flex-wrap gap-2">
           {!is_template && schedule && (
             <div className="text-xs text-muted-foreground">
               {formatSchedule(schedule)}

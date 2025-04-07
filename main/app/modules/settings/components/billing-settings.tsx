@@ -96,6 +96,10 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
 
   // Format the limits for display
   const formatLimit = (limit: number | string): string => {
+    if (limit === undefined || limit === null) {
+      return 'N/A';
+    }
+    
     if (typeof limit === 'string') {
       return limit.charAt(0).toUpperCase() + limit.slice(1);
     }
@@ -223,33 +227,33 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>API Requests</span>
-                <span>{usage.api_call_count} / {formatLimit(productInfo.attrs.api_requests)}</span>
+                <span>{usage.api_call_count} / {formatLimit(productInfo.attrs.api_call_count)}</span>
               </div>
               <Progress 
-                value={calculatePercentage(usage.api_call_count, productInfo.attrs.api_requests)} 
+                value={calculatePercentage(usage.api_call_count, productInfo.attrs.api_call_count)} 
                 className="h-2" 
               />
               <p className="text-xs text-muted-foreground">
-                {typeof productInfo.attrs.api_requests === 'string' 
+                {typeof productInfo.attrs.api_call_count === 'string' 
                   ? 'No fixed limit on API requests'
-                  : `${usage.api_call_count} of ${productInfo.attrs.api_requests} API requests used this month`
+                  : `${usage.api_call_count} of ${productInfo.attrs.api_call_count} API requests used this month`
                 }
               </p>
             </div>
             
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Chats</span>
-                <span>{usage.chat_count} / {formatLimit(productInfo.attrs.chats)}</span>
+                <span>Messages</span>
+                <span>{usage.message_count} / {formatLimit(productInfo.attrs.message_count)}</span>
               </div>
               <Progress 
-                value={calculatePercentage(usage.chat_count, productInfo.attrs.chats)} 
+                value={calculatePercentage(usage.message_count, productInfo.attrs.message_count)} 
                 className="h-2" 
               />
               <p className="text-xs text-muted-foreground">
-                {typeof productInfo.attrs.chats === 'string' 
-                  ? 'No fixed limit on chats'
-                  : `${usage.chat_count} of ${productInfo.attrs.chats} chats used this month`
+                {typeof productInfo.attrs.message_count === 'string' 
+                  ? 'No fixed limit on messages'
+                  : `${usage.message_count} of ${productInfo.attrs.message_count} messages used this month`
                 }
               </p>
             </div>
@@ -257,16 +261,16 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Active Flows</span>
-                <span>{usage.active_flow_count} / {formatLimit(productInfo.attrs.flows)}</span>
+                <span>{usage.active_flow_count} / {formatLimit(productInfo.attrs.active_flow_count)}</span>
               </div>
               <Progress 
-                value={calculatePercentage(usage.active_flow_count, productInfo.attrs.flows)} 
+                value={calculatePercentage(usage.active_flow_count, productInfo.attrs.active_flow_count)} 
                 className="h-2" 
               />
               <p className="text-xs text-muted-foreground">
-                {typeof productInfo.attrs.flows === 'string' 
+                {typeof productInfo.attrs.active_flow_count === 'string' 
                   ? 'No fixed limit on flows'
-                  : `${usage.active_flow_count} of ${productInfo.attrs.flows} flows used`
+                  : `${usage.active_flow_count} of ${productInfo.attrs.active_flow_count} flows used`
                 }
               </p>
             </div>
