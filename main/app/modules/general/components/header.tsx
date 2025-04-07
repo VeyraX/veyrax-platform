@@ -7,7 +7,7 @@ import { SidebarToggle } from './toggle-sidebar';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { AccountSettingsDialog } from '@/app/modules/settings/pages/settings-page';
-import { getUserProfile } from '@/app/modules/settings/api/api.settings';
+import { getUserProfile, isUserOnFreePlan } from '@/app/modules/settings/api/api.settings';
 import { UserDropdown } from './profile-dropdown';
 import { UserProfile } from '@/app/modules/settings/api/types.settings';
 
@@ -23,21 +23,26 @@ export function Header({
   const router = useRouter();
   const [showCheck, setShowCheck] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'account' | 'api-key'>('account');
+  const [settingsTab, setSettingsTab] = useState<'account' | 'api-key' | 'billing'>('account');
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isFreePlan, setIsFreePlan] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getUserProfile();
-        setProfile(data);
+        const [profileData, freePlanStatus] = await Promise.all([
+          getUserProfile(),
+          isUserOnFreePlan()
+        ]);
+        setProfile(profileData);
+        setIsFreePlan(freePlanStatus);
       } catch (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('Error fetching user data:', error);
       }
     };
     
-    fetchProfile();
+    fetchData();
   }, []);
 
   const handleCopyLink = () => {
@@ -46,7 +51,7 @@ export function Header({
     setTimeout(() => setShowCheck(false), 2000); 
   }
 
-  const openSettings = (tab: 'account' | 'api-key') => {
+  const openSettings = (tab: 'account' | 'api-key' | 'billing') => {
     setSettingsTab(tab);
     setShowSettings(true);
   }
@@ -87,11 +92,6 @@ export function Header({
                 )}
                 <span className="sr-only">Share</span>
               </Button>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-5 w-5" />
-                <span className="sr-only">More options</span>
-              </Button>
-              <div className="h-6 w-[1px] bg-border" />
             </>
           ) : (
             <>
@@ -105,9 +105,21 @@ export function Header({
               >
                 API Key
               </Button>
-              <div className="h-6 w-[1px] bg-border" />
             </>
           )}
+          
+          {isFreePlan && (
+            <Button 
+              variant="default" 
+              size="sm"
+              className="rounded-full"
+              onClick={() => router.push('/pricing')}
+            >
+              Upgrade
+            </Button>
+          )}
+          
+          <div className="h-6 w-[1px] bg-border" />
           <UserDropdown 
             profile={profile}
             onOpenSettings={() => openSettings('account')}

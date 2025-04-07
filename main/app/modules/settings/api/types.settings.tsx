@@ -36,3 +36,35 @@ export interface UserApiKey {
   api_key: string;
   user_id: string;
 }
+
+export interface UserSubscription {
+  subscription_status: string;
+  end_date: string;
+  amount: number;
+  product_name: string;
+  currency: string;
+}
+
+export interface ProductAttributes {
+  api_requests: number | string;
+  chats: number | string;
+  flows: number | string;
+  rent_provider_keys: boolean;
+  custom_integrations: boolean;
+  custom_branding?: boolean;
+  account_manager?: boolean;
+}
+
+export interface ProductInfo {
+  name: string;
+  description: string;
+  product_tag: 'free' | 'starter' | 'pro' | 'teams';
+  attrs: ProductAttributes;
+}
+
+export interface UserUsage {
+  user_id: string;
+  api_call_count: number;
+  active_flow_count: number;
+  chat_count: number;
+}

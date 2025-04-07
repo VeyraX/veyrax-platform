@@ -97,7 +97,7 @@
     "recharts": "^2.15.1",
     "sonner": "^1.7.4",
     "sql-formatter": "^15.4.10",
-    "stripe": "^17.6.0",
+    "stripe": "^17.7.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "textarea-caret-position": "^0.1.1",

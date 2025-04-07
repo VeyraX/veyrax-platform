@@ -4,18 +4,83 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PricingCards } from "@/components/ui/pricing-cards";
+import getStripe from "@/lib/utils/stripe/stripe";
+import { fetchPostJSON } from "@/lib/utils/stripe/stripe-helpers";
+
+// Типы для интервалов подписки
+type PlanInterval = 'monthly' | 'yearly';
 
 export default function PricingPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const [interval, setInterval] = useState<PlanInterval>('monthly');
 
-  const handleSubscription = (packageName: string) => {
-    setLoadingTier(packageName);
-    setTimeout(() => {
+  // Обработчик изменения интервала в UI компоненте
+  const handleIntervalChange = (newInterval: string) => {
+    setInterval(newInterval as PlanInterval);
+  };
+
+  const handleSubscription = async (packageName: string) => {
+    try {
+      setLoadingTier(packageName);
+      
+      if (packageName === 'Teams') {
+        setTimeout(() => {
+          setLoadingTier(null);
+          toast.success(`Successfully subscribed to ${packageName} plan!`);
+          setOpenDialog(false);
+        }, 1500);
+        return;
+      }
+
+      // ID цен для разных пакетов и интервалов
+      const priceIds = {
+        Starter: {
+          monthly: 'price_1OxVblD7STfJJkPfuQFD58qG',
+          yearly: 'price_1OxYOuD7STfJJkPf3VzpHGQx'
+        },
+        Pro: {
+          monthly: 'price_1RB5i6IuFYxu6EyPqdW56iPr',
+          yearly: 'price_1RB5mUIuFYxu6EyPb2Oxmsck'
+        }
+      };
+
+      // Получаем price ID в зависимости от пакета и интервала
+      const priceId = priceIds[packageName as keyof typeof priceIds]?.[interval];
+      
+      if (!priceId) {
+        toast.error('Invalid package selection');
+        setLoadingTier(null);
+        return;
+      }
+
+      const response = await fetchPostJSON('/api/stripe/checkout_sessions', {
+        priceId
+      });
+
+      if (response.statusCode === 500) {
+        console.error(response.message);
+        toast.error('Payment failed. Please try again later.');
+        setLoadingTier(null);
+        return;
+      }
+
+      const stripe = await getStripe();
+      const { error } = await stripe!.redirectToCheckout({
+        sessionId: response.sessionId,
+      });
+      
+      if (error) {
+        console.warn(error.message);
+        toast.error(error.message || 'Payment failed. Please try again.');
+      }
+      
       setLoadingTier(null);
-      toast.success(`Successfully subscribed to ${packageName} plan!`);
-      setOpenDialog(false);
-    }, 1500);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Something went wrong. Please try again later.');
+      setLoadingTier(null);
+    }
   };
 
   const pricingTiers = [
@@ -35,8 +100,8 @@ export default function PricingPage() {
         { name: "Custom integrations", included: false }
       ],
       cta: {
-        text: loadingTier === "Premium" ? "Processing..." : "Choose Premium",
-        onClick: () => handleSubscription("Premium")
+        text: loadingTier === "Starter" ? "Processing..." : "Choose Starter",
+        onClick: () => handleSubscription("Starter")
       }
     },
     {
@@ -55,8 +120,8 @@ export default function PricingPage() {
         { name: "Custom integrations", included: true }
       ],
       cta: {
-        text: loadingTier === "Premium" ? "Processing..." : "Choose Premium",
-        onClick: () => handleSubscription("Premium")
+        text: loadingTier === "Pro" ? "Processing..." : "Choose Pro",
+        onClick: () => handleSubscription("Pro")
       }
     },
     {

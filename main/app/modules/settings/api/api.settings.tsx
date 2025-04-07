@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { UserProfile, UserApiKey } from '@/app/modules/settings/api/types.settings'
+import { UserProfile, UserApiKey, UserSubscription } from '@/app/modules/settings/api/types.settings'
 
 export async function getUserProfile(): Promise<UserProfile | null> {
   const supabase = createBrowserClient(
@@ -178,5 +178,144 @@ export async function deleteUserAccount(): Promise<boolean> {
   } catch (error) {
     console.error('Error in deleteUserAccount:', error)
     return false
+  }
+}
+
+export async function getUserSubscription() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return null
+    }
+
+    const { data, error } = await supabase
+      .from('users_subscription_status_view')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      console.error('Error fetching subscription data:', error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error in getUserSubscription:', error)
+    return null
+  }
+}
+
+export async function getUserUsage() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return null
+    }
+
+    const { data, error } = await supabase
+      .from('user_monthly_usage_view')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    console.log(data)
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return { user_id: user.id, api_call_count: 0, active_flow_count: 0, chat_count: 0 }
+      }
+      console.error('Error fetching usage data:', error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error in getUserUsage:', error)
+    return null
+  }
+}
+
+export async function getProductInfoByTag(tag: string) {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  try {
+    const { data, error } = await supabase
+      .from('products_info')
+      .select('*')
+      .eq('product_tag', tag)
+      .single()
+
+    if (error) {
+      console.error('Error fetching product info:', error)
+      return null
+    }
+
+    // Parse the JSONB attrs field
+    if (data && typeof data.attrs === 'string') {
+      data.attrs = JSON.parse(data.attrs)
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error in getProductInfo:', error)
+    return null
+  }
+}
+
+export async function getUserProductInfo() {
+  try {
+    // First try to get subscription from Stripe
+    const subscription = await getUserSubscription()
+    
+    if (subscription) {
+      // Extract product_tag from subscription data
+      // This is based on your data structure - you might need to adjust
+      const productName = subscription.product_name.toLowerCase()
+      let productTag = 'free'
+      
+      if (productName.includes('pro')) {
+        productTag = 'pro'
+      } else if (productName.includes('team')) {
+        productTag = 'teams'
+      } else if (productName.includes('starter')) {
+        productTag = 'starter'
+      }
+      
+      return await getProductInfoByTag(productTag)
+    } else {
+      // No subscription, user is on free plan
+      return await getProductInfoByTag('free')
+    }
+  } catch (error) {
+    console.error('Error getting user product info:', error)
+    // Fallback to free plan on error
+    return await getProductInfoByTag('free')
+  }
+}
+
+export async function isUserOnFreePlan() {
+  try {
+    const subscription = await getUserSubscription()
+    return !subscription
+  } catch (error) {
+    console.error('Error checking if user is on free plan:', error)
+    return true
   }
 }
