@@ -529,25 +529,16 @@ def get_user_usages(user_id: str):
     try:
         supabase = get_supabase()
         
-        print(f"[DEBUG get_user_usages] Getting usage for user_id: {user_id}")
-        
         result = supabase.table('user_monthly_usage_view') \
             .select('api_call_count') \
             .eq('user_id', user_id) \
             .execute()
             
-        print(f"[DEBUG get_user_usages] Raw result: {result}")
-        print(f"[DEBUG get_user_usages] Result data: {result.data}")
-            
         if not result.data:
-            print(f"[DEBUG get_user_usages] No data found for user_id: {user_id}")
             return {}
             
-        print(f"[DEBUG get_user_usages] Returning data: {result.data[0]}")
         return result.data[0]
     except Exception as e:
-        print(f"[DEBUG get_user_usages] Error: {str(e)}")
-        print(f"[DEBUG get_user_usages] Traceback: {traceback.format_exc()}")
         sentry_sdk.capture_exception(e)
         raise Exception(f"Error getting user usages: {str(e)}")
     
