@@ -120,7 +120,7 @@ const features = [
     },
     {
       Icon: Layers,
-      name: "35+ Integrations",
+      name: "80+ Integrations",
       description: "with your favorite tools available in one place.",
       href: "https://veyrax.com/marketplace",
       cta: "Visit marketplace",
@@ -148,7 +148,7 @@ const features = [
     },
     {
       Icon: Rocket,
-      name: "100+ Actions",
+      name: "1500+ Actions",
       description:
         "that AI Agent can execute.",
       href: "https://veyrax.com/marketplace",
