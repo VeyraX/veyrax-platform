@@ -67,6 +67,28 @@ export default function AssistantPage({
           
           if (details?.limitMessage && details?.messageId) {
             setMessages((prev) => {
+              const userMessageExists = prev.some(msg => msg.role === 'user');
+              
+              if (!userMessageExists && currentChatIdRef.current) {
+                return [
+                  ...prev,
+                  {
+                    id: `user-msg-${Date.now()}`,
+                    content: localStorage.getItem(`last-message-${currentChatIdRef.current}`) || "Your message",
+                    role: 'user'
+                  },
+                  {
+                    id: details.messageId,
+                    content: details.limitMessage,
+                    role: 'assistant',
+                    isLimitMessage: true,
+                    current: details.current,
+                    limit: details.limit,
+                    needsUpgrade: details.needsUpgrade
+                  } as Message
+                ];
+              }
+              
               return [
                 ...prev,
                 {
@@ -125,7 +147,7 @@ export default function AssistantPage({
             setChatName("New Chat");
           }
           
-          // @ts-ignore - Игнорируем проверку типов для всей функции обработки сообщений
+          // @ts-ignore
           const convertedMessages = existingMessages.map((msg) => {
             if (msg.sender === 'user') {
               return {
@@ -210,6 +232,10 @@ export default function AssistantPage({
         setIsJustCreated(true);
 
         await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      if (currentChatIdRef.current) {
+        localStorage.setItem(`last-message-${currentChatIdRef.current}`, value);
       }
 
       const messageId = `msg-${Date.now()}`;
