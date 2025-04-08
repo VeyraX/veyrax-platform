@@ -219,16 +219,18 @@ class OutlookTokenRefresher(BaseTokenRefresher):
     @staticmethod
     async def refresh(request: Request, token_data: dict) -> dict:
         try:
+            data = {
+                "grant_type": "refresh_token",
+                "client_id": os.getenv('OUTLOOK_CLIENT_ID'),
+                "client_secret": os.getenv('OUTLOOK_CLIENT_SECRET'),
+                "refresh_token": token_data['refresh_token']
+            }
+                
             response = requests.post(
                 "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-                data={
-                    "grant_type": "refresh_token",
-                    "client_id": os.getenv('OUTLOOK_CLIENT_ID'),
-                    "client_secret": os.getenv('OUTLOOK_CLIENT_SECRET'),
-                    "refresh_token": token_data['refresh_token'],
-                    "scope": token_data['scopes']
-                }
+                data=data
             )
+            
             response.raise_for_status()
             refresh_data = response.json()
 

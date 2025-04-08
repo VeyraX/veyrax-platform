@@ -83,3 +83,5 @@ conf.d/redisdb.d/conf.yaml
 
 /aci_server/flower
 aci_server/flower
+
+aci_server/db/migration/config/migrate_api_keys.json
