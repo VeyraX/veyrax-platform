@@ -64,7 +64,10 @@ class TwitterService:
         # Create the timeline data structure
         timeline_data = UserTimelineData(
             timeline=response.get('timeline', []),
-            user=user_data
+            user=user_data,
+            next_cursor=response.get('next_cursor'),
+            prev_cursor=response.get('prev_cursor'),
+            status=response.get('status')
         )
         
         # Create the standard response structure

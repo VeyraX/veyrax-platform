@@ -29,6 +29,9 @@ class GetUserTimelineParams(BaseModel):
 class UserTimelineData(BaseModel):
     timeline: List[Dict[str, Any]] = Field([], description="List of timeline items/tweets")
     user: Optional[UserProfileData] = Field(None, description="User profile information")
+    next_cursor: Optional[str] = Field(None, description="Cursor for the next page of results")
+    prev_cursor: Optional[str] = Field(None, description="Cursor for the previous page of results")
+    status: Optional[str] = Field(None, description="Status of the request")
 
 class UserTimelineResponse(BaseModel):
     success: Optional[bool] = True
@@ -138,7 +141,7 @@ class TweetRetweetsResponse(BaseModel):
 
 class SearchTweetsParams(BaseModel):
     query: str
-    search_type: Optional[str] = Field(default="Top", description="Type of search to perform (e.g., 'Top', 'Latest')")
+    search_type: Optional[str] = Field(default="Top", description="Type of search to perform (e.g., 'Top', 'Latest', 'Popular')")
     
 class TweetMedia(BaseModel):
     photo: Optional[List[Dict[str, str]]] = None

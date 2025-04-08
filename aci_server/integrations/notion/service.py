@@ -1032,10 +1032,38 @@ class NotionService:
         }
         
         if filter_data:
-            params["filter"] = filter_data
+            # Convert filter_data to dict if it's a Pydantic model
+            if hasattr(filter_data, "model_dump"):
+                # Pydantic v2
+                filter_dict = filter_data.model_dump(exclude_none=True)
+            elif hasattr(filter_data, "dict"):
+                # Pydantic v1
+                filter_dict = filter_data.dict(exclude_none=True)
+            else:
+                filter_dict = filter_data
+                
+            # Handle compound filters
+            if "and_" in filter_dict:
+                filter_dict["and"] = filter_dict.pop("and_")
+            if "or_" in filter_dict:
+                filter_dict["or"] = filter_dict.pop("or_")
+                
+            params["filter"] = filter_dict
             
         if sorts:
-            params["sorts"] = sorts
+            # Convert each sort object to dict if it's a Pydantic model
+            serialized_sorts = []
+            for sort in sorts:
+                if hasattr(sort, "model_dump"):
+                    # Pydantic v2
+                    sort_dict = sort.model_dump(exclude_none=True)
+                elif hasattr(sort, "dict"):
+                    # Pydantic v1
+                    sort_dict = sort.dict(exclude_none=True)
+                else:
+                    sort_dict = sort
+                serialized_sorts.append(sort_dict)
+            params["sorts"] = serialized_sorts
             
         if start_cursor:
             params["start_cursor"] = start_cursor
