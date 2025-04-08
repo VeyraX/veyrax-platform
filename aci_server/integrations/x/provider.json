@@ -1,0 +1,7 @@
+{
+    "name": "X",
+    "provider_tag": "x",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//x-logo.svg",
+    "description": "Get Posts and Search on X (formerly known as Twitter)",
+    "auth_method": "none"
+} 

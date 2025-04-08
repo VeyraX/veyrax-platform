@@ -557,7 +557,7 @@ class HiringTeamResponse(BaseModel):
 
 class SearchPostsParams(BaseModel):
     keyword: Optional[str] = Field("", description="Search keyword")
-    sortBy: str = Field("date_posted", description="Sort order for posts")
+    sortBy: str = Field("date_posted", description="Sort order for posts, i.e. CHRON, REV_CHRON; can't sort by popularity or likes etc. if so, try to call search multiple times with different pages")
     datePosted: Optional[str] = Field("", description="Filter by date posted")
     page: Optional[int] = Field(1, description="Page number")
     contentType: Optional[str] = Field("", description="Type of content to filter")

@@ -58,7 +58,7 @@ class Issue(BaseModel):
         return self
     
     # Дополнительные поля для совместимости
-    project_id: Optional[str] = None
+    project_id: Optional[str] = Field(None, description="Project UUID")
     team_id: str = ""
     team_key: str = ""
 
@@ -89,7 +89,7 @@ class IssueCreate(BaseModel):
     assignee_id: Optional[str] = None
     state_id: Optional[str] = None
     priority: Optional[int] = None
-    project_id: Optional[str] = None
+    project_id: Optional[str] = Field(None, description="Project UUID")
     labels: Optional[List[str]] = None
 
     class Config:
@@ -101,7 +101,7 @@ class IssueUpdate(BaseModel):
     assignee_id: Optional[str] = None
     state_id: Optional[str] = None
     priority: Optional[int] = None
-    project_id: Optional[str] = None
+    project_id: Optional[str] = Field(None, description="Project UUID")
     labels: Optional[List[str]] = None
 
     class Config:
@@ -113,7 +113,7 @@ class CommentCreate(BaseModel):
 class IssueFilter(BaseModel):
     assignee_id: Optional[str] = None
     creator_id: Optional[str] = None
-    project_id: Optional[str] = None
+    project_id: Optional[str] = Field(None, description="Project UUID")
     state_id: Optional[str] = None
     priority: Optional[int] = None
     created_after: Optional[datetime] = None
@@ -144,7 +144,7 @@ class WorkflowState(BaseModel):
     name: str
     color: str
     type: str
-    position: int
+    position: float
     team: Optional[Team] = None
     
     @model_validator(mode='after')

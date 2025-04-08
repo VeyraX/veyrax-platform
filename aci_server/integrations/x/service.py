@@ -28,9 +28,11 @@ class TwitterService:
     def get_user_profile(self, params: GetUserProfileParams) -> ApiResponse:
         # Prepare request parameters
         request_params = {"screenname": params.screenname}
+        print('get_user_profile params', params)
         if params.rest_id:
             request_params["rest_id"] = params.rest_id
         
+        print('get_user_profile request_params', request_params)
         # Make API call through client
         response = self.client.get_user_profile(**request_params)
         
@@ -64,7 +66,10 @@ class TwitterService:
         # Create the timeline data structure
         timeline_data = UserTimelineData(
             timeline=response.get('timeline', []),
-            user=user_data
+            user=user_data,
+            next_cursor=response.get('next_cursor'),
+            prev_cursor=response.get('prev_cursor'),
+            status=response.get('status')
         )
         
         # Create the standard response structure
