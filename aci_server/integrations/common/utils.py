@@ -487,7 +487,7 @@ def get_auth_tool():
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
 
-def get_user_subscrition_plan(user_id: str):
+def get_user_subscription_info(user_id: str):
     try:
         supabase = get_supabase()
         
@@ -497,34 +497,87 @@ def get_user_subscrition_plan(user_id: str):
             .execute()
             
         if not result.data:
-            return 'free'
+            return None
             
-        return result.data[0]['price_lookup_key']
+        subscription = result.data[0]
+        
+        if not subscription or subscription['subscription_status'] != 'active':
+            return None
+            
+        return subscription
     except Exception as e:
         sentry_sdk.capture_exception(e)
-        raise Exception(f"Error getting user subscription plan: {str(e)}")  
-    
+        return None
 
-def get_product_info(product_tag: str):
+def is_usage_limit_exceeded(user_id: str):
     try:
         supabase = get_supabase()
+        subscription = get_user_subscription_info(user_id)
         
-        base_product_tag = product_tag.split('_')[0] if '_' in product_tag else product_tag
+        product_info = None
+        if subscription:
+            product_result = supabase.table('products_info') \
+                .select('*') \
+                .eq('stripe_product_id', subscription['product_id']) \
+                .execute()
+            if product_result.data:
+                product_info = product_result.data[0]
+        else:
+            product_result = supabase.table('products_info') \
+                .select('*') \
+                .eq('product_tag', 'free') \
+                .execute()
+            if product_result.data:
+                product_info = product_result.data[0]
         
-        result = supabase.table('products_info') \
-            .select('*') \
-            .eq('product_tag', base_product_tag) \
-            .execute()
+        if not product_info:
+            return False
             
-        if not result.data:
-            return {}
-            
-        return result.data[0]
+        usage = get_user_usages(user_id)
+        if not usage:
+            return False
+        
+        attrs = product_info.get("attrs", {})
+        api_limit = attrs.get("api_call_count", 0)
+        current_usage = usage.get("api_call_count", 0)
+        
+        return api_limit > 0 and current_usage >= api_limit
+
     except Exception as e:
         sentry_sdk.capture_exception(e)
-        raise Exception(f"Error getting product info: {str(e)}")
-    
-    
+        return False
+
+def can_user_rent_keys(user_id: str) -> bool:
+    try:
+        supabase = get_supabase()
+        subscription = get_user_subscription_info(user_id)
+        
+        product_info = None
+        if subscription:
+            product_result = supabase.table('products_info') \
+                .select('*') \
+                .eq('stripe_product_id', subscription['product_id']) \
+                .execute()
+            if product_result.data:
+                product_info = product_result.data[0]
+        else:
+            product_result = supabase.table('products_info') \
+                .select('*') \
+                .eq('product_tag', 'free') \
+                .execute()
+            if product_result.data:
+                product_info = product_result.data[0]
+
+        if not product_info:
+            return False
+
+        attrs = product_info.get("attrs", {})
+        return attrs.get("rent_provider_keys", False)
+
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return False
+
 def get_user_usages(user_id: str):
     try:
         supabase = get_supabase()
@@ -543,31 +596,34 @@ def get_user_usages(user_id: str):
         raise Exception(f"Error getting user usages: {str(e)}")
     
     
-def is_usage_limit_exceeded(user_id: str):
+def get_user_rented_api_keys(user_id: str, provider_id: str) -> List[str]:
     try:
-        plan = get_user_subscrition_plan(user_id)
+        supabase = get_supabase()
         
-        product_info = get_product_info(plan)
+        rented_api_key = supabase.table('rent_api_keys') \
+            .select('id, api_key') \
+            .eq('provider_id', provider_id) \
+            .execute()
         
-        usage = get_user_usages(user_id)
+        if not rented_api_key.data:
+            return []
+            
+        rent_key_id = rented_api_key.data[0]['id']
         
-        if not product_info or not usage:
-            return False
+        rented_keys = supabase.table('users_provider_rent_api_keys') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .eq('rent_key_id', rent_key_id) \
+            .execute()
         
-        attrs = product_info.get("attrs", {})
-                
-        api_limit = attrs.get("api_call_count", 0)
-        current_usage = usage.get("api_call_count", 0)
-
+        if not rented_keys.data:
+            return []
         
-        exceeds = api_limit > 0 and current_usage >= api_limit
-
-        return exceeds
+        return rented_api_key.data
     except Exception as e:
         sentry_sdk.capture_exception(e)
-        return False
-    
+        print(f"Error in get_user_rented_api_keys: {str(e)}")
+        return []
 
-    
     
     

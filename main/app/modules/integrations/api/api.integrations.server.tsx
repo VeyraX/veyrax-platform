@@ -374,6 +374,21 @@ export const disconnectProviderForUser = async (options: {
       .eq('user_id', user_id)
       .in('action_id', actionIds);
   }
+  
+  const { data: rentApiKey } = await client
+    .from('rent_api_keys')
+    .select('id')
+    .eq('provider_id', provider_id)
+    .single();
+
+    await client
+      .from('users_provider_rent_api_keys')
+      .delete()
+      .match({ 
+        user_id: user_id,
+        rent_key_id: rentApiKey?.id
+      });
+
 
   await client
     .from('users_provider_api_keys')
@@ -822,4 +837,52 @@ export const saveDisconnectWhatsapp = async (options: {
   });
   
   return true;
+};
+
+export const saveRentApiKey = async (options: {
+  user_id: string;
+  provider_id: string;
+}): Promise<void> => {
+  const { user_id, provider_id } = options;
+  
+  const client = createServiceClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+  );
+
+  const { data: apiKeyData } = await client
+    .from('rent_api_keys')
+    .select('id')
+    .eq('provider_id', provider_id)
+    .single();
+    
+  console.log('apiKeyData', apiKeyData);
+
+  const { error: rentError } = await client
+    .from('users_provider_rent_api_keys')
+    .upsert({
+      user_id,
+      rent_key_id: apiKeyData?.id
+    }, {
+      onConflict: 'user_id,rent_key_id'
+    });
+
+    if (rentError) {
+      throw new Error('Failed to rent API key: ' + rentError.message);
+    }
+
+    const { error: providerError } = await client
+    .from('users_providers')
+    .upsert({
+      user_id,
+      provider_id
+    }, {
+      onConflict: 'provider_id,user_id'
+    });
+
+  if (providerError) {
+    throw new Error('Failed to connect provider: ' + providerError.message);
+  }
+
+  await addActionsUser(provider_id, user_id);
 };

@@ -36,10 +36,6 @@ export async function getUserUsage() {
   return CoreApi.getUserUsage(createClient())
 }
 
-export async function getProductInfoByTag(tag: string) {
-  return CoreApi.getProductInfoByTag(createClient(), tag)
-}
-
 export async function getUserProductInfo() {
   return CoreApi.getUserProductInfo(createClient())
 }
@@ -47,11 +43,6 @@ export async function getUserProductInfo() {
 export async function isUserOnFreePlan() {
   return CoreApi.isUserOnFreePlan(createClient())
 }
-
-export async function getUserPlanName(): Promise<string> {
-  return CoreApi.getUserPlanName(createClient())
-}
-
 export async function canUserCreateFlow(increment: number = 1) {
   return CoreApi.canUserCreateFlow(createClient(), increment)
 }
@@ -61,6 +52,9 @@ export async function canUserCallAPI(increment: number = 1) {
 }
 
 export async function canUserSendMessage(increment: number = 1) {
-  console.warn('canUserSendMessage в клиентском коде устарела. Используйте canUserSendMessageServer на стороне сервера')
   return CoreApi.canUserSendMessage(createClient(), increment)
+}
+
+export async function canUserRentKey() {
+  return CoreApi.canUserRentKey(createClient())
 }

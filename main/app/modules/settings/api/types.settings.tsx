@@ -43,7 +43,8 @@ export interface UserSubscription {
   amount: number;
   product_name: string;
   currency: string;
-  lookup_key?: string;
+  price_lookup_key?: string;
+  product_id?: string;
 }
 
 export interface ProductAttributes {
@@ -60,6 +61,7 @@ export interface ProductInfo {
   name: string;
   description: string;
   product_tag: 'free' | 'starter' | 'pro' | 'teams';
+  stripe_product_id: string;
   attrs: ProductAttributes;
 }
 

@@ -1,7 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UserProfile, UserApiKey, UserSubscription } from './types.settings';
 
-// Общие функции для работы с настройками пользователя
 export async function getUserProfile(supabase: SupabaseClient): Promise<UserProfile | null> {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -195,12 +194,6 @@ export async function getUserUsage(supabase: SupabaseClient) {
       .eq('user_id', user.id)
       .single();
 
-      
-
-    console.log('User ID:', user.id);
-    console.log('Data:', data);
-    console.log('Error:', error);
-
     if (error) {
       if (error.code === 'PGRST116') {
         console.log('No usage records found, returning default values');
@@ -217,53 +210,39 @@ export async function getUserUsage(supabase: SupabaseClient) {
   }
 }
 
-export async function getProductInfoByTag(supabase: SupabaseClient, tag: string) {
-  try {
-    const { data, error } = await supabase
-      .from('products_info')
-      .select('*')
-      .eq('product_tag', tag)
-      .single();
-
-    if (error) {
-      console.error('Error fetching product info:', error);
-      return null;
-    }
-
-    if (data && typeof data.attrs === 'string') {
-      data.attrs = JSON.parse(data.attrs);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in getProductInfo:', error);
-    return null;
-  }
-}
-
 export async function getUserProductInfo(supabase: SupabaseClient) {
   try {
     const subscription = await getUserSubscription(supabase);
     
-    if (subscription) {
-      const productName = subscription.product_name.toLowerCase();
-      let productTag = 'free';
-      
-      if (productName.includes('pro')) {
-        productTag = 'pro';
-      } else if (productName.includes('team')) {
-        productTag = 'teams';
-      } else if (productName.includes('starter')) {
-        productTag = 'starter';
+    if (!subscription || subscription.subscription_status !== 'active') {
+      const { data, error } = await supabase
+        .from('products_info')
+        .select('*')
+        .eq('product_tag', 'free')
+        .single();
+
+      if (error || !data) {
+        console.error('Error getting free product info:', error);
+        return null;
       }
-      
-      return await getProductInfoByTag(supabase, productTag);
-    } else {
-      return await getProductInfoByTag(supabase, 'free');
+      return data;
     }
+
+    const { data, error } = await supabase
+      .from('products_info')
+      .select('*')
+      .eq('stripe_product_id', subscription.product_id)
+      .single();
+
+    if (error || !data) {
+      console.error('Error getting product info:', error);
+      return null;
+    }
+
+    return data;
   } catch (error) {
     console.error('Error getting user product info:', error);
-    return await getProductInfoByTag(supabase, 'free');
+    return null;
   }
 }
 
@@ -274,26 +253,6 @@ export async function isUserOnFreePlan(supabase: SupabaseClient): Promise<boolea
   } catch (error) {
     console.error('Error checking if user is on free plan:', error);
     return true;
-  }
-}
-
-export async function getUserPlanName(supabase: SupabaseClient): Promise<string> {
-  try {
-    const subscription = await getUserSubscription(supabase);
-    
-    if (!subscription) {
-      return 'free';
-    }
-    
-    if (subscription.lookup_key) {
-      const basePlan = subscription.lookup_key.split('_')[0];
-      return basePlan;
-    }
-    
-    return 'free';
-  } catch (error) {
-    console.error('Error getting user plan name:', error);
-    return 'free';
   }
 }
 
@@ -444,5 +403,33 @@ export async function canUserSendMessage(
   } catch (error) {
     console.error('Error checking message limit:', error);
     return { allowed: true };
+  }
+}
+
+export async function canUserRentKey(
+  supabase: SupabaseClient
+): Promise<{
+  allowed: boolean;
+  reason?: string;
+}> {
+  try {
+    const productInfo = await getUserProductInfo(supabase);
+
+    if (!productInfo) {
+      return { 
+        allowed: false, 
+        reason: 'Could not fetch user plan information'
+      };
+    }
+
+    const canRentKeys = productInfo.attrs?.rent_provider_keys || false;
+    
+    return {
+      allowed: canRentKeys,
+      reason: !canRentKeys ? 'Your current plan does not allow renting provider keys' : undefined
+    };
+  } catch (error) {
+    console.error('Error checking key rental permission:', error);
+    return { allowed: false, reason: 'Error checking permissions' };
   }
 } 
