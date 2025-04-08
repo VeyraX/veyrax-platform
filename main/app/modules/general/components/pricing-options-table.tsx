@@ -9,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs-u
 import { Check, Minus, MoveRight, PhoneCall } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NumberFlow from "@number-flow/react";
+import getStripe from "@/lib/utils/stripe/stripe";
+import { fetchPostJSON } from "@/lib/utils/stripe/stripe-helpers";
 import { 
   pricingPlans, 
   FEATURE_CATEGORIES, 
   getAdvancedFeatures,
+  getPriceId,
   type PlanInterval
 } from "./pricing-data";
 
@@ -21,28 +24,67 @@ export default function PricingOptionsTable() {
   const [billingInterval, setBillingInterval] = useState<PlanInterval>("yearly");
   const isYearly = billingInterval === "yearly";
 
-  const handleSubscription = (planId: string) => {
-    setLoadingTier(planId);
-    setTimeout(() => {
+  const handleSubscription = async (planId: string) => {
+    try {
+      setLoadingTier(planId);
+      
+      if (planId === 'teams') {
+        setTimeout(() => {
+          setLoadingTier(null);
+          toast.success(`Successfully submitted request for Teams plan!`);
+        }, 1500);
+        return;
+      }
+
+      const priceId = getPriceId(planId, billingInterval);
+      
+      if (!priceId) {
+        toast.error('Invalid package selection');
+        setLoadingTier(null);
+        return;
+      }
+
+      const response = await fetchPostJSON('/api/stripe/checkout_sessions', {
+        priceId
+      });
+
+      if (response.statusCode === 500) {
+        console.error(response.message);
+        toast.error('Payment failed. Please try again later.');
+        setLoadingTier(null);
+        return;
+      }
+
+      const stripe = await getStripe();
+      const { error } = await stripe!.redirectToCheckout({
+        sessionId: response.sessionId,
+      });
+      
+      if (error) {
+        console.warn(error.message);
+        toast.error(error.message || 'Payment failed. Please try again.');
+      }
+      
       setLoadingTier(null);
-      toast.success(`Successfully subscribed to ${planId} plan!`);
-    }, 1500);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Something went wrong. Please try again later.');
+      setLoadingTier(null);
+    }
   };
 
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex text-center justify-center items-center gap-4 flex-col">
-          <div className="flex gap-2 flex-col">
-            <h2 className="text-3xl md:text-5xl tracking-tighter max-w-xl text-center font-regular">
-              Compare plans & features
-            </h2>
-            <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl text-center">
-              Choose the right plan for your needs and budget
-            </p>
-          </div>
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-4xl md:text-5xl tracking-tighter max-w-xl text-center mx-auto font-regular mb-2 md:mb-3">
+            Compare plans & features
+          </h2>
+          <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl text-center mx-auto">
+            Choose the right plan for your needs and budget
+          </p>
           
-          <div className="flex justify-center mt-8 mb-8">
+          <div className="flex justify-center mt-4 md:mt-8 mb-4 md:mb-6">
             <Tabs 
               defaultValue={billingInterval}
               value={billingInterval}
@@ -65,44 +107,46 @@ export default function PricingOptionsTable() {
               </TabsList>
             </Tabs>
           </div>
+        </div>
           
-          <div className="grid text-left w-full grid-cols-4 lg:grid-cols-5 divide-x pt-20">
-            <div className="col-span-1"></div>
-            
-            {pricingPlans.map((plan) => (
-              <div 
-                key={plan.name} 
-                className="px-3 py-1 md:px-6 md:py-4 gap-2 flex flex-col justify-between transition-all duration-500"
-                style={{ minHeight: "250px" }}
-              >
-                <div>
-                  <p className="text-2xl font-medium">{plan.name}</p>
-                  <p className="text-sm text-muted-foreground h-14">
-                    {plan.description}
-                  </p>
-                
-                  <div className="mt-8">
-                    {plan.id === "teams" ? (
-                      <p className="text-4xl font-bold">Custom</p>
-                    ) : (
-                      <div className="flex items-baseline">
-                        <NumberFlow
-                          format={{
-                            style: "currency",
-                            currency: "USD",
-                            trailingZeroDisplay: "stripIfInteger",
-                          }}
-                          value={isYearly ? plan.price.yearly : plan.price.monthly}
-                          className="text-4xl font-bold transition-all duration-500"
-                        />
-                        <span className="text-sm text-muted-foreground ml-1">
-                          / month
-                        </span>
-                      </div>
-                    )}
-                  </div>
+        <div className="grid text-left w-full grid-cols-4 lg:grid-cols-5 divide-x">
+          <div className="col-span-1"></div>
+          
+          {pricingPlans.map((plan) => (
+            <div 
+              key={plan.name} 
+              className="px-3 py-1 md:px-6 md:py-4 gap-2 flex flex-col justify-between transition-all duration-500"
+              style={{ minHeight: "250px" }}
+            >
+              <div>
+                <p className="text-2xl font-medium">{plan.name}</p>
+                <p className="text-sm text-muted-foreground h-14">
+                  {plan.description}
+                </p>
+              
+                <div className="mt-8">
+                  {plan.id === "teams" ? (
+                    <p className="text-4xl font-light">Custom</p>
+                  ) : (
+                    <div className="flex items-baseline">
+                      <NumberFlow
+                        format={{
+                          style: "currency",
+                          currency: "USD",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }}
+                        value={isYearly ? plan.price.yearly : plan.price.monthly}
+                        className="text-4xl font-light transition-all duration-500"
+                      />
+                      <span className="text-sm text-muted-foreground ml-1">
+                        / month
+                      </span>
+                    </div>
+                  )}
                 </div>
-                  
+              </div>
+                
                 <Button 
                   variant={plan.buttonVariant} 
                   className="gap-2 mt-8"
@@ -164,7 +208,6 @@ export default function PricingOptionsTable() {
                 ))}
               </React.Fragment>
             ))}
-          </div>
         </div>
       </div>
     </div>

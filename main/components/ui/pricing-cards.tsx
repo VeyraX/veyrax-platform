@@ -33,6 +33,8 @@ export interface PricingCardsProps extends React.HTMLAttributes<HTMLDivElement> 
     cardClassName?: string;
     sectionClassName?: string;
     defaultInterval?: "monthly" | "yearly";
+    title?: string;
+    description?: string;
 }
 
 export function PricingCards({
@@ -42,6 +44,8 @@ export function PricingCards({
     cardClassName,
     sectionClassName,
     defaultInterval = "monthly",
+    title,
+    description,
     ...props
 }: PricingCardsProps) {
     const [billingInterval, setBillingInterval] = React.useState<"monthly" | "yearly">(defaultInterval);
@@ -68,13 +72,25 @@ export function PricingCards({
         <section
             className={cn(
                 "bg-background text-foreground",
-                "py-12 sm:py-24 md:py-32 px-4",
                 "fade-bottom overflow-hidden pb-0",
                 sectionClassName
             )}
         >
             <div className={cn("w-full max-w-5xl mx-auto px-4", containerClassName)} {...props}>
-                <div className="flex justify-center mb-8">
+                {title && (
+                    <div className="text-center mb-6 md:mb-8">
+                        <h2 className="text-4xl md:text-5xl tracking-tighter max-w-xl mx-auto font-regular mb-2 md:mb-3">
+                            {title}
+                        </h2>
+                        {description && (
+                            <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl mx-auto">
+                                {description}
+                            </p>
+                        )}
+                    </div>
+                )}
+                
+                <div className="flex justify-center mb-4 md:mb-6 mt-4 md:mt-8">
                     <Tabs 
                         defaultValue={defaultInterval}
                         value={billingInterval}
@@ -133,7 +149,8 @@ export function PricingCards({
                                                     format={{
                                                         style: "currency",
                                                         currency: "USD",
-                                                        trailingZeroDisplay: "stripIfInteger",
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 0
                                                     }}
                                                     value={price}
                                                     className={cn(

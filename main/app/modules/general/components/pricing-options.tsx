@@ -44,7 +44,6 @@ export default function PricingPage() {
         return;
       }
 
-      // Get price ID for the current plan and interval
       const priceId = getPriceId(planId, interval);
       
       if (!priceId) {
@@ -82,7 +81,6 @@ export default function PricingPage() {
     }
   };
 
-  // Convert our pricing data to the format expected by PricingCards
   const pricingTiers: PricingTier[] = pricingPlans
     .filter(plan => plan.id !== 'free')
     .map(plan => ({
@@ -108,13 +106,17 @@ export default function PricingPage() {
         tiers={pricingTiers}
         className="grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         containerClassName="max-w-6xl"
+        sectionClassName="py-0"
         defaultInterval="monthly"
+        title="Pricing Plans"
+        description="Choose the right plan for your needs"
       />
       
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="max-w-6xl w-[95vw]">
-          <DialogHeader>
-            <DialogTitle>Choose a Subscription Plan</DialogTitle>
+          <DialogHeader className="mb-0 pb-0">
+            <DialogTitle className="text-4xl md:text-5xl tracking-tighter text-center font-regular mb-1">Choose a Plan</DialogTitle>
+            <p className="text-center text-muted-foreground mb-2">Select the plan that works best for you</p>
           </DialogHeader>
           <PricingCards 
             tiers={pricingTiers}

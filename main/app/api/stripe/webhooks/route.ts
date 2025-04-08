@@ -2,18 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
 
-// Используем as any для обхода проверки версии API
-const stripe = new Stripe(process.env.TEST_STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-03-31.basil' as any,
 });
 
 const webhookSecret = process.env.TEST_STRIPE_WEBHOOK_SECRET!;
 
-// Next.js обновленный формат конфигурации для App Router
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Новый формат для отключения bodyParser в App Router
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 

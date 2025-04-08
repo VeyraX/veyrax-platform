@@ -154,6 +154,45 @@ export async function deleteUserAccount(
   }
 }
 
+export async function getUserRegistrationDate(supabase: SupabaseClient): Promise<string | null> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return null;
+    }
+    const { data, error } = await supabase
+      .rpc('get_current_user_meta');
+
+    console.log(data);
+
+    if (error) {
+      console.error('Error fetching registration date:', error);
+      return null;
+    }
+    return data[0].created_at;
+  } catch (error) {
+    console.error('Error in getUserRegistrationDate:', error);
+    return null;
+  }
+}
+
+// Helper function to check if user is an early adopter (registered before April 9, 2025)
+async function isEarlyAdopter(supabase: SupabaseClient): Promise<boolean> {
+  try {
+    const registrationDate = await getUserRegistrationDate(supabase);
+    console.log('Registration date string:', registrationDate);
+    if (!registrationDate) return false;
+
+    const regDate = new Date(registrationDate);
+    const cutoffDate = new Date('2025-04-09T00:00:00Z');
+    
+    return regDate.getTime() < cutoffDate.getTime();
+  } catch (error) {
+    console.error('Error checking early adopter status:', error);
+    return false;
+  }
+}
+
 export async function getUserSubscription(supabase: SupabaseClient): Promise<UserSubscription | null> {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -267,6 +306,15 @@ export async function canUserCreateFlow(
   needsUpgrade?: boolean;
 }> {
   try {
+    const earlyAdopter = await isEarlyAdopter(supabase);
+    if (earlyAdopter) {
+      return { 
+        allowed: true,
+        current: 0,
+        limit: "Unlimited for early adopters"
+      };
+    }
+
     const [productInfo, usage] = await Promise.all([
       getUserProductInfo(supabase),
       getUserUsage(supabase)
@@ -317,6 +365,15 @@ export async function canUserCallAPI(
   needsUpgrade?: boolean;
 }> {
   try {
+    const earlyAdopter = await isEarlyAdopter(supabase);
+    if (earlyAdopter) {
+      return { 
+        allowed: true,
+        current: 0,
+        limit: "Unlimited for early adopters"
+      };
+    }
+
     const [productInfo, usage] = await Promise.all([
       getUserProductInfo(supabase),
       getUserUsage(supabase)
@@ -367,6 +424,17 @@ export async function canUserSendMessage(
   needsUpgrade?: boolean;
 }> {
   try {
+    // Early adopters bypass limits
+    const earlyAdopter = await isEarlyAdopter(supabase);
+    console.log('Early adopter:', earlyAdopter);
+    if (earlyAdopter) {
+      return { 
+        allowed: true,
+        current: 0,
+        limit: "Unlimited for early adopters"
+      };
+    }
+
     const [productInfo, usage] = await Promise.all([
       getUserProductInfo(supabase),
       getUserUsage(supabase)

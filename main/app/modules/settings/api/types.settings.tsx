@@ -39,12 +39,17 @@ export interface UserApiKey {
 
 export interface UserSubscription {
   subscription_status: string;
-  end_date: string;
-  amount: number;
+  subscription_start_date: string;
+  subscription_end_date: string;
+  subscription_id: string;
+  cancel_reason: string;
+  canceled_at: string;
+  is_canceled: boolean;
+  amount_usd: number;
   product_name: string;
-  currency: string;
   price_lookup_key?: string;
   product_id?: string;
+  stripe_customer_id?: string;
 }
 
 export interface ProductAttributes {

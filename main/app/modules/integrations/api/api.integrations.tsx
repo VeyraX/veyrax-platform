@@ -327,27 +327,11 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
   
   if (!userProviders?.length) return [];
   
-  const { data: userApiKeys } = await supabase
-    .from('users_provider_api_keys')
-    .select('provider_id, api_key')
-    .eq('user_id', user?.id)
-
-  const providersWithApiKeys = new Set(
-    userApiKeys
-      ?.filter(k => k.api_key && k.api_key.trim() !== '')
-      .map(k => k.provider_id)
-  )
-  
   return userProviders.map(up => {
-    const isApiKeyProvider = up.providers.auth_method === 'api_key';
-    const isReallyConnected = isApiKeyProvider 
-      ? providersWithApiKeys.has(up.providers.id) 
-      : true;
-      
     return {
       providerTag: up.providers.provider_tag,
       logoUrl: up.providers.logo_url,
-      isConnected: isReallyConnected
+      isConnected: true
     };
   }) || [];
 }
@@ -1188,19 +1172,14 @@ export const checkUserHasRentedKey = async (providerId: string): Promise<boolean
   const { data: { user } } = await supabase.auth.getUser();
   
   try {
-    // Сначала получаем ID арендованного ключа для данного провайдера
     const { data: rentApiKey, error: rentApiKeyError } = await supabase
       .from('rent_api_keys')
       .select('id')
       .eq('provider_id', providerId)
       .single();
     
-    console.log('rentApiKey', rentApiKey);
-    
-    // Если ключа нет или произошла ошибка, возвращаем false
     if (rentApiKeyError || !rentApiKey?.id) return false;
     
-    // Проверяем наличие связи между пользователем и арендованным ключом
     const { data, error } = await supabase
       .from('users_provider_rent_api_keys')
       .select('*')
@@ -1210,12 +1189,8 @@ export const checkUserHasRentedKey = async (providerId: string): Promise<boolean
       })
       .single();
     
-    console.log('user rent key data', data, 'error', error);
-    
-    // Если есть ошибка или данных нет, значит у пользователя нет арендованного ключа
     if (error || !data) return false;
     
-    // Связь найдена, значит у пользователя есть арендованный ключ
     return true;
   } catch (error) {
     console.error('Error checking rented key:', error);

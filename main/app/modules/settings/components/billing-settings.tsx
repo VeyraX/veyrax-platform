@@ -94,7 +94,6 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
     return Math.min(Math.round((used / limit) * 100), 100);
   };
 
-  // Format the limits for display
   const formatLimit = (limit: number | string): string => {
     if (limit === undefined || limit === null) {
       return 'N/A';
@@ -151,21 +150,25 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
             <div className="space-y-1">
               <span className="text-sm text-muted-foreground">Status</span>
               <p>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(subscriptionInfo.subscription_status)}`}>
-                  {subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(subscriptionInfo.is_canceled ? 'canceled' : subscriptionInfo.subscription_status)}`}>
+                  {subscriptionInfo.is_canceled 
+                    ? "Canceled" 
+                    : subscriptionInfo.subscription_status.charAt(0).toUpperCase() + subscriptionInfo.subscription_status.slice(1)}
                 </span>
               </p>
             </div>
             
             <div className="space-y-1">
               <span className="text-sm text-muted-foreground">Amount</span>
-              <p className="font-medium">{formatCurrency(subscriptionInfo.amount, subscriptionInfo.currency)}</p>
+              <p className="font-medium">{subscriptionInfo.amount_usd} USD</p>
             </div>
             
             <div className="space-y-1">
-              <span className="text-sm text-muted-foreground">Next billing date</span>
+              <span className="text-sm text-muted-foreground">
+                {subscriptionInfo.canceled_at ? "Active Until" : "Next billing date"}
+              </span>
               <p className="font-medium">
-                {subscriptionInfo.end_date ? format(new Date(subscriptionInfo.end_date), 'MMMM d, yyyy') : 'N/A'}
+                {subscriptionInfo.subscription_end_date ? format(new Date(subscriptionInfo.subscription_end_date), 'MMMM d, yyyy') : 'N/A'}
               </p>
             </div>
           </div>
@@ -191,7 +194,12 @@ export default function BillingSettings({ subscriptionInfo, isLoading }: Billing
               disabled={isRedirecting}
               className="w-full sm:w-auto"
             >
-              {isRedirecting ? 'Redirecting...' : 'Manage Subscription'} <ExternalLink className="ml-2 h-4 w-4" />
+              {isRedirecting 
+                ? 'Redirecting...' 
+                : subscriptionInfo.is_canceled 
+                  ? 'Restore Subscription'
+                  : 'Manage Subscription'
+              }
             </Button>
           )}
         </div>

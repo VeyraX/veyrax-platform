@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/utils/supabase/server';
 
-const stripe = new Stripe(process.env.TEST_STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-03-31.basil' as any,
 });
 
@@ -29,35 +29,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: customerData, error: customerError } = await supabase
+    const customer = await stripe.customers.create({
+      email: user.email,
+      metadata: {
+        userId: user.id
+      }
+    });
+    
+    const customerId = customer.id;
+    
+    const { error: upsertError } = await supabase
       .from('users_stripe')
-      .select('stripe_customer_id')
-      .eq('user_id', user.id);
-
-    console.log(customerData);
-    console.log(customerError);
+      .upsert({
+        user_id: user.id,
+        stripe_customer_id: customerId
+      }, { onConflict: 'user_id' });
     
-    let customerId: string | undefined = customerData?.[0]?.stripe_customer_id;
-    
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          userId: user.id
-        }
-      });
-      
-      customerId = customer.id;
-      
-      const { data: customerData, error: customerError } = await supabase
-        .from('users_stripe')
-        .insert({
-          user_id: user.id,
-          stripe_customer_id: customerId
-        });
-
-      console.log(customerData);
-      console.log(customerError);
+    if (upsertError) {
+      console.error('Error updating customer ID:', upsertError);
     }
 
     const params: Stripe.Checkout.SessionCreateParams = {

@@ -16,6 +16,7 @@ import traceback
 import sentry_sdk
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from datetime import datetime
 import uuid
 
 
@@ -39,7 +40,6 @@ def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
             tools.append(tool_schema)
         except Exception as e:
             print(f"Error generating schema for {route.path}: {str(e)}")
-            # Continue with other routes instead of failing completely
 
     return tools
 
@@ -382,65 +382,6 @@ def get_user_flows_actions(user_id: str, flow_id: str = None):
     except Exception as e:
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
-
-
-def get_user_tools_from_actions(user_id: str):
-    try:
-        supabase = get_supabase()
-        
-        result = supabase.from_('user_actions_view') \
-            .select('*') \
-            .eq('user_id', user_id) \
-            .execute()
-            
-        if not result.data:
-            return {}
-            
-        user_tools = {}
-        
-        for row in result.data:
-            provider_name = row.get('provider_tag')
-            action_name = row.get('action_slug')
-            input_schema = row.get('input_schema')
-            
-            if not provider_name or not action_name or not input_schema:
-                continue
-                
-            if provider_name not in user_tools:
-                user_tools[provider_name] = {}
-                
-            action_schema = {
-                "type": "function",
-                "function": {
-                    "name": action_name,
-                    **input_schema
-                }
-            }
-            
-            user_tools[provider_name][action_name] = action_schema
-            
-        return user_tools
-    except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return {"error": str(e)}
-    
-
-def get_user_flows(user_id: str):
-    try:
-        supabase = get_supabase()
-        
-        result = supabase.from_('user_flows') \
-            .select('id, name') \
-            .eq('user_id', user_id) \
-            .execute()
-            
-        if not result.data:
-            return []
-            
-        return result.data
-    except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return {"error": str(e)}
     
 
 def get_auth_tool():
@@ -509,8 +450,38 @@ def get_user_subscription_info(user_id: str):
         sentry_sdk.capture_exception(e)
         return None
 
+def get_user_registration_date(user_id: str):
+    try:
+        supabase = get_supabase()
+        result = supabase.table('users_view') \
+            .select('created_at') \
+            .eq('id', user_id) \
+            .execute()
+        
+        if not result.data:
+            return None
+            
+        return result.data[0]['created_at']
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return None
+    
+
+
 def is_usage_limit_exceeded(user_id: str):
     try:
+        registration_date = get_user_registration_date(user_id)
+        if registration_date:
+            if isinstance(registration_date, str):
+                reg_date = datetime.fromisoformat(registration_date.replace('Z', '+00:00'))
+            else:
+                reg_date = registration_date
+                
+            cutoff_date = datetime(2025, 4, 9)
+            
+            if reg_date < cutoff_date:
+                return False
+        
         supabase = get_supabase()
         subscription = get_user_subscription_info(user_id)
         
@@ -625,5 +596,299 @@ def get_user_rented_api_keys(user_id: str, provider_id: str) -> List[str]:
         print(f"Error in get_user_rented_api_keys: {str(e)}")
         return []
 
+def get_user_flows_actions(user_id: str, flow_id: str = None):
+    try:
+        supabase = get_supabase()
+        
+        query = supabase.from_('user_actions_flows_view') \
+            .select('*') \
+            .eq('user_id', user_id)
+            
+        if flow_id:
+            try:
+                uuid_obj = uuid.UUID(flow_id)
+            except ValueError:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "data": {
+                            "status": "error",
+                            "message": f"Invalid flow ID format. Expected UUID, got '{flow_id}'",
+                            "error_code": "INVALID_FLOW_ID"
+                        },
+                        "component": None
+                    }
+                )
+            query = query.eq('flow_id', flow_id)
+            
+        result = query.execute()
+        
+        if not result.data:
+            return []
+        
+        flows_map = {}
+        
+        for row in result.data:
+            flow_id = row.get('flow_id')
+            
+            if flow_id not in flows_map:
+                flows_map[flow_id] = {
+                    "id": flow_id,
+                    "name": row.get('flow_name'),
+                    "plain_description": row.get('flow_plain_description'),
+                    "available_actions": []
+                }
+            
+            action = {
+                "provider_slug": row.get('provider_slug'),
+                "action_slug": row.get('action_slug'),
+                "input_schema": row.get('input_schema'),
+                "output_schema": row.get('output_schema')
+            }
+            
+            flows_map[flow_id]["available_actions"].append(action)
+        
+        if flow_id:
+            return flows_map.get(flow_id)
+            
+        return list(flows_map.values())
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+
+def rented_providers_ids(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('users_provider_rent_api_keys') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        if not result.data:
+            return []
+            
+        provider_ids = []
+        
+        for row in result.data:
+            rent_key_id = row.get('rent_key_id')
+            if not rent_key_id:
+                continue
+                
+            result_providers = supabase.table('rent_api_keys') \
+                .select('provider_id') \
+                .eq('id', rent_key_id) \
+                .execute()
+            
+            if not result_providers.data:
+                continue
+            
+            for provider_row in result_providers.data:
+                provider_id = provider_row.get('provider_id')
+                if provider_id:
+                    provider_ids.append(provider_id)
+        
+        return provider_ids
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return []
     
+
+ACTIONS_TO_FILTER_OUT_FOR_RENT_KEYS = [
+    {
+        "provider_tag": "browser-use",
+        "action_slug": "check_balance",
+    },
+    {
+        "provider_tag": "browser-use",
+        "action_slug": "me",
+    },
+    {
+        "provider_tag": "browser-use",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "browser-use",
+        "action_slug": "list_tasks"
+    },
+    {
+        "provider_tag": "firecrawl",
+        "action_slug": "get_credit_usage"
+    },
+    {
+        "provider_tag": "firecrawl",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "e2b",
+        "action_slug": "list_sandboxes"
+    },
+    {
+        "provider_tag": "e2b",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "list_deployments"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "list_predictions"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "get_account"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "list_trainings"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "list_collections"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "list_hardware"
+    },
+    {
+        "provider_tag": "replicate",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "revid",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "revid",
+        "action_slug": "publish_now",
+    },
+    {
+        "provider_tag": "revid",
+        "action_slug": "projects_list"
+    },
+    {
+        "provider_tag": "revid",
+        "action_slug": "add_to_queue"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_images"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_projects"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_movies"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_signed_bases"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_sessions"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_collections"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "list_all_screenshots"
+    },
+    {
+        "provider_tag": "bannerbear",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "hunterio",
+        "action_slug": "account_information"
+    },
+    {
+        "provider_tag": "hunterio",
+        "action_slug": "validate_key"
+    },
+    {
+        "provider_tag": "falai",
+        "action_slug": "validate_key"
+    }
+]
+
+
+def get_user_tools_from_actions(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_actions_view') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return {}
+        
+        rented_ids_available = rented_providers_ids(user_id)
+            
+        user_tools = {}
+        
+        for row in result.data:
+            provider_name = row.get('provider_tag')
+            action_name = row.get('action_slug')
+            input_schema = row.get('input_schema')
+            provider_id = row.get('provider_id')
+            
+            if not provider_name or not action_name or not input_schema:
+                continue
+                
+            if rented_ids_available and provider_id and provider_id in rented_ids_available:
+                should_filter = False
+                for action_to_filter in ACTIONS_TO_FILTER_OUT_FOR_RENT_KEYS:
+                    if (action_to_filter.get('provider_tag') == provider_name and 
+                        action_to_filter.get('action_slug') == action_name):
+                        should_filter = True
+                        break
+                
+                if should_filter:
+                    continue
+                
+            if provider_name not in user_tools:
+                user_tools[provider_name] = {}
+                
+            action_schema = {
+                "type": "function",
+                "function": {
+                    "name": action_name,
+                    **input_schema
+                }
+            }
+            
+            user_tools[provider_name][action_name] = action_schema
+            
+        return user_tools
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+    
+
+def get_user_flows(user_id: str):
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.from_('user_flows') \
+            .select('id, name') \
+            .eq('user_id', user_id) \
+            .execute()
+            
+        if not result.data:
+            return []
+            
+        return result.data
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
     
