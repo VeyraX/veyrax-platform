@@ -4,6 +4,9 @@ from datetime import datetime
 import re
 from enum import Enum, StrEnum
 
+# ---------------------------------------------------------------------------------------
+# Sort & Timestamp Enums
+# ---------------------------------------------------------------------------------------
 class SortDirection(StrEnum):
     ASCENDING = "ascending"
     DESCENDING = "descending"
@@ -12,6 +15,10 @@ class TimestampType(StrEnum):
     CREATED_TIME = "created_time"
     LAST_EDITED_TIME = "last_edited_time"
 
+
+# ---------------------------------------------------------------------------------------
+# Sort Models
+# ---------------------------------------------------------------------------------------
 class PropertySort(BaseModel):
     property: str = Field(..., description="The name of the property to sort against")
     direction: SortDirection
@@ -22,7 +29,10 @@ class TimestampSort(BaseModel):
 
 Sort = Union[PropertySort, TimestampSort]
 
-# Filter condition models
+
+# ---------------------------------------------------------------------------------------
+# Filter Condition Models
+# ---------------------------------------------------------------------------------------
 class CheckboxCondition(BaseModel):
     equals: Optional[bool] = None
     does_not_equal: Optional[bool] = None
@@ -99,6 +109,10 @@ class UniqueIDCondition(BaseModel):
     less_than: Optional[int] = None
     less_than_or_equal_to: Optional[int] = None
 
+
+# ---------------------------------------------------------------------------------------
+# Filter Models
+# ---------------------------------------------------------------------------------------
 class TimestampFilter(BaseModel):
     timestamp: TimestampType
     created_time: Optional[DateCondition] = None
@@ -117,15 +131,20 @@ class PropertyFilter(BaseModel):
     status: Optional[StatusCondition] = None
     unique_id: Optional[UniqueIDCondition] = None
 
+# Removed the self-reference (no nested CompoundFilter)
 class CompoundFilter(BaseModel):
-    and_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="and")
-    or_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="or")
+    and_: Optional[List[Union[PropertyFilter, TimestampFilter]]] = Field(None, alias="and")
+    or_: Optional[List[Union[PropertyFilter, TimestampFilter]]] = Field(None, alias="or")
 
     class Config:
         allow_population_by_field_name = True
 
 Filter = Union[PropertyFilter, TimestampFilter, CompoundFilter]
 
+
+# ---------------------------------------------------------------------------------------
+# Sorting & Filtering Request Models
+# ---------------------------------------------------------------------------------------
 class DatabaseFilters(BaseModel):
     search_query: Optional[str] = Field(None, description="Search query to filter database entries")
     filter_by: Optional[Filter] = Field(
@@ -165,12 +184,10 @@ class PageFilters(BaseModel):
         description="Maximum number of results to return (max: 100)"
     )
 
-class DatabaseProperty(BaseModel):
-    id: str
-    name: str
-    type: str
-    options: Optional[List[Dict[str, Any]]] = None
 
+# ---------------------------------------------------------------------------------------
+# Fundamental Database/Page Models
+# ---------------------------------------------------------------------------------------
 class Database(BaseModel):
     id: str = Field(
         ...,
@@ -181,13 +198,23 @@ class Database(BaseModel):
     properties: Optional[Dict[str, Any]] = Field(
         None,
         description="Database properties/schema. Must include exactly one title property. "
-        "Total schema size should be <50KB for optimal performance"
+                    "Total schema size should be <50KB for optimal performance"
     )
     url: Optional[str] = None
     created_time: Optional[str] = None
     last_edited_time: Optional[str] = None
 
-# Updated Parent type definitions with Field descriptions
+class Page(BaseModel):
+    id: str
+    title: Optional[str] = None
+    properties: Optional[Dict[str, Any]] = None
+    url: Optional[str] = None
+    created_time: Optional[str] = None
+    last_edited_time: Optional[str] = None
+
+# ---------------------------------------------------------------------------------------
+# Parent Models
+# ---------------------------------------------------------------------------------------
 class DatabaseParent(BaseModel):
     type: str = Field(
         "database_id",
@@ -226,33 +253,25 @@ class BlockParent(BaseModel):
 
 Parent = Union[DatabaseParent, PageParent, WorkspaceParent, BlockParent]
 
-# Updated Page model
-class Page(BaseModel):
-    id: str
-    title: Optional[str] = None
-    properties: Optional[Dict[str, Any]] = None
-    url: Optional[str] = None
-    created_time: Optional[str] = None
-    last_edited_time: Optional[str] = None
-    parent: Optional[Parent] = None  # Changed from Dict
-    component: Optional[Dict[str, Any]] = None
 
-# Updated PageCreate model to use proper parent types
+# ---------------------------------------------------------------------------------------
+# Create & Update Models
+# ---------------------------------------------------------------------------------------
 class PageCreate(BaseModel):
     parent: Union[DatabaseParent, PageParent] = Field(
         ...,
         description="REQUIRED. Parent must be either a database or page. "
-        "Database parent requires properties matching the database schema."
+                    "Database parent requires properties matching the database schema."
     )
     properties: Dict[str, Any] = Field(
         ...,
         description="REQUIRED. Page properties. For database pages, must match parent database schema. "
-        "Must include title for database pages."
+                    "Must include title for database pages."
     )
     children: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         description="Block content children. Each block must have 'object: block' and valid type. "
-        "Total content size must be < 50KB per request."
+                    "Total content size must be < 50KB per request."
     )
 
 class PageUpdate(BaseModel):
@@ -270,6 +289,10 @@ class SearchResult(BaseModel):
     items: List[Union[Page, Database]]
     next_cursor: Optional[str] = None
 
+
+# ---------------------------------------------------------------------------------------
+# Database Property Models
+# ---------------------------------------------------------------------------------------
 class PropertyKind(StrEnum):
     TITLE = "title"
     RICH_TEXT = "rich_text"
@@ -304,19 +327,15 @@ class Color(StrEnum):
     RED = "red"
     YELLOW = "yellow"
 
-# Database property option models
 class SelectOption(BaseModel):
     id: Optional[str] = Field(None, description="An identifier for the option. It doesn't change if the name is changed")
     name: str = Field(..., description="The name of the option as it appears in the Notion UI")
     color: Optional[Color] = Field(Color.DEFAULT, description="The color of the option as rendered in the Notion UI")
 
-# Database property type-specific configuration models
 class TitleProperty(BaseModel):
-    """Title property configuration - empty object as there's no additional configuration"""
     pass
 
 class RichTextProperty(BaseModel):
-    """Rich text property configuration - empty object as there's no additional configuration"""
     pass
 
 class NumberProperty(BaseModel):
@@ -338,31 +357,24 @@ class MultiSelectProperty(BaseModel):
     )
 
 class DateProperty(BaseModel):
-    """Date property configuration - empty object as there's no additional configuration"""
     pass
 
 class PeopleProperty(BaseModel):
-    """People property configuration - empty object as there's no additional configuration"""
     pass
 
 class FilesProperty(BaseModel):
-    """Files property configuration - empty object as there's no additional configuration"""
     pass
 
 class CheckboxProperty(BaseModel):
-    """Checkbox property configuration - empty object as there's no additional configuration"""
     pass
 
 class URLProperty(BaseModel):
-    """URL property configuration - empty object as there's no additional configuration"""
     pass
 
 class EmailProperty(BaseModel):
-    """Email property configuration - empty object as there's no additional configuration"""
     pass
 
 class PhoneNumberProperty(BaseModel):
-    """Phone number property configuration - empty object as there's no additional configuration"""
     pass
 
 class FormulaProperty(BaseModel):
@@ -411,19 +423,15 @@ class RollupProperty(BaseModel):
     )
 
 class CreatedTimeProperty(BaseModel):
-    """Created time property configuration - empty object as there's no additional configuration"""
     pass
 
 class CreatedByProperty(BaseModel):
-    """Created by property configuration - empty object as there's no additional configuration"""
     pass
 
 class LastEditedTimeProperty(BaseModel):
-    """Last edited time property configuration - empty object as there's no additional configuration"""
     pass
 
 class LastEditedByProperty(BaseModel):
-    """Last edited by property configuration - empty object as there's no additional configuration"""
     pass
 
 class StatusGroup(BaseModel):
@@ -442,7 +450,6 @@ class StatusProperty(BaseModel):
         description="Groups that organize the status options"
     )
 
-# Updated PropertyType model to include all specific property configurations
 class PropertyType(BaseModel):
     id: str = Field(..., description="Identifier for the property")
     type: PropertyKind = Field(
@@ -453,7 +460,6 @@ class PropertyType(BaseModel):
     name: str = Field(..., description="The name of the property as it appears in Notion")
     description: Optional[str] = Field(None, description="The description of the property as it appears in Notion")
     
-    # Type-specific configurations
     title: Optional[TitleProperty] = None
     rich_text: Optional[RichTextProperty] = None
     number: Optional[NumberProperty] = None
@@ -475,7 +481,6 @@ class PropertyType(BaseModel):
     last_edited_by: Optional[LastEditedByProperty] = None
     status: Optional[StatusProperty] = None
 
-# Property type for database updates with optional id and name
 class PropertyTypeUpdate(BaseModel):
     id: Optional[str] = Field(None, description="Identifier for the property, optional for new properties")
     type: PropertyKind = Field(
@@ -486,7 +491,6 @@ class PropertyTypeUpdate(BaseModel):
     name: Optional[str] = Field(None, description="The name of the property as it appears in Notion")
     description: Optional[str] = Field(None, description="The description of the property as it appears in Notion")
     
-    # Type-specific configurations
     title: Optional[TitleProperty] = None
     rich_text: Optional[RichTextProperty] = None
     number: Optional[NumberProperty] = None
@@ -513,6 +517,10 @@ class DatabaseProperties(BaseModel):
     title: str
     properties: Dict[str, PropertyType]
 
+
+# ---------------------------------------------------------------------------------------
+# Request Schemas
+# ---------------------------------------------------------------------------------------
 class ListPagesRequest(BaseModel):
     start_cursor: Optional[str] = None
     filter: Optional[Dict[str, Any]] = None
@@ -523,7 +531,6 @@ class ListPagesRequest(BaseModel):
         description="REQUIRED MAX: 100. Use pagination for more results"
     )
 
-# New parameter classes for routes
 class ListDatabasesParams(BaseModel):
     start_cursor: Optional[str] = None
     max_results: Optional[int] = Field(default=100, le=100)
@@ -535,128 +542,6 @@ class ListDatabasePagesParams(BaseModel):
     database_id: str
     filters: Optional[DatabaseFilters] = None
     start_cursor: Optional[str] = None
-
-class SortDirection(StrEnum):
-    ASCENDING = "ascending"
-    DESCENDING = "descending"
-
-class TimestampType(StrEnum):
-    CREATED_TIME = "created_time"
-    LAST_EDITED_TIME = "last_edited_time"
-
-class PropertySort(BaseModel):
-    property: str = Field(..., description="The name of the property to sort against")
-    direction: SortDirection
-
-class TimestampSort(BaseModel):
-    timestamp: TimestampType = Field(..., description="The name of the timestamp to sort against")
-    direction: SortDirection
-
-Sort = Union[PropertySort, TimestampSort]
-
-# Filter condition models
-class CheckboxCondition(BaseModel):
-    equals: Optional[bool] = None
-    does_not_equal: Optional[bool] = None
-
-class DateCondition(BaseModel):
-    after: Optional[str] = Field(None, description="ISO 8601 date string")
-    before: Optional[str] = Field(None, description="ISO 8601 date string")
-    equals: Optional[str] = Field(None, description="ISO 8601 date string")
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-    next_month: Optional[dict] = None
-    next_week: Optional[dict] = None
-    next_year: Optional[dict] = None
-    on_or_after: Optional[str] = Field(None, description="ISO 8601 date string")
-    on_or_before: Optional[str] = Field(None, description="ISO 8601 date string")
-    past_month: Optional[dict] = None
-    past_week: Optional[dict] = None
-    past_year: Optional[dict] = None
-    this_week: Optional[dict] = None
-
-class FilesCondition(BaseModel):
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class NumberCondition(BaseModel):
-    equals: Optional[float] = None
-    does_not_equal: Optional[float] = None
-    greater_than: Optional[float] = None
-    greater_than_or_equal_to: Optional[float] = None
-    less_than: Optional[float] = None
-    less_than_or_equal_to: Optional[float] = None
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class PeopleCondition(BaseModel):
-    contains: Optional[str] = Field(None, description="UUIDv4 string")
-    does_not_contain: Optional[str] = Field(None, description="UUIDv4 string")
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class RelationCondition(BaseModel):
-    contains: Optional[str] = Field(None, description="UUIDv4 string")
-    does_not_contain: Optional[str] = Field(None, description="UUIDv4 string")
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class RichTextCondition(BaseModel):
-    contains: Optional[str] = None
-    does_not_contain: Optional[str] = None
-    does_not_equal: Optional[str] = None
-    ends_with: Optional[str] = None
-    equals: Optional[str] = None
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-    starts_with: Optional[str] = None
-
-class SelectCondition(BaseModel):
-    equals: Optional[str] = None
-    does_not_equal: Optional[str] = None
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class StatusCondition(BaseModel):
-    equals: Optional[str] = None
-    does_not_equal: Optional[str] = None
-    is_empty: Optional[bool] = None
-    is_not_empty: Optional[bool] = None
-
-class UniqueIDCondition(BaseModel):
-    equals: Optional[int] = None
-    does_not_equal: Optional[int] = None
-    greater_than: Optional[int] = None
-    greater_than_or_equal_to: Optional[int] = None
-    less_than: Optional[int] = None
-    less_than_or_equal_to: Optional[int] = None
-
-class TimestampFilter(BaseModel):
-    timestamp: TimestampType
-    created_time: Optional[DateCondition] = None
-    last_edited_time: Optional[DateCondition] = None
-
-class PropertyFilter(BaseModel):
-    property: str = Field(..., description="The name of the property to filter against")
-    checkbox: Optional[CheckboxCondition] = None
-    date: Optional[DateCondition] = None
-    files: Optional[FilesCondition] = None
-    number: Optional[NumberCondition] = None
-    people: Optional[PeopleCondition] = None
-    relation: Optional[RelationCondition] = None
-    rich_text: Optional[RichTextCondition] = None
-    select: Optional[SelectCondition] = None
-    status: Optional[StatusCondition] = None
-    unique_id: Optional[UniqueIDCondition] = None
-
-class CompoundFilter(BaseModel):
-    and_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="and")
-    or_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="or")
-
-    class Config:
-        allow_population_by_field_name = True
-
-Filter = Union[PropertyFilter, TimestampFilter, CompoundFilter]
 
 class QueryDatabaseParams(BaseModel):
     database_id: str = Field(
@@ -679,10 +564,10 @@ class CreatePageParams(BaseModel):
     page: PageCreate
 
 class GetPageParams(BaseModel):
-    page_id: str = Field(..., description="UUID of the page to get, example: 1b25c159-362a-80c2-8aeb-c05f1f880bdc")
+    page_id: str = Field(..., description="UUID of the page to get")
 
 class UpdatePageParams(BaseModel):
-    page_id: str = Field(..., description="UUID of the page to update, example: 1b25c159-362a-80c2-8aeb-c05f1f880bdc")
+    page_id: str = Field(..., description="UUID of the page to update")
     page_update: PageUpdate
 
 class SearchParams(BaseModel):
@@ -691,7 +576,10 @@ class SearchParams(BaseModel):
     page_size: Optional[int] = Field(default=100, le=100)
     sort_direction: Optional[str] = None
 
-# Response schema classes
+
+# ---------------------------------------------------------------------------------------
+# Response Schemas
+# ---------------------------------------------------------------------------------------
 class ListDatabasesResponse(BaseModel):
     data: DatabaseList
     message: Optional[str] = None
@@ -728,18 +616,18 @@ class DatabaseCreate(BaseModel):
     parent: Union[PageParent, WorkspaceParent] = Field(
         ...,
         description="REQUIRED. Parent must be a page or workspace. "
-        "Page parent creates inline database, workspace creates full-page database"
+                    "Page parent creates inline database, workspace creates full-page database"
     )
     title: List[Dict[str, Any]] = Field(
         ...,
         description="REQUIRED. Database title as rich text array. "
-        "Must contain exactly one text object with content",
+                    "Must contain exactly one text object with content",
         example=[{"type": "text", "text": {"content": "Project Tracker"}}]
     )
     properties: Dict[str, PropertyType] = Field(
         ...,
         description="REQUIRED. Initial database schema. Must include exactly one title property. "
-        "Property types must match Notion-supported types"
+                    "Property types must match Notion-supported types"
     )
     is_inline: Optional[bool] = False
 
@@ -750,7 +638,10 @@ class CreateDatabaseResponse(BaseModel):
     data: Database
     message: Optional[str] = None
 
-# Notion Block Types
+
+# ---------------------------------------------------------------------------------------
+# Notion Block Types & Models
+# ---------------------------------------------------------------------------------------
 class BlockType(StrEnum):
     BOOKMARK = "bookmark"
     BREADCRUMB = "breadcrumb"
@@ -785,7 +676,6 @@ class BlockType(StrEnum):
     VIDEO = "video"
     UNSUPPORTED = "unsupported"
 
-# Extended Color enum for background colors
 class Color(StrEnum):
     BLUE = "blue"
     BLUE_BACKGROUND = "blue_background"
@@ -807,7 +697,6 @@ class Color(StrEnum):
     YELLOW = "yellow"
     YELLOW_BACKGROUND = "yellow_background"
 
-# Rich Text Objects
 class Annotations(BaseModel):
     bold: Optional[bool] = False
     italic: Optional[bool] = False
@@ -843,7 +732,6 @@ class EquationObject(BaseModel):
 
 RichTextObject = Union[TextObject, MentionObject, EquationObject]
 
-# Base Block model
 class Block(BaseModel):
     object: str = "block"
     id: Optional[str] = None
@@ -857,89 +745,49 @@ class Block(BaseModel):
     in_trash: Optional[bool] = None
     type: str
 
-# Block Type specific models
 class ParagraphBlock(Block):
     type: str = BlockType.PARAGRAPH
-    paragraph: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Example text"}}],
-        "color": "default"
-    })
+    paragraph: Dict[str, Any] = Field(...)
 
 class HeadingOneBlock(Block):
     type: str = BlockType.HEADING_1
-    heading_1: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Heading 1"}}],
-        "color": "default",
-        "is_toggleable": False
-    })
+    heading_1: Dict[str, Any] = Field(...)
 
 class HeadingTwoBlock(Block):
     type: str = BlockType.HEADING_2
-    heading_2: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Heading 2"}}],
-        "color": "default",
-        "is_toggleable": False
-    })
+    heading_2: Dict[str, Any] = Field(...)
 
 class HeadingThreeBlock(Block):
     type: str = BlockType.HEADING_3
-    heading_3: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Heading 3"}}],
-        "color": "default",
-        "is_toggleable": False
-    })
+    heading_3: Dict[str, Any] = Field(...)
 
 class BulletedListItemBlock(Block):
     type: str = BlockType.BULLETED_LIST_ITEM
-    bulleted_list_item: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Bulleted item"}}],
-        "color": "default"
-    })
+    bulleted_list_item: Dict[str, Any] = Field(...)
 
 class NumberedListItemBlock(Block):
     type: str = BlockType.NUMBERED_LIST_ITEM
-    numbered_list_item: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Numbered item"}}],
-        "color": "default"
-    })
+    numbered_list_item: Dict[str, Any] = Field(...)
 
 class ToDoBlock(Block):
     type: str = BlockType.TO_DO
-    to_do: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "To do item"}}],
-        "checked": False,
-        "color": "default"
-    })
+    to_do: Dict[str, Any] = Field(...)
 
 class ToggleBlock(Block):
     type: str = BlockType.TOGGLE
-    toggle: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Toggle"}}],
-        "color": "default"
-    })
+    toggle: Dict[str, Any] = Field(...)
 
 class CodeBlock(Block):
     type: str = BlockType.CODE
-    code: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "console.log('Hello World')"}}],
-        "language": "javascript",
-        "caption": []
-    })
+    code: Dict[str, Any] = Field(...)
 
 class CalloutBlock(Block):
     type: str = BlockType.CALLOUT
-    callout: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Callout"}}],
-        "icon": {"emoji": "💡"},
-        "color": "default"
-    })
+    callout: Dict[str, Any] = Field(...)
 
 class QuoteBlock(Block):
     type: str = BlockType.QUOTE
-    quote: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Quote"}}],
-        "color": "default"
-    })
+    quote: Dict[str, Any] = Field(...)
 
 class DividerBlock(Block):
     type: str = BlockType.DIVIDER
@@ -947,70 +795,35 @@ class DividerBlock(Block):
 
 class EmbedBlock(Block):
     type: str = BlockType.EMBED
-    embed: Dict[str, Any] = Field(..., example={
-        "url": "https://example.com"
-    })
+    embed: Dict[str, Any] = Field(...)
 
 class BookmarkBlock(Block):
     type: str = BlockType.BOOKMARK
-    bookmark: Dict[str, Any] = Field(..., example={
-        "url": "https://example.com",
-        "caption": []
-    })
+    bookmark: Dict[str, Any] = Field(...)
 
 class ImageBlock(Block):
     type: str = BlockType.IMAGE
-    image: Dict[str, Any] = Field(..., example={
-        "type": "external",
-        "external": {"url": "https://example.com/image.jpg"}
-    })
+    image: Dict[str, Any] = Field(...)
 
 class VideoBlock(Block):
     type: str = BlockType.VIDEO
-    video: Dict[str, Any] = Field(..., example={
-        "type": "external",
-        "external": {"url": "https://example.com/video.mp4"}
-    })
+    video: Dict[str, Any] = Field(...)
 
 class FileBlock(Block):
     type: str = BlockType.FILE
-    file: Dict[str, Any] = Field(..., example={
-        "type": "external",
-        "external": {"url": "https://example.com/file.pdf"},
-        "caption": []
-    })
+    file: Dict[str, Any] = Field(...)
 
 class PDFBlock(Block):
     type: str = BlockType.PDF
-    pdf: Dict[str, Any] = Field(..., example={
-        "type": "external",
-        "external": {"url": "https://example.com/document.pdf"}
-    })
+    pdf: Dict[str, Any] = Field(...)
 
 class TableBlock(Block):
     type: str = BlockType.TABLE
-    table: Dict[str, Any] = Field(..., example={
-        "table_width": 3,
-        "has_column_header": False,
-        "has_row_header": False,
-        "children": [
-            {
-                "object": "block",
-                "type": "table_row",
-                "table_row": {
-                    "cells": [
-                        [{"type": "text", "text": {"content": "Cell content"}}]
-                    ]
-                }
-            }
-        ]
-    })
+    table: Dict[str, Any] = Field(...)
 
 class TableRowBlock(Block):
     type: str = BlockType.TABLE_ROW
-    table_row: Dict[str, Any] = Field(..., example={
-        "cells": [[{"type": "text", "text": {"content": "Cell content"}}]]
-    })
+    table_row: Dict[str, Any] = Field(...)
 
 class ColumnListBlock(Block):
     type: str = BlockType.COLUMN_LIST
@@ -1022,15 +835,11 @@ class ColumnBlock(Block):
 
 class EquationBlock(Block):
     type: str = BlockType.EQUATION
-    equation: Dict[str, Any] = Field(..., example={
-        "expression": "e=mc^2"
-    })
+    equation: Dict[str, Any] = Field(...)
 
 class TableOfContentsBlock(Block):
     type: str = BlockType.TABLE_OF_CONTENTS
-    table_of_contents: Dict[str, Any] = Field(..., example={
-        "color": "default"
-    })
+    table_of_contents: Dict[str, Any] = Field(...)
 
 class BreadcrumbBlock(Block):
     type: str = BlockType.BREADCRUMB
@@ -1038,42 +847,28 @@ class BreadcrumbBlock(Block):
 
 class SyncedBlock(Block):
     type: str = BlockType.SYNCED_BLOCK
-    synced_block: Dict[str, Any] = Field(..., example={
-        "synced_from": None
-    })
+    synced_block: Dict[str, Any] = Field(...)
 
 class TemplateBlock(Block):
     type: str = BlockType.TEMPLATE
-    template: Dict[str, Any] = Field(..., example={
-        "rich_text": [{"type": "text", "text": {"content": "Template"}}]
-    })
+    template: Dict[str, Any] = Field(...)
 
 class LinkPreviewBlock(Block):
     type: str = BlockType.LINK_PREVIEW
-    link_preview: Dict[str, Any] = Field(..., example={
-        "url": "https://example.com"
-    })
+    link_preview: Dict[str, Any] = Field(...)
 
 class LinkToPageBlock(Block):
     type: str = BlockType.LINK_TO_PAGE
-    link_to_page: Dict[str, Any] = Field(..., example={
-        "type": "page_id",
-        "page_id": "123e4567-e89b-12d3-a456-426614174000"
-    })
+    link_to_page: Dict[str, Any] = Field(...)
 
 class ChildPageBlock(Block):
     type: str = BlockType.CHILD_PAGE
-    child_page: Dict[str, Any] = Field(..., example={
-        "title": "Page title"
-    })
+    child_page: Dict[str, Any] = Field(...)
 
 class ChildDatabaseBlock(Block):
     type: str = BlockType.CHILD_DATABASE
-    child_database: Dict[str, Any] = Field(..., example={
-        "title": "Database title"
-    })
+    child_database: Dict[str, Any] = Field(...)
 
-# Union of all block types
 NotionBlock = Union[
     ParagraphBlock, 
     HeadingOneBlock, 
@@ -1113,7 +908,7 @@ class AppendBlockChildrenParams(BaseModel):
     children: List[NotionBlock] = Field(
         ...,
         description="REQUIRED. List of block objects to append. "
-        "Max 100 blocks per request. Total content size < 50KB."
+                    "Max 100 blocks per request. Total content size < 50KB."
     )
     after: Optional[str] = Field(
         None,
@@ -1186,8 +981,6 @@ class GetUserResponse(BaseModel):
     data: NotionUser
     message: Optional[str] = None
 
-
-
 class DatabaseBlock(BaseModel):
     """Schema for a database block that can be included in page children"""
     type: str = "database"
@@ -1216,7 +1009,17 @@ class UpdateDatabaseResponse(BaseModel):
     data: Database
     message: Optional[str] = None
 
-
 class ApiResponse(BaseModel):
-    data: Union[Page, PageList, Database, DatabaseList, SearchResult, UserList, NotionUser, Dict[str, Any], DatabaseProperties, UpdateDatabaseResponse]
+    data: Union[
+        Page, 
+        PageList, 
+        Database, 
+        DatabaseList, 
+        SearchResult, 
+        UserList, 
+        NotionUser, 
+        Dict[str, Any], 
+        DatabaseProperties, 
+        UpdateDatabaseResponse
+    ]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
