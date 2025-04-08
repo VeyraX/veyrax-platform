@@ -16,6 +16,7 @@ import traceback
 import sentry_sdk
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+import uuid
 
 
 def get_router_tools(router: routing.APIRouter) -> List[Dict[str, Any]]:
@@ -329,6 +330,20 @@ def get_user_flows_actions(user_id: str, flow_id: str = None):
             .eq('user_id', user_id)
             
         if flow_id:
+            try:
+                uuid_obj = uuid.UUID(flow_id)
+            except ValueError:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "data": {
+                            "status": "error",
+                            "message": f"Invalid flow ID format. Expected UUID, got '{flow_id}'",
+                            "error_code": "INVALID_FLOW_ID"
+                        },
+                        "component": None
+                    }
+                )
             query = query.eq('flow_id', flow_id)
             
         result = query.execute()
@@ -362,6 +377,8 @@ def get_user_flows_actions(user_id: str, flow_id: str = None):
             return flows_map.get(flow_id)
             
         return list(flows_map.values())
+    except HTTPException as e:
+        raise e
     except Exception as e:
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
