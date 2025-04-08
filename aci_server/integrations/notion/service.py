@@ -71,7 +71,7 @@ class NotionService:
                 "timestamp": "last_edited_time"
             },
             "page_size": min(max_results, 100) if max_results else 100
-        }
+    }
         
         if start_cursor:
             search_params["start_cursor"] = start_cursor
@@ -116,11 +116,39 @@ class NotionService:
         
         if start_cursor:
             params["start_cursor"] = start_cursor
+            
         if filters:
             if filters.filter_by:
-                params["filter"] = filters.filter_by
+                # Convert filter to dict if it's a Pydantic model
+                if hasattr(filters.filter_by, "model_dump"):
+                    # Pydantic v2
+                    filter_dict = filters.filter_by.model_dump(exclude_none=True)
+                elif hasattr(filters.filter_by, "dict"):
+                    # Pydantic v1
+                    filter_dict = filters.filter_by.dict(exclude_none=True)
+                else:
+                    filter_dict = filters.filter_by
+                    
+                # Handle compound filters
+                if "and_" in filter_dict:
+                    filter_dict["and"] = filter_dict.pop("and_")
+                if "or_" in filter_dict:
+                    filter_dict["or"] = filter_dict.pop("or_")
+                    
+                params["filter"] = filter_dict
+                
             if filters.sort_by:
-                params["sorts"] = [filters.sort_by]  # Wrap sort_by in an array
+                # Convert sort to dict if it's a Pydantic model
+                if hasattr(filters.sort_by, "model_dump"):
+                    # Pydantic v2
+                    sort_dict = filters.sort_by.model_dump(exclude_none=True)
+                elif hasattr(filters.sort_by, "dict"):
+                    # Pydantic v1
+                    sort_dict = filters.sort_by.dict(exclude_none=True)
+                else:
+                    sort_dict = filters.sort_by
+                    
+                params["sorts"] = [sort_dict]  # Wrap in array as Notion expects an array
         
         response = self.client.query_database(database_id, params)
         

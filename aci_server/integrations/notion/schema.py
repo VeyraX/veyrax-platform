@@ -4,16 +4,166 @@ from datetime import datetime
 import re
 from enum import Enum, StrEnum
 
+class SortDirection(StrEnum):
+    ASCENDING = "ascending"
+    DESCENDING = "descending"
+
+class TimestampType(StrEnum):
+    CREATED_TIME = "created_time"
+    LAST_EDITED_TIME = "last_edited_time"
+
+class PropertySort(BaseModel):
+    property: str = Field(..., description="The name of the property to sort against")
+    direction: SortDirection
+
+class TimestampSort(BaseModel):
+    timestamp: TimestampType = Field(..., description="The name of the timestamp to sort against")
+    direction: SortDirection
+
+Sort = Union[PropertySort, TimestampSort]
+
+# Filter condition models
+class CheckboxCondition(BaseModel):
+    equals: Optional[bool] = None
+    does_not_equal: Optional[bool] = None
+
+class DateCondition(BaseModel):
+    after: Optional[str] = Field(None, description="ISO 8601 date string")
+    before: Optional[str] = Field(None, description="ISO 8601 date string")
+    equals: Optional[str] = Field(None, description="ISO 8601 date string")
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+    next_month: Optional[dict] = None
+    next_week: Optional[dict] = None
+    next_year: Optional[dict] = None
+    on_or_after: Optional[str] = Field(None, description="ISO 8601 date string")
+    on_or_before: Optional[str] = Field(None, description="ISO 8601 date string")
+    past_month: Optional[dict] = None
+    past_week: Optional[dict] = None
+    past_year: Optional[dict] = None
+    this_week: Optional[dict] = None
+
+class FilesCondition(BaseModel):
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class NumberCondition(BaseModel):
+    equals: Optional[float] = None
+    does_not_equal: Optional[float] = None
+    greater_than: Optional[float] = None
+    greater_than_or_equal_to: Optional[float] = None
+    less_than: Optional[float] = None
+    less_than_or_equal_to: Optional[float] = None
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class PeopleCondition(BaseModel):
+    contains: Optional[str] = Field(None, description="UUIDv4 string")
+    does_not_contain: Optional[str] = Field(None, description="UUIDv4 string")
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class RelationCondition(BaseModel):
+    contains: Optional[str] = Field(None, description="UUIDv4 string")
+    does_not_contain: Optional[str] = Field(None, description="UUIDv4 string")
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class RichTextCondition(BaseModel):
+    contains: Optional[str] = None
+    does_not_contain: Optional[str] = None
+    does_not_equal: Optional[str] = None
+    ends_with: Optional[str] = None
+    equals: Optional[str] = None
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+    starts_with: Optional[str] = None
+
+class SelectCondition(BaseModel):
+    equals: Optional[str] = None
+    does_not_equal: Optional[str] = None
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class StatusCondition(BaseModel):
+    equals: Optional[str] = None
+    does_not_equal: Optional[str] = None
+    is_empty: Optional[bool] = None
+    is_not_empty: Optional[bool] = None
+
+class UniqueIDCondition(BaseModel):
+    equals: Optional[int] = None
+    does_not_equal: Optional[int] = None
+    greater_than: Optional[int] = None
+    greater_than_or_equal_to: Optional[int] = None
+    less_than: Optional[int] = None
+    less_than_or_equal_to: Optional[int] = None
+
+class TimestampFilter(BaseModel):
+    timestamp: TimestampType
+    created_time: Optional[DateCondition] = None
+    last_edited_time: Optional[DateCondition] = None
+
+class PropertyFilter(BaseModel):
+    property: str = Field(..., description="The name of the property to filter against")
+    checkbox: Optional[CheckboxCondition] = None
+    date: Optional[DateCondition] = None
+    files: Optional[FilesCondition] = None
+    number: Optional[NumberCondition] = None
+    people: Optional[PeopleCondition] = None
+    relation: Optional[RelationCondition] = None
+    rich_text: Optional[RichTextCondition] = None
+    select: Optional[SelectCondition] = None
+    status: Optional[StatusCondition] = None
+    unique_id: Optional[UniqueIDCondition] = None
+
+class CompoundFilter(BaseModel):
+    and_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="and")
+    or_: Optional[List[Union['CompoundFilter', PropertyFilter, TimestampFilter]]] = Field(None, alias="or")
+
+    class Config:
+        allow_population_by_field_name = True
+
+Filter = Union[PropertyFilter, TimestampFilter, CompoundFilter]
+
 class DatabaseFilters(BaseModel):
-    search_query: Optional[str] = None
-    filter_by: Optional[Dict[str, Any]] = None
-    sort_by: Optional[Dict[str, Any]] = None
-    max_results: Optional[int] = 100
+    search_query: Optional[str] = Field(None, description="Search query to filter database entries")
+    filter_by: Optional[Filter] = Field(
+        None,
+        description="Filter conditions using property filters and/or compound filters"
+    )
+    sort_by: Optional[Sort] = Field(
+        None,
+        description="Sort object for ordering database entries"
+    )
+    max_results: Optional[int] = Field(
+        default=100,
+        le=100,
+        description="Maximum number of results to return (max: 100)"
+    )
 
 class PageFilters(BaseModel):
-    query: Optional[str] = None
-    sort_direction: Optional[str] = None
-    max_results: Optional[int] = 100
+    query: Optional[str] = Field(
+        None,
+        description="Search query to filter pages"
+    )
+    filter_by: Optional[Filter] = Field(
+        None,
+        description="Filter conditions using property filters and/or compound filters"
+    )
+    sort_by: Optional[Sort] = Field(
+        None,
+        description="Sort object for ordering pages"
+    )
+    sort_direction: Optional[SortDirection] = Field(
+        None,
+        description="Direction to sort results (ascending or descending)"
+    )
+    max_results: Optional[int] = Field(
+        default=100,
+        le=100,
+        description="Maximum number of results to return (max: 100)"
+    )
 
 class DatabaseProperty(BaseModel):
     id: str
