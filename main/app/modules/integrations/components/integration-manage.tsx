@@ -697,7 +697,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
                     setApiKeyChanged(e.target.value !== originalApiKey || baseUrl !== originalBaseUrl);
                     setValidationError(null);
                   }}
-                  placeholder={hasRentedKey ? "Using Veyrax Rented API Key" : "Enter your API key"}
+                  placeholder={hasRentedKey ? "Using VeyraX Rented API Key" : "Enter your API key"}
                   className="w-full"
                   disabled={isValidating || hasRentedKey}
                 />

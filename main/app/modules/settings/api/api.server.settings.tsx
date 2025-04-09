@@ -53,7 +53,7 @@ export async function canUserRentKeyServer(userId: string) {
     );
 
     const { data: subscription } = await client
-      .from('user_subscriptions_view')
+      .from('users_subscription_status_view')
       .select('*')
       .eq('user_id', userId)
       .single();

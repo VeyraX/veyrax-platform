@@ -53,7 +53,7 @@ const SubscriptionConfirmationEmail = () => {
             <Hr className="border-gray-300 my-[24px]" />
             <Section>
               <Img
-                src="https://www.veyrax.com/logo.svg"
+                src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos/veyrax-logo.png"
                 alt="Veyrax Logo"
                 width="60"
                 height="auto"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/utils/supabase/server';
+import { getOrCreateCustomer } from '@/lib/utils/stripe/customer';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-03-31.basil' as any,
@@ -29,25 +30,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: {
-        userId: user.id
-      }
-    });
-    
-    const customerId = customer.id;
-    
-    const { error: upsertError } = await supabase
-      .from('users_stripe')
-      .upsert({
-        user_id: user.id,
-        stripe_customer_id: customerId
-      }, { onConflict: 'user_id' });
-    
-    if (upsertError) {
-      console.error('Error updating customer ID:', upsertError);
+    if (!user.email) {
+      return NextResponse.json(
+        { message: 'User email is required' },
+        { status: 400 }
+      );
     }
+
+    const customerId = await getOrCreateCustomer({
+      email: user.email,
+      userId: user.id
+    });
 
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
@@ -64,6 +57,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         userId: user.id
       },
+      allow_promotion_codes: true
     };
 
     const checkoutSession = await stripe.checkout.sessions.create(params);
