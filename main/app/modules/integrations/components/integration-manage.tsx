@@ -783,24 +783,41 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
             </div>
           )}
           
-          {provider.is_rentable && canRentKeys && !provider.connected && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleRentKey}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </>
-              ) : (
-                <>
-                  <Key className="h-4 w-4" />
-                  Rent Key
-                </>
-              )}
-            </Button>
+          {provider.is_rentable && !provider.connected && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleRentKey}
+                      disabled={isLoading || !canRentKeys}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        <>
+                          {canRentKeys ? (
+                            <Key className="h-4 w-4" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4" />
+                          )}
+                          Rent Key
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!canRentKeys && (
+                  <TooltipContent>
+                    <p>Upgrade your plan to rent API keys</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )}
           
           {provider.auth_method === 'none' && !provider.connected && (
