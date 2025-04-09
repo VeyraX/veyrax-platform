@@ -17,7 +17,7 @@ class VeyraxAuthClient:
         self.frontend_url = os.getenv('FRONTEND_URL', 'https://app.veyrax.com')
     
     def get_all_providers(self) -> List[Dict[str, Any]]:
-        response = self.supabase.table("providers").select("*").execute()
+        response = self.supabase.table("providers").select("*").eq("is_enabled", True).execute()
         return response.data
 
     def get_user_providers(self) -> List[Dict[str, Any]]:
