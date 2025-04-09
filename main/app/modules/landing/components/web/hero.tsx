@@ -40,7 +40,7 @@ export const Hero = () => {
                 
                 <h1 className="text-4xl md:text-6xl max-w-2xl tracking-tighter text-center font-regular">
                   <span className="text-spektr-cyan-50">VeyraX is </span>
-                  <span className="font-semibold">Agenic Component Interface</span>
+                  <span className="font-semibold">Agentic Component Interface</span>
                 </h1>
 
                 <p className="text-base md:text-lg leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">

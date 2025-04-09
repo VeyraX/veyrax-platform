@@ -18,10 +18,10 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "VeyraX",
-  description: "VeyraX is Agenic Component Interface",
+  description: "VeyraX is Agentic Component Interface",
   openGraph: {
     title: "VeyraX",
-    description: "VeyraX is Agenic Component Interface",
+    description: "VeyraX is Agentic Component Interface",
     type: "website",
     url: "https://veyrax.com",
     images: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "VeyraX",
-    description: "VeyraX is Agenic Component Interface",
+    description: "VeyraX is Agentic Component Interface",
     images: ["/landing/social_cover.png"],
   },
   verification: {
