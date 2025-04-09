@@ -23,9 +23,11 @@ interface UserDropdownProps {
 export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+  const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
+      setOpen(false)
       const { error } = await authApi.logout();
       if (error) throw error;
       router.refresh();
@@ -36,7 +38,7 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
@@ -78,6 +80,7 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
           <DropdownMenuItem onClick={(e) => {
             e.preventDefault();
             onOpenSettings();
+            setOpen(false);
           }} className="py-2">
             <span className="text-sm">Account settings</span>
             <Settings className="ml-auto h-4 w-4" />
@@ -85,6 +88,7 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
           <DropdownMenuItem onClick={(e) => {
             e.preventDefault();
             onOpenSettings('billing');
+            setOpen(false);
           }} className="py-2">
             <span className="text-sm">Manage subscription</span>
             <CreditCard className="ml-auto h-4 w-4" />
@@ -94,7 +98,10 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
         <div className="py-2">
           <div className="text-sm font-medium px-2 mb-2">Theme</div>
           <div className="px-2">
-            <Tabs value={theme} onValueChange={setTheme}>
+            <Tabs value={theme} onValueChange={(value) => {
+              setTheme(value);
+              setOpen(false);
+            }}>
               <TabsList className="w-full">
                 <TabsTrigger value="light" className="flex-1 px-0 py-1.5">
                   <Sun className="h-4 w-4" />
@@ -110,7 +117,10 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="py-2">
+        <DropdownMenuItem onClick={(e) => {
+          e.preventDefault();
+          handleLogout();
+        }} className="py-2">
           <span className="text-sm">Log out</span>
           <LogOut className="ml-auto h-4 w-4" />
         </DropdownMenuItem>
