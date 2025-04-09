@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { Message, streamText } from 'ai';
+import { Message, streamText, appendResponseMessages } from 'ai';
 import { NextResponse } from 'next/server';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 import { getFlowForPrompt } from '@/app/modules/flows/api/api.server.flow';
@@ -7,6 +7,7 @@ import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createClient } from '@/lib/utils/supabase/server';
 import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
+import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
 
 export const maxDuration = 150;
 
@@ -33,6 +34,60 @@ export async function POST(request: Request) {
         { error: 'No messages provided' },
         { status: 400 }
       );
+    }
+    
+    if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+      const messageCheck = await canUserSendMessageServer();
+      
+      if (!messageCheck.allowed) {
+        const limitMessageId = `msg-limit-${Date.now()}`;
+        
+        const upgradeMessage = `📣 **Message limit reached**
+
+You've reached the limit of ${messageCheck.limit} messages on your current plan.
+
+To continue using the chat, please upgrade your plan at [veyrax.com/pricing](https://veyrax.com/pricing) to get more messages.`;
+        
+        try {
+          await supabase
+            .from('flows_messages')
+            .insert({
+              message_id: limitMessageId,
+              flow_id: flowId,
+              user_id: user.id,
+              sender: 'system',
+              message_text: upgradeMessage,
+              parts: [{
+                type: 'text',
+                text: upgradeMessage
+              }],
+              metadata: JSON.stringify({
+                isLimitMessage: true,
+                current: messageCheck.current,
+                limit: messageCheck.limit
+              }),
+              type: 'test'
+            });
+        } catch (error) {
+          console.error('Error saving limit message to database:', error);
+        }
+        
+        return NextResponse.json(
+          {
+            error: {
+              message: 'MESSAGE_LIMIT_EXCEEDED',
+              details: {
+                limitMessage: upgradeMessage,
+                messageId: limitMessageId,
+                current: messageCheck.current,
+                limit: messageCheck.limit,
+                needsUpgrade: messageCheck.needsUpgrade
+              }
+            }
+          },
+          { status: 400 }
+        );
+      }
     }
 
     let currentFlowId = flowId;
@@ -85,6 +140,9 @@ export async function POST(request: Request) {
     ];
     const traceId = generateTraceId();
 
+    const lastUserMessage = messages[messages.length - 1];
+    const userMessageId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
     const model = traceModel(openrouter(modelName) as any, user.id, {
       trace_id: traceId,
       flow_id: currentFlowId,
@@ -102,7 +160,83 @@ export async function POST(request: Request) {
       experimental_toolCallStreaming: true,
       maxSteps: 25,
       onError: (error) => {
-        console.error('Error creating flow from chat:', error);
+        console.error('Error testing flow from chat:', error);
+      },
+      async onFinish({ response }) {
+        if (lastUserMessage && lastUserMessage.role === 'user') {
+          try {
+            const allMessages = appendResponseMessages({
+              messages,
+              responseMessages: response.messages,
+            });
+            
+            const lastAiMessage = allMessages[allMessages.length - 1];
+            const assistantMessageId = `ast-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+            
+            const parts = [];
+            
+            if (lastAiMessage.toolInvocations) {
+              for (const invocation of lastAiMessage.toolInvocations) {
+                parts.push({
+                  type: 'tool-invocation',
+                  toolInvocation: {
+                    toolCallId: invocation.toolCallId,
+                    toolName: invocation.toolName,
+                    args: invocation.args
+                  }
+                });
+              }
+            }
+            
+            if (lastAiMessage.content) {
+              parts.push({
+                type: 'text',
+                text: lastAiMessage.content
+              });
+            }
+            
+            const supabase = createClient();
+            
+            try {
+              await supabase
+                .from('flows_messages')
+                .insert({
+                  message_id: userMessageId,
+                  flow_id: currentFlowId,
+                  user_id: user.id,
+                  sender: 'user',
+                  message_text: lastUserMessage.content,
+                  parts: [{
+                    type: 'text',
+                    text: lastUserMessage.content
+                  }],
+                  type: 'test'
+                });
+              
+              
+              await supabase
+                .from('flows_messages')
+                .insert({
+                  message_id: assistantMessageId,
+                  flow_id: currentFlowId,
+                  user_id: user.id,
+                  sender: 'assistant',
+                  message_text: lastAiMessage.content || '',
+                  parts: parts,
+                  metadata: JSON.stringify({
+                    toolInvocations: lastAiMessage.toolInvocations,
+                    finishReason: null
+                  }),
+                  type: 'test'
+                });
+            } catch (dbError) {
+              console.error('Error saving to flows_messages:', dbError);
+            }
+              
+          } catch (error) {
+            console.error('Error processing messages for flows_messages:', error);
+          }
+        }
       }
     });
 
@@ -116,9 +250,9 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error('Error creating flow from chat:', error);
+    console.error('Error testing flow from chat:', error);
     return NextResponse.json(
-      { error: 'Failed to create flow' },
+      { error: 'Failed to test flow' },
       { status: 500 }
     );
   }

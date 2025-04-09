@@ -163,8 +163,6 @@ export async function getUserRegistrationDate(supabase: SupabaseClient): Promise
     const { data, error } = await supabase
       .rpc('get_current_user_meta');
 
-    console.log(data);
-
     if (error) {
       console.error('Error fetching registration date:', error);
       return null;
@@ -176,11 +174,9 @@ export async function getUserRegistrationDate(supabase: SupabaseClient): Promise
   }
 }
 
-// Helper function to check if user is an early adopter (registered before April 9, 2025)
 async function isEarlyAdopter(supabase: SupabaseClient): Promise<boolean> {
   try {
     const registrationDate = await getUserRegistrationDate(supabase);
-    console.log('Registration date string:', registrationDate);
     if (!registrationDate) return false;
 
     const regDate = new Date(registrationDate);
@@ -424,9 +420,7 @@ export async function canUserSendMessage(
   needsUpgrade?: boolean;
 }> {
   try {
-    // Early adopters bypass limits
     const earlyAdopter = await isEarlyAdopter(supabase);
-    console.log('Early adopter:', earlyAdopter);
     if (earlyAdopter) {
       return { 
         allowed: true,

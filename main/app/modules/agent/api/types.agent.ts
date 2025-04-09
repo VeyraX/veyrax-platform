@@ -73,3 +73,31 @@ export interface CreateChatMessagePayload {
     finishReason?: string | null;
   };
 }
+
+export interface CreateFlowMessagePayload {
+  message_id: string;
+  flow_id: string | null;
+  sender: 'user' | 'assistant';
+  message_text: string;
+  parts?: Array<{
+    type: 'text' | 'tool-invocation';
+    text?: string;
+    toolInvocation?: {
+      toolCallId: string;
+      toolName: string;
+      args: any;
+      result?: string;
+    };
+  }>;
+  metadata?: {
+    toolInvocations?: Array<{
+      toolCallId: string;
+      toolName: string;
+      args: any;
+      state: string;
+      result?: string;
+    }>;
+    finishReason?: string | null;
+  };
+  type: 'create' | 'test';
+}

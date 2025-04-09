@@ -2,6 +2,10 @@ import { FaqSection } from "@/components/ui/faq";
 
 const DEMO_FAQS = [
   {
+    question: "How are messages counted?",
+    answer: "Messages are all interactions with our AI in the chat, during flow creation, or when testing flows. Each question you ask and each response you receive counts as one message. But running scheduled flows doesn't count toward your message limit. Your plan determines how many messages you can use each month before needing to upgrade.",
+  },
+  {
     question: "What is the «Rent API keys» feature?",
     answer: "The Rent API keys feature allows you to use our API keys for third-party services without needing to register and create your own accounts. This saves you time and simplifies the integration process for services that support this feature. For more details, see our documentation at https://docs.veyrax.com/features/rentkey.",
   },

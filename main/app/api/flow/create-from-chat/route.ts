@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { Message, streamText } from 'ai';
+import { Message, streamText, appendResponseMessages } from 'ai';
 import { NextResponse } from 'next/server';
 import { flow_improve_description } from '@/lib/ai/tools/flow-description';
 import { getFlowForPrompt, getProviderActionsForFlow } from '@/app/modules/flows/api/api.server.flow';
@@ -11,6 +11,7 @@ import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flo
 import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
 import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
 import { createClient } from '@/lib/utils/supabase/server';
+import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
 export const maxDuration = 300;
 
 const openrouter = createOpenRouter({
@@ -41,6 +42,63 @@ export async function POST(request: Request) {
         { error: 'No messages provided' },
         { status: 400 }
       );
+    }
+    
+    if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+      const messageCheck = await canUserSendMessageServer();
+      
+      if (!messageCheck.allowed) {
+        const limitMessageId = `msg-limit-${Date.now()}`;
+        
+        const upgradeMessage = `📣 **Message limit reached**
+
+You've reached the limit of ${messageCheck.limit} messages on your current plan.
+
+To continue using the chat, please upgrade your plan at [veyrax.com/pricing](https://veyrax.com/pricing) to get more messages.`;
+
+        const supabase = createClient();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        
+        try {
+          await supabase
+            .from('flows_messages')
+            .insert({
+              message_id: limitMessageId,
+              flow_id: flowId,
+              user_id: currentUser?.id,
+              sender: 'system',
+              message_text: upgradeMessage,
+              parts: [{
+                type: 'text',
+                text: upgradeMessage
+              }],
+              metadata: JSON.stringify({
+                isLimitMessage: true,
+                current: messageCheck.current,
+                limit: messageCheck.limit
+              }),
+              type: 'create'
+            });
+        } catch (error) {
+          console.error('Error saving limit message to database:', error);
+        }
+        
+        return NextResponse.json(
+          {
+            error: {
+              message: 'MESSAGE_LIMIT_EXCEEDED',
+              details: {
+                limitMessage: upgradeMessage,
+                messageId: limitMessageId,
+                current: messageCheck.current,
+                limit: messageCheck.limit,
+                needsUpgrade: messageCheck.needsUpgrade
+              }
+            }
+          },
+          { status: 400 }
+        );
+      }
     }
 
     let currentFlowId = flowId;
@@ -127,6 +185,9 @@ export async function POST(request: Request) {
       user_email: user.email
     });
 
+    const lastUserMessage = messages[messages.length - 1];
+    const userMessageId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
     const response = streamText({
       model: model,
       messages: allMessages,
@@ -138,6 +199,81 @@ export async function POST(request: Request) {
       maxSteps: 25,
       onError: (error) => {
         console.error('Error creating flow from chat:', error);
+      },
+      async onFinish({ response }) {
+        if (lastUserMessage && lastUserMessage.role === 'user') {
+          try {
+            const allMessages = appendResponseMessages({
+              messages,
+              responseMessages: response.messages,
+            });
+            
+            const lastAiMessage = allMessages[allMessages.length - 1];
+            const assistantMessageId = `ast-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+            
+            const parts = [];
+            
+            if (lastAiMessage.toolInvocations) {
+              for (const invocation of lastAiMessage.toolInvocations) {
+                parts.push({
+                  type: 'tool-invocation',
+                  toolInvocation: {
+                    toolCallId: invocation.toolCallId,
+                    toolName: invocation.toolName,
+                    args: invocation.args
+                  }
+                });
+              }
+            }
+            
+            if (lastAiMessage.content) {
+              parts.push({
+                type: 'text',
+                text: lastAiMessage.content
+              });
+            }
+            
+            const supabase = createClient();
+            
+            try {
+              await supabase
+                .from('flows_messages')
+                .insert({
+                  message_id: userMessageId,
+                  flow_id: currentFlowId,
+                  user_id: user.id,
+                  sender: 'user',
+                  message_text: lastUserMessage.content,
+                  parts: [{
+                    type: 'text',
+                    text: lastUserMessage.content
+                  }],
+                  type: 'create'
+                });
+              
+              await supabase
+                .from('flows_messages')
+                .insert({
+                  message_id: assistantMessageId,
+                  flow_id: currentFlowId,
+                  user_id: user.id,
+                  sender: 'assistant',
+                  message_text: lastAiMessage.content || '',
+                  parts: parts,
+                  metadata: JSON.stringify({
+                    toolInvocations: lastAiMessage.toolInvocations,
+                    finishReason: null
+                  }),
+                  type: 'create'
+                });
+            } catch (dbError) {
+              console.error('Error saving to flows_messages:', dbError);
+            }
+              
+          } catch (error) {
+            console.error('Error processing messages for flows_messages:', error);
+          }
+        }
       }
     });
 
