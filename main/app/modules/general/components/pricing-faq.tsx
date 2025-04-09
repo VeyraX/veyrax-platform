@@ -33,7 +33,7 @@ export function FaqSectionDemo() {
       <div className="container">
         <FaqSection
           title="Frequently Asked Questions"
-          description="Everything you need to know about our platform"
+          description="Everything you need to know about our pricing plans."
           items={DEMO_FAQS}
         />
       </div>
