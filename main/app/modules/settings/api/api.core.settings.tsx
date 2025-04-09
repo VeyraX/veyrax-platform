@@ -184,7 +184,7 @@ async function isEarlyAdopter(supabase: SupabaseClient): Promise<boolean> {
     if (!registrationDate) return false;
 
     const regDate = new Date(registrationDate);
-    const cutoffDate = new Date('2025-04-09T00:00:00Z');
+    const cutoffDate = new Date('2025-04-08T00:00:00Z');
     
     return regDate.getTime() < cutoffDate.getTime();
   } catch (error) {
