@@ -72,8 +72,8 @@ export const pricingPlans: Plan[] = [
     description: "For higher limits, custom integrations and more flows.",
     price: { monthly: 12, yearly: 8 },
     priceIds: {
-      monthly: 'price_1RB5i6IuFYxu6EyPqdW56iPr',
-      yearly: 'price_1RArJJIIaSHsQ0m2J30kyQ92'
+      monthly: 'price_1RArJJIIaSHsQ0m2J30kyQ92',
+      yearly: 'price_1RBsP6IIaSHsQ0m2r8WNSqoV'
     },
     buttonText: "Choose Starter",
     buttonVariant: "outline",
@@ -105,7 +105,7 @@ export const pricingPlans: Plan[] = [
     price: { monthly: 40, yearly: 32 },
     priceIds: {
       monthly: 'price_1RArJwIIaSHsQ0m2tFdvc2xl',
-      yearly: 'price_1RBVT8IIaSHsQ0m2TF6Q4Ulw'
+      yearly: 'price_1RBshFIIaSHsQ0m2vET3nRYd'
     },
     highlight: true,
     buttonText: "Choose Pro",
