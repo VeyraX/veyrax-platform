@@ -45,20 +45,12 @@ export const pricingPlans: Plan[] = [
     buttonVariant: "outline",
     isCurrent: true,
     features: [
-      { name: "5 free tokens", included: true },
-      { name: "1,000 API requests / month", included: true },
-      { name: "3 projects", included: true },
-      { name: "5 free AI generations", included: true },
-      { name: "UI Inspirations", included: true },
-      
       { name: "API Requests", included: "700 / month", category: "USAGE" },
       { name: "Messages", included: "250", category: "USAGE" },
       { name: "Active Flows", included: "3", category: "USAGE" },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
-      { name: "Premium Components", included: false, category: "FEATURES" },
-      { name: "Custom Integrations", included: false, category: "INTEGRATIONS" },
-      { name: "Priority", included: "Low", category: "INTEGRATIONS" },
+      { name: "Integration by Request", included: false, category: "INTEGRATIONS" },
       
       { name: "User Account Auth", included: false, category: "AUTH" },
       { name: "On-premise Deployment", included: false, category: "AUTH" },
@@ -82,15 +74,14 @@ export const pricingPlans: Plan[] = [
       { name: "450 Messages", included: true },
       { name: "7 Active Flows", included: true },
       { name: "Rent providers API keys", included: false, tooltip: "Use our API keys for third-party services without needing your own accounts" },
-      { name: "Custom integrations", included: true },
+      { name: "Integration by Request", included: false},
       
       { name: "API Requests", included: "1,500 / month", category: "USAGE" },
       { name: "Messages", included: "450", category: "USAGE" },
       { name: "Active Flows", included: "7", category: "USAGE" },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
-      { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
-      { name: "Priority", included: "Medium", category: "INTEGRATIONS" },
+      { name: "Integration by Request", included: false, category: "INTEGRATIONS" },
       
       { name: "User Account Auth", included: false, category: "AUTH" },
       { name: "On-premise Deployment", included: false, category: "AUTH" },
@@ -115,14 +106,14 @@ export const pricingPlans: Plan[] = [
       { name: "950 Messages", included: true },
       { name: "20 Active Flows", included: true },
       { name: "Rent providers API keys", included: true, tooltip: "Use our API keys for third-party services without needing your own accounts" },
-      { name: "Custom integrations", included: true },
+      { name: "Integration by Request", included: true },
       
       { name: "API Requests", included: "3,000 / month", category: "USAGE" },
       { name: "Messages", included: "950", category: "USAGE" },
       { name: "Active Flows", included: "20", category: "USAGE" },
       { name: "Rent providers API keys", included: true, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
-      { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
+      { name: "Integration by Request", included: true, category: "INTEGRATIONS" },
       
       { name: "User Account Auth", included: false, category: "AUTH" },
       { name: "On-premise Deployment", included: false, category: "AUTH" },
@@ -141,7 +132,7 @@ export const pricingPlans: Plan[] = [
       { name: "Custom API calls", included: true },
       { name: "Custom Flows", included: true },
       { name: "Custom User Auth", included: true },
-      { name: "Custom Integrations", included: true },
+      { name: "Integration by Request", included: true },
       { name: "On-premise Deployment", included: true },
       
       { name: "API Requests", included: "Custom", category: "USAGE" },
@@ -149,7 +140,7 @@ export const pricingPlans: Plan[] = [
       { name: "Active Flows", included: "Custom", category: "USAGE" },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
-      { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
+      { name: "Integration by Request", included: true, category: "INTEGRATIONS" },
       
       { name: "User Account Auth", included: true, category: "AUTH" },
       { name: "On-premise Deployment", included: true, category: "AUTH" },
@@ -168,7 +159,7 @@ export const FEATURE_CATEGORIES = {
     "Rent providers API keys"
   ],
   "INTEGRATIONS": [
-    "Custom Integrations"
+    "Integration by Request"
   ],
   "AUTH": [
     "User Account Auth",
