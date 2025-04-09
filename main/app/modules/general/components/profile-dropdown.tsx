@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation'
 
 interface UserDropdownProps {
   profile: UserProfile | null;
-  onOpenSettings: () => void;
+  onOpenSettings: (tab?: 'account' | 'api-key' | 'mcp' | 'billing') => void;
 }
 
 export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
@@ -75,11 +75,17 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
         </div>
         <DropdownMenuSeparator />
         <div className="py-1.5">
-          <DropdownMenuItem onClick={onOpenSettings} className="py-2">
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            onOpenSettings();
+          }} className="py-2">
             <span className="text-sm">Account settings</span>
             <Settings className="ml-auto h-4 w-4" />
           </DropdownMenuItem>
-          <DropdownMenuItem className="py-2">
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            onOpenSettings('billing');
+          }} className="py-2">
             <span className="text-sm">Manage subscription</span>
             <CreditCard className="ml-auto h-4 w-4" />
           </DropdownMenuItem>
