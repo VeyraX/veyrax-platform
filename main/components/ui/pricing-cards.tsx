@@ -3,14 +3,16 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CheckIcon, ArrowRightIcon } from "@radix-ui/react-icons";
+import { CheckIcon, ArrowRightIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import NumberFlow from "@number-flow/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs-updated";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface PricingFeature {
     name: string;
     highlight?: boolean;
     included: boolean;
+    tooltip?: string;
 }
 
 export interface PricingTier {
@@ -33,6 +35,7 @@ export interface PricingCardsProps extends React.HTMLAttributes<HTMLDivElement> 
     cardClassName?: string;
     sectionClassName?: string;
     defaultInterval?: "monthly" | "yearly";
+    onIntervalChange?: (interval: "monthly" | "yearly") => void;
     title?: string;
     description?: string;
 }
@@ -43,13 +46,21 @@ export function PricingCards({
     containerClassName,
     cardClassName,
     sectionClassName,
-    defaultInterval = "monthly",
+    defaultInterval = "yearly",
+    onIntervalChange,
     title,
     description,
     ...props
 }: PricingCardsProps) {
     const [billingInterval, setBillingInterval] = React.useState<"monthly" | "yearly">(defaultInterval);
     const isYearly = billingInterval === "yearly";
+
+    // Call onIntervalChange when billing interval changes
+    React.useEffect(() => {
+        if (onIntervalChange) {
+            onIntervalChange(billingInterval);
+        }
+    }, [billingInterval, onIntervalChange]);
 
     const getPrice = (tier: PricingTier): number | null => {
         if (typeof tier.price === 'number') {
@@ -215,6 +226,18 @@ export function PricingCards({
                                                         : "text-neutral-600 dark:text-neutral-300"
                                                 )}>
                                                     {feature.name}
+                                                    {feature.tooltip && feature.name === "Rent providers API keys" && (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <InfoCircledIcon className="inline-block h-3.5 w-3.5 text-muted-foreground cursor-help ml-1" />
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="top">
+                                                                    <p className="max-w-xs">{feature.tooltip}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
                                                 </span>
                                             </div>
                                         ))}

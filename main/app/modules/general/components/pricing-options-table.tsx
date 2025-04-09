@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs-updated";
-import { Check, Minus, MoveRight, PhoneCall } from "lucide-react";
+import { Check, Minus, MoveRight, PhoneCall, InfoIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import NumberFlow from "@number-flow/react";
 import getStripe from "@/lib/utils/stripe/stripe";
 import { fetchPostJSON } from "@/lib/utils/stripe/stripe-helpers";
+import { TeamRequestDialog } from "./team-request-dialog";
 import { 
   pricingPlans, 
   FEATURE_CATEGORIES, 
@@ -22,6 +24,7 @@ import {
 export default function PricingOptionsTable() {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<PlanInterval>("yearly");
+  const [openTeamDialog, setOpenTeamDialog] = useState(false);
   const isYearly = billingInterval === "yearly";
 
   const handleSubscription = async (planId: string) => {
@@ -29,10 +32,8 @@ export default function PricingOptionsTable() {
       setLoadingTier(planId);
       
       if (planId === 'teams') {
-        setTimeout(() => {
-          setLoadingTier(null);
-          toast.success(`Successfully submitted request for Teams plan!`);
-        }, 1500);
+        setOpenTeamDialog(true);
+        setLoadingTier(null);
         return;
       }
 
@@ -81,7 +82,7 @@ export default function PricingOptionsTable() {
             Compare plans & features
           </h2>
           <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl text-center mx-auto">
-            Choose the right plan for your needs and budget
+            Choose the right plan for your needs
           </p>
           
           <div className="flex justify-center mt-4 md:mt-8 mb-4 md:mb-6">
@@ -154,10 +155,7 @@ export default function PricingOptionsTable() {
                   onClick={() => handleSubscription(plan.id)}
                 >
                   {plan.buttonText} 
-                  {plan.id === "teams" ? 
-                    <PhoneCall className="w-4 h-4" /> : 
-                    <MoveRight className="w-4 h-4" />
-                  }
+                  <MoveRight className="w-4 h-4" />
                 </Button>
               </div>
             ))}
@@ -177,7 +175,21 @@ export default function PricingOptionsTable() {
                 {featureList.map((feature) => (
                   <React.Fragment key={feature}>
                     <div className="px-3 lg:px-6 col-span-1 py-4">
-                      {feature}
+                      <div className="flex items-center gap-1">
+                        {feature}
+                        {feature === "Rent providers API keys" && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <InfoIcon className="h-3.5 w-3.5 text-muted-foreground cursor-help ml-1" />
+                              </TooltipTrigger>
+                              <TooltipContent side="right">
+                                <p className="max-w-xs">Use our API keys for third-party services without needing your own accounts</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </div>
                     {pricingPlans.map((plan) => {
                       const planFeature = getAdvancedFeatures(plan, category)
@@ -210,6 +222,8 @@ export default function PricingOptionsTable() {
             ))}
         </div>
       </div>
+
+      <TeamRequestDialog open={openTeamDialog} onOpenChange={setOpenTeamDialog} />
     </div>
   );
 }

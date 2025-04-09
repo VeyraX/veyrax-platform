@@ -12,6 +12,11 @@ export interface FeedbackSubmitData {
     mood: string
 }
 
+export interface TeamRequestData {
+    email: string
+    company: string
+}
+
 export interface Package {
     name: string
     description: string

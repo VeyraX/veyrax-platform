@@ -5,6 +5,7 @@ export interface PlanFeature {
   name: string;
   included: boolean | string;
   category?: string;
+  tooltip?: string;
 }
 
 export interface Plan {
@@ -38,7 +39,7 @@ export const pricingPlans: Plan[] = [
   {
     id: "free",
     name: "Free",
-    description: "For personal use, small projects, and testing the platform",
+    description: "To just get started.",
     price: { monthly: 0, yearly: 0 },
     buttonText: "Current Plan",
     buttonVariant: "outline",
@@ -53,7 +54,7 @@ export const pricingPlans: Plan[] = [
       { name: "API Requests", included: "700 / month", category: "USAGE" },
       { name: "Messages", included: "250", category: "USAGE" },
       { name: "Active Flows", included: "3", category: "USAGE" },
-      { name: "Rent providers API keys", included: false, category: "USAGE" },
+      { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Premium Components", included: false, category: "FEATURES" },
       { name: "Custom Integrations", included: false, category: "INTEGRATIONS" },
@@ -68,11 +69,11 @@ export const pricingPlans: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    description: "Just to get started",
+    description: "For higher limits, custom integrations and more flows.",
     price: { monthly: 12, yearly: 8 },
     priceIds: {
-      monthly: 'price_1RArJJIIaSHsQ0m2J30kyQ92',
-      yearly: 'price_1RBVTYIIaSHsQ0m23SgH1lUP'
+      monthly: 'price_1RB5i6IuFYxu6EyPqdW56iPr',
+      yearly: 'price_1RArJJIIaSHsQ0m2J30kyQ92'
     },
     buttonText: "Choose Starter",
     buttonVariant: "outline",
@@ -80,13 +81,13 @@ export const pricingPlans: Plan[] = [
       { name: "1,500 API requests", included: true },
       { name: "450 Messages", included: true },
       { name: "7 Active Flows", included: true },
-      { name: "Rent providers API keys", included: false },
-      { name: "Custom integrations", included: false },
+      { name: "Rent providers API keys", included: false, tooltip: "Use our API keys for third-party services without needing your own accounts" },
+      { name: "Custom integrations", included: true },
       
       { name: "API Requests", included: "1,500 / month", category: "USAGE" },
       { name: "Messages", included: "450", category: "USAGE" },
       { name: "Active Flows", included: "7", category: "USAGE" },
-      { name: "Rent providers API keys", included: false, category: "USAGE" },
+      { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
       { name: "Priority", included: "Medium", category: "INTEGRATIONS" },
@@ -100,7 +101,7 @@ export const pricingPlans: Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    description: "For professionals who need more tokens and premium features",
+    description: "For power users who need bigger limits, integrations, customization and more flows.",
     price: { monthly: 40, yearly: 32 },
     priceIds: {
       monthly: 'price_1RArJwIIaSHsQ0m2tFdvc2xl',
@@ -113,13 +114,13 @@ export const pricingPlans: Plan[] = [
       { name: "3,000 API requests", included: true },
       { name: "950 Messages", included: true },
       { name: "20 Active Flows", included: true },
-      { name: "Rent providers API keys", included: true },
+      { name: "Rent providers API keys", included: true, tooltip: "Use our API keys for third-party services without needing your own accounts" },
       { name: "Custom integrations", included: true },
       
       { name: "API Requests", included: "3,000 / month", category: "USAGE" },
       { name: "Messages", included: "950", category: "USAGE" },
       { name: "Active Flows", included: "20", category: "USAGE" },
-      { name: "Rent providers API keys", included: true, category: "USAGE" },
+      { name: "Rent providers API keys", included: true, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
       
@@ -132,7 +133,7 @@ export const pricingPlans: Plan[] = [
   {
     id: "teams",
     name: "Teams",
-    description: "For production Agents who need tools and customization",
+    description: "For businesses who want to offer our tools to their clients.",
     price: { monthly: 0, yearly: 0 },
     buttonText: "Contact Us",
     buttonVariant: "outline",
@@ -146,7 +147,7 @@ export const pricingPlans: Plan[] = [
       { name: "API Requests", included: "Custom", category: "USAGE" },
       { name: "Messages", included: "Custom", category: "USAGE" },
       { name: "Active Flows", included: "Custom", category: "USAGE" },
-      { name: "Rent providers API keys", included: false, category: "USAGE" },
+      { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Custom Integrations", included: true, category: "INTEGRATIONS" },
       

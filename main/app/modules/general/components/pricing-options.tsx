@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PricingCards } from "@/components/ui/pricing-cards";
 import getStripe from "@/lib/utils/stripe/stripe";
 import { fetchPostJSON } from "@/lib/utils/stripe/stripe-helpers";
+import { TeamRequestDialog } from "./team-request-dialog";
 import {
   pricingPlans,
   getSimpleFeatures,
@@ -19,7 +19,7 @@ interface PricingTier {
   interval?: string;
   description: string;
   highlight?: boolean;
-  features: { name: string; included: boolean }[];
+  features: { name: string; included: boolean; tooltip?: string }[];
   cta: {
     text: string;
     onClick: () => void;
@@ -27,20 +27,17 @@ interface PricingTier {
 }
 
 export default function PricingPage() {
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openTeamDialog, setOpenTeamDialog] = useState(false);
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
-  const [interval, setInterval] = useState<PlanInterval>('monthly');
+  const [interval, setInterval] = useState<PlanInterval>('yearly');
 
   const handleSubscription = async (planId: string) => {
     try {
       setLoadingTier(planId);
       
       if (planId === 'teams') {
-        setTimeout(() => {
-          setLoadingTier(null);
-          toast.success(`Successfully submitted request for Teams plan!`);
-          setOpenDialog(false);
-        }, 1500);
+        setOpenTeamDialog(true);
+        setLoadingTier(null);
         return;
       }
 
@@ -89,10 +86,10 @@ export default function PricingPage() {
       interval: plan.id === 'teams' ? "Custom pricing" : undefined,
       description: plan.description,
       highlight: plan.highlight,
-      // Map features to PricingCards expected format
       features: getSimpleFeatures(plan).map(feature => ({
         name: feature.name,
-        included: feature.included === true || typeof feature.included === 'string'
+        included: feature.included === true || typeof feature.included === 'string',
+        tooltip: feature.tooltip
       })),
       cta: {
         text: loadingTier === plan.id ? "Processing..." : plan.buttonText,
@@ -107,26 +104,13 @@ export default function PricingPage() {
         className="grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         containerClassName="max-w-6xl"
         sectionClassName="py-0"
-        defaultInterval="monthly"
-        title="Pricing Plans"
-        description="Choose the right plan for your needs"
+        defaultInterval={interval}
+        title="Empower your agents and workflows with 1000+ actions"
+        description="Get higher limits, custom integrations and more with VeyraX."
+        onIntervalChange={(newInterval: "monthly" | "yearly") => setInterval(newInterval as PlanInterval)}
       />
-      
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-6xl w-[95vw]">
-          <DialogHeader className="mb-0 pb-0">
-            <DialogTitle className="text-4xl md:text-5xl tracking-tighter text-center font-regular mb-1">Choose a Plan</DialogTitle>
-            <p className="text-center text-muted-foreground mb-2">Select the plan that works best for you</p>
-          </DialogHeader>
-          <PricingCards 
-            tiers={pricingTiers}
-            className="grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-            sectionClassName="py-0"
-            containerClassName="px-0 mx-0"
-            defaultInterval="monthly"
-          />
-        </DialogContent>
-      </Dialog>
+
+      <TeamRequestDialog open={openTeamDialog} onOpenChange={setOpenTeamDialog} />
     </>
   );
 }
