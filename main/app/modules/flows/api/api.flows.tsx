@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/client'
 import { ProviderAction, UserFlow, FlowStatus, CreateFlowRequest, UpdateFlowRequest } from './types.flows'
 import { extractTextFromHTML as originalExtractTextFromHTML } from '../components/flow-description-html'
+import { canUserCreateFlow } from '@/app/modules/settings/api/api.settings'
+import { toast } from 'sonner';
 
 const supabase = createClient();
 
@@ -224,7 +226,13 @@ export const createFlow = async (flowRequest: CreateFlowRequest): Promise<string
       throw new Error('Not authenticated');
     }
     
-    // Insert flow with default name if not provided
+    if (flowRequest.status === 'Active') {
+      const limitCheck = await canUserCreateFlow(1);
+      if (!limitCheck.allowed) {
+        throw new Error(limitCheck.reason || 'Flow limit exceeded for your current plan');
+      }
+    }
+    
     const { data: newFlow, error: flowError } = await supabase
       .from('user_flows')
       .insert({
@@ -378,6 +386,13 @@ export const updateFlowStatus = async (flowId: string, status: FlowStatus): Prom
     
     if (!user) {
       throw new Error('Not authenticated');
+    }
+    
+    if (status === 'Active') {
+      const limitCheck = await canUserCreateFlow(1);
+      if (!limitCheck.allowed) {
+        throw new Error(limitCheck.reason || 'Active flow limit exceeded for your current plan');
+      }
     }
     
     const { error } = await supabase

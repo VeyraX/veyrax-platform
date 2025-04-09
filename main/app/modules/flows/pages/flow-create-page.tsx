@@ -178,22 +178,29 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
     try {
       setIsActivating(true);
       
-      // Save current flow state
       const savedFlowId = await flowCreatorRef.current?.saveFlow();
       if (!savedFlowId && !flow?.id) {
-        toast.error("Failed to save flow");
         return;
       }
       
       const targetFlowId = savedFlowId || flow?.id;
       
-      // Update flow status to Active
-      await updateFlowStatus(targetFlowId, "Active");
-      handlePublishFlow(targetFlowId);
-      router.push(`/flow/${targetFlowId}/view`);
+      try {
+        await updateFlowStatus(targetFlowId, "Active");
+        handlePublishFlow(targetFlowId);
+        router.push(`/flow/${targetFlowId}/view`);
+      } catch (error) {
+        console.error("Error activating flow:", error);
+        
+        const errorMsg = error instanceof Error ? error.message : '';
+        if (errorMsg.includes('limit') || errorMsg.includes('maximum')) {
+          router.push(`/flow/${targetFlowId}/view`);
+        } else {
+          toast.error(errorMsg || "Failed to activate flow");
+        }
+      }
     } catch (error) {
-      console.error("Error activating flow:", error);
-      toast.error("Failed to activate flow");
+      console.error("Error saving flow:", error);
     } finally {
       setIsActivating(false);
     }

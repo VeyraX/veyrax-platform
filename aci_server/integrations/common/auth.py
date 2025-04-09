@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from integrations.common.utils import get_user_rented_api_keys, can_user_rent_keys
 from db.supabase import get_supabase
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleRequest
@@ -728,20 +729,32 @@ async def validate_provider_api_key(request: Request, provider_tag: str) -> str:
             raise HTTPException(status_code=404, detail="Provider not found")
             
         provider_id = provider_res.data[0]['id']
-        
+
+        can_rent_keys = can_user_rent_keys(user_id)
+
+        if can_rent_keys:
+            rented_api_keys = get_user_rented_api_keys(user_id, provider_id)
+            if rented_api_keys:
+                api_key = safe_decrypt(rented_api_keys[0]['api_key'])
+                return api_key
+
         api_key_res = supabase.table('users_provider_api_keys') \
             .select('api_key') \
             .eq('user_id', user_id) \
             .eq('provider_id', provider_id) \
             .execute()
-        
+    
         if not api_key_res.data:
-            raise HTTPException(status_code=404, detail=f"API key for provider {provider_tag} not found")
+            error_message = {
+                "status": "error",
+                "message": f"API key for provider {provider_tag} not found. Please add your API key in the integrations settings.",
+                "error_code": "API_KEY_NOT_FOUND"
+            }
+            raise HTTPException(status_code=404, detail=error_message)
         
         encrypted_api_key = api_key_res.data[0]['api_key']
-        decrypted_api_key = safe_decrypt(encrypted_api_key)
-            
-        return decrypted_api_key
+        return safe_decrypt(encrypted_api_key)
+
     except HTTPException as he:
         raise he
     except Exception as e:

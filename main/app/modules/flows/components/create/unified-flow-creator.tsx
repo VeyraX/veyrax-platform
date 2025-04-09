@@ -16,7 +16,6 @@ import { type Message } from 'ai/react';
 import { ChatFlowCreator } from "./chat-flow-creator";
 import { updateFlowWithExtractedActions, saveFlowWithExtractedActions, getFlowActions, getActionsByIds } from "@/app/modules/flows/api/api.flows";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 import { FlowChatCreateEmptyState } from "./flow-chat-create-empty-state";
 import { ProviderAction } from "../../api/types.flows";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -284,7 +283,7 @@ export function UnifiedFlowCreator({
 
       return currentFlowId;
     } catch (error) {
-      toast.error('Failed to save flow');
+      console.error('Error saving flow:', error);
       return undefined;
     } finally {
       setIsSaving(false);

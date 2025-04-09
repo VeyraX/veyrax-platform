@@ -1,9 +1,8 @@
-import { UserFeedback, FeedbackSubmitData } from "./general.types"
+import { UserFeedback, FeedbackSubmitData, TeamRequestData } from "./general.types"
 
 import { createClient } from '@/lib/utils/supabase/client'
 
 const supabase = createClient()
-
 
 export const submitFeedback = async (feedbackData: FeedbackSubmitData): Promise<UserFeedback> => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -28,3 +27,17 @@ export const submitFeedback = async (feedbackData: FeedbackSubmitData): Promise<
     
     return data as UserFeedback
   }
+
+export const submitTeamRequest = async (requestData: TeamRequestData): Promise<void> => {
+  const { error } = await supabase
+    .from('users_team_requests')
+    .insert({
+      email: requestData.email,
+      company: requestData.company
+    })
+  
+  if (error) {
+    console.error('Error submitting team request:', error)
+    throw error
+  }
+}

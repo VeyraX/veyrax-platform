@@ -5,6 +5,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const { response, session } = await updateSession(request)
 
+  if (pathname === '/pricing/success') {
+    const url = new URL(request.url)
+    const sessionId = url.searchParams.get('session_id')
+    
+    if (!sessionId) {
+      return NextResponse.redirect(new URL('/pricing', request.url))
+    }
+  }
+
   if (pathname === '/') {
     return NextResponse.redirect(new URL('/web', request.url))
   }
@@ -21,7 +30,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('integrations/mail', request.url))
   }
 
-  // Исключить маршруты auth-complete из проверки авторизации
+  if (pathname === '/integrations' && !session) {
+    return NextResponse.redirect(new URL('/marketplace', request.url))
+  }
+
   const isAuthCompletePath = /\/integrations\/[\w-]+\/auth-complete/.test(pathname);
 
   if (
@@ -57,5 +69,6 @@ export const config = {
     '/integrations/:path*',
     '/flows',
     '/flow/:path*',
+    '/pricing/success',
   ]
 }

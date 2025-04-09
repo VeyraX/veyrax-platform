@@ -24,17 +24,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
 
   const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
 
-  const { data: userApiKeys } = await supabase
-    .from('users_provider_api_keys')
-    .select('provider_id, api_key')
-    .eq('user_id', user?.id)
-
-  const providersWithApiKeys = new Set(
-    userApiKeys
-      ?.filter(k => k.api_key && k.api_key.trim() !== '')
-      .map(k => k.provider_id)
-  )
-  
   const { data: popularProviders } = await supabase
     .from('popular_providers_view')
     .select('*')
@@ -48,11 +37,6 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
 
   const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
     const isConnected = connectedProviderIds.has(provider.id)
-    
-    const isReallyConnected = provider.auth_method === 'api_key' 
-      ? providersWithApiKeys.has(provider.id) 
-      : isConnected
-    
     const isPopular = popularProviderIds.has(provider.id)
 
     const providerUserScopes = userScopes?.find(s => s.provider_id === provider.id);
@@ -72,7 +56,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
 
     return {
       ...provider,
-      connected: isReallyConnected,
+      connected: isConnected,
       isPopular,
       hasIndex: false,
       indexStatus: null,
@@ -85,18 +69,9 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   return result as IntegrationCardProps[]
 }
 
-export const enableProvider = async (providerId: string, user_id?: string, encrypted_api_key?: string, code?: string): Promise<void> => {
-  let userId = user_id;
+export const enableProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
 
-  if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
-  }
-
-  if (!userId) {
-    throw new Error('Unauthorized - User ID not found');
-  }
-
+  const { data: { user } } = await supabase.auth.getUser();
   try {
     const response = await fetch('/api/integrations/enable', {
       method: 'POST',
@@ -105,7 +80,7 @@ export const enableProvider = async (providerId: string, user_id?: string, encry
       },
       body: JSON.stringify({ 
         provider_id: providerId,
-        user_id: userId,
+        user_id: user?.id,
         encrypted_api_key: encrypted_api_key,
         code: code
       })
@@ -211,7 +186,6 @@ export const deleteActions = async (providerId: string, encrypted_api_key?: stri
 export const disconnectWhatsAppProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
   let userId;
   
-  // Only get user from auth when encrypted_api_key is not provided
   if (!encrypted_api_key) {
     const { data: { user } } = await supabase.auth.getUser();
     userId = user?.id;
@@ -246,17 +220,7 @@ export const disconnectWhatsAppProvider = async (providerId: string, encrypted_a
 }
 
 export const disconnectProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
-  let userId;
-  
-  // Only get user from auth when encrypted_api_key is not provided
-  if (!encrypted_api_key) {
     const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
-    
-    if (!userId) {
-      throw new Error('Unauthorized - User ID not found');
-    }
-  }
 
   try {
     const response = await fetch('/api/integrations/disconnect', {
@@ -266,7 +230,7 @@ export const disconnectProvider = async (providerId: string, encrypted_api_key?:
       },
       body: JSON.stringify({ 
         provider_id: providerId,
-        user_id: userId,
+        user_id: user?.id,
         encrypted_api_key: encrypted_api_key,
         code: code
       })
@@ -303,16 +267,7 @@ export const initiateOAuthFlow = async (
 }
 
 export const enableApiKeyProvider = async (providerId: string, apiKey: string, encrypted_api_key?: string, code?: string): Promise<void> => {
-  let userId;
-  
-  if (!encrypted_api_key) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
-    
-    if (!userId) {
-      throw new Error('Unauthorized - User ID not found');
-    }
-  }
+  const { data: { user } } = await supabase.auth.getUser();
   
   try {
     const response = await fetch('/api/integrations/enable-api-key', {
@@ -323,7 +278,7 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string, e
       body: JSON.stringify({ 
         provider_id: providerId,
         api_key: apiKey,
-        user_id: userId,
+        user_id: user?.id,
         encrypted_api_key: encrypted_api_key,
         code: code
       })
@@ -372,27 +327,11 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
   
   if (!userProviders?.length) return [];
   
-  const { data: userApiKeys } = await supabase
-    .from('users_provider_api_keys')
-    .select('provider_id, api_key')
-    .eq('user_id', user?.id)
-
-  const providersWithApiKeys = new Set(
-    userApiKeys
-      ?.filter(k => k.api_key && k.api_key.trim() !== '')
-      .map(k => k.provider_id)
-  )
-  
   return userProviders.map(up => {
-    const isApiKeyProvider = up.providers.auth_method === 'api_key';
-    const isReallyConnected = isApiKeyProvider 
-      ? providersWithApiKeys.has(up.providers.id) 
-      : true;
-      
     return {
       providerTag: up.providers.provider_tag,
       logoUrl: up.providers.logo_url,
-      isConnected: isReallyConnected
+      isConnected: true
     };
   }) || [];
 }
@@ -1199,5 +1138,62 @@ export const checkWhatsAppStatus = async (encrypted_api_key?: string, code?: str
       isLoggedIn: false,
       message: error instanceof Error ? error.message : 'Failed to check WhatsApp status'
     };
+  }
+};
+
+export const rentApiKey = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  try {
+    const response = await fetch('/api/integrations/rent-api-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        provider_id: providerId,
+        user_id: user?.id,
+        encrypted_api_key,
+        code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to rent API key');
+    }
+  } catch (error) {
+    console.error('Error renting API key:', error);
+    throw error;
+  }
+};
+
+export const checkUserHasRentedKey = async (providerId: string): Promise<boolean> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  try {
+    const { data: rentApiKey, error: rentApiKeyError } = await supabase
+      .from('rent_api_keys')
+      .select('id')
+      .eq('provider_id', providerId)
+      .single();
+    
+    if (rentApiKeyError || !rentApiKey?.id) return false;
+    
+    const { data, error } = await supabase
+      .from('users_provider_rent_api_keys')
+      .select('*')
+      .match({ 
+        user_id: user?.id,
+        rent_key_id: rentApiKey.id
+      })
+      .single();
+    
+    if (error || !data) return false;
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking rented key:', error);
+    return false;
   }
 };

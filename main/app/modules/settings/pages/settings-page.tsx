@@ -1,19 +1,20 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { UserCircle2, Key, Terminal } from "lucide-react"
+import { UserCircle2, Key, Terminal, CreditCard } from "lucide-react"
 import Link from "next/link"
 import AccountSettings from "../components/account-settings"
 import ApiKeySettings from "../components/api-key-settings"
 import MCPSettings from "../components/mcp-settings"
+import BillingSettings from "../components/billing-settings"
 import { useState, useEffect } from "react"
-import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey } from "../api/api.settings"
-import { UserProfile, UserApiKey } from "../api/types.settings"
+import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey, getUserSubscription } from "../api/api.settings"
+import { UserProfile, UserApiKey, UserSubscription } from "../api/types.settings"
 
 interface AccountSettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initialTab?: 'account' | 'api-key' | 'mcp'
+  initialTab?: 'account' | 'api-key' | 'mcp' | 'billing'
 }
 
 export function AccountSettingsDialog({ 
@@ -21,11 +22,13 @@ export function AccountSettingsDialog({
   onOpenChange, 
   initialTab = 'account' 
 }: AccountSettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'api-key' | 'mcp'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'account' | 'api-key' | 'mcp' | 'billing'>(initialTab);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [apiKey, setApiKey] = useState<UserApiKey | null>(null);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -60,6 +63,24 @@ export function AccountSettingsDialog({
       };
       
       fetchApiKey();
+    }
+  }, [open, activeTab]);
+
+  useEffect(() => {
+    if (open && (activeTab === 'billing')) {
+      const fetchSubscription = async () => {
+        setIsLoadingSubscription(true);
+        try {
+          const data = await getUserSubscription();
+          setSubscription(data);
+        } catch (error) {
+          console.error('Error fetching subscription:', error);
+        } finally {
+          setIsLoadingSubscription(false);
+        }
+      };
+      
+      fetchSubscription();
     }
   }, [open, activeTab]);
 
@@ -123,6 +144,21 @@ export function AccountSettingsDialog({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
+                  setActiveTab('billing');
+                }}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
+                  activeTab === 'billing' 
+                    ? 'bg-secondary text-secondary-foreground' 
+                    : 'text-muted-foreground hover:bg-secondary'
+                }`}
+              >
+                <CreditCard className="h-3.5 w-3.5" />
+                <span>Billing</span>
+              </Link>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
                   setActiveTab('api-key');
                 }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
@@ -157,6 +193,11 @@ export function AccountSettingsDialog({
               <AccountSettings 
                 profile={profile} 
                 isLoading={isLoadingProfile} 
+              />
+            ) : activeTab === 'billing' ? (
+              <BillingSettings 
+                subscriptionInfo={subscription}
+                isLoading={isLoadingSubscription}
               />
             ) : activeTab === 'api-key' ? (
               <ApiKeySettings 

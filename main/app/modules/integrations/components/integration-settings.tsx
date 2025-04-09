@@ -53,7 +53,7 @@ export function ScopeDialog({ provider, open, onClose, onConfirm }: ScopeDialogP
                   <Checkbox
                     id={scope.scope_name}
                     checked={selectedScopes.includes(scope.scope_name)}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={(checked: boolean) => {
                       setSelectedScopes(checked
                         ? [...selectedScopes, scope.scope_name]
                         : selectedScopes.filter(s => s !== scope.scope_name)

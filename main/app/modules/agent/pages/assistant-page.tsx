@@ -17,14 +17,6 @@ import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrations";
 import { updateChatTitle } from "../api/api.agent";
 
-interface ExtendedMessage extends Message {
-  toolCalls?: any[];
-  toolResults?: any[];
-  toolInvocations?: any[];
-  finishReason?: string;
-  is_accurate?: boolean | null;
-}
-
 export default function AssistantPage({
   params
 }: {
@@ -69,7 +61,50 @@ export default function AssistantPage({
       
       try {
         const errorData = JSON.parse(error.message);
-        if (errorData.error?.message) {
+        
+        if (errorData.error?.message === 'MESSAGE_LIMIT_EXCEEDED') {
+          const details = errorData.error.details;
+          
+          if (details?.limitMessage && details?.messageId) {
+            setMessages((prev) => {
+              const userMessageExists = prev.some(msg => msg.role === 'user');
+              
+              if (!userMessageExists && currentChatIdRef.current) {
+                return [
+                  ...prev,
+                  {
+                    id: `user-msg-${Date.now()}`,
+                    content: localStorage.getItem(`last-message-${currentChatIdRef.current}`) || "Your message",
+                    role: 'user'
+                  },
+                  {
+                    id: details.messageId,
+                    content: details.limitMessage,
+                    role: 'assistant',
+                    isLimitMessage: true,
+                    current: details.current,
+                    limit: details.limit,
+                    needsUpgrade: details.needsUpgrade
+                  } as Message
+                ];
+              }
+              
+              return [
+                ...prev,
+                {
+                  id: details.messageId,
+                  content: details.limitMessage,
+                  role: 'assistant',
+                  isLimitMessage: true,
+                  current: details.current,
+                  limit: details.limit,
+                  needsUpgrade: details.needsUpgrade
+                } as Message
+              ];
+            });
+            return;
+          }
+        } else if (errorData.error?.message) {
           errorMessage = errorData.error.message;
         }
       } catch (e) {
@@ -77,7 +112,6 @@ export default function AssistantPage({
       }
       
       setError(errorMessage);
-      // Auto-hide error after 5 seconds
       setTimeout(() => setError(null), 5000);
     },
   });
@@ -113,15 +147,31 @@ export default function AssistantPage({
             setChatName("New Chat");
           }
           
+          // @ts-ignore
           const convertedMessages = existingMessages.map((msg) => {
-
-            if (msg.sender !== 'assistant') {
+            if (msg.sender === 'user') {
               return {
                 id: msg.message_id,
                 content: msg.message_text,
                 role: 'user',
                 parts: msg.parts,
                 is_accurate: msg.is_accurate ?? null
+              };
+            }
+            
+            // @ts-ignore
+            if (msg.sender === 'system' && msg.metadata?.isLimitMessage) {
+              return {
+                id: msg.message_id,
+                content: msg.message_text,
+                role: 'assistant' as const,
+                isLimitMessage: true,
+                // @ts-ignore 
+                current: msg.metadata.current,
+                // @ts-ignore 
+                limit: msg.metadata.limit,
+                // @ts-ignore
+                needsUpgrade: msg.metadata.needsUpgrade
               };
             }
 
@@ -182,6 +232,10 @@ export default function AssistantPage({
         setIsJustCreated(true);
 
         await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      if (currentChatIdRef.current) {
+        localStorage.setItem(`last-message-${currentChatIdRef.current}`, value);
       }
 
       const messageId = `msg-${Date.now()}`;

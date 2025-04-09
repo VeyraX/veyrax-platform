@@ -20,6 +20,7 @@ export interface Provider {
   categories?: string;
   input_schema?: Record<string, any>;
   output_schema?: Record<string, any>;
+  is_rentable?: boolean;
 }
 
 export interface DbConfig {

@@ -20,10 +20,13 @@ import {
   authenticateWhatsApp,
   checkWhatsAppStatus,
   disconnectWhatsAppProvider,
-  enableProvider
+  enableProvider,
+  rentApiKey,
+  checkUserHasRentedKey
 } from "../api/api.integrations";
+import { canUserRentKey } from "@/app/modules/settings/api/api.settings";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode } from "lucide-react";
+import { HelpCircle, RefreshCw, AlertCircle, Loader2, QrCode, Key } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +36,6 @@ import { CustomAuthForm } from "./provider-connection-forms/custom-auth-form";
 import { EmailAuthForm } from "./provider-connection-forms/email-auth-form";
 import { WhatsAppConfigForm } from "./provider-connection-forms/whatsapp-config";
 
-// Match the interface from whatsapp-config.tsx
 interface WhatsAppConfig {
   phone?: string;
   isLoggedIn: boolean;
@@ -44,6 +46,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
   const [originalApiKey, setOriginalApiKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [hasRentedKey, setHasRentedKey] = useState<boolean>(false);
   const [dbConfig, setDbConfig] = useState({
     host: "",
     port: "5432",
@@ -70,12 +73,14 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
     isLoggedIn: false,
     phone: undefined
   });
+  const [canRentKeys, setCanRentKeys] = useState<boolean>(false);
 
   useEffect(() => {
     if (open) {
       if (provider.auth_method === 'api_key' || provider.auth_method === 'api_key_with_base') {
         fetchApiKey();
         setApiKeyChanged(false);
+        checkRentedKey();
         
         if (provider.auth_method === 'api_key_with_base') {
           fetchBaseUrl();
@@ -89,7 +94,10 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
         checkWhatsAppConnectionStatus();
       }
     }
-  }, [open, provider.id, provider.auth_method, provider.provider_tag, provider.connected]);
+    if (open && provider.is_rentable) {
+      checkRentPermission();
+    }
+  }, [open, provider.id, provider.auth_method, provider.provider_tag, provider.connected, provider.is_rentable]);
 
   const fetchApiKey = async () => {
     if (provider.auth_method !== 'api_key' && provider.auth_method !== 'api_key_with_base') return;
@@ -232,6 +240,26 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
       // Don't show error to user as this is just an initial check
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkRentPermission = async () => {
+    try {
+      const { allowed } = await canUserRentKey();
+      setCanRentKeys(allowed);
+    } catch (error) {
+      console.error('Failed to check rent permission:', error);
+      setCanRentKeys(false);
+    }
+  };
+
+  const checkRentedKey = async () => {
+    if (!provider.is_rentable) return;
+    try {
+      const hasKey = await checkUserHasRentedKey(provider.id);
+      setHasRentedKey(hasKey);
+    } catch (error) {
+      console.error('Failed to check rented key:', error);
     }
   };
 
@@ -398,6 +426,9 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
   };
 
   const handleDisconnect = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
     try {
       if (provider.provider_tag === 'whatsapp') {
         await disconnectWhatsAppProvider(provider.id, encrypted_api_key, code);
@@ -408,6 +439,9 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
       onClose();
     } catch (error) {
       console.error('Failed to disconnect provider:', error);
+      setValidationError(error instanceof Error ? error.message : 'Failed to disconnect provider');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -418,7 +452,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
   const handleConnectSimpleProvider = async () => {
     setIsLoading(true);
     try {
-      await enableProvider(provider.id);
+      await enableProvider(provider.id, encrypted_api_key, code);
       if (onUpdate) {
         onUpdate();
       }
@@ -426,6 +460,24 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
     } catch (error) {
       console.error(`Failed to connect ${provider.name}:`, error);
       setValidationError(error instanceof Error ? error.message : "Failed to connect to service");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRentKey = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    setValidationError(null);
+    
+    try {
+      await rentApiKey(provider.id, encrypted_api_key, code);
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error('Error renting API key:', error);
+      setValidationError(error instanceof Error ? error.message : 'Failed to rent API key');
     } finally {
       setIsLoading(false);
     }
@@ -645,9 +697,9 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
                     setApiKeyChanged(e.target.value !== originalApiKey || baseUrl !== originalBaseUrl);
                     setValidationError(null);
                   }}
-                  placeholder="Enter your API key"
+                  placeholder={hasRentedKey ? "Using VeyraX Rented API Key" : "Enter your API key"}
                   className="w-full"
-                  disabled={isValidating}
+                  disabled={isValidating || hasRentedKey}
                 />
               </div>
               
@@ -667,7 +719,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
                     }}
                     placeholder="Enter the base URL (e.g., https://example.com/api)"
                     className="w-full"
-                    disabled={isValidating}
+                    disabled={isValidating || hasRentedKey}
                   />
                 </div>
               )}
@@ -718,10 +770,37 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
               <Button
                 variant="destructive"
                 onClick={handleDisconnect}
+                disabled={isLoading}
               >
-                Disconnect
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  'Disconnect'
+                )}
               </Button>
             </div>
+          )}
+          
+          {provider.is_rentable && canRentKeys && !provider.connected && (
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handleRentKey}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Key className="h-4 w-4" />
+                  Rent Key
+                </>
+              )}
+            </Button>
           )}
           
           {provider.auth_method === 'none' && !provider.connected && (
