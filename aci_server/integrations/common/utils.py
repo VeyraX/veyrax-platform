@@ -476,9 +476,12 @@ def is_usage_limit_exceeded(user_id: str):
                 reg_date = datetime.fromisoformat(registration_date.replace('Z', '+00:00'))
             else:
                 reg_date = registration_date
-                
-            cutoff_date = datetime(2025, 4, 8, tzinfo=timezone.utc)
+                # Ensure it has a tz
+                if reg_date.tzinfo is None:
+                    reg_date = reg_date.replace(tzinfo=timezone.utc)
             
+            cutoff_date = datetime(2025, 4, 8, tzinfo=timezone.utc)
+
             if reg_date < cutoff_date:
                 return False
         
