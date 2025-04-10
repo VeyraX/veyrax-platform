@@ -16,7 +16,7 @@ import traceback
 import sentry_sdk
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -477,7 +477,7 @@ def is_usage_limit_exceeded(user_id: str):
             else:
                 reg_date = registration_date
                 
-            cutoff_date = datetime(2025, 4, 8, tzinfo=datetime.timezone.utc)
+            cutoff_date = datetime(2025, 4, 8, tzinfo=timezone.utc)
             
             if reg_date < cutoff_date:
                 return False
