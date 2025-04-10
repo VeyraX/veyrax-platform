@@ -59,7 +59,12 @@ class MailSMTPClient:
         
         try:
             imap_conn = self._get_imap_connection()
-            imap_conn.logout()
+            try:
+                imap_conn.logout()
+            except Exception as logout_error:
+                # Log but ignore errors during logout as we've already verified the connection works
+                # This happens with some Gmail IMAP servers that return unexpected responses on logout
+                pass
         except Exception as e:
             imap_error = e
         

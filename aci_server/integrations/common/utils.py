@@ -477,7 +477,7 @@ def is_usage_limit_exceeded(user_id: str):
             else:
                 reg_date = registration_date
                 
-            cutoff_date = datetime(2025, 4, 8)
+            cutoff_date = datetime(2025, 4, 8, tzinfo=datetime.timezone.utc)
             
             if reg_date < cutoff_date:
                 return False

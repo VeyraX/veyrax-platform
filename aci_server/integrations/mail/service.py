@@ -67,7 +67,11 @@ class MailSMTPService:
             
             # Test IMAP connection
             imap_conn = self.client._get_imap_connection()
-            imap_conn.logout()
+            try:
+                imap_conn.logout()
+            except Exception:
+                # Ignore logout errors as we've already confirmed connection is working
+                pass
             
             response = GenericResponse(
                 success=True,

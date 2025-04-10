@@ -235,7 +235,11 @@ async def validate_key(
                 message_count = len(data[0].split())
                 
                 imap_client.close()
-                imap_client.logout()
+                try:
+                    imap_client.logout()
+                except Exception as logout_error:
+                    # Ignore logout errors as the connection was already established successfully
+                    pass
                 
                 return {
                     "valid": True,
@@ -245,7 +249,11 @@ async def validate_key(
                 }
                 
             except Exception as fetch_error:
-                imap_client.logout()
+                try:
+                    imap_client.logout()
+                except Exception:
+                    # Ignore logout errors
+                    pass
                 return {
                     "valid": False,
                     "message": f"Connected to mail server but couldn't fetch emails: {str(fetch_error)}",
