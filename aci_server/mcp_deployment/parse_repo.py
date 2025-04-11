@@ -57,7 +57,7 @@ def is_text_file(filename: str):
     text_extensions = {
         '.py', '.js', '.ts', '.jsx', '.tsx', '.html', '.css', '.scss', '.json', '.xml',
         '.yml', '.yaml', '.md', '.txt', '.sh', '.bash', '.c', '.cpp', '.h', '.java', 
-        '.rb', '.php', '.go', '.sql', 'json'
+        '.rb', '.php', '.go', '.sql', 'json', 'Dockerfile'
     }
     
     ext = '.' + filename.split('.')[-1].lower() if '.' in filename else ''
