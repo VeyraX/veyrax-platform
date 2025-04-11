@@ -86,6 +86,7 @@ from debug_routes import router as debug_router
 from agent.routes import router as agent_router
 from integrations.falai.route import router as falai_router
 from integrations.whatsapp.route import router as whatsapp_router
+from integrations.apollo.route import router as apollo_router
 from celery_app import celery_app
 from integrations.common.get_memory import get_user_memories
 from integrations.binance_p2p.route import router as binance_p2p_router
@@ -192,7 +193,8 @@ INTEGRATION_ROUTERS = {
     "cal": cal_router,
     "binance_p2p": binance_p2p_router,
     "bybit_p2p": bybit_p2p_router,
-    "okx_p2p": okx_p2p_router
+    "okx_p2p": okx_p2p_router,
+    "apollo": apollo_router
 }
 
 
