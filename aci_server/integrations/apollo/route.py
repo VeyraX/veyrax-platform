@@ -3,17 +3,17 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette.requests import Request as FastAPIRequest
 from typing import Dict, Any
 from .schema import (
-    SearchPersonParams,
-    SearchOrganizationParams,
-    SearchPeopleViaUrlParams,
-    SearchOrganizationsViaUrlParams,
-    PersonDetailsParams,
-    OrganizationDetailsParams,
-    ApiResponse,
-    SearchPersonResponse,
-    SearchOrganizationResponse,
-    PersonDetailResponse,
-    OrganizationDetailResponse
+    SearchPeopleParams,
+    SearchPeopleByUrlParams,
+    SearchOrganizationsParams,
+    SearchOrganizationsByUrlParams,
+    GetPersonDetailsParams,
+    GetOrganizationDetailsParams,
+    SearchPeopleResponse,
+    SearchOrganizationsResponse,
+    PersonDetailsResponse,
+    OrganizationDetailsResponse,
+    ApiResponse
 )
 from .service import ApolloService
 from .client import ApolloClient
@@ -27,8 +27,7 @@ examples = ExamplesLoader()
 
 async def get_apollo_service(request: FastAPIRequest):
     try:
-        #api_key = await validate_provider_api_key(request, "apollo")
-        api_key= os.environ.get("RAPID_API_APOLLO_KEY")
+        api_key = os.getenv("RAPID_API_APOLLO_KEY")
         client = ApolloClient(api_key)
         apply_error_handler_to_client(client)
         service = ApolloService(client)
@@ -44,96 +43,80 @@ async def get_apollo_service(request: FastAPIRequest):
 
 @router.post("/search_people", response_model=ApiResponse)
 @schema(
-    input_schema_class=SearchPersonParams,
-    output_schema_class=SearchPersonResponse,
+    input_schema_class=SearchPeopleParams,
+    output_schema_class=SearchPeopleResponse,
     examples=examples["/apollo/search_people"]
 )
 async def search_people(
     params: Dict[str, Any] = Body(...),
     service: ApolloService = Depends(get_apollo_service)
 ):
-    validated_params = SearchPersonParams(**params)
+    validated_params = SearchPeopleParams(**params)
     return service.search_people(validated_params)
+
+@router.post("/search_people_by_url", response_model=ApiResponse)
+@schema(
+    input_schema_class=SearchPeopleByUrlParams,
+    output_schema_class=SearchPeopleResponse,
+    examples=examples["/apollo/search_people_by_url"]
+)
+async def search_people_by_url(
+    params: Dict[str, Any] = Body(...),
+    service: ApolloService = Depends(get_apollo_service)
+):
+    validated_params = SearchPeopleByUrlParams(**params)
+    return service.search_people_by_url(validated_params)
 
 @router.post("/search_organizations", response_model=ApiResponse)
 @schema(
-    input_schema_class=SearchOrganizationParams,
-    output_schema_class=SearchOrganizationResponse,
+    input_schema_class=SearchOrganizationsParams,
+    output_schema_class=SearchOrganizationsResponse,
     examples=examples["/apollo/search_organizations"]
 )
 async def search_organizations(
     params: Dict[str, Any] = Body(...),
     service: ApolloService = Depends(get_apollo_service)
 ):
-    validated_params = SearchOrganizationParams(**params)
+    validated_params = SearchOrganizationsParams(**params)
     return service.search_organizations(validated_params)
 
-@router.post("/search_people_via_url", response_model=ApiResponse)
+@router.post("/search_organizations_by_url", response_model=ApiResponse)
 @schema(
-    input_schema_class=SearchPeopleViaUrlParams,
-    output_schema_class=SearchPersonResponse,
-    examples=examples["/apollo/search_people_via_url"]
+    input_schema_class=SearchOrganizationsByUrlParams,
+    output_schema_class=SearchOrganizationsResponse,
+    examples=examples["/apollo/search_organizations_by_url"]
 )
-async def search_people_via_url(
+async def search_organizations_by_url(
     params: Dict[str, Any] = Body(...),
     service: ApolloService = Depends(get_apollo_service)
 ):
-    validated_params = SearchPeopleViaUrlParams(**params)
-    return service.search_people_via_url(validated_params)
+    validated_params = SearchOrganizationsByUrlParams(**params)
+    return service.search_organizations_by_url(validated_params)
 
-@router.post("/search_organizations_via_url", response_model=ApiResponse)
+@router.post("/get_person_details", response_model=ApiResponse)
 @schema(
-    input_schema_class=SearchOrganizationsViaUrlParams,
-    output_schema_class=SearchOrganizationResponse,
-    examples=examples["/apollo/search_organizations_via_url"]
+    input_schema_class=GetPersonDetailsParams,
+    output_schema_class=PersonDetailsResponse,
+    examples=examples["/apollo/get_person_details"]
 )
-async def search_organizations_via_url(
+async def get_person_details(
     params: Dict[str, Any] = Body(...),
     service: ApolloService = Depends(get_apollo_service)
 ):
-    validated_params = SearchOrganizationsViaUrlParams(**params)
-    return service.search_organizations_via_url(validated_params)
+    validated_params = GetPersonDetailsParams(**params)
+    return service.get_person_details(validated_params)
 
-@router.post("/person_details", response_model=ApiResponse)
+@router.post("/get_organization_details", response_model=ApiResponse)
 @schema(
-    input_schema_class=PersonDetailsParams,
-    output_schema_class=PersonDetailResponse,
-    examples=examples["/apollo/person_details"]
+    input_schema_class=GetOrganizationDetailsParams,
+    output_schema_class=OrganizationDetailsResponse,
+    examples=examples["/apollo/get_organization_details"]
 )
-async def person_details(
+async def get_organization_details(
     params: Dict[str, Any] = Body(...),
     service: ApolloService = Depends(get_apollo_service)
 ):
-    validated_params = PersonDetailsParams(**params)
-    return service.person_details(validated_params)
-
-@router.post("/organization_details", response_model=ApiResponse)
-@schema(
-    input_schema_class=OrganizationDetailsParams,
-    output_schema_class=OrganizationDetailResponse,
-    examples=examples.get("/apollo/organization_details", [])
-)
-async def organization_details(
-    params: Dict[str, Any] = Body(...),
-    service: ApolloService = Depends(get_apollo_service)
-):
-    validated_params = OrganizationDetailsParams(**params)
-    return service.organization_details(validated_params)
-
-@router.post("/validate_key")
-async def validate_key(
-    params: Dict[str, Any] = Body(...)
-):
-    try:
-        api_key = params.get("api_key")
-        if not api_key:
-            return {"valid": False, "message": "API key is required"}
-        
-        client = ApolloClient(api_key)
-        test_params = {"q_person_name": "test", "page": 1}
-        client.search_people(test_params)
-        return {"valid": True, "message": "API key is valid"}
-    except Exception as e:
-        return {"valid": False, "message": "Invalid API key"}
+    validated_params = GetOrganizationDetailsParams(**params)
+    return service.get_organization_details(validated_params)
 
 apply_error_handler_to_router(router)

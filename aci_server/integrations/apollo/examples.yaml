@@ -1,8 +1,8 @@
 routes:
   - endpoint: /apollo/search_people
     examples:
-      - scenario: "Search for People by Name"
-        description: "Search for people with a specific name"
+      - scenario: "Search for people by name"
+        description: "Search for people with the name Ali"
         input_json: |
           {
             "q_person_name": "Ali",
@@ -11,472 +11,156 @@ routes:
         output_json: |
           {
             "data": {
-              "data": {
-                "people": [
-                  {
-                    "id": "5e67ce97bd8dd600019d1d5f",
-                    "first_name": "Ali",
-                    "last_name": "Ali",
-                    "name": "Ali Ali",
-                    "linkedin_url": "http://www.linkedin.com/in/alishaikhali",
-                    "title": "Online Account Manager",
-                    "email_status": "verified",
-                    "photo_url": "https://media-exp1.licdn.com/dms/image/C4E03AQGcqp1WcCjNig/profile-displayphoto-shrink_800_800/0/1627149243889?e=2147483647&v=beta&t=i1q2enQQLfzZlc7YjPse0uwBiqN7bkUCht4U-Ez5-8I",
-                    "headline": "Strategy | Projects | Change Management",
-                    "email": "email_not_unlocked@domain.com",
-                    "organization_id": "556d71e473696411e3b11c01",
-                    "state": "Northern Governorate",
-                    "city": null,
-                    "country": "Bahrain",
-                    "is_likely_to_engage": false,
-                    "departments": ["master_sales"],
-                    "subdepartments": ["account_management"],
-                    "seniority": "manager",
-                    "functions": [],
-                    "revealed_for_current_team": true,
-                    "employment_history": [
-                      {
-                        "id": "6656b3629178420001b463a5",
-                        "title": "Online Account Manager",
-                        "current": true,
-                        "start_date": "2021-03-01",
-                        "end_date": null,
-                        "organization_id": "556d71e473696411e3b11c01",
-                        "organization_name": "talabat"
-                      }
-                    ],
-                    "organization": {
-                      "id": "556d71e473696411e3b11c01",
-                      "name": "talabat",
-                      "website_url": "http://www.talabat.com",
-                      "linkedin_url": "http://www.linkedin.com/company/talabat-com",
-                      "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c8925b64a6b5000119741e/picture",
-                      "founded_year": 2004,
-                      "phone": "+971 800 117117",
-                      "primary_domain": "talabat.com"
-                    },
-                    "phone_numbers": [
-                      {
-                        "raw_number": "+971 800 117117",
-                        "sanitized_number": "+971800117117",
-                        "type": "work_hq"
-                      }
-                    ]
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 462125,
-                  "total_pages": 18485
+              "people": [
+                {
+                  "id": "5e67ce97bd8dd600019d1d5f",
+                  "first_name": "Ali",
+                  "last_name": "Ali",
+                  "name": "Ali Ali",
+                  "linkedin_url": "http://www.linkedin.com/in/alishaikhali",
+                  "title": "Online Account Manager",
+                  "email_status": "verified",
+                  "photo_url": "https://media-exp1.licdn.com/dms/image/C4E03AQGcqp1WcCjNig/profile-displayphoto-shrink_800_800/0/1627149243889?e=2147483647&v=beta&t=i1q2enQQLfzZlc7YjPse0uwBiqN7bkUCht4U-Ez5-8I",
+                  "headline": "Strategy | Projects | Change Management",
+                  "email": "email_not_unlocked@domain.com",
+                  "organization_id": "556d71e473696411e3b11c01",
+                  "employment_history": [
+                    {
+                      "id": "6656b3629178420001b463a5",
+                      "title": "Online Account Manager",
+                      "organization_name": "talabat",
+                      "organization_id": "556d71e473696411e3b11c01",
+                      "start_date": "2021-03-01",
+                      "current": true
+                    }
+                  ],
+                  "country": "Bahrain",
+                  "state": "Northern Governorate",
+                  "city": null,
+                  "organization": {
+                    "id": "556d71e473696411e3b11c01",
+                    "name": "talabat",
+                    "website_url": "http://www.talabat.com",
+                    "linkedin_url": "http://www.linkedin.com/company/talabat-com",
+                    "phone": "+971 800 117117",
+                    "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c8925b64a6b5000119741e/picture"
+                  },
+                  "departments": [
+                    "master_sales"
+                  ],
+                  "seniority": "manager",
+                  "phone_numbers": [
+                    {
+                      "raw_number": "+971 800 117117",
+                      "sanitized_number": "+971800117117",
+                      "type": "work_hq"
+                    }
+                  ]
                 }
-              }
-            },
-            "component": {
-              "name": "ApolloPersonCard",
-              "type": "card",
-              "properties": {
-                "title": "Person Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Ali Ali"
-                  },
-                  {
-                    "key": "title",
-                    "label": "Title",
-                    "value": "Online Account Manager"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/in/alishaikhali",
-                    "type": "link"
-                  },
-                  {
-                    "key": "email",
-                    "label": "Email",
-                    "value": "email_not_unlocked@domain.com"
-                  },
-                  {
-                    "key": "organization.name",
-                    "label": "Company",
-                    "value": "talabat"
-                  },
-                  {
-                    "key": "location",
-                    "label": "Location",
-                    "value": "Northern Governorate, Bahrain"
-                  },
-                  {
-                    "key": "phone_numbers",
-                    "label": "Phone",
-                    "value": "+971 800 117117"
-                  }
-                ]
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 462125,
+                "total_pages": 18485
               }
             }
           }
-
-      - scenario: "Search by Job Title and Location"
-        description: "Search for people with specific job titles in a particular location"
+      - scenario: "Search for people with location filter"
+        description: "Search for people with specific location filter"
         input_json: |
           {
-            "person_titles": "CEO,CTO,Chief Executive Officer",
-            "person_locations": "United States",
-            "page": 1
+            "q_person_name": "Ali",
+            "page": 1,
+            "person_locations": "United States"
           }
         output_json: |
           {
             "data": {
-              "data": {
-                "people": [
-                  {
-                    "id": "61154c078246c600012559ff",
-                    "first_name": "Ali",
-                    "last_name": "Ali",
-                    "name": "Ali Ali",
-                    "linkedin_url": "http://www.linkedin.com/in/ali-el-ali-6a017825",
-                    "title": "Chief Executive Officer",
-                    "email_status": "verified",
-                    "photo_url": null,
-                    "headline": "Chief Executive Officer at Zakher Marine International",
-                    "email": "email_not_unlocked@domain.com",
-                    "organization_id": "556d62f07369641202060a01",
-                    "state": "Abu Dhabi",
-                    "city": "Abu Dhabi",
-                    "country": "United Arab Emirates",
-                    "is_likely_to_engage": true,
-                    "departments": ["c_suite"],
-                    "subdepartments": ["executive"],
-                    "seniority": "c_suite",
-                    "functions": [],
-                    "revealed_for_current_team": true,
-                    "employment_history": [
-                      {
-                        "id": "66c277c7a898f000014490c6",
-                        "title": "Chief Executive Officer",
-                        "current": true,
-                        "start_date": "2022-11-01",
-                        "end_date": null,
-                        "organization_id": "556d62f07369641202060a01",
-                        "organization_name": "Zakher Marine International Inc"
-                      }
-                    ],
-                    "organization": {
-                      "id": "556d62f07369641202060a01",
-                      "name": "ZMI Holdings",
-                      "website_url": "http://www.zmiglobal.com",
-                      "linkedin_url": "http://www.linkedin.com/company/zakher-marine-international-inc",
-                      "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c9ce957e4c780001fa0d1a/picture",
-                      "founded_year": 1984,
-                      "phone": "+971 2 551 5151",
-                      "primary_domain": "zmiglobal.com"
-                    },
-                    "phone_numbers": [
-                      {
-                        "raw_number": "+971 2 551 5151",
-                        "sanitized_number": "+97125515151",
-                        "type": "work_hq"
-                      }
-                    ]
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 1200,
-                  "total_pages": 48
+              "people": [
+                {
+                  "id": "640b68874a12b00001723e9f",
+                  "first_name": "Ali",
+                  "last_name": "Ali",
+                  "name": "Ali Ali",
+                  "linkedin_url": "http://www.linkedin.com/in/ali-khaleel-ali",
+                  "title": "Head Of Sales & Customer Success",
+                  "email_status": "verified",
+                  "headline": "Head Of Sales & Customer Success at GetAccept",
+                  "email": "email_not_unlocked@domain.com",
+                  "organization_id": "5cd244d79684ed09712f7e6d",
+                  "country": "United States",
+                  "state": "New York",
+                  "city": "New York",
+                  "organization": {
+                    "id": "5cd244d79684ed09712f7e6d",
+                    "name": "GetAccept",
+                    "website_url": "http://www.getaccept.com",
+                    "linkedin_url": "http://www.linkedin.com/company/getaccept"
+                  },
+                  "departments": [
+                    "master_sales"
+                  ],
+                  "seniority": "head"
                 }
-              }
-            },
-            "component": {
-              "name": "ApolloPersonCard",
-              "type": "card",
-              "properties": {
-                "title": "Person Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Ali Ali"
-                  },
-                  {
-                    "key": "title",
-                    "label": "Title",
-                    "value": "Chief Executive Officer"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/in/ali-el-ali-6a017825",
-                    "type": "link"
-                  },
-                  {
-                    "key": "email",
-                    "label": "Email",
-                    "value": "email_not_unlocked@domain.com"
-                  },
-                  {
-                    "key": "organization.name",
-                    "label": "Company",
-                    "value": "ZMI Holdings"
-                  },
-                  {
-                    "key": "location",
-                    "label": "Location",
-                    "value": "Abu Dhabi, Abu Dhabi, United Arab Emirates"
-                  },
-                  {
-                    "key": "phone_numbers",
-                    "label": "Phone",
-                    "value": "+971 2 551 5151"
-                  }
-                ]
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 12845,
+                "total_pages": 514
               }
             }
           }
-
-  - endpoint: /apollo/search_people_via_url
+  - endpoint: /apollo/search_people_by_url
     examples:
-      - scenario: "Search People Using Apollo URL"
-        description: "Search for people using an Apollo URL"
+      - scenario: "Search for people by URL"
+        description: "Search for people using an Apollo.io search URL"
         input_json: |
           {
-            "apollo_url": "https://app.apollo.io/#/people?finderViewId=5f4ea921d7cdbc00012c8d13",
+            "url": "https://app.apollo.io/#/people?sortAscending=false&sortByField=%5Bnone%5D&page=1&qKeywords=ali&contactEmailStatusV2[]=verified&organizationNumEmployeesRanges[]=10001",
             "page": 1
           }
         output_json: |
           {
             "data": {
-              "data": {
-                "people": [
-                  {
-                    "id": "5e67ce97bd8dd600019d1d5f",
-                    "first_name": "John",
-                    "last_name": "Doe",
-                    "name": "John Doe",
-                    "linkedin_url": "http://www.linkedin.com/in/johndoe",
-                    "title": "Software Engineer",
-                    "email_status": "verified",
-                    "photo_url": "https://media-exp1.licdn.com/dms/image/profile-photo.jpg",
-                    "headline": "Building innovative solutions",
-                    "email": "email_not_unlocked@domain.com",
-                    "organization_id": "556d71e473696411e3b11c01",
-                    "state": "California",
-                    "city": "San Francisco",
-                    "country": "United States",
-                    "is_likely_to_engage": true,
-                    "departments": ["engineering"],
-                    "subdepartments": ["software_engineering"],
-                    "seniority": "senior",
-                    "functions": [],
-                    "revealed_for_current_team": true,
-                    "employment_history": [
-                      {
-                        "id": "6656b3629178420001b463a5",
-                        "title": "Software Engineer",
-                        "current": true,
-                        "start_date": "2020-05-01",
-                        "end_date": null,
-                        "organization_id": "556d71e473696411e3b11c01",
-                        "organization_name": "Tech Company"
-                      }
-                    ],
-                    "organization": {
-                      "id": "556d71e473696411e3b11c01",
-                      "name": "Tech Company",
-                      "website_url": "http://www.techcompany.com",
-                      "linkedin_url": "http://www.linkedin.com/company/techcompany",
-                      "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/logo.png",
-                      "founded_year": 2010,
-                      "phone": "+1 (555) 123-4567",
-                      "primary_domain": "techcompany.com"
-                    },
-                    "phone_numbers": [
-                      {
-                        "raw_number": "+1 (555) 123-4567",
-                        "sanitized_number": "+15551234567",
-                        "type": "work_hq"
-                      }
-                    ]
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 1500,
-                  "total_pages": 60
+              "people": [
+                {
+                  "id": "5d59849b80f93e10b657db95",
+                  "first_name": "Ali",
+                  "last_name": "A",
+                  "name": "Ali A",
+                  "linkedin_url": null,
+                  "title": "Support Engineer III",
+                  "email_status": "verified",
+                  "photo_url": "https://media.licdn.com/dms/image/v2/D5603AQFLA6_1BzboTA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1728282427968?e=2147483647&v=beta&t=TgT0Tvk0--mXmllE7Zuc5k_ZHLCxpP4tPJNKWXcInOQ",
+                  "headline": "Support Engineer III",
+                  "email": "email_not_unlocked@domain.com",
+                  "organization_id": "5f2987132c142600daf44da0",
+                  "employment_history": [
+                    {
+                      "id": "67821e05623fc00001f1bc8e",
+                      "title": "Support Engineer III",
+                      "organization_name": "Amazon Web Services (AWS)",
+                      "organization_id": "5f2987132c142600daf44da0",
+                      "start_date": "2024-07-01",
+                      "current": true
+                    }
+                  ]
                 }
-              }
-            },
-            "component": {
-              "name": "ApolloPersonCard",
-              "type": "card",
-              "properties": {
-                "title": "Person Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "John Doe"
-                  },
-                  {
-                    "key": "title",
-                    "label": "Title",
-                    "value": "Software Engineer"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/in/johndoe",
-                    "type": "link"
-                  },
-                  {
-                    "key": "email",
-                    "label": "Email",
-                    "value": "email_not_unlocked@domain.com"
-                  },
-                  {
-                    "key": "organization.name",
-                    "label": "Company",
-                    "value": "Tech Company"
-                  },
-                  {
-                    "key": "location",
-                    "label": "Location",
-                    "value": "San Francisco, California, United States"
-                  },
-                  {
-                    "key": "phone_numbers",
-                    "label": "Phone",
-                    "value": "+1 (555) 123-4567"
-                  }
-                ]
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 54734,
+                "total_pages": 2190
               }
             }
           }
-
-  - endpoint: /apollo/search_organizations_via_url
-    examples:
-      - scenario: "Search Organizations Using Apollo URL"
-        description: "Search for organizations using an Apollo URL"
-        input_json: |
-          {
-            "apollo_url": "https://app.apollo.io/#/companies?organizationNumEmployeesRanges[]=10001&page=1&sortByField=%5Bnone%5D&sortAscending=false&organizationIds[]=5fcd2cf3ed78c700f9383e4e",
-            "page": 1
-          }
-        output_json: |
-          {
-            "data": {
-              "data": {
-                "organizations": [
-                  {
-                    "id": "5fcd2cf3ed78c700f9383e4e",
-                    "name": "Apple",
-                    "website_url": "http://www.apple.com",
-                    "blog_url": null,
-                    "angellist_url": null,
-                    "linkedin_url": "http://www.linkedin.com/company/apple",
-                    "twitter_url": "https://twitter.com/apple",
-                    "facebook_url": "https://facebook.com/apple/",
-                    "primary_phone": {
-                      "number": "+1 408-996-1010",
-                      "source": "Owler",
-                      "sanitized_number": "+14089961010"
-                    },
-                    "languages": [],
-                    "alexa_ranking": 46,
-                    "phone": "+1 408-996-1010",
-                    "linkedin_uid": "162479",
-                    "founded_year": 1976,
-                    "publicly_traded_symbol": "AAPL",
-                    "publicly_traded_exchange": "nasdaq",
-                    "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/678ab2195bae1d0001127e39/picture",
-                    "crunchbase_url": null,
-                    "primary_domain": "apple.com",
-                    "sanitized_phone": "+14089961010",
-                    "market_cap": "3476.3B",
-                    "owned_by_organization_id": null,
-                    "organization_revenue_printed": "391B",
-                    "organization_revenue": 391035000000,
-                    "intent_strength": null,
-                    "show_intent": true,
-                    "has_intent_signal_account": false,
-                    "intent_signal_account": null
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 1,
-                  "total_pages": 1
-                }
-              }
-            },
-            "component": {
-              "name": "ApolloOrganizationCard",
-              "type": "card",
-              "properties": {
-                "title": "Organization Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Apple"
-                  },
-                  {
-                    "key": "website_url",
-                    "label": "Website",
-                    "value": "http://www.apple.com",
-                    "type": "link"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/company/apple",
-                    "type": "link"
-                  },
-                  {
-                    "key": "founded_year",
-                    "label": "Founded",
-                    "value": "1976"
-                  },
-                  {
-                    "key": "phone",
-                    "label": "Phone",
-                    "value": "+1 408-996-1010"
-                  },
-                  {
-                    "key": "primary_domain",
-                    "label": "Domain",
-                    "value": "apple.com"
-                  },
-                  {
-                    "key": "publicly_traded_symbol",
-                    "label": "Symbol",
-                    "value": "AAPL (NASDAQ)"
-                  },
-                  {
-                    "key": "market_cap",
-                    "label": "Market Cap",
-                    "value": "3476.3B"
-                  },
-                  {
-                    "key": "organization_revenue_printed",
-                    "label": "Revenue",
-                    "value": "391B"
-                  }
-                ]
-              }
-            }
-          }
-
   - endpoint: /apollo/search_organizations
     examples:
-      - scenario: "Search Organizations by Name"
-        description: "Search for organizations with a specific name"
+      - scenario: "Search for organizations by name"
+        description: "Search for organizations with the name Google"
         input_json: |
           {
             "q_organization_name": "Google",
@@ -485,233 +169,161 @@ routes:
         output_json: |
           {
             "data": {
-              "data": {
-                "organizations": [
-                  {
-                    "id": "5fc93db64c38d300d6aa24e6",
-                    "name": "Google",
-                    "website_url": "http://www.google.com",
-                    "blog_url": null,
-                    "angellist_url": "http://angel.co/category-five",
-                    "linkedin_url": "http://www.linkedin.com/company/google",
-                    "twitter_url": "http://twitter.com/Cat5BoatShoes.com",
-                    "facebook_url": "https://facebook.com/Google",
-                    "primary_phone": {
-                      "number": "+1 650-253-0000",
-                      "source": "Owler",
-                      "sanitized_number": "+16502530000"
-                    },
-                    "languages": [],
-                    "alexa_ranking": 9,
-                    "phone": "+1 650-253-0000",
-                    "linkedin_uid": "1441",
-                    "founded_year": 1998,
-                    "publicly_traded_symbol": "GOOGL",
-                    "publicly_traded_exchange": "nasdaq",
-                    "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c85751eaf6150001f1ced7/picture",
-                    "crunchbase_url": null,
-                    "primary_domain": "google.com",
-                    "sanitized_phone": "+16502530000",
-                    "market_cap": "652.3B",
-                    "owned_by_organization_id": "57c4a824a6da98411e7df3eb",
-                    "owned_by_organization": {
-                      "id": "57c4a824a6da98411e7df3eb",
-                      "name": "Alphabet Inc.",
-                      "website_url": "http://www.abc.xyz"
-                    },
-                    "intent_strength": null,
-                    "show_intent": true,
-                    "has_intent_signal_account": false,
-                    "intent_signal_account": null
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 3537,
-                  "total_pages": 142
+              "organizations": [
+                {
+                  "id": "5c1f1313f6512508ccd47732",
+                  "name": "Google SEO (Page 1 Google)",
+                  "website_url": "http://www.page1google.co.uk",
+                  "linkedin_url": "http://www.linkedin.com/company/google-seo-page-1-google-",
+                  "primary_phone": {
+                    "number": "(877) 123-4567",
+                    "source": "Scraped",
+                    "sanitized_number": "+18771234567"
+                  },
+                  "languages": ["English"],
+                  "phone": "(877) 123-4567",
+                  "linkedin_uid": "2486941",
+                  "founded_year": 2006,
+                  "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/665fc29257083a0001ace6d6/picture",
+                  "primary_domain": "page1google.co.uk",
+                  "sanitized_phone": "+18771234567",
+                  "show_intent": true,
+                  "has_intent_signal_account": false
+                },
+                {
+                  "id": "556e2818736964112ca72901",
+                  "name": "GV (Google Ventures)",
+                  "website_url": "http://www.gv.com",
+                  "angellist_url": "http://angel.co/googleventures",
+                  "linkedin_url": "http://www.linkedin.com/company/googleventures",
+                  "twitter_url": "http://twitter.com/GoogleVentures",
+                  "facebook_url": "https://www.facebook.com/pages/Google-Ventures/108115639210191",
+                  "primary_phone": {
+                    "number": "+1 650-214-2003",
+                    "source": "Owler",
+                    "sanitized_number": "+16502142003"
+                  },
+                  "languages": ["English", "English"],
+                  "alexa_ranking": 349547,
+                  "phone": "+1 650-214-2003",
+                  "linkedin_uid": "2365165",
+                  "founded_year": 2009,
+                  "publicly_traded_exchange": "nyse",
+                  "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c8acf44126e50001f8750f/picture",
+                  "primary_domain": "gv.com",
+                  "sanitized_phone": "+16502142003",
+                  "owned_by_organization_id": "57c4a824a6da98411e7df3eb",
+                  "owned_by_organization": {
+                    "id": "57c4a824a6da98411e7df3eb",
+                    "name": "Alphabet Inc.",
+                    "website_url": "http://www.abc.xyz"
+                  },
+                  "show_intent": true,
+                  "has_intent_signal_account": false
                 }
-              }
-            },
-            "component": {
-              "name": "ApolloOrganizationCard",
-              "type": "card",
-              "properties": {
-                "title": "Organization Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Google"
-                  },
-                  {
-                    "key": "website_url",
-                    "label": "Website",
-                    "value": "http://www.google.com",
-                    "type": "link"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/company/google",
-                    "type": "link"
-                  },
-                  {
-                    "key": "founded_year",
-                    "label": "Founded",
-                    "value": "1998"
-                  },
-                  {
-                    "key": "phone",
-                    "label": "Phone",
-                    "value": "+1 650-253-0000"
-                  },
-                  {
-                    "key": "primary_domain",
-                    "label": "Domain",
-                    "value": "google.com"
-                  },
-                  {
-                    "key": "publicly_traded_symbol",
-                    "label": "Symbol",
-                    "value": "GOOGL (NASDAQ)"
-                  },
-                  {
-                    "key": "market_cap",
-                    "label": "Market Cap",
-                    "value": "652.3B"
-                  }
-                ]
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 3537,
+                "total_pages": 142
               }
             }
           }
-          
-      - scenario: "Search Organizations by Employee Size and Industry"
-        description: "Search for large organizations in a specific industry"
+      - scenario: "Search for organizations with employee count filter"
+        description: "Search for organizations with specific employee count range"
         input_json: |
           {
-            "organization_num_employees_ranges": "10001",
-            "organization_industry_tag_ids": "5567e1337369641ad2970000",
+            "q_organization_name": "Google",
+            "page": 1,
+            "organization_num_employees_ranges": "10001"
+          }
+        output_json: |
+          {
+            "data": {
+              "organizations": [
+                {
+                  "id": "57c4a824a6da98411e7df3eb",
+                  "name": "Alphabet Inc.",
+                  "website_url": "http://www.abc.xyz",
+                  "linkedin_url": "http://www.linkedin.com/company/alphabet-inc-",
+                  "linkedin_uid": "10210080",
+                  "founded_year": 2015,
+                  "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c886f9f7a1010001731bd5/picture",
+                  "primary_domain": "abc.xyz",
+                  "show_intent": true,
+                  "has_intent_signal_account": false
+                }
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 25,
+                "total_pages": 1
+              }
+            }
+          }
+  - endpoint: /apollo/search_organizations_by_url
+    examples:
+      - scenario: "Search for organizations by URL"
+        description: "Search for organizations using an Apollo.io search URL"
+        input_json: |
+          {
+            "url": "https://app.apollo.io/#/companies?organizationNumEmployeesRanges[]=10001&page=1&sortByField=%5Bnone%5D&sortAscending=false&organizationIds[]=5fcd2cf3ed78c700f9383e4e",
             "page": 1
           }
         output_json: |
           {
             "data": {
-              "data": {
-                "organizations": [
-                  {
-                    "id": "5fcd2cf3ed78c700f9383e4e",
-                    "name": "Apple",
-                    "website_url": "http://www.apple.com",
-                    "blog_url": null,
-                    "angellist_url": null,
-                    "linkedin_url": "http://www.linkedin.com/company/apple",
-                    "twitter_url": "https://twitter.com/apple",
-                    "facebook_url": "https://facebook.com/apple/",
-                    "primary_phone": {
-                      "number": "+1 408-996-1010",
-                      "source": "Owler",
-                      "sanitized_number": "+14089961010"
-                    },
-                    "languages": [],
-                    "alexa_ranking": 46,
-                    "phone": "+1 408-996-1010",
-                    "linkedin_uid": "162479",
-                    "founded_year": 1976,
-                    "publicly_traded_symbol": "AAPL",
-                    "publicly_traded_exchange": "nasdaq",
-                    "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/678ab2195bae1d0001127e39/picture",
-                    "crunchbase_url": null,
-                    "primary_domain": "apple.com",
-                    "sanitized_phone": "+14089961010",
-                    "market_cap": "3476.3B",
-                    "owned_by_organization_id": null,
-                    "organization_revenue_printed": "391B",
-                    "organization_revenue": 391035000000,
-                    "intent_strength": null,
-                    "show_intent": true,
-                    "has_intent_signal_account": false,
-                    "intent_signal_account": null
-                  }
-                ],
-                "pagination": {
-                  "page": 1,
-                  "per_page": 25,
-                  "total_entries": 1,
-                  "total_pages": 1
+              "organizations": [
+                {
+                  "id": "5fcd2cf3ed78c700f9383e4e",
+                  "name": "Apple",
+                  "website_url": "http://www.apple.com",
+                  "linkedin_url": "http://www.linkedin.com/company/apple",
+                  "twitter_url": "https://twitter.com/apple",
+                  "facebook_url": "https://facebook.com/apple/",
+                  "primary_phone": {
+                    "number": "+1 408-996-1010",
+                    "source": "Owler",
+                    "sanitized_number": "+14089961010"
+                  },
+                  "alexa_ranking": 46,
+                  "phone": "+1 408-996-1010",
+                  "linkedin_uid": "162479",
+                  "founded_year": 1976,
+                  "publicly_traded_symbol": "AAPL",
+                  "publicly_traded_exchange": "nasdaq",
+                  "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/678ab2195bae1d0001127e39/picture",
+                  "primary_domain": "apple.com",
+                  "sanitized_phone": "+14089961010",
+                  "market_cap": "3476.3B",
+                  "organization_revenue_printed": "391B",
+                  "organization_revenue": 391035000000,
+                  "show_intent": true,
+                  "has_intent_signal_account": false
                 }
-              }
-            },
-            "component": {
-              "name": "ApolloOrganizationCard",
-              "type": "card",
-              "properties": {
-                "title": "Organization Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Apple"
-                  },
-                  {
-                    "key": "website_url",
-                    "label": "Website",
-                    "value": "http://www.apple.com",
-                    "type": "link"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/company/apple",
-                    "type": "link"
-                  },
-                  {
-                    "key": "founded_year",
-                    "label": "Founded",
-                    "value": "1976"
-                  },
-                  {
-                    "key": "phone",
-                    "label": "Phone",
-                    "value": "+1 408-996-1010"
-                  },
-                  {
-                    "key": "primary_domain",
-                    "label": "Domain",
-                    "value": "apple.com"
-                  },
-                  {
-                    "key": "publicly_traded_symbol",
-                    "label": "Symbol",
-                    "value": "AAPL (NASDAQ)"
-                  },
-                  {
-                    "key": "market_cap",
-                    "label": "Market Cap",
-                    "value": "3476.3B"
-                  },
-                  {
-                    "key": "organization_revenue_printed",
-                    "label": "Revenue",
-                    "value": "391B"
-                  }
-                ]
+              ],
+              "pagination": {
+                "page": 1,
+                "per_page": 25,
+                "total_entries": 1,
+                "total_pages": 1
               }
             }
           }
-
-  - endpoint: /apollo/person_details
+  - endpoint: /apollo/get_person_details
     examples:
-      - scenario: "Get Person Details"
+      - scenario: "Get person details by ID"
         description: "Fetch detailed information about a person using their Apollo ID"
         input_json: |
           {
-            "person_id": "54a2f5ae74686933184eb149"
+            "person_id": "66f9c102d1c6fd0001731b70"
           }
         output_json: |
           {
             "data": {
-              "data": {
+              "person": {
                 "id": "54a2f5ae74686933184eb149",
                 "first_name": "Paul",
                 "last_name": "S",
@@ -723,55 +335,19 @@ routes:
                 "twitter_url": null,
                 "github_url": null,
                 "facebook_url": null,
+                "extrapolated_email_confidence": null,
                 "headline": "Sales Lead, Google Maps",
                 "email": "email_not_unlocked@domain.com",
                 "organization_id": "5fc93db64c38d300d6aa24e6",
-                "employment_history": [
-                  {
-                    "id": "66c248667e38200001d815ae",
-                    "title": "Enterprise Sales Manager",
-                    "current": true,
-                    "start_date": "2007-04-01",
-                    "end_date": null,
-                    "organization_id": "5fc93db64c38d300d6aa24e6",
-                    "organization_name": "Google"
-                  },
-                  {
-                    "id": "66c248667e38200001d815af",
-                    "title": "Regional Sales Manager",
-                    "current": false,
-                    "start_date": "2005-11-01",
-                    "end_date": "2007-03-01",
-                    "organization_id": "5d33d0d1a3ae6113e19b1674",
-                    "organization_name": "IBM"
-                  },
-                  {
-                    "id": "66c248667e38200001d815b0",
-                    "title": "Regional Sales Manager",
-                    "current": false,
-                    "start_date": "2000-11-01",
-                    "end_date": "2005-11-01",
-                    "organization_id": "55923448736964583ee26100",
-                    "organization_name": "iPhrase Technologies"
-                  }
-                ],
                 "state": "California",
                 "city": "Los Angeles",
                 "country": "United States",
+                "restricted": true,
                 "organization": {
                   "id": "5fc93db64c38d300d6aa24e6",
-                  "name": "Google",
-                  "website_url": "http://www.google.com",
-                  "linkedin_url": "http://www.linkedin.com/company/google",
-                  "twitter_url": "http://twitter.com/Cat5BoatShoes.com",
-                  "facebook_url": "https://facebook.com/Google",
-                  "blog_url": null,
-                  "angellist_url": "http://angel.co/category-five",
-                  "phone": "+1 650-253-0000",
-                  "primary_domain": "google.com",
-                  "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c85751eaf6150001f1ced7/picture",
-                  "founded_year": 1998
+                  "name": "Google"
                 },
+                "is_likely_to_engage": false,
                 "phone_numbers": [
                   {
                     "raw_number": "+1 650-253-0000",
@@ -779,58 +355,19 @@ routes:
                     "type": "work_hq"
                   }
                 ],
-                "is_likely_to_engage": false
-              }
-            },
-            "component": {
-              "name": "ApolloPersonCard",
-              "type": "card",
-              "properties": {
-                "title": "Person Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Paul S"
-                  },
-                  {
-                    "key": "title",
-                    "label": "Title",
-                    "value": "Enterprise Sales Manager"
-                  },
-                  {
-                    "key": "headline",
-                    "label": "Headline",
-                    "value": "Sales Lead, Google Maps"
-                  },
-                  {
-                    "key": "organization.name",
-                    "label": "Company",
-                    "value": "Google"
-                  },
-                  {
-                    "key": "location",
-                    "label": "Location",
-                    "value": "Los Angeles, California, United States"
-                  },
-                  {
-                    "key": "employment_history",
-                    "label": "Employment History",
-                    "value": [
-                      "Enterprise Sales Manager at Google (2007-04-01 to Present)",
-                      "Regional Sales Manager at IBM (2005-11-01 to 2007-03-01)",
-                      "Regional Sales Manager at iPhrase Technologies (2000-11-01 to 2005-11-01)"
-                    ],
-                    "type": "list"
-                  }
-                ]
+                "position": 0,
+                "status": "no_status",
+                "dnc_status": null,
+                "dnc_other_info": null,
+                "dialer_flags": null,
+                "intent_strength": null,
+                "show_intent": false
               }
             }
           }
-
-  - endpoint: /apollo/organization_details
+  - endpoint: /apollo/get_organization_details
     examples:
-      - scenario: "Get Organization Details"
+      - scenario: "Get organization details by ID"
         description: "Fetch detailed information about an organization using its Apollo ID"
         input_json: |
           {
@@ -839,20 +376,15 @@ routes:
         output_json: |
           {
             "data": {
-              "data": {
+              "organization": {
                 "id": "5fc93db64c38d300d6aa24e6",
                 "name": "Google",
                 "website_url": "http://www.google.com",
                 "blog_url": null,
                 "angellist_url": "http://angel.co/category-five",
                 "linkedin_url": "http://www.linkedin.com/company/google",
-                "twitter_url": "http://twitter.com/google",
+                "twitter_url": "http://twitter.com/Cat5BoatShoes.com",
                 "facebook_url": "https://facebook.com/Google",
-                "primary_phone": {
-                  "number": "+1 650-253-0000",
-                  "source": "Owler",
-                  "sanitized_number": "+16502530000"
-                },
                 "alexa_ranking": 9,
                 "phone": "+1 650-253-0000",
                 "linkedin_uid": "1441",
@@ -862,103 +394,27 @@ routes:
                 "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/66c85751eaf6150001f1ced7/picture",
                 "primary_domain": "google.com",
                 "sanitized_phone": "+16502530000",
-                "market_cap": "1892.3B",
+                "market_cap": "652.3B",
                 "industry": "information technology & services",
                 "estimated_num_employees": 290000,
-                "annual_revenue": 766400000000,
-                "annual_revenue_printed": "766.4B",
+                "raw_address": "1600 Amphitheatre Parkway, Mountain View, CA 94043, US",
                 "street_address": "1600 Amphitheatre Parkway",
                 "city": "Mountain View",
                 "state": "California",
                 "postal_code": "94043",
                 "country": "United States",
-                "keywords": [
-                  "search",
-                  "ads",
-                  "mobile",
-                  "android",
-                  "cloud",
-                  "artificial intelligence"
-                ],
-                "industries": [
-                  "information technology & services",
-                  "internet",
-                  "computer software"
-                ],
-                "technology_names": [
-                  "Google Analytics",
-                  "Google Cloud",
-                  "Google Ads",
-                  "Google Maps",
-                  "Gmail"
-                ],
+                "owned_by_organization_id": "57c4a824a6da98411e7df3eb",
+                "seo_description": "Search the world's information, including webpages, images, videos and more. Google has many special features to help you find exactly what you're looking for.",
+                "short_description": "Google is a California-based multinational technology company that offers internet-related services such as a search engine, online advertising and cloud computing.",
+                "num_suborganizations": 169,
+                "annual_revenue_printed": "766.4B",
+                "annual_revenue": 766400000000,
+                "org_chart_sector": "OrgChart::SectorHierarchy::Rules::IT",
+                "org_chart_removed": true,
+                "org_chart_show_department_filter": true,
+                "has_intent_signal_account": false,
+                "show_intent": false,
                 "detail_view_loaded": true
-              }
-            },
-            "component": {
-              "name": "ApolloOrganizationCard",
-              "type": "card",
-              "properties": {
-                "title": "Organization Details",
-                "fields": [
-                  {
-                    "key": "name",
-                    "label": "Name",
-                    "value": "Google"
-                  },
-                  {
-                    "key": "website_url",
-                    "label": "Website",
-                    "value": "http://www.google.com",
-                    "type": "link"
-                  },
-                  {
-                    "key": "linkedin_url",
-                    "label": "LinkedIn",
-                    "value": "http://www.linkedin.com/company/google",
-                    "type": "link"
-                  },
-                  {
-                    "key": "industry",
-                    "label": "Industry",
-                    "value": "information technology & services"
-                  },
-                  {
-                    "key": "founded_year",
-                    "label": "Founded",
-                    "value": "1998"
-                  },
-                  {
-                    "key": "estimated_num_employees",
-                    "label": "Employees",
-                    "value": "290,000"
-                  },
-                  {
-                    "key": "address",
-                    "label": "Address",
-                    "value": "1600 Amphitheatre Parkway, Mountain View, California 94043, United States"
-                  },
-                  {
-                    "key": "phone",
-                    "label": "Phone",
-                    "value": "+1 650-253-0000"
-                  },
-                  {
-                    "key": "annual_revenue_printed",
-                    "label": "Revenue",
-                    "value": "766.4B"
-                  },
-                  {
-                    "key": "publicly_traded_symbol",
-                    "label": "Symbol",
-                    "value": "GOOGL (NASDAQ)"
-                  },
-                  {
-                    "key": "market_cap",
-                    "label": "Market Cap",
-                    "value": "1892.3B"
-                  }
-                ]
               }
             }
           }

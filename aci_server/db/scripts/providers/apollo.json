@@ -1,0 +1,11 @@
+{
+    "name": "Apollo",
+    "provider_tag": "apollo",
+    "description": "Apollo is a platform for finding and connecting with people and organizations.",
+    "auth_method": "none",
+    "categories": "Scraping",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//apollo-logo.svg",
+    "created_at": 1712371200,
+    "is_enabled": true
+  }
+  

@@ -1,20 +1,22 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 import os
 from .client import ApolloClient
 from .schema import (
-    SearchPersonParams,
-    SearchOrganizationParams,
-    SearchPeopleViaUrlParams,
-    SearchOrganizationsViaUrlParams,
-    PersonDetailsParams,
-    OrganizationDetailsParams,
+    SearchPeopleParams,
+    SearchPeopleByUrlParams,
+    SearchOrganizationsParams,
+    SearchOrganizationsByUrlParams,
+    GetPersonDetailsParams,
+    GetOrganizationDetailsParams,
+    SearchPeopleResponse,
+    SearchOrganizationsResponse,
+    PersonDetailsResponse,
+    OrganizationDetailsResponse,
     ApiResponse,
-    PersonData,
-    OrganizationData,
-    PersonDetailData,
-    OrganizationDetailData,
-    SearchPersonResponse,
-    SearchOrganizationResponse
+    PeopleList,
+    OrganizationsList,
+    PersonDetails,
+    OrganizationDetails
 )
 from ..common.component_handler import load_components, prepare_components_auto
 
@@ -32,40 +34,41 @@ class ApolloService:
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
-    def search_people(self, params: SearchPersonParams) -> ApiResponse:
-        processed_params = self._process_search_params(params)
+    def search_people(self, params: SearchPeopleParams) -> ApiResponse:
+        processed_params = self._process_search_people_params(params)
         response = self.client.search_people(processed_params)
-        validated_data = PersonData(**response)
-        return self.prepare_response(validated_data, "ApolloPersonCard")
-    
-    def search_organizations(self, params: SearchOrganizationParams) -> ApiResponse:
-        processed_params = self._process_organization_params(params)
+        people_list = PeopleList(**response["data"])
+        return self.prepare_response(people_list, "ApolloPeopleList")
+        
+    def search_people_by_url(self, params: SearchPeopleByUrlParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        response = self.client.search_people_by_url(processed_params)
+        people_list = PeopleList(**response["data"])
+        return self.prepare_response(people_list, "ApolloPeopleList")
+        
+    def search_organizations(self, params: SearchOrganizationsParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
         response = self.client.search_organizations(processed_params)
-        validated_data = OrganizationData(**response)
-        return self.prepare_response(validated_data, "ApolloOrganizationCard")
+        orgs_list = OrganizationsList(**response["data"])
+        return self.prepare_response(orgs_list, "ApolloOrganizationsList")
         
-    def search_people_via_url(self, params: SearchPeopleViaUrlParams) -> ApiResponse:
-        response = self.client.search_people_via_url(params.apollo_url, params.page)
-        validated_data = PersonData(**response)
-        return self.prepare_response(validated_data, "ApolloPersonCard")
+    def search_organizations_by_url(self, params: SearchOrganizationsByUrlParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        response = self.client.search_organizations_by_url(processed_params)
+        orgs_list = OrganizationsList(**response["data"])
+        return self.prepare_response(orgs_list, "ApolloOrganizationsList")
         
-    def search_organizations_via_url(self, params: SearchOrganizationsViaUrlParams) -> ApiResponse:
-        response = self.client.search_organizations_via_url(params.apollo_url, params.page)
-        validated_data = OrganizationData(**response)
-        return self.prepare_response(validated_data, "ApolloOrganizationCard")
+    def get_person_details(self, params: GetPersonDetailsParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        response = self.client.get_person_details(processed_params)
+        person_details = PersonDetails(person=response["data"])
+        return self.prepare_response(person_details, "ApolloPersonDetails")
         
-    def person_details(self, params: PersonDetailsParams) -> ApiResponse:
-        response = self.client.person_details(params.person_id)
-        validated_data = PersonDetailData(**response)
-        return self.prepare_response(validated_data, "ApolloPersonCard")
-    
-    def organization_details(self, params: OrganizationDetailsParams) -> ApiResponse:
-        response = self.client.organization_details(params.organization_id)
-        validated_data = OrganizationDetailData(**response)
-        return self.prepare_response(validated_data, "ApolloOrganizationCard")
+    def get_organization_details(self, params: GetOrganizationDetailsParams) -> ApiResponse:
+        processed_params = params.model_dump(exclude_none=True)
+        response = self.client.get_organization_details(processed_params)
+        org_details = OrganizationDetails(organization=response["data"])
+        return self.prepare_response(org_details, "ApolloOrganizationDetails")
 
-    def _process_search_params(self, params: SearchPersonParams) -> Dict[str, Any]:
-        return params.model_dump(exclude_none=True)
-        
-    def _process_organization_params(self, params: SearchOrganizationParams) -> Dict[str, Any]:
+    def _process_search_people_params(self, params: SearchPeopleParams) -> Dict[str, Any]:
         return params.model_dump(exclude_none=True)
