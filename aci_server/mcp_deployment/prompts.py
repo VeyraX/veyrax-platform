@@ -36,11 +36,11 @@ You MUST generate the code without any additional comments or characters. Just t
 It just BE JSON with key-value pairs of environment variables.
 Example:
 {
-    "env_variables": {
-        "ENV_VARIABLE_1": "value1",
-        "ENV_VARIABLE_2": "value2"
-    }
+    "ENV_VARIABLE_1": "value1",
+    "ENV_VARIABLE_2": "value2"
 }
 
 No other text or characters, NEVER. Just PURE JSON.
+
+NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 """

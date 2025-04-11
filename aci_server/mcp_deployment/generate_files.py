@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from openai import OpenAI
 import os
 from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt
@@ -31,7 +32,10 @@ def generate_dockerfile(context):
 def extract_env_variables(context):
     system_message = extract_env_variables_prompt
     human_message = context
-    return openai_call(system_message, human_message)
+    try:
+        return openai_call(system_message, human_message)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract environment variables: {str(e)}")
 
 def generate_dockerfile_with_base64_from_repo(repo_data):
     context = json.dumps(repo_data)

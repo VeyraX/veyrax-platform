@@ -15,9 +15,15 @@ router = APIRouter(
 @router.post("/generate-env-variables", response_model=EnvVariablesResponse)
 async def create_env_variables(request: EnvVariablesRequest = Body(...)):
     try:
-        env_variables_json = extract_env_variables(request.context)
+        repo_data = parse_repository(repo_url=request.repo_url)
+        
+        context = json.dumps(repo_data)
+        env_variables_json = extract_env_variables(context)
         env_variables = json.loads(env_variables_json)
-        return EnvVariablesResponse(env_variables=env_variables)
+        
+        return EnvVariablesResponse(
+            env_variables=env_variables
+        )
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse environment variables JSON")
     except Exception as e:

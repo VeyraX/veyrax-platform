@@ -21,7 +21,13 @@ class PushMCPResponse(BaseModel):
     
 
 class EnvVariablesRequest(BaseModel):
-    context: str = Field(..., description="Repository context for file generation")
+    repo_url: str = Field(..., description="GitHub repository URL to parse")
+    
+    @validator('repo_url')
+    def validate_repo_url(cls, v):
+        if 'github.com' not in v:
+            raise ValueError("Only GitHub repositories are supported")
+        return v
 
 class EnvVariablesResponse(BaseModel):
     env_variables: Dict[str, str]
