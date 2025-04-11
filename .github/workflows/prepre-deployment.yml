@@ -1,0 +1,72 @@
+name: Pre-deployment Dockerfile Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_url:
+        description: 'GitHub repository URL to process'
+        required: true
+        type: string
+      dockerfile_base64:
+        description: 'Base64-encoded Dockerfile content'
+        required: true
+        type: string
+      image_name:
+        description: 'Docker image name'
+        required: false
+        default: 'auto-generated-image'
+        type: string
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract repo owner and name
+        id: repo-info
+        run: |
+          REPO_URL="${{ github.event.inputs.repo_url }}"
+          if [[ $REPO_URL == *"github.com"* ]]; then
+            REPO_PATH=$(echo $REPO_URL | sed -E 's|https?://github.com/||' | sed -E 's|\.git$||')
+            REPO_NAME=$(echo $REPO_PATH | awk -F/ '{print $2}')
+            echo "repo_path=$REPO_PATH" >> $GITHUB_OUTPUT
+            echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+            echo "Extracted repository path: $REPO_PATH"
+          else
+            echo "Error: Invalid GitHub URL format"
+            exit 1
+          fi
+          
+      - name: Checkout target repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ steps.repo-info.outputs.repo_path }}
+          path: target-repo
+          
+      - name: Decode and save Dockerfile
+        run: |
+          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > target-repo/Dockerfile
+          
+      - name: Show Dockerfile
+        run: cat target-repo/Dockerfile
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./target-repo
+          file: ./target-repo/Dockerfile
+          push: false
+          tags: ${{ github.event.inputs.image_name }}:latest
+          load: true
+          
+      - name: Show Docker image info
+        run: docker images | grep ${{ github.event.inputs.image_name }}
+        
+      - name: Upload Dockerfile as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-dockerfile
+          path: target-repo/Dockerfile
+          retention-days: 7
