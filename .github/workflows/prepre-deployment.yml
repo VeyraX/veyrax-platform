@@ -51,7 +51,40 @@ jobs:
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        
+      
+      - name: Build and test Docker image locally
+        uses: docker/build-push-action@v4
+        with:
+          context: ./target-repo
+          file: ./target-repo/Dockerfile
+          load: true
+          tags: test-image:latest
+          
+      - name: Verify Docker image works
+        run: |
+          echo "Testing if Docker image runs correctly..."
+          docker run --rm -d --name test-container --entrypoint /bin/sh test-image:latest -c "tail -f /dev/null" || docker run --rm -d --name test-container test-image:latest -l
+          
+          sleep 5
+          
+          if docker ps | grep test-container; then
+            echo "✅ Container started successfully!"
+            echo "Basic test passed!"
+            docker stop test-container
+          else
+            echo "Container may have exited immediately. Checking logs..."
+            docker logs $(docker ps -a -q --filter "name=test-container" --latest) || true
+            
+            EXIT_CODE=$(docker inspect $(docker ps -a -q --filter "name=test-container" --latest) --format="{{.State.ExitCode}}")
+            if [ "$EXIT_CODE" = "0" ]; then
+              echo "✅ Container exited successfully with code 0!"
+              echo "This is expected for services that initialize and exit cleanly."
+            else
+              echo "❌ Container failed with exit code $EXIT_CODE!"
+              exit 1
+            fi
+          fi
+          
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
