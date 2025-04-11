@@ -1,4 +1,4 @@
-name: Pre-deployment Dockerfile Generator
+name: Push MCP to Docker Hub
 
 on:
   workflow_dispatch:
@@ -98,6 +98,3 @@ jobs:
           file: ./target-repo/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
-          
-      - name: Show Docker image info
-        run: docker images | grep ${{ github.event.inputs.image_name }}
