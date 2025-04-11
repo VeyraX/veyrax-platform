@@ -64,9 +64,9 @@ jobs:
       - name: Show Docker image info
         run: docker images | grep ${{ github.event.inputs.image_name }}
         
-      - name: Upload Dockerfile as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: generated-dockerfile
-          path: target-repo/Dockerfile
-          retention-days: 7
+      # - name: Upload Dockerfile as Artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: generated-dockerfile
+      #     path: target-repo/Dockerfile
+      #     retention-days: 7
