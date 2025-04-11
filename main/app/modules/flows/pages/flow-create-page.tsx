@@ -209,7 +209,7 @@ export default function FlowCreatePage({ flowId }: { flowId?: string }) {
   if (!isMounted || isLoadingFlow) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Skeleton className="w-6 h-6 rounded-full" />
             <Skeleton className="w-40 h-5" />

@@ -66,9 +66,9 @@ export function ToolsList({ tools }: { tools: Tool[] }) {
           {tools.map((tool, index) => (
             <div 
               key={`${tool.provider_id}-${index}`}
-              className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 shadow-sm"
+              className="inline-flex items-center gap-1 bg-background border border-gray-200 dark:border-gray-700 rounded-md px-1 py-0.5 shadow-sm"
             >
-              <div className="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
+              <div className="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800">
                 <img 
                   src={tool.logo_url} 
                   alt={tool.provider_name}
@@ -101,7 +101,7 @@ export function MissingToolsAlert({
   const uniqueProviders = Array.from(new Set(missingTools.map(t => t.providerName)));
 
   return (
-    <Alert variant="default" className="mb-4 border-yellow-500 bg-yellow-50 text-yellow-800">
+    <Alert variant="default" className="mb-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
       <div className="flex items-center">
         <AlertDescription className="flex items-center justify-between w-full">
           <span>
@@ -111,7 +111,7 @@ export function MissingToolsAlert({
           </span>
           <button 
             onClick={onConnectClick}
-            className="text-sm font-medium underline text-yellow-800 hover:text-yellow-900 ml-2 flex-shrink-0"
+            className="text-sm font-medium underline text-yellow-800 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-200 ml-2 flex-shrink-0"
           >
             Connect now
           </button>

@@ -50,7 +50,7 @@ function getDefaultMissingTools(allActions: any[]): { providerName: string; acti
     return result;
   }
   
-  return [{ providerName: "WhatsApp", actionSlug: "tools" }];
+  return [];
 }
 
 export function UnifiedFlowCreator({ 
@@ -394,7 +394,7 @@ export function UnifiedFlowCreator({
     !userActionProviders.has(tool.provider_name.toLowerCase().trim())
   );
   
-  const shouldShowDefaultAlert = (userTools.length === 0 && activeTab === "configure") || usedToolsNotAvailable.length > 0;
+  const shouldShowDefaultAlert = usedTools.length > 0 && usedToolsNotAvailable.length > 0;
   
   const alertTools = hasMissingTools 
     ? missingTools 
@@ -483,7 +483,7 @@ export function UnifiedFlowCreator({
                   {showActions && cursorPosition && (
                     <div 
                       ref={actionsListRef}
-                      className="absolute z-50 w-64 bg-background border rounded-lg shadow-lg max-h-[300px] overflow-y-auto"
+                      className="absolute z-50 w-64 bg-background border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-[300px] overflow-y-auto"
                       style={{
                         top: `${cursorPosition.top}px`,
                         left: `${cursorPosition.left}px`,

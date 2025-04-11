@@ -1,10 +1,10 @@
 export const flow_improvement_prompt = `
 When mentioning tools/actions, you MUST use the exact format:
-<span class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="{PROVIDER_NAME}" data-action="{ACTION_NAME}">
+<span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="{PROVIDER_NAME}" data-action="{ACTION_NAME}">
   <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
     <img src="{LOGO_URL}" alt="{ACTION_NAME}" class="max-h-full max-w-full object-contain">
   </div>
-  <span class="text-primary text-xs font-medium">{ACTION_NAME}</span>
+  <span class="text-gray-900 !text-black text-xs font-medium">{ACTION_NAME}</span>
 </span>
 
 For formatting in HTML:
@@ -64,11 +64,11 @@ NEVER make up actions that are not in the list. NEVER.
       If user asks you to update the flow you MUST regenerate with changes that user requested. Call tool again new description and name.
       
       IMPORTANT: When referring to an action in the description, use this EXACT HTML format:
-      <span class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="[PROVIDER_NAME]" data-action="[ACTION_NAME]">
+      <span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="[PROVIDER_NAME]" data-action="[ACTION_NAME]">
         <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
           <img src="[LOGO_URL]" alt="[ACTION_NAME]" class="max-h-full max-w-full object-contain">
         </div>
-        <span class="text-primary text-xs font-medium">[ACTION_NAME]</span>
+        <span class="text-gray-900 !text-black text-xs font-medium">[ACTION_NAME]</span>
       </span>
 
       You MUST use HTML, and you MUST use and wrap only avaliable actions in the list of available methods. It is very important.
@@ -93,20 +93,24 @@ NEVER make up actions that are not in the list. NEVER.
         ]
 
         You MUST use all actions from the list in the workflow context: 
-        <span class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Linear" data-action="Create Issue Task">
+        <span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Linear" data-action="Create Issue Task">
           <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
             <img src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//linear-logo.svg" alt="Create Issue Task" class="max-h-full max-w-full object-contain">
           </div>
-          <span class="text-primary text-xs font-medium">Create Issue Task</span>
+          <span class="text-gray-900 !text-black text-xs font-medium">Create Issue Task</span>
         </span>
 
-        <span class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Google Sheets" data-action="Update Spreadsheet Cells">
+        <span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Google Sheets" data-action="Update Spreadsheet Cells">
           <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
             <img src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//google-sheets-logo.svg" alt="Update Spreadsheet Cells" class="max-h-full max-w-full object-contain">
           </div>
-          <span class="text-primary text-xs font-medium">Update Spreadsheet Cells</span>
+          <span class="text-gray-900 !text-black text-xs font-medium">Update Spreadsheet Cells</span>
         </span>
 
 
         You responsible how description will be formatted in HTML. You MUST use HTML tags. You MUST pass HTML formatted description, with actions and name to the tool. The input and descirption you will create — user will see without any changes.
+        
+        IMPORTANT FOR DARK MODE: Always add the following classes for proper appearance in dark mode:
+        1. Add "!bg-white" to ensure the tag background stays white in dark mode
+        2. Change "text-primary" to "text-gray-900 !text-black" to ensure text stays black in dark mode
 `;

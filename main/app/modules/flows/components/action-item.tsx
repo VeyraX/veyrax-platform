@@ -15,7 +15,7 @@ export function ActionItem({ actionSlug, logoUrl, providerName, onClick }: Actio
       className="flex items-center gap-2 px-3 py-2 hover:bg-muted cursor-pointer"
       onClick={onClick}
     >
-      <div className="h-5 w-5 rounded overflow-hidden flex-shrink-0 flex items-center justify-center bg-white">
+      <div className="h-5 w-5 rounded overflow-hidden flex-shrink-0 flex items-center justify-center bg-white border border-gray-100">
         <img 
           src={logoUrl} 
           alt={actionSlug}
@@ -40,7 +40,7 @@ export function ActionMention({ actionSlug, logoUrl }: Omit<ActionItemProps, 'on
           className="max-h-full max-w-full object-contain"
         />
       </div>
-      <span className="text-primary font-medium">{actionSlug}</span>
+      <span className="text-gray-900 font-medium">{actionSlug}</span>
     </span>
   );
 }

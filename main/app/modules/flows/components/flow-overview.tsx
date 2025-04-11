@@ -81,7 +81,7 @@ export function FlowOverview({ description, tools }: FlowOverviewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-md border p-6 space-y-4">
+      <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
         <h2 className="text-xl font-medium text-foreground">Overview</h2>
         
         {description && !isEmptyHTML(description) ? (
@@ -95,7 +95,7 @@ export function FlowOverview({ description, tools }: FlowOverviewProps) {
         )}
       </div>
       
-      <div className="bg-white rounded-md border p-6 space-y-4">
+      <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
         <h2 className="text-xl font-medium text-foreground">Tools</h2>
         <div>
           <ToolsList tools={tools} />

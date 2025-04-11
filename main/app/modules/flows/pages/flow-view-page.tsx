@@ -198,7 +198,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
   if (isLoadingFlow) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <Skeleton className="w-6 h-6 rounded-full" />
             <Skeleton className="w-40 h-5" />
@@ -209,19 +209,19 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
         <div className="flex-1 overflow-hidden p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-6">
-              <div className="bg-white rounded-md border p-6 space-y-4">
+              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
                 <Skeleton className="w-32 h-6" />
                 <Skeleton className="w-full h-40" />
               </div>
               
-              <div className="bg-white rounded-md border p-6 space-y-4">
+              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
                 <Skeleton className="w-24 h-6" />
                 <Skeleton className="w-full h-20" />
               </div>
             </div>
             
             <div className="flex flex-col space-y-6">
-              <div className="bg-white rounded-md border p-6 space-y-4">
+              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
                 <Skeleton className="w-32 h-6" />
                 <div className="space-y-3">
                   <Skeleton className="w-full h-16" />
@@ -237,7 +237,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                 </div>
               </div>
 
-              <div className="bg-white rounded-md border p-6">
+              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Skeleton className="w-32 h-6" />
@@ -338,7 +338,7 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
               </TabsContent>
 
               <TabsContent value="flow-runs" className="mt-0">
-                <div className="bg-white rounded-md border p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
                   <h2 className="text-lg font-medium text-foreground">Runs</h2>
                   {flowRuns.length > 0 ? (
                     <ScheduleView
@@ -347,13 +347,13 @@ export default function FlowViewPage({ flowId, isPublic = false }: FlowViewPageP
                       flowRuns={flowRuns}
                     />
                   ) : (
-                    <div className="text-muted-foreground text-sm mt-4">No runs recorded for this flow.</div>
+                    <div className="text-muted-foreground text-sm">No runs recorded for this flow.</div>
                   )}
                 </div>
               </TabsContent>
 
               <TabsContent value="schedule" className="mt-0">
-                <div className="bg-white rounded-md border p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
                   <ScheduleTabContent 
                     flowId={flowId}
                     isLoading={isLoadingFlow}

@@ -169,7 +169,7 @@ export function FlowHeader({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <Skeleton className="w-6 h-6 rounded-full" />
           <Skeleton className="w-40 h-5" />
@@ -180,17 +180,17 @@ export function FlowHeader({
   }
 
   return (
-    <div className="flex items-center justify-between w-full px-4 py-2 bg-white border-b border-gray-200">
+    <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-2">
         {isAuthenticated ? (
-          <button onClick={handleBackClick} className="text-gray-700 p-1 rounded-full hover:bg-gray-100">
+          <button onClick={handleBackClick} className="text-gray-700 dark:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
             <ArrowLeft size={16} />
           </button>
         ) : (
           <div className="w-0 h-0"></div>
         )}
         <div className="flex items-center text-sm">
-          <span className="font-medium text-gray-900">{flowName}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{flowName}</span>
           {isOwner && (
             <Badge variant="secondary" className={`ml-2 transition-colors text-xs ${
               status === 'Active' 

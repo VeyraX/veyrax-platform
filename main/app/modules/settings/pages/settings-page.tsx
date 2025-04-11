@@ -10,6 +10,7 @@ import BillingSettings from "../components/billing-settings"
 import { useState, useEffect } from "react"
 import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey, getUserSubscription } from "../api/api.settings"
 import { UserProfile, UserApiKey, UserSubscription } from "../api/types.settings"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface AccountSettingsDialogProps {
   open: boolean
@@ -117,7 +118,64 @@ export function AccountSettingsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 h-[80vh] overflow-hidden">
-        <div className="flex h-full">
+        {/* Mobile view - tabs at the top */}
+        <div className="block sm:hidden">
+          <div className="p-4 border-b">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl font-semibold tracking-tight">Settings</DialogTitle>
+            </DialogHeader>
+            
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+              <TabsList className="grid grid-cols-4 w-full">
+                <TabsTrigger value="account" className="flex items-center gap-1.5 text-xs">
+                  <UserCircle2 className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline">Account</span>
+                </TabsTrigger>
+                <TabsTrigger value="billing" className="flex items-center gap-1.5 text-xs">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline">Billing</span>
+                </TabsTrigger>
+                <TabsTrigger value="api-key" className="flex items-center gap-1.5 text-xs">
+                  <Key className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline">API Key</span>
+                </TabsTrigger>
+                <TabsTrigger value="mcp" className="flex items-center gap-1.5 text-xs">
+                  <Terminal className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline">MCP</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+            {activeTab === 'account' ? (
+              <AccountSettings 
+                profile={profile} 
+                isLoading={isLoadingProfile} 
+              />
+            ) : activeTab === 'billing' ? (
+              <BillingSettings 
+                subscriptionInfo={subscription}
+                isLoading={isLoadingSubscription}
+              />
+            ) : activeTab === 'api-key' ? (
+              <ApiKeySettings 
+                apiKey={apiKey}
+                isLoading={isLoadingApiKey}
+                onGenerateApiKey={handleGenerateApiKey}
+                onRevokeApiKey={handleRevokeApiKey}
+              />
+            ) : (
+              <MCPSettings 
+                apiKey={apiKey}
+                onGenerateApiKey={handleGenerateApiKey}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Desktop view - original layout */}
+        <div className="hidden sm:flex h-full">
           <div className="w-64 border-r p-6">
             <DialogHeader>
               <DialogTitle className="text-2xl font-semibold tracking-tight">Settings</DialogTitle>

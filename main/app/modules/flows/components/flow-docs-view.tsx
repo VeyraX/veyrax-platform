@@ -80,7 +80,7 @@ export function ApiDocumentation({ flowId, endpoints = defaultEndpoints }: ApiDo
   };
 
   return (
-    <div className="bg-white rounded-md border p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
       <Tabs defaultValue={endpoints[0].value} className="w-full">
         <div className="flex justify-end w-full mb-4">
           <TabsList className="h-auto gap-4 rounded-none bg-transparent px-0 py-0 text-foreground">

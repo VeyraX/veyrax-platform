@@ -102,7 +102,7 @@ export function FlowChatCreateEmptyState({
               return (
                 <div 
                   key={providerId}
-                  className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-border bg-white"
+                  className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-border bg-white dark:bg-gray-800"
                   title={tool?.provider_name}
                 >
                   <img 
@@ -115,7 +115,7 @@ export function FlowChatCreateEmptyState({
             })}
             <button
               onClick={() => setIsIntegrationsOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-border bg-white hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full border border-dashed border-border bg-white dark:bg-gray-800 hover:bg-muted/50 dark:hover:bg-gray-700/50 transition-colors"
               title="Add new tool"
             >
               <Plus className="w-4 h-4 text-muted-foreground" />

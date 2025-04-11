@@ -14,20 +14,20 @@ export function QuickStart({ flowName = "", isOwner = false, isAuthenticated = f
   const commandText = `Run «${flowName}» flow via VeyraX.`;
 
   return (
-    <div className="bg-white rounded-md border p-6 space-y-4">
+    <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
       <h2 className="text-xl font-medium text-foreground">Quick Start</h2>
       <div className="text-sm text-muted-foreground space-y-3">
         <p>
           This flow is designed to run by AI agents. You can execute it through any system 
           where these AI agents can make calls to Veyrax using our <a href="https://docs.veyrax.com/api" 
-          className="text-gray-900 inline-flex items-center gap-1 hover:underline">
+          className="text-gray-900 dark:text-gray-100 inline-flex items-center gap-1 hover:underline">
             API toolkit
             <ExternalLink className="h-2.5 w-2.5" />
           </a>.
         </p>
         <p>
           Common ways to run this flow via <a href="https://cursor.sh" 
-          className="text-gray-900 inline-flex items-center gap-1 hover:underline">
+          className="text-gray-900 dark:text-gray-100 inline-flex items-center gap-1 hover:underline">
             Cursor / Windsurf / Cline / Claude
             <ExternalLink className="h-2.5 w-2.5" />
           </a> or any other MCP compatible environment.
@@ -49,7 +49,7 @@ export function QuickStart({ flowName = "", isOwner = false, isAuthenticated = f
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
-              className="h-6 w-6 p-0 flex items-center justify-center"
+              className="h-6 w-6 p-0 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
             </button>
