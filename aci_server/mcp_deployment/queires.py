@@ -1,1 +1,1 @@
-from db.supabase import supabase
+from db.supabase import get_supabase

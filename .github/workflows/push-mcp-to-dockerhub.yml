@@ -58,12 +58,12 @@ jobs:
           context: ./target-repo
           file: ./target-repo/Dockerfile
           load: true
-          tags: test-image:latest
+          tags: ${{ github.event.inputs.image_name }}:test
           
       - name: Verify Docker image works
         run: |
           echo "Testing if Docker image runs correctly..."
-          docker run --rm -d --name test-container --entrypoint /bin/sh test-image:latest -c "tail -f /dev/null" || docker run --rm -d --name test-container test-image:latest -l
+          docker run --rm -d --name test-container --entrypoint /bin/sh ${{ github.event.inputs.image_name }}:test -c "tail -f /dev/null" || docker run --rm -d --name test-container ${{ github.event.inputs.image_name }}:test -l
           
           sleep 5
           

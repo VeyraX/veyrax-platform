@@ -5,7 +5,6 @@ You MUST generate the code without any additional comments or characters. Just t
 
 Project might be on the node or python. Consider requirements, current Dockerfile or package.json to properly generate the Dockerfile.
 
-
 You ALWAYS should specify file to build. 
 
 Example:
@@ -23,8 +22,9 @@ RUN npm run build
 CMD ["node", "build/index.js"] 
 ```
 
-Ple
+NEVER add ```dockerfile``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 
+IT IS VERY CRUCIAL, BECAUSE I'LL PASTE IT DIRECTLY TO THE DOCKERFILE, AND IF YOU ADD ANYTHING ELSE, IT WILL BREAK THE DOCKERFILE.
 """
 
 
