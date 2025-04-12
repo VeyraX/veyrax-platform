@@ -81,6 +81,100 @@ routes:
               "name": "MailSMTPMessageList"
             }
           }
+      - scenario: "Get Messages Within Date Range"
+        description: "Fetch emails from a specific date range"
+        input_json: |
+          {
+            "folder": "INBOX",
+            "limit": 10,
+            "from_date": "2023-07-01",
+            "to_date": "2023-07-31",
+            "mark_as_read": false
+          }
+        output_json: |
+          {
+            "data": {
+              "messages": [
+                {
+                  "id": "123456",
+                  "subject": "Meeting Tomorrow",
+                  "from_email": {
+                    "email": "john.doe@example.com",
+                    "name": "John Doe"
+                  },
+                  "to": [
+                    {
+                      "email": "jane.smith@example.com",
+                      "name": "Jane Smith"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 10 Jul 2023 10:30:45 +0000",
+                  "body": {
+                    "text": "Let's meet tomorrow at 10 AM to discuss the project.",
+                    "html": "<p>Let's meet tomorrow at 10 AM to discuss the project.</p>"
+                  },
+                  "attachments": [],
+                  "folder": "INBOX",
+                  "is_read": false
+                }
+              ],
+              "total": 15,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "MailSMTPMessageList"
+            }
+          }
+      - scenario: "Get Messages from Single Day"
+        description: "Fetch emails from a specific day (inclusive date filtering)"
+        input_json: |
+          {
+            "folder": "INBOX",
+            "limit": 10,
+            "from_date": "2023-07-10",
+            "to_date": "2023-07-10",
+            "mark_as_read": false
+          }
+        output_json: |
+          {
+            "data": {
+              "messages": [
+                {
+                  "id": "123456",
+                  "subject": "Meeting Tomorrow",
+                  "from_email": {
+                    "email": "john.doe@example.com",
+                    "name": "John Doe"
+                  },
+                  "to": [
+                    {
+                      "email": "jane.smith@example.com",
+                      "name": "Jane Smith"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 10 Jul 2023 10:30:45 +0000",
+                  "body": {
+                    "text": "Let's meet tomorrow at 10 AM to discuss the project.",
+                    "html": "<p>Let's meet tomorrow at 10 AM to discuss the project.</p>"
+                  },
+                  "attachments": [],
+                  "folder": "INBOX",
+                  "is_read": false
+                }
+              ],
+              "total": 3,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "MailSMTPMessageList"
+            }
+          }
 
   - endpoint: /mail/get_message
     examples:

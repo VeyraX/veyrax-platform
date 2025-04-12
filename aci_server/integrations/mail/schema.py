@@ -27,6 +27,8 @@ class GetMessagesParams(BaseModel):
     offset: Optional[int] = Field(0, description="Number of messages to skip", ge=0)
     search_query: Optional[str] = Field(None, description="Search query for message content or sender")
     mark_as_read: Optional[bool] = Field(False, description="Mark fetched messages as read")
+    from_date: Optional[str] = Field(None, description="Filter messages sent on or after this date (format: YYYY-MM-DD)")
+    to_date: Optional[str] = Field(None, description="Filter messages sent on or before this date (format: YYYY-MM-DD)")
 
 
 class GetMessageParams(BaseModel):
