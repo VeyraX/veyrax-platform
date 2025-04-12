@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Github, ArrowLeft } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { fetchEnvironmentVariables } from "../api/api.deploy";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { fetchRepositoryMeta } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 
 interface EnvVar {
@@ -23,6 +25,10 @@ export default function DeployCreatePage() {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [isFetched, setIsFetched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [includeInTools, setIncludeInTools] = useState(true);
+  const [makePublic, setMakePublic] = useState(true);
+  const [repoName, setRepoName] = useState("");
+  const [repoDescription, setRepoDescription] = useState("");
 
   const handleFetch = async () => {
     if (!githubUrl) return;
@@ -30,7 +36,7 @@ export default function DeployCreatePage() {
     setError(null);
 
     try {
-      const response = await fetchEnvironmentVariables(githubUrl);
+      const response = await fetchRepositoryMeta(githubUrl);
       console.log('Response from API:', response);
       
       if (response && response.env_variables) {
@@ -42,6 +48,9 @@ export default function DeployCreatePage() {
         
         setEnvVars(transformedVars);
         setIsFetched(true);
+        
+        if (response.name) setRepoName(response.name);
+        if (response.description) setRepoDescription(response.description);
       } else {
         setError("No environment variables found");
       }
@@ -57,11 +66,32 @@ export default function DeployCreatePage() {
   const handleDeploy = async () => {
     setIsLoading(true);
 
-    // This would be an actual deployment API call in production
-    setTimeout(() => {
-      router.push("/deployment");
+    try {
+      // Здесь будет API вызов для деплоя
+      console.log('Deploying with env vars:', envVars);
+      console.log('Include in VeyraX tools:', includeInTools);
+      console.log('Make public:', makePublic);
+      
+      // Подготовка данных для отправки
+      const deployData = {
+        repo_url: githubUrl,
+        env_variables: Object.fromEntries(envVars.map(env => [env.name, env.value])),
+        include_in_tools: includeInTools,
+        is_public: makePublic,
+        name: repoName,
+        description: repoDescription
+      };
+      
+      console.log('Deploy data:', deployData);
+      
+      setTimeout(() => {
+        router.push("/deployment");
+        setIsLoading(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Error during deployment:', error);
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const updateEnvVar = (index: number, value: string) => {
@@ -123,10 +153,42 @@ export default function DeployCreatePage() {
 
         {isFetched ? (
           <>
-            <Card className="shadow-none rounded-lg mt-6">
-              <CardContent className="p-4 space-y-4">
-                <h2 className="text-xl font-medium">Environment Variables</h2>
-                
+            <div className="mt-6 space-y-6">
+              <div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-32 text-sm font-medium text-muted-foreground">
+                      Name
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        value={repoName}
+                        onChange={(e) => setRepoName(e.target.value)}
+                        placeholder="Repository Name"
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-32 text-sm font-medium text-muted-foreground pt-2">
+                      Description
+                    </div>
+                    <div className="flex-1">
+                      <Textarea
+                        value={repoDescription}
+                        onChange={(e) => setRepoDescription(e.target.value)}
+                        placeholder="Repository Description"
+                        className="min-h-[80px] text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h2 className="text-xl font-medium mb-4">Environment Variables</h2>
                 <div className="space-y-3">
                   {envVars.map((env, index) => (
                     <div key={env.name} className="flex items-center gap-3">
@@ -144,16 +206,63 @@ export default function DeployCreatePage() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              
+              <Separator />
+              
+              <div>
+                <h2 className="text-xl font-medium mb-4">Additional Settings</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="includeInTools" 
+                      checked={includeInTools} 
+                      onCheckedChange={(checked) => setIncludeInTools(checked as boolean)}
+                    />
+                    <div>
+                      <label
+                        htmlFor="includeInTools"
+                        className="text-sm font-medium leading-none cursor-pointer"
+                      >
+                        Add MCP to the list of tools
+                      </label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Your MCP will be available through VeyraX API / MCP as other integrations.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <Checkbox 
+                      id="makePublic" 
+                      checked={makePublic} 
+                      onCheckedChange={(checked) => setMakePublic(checked as boolean)}
+                    />
+                    <div>
+                      <label
+                        htmlFor="makePublic"
+                        className="text-sm font-medium leading-none cursor-pointer"
+                      >
+                        Publish MCP
+                      </label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Other users will be able to see and use this MCP. We will review it and publish in public registry.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-between mt-6">
               <Button 
                 onClick={() => {
                   setIsFetched(false);
                   setEnvVars([]);
                   setError(null);
                   setGithubUrl("");
+                  setRepoName("");
+                  setRepoDescription("");
                 }}
                 variant="outline"
                 className="px-4 gap-2"

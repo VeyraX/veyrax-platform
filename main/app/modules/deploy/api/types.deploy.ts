@@ -18,16 +18,12 @@ export interface McpInfo {
   status: 'Active' | 'Inactive';
 }
 
-export interface EnvVariablesRequest {
+export interface RepositoryMetaRequest {
   repo_url: string;
 }
 
-export interface EnvVariable {
-  name: string;
-  default_value?: string;
-  required: boolean;
-}
-
-export interface EnvVariablesResponse {
+export interface RepositoryMetaResponse {
   env_variables: Record<string, string>;
+  name?: string;
+  description?: string;
 } 

@@ -1,4 +1,4 @@
-import { EnvVariablesResponse } from "./types.deploy";
+import { RepositoryMetaResponse } from "./types.deploy";
 import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
@@ -24,11 +24,11 @@ export const getLatestCommitHash = async (repoUrl: string): Promise<string | nul
   }
 };
 
-const getEnvVariablesFromDb = async (repoUrl: string, latestCommitHash?: string | null): Promise<EnvVariablesResponse | null> => {
+const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: string | null): Promise<RepositoryMetaResponse | null> => {
   try {
     const { data: existingRepo, error } = await supabase
       .from('mcp_repositories')
-      .select('env, last_commit_hash')
+      .select('env, last_commit_hash, name, description')
       .eq('repo_url', repoUrl)
       .single();
     
@@ -41,7 +41,9 @@ const getEnvVariablesFromDb = async (repoUrl: string, latestCommitHash?: string 
     }
     
     return {
-      env_variables: existingRepo.env
+      env_variables: existingRepo.env,
+      name: existingRepo.name,
+      description: existingRepo.description
     };
   } catch (error) {
     console.error('Error fetching from database:', error);
@@ -49,9 +51,9 @@ const getEnvVariablesFromDb = async (repoUrl: string, latestCommitHash?: string 
   }
 };
 
-const getEnvVariablesFromApi = async (repoUrl: string): Promise<EnvVariablesResponse> => {
+const getRepositoryMetaFromApi = async (repoUrl: string): Promise<RepositoryMetaResponse> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mcp_deployment/generate-env-variables`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mcp_deployment/generate-repository-meta`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ const getEnvVariablesFromApi = async (repoUrl: string): Promise<EnvVariablesResp
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch environment variables: ${response.statusText}`);
+      throw new Error(`Failed to fetch repository metadata: ${response.statusText}`);
     }
 
     return await response.json();
@@ -72,17 +74,17 @@ const getEnvVariablesFromApi = async (repoUrl: string): Promise<EnvVariablesResp
   }
 };
 
-export const fetchEnvironmentVariables = async (
+export const fetchRepositoryMeta = async (
   repoUrl: string
-): Promise<EnvVariablesResponse> => {
+): Promise<RepositoryMetaResponse> => {
   try {
     const latestCommitHash = await getLatestCommitHash(repoUrl);
-    const dbResult = await getEnvVariablesFromDb(repoUrl, latestCommitHash);
+    const dbResult = await getRepositoryMetaFromDb(repoUrl, latestCommitHash);
     if (dbResult) {
       return dbResult;
     }
     
-    const apiResult = await getEnvVariablesFromApi(repoUrl);
+    const apiResult = await getRepositoryMetaFromApi(repoUrl);
     
     try {
       await supabase
@@ -90,7 +92,9 @@ export const fetchEnvironmentVariables = async (
         .upsert({
           repo_url: repoUrl,
           env: apiResult.env_variables,
-          last_commit_hash: latestCommitHash
+          last_commit_hash: latestCommitHash,
+          name: apiResult.name,
+          description: apiResult.description
         }, {
           onConflict: 'repo_url'
         });
@@ -99,7 +103,7 @@ export const fetchEnvironmentVariables = async (
     
     return apiResult;
   } catch (error) {
-    console.error('Error fetching environment variables:', error);
+    console.error('Error fetching repository metadata:', error);
     throw error;
   }
 };
