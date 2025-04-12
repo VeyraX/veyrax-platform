@@ -1,0 +1,92 @@
+routes:
+  - endpoint: /twentyfirst_dev/search
+    examples:
+      - scenario: "Search UI Components"
+        description: "Search for UI components matching 'hero section'"
+        input_json: |
+          {
+            "search": "hero section",
+            "page": 1,
+            "per_page": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "name": "Default",
+                  "preview_url": "https://cdn.21st.dev/component1.png",
+                  "video_url": "https://cdn.21st.dev/component1.mp4",
+                  "demo_id": 123,
+                  "component_data": {
+                    "name": "Animated hero",
+                    "description": "Animated hero with text and two shadcn/ui buttons",
+                    "code": "https://cdn.21st.dev/code1.tsx",
+                    "install_command": "pnpm dlx shadcn@latest add \"https://21st.dev/r/abc123\""
+                  },
+                  "component_user_data": {
+                    "name": "serafim",
+                    "username": "serafimcloud",
+                    "image_url": "https://img.clerk.com/user1.jpg"
+                  },
+                  "usage_count": 1621
+                },
+                {
+                  "name": "Modern",
+                  "preview_url": "https://cdn.21st.dev/component2.png",
+                  "video_url": "https://cdn.21st.dev/component2.mp4",
+                  "demo_id": 456,
+                  "component_data": {
+                    "name": "Modern hero section",
+                    "description": "Clean modern hero section with gradient background",
+                    "code": "https://cdn.21st.dev/code2.tsx",
+                    "install_command": "pnpm dlx shadcn@latest add \"https://21st.dev/r/def456\""
+                  },
+                  "component_user_data": {
+                    "name": "jenna",
+                    "username": "jennadesigns",
+                    "image_url": "https://img.clerk.com/user2.jpg"
+                  },
+                  "usage_count": 843
+                }
+              ],
+              "metadata": {
+                "plan": "free",
+                "requests_remaining": 80,
+                "pagination": {
+                  "total": 45,
+                  "page": 1,
+                  "per_page": 5,
+                  "total_pages": 9
+                }
+              }
+            },
+            "component": {
+              "name": "SearchResults",
+              "props": {
+                "showPagination": true
+              }
+            }
+          }
+
+  - endpoint: /twentyfirst_dev/generate_prompt
+    examples:
+      - scenario: "Generate Component Prompt"
+        description: "Generate prompt for a specific component"
+        input_json: |
+          {
+            "prompt_type": "basic",
+            "demo_id": 123
+          }
+        output_json: |
+          {
+            "data": {
+              "prompt": "Copy-paste this component to /components/ui folder:\n```tsx\ncomponent.tsx\nimport { useState } from 'react';\nimport { Button } from '@/components/ui/button';\n\nexport function HeroSection() {\n  return (\n    <div className=\"flex flex-col items-center justify-center min-h-[70vh] bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center px-4 py-12\">\n      <h1 className=\"text-4xl md:text-6xl font-bold mb-6 animate-fade-in\">Build Beautiful UI Faster</h1>\n      <p className=\"text-xl md:text-2xl mb-10 max-w-2xl animate-fade-in-delay\">Create stunning web experiences with our pre-built components and intuitive design system.</p>\n      <div className=\"flex flex-col sm:flex-row gap-4 animate-fade-in-delay-2\">\n        <Button variant=\"default\" size=\"lg\">Get Started</Button>\n        <Button variant=\"outline\" size=\"lg\">View Components</Button>\n      </div>\n    </div>\n  );\n}\n\ndemo.tsx\nimport { HeroSection } from './component';\n\nexport default function Demo() {\n  return <HeroSection />;\n}\n```\n"
+            },
+            "component": {
+              "name": "GeneratedPrompt",
+              "props": {
+                "showCopyButton": true
+              }
+            }
+          } 

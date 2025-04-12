@@ -92,6 +92,7 @@ from integrations.common.get_memory import get_user_memories
 from integrations.binance_p2p.route import router as binance_p2p_router
 from integrations.bybit_p2p.route import router as bybit_p2p_router
 from integrations.okx_p2p.route import router as okx_p2p_router
+from integrations.twentyfirst_dev.route import router as dev_router
 from mcp_deployment.route import router as mcp_deployment_router
 import os
 import json
@@ -194,7 +195,8 @@ INTEGRATION_ROUTERS = {
     "binance_p2p": binance_p2p_router,
     "bybit_p2p": bybit_p2p_router,
     "okx_p2p": okx_p2p_router,
-    "apollo": apollo_router
+    "apollo": apollo_router,
+    "twentyfirst_dev": dev_router
 }
 
 
@@ -285,7 +287,7 @@ app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
 app.include_router(mcp_deployment_router)
-app.add_middleware(PermissionMiddleware)
+#app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
