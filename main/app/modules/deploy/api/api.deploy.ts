@@ -1,4 +1,4 @@
-import { RepositoryMetaResponse } from "./types.deploy";
+import { RepositoryMetaResponse, ExternalMcpRepository } from "./types.deploy";
 import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
@@ -105,5 +105,61 @@ export const fetchRepositoryMeta = async (
   } catch (error) {
     console.error('Error fetching repository metadata:', error);
     throw error;
+  }
+};
+
+export const checkMcpExists = async (repoUrl: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('mcp_repositories')
+      .select('id')
+      .eq('repo_url', repoUrl)
+      .single();
+    
+    return !!data;
+  } catch (error) {
+    console.error('Error checking MCP existence:', error);
+    return false;
+  }
+};
+
+export const fetchExternalMcpRepositories = async (
+  page: number = 1,
+  pageSize: number = 6
+): Promise<{ data: ExternalMcpRepository[], count: number }> => {
+  try {
+    // Получаем общее количество репозиториев для расчета пагинации
+    const { count, error: countError } = await supabase
+      .from('external_mcp_repositories')
+      .select('*', { count: 'exact', head: true });
+    
+    if (countError) {
+      console.error('Error counting external MCP repositories:', countError);
+      return { data: [], count: 0 };
+    }
+    
+    // Рассчитываем смещение на основе номера страницы и размера страницы
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    
+    // Получаем данные для текущей страницы
+    const { data, error } = await supabase
+      .from('external_mcp_repositories')
+      .select('*')
+      .order('metadata->github_stars', { ascending: false })
+      .range(from, to);
+    
+    if (error) {
+      console.error('Error fetching external MCP repositories:', error);
+      return { data: [], count: 0 };
+    }
+    
+    return { 
+      data: data || [], 
+      count: count || 0 
+    };
+  } catch (error) {
+    console.error('Error fetching external MCP repositories:', error);
+    return { data: [], count: 0 };
   }
 };

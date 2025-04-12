@@ -1,5 +1,5 @@
 from pydantic import BaseModel, validator, Field
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 class PushMCPRequest(BaseModel):
@@ -20,7 +20,7 @@ class PushMCPResponse(BaseModel):
     message: Optional[str] = None
     
 
-class EnvVariablesRequest(BaseModel):
+class RepositoryMetaRequest(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL to parse")
     
     @validator('repo_url')
@@ -29,5 +29,29 @@ class EnvVariablesRequest(BaseModel):
             raise ValueError("Only GitHub repositories are supported")
         return v
 
-class EnvVariablesResponse(BaseModel):
+class RepositoryMetaResponse(BaseModel):
     env_variables: Dict[str, str]
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+class ExternalMCPServer(BaseModel):
+    name: str
+    url: Optional[str] = None
+    external_url: Optional[str] = None
+    short_description: Optional[str] = None
+    source_code_url: Optional[str] = None
+    github_stars: Optional[int] = None
+    package_registry: Optional[str] = None
+    package_name: Optional[str] = None
+    package_download_count: Optional[int] = None
+    EXPERIMENTAL_ai_generated_description: Optional[str] = None
+
+class ExternalMCPResponse(BaseModel):
+    servers: List[ExternalMCPServer]
+    next: Optional[str] = None
+    total_count: int
+
+class AppendAllServersResponse(BaseModel):
+    total_added: int
+    skipped: int
+    message: str

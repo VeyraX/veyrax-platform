@@ -1,4 +1,4 @@
-import { Tool } from "./types.deploy";
+import { Tool } from "@/app/modules/integrations/api/types.integrations.mcp";
 
 export interface InspirationItem {
   name: string;

@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from openai import OpenAI
 import os
-from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt
+from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt, extract_repo_metadata_prompt
 from dotenv import load_dotenv
 import base64
 import httpx
@@ -33,9 +33,23 @@ def extract_env_variables(context):
     system_message = extract_env_variables_prompt
     human_message = context
     try:
-        return openai_call(system_message, human_message)
+        env_variables_json = openai_call(system_message, human_message)
+        return json.loads(env_variables_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse environment variables JSON")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract environment variables: {str(e)}")
+
+def extract_repo_metadata(context):
+    system_message = extract_repo_metadata_prompt
+    human_message = context
+    try:
+        metadata_json = openai_call(system_message, human_message)
+        return json.loads(metadata_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse metadata JSON")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract repository metadata: {str(e)}")
 
 def generate_dockerfile_with_base64_from_repo(repo_data):
     context = json.dumps(repo_data)

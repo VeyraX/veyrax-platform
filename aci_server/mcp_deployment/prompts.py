@@ -44,3 +44,19 @@ No other text or characters, NEVER. Just PURE JSON.
 
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 """
+
+extract_repo_metadata_prompt = """
+Based on provided context of repository, generate a name and description for this MCP (Multi-Cloud Plugin).
+
+You MUST return a JSON object with 'name' and 'description' fields. The name should be concise, descriptive, and highlight the main functionality. The description should be 1-2 sentences explaining what the MCP does.
+
+Example:
+{
+    "name": "GitHub Terminal",
+    "description": "Execute terminal commands and manage files in GitHub repositories. Provides code access, shell operations, and automation capabilities."
+}
+
+Keep it concise and focused on the functionality. Return only pure JSON with no markdown formatting or additional text.
+
+NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
+"""
