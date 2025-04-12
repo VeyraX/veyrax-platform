@@ -23,12 +23,12 @@ class ComponentUserData(BaseModel):
 # Search Result Item Schema
 class SearchResultItem(BaseModel):
     name: str
-    preview_url: str
-    video_url: str
+    preview_url: Optional[str] = None        
+    video_url: Optional[str] = None
     demo_id: int
-    component_data: ComponentData
-    component_user_data: ComponentUserData
-    usage_count: int
+    component_data: Optional[ComponentData] = None
+    component_user_data: Optional[ComponentUserData] = None
+    usage_count: Optional[int] = None
 
 # Pagination Schema
 class Pagination(BaseModel):
