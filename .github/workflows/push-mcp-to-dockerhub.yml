@@ -16,6 +16,18 @@ on:
         required: false
         default: 'auto-generated-image'
         type: string
+      auth_token:
+        description: 'Authentication token (Bearer or VEYRAX_API_KEY)'
+        required: true
+        type: string
+      repository_id:
+        description: 'Repository ID for connecting to Veyrax'
+        required: true
+        type: string
+      deployment_id:
+        description: 'Deployment ID for connecting to Veyrax'
+        required: true
+        type: string
 
 jobs:
   build-docker-image:
@@ -98,3 +110,21 @@ jobs:
           file: ./target-repo/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
+          
+      - name: Start deployment and connect repository
+        run: |
+          if [[ "${{ github.event.inputs.auth_token }}" == Bearer* ]]; then
+            AUTH_HEADER="Authorization: ${{ github.event.inputs.auth_token }}"
+          else
+            AUTH_HEADER="VEYRAX_API_KEY: ${{ github.event.inputs.auth_token }}"
+          fi
+          
+          echo "Calling Veyrax API to start deployment and connect repository..."
+          curl -X POST "${{ secrets.VEYRAX_DEPLOY_BASE_URL }}/mcp_deployment/start-deployment" \
+            -H "Content-Type: application/json" \
+            -H "$AUTH_HEADER" \
+            -d "{
+              \"repository_id\": \"${{ github.event.inputs.repository_id }}\",
+              \"image_name\": \"${{ github.event.inputs.image_name }}\",
+              \"deployment_id\": \"${{ github.event.inputs.deployment_id }}\"
+            }"
