@@ -111,7 +111,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
           
-      - name: Start deployment and connect repository
+      - name: Setup Container for User
         run: |
           if [[ "${{ github.event.inputs.auth_token }}" == Bearer* ]]; then
             AUTH_HEADER="Authorization: ${{ github.event.inputs.auth_token }}"
@@ -119,12 +119,11 @@ jobs:
             AUTH_HEADER="VEYRAX_API_KEY: ${{ github.event.inputs.auth_token }}"
           fi
           
-          echo "Calling Veyrax API to start deployment and connect repository..."
-          curl -X POST "${{ secrets.VEYRAX_DEPLOY_BASE_URL }}/mcp_deployment/start-deployment" \
+          echo "Calling Veyrax API to update deployment status to 'building'..."
+          curl -X POST "${{ secrets.VEYRAX_DEPLOY_BASE_URL }}/repo/connect" \
             -H "Content-Type: application/json" \
             -H "$AUTH_HEADER" \
             -d "{
               \"repository_id\": \"${{ github.event.inputs.repository_id }}\",
-              \"image_name\": \"${{ github.event.inputs.image_name }}\",
               \"deployment_id\": \"${{ github.event.inputs.deployment_id }}\"
             }"
