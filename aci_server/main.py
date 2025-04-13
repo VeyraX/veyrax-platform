@@ -203,7 +203,6 @@ INTEGRATION_ROUTERS = {
 
 async def check_user_permission(request: Request, tool: str, method: str):
     try:
-        # skip this paths, reserved for validation checks
         if method in ['validate_key', 'test_connection', 'authenticate', 'check_status']: 
             return
         
@@ -287,7 +286,7 @@ app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
 app.include_router(mcp_deployment_router)
-#app.add_middleware(PermissionMiddleware)
+app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
 for router in INTEGRATION_ROUTERS.values():
@@ -401,6 +400,9 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
     error_message = None
     user_id = None
     
+    query_params = dict(request.query_params)
+    question = query_params.get("question")
+    
     user_id = await get_user_from_request(request)
         
     try:
@@ -408,6 +410,11 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
             params = await request.json()
         except:
             params = {}
+        
+        metadata = {
+            "parameters": params,
+            "question": question
+        }
         
         if tool not in INTEGRATION_ROUTERS:
             error_message = f"Tool '{tool}' not found"
@@ -501,7 +508,8 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
             user_id=user_id,
             endpoint=f"/tool-call/{tool}/{method}",
             success=success,
-            error_message=error_message
+            error_message=error_message,
+            metadata=metadata
         )
         raise
     
@@ -512,7 +520,8 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
             user_id=user_id,
             endpoint=f"/tool-call/{tool}/{method}",
             success=success,
-            error_message=error_message
+            error_message=error_message,
+            metadata=metadata
         )
         raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
     
@@ -523,7 +532,8 @@ async def handle_tool_call(tool: str, method: str, request: Request, include_com
                     user_id=user_id,
                     endpoint=f"/tool-call/{tool}/{method}",
                     success=success,
-                    error_message=None
+                    error_message=None,
+                    metadata=metadata
                 )
             except Exception as log_error:
                 print(f"Error logging API call for Supabase: {str(log_error)}")
@@ -538,6 +548,8 @@ async def get_tool_spec(tool_name: str):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
+    query_params = dict(request.query_params)
+    question = query_params.get("question")
     
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
         return await get_dev_user_tools(request)
@@ -563,7 +575,8 @@ async def get_user_tools(request: Request):
             log_api_call(
                 user_id=user_id,
                 endpoint="/get-tools",
-                success=1
+                success=1,
+                metadata={"question": question} if question else None
             )
             
             return tools_response
@@ -583,7 +596,8 @@ async def get_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/get-tools",
-            success=1
+            success=1,
+            metadata={"question": question} if question else None
         )
         
         return response_tools
@@ -592,7 +606,8 @@ async def get_user_tools(request: Request):
             user_id=user_id,
             endpoint="/get-tools",
             success=0,
-            error_message=str(e)
+            error_message=str(e),
+            metadata={"question": question} if question else None
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 
@@ -683,7 +698,6 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
     try:
         try:
             request_data = await request.json()
-            print(request_data)
             tool = request_data.get("tool")
             method = request_data.get("method")
             params = request_data.get("params", request_data.get("parameters", {}))
