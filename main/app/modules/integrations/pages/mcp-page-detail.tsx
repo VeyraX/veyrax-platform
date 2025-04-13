@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
-import { dummyMetrics } from "@/app/modules/deploy/api/deploy-view-dummy-data";
 import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { getMcpDetailsByImageName, getGitHubRepoInfo, getMcpDeployments } from "@/app/modules/integrations/api/api.integrations.mcp";
 import { McpOverview } from "../components/mcp/mcp-overview";
@@ -222,7 +221,6 @@ export default function McpViewPage({
                     repoName={repoName}
                     githubUrl={githubUrl}
                     deploymentStatus={'Active'}
-                    dummyMetrics={dummyMetrics}
                     repoInfo={repoInfo}
                   />
                 </div>

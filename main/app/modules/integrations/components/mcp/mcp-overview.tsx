@@ -14,12 +14,6 @@ interface McpOverviewProps {
   repoName: string;
   githubUrl: string;
   deploymentStatus: 'Active' | 'Inactive';
-  dummyMetrics: {
-    monthlyToolCalls: string;
-    license: string;
-    local: string;
-    published: string;
-  };
   repoInfo: GitHubRepoInfo | null;
 }
 
@@ -31,7 +25,6 @@ export function McpOverview({
   repoName,
   githubUrl,
   deploymentStatus,
-  dummyMetrics,
   repoInfo
 }: McpOverviewProps) {
   const [showAllTools, setShowAllTools] = useState(false);
@@ -88,7 +81,6 @@ export function McpOverview({
           </div>
         </div>
         
-        {/* GitHub Stats - Minimal cards */}
         <div className="flex flex-wrap gap-2 mb-4">
           <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1 text-xs">
             <Star size={12} className="text-yellow-500" />
@@ -97,12 +89,12 @@ export function McpOverview({
           
           <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1 text-xs">
             <Calendar size={12} className="text-blue-500" />
-            <span>Published {formattedCreatedAt || dummyMetrics.published}</span>
+            <span>Published {formattedCreatedAt || ''}</span>
           </div>
           
           <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1 text-xs">
             <Award size={12} className="text-green-500" />
-            <span>{repoInfo?.license?.name || dummyMetrics.license}</span>
+            <span>{repoInfo?.license?.name || ''}</span>
           </div>
         </div>
         

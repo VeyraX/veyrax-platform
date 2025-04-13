@@ -112,3 +112,36 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
     return null;
   }
 };
+
+export const saveUserMcpEnvironment = async (
+  repositoryId: string,
+  environmentVariables: Record<string, string>
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user || !user.id) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { error } = await supabase
+      .from('users_mcp')
+      .upsert({
+        user_id: user.id,
+        repo_id: repositoryId,
+        env: environmentVariables
+      }, {
+        onConflict: 'user_id,repo_id'
+      });
+    
+    if (error) {
+      console.error('Error saving user MCP environment:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving user MCP environment:', error);
+    return false;
+  }
+};

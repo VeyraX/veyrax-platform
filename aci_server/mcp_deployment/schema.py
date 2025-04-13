@@ -5,6 +5,8 @@ from typing import Optional, Dict, List
 class PushMCPRequest(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL to parse")
     image_name: str = Field(..., description="Docker image name to be built")
+    repository_id: str = Field(..., description="Repository ID for connecting to Veyrax")
+    commit_hash: Optional[str] = Field(None, description="Commit hash for deployment")
     
     @validator('repo_url')
     def validatorte_repo_url(cls, v):
@@ -18,7 +20,8 @@ class PushMCPResponse(BaseModel):
     dockerfile_base64: Optional[str] = None
     github_workflow_url: Optional[str] = None
     message: Optional[str] = None
-    
+    deployment_id: Optional[str] = None
+
 
 class RepositoryMetaRequest(BaseModel):
     repo_url: str = Field(..., description="GitHub repository URL to parse")
@@ -55,3 +58,20 @@ class AppendAllServersResponse(BaseModel):
     total_added: int
     skipped: int
     message: str
+
+class DeployMCPResponse(BaseModel):
+    status: str
+    dockerfile: Optional[str] = None
+    dockerfile_base64: Optional[str] = None
+    github_workflow_url: Optional[str] = None
+    message: Optional[str] = None
+    
+class StartDeploymentRequest(BaseModel):
+    repository_id: str = Field(..., description="Repository ID for connecting to Veyrax")
+    image_name: str = Field(..., description="Docker image name that was built")
+    deployment_id: str = Field(..., description="ID of the deployment")
+    
+class StartDeploymentResponse(BaseModel):
+    success: bool
+    message: str
+    deployment_id: Optional[str] = None

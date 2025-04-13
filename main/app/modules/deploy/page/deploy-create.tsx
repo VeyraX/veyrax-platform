@@ -8,9 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Github, ArrowLeft, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { fetchRepositoryMeta, checkMcpExists } from "../api/api.deploy";
+import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { saveUserMcpEnvironment } from "../../integrations/api/api.integrations.mcp";
 
 interface EnvVar {
   name: string;
@@ -31,6 +33,8 @@ export default function DeployCreatePage() {
   const [repoName, setRepoName] = useState("");
   const [repoDescription, setRepoDescription] = useState("");
   const [mcpExists, setMcpExists] = useState(false);
+  const [repositoryId, setRepositoryId] = useState<string | null>(null);
+  const [commitHash, setCommitHash] = useState<string | null>(null);
 
   const handleFetch = async () => {
     if (!githubUrl) return;
@@ -39,11 +43,9 @@ export default function DeployCreatePage() {
     setMcpExists(false);
 
     try {
-      // Сначала получаем метаданные репозитория
       const response = await fetchRepositoryMeta(githubUrl);
       console.log('Response from API:', response);
       
-      // Затем проверяем существование MCP (чтобы уведомление появилось только после завершения запроса)
       const exists = await checkMcpExists(githubUrl);
       setMcpExists(exists);
       
@@ -57,8 +59,10 @@ export default function DeployCreatePage() {
         setEnvVars(transformedVars);
         setIsFetched(true);
         
-        if (response.name) setRepoName(response.name);
-        if (response.description) setRepoDescription(response.description);
+        setRepoName(response.name || "");
+        setRepoDescription(response.description || "");
+        setRepositoryId(response.repository_id || null);
+        setCommitHash(response.last_commit_hash || null);
       } else {
         setError("No environment variables found");
       }
@@ -72,32 +76,45 @@ export default function DeployCreatePage() {
   };
 
   const handleDeploy = async () => {
+    if (!repositoryId) {
+      setError("Repository ID is missing. Please try fetching the repository again.");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      // Здесь будет API вызов для деплоя
-      console.log('Deploying with env vars:', envVars);
-      console.log('Include in VeyraX tools:', includeInTools);
-      console.log('Make public:', makePublic);
+      const envVariablesObj = Object.fromEntries(
+        envVars.map(env => [env.name, env.value])
+      );
       
-      // Подготовка данных для отправки
-      const deployData = {
-        repo_url: githubUrl,
-        env_variables: Object.fromEntries(envVars.map(env => [env.name, env.value])),
-        include_in_tools: includeInTools,
-        is_public: makePublic,
-        name: repoName,
-        description: repoDescription
-      };
+      const savedEnv = await saveUserMcpEnvironment(
+        repositoryId,
+        envVariablesObj
+      );
       
-      console.log('Deploy data:', deployData);
+      if (!savedEnv) {
+        console.warn('Failed to save environment variables, but continuing with deployment');
+      }
       
-      setTimeout(() => {
-        router.push("/deployment");
-        setIsLoading(false);
-      }, 1500);
+      const imageName = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'mcp-server';
+      
+      try {
+        await deployMcpRepository(
+          githubUrl,
+          imageName,
+          repositoryId,
+          commitHash || undefined
+        );
+      } catch (deployError) {
+        console.error('Deployment error, but proceeding to MCP page:', deployError);
+      }
+      
+      router.push(`/integrations/mcp/${imageName}`);
+      
     } catch (error) {
-      console.error('Error during deployment:', error);
+      setError("An unexpected error occurred. Please try again.");
+      console.error('Error during deployment process:', error);
       setIsLoading(false);
     }
   };
@@ -113,7 +130,6 @@ export default function DeployCreatePage() {
   };
 
   const handleGoToExistingMcp = () => {
-    // В будущем здесь будет переход на страницу существующего MCP
     router.push("/deployment");
   };
 

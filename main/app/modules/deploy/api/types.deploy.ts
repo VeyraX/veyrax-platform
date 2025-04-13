@@ -6,6 +6,23 @@ export interface RepositoryMetaResponse {
   env_variables: Record<string, string>;
   name?: string;
   description?: string;
+  repository_id?: string;
+  last_commit_hash?: string;
+}
+
+export interface DeployMCPRequest {
+  repo_url: string;
+  image_name: string;
+  repository_id: string;
+  commit_hash?: string;
+}
+
+export interface DeployMCPResponse {
+  status: string;
+  dockerfile?: string;
+  dockerfile_base64?: string;
+  github_workflow_url?: string;
+  message?: string;
 }
 
 export interface ExternalMcpRepository {

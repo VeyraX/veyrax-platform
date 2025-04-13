@@ -1,4 +1,4 @@
-import { RepositoryMetaResponse, ExternalMcpRepository } from "./types.deploy";
+import { RepositoryMetaResponse, ExternalMcpRepository, DeployMCPResponse } from "./types.deploy";
 import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
@@ -76,12 +76,23 @@ const getRepositoryMetaFromApi = async (repoUrl: string): Promise<RepositoryMeta
 
 export const fetchRepositoryMeta = async (
   repoUrl: string
-): Promise<RepositoryMetaResponse> => {
+): Promise<RepositoryMetaResponse & { repository_id?: string, last_commit_hash?: string }> => {
   try {
     const latestCommitHash = await getLatestCommitHash(repoUrl);
     const dbResult = await getRepositoryMetaFromDb(repoUrl, latestCommitHash);
+    
     if (dbResult) {
-      return dbResult;
+      const { data: repoData } = await supabase
+        .from('mcp_repositories')
+        .select('id, last_commit_hash')
+        .eq('repo_url', repoUrl)
+        .single();
+      
+      return {
+        ...dbResult,
+        repository_id: repoData?.id,
+        last_commit_hash: repoData?.last_commit_hash
+      };
     }
     
     const apiResult = await getRepositoryMetaFromApi(repoUrl);
@@ -90,7 +101,7 @@ export const fetchRepositoryMeta = async (
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserId = user?.id || null;
       
-      await supabase
+      const { data: insertData, error } = await supabase
         .from('mcp_repositories')
         .upsert({
           repo_url: repoUrl,
@@ -101,12 +112,24 @@ export const fetchRepositoryMeta = async (
           author_user_id: currentUserId
         }, {
           onConflict: 'repo_url'
-        });
+        })
+        .select('id, last_commit_hash')
+        .single();
+      
+      if (error) {
+        console.error('Error saving to database:', error);
+        return apiResult;
+      }
+      
+      return {
+        ...apiResult,
+        repository_id: insertData?.id,
+        last_commit_hash: insertData?.last_commit_hash
+      };
     } catch (saveError) {
       console.error('Error saving to database:', saveError);
+      return apiResult;
     }
-    
-    return apiResult;
   } catch (error) {
     console.error('Error fetching repository metadata:', error);
     throw error;
@@ -166,5 +189,45 @@ export const fetchExternalMcpRepositories = async (
   } catch (error) {
     console.error('Error fetching external MCP repositories:', error);
     return { data: [], count: 0 };
+  }
+};
+
+export const deployMcpRepository = async (
+  repoUrl: string,
+  imageName: string,
+  repositoryId: string,
+  commitHash?: string
+): Promise<DeployMCPResponse> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mcp_deployment/push-mcp-to-dockerhub`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        repo_url: repoUrl,
+        image_name: imageName,
+        repository_id: repositoryId,
+        commit_hash: commitHash
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to deploy MCP: ${errorData.detail || response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deploying MCP:', error);
+    throw error;
   }
 };

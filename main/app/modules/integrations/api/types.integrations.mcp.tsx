@@ -74,3 +74,10 @@ export interface McpViewPageProps {
   githubUrl?: string;
   imageName?: string;
 }
+
+export interface UserMcpEnvironment {
+  id?: string;
+  user_id: string;
+  repo_id: string;
+  env: Record<string, string>;
+}

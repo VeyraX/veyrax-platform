@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import base64
 import httpx
 import json
+from typing import Dict, Any, Optional
 
 load_dotenv()
 
@@ -57,7 +58,13 @@ def generate_dockerfile_with_base64_from_repo(repo_data):
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
     return dockerfile, dockerfile_base64
 
-async def push_mcp_to_dockerhub(repo_url, image_name):
+async def push_mcp_to_dockerhub(
+    repo_url: str, 
+    image_name: str, 
+    auth_token: str, 
+    repository_id: Optional[str] = None, 
+    deployment_id: Optional[str] = None
+) -> Dict[str, Any]:
     try:
         from .parse_repo import parse_repository
         
@@ -67,13 +74,12 @@ async def push_mcp_to_dockerhub(repo_url, image_name):
         
         dockerfile, dockerfile_base64 = generate_dockerfile_with_base64_from_repo(repo_data)
         
-        github_token = os.environ.get("GITHUB_TOKEN")
         workflow_id = os.environ.get("GITHUB_WORKFLOW_ID")
         github_repo = os.environ.get("GITHUB_REPO")
         
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {github_token}",
+            "Authorization": f"Bearer {auth_token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "Content-Type": "application/json"
         }
@@ -83,7 +89,10 @@ async def push_mcp_to_dockerhub(repo_url, image_name):
             "inputs": {
                 "repo_url": repo_url,
                 "dockerfile_base64": dockerfile_base64,
-                "image_name": image_name
+                "image_name": image_name,
+                "auth_token": auth_token,
+                "repository_id": repository_id,
+                "deployment_id": deployment_id
             }
         }
         
@@ -101,20 +110,23 @@ async def push_mcp_to_dockerhub(repo_url, image_name):
                 "dockerfile": dockerfile,
                 "dockerfile_base64": dockerfile_base64,
                 "github_workflow_url": f"https://github.com/{github_repo}/actions",
-                "message": "Docker image build process started successfully"
+                "message": "Docker image build process started successfully",
+                "deployment_id": deployment_id
             }
         else:
             return {
                 "status": "partial_success",
                 "dockerfile": dockerfile,
                 "dockerfile_base64": dockerfile_base64,
-                "message": f"Dockerfile generated successfully, but GitHub workflow failed to start. Status code: {response.status_code}"
+                "message": f"Dockerfile generated successfully, but GitHub workflow failed to start. Status code: {response.status_code}",
+                "deployment_id": deployment_id
             }
             
 
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
+            "deployment_id": deployment_id
         }
     
