@@ -218,6 +218,11 @@ async def check_user_permission(request: Request, tool: str, method: str):
         if not user_tools:
             raise HTTPException(status_code=401, detail="User not found")
         
+        mcp_image_names = await get_user_mcp_image_names(user_id)
+        
+        if tool in mcp_image_names:
+            return
+        
         if tool not in user_tools:
             raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
         
