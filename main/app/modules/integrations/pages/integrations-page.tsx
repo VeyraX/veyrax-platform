@@ -98,9 +98,11 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
     } 
     else if (selectedCategory === "Popular") {
       filtered = filtered.filter(integration => 
-        integration.isPopular === true || 
+        (integration.count_of_users && integration.count_of_users > 0) || 
         integration.provider_tag === 'integration-request'
       );
+      
+      filtered = filtered.sort((a, b) => (b.count_of_users || 0) - (a.count_of_users || 0));
     }
     else if (selectedCategory !== "All") {
       filtered = filtered.filter(integration => {
@@ -114,6 +116,17 @@ const IntegrationsPage: FC<IntegrationsPageProps> = ({ isPublic = false, hideHea
         return false;
       });
     }
+    
+    filtered = filtered.sort((a, b) => {
+      if (a.provider_tag === 'integration-request') return -1;
+      if (b.provider_tag === 'integration-request') return 1;
+      
+      if (selectedCategory === "Popular") {
+        return (b.count_of_users || 0) - (a.count_of_users || 0);
+      }
+      
+      return 0;
+    });
     
     setFilteredIntegrations(filtered);
   }, [searchQuery, selectedCategory, integrations]);

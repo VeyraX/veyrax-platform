@@ -60,3 +60,50 @@ async def update_mcp_deployment_status(
         
     except Exception as e:
         return {"error": str(e)}
+
+async def get_cached_dockerfile(
+    repository_id: str,
+    commit_hash: str
+) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('mcp_repositories') \
+            .select('id, docker_file_b64') \
+            .eq('id', repository_id) \
+            .eq('last_commit_hash', commit_hash) \
+            .limit(1) \
+            .execute()
+            
+        if result.data and len(result.data) > 0:
+            return {
+                'docker_file_b64': result.data[0].get('docker_file_b64')
+            }
+            
+        return {}
+        
+    except Exception as e:
+        print(f"Error getting cached dockerfile: {str(e)}")
+        return {}
+
+async def save_dockerfile(
+    repository_id: str,
+    commit_hash: str,
+    docker_file_b64: str
+) -> bool:
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('mcp_repositories') \
+            .update({
+                'docker_file_b64': docker_file_b64,
+                'last_commit_hash': commit_hash
+            }) \
+            .eq('id', repository_id) \
+            .execute()
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error saving dockerfile: {str(e)}")
+        return False

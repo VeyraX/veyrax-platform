@@ -5,14 +5,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/utils/supabase/client";
+import { saveUserMcpEnvironment, disconnectUserMcp } from "@/app/modules/integrations/api/api.integrations.mcp";
 
 interface McpManageProps {
   imageName: string;
   open: boolean;
   onClose: (connected?: boolean) => void;
   predefinedEnv?: Record<string, any>;
+  repositoryId?: string;
+  isConnected?: boolean;
+  onConnectionUpdate?: () => Promise<void>;
 }
 
 interface EnvVar {
@@ -20,10 +24,21 @@ interface EnvVar {
   value: string;
 }
 
-export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpManageProps) {
+export function McpManage({ 
+  imageName, 
+  open, 
+  onClose, 
+  predefinedEnv = {}, 
+  repositoryId,
+  isConnected = false,
+  onConnectionUpdate
+}: McpManageProps) {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
+  const [originalEnvVars, setOriginalEnvVars] = useState<EnvVar[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [envChanged, setEnvChanged] = useState<boolean>(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -34,7 +49,9 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
       }));
       
       setEnvVars(envVarsArray);
+      setOriginalEnvVars(JSON.parse(JSON.stringify(envVarsArray)));
       setErrorMessage(null);
+      setEnvChanged(false);
     }
   }, [open, predefinedEnv]);
 
@@ -42,9 +59,20 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
     const newVars = [...envVars];
     newVars[index].value = value;
     setEnvVars(newVars);
+    
+    const hasChanges = newVars.some((envVar, idx) => {
+      return envVar.value !== originalEnvVars[idx]?.value;
+    });
+    
+    setEnvChanged(hasChanges);
   };
 
   const handleSave = async () => {
+    if (!envChanged) {
+      onClose();
+      return;
+    }
+    
     setIsSaving(true);
     setErrorMessage(null);
     
@@ -54,16 +82,30 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
         envObject[v.key] = v.value;
       });
       
-      const { error } = await supabase
-        .from('user_mcp_connections')
-        .upsert({ 
-          image_name: imageName,
-          env_vars: envObject,
-          connected: true
-        });
+      if (repositoryId) {
+        // Save to users_mcp table using the new function
+        const success = await saveUserMcpEnvironment(repositoryId, envObject);
         
-      if (error) {
-        throw error;
+        if (!success) {
+          throw new Error("Failed to save configuration");
+        }
+      } else {
+        // Fallback to the previous method if repositoryId is not provided
+        const { error } = await supabase
+          .from('user_mcp_connections')
+          .upsert({ 
+            image_name: imageName,
+            env_vars: envObject,
+            connected: true
+          });
+          
+        if (error) {
+          throw error;
+        }
+      }
+      
+      if (onConnectionUpdate) {
+        await onConnectionUpdate();
       }
       
       onClose(true);
@@ -75,8 +117,34 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
     }
   };
 
+  const handleDisconnect = async () => {
+    if (isLoading || !repositoryId) return;
+    
+    setIsLoading(true);
+    setErrorMessage(null);
+    
+    try {
+      const success = await disconnectUserMcp(repositoryId);
+      
+      if (!success) {
+        throw new Error("Failed to disconnect MCP");
+      }
+      
+      if (onConnectionUpdate) {
+        await onConnectionUpdate();
+      }
+      
+      onClose(false);
+    } catch (error) {
+      console.error("Error disconnecting MCP:", error);
+      setErrorMessage("Failed to disconnect MCP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -100,12 +168,12 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
                   </div>
                   <Input
                     id={`envVar-${index}`}
-                    type={envVar.key.toLowerCase().includes('token') || envVar.key.toLowerCase().includes('key') || envVar.key.toLowerCase().includes('secret') ? "password" : "text"}
+                    type="text"
                     value={envVar.value} 
                     onChange={(e) => handleEnvVarChange(index, e.target.value)}
                     placeholder={`Enter ${envVar.key}`}
                     className="w-full"
-                    disabled={isSaving}
+                    disabled={isSaving || isLoading}
                   />
                 </div>
               ))}
@@ -118,21 +186,31 @@ export function McpManage({ imageName, open, onClose, predefinedEnv = {} }: McpM
         </div>
 
         <DialogFooter className="flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => onClose()} 
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
+          {isConnected && (
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                onClick={handleDisconnect}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  'Disconnect'
+                )}
+              </Button>
+            </div>
+          )}
+          
           <Button 
             onClick={handleSave} 
-            disabled={isSaving || envVars.length === 0}
+            disabled={isSaving || isLoading || !envChanged}
           >
             {isSaving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Saving...
+                <RefreshCw className="h-4 w-4 animate-spin" />
               </>
             ) : (
               'Save Configuration'

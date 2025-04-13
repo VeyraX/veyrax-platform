@@ -56,34 +56,42 @@ def generate_dockerfile_with_base64_from_repo(repo_data):
     context = json.dumps(repo_data)
     dockerfile = generate_dockerfile(context)
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
-    return dockerfile, dockerfile_base64
+    return dockerfile_base64
 
 async def push_mcp_to_dockerhub(
     repo_url: str, 
     image_name: str, 
     auth_token: str, 
     repository_id: Optional[str] = None, 
-    deployment_id: Optional[str] = None
+    deployment_id: Optional[str] = None,
+    commit_hash: Optional[str] = None
 ) -> Dict[str, Any]:
     try:
         from .parse_repo import parse_repository
+        from .queries import get_cached_dockerfile, save_dockerfile
         
-        repo_data = parse_repository(
-            repo_url=repo_url
-        )
-        
-        dockerfile, dockerfile_base64 = generate_dockerfile_with_base64_from_repo(repo_data)
+        cached = await get_cached_dockerfile(repository_id, commit_hash)
+        if cached and cached.get('docker_file_b64'):
+            dockerfile_base64 = cached.get('docker_file_b64')
+        else:
+            repo_data = parse_repository(repo_url=repo_url)
+            dockerfile_base64 = generate_dockerfile_with_base64_from_repo(repo_data)
+            
+            save_result = await save_dockerfile(repository_id, commit_hash, dockerfile_base64)
+            
         
         workflow_id = os.environ.get("GITHUB_WORKFLOW_ID")
         github_repo = os.environ.get("GITHUB_REPO")
+        github_token = os.environ.get("GITHUB_TOKEN")
         
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {auth_token}",
+            "Authorization": f"Bearer {github_token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "Content-Type": "application/json"
         }
         
+            
         workflow_data = {
             "ref": "main",
             "inputs": {
@@ -104,11 +112,17 @@ async def push_mcp_to_dockerhub(
                 timeout=30.0
             )
         
+        if response.status_code != 204:
+            try:
+                response_body = response.json()
+                print(f"GitHub API response body: {response_body}")
+            except:
+                print(f"GitHub API response text: {response.text}")
+        
         if response.status_code == 204:
             return {
                 "status": "success",
-                "dockerfile": dockerfile,
-                "dockerfile_base64": dockerfile_base64,
+                "dockerfile_b64": dockerfile_base64,
                 "github_workflow_url": f"https://github.com/{github_repo}/actions",
                 "message": "Docker image build process started successfully",
                 "deployment_id": deployment_id
@@ -116,12 +130,10 @@ async def push_mcp_to_dockerhub(
         else:
             return {
                 "status": "partial_success",
-                "dockerfile": dockerfile,
-                "dockerfile_base64": dockerfile_base64,
+                "dockerfile_b64": dockerfile_base64,
                 "message": f"Dockerfile generated successfully, but GitHub workflow failed to start. Status code: {response.status_code}",
                 "deployment_id": deployment_id
             }
-            
 
     except Exception as e:
         return {

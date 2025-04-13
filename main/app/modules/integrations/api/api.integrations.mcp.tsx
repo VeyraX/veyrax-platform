@@ -1,13 +1,32 @@
-import { McpDetails, McpDeployment, GitHubRepoInfo } from './types.integrations.mcp';
+import { McpDetails, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from './types.integrations.mcp';
 import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
+
+export const getAllMcpRepositories = async (): Promise<McpDetails[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('mcp_repositories')
+      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
+      .order('created_at', { ascending: false });
+    
+    if (error || !data) {
+      console.error('Error fetching all MCP repositories:', error);
+      return [];
+    }
+    
+    return data as McpDetails[];
+  } catch (error) {
+    console.error('Error fetching all MCP repositories:', error);
+    return [];
+  }
+};
 
 export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDetails | null> => {
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id')
+      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
       .eq('image_name', imageName)
       .single();
     
@@ -142,6 +161,58 @@ export const saveUserMcpEnvironment = async (
     return true;
   } catch (error) {
     console.error('Error saving user MCP environment:', error);
+    return false;
+  }
+};
+
+export const getUserMcpEnvironment = async (repositoryId: string): Promise<UserMcpEnvironment | null> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user || !user.id) {
+      return null;
+    }
+    
+    const { data, error } = await supabase
+      .from('users_mcp')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('repo_id', repositoryId)
+      .single();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    return data as UserMcpEnvironment;
+  } catch (error) {
+    console.error('Error fetching user MCP environment:', error);
+    return null;
+  }
+};
+
+export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user || !user.id) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { error } = await supabase
+      .from('users_mcp')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('repo_id', repositoryId);
+    
+    if (error) {
+      console.error('Error disconnecting user MCP:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error disconnecting user MCP:', error);
     return false;
   }
 };

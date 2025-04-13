@@ -236,7 +236,7 @@ export function McpDocumentation({ mcpDetails, tools }: McpDocumentationProps) {
       
       {tools.length === 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center text-muted-foreground">
-          <p>No tools available for this MCP.</p>
+          <p>Tools will show up after deployment.</p>
         </div>
       )}
     </div>

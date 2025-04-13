@@ -37,10 +37,6 @@ export function McpSettings({ mcpId, mcpDetails, deployments = [] }: McpSettings
     <div className="space-y-6">
       {/* Basic Information Panel */}
       <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium text-foreground">Basic Information</h2>
-        </div>
-
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-32 text-sm font-medium text-muted-foreground">
@@ -75,9 +71,6 @@ export function McpSettings({ mcpId, mcpDetails, deployments = [] }: McpSettings
       <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-medium text-foreground">Environment Variables</h2>
-          <div className="text-xs text-muted-foreground">
-            {envVariables.length} variables
-          </div>
         </div>
 
         <div className="space-y-4">

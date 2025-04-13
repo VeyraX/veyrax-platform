@@ -140,7 +140,7 @@ export function McpOverview({
           </div>
         ) : (
           <div className="py-8 text-center text-muted-foreground">
-            <p>No tools available for this MCP</p>
+            <p>Tools will show up after deployment.</p>
           </div>
         )}
       </div>

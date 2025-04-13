@@ -34,6 +34,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/marketplace', request.url))
   }
 
+  const providerTagMatch = pathname.match(/^\/integrations\/([^\/]+)$/);
+  
+  if (providerTagMatch && !session && !pathname.includes('/auth-complete')) {
+    const providerTag = providerTagMatch[1];
+    return NextResponse.redirect(new URL(`/marketplace/${providerTag}`, request.url));
+  }
+
   const isAuthCompletePath = /\/integrations\/[\w-]+\/auth-complete/.test(pathname);
 
   if (

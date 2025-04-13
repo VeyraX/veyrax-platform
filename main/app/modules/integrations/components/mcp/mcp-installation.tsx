@@ -1,18 +1,27 @@
 import { useState } from "react";
-import { Code, Check, CopyIcon, CheckIcon } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { McpManage } from "./mcp-manage";
-import { McpDetails } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { McpDetails, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { CopyIcon, CheckIcon } from "lucide-react";
 
 interface McpUsageProps {
   imageName: string;
   mcpDetails?: McpDetails | null;
+  userEnvironment?: UserMcpEnvironment | null;
+  isConnected?: boolean;
+  onConnectionUpdate?: () => Promise<void>;
 }
 
-export function McpUsage({ imageName, mcpDetails }: McpUsageProps) {
-  const [isConnected, setIsConnected] = useState(false);
+export function McpUsage({ 
+  imageName, 
+  mcpDetails, 
+  userEnvironment, 
+  isConnected = false, 
+  onConnectionUpdate 
+}: McpUsageProps) {
   const [copiedRequest, setCopiedRequest] = useState(false);
   const [copiedResponse, setCopiedResponse] = useState(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
@@ -21,14 +30,11 @@ export function McpUsage({ imageName, mcpDetails }: McpUsageProps) {
     setShowManageDialog(true);
   };
   
-  const handleManageClose = (connected: boolean = false) => {
+  const handleManageClose = async (connected?: boolean) => {
     setShowManageDialog(false);
     
-    if (connected) {
-      setIsConnected(true);
-      setTimeout(() => {
-        setIsConnected(false);
-      }, 3000);
+    if (connected && onConnectionUpdate) {
+      await onConnectionUpdate();
     }
   };
   
@@ -77,12 +83,13 @@ export function McpUsage({ imageName, mcpDetails }: McpUsageProps) {
             </div>
             <Button 
               onClick={handleConnect}
-              disabled={isConnected}
+              className="gap-2"
+              variant={isConnected ? "outline" : "default"}
             >
               {isConnected ? (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Connected
+                  Manage
+                  <ArrowUpRight className="h-4 w-4" />
                 </>
               ) : (
                 'Connect'
@@ -164,7 +171,10 @@ export function McpUsage({ imageName, mcpDetails }: McpUsageProps) {
           imageName={imageName}
           open={showManageDialog}
           onClose={handleManageClose}
-          predefinedEnv={mcpDetails?.env || {}}
+          predefinedEnv={userEnvironment?.env || mcpDetails?.env || {}}
+          repositoryId={mcpDetails?.id}
+          isConnected={isConnected}
+          onConnectionUpdate={onConnectionUpdate}
         />
       )}
     </>

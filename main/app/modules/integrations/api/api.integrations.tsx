@@ -4,70 +4,100 @@ import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbCo
 const supabase = createClient()
 
 
-export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  const { data: providers } = await supabase
-    .from('providers')
-    .select(`
-      *,
-      provider_scopes (
-        scope_id,
-        scope_name
-      )
-    `)
-
-  const { data: userProviders } = await supabase
-    .from('users_providers')
-    .select('provider_id')
-    .eq('user_id', user?.id)
-
-  const connectedProviderIds = new Set(userProviders?.map(p => p.provider_id))
-
-  const { data: popularProviders } = await supabase
-    .from('popular_providers_view')
-    .select('*')
-  
-  const popularProviderIds = new Set(popularProviders?.map(p => p.provider_id) || [])
-
-  const { data: userScopes } = await supabase
-    .from('user_provider_scopes_view')
-    .select('*')
-    .eq('user_id', user?.id);
-
-  const result = providers?.map((provider: Provider & { provider_scopes: Array<{ scope_id: string, scope_name: string }> }) => {
-    const isConnected = connectedProviderIds.has(provider.id)
-    const isPopular = popularProviderIds.has(provider.id)
-
-    const providerUserScopes = userScopes?.find(s => s.provider_id === provider.id);
+export const getTopConnectedProviders = async (): Promise<{ provider_id: string, name: string, provider_tag: string, count_of_users: number }[]> => {
+  try {
+    const { data, error } = await supabase.rpc('get_top_connected_providers');
+    console.log(data)
     
-    const transformedUserScopes = providerUserScopes ? 
-      providerUserScopes.scope_ids.map((scope_id: string, index: number) => ({
-        id: `${provider.id}-${scope_id}`,
-        scope_id: scope_id,
-        scope_name: providerUserScopes.scope_names[index]
-      })) : [];
-
-    provider.scopes = provider.provider_scopes?.map(s => ({
-      id: s.scope_id,
-      scope_id: s.scope_id,
-      scope_name: s.scope_name
-    })) || []
-
-    return {
-      ...provider,
-      connected: isConnected,
-      isPopular,
-      hasIndex: false,
-      indexStatus: null,
-      lastSyncDate: null,
-      processedEntities: null,
-      user_scopes: transformedUserScopes
+    if (error) {
+      console.error('Error fetching top connected providers:', error);
+      return [];
     }
-  }) || []
-  
-  return result as IntegrationCardProps[]
-}
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in getTopConnectedProviders:', error);
+    return [];
+  }
+};
+
+export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
+  try {
+    const { data: integrations, error } = await supabase
+      .from('providers')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching integrations:', error);
+      throw error;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    
+    let userConnections: { provider_id: string }[] = [];
+    if (userId) {
+      const { data: connections, error: connectionsError } = await supabase
+        .from('users_providers')
+        .select('provider_id')
+        .eq('user_id', userId);
+      
+      if (!connectionsError) {
+        userConnections = connections || [];
+      }
+    }
+    
+    const topConnectedProviders = await getTopConnectedProviders();
+    
+    let result: IntegrationCardProps[] = integrations.map((integration) => {
+      const connectedData = topConnectedProviders.find(
+        provider => provider.provider_id === integration.id
+      );
+      
+      const userCount = connectedData?.count_of_users || 0;
+      
+      return {
+        id: integration.id,
+        name: integration.name,
+        description: integration.description,
+        logo_url: integration.logo_url,
+        categories: integration.categories,
+        provider_tag: integration.provider_tag,
+        auth_method: integration.auth_method,
+        scopes: integration.scopes,
+        is_enabled: integration.is_enabled,
+        connected: userConnections.some(conn => conn.provider_id === integration.id),
+        hasIndex: false,
+        indexStatus: null,
+        count_of_users: userCount
+      };
+    });
+    
+    result = result.sort((a, b) => (b.count_of_users || 0) - (a.count_of_users || 0));
+    
+    const hasRequestCard = result.some(item => item.provider_tag === 'integration-request');
+    
+    if (!hasRequestCard) {
+      result.push({
+        id: 'integration-request',
+        name: 'Request Integration',
+        description: 'Request any integration we missed, and we\'ll work on adding!',
+        logo_url: '/integration-request.svg',
+        provider_tag: 'integration-request',
+        auth_method: 'none',
+        connected: false,
+        hasIndex: false,
+        indexStatus: null,
+        count_of_users: 0
+      } as IntegrationCardProps);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error in getIntegrationsData:', error);
+    throw error;
+  }
+};
 
 export const enableProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
 

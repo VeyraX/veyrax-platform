@@ -6,8 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
-import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
-import { getMcpDetailsByImageName, getGitHubRepoInfo, getMcpDeployments } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { getMcpDetailsByImageName, getGitHubRepoInfo, getMcpDeployments, getUserMcpEnvironment } from "@/app/modules/integrations/api/api.integrations.mcp";
 import { McpOverview } from "../components/mcp/mcp-overview";
 import { McpUsage } from "../components/mcp/mcp-installation";
 import { McpDocumentation } from "../components/mcp/mcp-documentation";
@@ -29,6 +29,8 @@ export default function McpViewPage({
   const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
   const [isAuthor, setIsAuthor] = useState(false);
   const [deployments, setDeployments] = useState<McpDeployment[]>([]);
+  const [userMcpEnvironment, setUserMcpEnvironment] = useState<UserMcpEnvironment | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -51,6 +53,11 @@ export default function McpViewPage({
         
         if (data) {
           setMcpDetails(data);
+          
+          // Check if user has connected this MCP
+          const userEnv = await getUserMcpEnvironment(data.id);
+          setUserMcpEnvironment(userEnv);
+          setIsConnected(!!userEnv);
           
           const { data: { user } } = await supabase.auth.getUser();
           console.log("user", user);
@@ -86,6 +93,14 @@ export default function McpViewPage({
     
     fetchAllData();
   }, [imageName]);
+  
+  const handleConnectionUpdate = async () => {
+    if (mcpDetails) {
+      const userEnv = await getUserMcpEnvironment(mcpDetails.id);
+      setUserMcpEnvironment(userEnv);
+      setIsConnected(!!userEnv);
+    }
+  };
   
   const handleBack = () => {
     router.back();
@@ -142,7 +157,6 @@ export default function McpViewPage({
     );
   }
 
-  // Use mcpDetails if available, otherwise fallback to defaults
   const repoName = mcpDetails?.name || "Unknown MCP";
   const mcpId = mcpDetails?.id || "unknown-id";
   const githubUrl = mcpDetails?.repo_url || "#";
@@ -227,7 +241,13 @@ export default function McpViewPage({
                 
                 <div className="space-y-6">
                   {/* Right column - Installation Component */}
-                  <McpUsage imageName={imageName} mcpDetails={mcpDetails} />
+                  <McpUsage 
+                    imageName={imageName} 
+                    mcpDetails={mcpDetails} 
+                    userEnvironment={userMcpEnvironment}
+                    isConnected={isConnected}
+                    onConnectionUpdate={handleConnectionUpdate}
+                  />
                 </div>
               </div>
             </TabsContent>
