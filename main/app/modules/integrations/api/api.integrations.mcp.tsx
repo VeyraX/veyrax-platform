@@ -111,7 +111,8 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
     }
     
     const data = await response.json();
-    
+
+    console.log('GitHub repo info:', data);
     return {
       stars: data.stargazers_count,
       forks: data.forks_count,
@@ -129,39 +130,6 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
   } catch (error) {
     console.error('Error fetching GitHub repo info:', error);
     return null;
-  }
-};
-
-export const saveUserMcpEnvironment = async (
-  repositoryId: string,
-  environmentVariables: Record<string, string>
-): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user || !user.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const { error } = await supabase
-      .from('users_mcp')
-      .upsert({
-        user_id: user.id,
-        repo_id: repositoryId,
-        env: environmentVariables
-      }, {
-        onConflict: 'user_id,repo_id'
-      });
-    
-    if (error) {
-      console.error('Error saving user MCP environment:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving user MCP environment:', error);
-    return false;
   }
 };
 
@@ -213,6 +181,96 @@ export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> 
     return true;
   } catch (error) {
     console.error('Error disconnecting user MCP:', error);
+    return false;
+  }
+};
+
+export const connectUserMcpContainer = async (
+  repositoryId: string,
+  encrypted_api_key?: string,
+  code?: string
+): Promise<boolean> => {
+  try {
+    let token;
+    
+    if (encrypted_api_key) {
+      token = encrypted_api_key;
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || !user.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('No auth token available');
+      }
+    }
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_VEYRAX_DEPLOY_BASE_URL}/repo/connect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        repository_id: repositoryId,
+        code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error connecting user MCP container:', errorData);
+      throw new Error(`Failed to connect MCP container: ${response.statusText}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error connecting user MCP container:', error);
+    return false;
+  }
+};
+
+export const enableMcpIntegration = async (
+  imageName: string, 
+  environmentVariables?: Record<string, string>,
+  encrypted_api_key?: string, 
+  code?: string
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const response = await fetch('/api/integrations/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        image_name: imageName,
+        env: environmentVariables,
+        user_id: user?.id,
+        encrypted_api_key,
+        code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable MCP integration');
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to enable MCP integration');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error enabling MCP integration:', error);
     return false;
   }
 };

@@ -63,9 +63,44 @@ def is_text_file(filename: str):
     ext = '.' + filename.split('.')[-1].lower() if '.' in filename else ''
     return ext in text_extensions
 
+def should_skip_file(file_path: str):
+    skip_files = [
+        'package-lock.json',
+        'yarn.lock',
+        'pnpm-lock.yaml',
+        '.lock',
+        '.svg',
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.gif',
+        '.ico',
+        '.woff',
+        '.woff2',
+        '.ttf',
+        '.eot',
+        '.mp4',
+        '.mp3',
+        '.wav',
+        '.pdf',
+        '.gz',
+        '.zip',
+        '.tar',
+        '.min.js',
+        '.min.css',
+        'node_modules/'
+    ]
+    
+    for skip in skip_files:
+        if skip in file_path.lower():
+            return True
+    
+    return False
+
 def parse_repository(repo_url: str):
     owner, repo_name = parse_github_url(repo_url)
     
+    print(f"Parsing repository: {owner}/{repo_name}")
     contents = get_repository_contents(owner, repo_name)
     
     contents.sort(key=lambda x: x['path'])
@@ -81,6 +116,7 @@ def parse_repository(repo_url: str):
     
     file_count = 0
     max_files = 50 
+    skipped_count = 0
     
     for item in contents:
         if file_count >= max_files:
@@ -90,20 +126,31 @@ def parse_repository(repo_url: str):
         file_path = item['path']
         download_url = item['download_url']
         
+        if should_skip_file(file_path):
+            skipped_count += 1
+            continue
+        
         if not is_text_file(file_path):
+            skipped_count += 1
             continue
         
         content = get_file_content(download_url)
         
         if content is not None:
+            truncated_content = content[:50000] if len(content) > 50000 else content
+            is_truncated = len(content) > 50000
+            
             result["files"].append({
                 "path": file_path,
-                "content": content[:50000] if len(content) > 50000 else content,
-                "truncated": len(content) > 50000
+                "content": truncated_content,
+                "truncated": is_truncated
             })
             
             file_count += 1
     
     result["file_count"] = file_count
+    result["skipped_count"] = skipped_count
+    
+    print(f"Repository parsing completed. Added {file_count} files, skipped {skipped_count} files.")
     
     return result 

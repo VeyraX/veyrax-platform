@@ -392,20 +392,23 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     scope_name: s.scope_name
   })) || [];
 
-  // Only fetch and process OAuth tokens if the provider uses OAuth
+  // Only fetch and process OAuth tokens if the provider uses OAuth and user is authenticated
   let userScopes: ProviderScope[] = [];
-  if (provider.auth_method === 'oauth') {
-    const { data: oauthToken } = await supabase
-      .from('users_oauth_tokens')
-      .select('scopes')
-      .eq('user_id', user?.id)
-      .eq('provider_id', provider.id)
-      .single();
+  if (provider.auth_method === 'oauth' && user?.id) {
+    try {
+      const { data: oauthToken } = await supabase
+        .from('users_oauth_tokens')
+        .select('scopes')
+        .eq('user_id', user.id)
+        .eq('provider_id', provider.id)
+        .single();
 
-    // Filter user scopes based on the oauth token scopes
-    userScopes = oauthToken?.scopes
-      ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope_id))
-      : [];
+      userScopes = oauthToken?.scopes
+        ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope_id))
+        : [];
+    } catch (error) {
+      console.error('Error fetching OAuth token:', error);
+    }
   }
 
   const { data: actions, error: actionsError } = await supabase
@@ -1225,5 +1228,52 @@ export const checkUserHasRentedKey = async (providerId: string): Promise<boolean
   } catch (error) {
     console.error('Error checking rented key:', error);
     return false;
+  }
+};
+
+export const getProviderAuthInfo = async (providerTag: string): Promise<{
+  id: string;
+  name: string;
+  auth_method: string;
+  logo_url: string;
+  scopes: ProviderScope[];
+} | null> => {
+  try {
+    const { data: provider, error } = await supabase
+      .from('providers')
+      .select(`
+        id,
+        name,
+        auth_method,
+        logo_url,
+        provider_scopes (
+          id,
+          scope_id,
+          scope_name
+        )
+      `)
+      .eq('provider_tag', providerTag)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching provider auth info:', error);
+      return null;
+    }
+    
+    const scopes = provider.provider_scopes?.map((s: { id: string, scope_id: string, scope_name: string }) => ({
+      id: s.id,
+      scope_id: s.scope_id,
+      scope_name: s.scope_name
+    })) || [];
+    
+    const { provider_scopes: _, ...providerData } = provider;
+    
+    return {
+      ...providerData,
+      scopes
+    };
+  } catch (error) {
+    console.error('Error in getProviderAuthInfo:', error);
+    return null;
   }
 };

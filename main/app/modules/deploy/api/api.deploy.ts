@@ -28,7 +28,7 @@ const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: strin
   try {
     const { data: existingRepo, error } = await supabase
       .from('mcp_repositories')
-      .select('env, last_commit_hash, name, description')
+      .select('env, last_commit_hash, name, description, is_approved, image_name')
       .eq('repo_url', repoUrl)
       .single();
     
@@ -43,7 +43,9 @@ const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: strin
     return {
       env_variables: existingRepo.env,
       name: existingRepo.name,
-      description: existingRepo.description
+      description: existingRepo.description,
+      is_approved: existingRepo.is_approved,
+      image_name: existingRepo.image_name
     };
   } catch (error) {
     console.error('Error fetching from database:', error);
@@ -84,7 +86,7 @@ export const fetchRepositoryMeta = async (
     if (dbResult) {
       const { data: repoData } = await supabase
         .from('mcp_repositories')
-        .select('id, last_commit_hash')
+        .select('id, last_commit_hash, is_approved, image_name')
         .eq('repo_url', repoUrl)
         .single();
       
@@ -136,15 +138,24 @@ export const fetchRepositoryMeta = async (
   }
 };
 
-export const checkMcpExists = async (repoUrl: string): Promise<boolean> => {
+export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exists: boolean, is_approved: boolean, image_name: string, env: Record<string, string> }> => {
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id')
+      .select('id, is_approved, image_name, env')
       .eq('repo_url', repoUrl)
       .single();
     
-    return !!data;
+    if (error || !data) {
+      return false;
+    }
+    
+    return {
+      exists: true,
+      is_approved: !!data.is_approved,
+      image_name: data.image_name || '',
+      env: data.env || {}
+    };
   } catch (error) {
     console.error('Error checking MCP existence:', error);
     return false;

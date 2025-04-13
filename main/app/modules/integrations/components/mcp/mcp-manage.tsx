@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/utils/supabase/client";
-import { saveUserMcpEnvironment, disconnectUserMcp } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { enableMcpIntegration, disconnectUserMcp, connectUserMcpContainer } from "@/app/modules/integrations/api/api.integrations.mcp";
 
 interface McpManageProps {
   imageName: string;
@@ -17,6 +17,8 @@ interface McpManageProps {
   repositoryId?: string;
   isConnected?: boolean;
   onConnectionUpdate?: () => Promise<void>;
+  encrypted_api_key?: string;
+  code?: string;
 }
 
 interface EnvVar {
@@ -31,7 +33,9 @@ export function McpManage({
   predefinedEnv = {}, 
   repositoryId,
   isConnected = false,
-  onConnectionUpdate
+  onConnectionUpdate,
+  encrypted_api_key,
+  code
 }: McpManageProps) {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [originalEnvVars, setOriginalEnvVars] = useState<EnvVar[]>([]);
@@ -82,25 +86,21 @@ export function McpManage({
         envObject[v.key] = v.value;
       });
       
+      const success = await enableMcpIntegration(
+        imageName,
+        envObject,
+        encrypted_api_key,
+        code
+      );
+      
+      if (!success) {
+        throw new Error("Failed to save configuration");
+      }
+      
       if (repositoryId) {
-        // Save to users_mcp table using the new function
-        const success = await saveUserMcpEnvironment(repositoryId, envObject);
-        
-        if (!success) {
-          throw new Error("Failed to save configuration");
-        }
-      } else {
-        // Fallback to the previous method if repositoryId is not provided
-        const { error } = await supabase
-          .from('user_mcp_connections')
-          .upsert({ 
-            image_name: imageName,
-            env_vars: envObject,
-            connected: true
-          });
-          
-        if (error) {
-          throw error;
+        const connectSuccess = await connectUserMcpContainer(repositoryId, encrypted_api_key, code);
+        if (!connectSuccess) {
+          console.warn("Container connection initiated, but there might be issues");
         }
       }
       

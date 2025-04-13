@@ -12,7 +12,10 @@ import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository } from "../api
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { saveUserMcpEnvironment } from "../../integrations/api/api.integrations.mcp";
+import { enableMcpIntegration } from "../../integrations/api/api.integrations.mcp";
+import { McpCard } from "@/app/modules/integrations/components/mcp/mcp-card";
+import { GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { ExistingMcpCard } from "../components/deploy-create/mcp-card-existing-repo";
 
 interface EnvVar {
   name: string;
@@ -28,26 +31,47 @@ export default function DeployCreatePage() {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [isFetched, setIsFetched] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [includeInTools, setIncludeInTools] = useState(true);
-  const [makePublic, setMakePublic] = useState(true);
   const [repoName, setRepoName] = useState("");
   const [repoDescription, setRepoDescription] = useState("");
   const [mcpExists, setMcpExists] = useState(false);
   const [repositoryId, setRepositoryId] = useState<string | null>(null);
   const [commitHash, setCommitHash] = useState<string | null>(null);
+  const [existingMcpData, setExistingMcpData] = useState<{
+    is_approved: boolean;
+    image_name: string;
+    env: Record<string, string>;
+  } | null>(null);
 
   const handleFetch = async () => {
     if (!githubUrl) return;
     setIsFetching(true);
     setError(null);
     setMcpExists(false);
+    setExistingMcpData(null);
 
     try {
       const response = await fetchRepositoryMeta(githubUrl);
       console.log('Response from API:', response);
       
-      const exists = await checkMcpExists(githubUrl);
-      setMcpExists(exists);
+      const mcpCheck = await checkMcpExists(githubUrl);
+      
+      if (typeof mcpCheck !== 'boolean' && mcpCheck.exists) {
+        setMcpExists(true);
+        
+        if (response.is_approved && response.image_name) {
+          setExistingMcpData({
+            is_approved: response.is_approved,
+            image_name: response.image_name,
+            env: response.env_variables || {}
+          });
+        } else if (mcpCheck.is_approved && mcpCheck.image_name) {
+          setExistingMcpData({
+            is_approved: mcpCheck.is_approved,
+            image_name: mcpCheck.image_name,
+            env: mcpCheck.env
+          });
+        }
+      }
       
       if (response && response.env_variables) {
         const transformedVars = Object.entries(response.env_variables).map(([name, value]) => ({
@@ -88,16 +112,16 @@ export default function DeployCreatePage() {
         envVars.map(env => [env.name, env.value])
       );
       
-      const savedEnv = await saveUserMcpEnvironment(
-        repositoryId,
+      const imageName = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'mcp-server';
+      
+      const savedEnv = await enableMcpIntegration(
+        imageName,
         envVariablesObj
       );
       
       if (!savedEnv) {
         console.warn('Failed to save environment variables, but continuing with deployment');
       }
-      
-      const imageName = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'mcp-server';
       
       try {
         await deployMcpRepository(
@@ -170,9 +194,7 @@ export default function DeployCreatePage() {
             className="gap-1 min-w-[90px] h-10"
           >
             {isFetching ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </>
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : "Fetch"}
           </Button>
         </div>
@@ -183,32 +205,30 @@ export default function DeployCreatePage() {
           </div>
         )}
 
-        {isFetched && mcpExists && (
-          <Alert className="mt-4 border-amber-500 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 p-0 flex items-center">
-            <div className="flex items-center w-full">
-              <div className="flex-shrink-0 pl-4">
-                <AlertCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
-              </div>
-              <div className="flex-grow p-4">
-                <AlertTitle className="text-amber-700 dark:text-amber-400">This MCP has been deployed.</AlertTitle>
-                <AlertDescription className="text-amber-600 dark:text-amber-400">
-                  You can simply connect it. 
-                </AlertDescription>
-              </div>
-              <div className="flex-shrink-0 self-stretch flex items-center pr-4">
-                <Button 
-                  variant="outline" 
-                  className="border-amber-500 text-amber-600 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/30"
-                  onClick={handleGoToExistingMcp}
-                >
-                  Connect to existing MCP
-                </Button>
-              </div>
-            </div>
-          </Alert>
+        {isFetched && mcpExists && existingMcpData?.is_approved && (
+          <div className="mt-6">
+            <ExistingMcpCard 
+              repoUrl={githubUrl}
+              imageName={existingMcpData.image_name}
+              repositoryId={repositoryId || ''}
+              repoName={repoName}
+              repoDescription={repoDescription}
+              env={existingMcpData.env}
+              onBack={() => {
+                setIsFetched(false);
+                setEnvVars([]);
+                setError(null);
+                setGithubUrl("");
+                setRepoName("");
+                setRepoDescription("");
+                setMcpExists(false);
+                setExistingMcpData(null);
+              }}
+            />
+          </div>
         )}
 
-        {isFetched ? (
+        {isFetched && (!mcpExists || !existingMcpData?.is_approved) ? (
           <>
             <div className="mt-6 space-y-6">
               <div>
@@ -264,7 +284,6 @@ export default function DeployCreatePage() {
                   ))}
                 </div>
               </div>
-        
             </div>
             
             <div className="flex justify-between mt-6">
@@ -277,6 +296,7 @@ export default function DeployCreatePage() {
                   setRepoName("");
                   setRepoDescription("");
                   setMcpExists(false);
+                  setExistingMcpData(null);
                 }}
                 variant="outline"
                 className="px-4 gap-2"
@@ -292,14 +312,14 @@ export default function DeployCreatePage() {
                 variant="default"
               >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : "Deploy"}
               </Button>
             </div>
           </>
-        ) : (
+        ) : null}
+
+        {!isFetched && (
           <McpRegistry onSelect={handleSelectRepository} />
         )}
       </div>

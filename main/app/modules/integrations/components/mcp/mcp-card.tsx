@@ -38,7 +38,6 @@ export const McpCard: FC<McpCardProps> = ({
   const githubUrl = mcpDetails?.repo_url || "";
   const repositoryId = mcpDetails?.id;
   
-  // Parse GitHub URL
   const { owner, repo } = useMemo(() => {
     try {
       if (!githubUrl) return { owner: "", repo: "" };

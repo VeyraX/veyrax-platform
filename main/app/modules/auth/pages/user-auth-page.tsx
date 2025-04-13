@@ -4,15 +4,18 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ManageDialog } from '@/app/modules/integrations/components/integration-manage';
 import { ScopeDialog } from '@/app/modules/integrations/components/integration-settings';
-import { getProviderDetails, initiateOAuthFlow } from '@/app/modules/integrations/api/api.integrations';
+import { McpManage } from '@/app/modules/integrations/components/mcp/mcp-manage';
+import { initiateOAuthFlow, getProviderAuthInfo } from '@/app/modules/integrations/api/api.integrations';
+import { getMcpDetailsByImageName } from '@/app/modules/integrations/api/api.integrations.mcp';
 
 interface UserAuthPageProps {
   providerTag: string;
   code: string;
   apiKey?: string;
+  type?: string;
 }
 
-export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
+export function UserAuthPage({ providerTag, code, apiKey, type }: UserAuthPageProps) {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('Authenticating...');
   const [initialized, setInitialized] = useState<boolean>(false);
@@ -21,10 +24,13 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
   const [showScopeDialog, setShowScopeDialog] = useState(false);
+  const [showMcpDialog, setShowMcpDialog] = useState(false);
   const [encryptedApiKey, setEncryptedApiKey] = useState<string | null>(null);
   const [providerDetails, setProviderDetails] = useState<any>(null);
+  const [mcpDetails, setMcpDetails] = useState<any>(null);
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
   const verificationAttempted = useRef(false);
+  const isMcp = type === 'mcp';
 
   useEffect(() => {
     setMessage('Authenticating...');
@@ -55,10 +61,24 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
 
   useEffect(() => {
     const loadProviderDetails = async () => {
-      if ((showIntegrationDialog || showScopeDialog) && providerTag) {
+      if (showMcpDialog && providerTag && isMcp) {
         try {
-          const details = await getProviderDetails(providerTag);
-          setProviderDetails(details.provider);
+          const details = await getMcpDetailsByImageName(providerTag);
+          if (details) {
+            setMcpDetails(details);
+          }
+        } catch (error) {
+          console.error("Error loading MCP details:", error);
+        }
+      } else if ((showIntegrationDialog || showScopeDialog) && providerTag && !isMcp) {
+        try {
+          const details = await getProviderAuthInfo(providerTag);
+          if (details) {
+            setProviderDetails({
+              ...details,
+              connected: false
+            });
+          }
         } catch (error) {
           console.error("Error loading provider details:", error);
         }
@@ -66,15 +86,9 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
     };
     
     loadProviderDetails();
-  }, [showIntegrationDialog, showScopeDialog, providerTag]);
+  }, [showIntegrationDialog, showScopeDialog, showMcpDialog, providerTag, isMcp]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (verificationAttempted.current) {
-        return;
-      }
-    }
-
     if (connectionComplete) {
       return;
     }
@@ -100,7 +114,8 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
           },
           body: JSON.stringify({ 
             code,
-            api_key: apiKey 
+            api_key: apiKey,
+            type
           }),
         });
 
@@ -119,17 +134,39 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
             setMessage(`Establishing connection...`);
             
             try {
-              const details = await getProviderDetails(providerTag);
-              setProviderDetails(details.provider);
-              
-              if (details.provider.auth_method === 'oauth') {
-                setTimeout(() => {
-                  setShowScopeDialog(true);
-                }, 1000);
+              if (isMcp) {
+                // Handle MCP connection
+                const details = await getMcpDetailsByImageName(providerTag);
+                if (details) {
+                  setMcpDetails(details);
+                  setTimeout(() => {
+                    setShowMcpDialog(true);
+                  }, 1000);
+                } else {
+                  throw new Error(`MCP image ${providerTag} not found`);
+                }
               } else {
-                setTimeout(() => {
-                  setShowIntegrationDialog(true);
-                }, 1000);
+                // Handle regular provider connection
+                const authInfo = await getProviderAuthInfo(providerTag);
+                
+                if (authInfo) {
+                  setProviderDetails({
+                    ...authInfo,
+                    connected: false
+                  });
+                  
+                  if (authInfo.auth_method === 'oauth') {
+                    setTimeout(() => {
+                      setShowScopeDialog(true);
+                    }, 1000);
+                  } else {
+                    setTimeout(() => {
+                      setShowIntegrationDialog(true);
+                    }, 1000);
+                  }
+                } else {
+                  throw new Error('Could not determine provider authentication method');
+                }
               }
             } catch (error) {
               console.error("Error loading provider details:", error);
@@ -150,12 +187,12 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
     };
 
     verifyAuth();
-  }, [code, apiKey, providerTag, connectionComplete]);
+  }, [code, apiKey, providerTag, connectionComplete, isMcp, type]);
 
-  const handleUpdateIntegration = () => {
-    
+  const handleUpdateIntegration = async () => {
     setShowIntegrationDialog(false);
     setShowScopeDialog(false);
+    setShowMcpDialog(false);
     
     setConnectionComplete(true);
     setStatus('success');
@@ -175,6 +212,7 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   const handleCloseDialog = () => {
     setShowIntegrationDialog(false);
     setShowScopeDialog(false);
+    setShowMcpDialog(false);
     
     if (!connectionComplete) {
       setStatus('error');
@@ -199,7 +237,7 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
   };
 
   const shouldShowMissingAuthMessage = () => {
-    if (connectionComplete || showScopeDialog || showIntegrationDialog) {
+    if (connectionComplete || showScopeDialog || showIntegrationDialog || showMcpDialog) {
       return false;
     }
     
@@ -232,7 +270,7 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
         <div className="text-center">
           <p suppressHydrationWarning>Provider successfully connected.</p>
         </div>
-      ) : showScopeDialog || showIntegrationDialog ? (
+      ) : showScopeDialog || showIntegrationDialog || showMcpDialog ? (
         <p className="text-black" suppressHydrationWarning>Loading provider settings...</p>
       ) : (
         <p className="text-black" suppressHydrationWarning>{getDisplayMessage()}</p>
@@ -253,6 +291,19 @@ export function UserAuthPage({ providerTag, code, apiKey }: UserAuthPageProps) {
           open={showIntegrationDialog}
           onClose={handleCloseDialog}
           onUpdate={handleUpdateIntegration}
+          encrypted_api_key={encryptedApiKey || undefined}
+          code={verificationCode || undefined}
+        />
+      )}
+      
+      {showMcpDialog && mcpDetails && (
+        <McpManage
+          imageName={mcpDetails.name || providerTag}
+          open={showMcpDialog}
+          onClose={handleCloseDialog}
+          predefinedEnv={mcpDetails.env || {}}
+          repositoryId={mcpDetails.id}
+          onConnectionUpdate={handleUpdateIntegration}
           encrypted_api_key={encryptedApiKey || undefined}
           code={verificationCode || undefined}
         />

@@ -42,6 +42,9 @@ Example:
 
 No other text or characters, NEVER. Just PURE JSON.
 
+
+Pay attention on the confings and proccess.env files, or os.env files, or .env files. Very important.
+
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 """
 
@@ -57,6 +60,8 @@ Example:
 }
 
 Keep it concise and focused on the functionality. Return only pure JSON with no markdown formatting or additional text.
+
+In MOST of the cases you MUST take name from README.md and description. NEVER hallucinate about the name and description.
 
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 """

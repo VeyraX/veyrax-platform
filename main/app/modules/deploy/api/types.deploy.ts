@@ -8,6 +8,8 @@ export interface RepositoryMetaResponse {
   description?: string;
   repository_id?: string;
   last_commit_hash?: string;
+  is_approved?: boolean;
+  image_name?: string;
 }
 
 export interface DeployMCPRequest {

@@ -51,7 +51,6 @@ async def generate_repository_meta_endpoint(request: RepositoryMetaRequest = Bod
         env_variables = extract_env_variables(context)
         
         repo_metadata = extract_repo_metadata(context)
-        
         return RepositoryMetaResponse(
             env_variables=env_variables,
             name=repo_metadata.get("name", ""),
