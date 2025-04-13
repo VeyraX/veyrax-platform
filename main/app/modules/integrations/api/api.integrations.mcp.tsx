@@ -27,15 +27,19 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
     const { data, error } = await supabase
       .from('mcp_repositories')
       .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
-      .eq('image_name', imageName)
-      .single();
+      .eq('image_name', imageName);
     
-    if (error || !data) {
+    if (error) {
       console.error('Error fetching MCP details:', error);
       return null;
     }
     
-    return data as McpDetails;
+    if (!data || data.length === 0) {
+      console.error('MCP details not found for image name:', imageName);
+      return null;
+    }
+    
+    return data[0] as McpDetails;
   } catch (error) {
     console.error('Error fetching MCP details:', error);
     return null;
@@ -218,7 +222,8 @@ export const connectUserMcpContainer = async (
       },
       body: JSON.stringify({
         repository_id: repositoryId,
-        code
+        code,
+        encrypted_api_key
       })
     });
     
@@ -254,6 +259,7 @@ export const enableMcpIntegration = async (
         env: environmentVariables,
         user_id: user?.id,
         encrypted_api_key,
+        status: 'connecting',
         code
       })
     });

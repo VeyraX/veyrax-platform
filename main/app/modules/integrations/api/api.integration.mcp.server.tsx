@@ -5,8 +5,9 @@ export const connectMcpRepository = async (options: {
   user_id: string;
   repo_id: string;
   env?: Record<string, string>;
+  status?: string;
 }) => {
-  const { user_id, repo_id, env } = options;
+  const { user_id, repo_id, env, status } = options;
   
   let client;
   
@@ -28,7 +29,8 @@ export const connectMcpRepository = async (options: {
     .upsert({
       user_id,
       repo_id,
-      env
+      env,
+      status
     }, {
       onConflict: 'user_id,repo_id'
     });

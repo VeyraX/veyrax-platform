@@ -242,3 +242,29 @@ export const deployMcpRepository = async (
     throw error;
   }
 };
+
+export const updateMcpImageName = async (repositoryId: string, imageName: string): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      throw new Error('Authentication required');
+    }
+
+    const { error } = await supabase
+      .from('mcp_repositories')
+      .update({ image_name: imageName })
+      .eq('id', repositoryId);
+    
+    if (error) {
+      console.error('Error updating MCP image name:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating MCP image name:', error);
+    return false;
+  }
+};

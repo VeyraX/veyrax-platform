@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Github, ArrowLeft, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository } from "../api/api.deploy";
+import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository, updateMcpImageName } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -106,6 +106,7 @@ export default function DeployCreatePage() {
     }
     
     setIsLoading(true);
+    setError(null);
 
     try {
       const envVariablesObj = Object.fromEntries(
@@ -114,13 +115,17 @@ export default function DeployCreatePage() {
       
       const imageName = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'mcp-server';
       
+      await updateMcpImageName(repositoryId, imageName);
+      
       const savedEnv = await enableMcpIntegration(
         imageName,
-        envVariablesObj
+        envVariablesObj,
       );
       
       if (!savedEnv) {
-        console.warn('Failed to save environment variables, but continuing with deployment');
+        toast.error("Failed to save environment variables. Please try again.");
+        setIsLoading(false);
+        return;
       }
       
       try {
@@ -130,15 +135,16 @@ export default function DeployCreatePage() {
           repositoryId,
           commitHash || undefined
         );
+        
+        router.push(`/integrations/mcp/${imageName}?tab=deployment`);
       } catch (deployError) {
-        console.error('Deployment error, but proceeding to MCP page:', deployError);
+        console.error('Deployment error:', deployError);
+        toast.error("Deployment initiated but encountered an issue. You can view status in the MCP page.");
+        router.push(`/integrations/mcp/${imageName}?tab=deployment`);
       }
-      
-      router.push(`/integrations/mcp/${imageName}`);
-      
     } catch (error) {
-      setError("An unexpected error occurred. Please try again.");
       console.error('Error during deployment process:', error);
+      setError(error instanceof Error ? error.message : "An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }
   };

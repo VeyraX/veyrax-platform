@@ -193,7 +193,7 @@ class ToolsService:
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    self.mcp_api_url,
+                    self.mcp_api_url + "/call_mcp_tool",
                     json=payload,
                     headers=headers,
                     timeout=60.0
