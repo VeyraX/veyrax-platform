@@ -1,5 +1,5 @@
 from db.supabase import get_supabase
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import uuid
 
 async def create_mcp_deployment_record(
@@ -107,3 +107,83 @@ async def save_dockerfile(
     except Exception as e:
         print(f"Error saving dockerfile: {str(e)}")
         return False
+
+async def get_mcp_repositories(repo_ids: List[str] = None) -> List[Dict[str, Any]]:
+    try:
+        supabase = get_supabase()
+        
+        query = supabase.table('mcp_repositories').select('id, image_name, input_schema')
+        
+        if repo_ids:
+            query = query.in_('id', repo_ids)
+        
+        result = query.execute()
+        
+        if not result.data:
+            return []
+            
+        return result.data
+        
+    except Exception as e:
+        print(f"Error getting MCP repositories: {str(e)}")
+        return []
+
+async def get_user_connected_repo_ids(user_id: str) -> List[str]:
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('users_mcp') \
+            .select('repo_id') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        if not result.data:
+            return []
+        
+        return [item["repo_id"] for item in result.data]
+        
+    except Exception as e:
+        print(f"Error getting user connected repo IDs: {str(e)}")
+        return []
+
+async def get_user_mcp_image_names(user_id: str) -> List[str]:
+    try:
+        repo_ids = await get_user_connected_repo_ids(user_id)
+        
+        if not repo_ids:
+            return []
+        
+        repos = await get_mcp_repositories(repo_ids)
+        
+        if not repos:
+            return []
+        
+        return [repo["image_name"] for repo in repos]
+        
+    except Exception as e:
+        print(f"Error getting user MCP image names: {str(e)}")
+        return []
+
+async def get_user_connected_mcp_actions(user_id: str) -> Dict[str, Any]:
+    try:
+        repo_ids = await get_user_connected_repo_ids(user_id)
+        
+        if not repo_ids:
+            return {}
+        
+        repos = await get_mcp_repositories(repo_ids)
+        
+        if not repos:
+            return {}
+        
+        connected_repos = {}
+        for repo in repos:
+            image_name = repo["image_name"]
+            input_schema = repo["input_schema"]
+            connected_repos[image_name] = input_schema
+        
+        return connected_repos
+        
+    except Exception as e:
+        print(f"Error getting user connected MCP actions: {str(e)}")
+        return {}
