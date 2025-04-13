@@ -1,0 +1,92 @@
+routes:
+  - endpoint: /veyrax-mcp/search_mcp
+    examples:
+      - scenario: "Search for MCP repositories"
+        description: "Search for MCP repositories based on a query"
+        input_json: |
+          {
+            "query": "database",
+            "limit": 5
+          }
+        output_json: |
+          {
+            "data": {
+              "repositories": [
+                {
+                  "id": "1",
+                  "name": "PostgreSQL Client",
+                  "url": "https://www.pulsemcp.com/servers/postgresql-client",
+                  "external_url": null,
+                  "github_stars": 32,
+                  "package_name": "postgresql-mcp",
+                  "source_code_url": "https://github.com/example/postgresql-mcp",
+                  "package_registry": "npm",
+                  "short_description": "PostgreSQL client for querying databases",
+                  "package_download_count": 1250,
+                  "ai_generated_description": "A PostgreSQL client that enables executing SQL queries, retrieving schema information, and managing database connections with robust error handling.",
+                  "score": 0.95
+                },
+                {
+                  "id": "2",
+                  "name": "SQLite Helper",
+                  "url": "https://www.pulsemcp.com/servers/sqlite-helper",
+                  "external_url": null,
+                  "github_stars": 18,
+                  "package_name": "sqlite-mcp",
+                  "source_code_url": "https://github.com/example/sqlite-mcp",
+                  "package_registry": "npm",
+                  "short_description": "SQLite helper for embedded database operations",
+                  "package_download_count": 850,
+                  "ai_generated_description": "An SQLite helper that provides functionality for creating and managing embedded databases, with support for querying, schema exploration, and data manipulation.",
+                  "score": 0.87
+                }
+              ]
+            },
+            "component": {
+              "name": "MCPRepositoryList"
+            }
+          }
+
+  - endpoint: /veyrax-mcp/deploy_mcp
+    examples:
+      - scenario: "Deploy MCP repository"
+        description: "Deploy an MCP repository to Docker Hub"
+        input_json: |
+          {
+            "repo_url": "https://github.com/example/my-mcp-repo",
+            "image_name": "my-custom-mcp",
+            "repository_id": "123456",
+            "commit_hash": "abcdef123456"
+          }
+        output_json: |
+          {
+            "data": {
+              "image_name": "my-custom-mcp",
+              "status": "started",
+              "repository_id": "123456",
+              "deployment_id": "deploy-789012"
+            },
+            "component": {
+              "name": "DeploymentStatus"
+            }
+          }
+
+  - endpoint: /veyrax-mcp/generate_connection_link
+    examples:
+      - scenario: "Generate connection link for MCP"
+        description: "Generate a connection link for an MCP with the provided code and API key"
+        input_json: |
+          {
+            "code": "abcd1234",
+            "api_key": "mcp_sk_12345abcdef",
+            "image_name": "my-custom-mcp"
+          }
+        output_json: |
+          {
+            "data": {
+              "connection_url": "https://app.veyrax.com/user/mcp/connect?code=abcd1234&api_key=mcpXsk%5F12345abcdef&image_name=my-custom-mcp"
+            },
+            "component": {
+              "name": "ConnectionLinkInfo"
+            }
+          }
