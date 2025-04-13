@@ -1,4 +1,4 @@
-import { McpDetails } from './types.integrations.mcp';
+import { McpDetails, McpDeployment, GitHubRepoInfo } from './types.integrations.mcp';
 import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
@@ -7,7 +7,7 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, created_at')
+      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id')
       .eq('image_name', imageName)
       .single();
     
@@ -23,20 +23,45 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
   }
 };
 
-export interface GitHubRepoInfo {
-  stars: number;
-  forks: number;
-  created_at: string;
-  updated_at: string;
-  owner: string;
-  name: string; 
-  avatar_url?: string;
-  description?: string;
-  license?: {
-    name: string;
-    spdx_id: string;
-  };
-}
+export const getMcpDeployments = async (repoId: string): Promise<McpDeployment[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('mcp_repository_deployments')
+      .select('id, repo_id, status, build_logs, error, created_at, commit_hash, deployment_id')
+      .eq('repo_id', repoId)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      console.error('Error fetching MCP deployments:', error);
+      return [];
+    }
+
+    return data as McpDeployment[];
+  } catch (error) {
+    console.error('Error fetching MCP deployments:', error);
+    return [];
+  }
+};
+
+export const getMcpDeploymentById = async (deploymentId: string): Promise<McpDeployment | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('mcp_repository_deployments')
+      .select('id, repo_id, status, build_logs, error, created_at, commit_hash, deployment_id')
+      .eq('id', deploymentId)
+      .single();
+
+    if (error || !data) {
+      console.error('Error fetching MCP deployment:', error);
+      return null;
+    }
+
+    return data as McpDeployment;
+  } catch (error) {
+    console.error('Error fetching MCP deployment:', error);
+    return null;
+  }
+};
 
 export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo | null> => {
   try {

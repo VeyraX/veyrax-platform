@@ -87,6 +87,9 @@ export const fetchRepositoryMeta = async (
     const apiResult = await getRepositoryMetaFromApi(repoUrl);
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id || null;
+      
       await supabase
         .from('mcp_repositories')
         .upsert({
@@ -94,11 +97,13 @@ export const fetchRepositoryMeta = async (
           env: apiResult.env_variables,
           last_commit_hash: latestCommitHash,
           name: apiResult.name,
-          description: apiResult.description
+          description: apiResult.description,
+          author_user_id: currentUserId
         }, {
           onConflict: 'repo_url'
         });
     } catch (saveError) {
+      console.error('Error saving to database:', saveError);
     }
     
     return apiResult;

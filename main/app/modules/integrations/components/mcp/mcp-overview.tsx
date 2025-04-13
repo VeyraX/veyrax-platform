@@ -3,7 +3,7 @@ import { Tool, McpDetails } from "@/app/modules/integrations/api/types.integrati
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { GitHubRepoInfo } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { formatDistanceToNow } from "date-fns";
 
 interface McpOverviewProps {

@@ -4,6 +4,11 @@ export interface Tool {
   description: string;
 }
 
+export interface EnvVariable {
+  key: string;
+  value: string;
+}
+
 export interface McpDetails {
   id: string;
   image_name: string;
@@ -13,6 +18,8 @@ export interface McpDetails {
   input_schema: any[];
   env: Record<string, string>;
   created_at: string;
+  author_user_id: string | null;
+  last_commit_hash?: string | null;
 }
 
 export interface SchemaProperty {
@@ -33,6 +40,32 @@ export interface ParameterObject {
   refName: string | null;
   default?: string;
   nestedParams?: ParameterObject[];
+}
+
+export interface McpDeployment {
+  id: string;
+  deployment_id?: string;
+  repo_id: string;
+  status: 'pending' | 'building' | 'success' | 'failed';
+  build_logs: string | null;
+  error: string | null;
+  created_at: string;
+  commit_hash: string | null;
+}
+
+export interface GitHubRepoInfo {
+  stars: number;
+  forks: number;
+  created_at: string;
+  updated_at: string;
+  owner: string;
+  name: string; 
+  avatar_url?: string;
+  description?: string;
+  license?: {
+    name: string;
+    spdx_id: string;
+  };
 }
 
 export interface McpViewPageProps {

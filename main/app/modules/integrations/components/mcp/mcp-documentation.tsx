@@ -113,7 +113,7 @@ export function McpDocumentation({ mcpDetails, tools }: McpDocumentationProps) {
           <div key={tool.id} id={tool.name} className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 scroll-mt-20">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-bold text-foreground">{tool.name}</h3>
+                <h3 className="text-xl font-medium text-foreground">{tool.name}</h3>
                 <Badge className="bg-muted text-muted-foreground hover:bg-muted border-none shadow-none">
                   {parameters.length} params
                 </Badge>

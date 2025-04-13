@@ -7,11 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { dummyMetrics } from "@/app/modules/deploy/api/deploy-view-dummy-data";
-import { Tool, McpDetails, McpViewPageProps } from "@/app/modules/integrations/api/types.integrations.mcp";
-import { getMcpDetailsByImageName, getGitHubRepoInfo, GitHubRepoInfo } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { getMcpDetailsByImageName, getGitHubRepoInfo, getMcpDeployments } from "@/app/modules/integrations/api/api.integrations.mcp";
 import { McpOverview } from "../components/mcp/mcp-overview";
 import { McpUsage } from "../components/mcp/mcp-installation";
 import { McpDocumentation } from "../components/mcp/mcp-documentation";
+import { createClient } from '@/lib/utils/supabase/client';
+import { McpDeployments } from "../components/mcp/mcp-deployments";
+import { McpSettings } from "../components/mcp/mcp-settings";
+import { McpHeader } from "../components/mcp/mcp-header";
+
+const supabase = createClient();
 
 export default function McpViewPage({ 
   imageName = "notion-mcp"
@@ -19,10 +25,11 @@ export default function McpViewPage({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
-  const [deploymentStatus, setDeploymentStatus] = useState<'Active' | 'Inactive'>('Active');
   const [tools, setTools] = useState<Tool[]>([]);
   const [mcpDetails, setMcpDetails] = useState<McpDetails | null>(null);
   const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [deployments, setDeployments] = useState<McpDeployment[]>([]);
   
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -46,6 +53,10 @@ export default function McpViewPage({
         if (data) {
           setMcpDetails(data);
           
+          const { data: { user } } = await supabase.auth.getUser();
+          console.log("user", user);
+          setIsAuthor(user?.id === data.author_user_id);
+          
           if (data.input_schema && Array.isArray(data.input_schema)) {
             const parsedTools = data.input_schema.map((schema, index) => ({
               id: schema.name || `tool-${index}`,
@@ -63,6 +74,9 @@ export default function McpViewPage({
               console.error("Error fetching GitHub data:", error);
             }
           }
+          
+          const deploymentData = await getMcpDeployments(data.id);
+          setDeployments(deploymentData);
         }
       } catch (error) {
         console.error("Error fetching MCP data:", error);
@@ -137,31 +151,12 @@ export default function McpViewPage({
   return (
     <div className="h-screen overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center gap-2">
-          <button onClick={handleBack} className="text-gray-700 dark:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <ArrowLeft size={16} />
-          </button>
-          <div className="flex items-center text-sm">
-            <span className="font-medium text-gray-900 dark:text-gray-100">{repoName}</span>
-            <div className="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-              {deploymentStatus}
-            </div>
-          </div>
-        </div>
-        
-        {/* Right side of the header */}
-        <div className="flex items-center gap-2">
-          <Button 
-            size="sm"
-            variant="outline"
-            className="gap-1 rounded-full"
-            onClick={() => window.open(githubUrl, '_blank')}
-          >
-            <span>Publish</span>
-          </Button>
-        </div>
-      </div>
+      <McpHeader 
+        repoName={repoName}
+        onBack={handleBack}
+        isAuthor={isAuthor}
+        repoUrl={githubUrl}
+      />
       
       {/* Content */}
       <div className="flex-1 overflow-auto">
@@ -195,21 +190,23 @@ export default function McpViewPage({
                 </TabsTrigger>
               </TabsList>
               
-              {/* Right tabs */}
-              <TabsList className="h-auto gap-4 rounded-none bg-transparent px-0 py-0 text-foreground">
-                <TabsTrigger 
-                  className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
-                  value="deployment"
-                >
-                  Deployment
-                </TabsTrigger>
-                <TabsTrigger 
-                  className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
-                  value="settings"
-                >
-                  Settings
-                </TabsTrigger>
-              </TabsList>
+              {/* Right tabs - only for authors */}
+              {isAuthor && (
+                <TabsList className="h-auto gap-4 rounded-none bg-transparent px-0 py-0 text-foreground">
+                  <TabsTrigger 
+                    className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+                    value="deployment"
+                  >
+                    Deployment
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    className="relative after:absolute after:inset-x-0 after:bottom-0 after:-mb-1 after:h-0.5 hover:bg-accent hover:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent" 
+                    value="settings"
+                  >
+                    Settings
+                  </TabsTrigger>
+                </TabsList>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -224,7 +221,7 @@ export default function McpViewPage({
                     mcpId={mcpId}
                     repoName={repoName}
                     githubUrl={githubUrl}
-                    deploymentStatus={deploymentStatus}
+                    deploymentStatus={'Active'}
                     dummyMetrics={dummyMetrics}
                     repoInfo={repoInfo}
                   />
@@ -242,21 +239,11 @@ export default function McpViewPage({
             </TabsContent>
 
             <TabsContent value="deployment" className="mt-0">
-              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
-                <h2 className="text-xl font-medium text-foreground mb-4">Deployment Configuration</h2>
-                <div className="text-muted-foreground">
-                  Deployment configuration options will appear here.
-                </div>
-              </div>
+              <McpDeployments deployments={deployments} repoName={repoName} />
             </TabsContent>
 
             <TabsContent value="settings" className="mt-0">
-              <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 p-6">
-                <h2 className="text-xl font-medium text-foreground mb-4">Settings</h2>
-                <div className="text-muted-foreground">
-                  Deployment settings will appear here.
-                </div>
-              </div>
+              <McpSettings mcpId={mcpId} mcpDetails={mcpDetails} deployments={deployments} />
             </TabsContent>
           </Tabs>
         </div>
