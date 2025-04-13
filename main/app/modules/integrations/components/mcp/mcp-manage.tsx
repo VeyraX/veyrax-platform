@@ -43,7 +43,6 @@ export function McpManage({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [envChanged, setEnvChanged] = useState<boolean>(false);
-  const supabase = createClient();
 
   useEffect(() => {
     if (open) {

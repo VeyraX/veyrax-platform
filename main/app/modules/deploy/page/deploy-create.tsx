@@ -165,9 +165,9 @@ export default function DeployCreatePage() {
     <div className="flex flex-col items-start justify-center min-h-screen max-w-4xl mx-auto px-4 w-full py-12 space-y-8">
       <div className="flex flex-col items-start space-y-2">
         <h1 className="text-4xl font-medium text-foreground">
-          Deploy a New MCP Server
+          Deploy MCP Server
         </h1>
-        <p className="text-lg text-muted-foreground font-normal">
+        <p className="text-xl text-muted-foreground font-normal">
           Enter a GitHub repository URL to get started
         </p>
       </div>

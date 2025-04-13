@@ -46,7 +46,7 @@ export function AssistantEmptyState({
         <h1 className="text-4xl font-medium text-foreground">
           Welcome to VeyraX.
         </h1>
-        <p className="text-3xl text-muted-foreground font-normal">
+        <p className="text-xl text-muted-foreground font-normal">
           How can I help you today?
         </p>
       </div>
