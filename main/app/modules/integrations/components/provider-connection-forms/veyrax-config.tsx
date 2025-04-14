@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, RefreshCw, AlertCircle, Edit, Plus, Save, X, MoreHorizontal } from "lucide-react";
+import { Trash2, RefreshCw, AlertCircle, Edit, Plus, Check, X, MoreHorizontal, Eye, EyeOff } from "lucide-react";
 import { 
   getUserMemoryChunks, 
   deleteUserMemoryChunk, 
@@ -8,14 +8,23 @@ import {
   updateUserMemoryChunk 
 } from "../../api/api.integrations";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface MemoryChunk {
   id: string;
@@ -29,11 +38,12 @@ interface VeyraxConfigProps {
   disabled?: boolean;
 }
 
-const truncateText = (text: string, maxLength: number = 90): string => {
-  if (!text) return '';
-  if (text.length <= maxLength) return text;
-  
-  return text.substring(0, maxLength) + '...';
+// Utility function to truncate text
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.slice(0, maxLength) + "...";
 };
 
 export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) {
@@ -55,6 +65,7 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
     setError(null);
     try {
       const chunks = await getUserMemoryChunks();
+      chunks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setMemoryChunks(chunks);
     } catch (err) {
       console.error("Failed to fetch memory chunks:", err);
@@ -90,36 +101,37 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
 
   const handleCancelEdit = (chunkId: string) => {
     setIsEditing(prev => ({ ...prev, [chunkId]: false }));
-    setEditValues(prev => ({ ...prev, [chunkId]: "" }));
-    setEditToolValues(prev => ({ ...prev, [chunkId]: "" }));
   };
 
   const handleSaveEdit = async (chunkId: string) => {
     const newValue = editValues[chunkId];
-    const newTool = editToolValues[chunkId];
-    
-    if (!newValue || newValue.trim() === "") return;
+    const newToolValue = editToolValues[chunkId];
 
-    setIsEditing(prev => ({ ...prev, [chunkId]: false }));
+    if (newValue === undefined || newValue.trim() === "") return;
+
+    setIsSubmitting(true);
     try {
-      const updatedChunk = await updateUserMemoryChunk(chunkId, newValue, newTool);
-      setMemoryChunks(prev => 
+      const updatedChunk = await updateUserMemoryChunk(chunkId, newValue, newToolValue);
+      setMemoryChunks(prev =>
         prev.map(chunk => chunk.id === chunkId ? updatedChunk : chunk)
       );
       if (onUpdate) onUpdate();
+      setIsEditing(prev => ({ ...prev, [chunkId]: false }));
     } catch (err) {
       console.error("Failed to update memory chunk:", err);
       setError("Failed to update memory chunk. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleAddMemory = async () => {
     if (!newMemory || newMemory.trim() === "") return;
-    
+
     setIsSubmitting(true);
     try {
       const addedChunk = await addUserMemoryChunk(newMemory, newTool);
-      setMemoryChunks(prev => [...prev, addedChunk]);
+      setMemoryChunks(prev => [addedChunk, ...prev]);
       setNewMemory("");
       setNewTool("");
       setIsAddingMemory(false);
@@ -132,12 +144,15 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
     }
   };
 
+  // Function to toggle expansion state
   const toggleExpandChunk = (chunkId: string) => {
     setExpandedChunks(prev => ({ ...prev, [chunkId]: !prev[chunkId] }));
   };
 
+  const MAX_LENGTH = 150; // Define max length for truncation
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex items-center gap-2" role="alert">
           <AlertCircle className="h-4 w-4" />
@@ -145,10 +160,10 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Memory Chunks</h3>
-        <Button 
-          onClick={() => setIsAddingMemory(true)} 
+        <Button
+          onClick={() => setIsAddingMemory(true)}
           disabled={isAddingMemory || disabled}
           size="sm"
           className="flex items-center gap-1"
@@ -158,7 +173,7 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
       </div>
 
       {isAddingMemory && (
-        <div className="border p-4 rounded-md mb-4">
+        <div className="border p-4 rounded-md">
           <div className="mb-3">
             <Textarea
               value={newMemory}
@@ -166,15 +181,18 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
               placeholder="Enter new memory content..."
               className="mb-3"
               rows={3}
+              disabled={isSubmitting}
             />
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Tool:</span>
-              <input
+              <label htmlFor="new-tool" className="text-sm text-muted-foreground">Tool:</label>
+              <Input
+                id="new-tool"
                 type="text"
                 value={newTool}
                 onChange={(e) => setNewTool(e.target.value)}
                 placeholder="General"
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 max-w-[200px]"
+                className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 max-w-[200px]"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -209,111 +227,145 @@ export function VeyraxConfig({ onUpdate, disabled = false }: VeyraxConfigProps) 
         </div>
       )}
 
-      {memoryChunks.length === 0 ? (
-        <div className="text-center py-6 text-muted-foreground">
-          {isLoading ? "Loading memory data..." : "No memory data found."}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {memoryChunks.map((chunk) => (
-            <Card key={chunk.id} className="group relative border shadow-none">
-              {isEditing[chunk.id] ? (
-                <CardContent className="p-4">
-                  <Textarea
-                    value={editValues[chunk.id]}
-                    onChange={(e) => setEditValues(prev => ({ ...prev, [chunk.id]: e.target.value }))}
-                    className="w-full mb-3"
-                    rows={4}
-                  />
-                  
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm text-muted-foreground">Tool:</span>
-                    <input
-                      type="text"
-                      value={editToolValues[chunk.id] || ""}
-                      onChange={(e) => setEditToolValues(prev => ({ ...prev, [chunk.id]: e.target.value }))}
-                      placeholder="General"
-                      className="flex h-8 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 max-w-[200px]"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCancelEdit(chunk.id)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSaveEdit(chunk.id)}
-                      disabled={!editValues[chunk.id]?.trim()}
-                    >
-                      Save
-                    </Button>
-                  </div>
-                </CardContent>
-              ) : (
-                <>
-                  <CardContent className="p-4">
-                    <div 
-                      className="h-[100px] overflow-y-auto pr-1 whitespace-normal break-words cursor-pointer" 
-                      style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
-                      onClick={() => toggleExpandChunk(chunk.id)}
-                    >
-                      {chunk.memory.length > 90 && !expandedChunks[chunk.id] ? (
-                        <>
-                          {truncateText(chunk.memory)}
-                          <span className="text-muted-foreground text-sm ml-1">show more</span>
-                        </>
-                      ) : (
-                        chunk.memory
-                      )}
-                    </div>
-                  </CardContent>
-                  <Separator />
-                  <CardFooter className="flex justify-between items-center p-2 bg-muted/20">
-                    <div className="text-sm font-medium">
-                      {chunk.tool || "General"}
-                    </div>
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => handleEditChunk(chunk.id, chunk.memory, chunk.tool)}
-                          disabled={disabled}
-                          className="cursor-pointer"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteChunk(chunk.id)}
-                          disabled={isDeleting[chunk.id] || disabled}
-                          className="cursor-pointer text-destructive focus:text-destructive"
-                        >
-                          {isDeleting[chunk.id] ? (
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4 mr-2" />
-                          )}
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardFooter>
-                </>
-              )}
-            </Card>
-          ))}
-        </div>
-      )}
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[60%]">Memory</TableHead>
+              <TableHead className="w-[30%]">Tool</TableHead>
+              <TableHead className="text-right w-[10%]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center">
+                  Loading memory data...
+                </TableCell>
+              </TableRow>
+            ) : memoryChunks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center">
+                  No memory data found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              memoryChunks.map((chunk) => (
+                <TableRow key={chunk.id} className={isEditing[chunk.id] ? "bg-muted/50" : ""}>
+                  {isEditing[chunk.id] ? (
+                    <>
+                      <TableCell className="py-2">
+                        <Textarea
+                          value={editValues[chunk.id]}
+                          onChange={(e) => setEditValues(prev => ({ ...prev, [chunk.id]: e.target.value }))}
+                          className="w-full min-h-[60px]"
+                          rows={3}
+                          disabled={isSubmitting}
+                        />
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <Input
+                          type="text"
+                          value={editToolValues[chunk.id] || ""}
+                          onChange={(e) => setEditToolValues(prev => ({ ...prev, [chunk.id]: e.target.value }))}
+                          placeholder="General"
+                          className="h-9"
+                          disabled={isSubmitting}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right py-2">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSaveEdit(chunk.id)}
+                            disabled={!editValues[chunk.id]?.trim() || isSubmitting}
+                            className="h-8 px-2"
+                          >
+                            {isSubmitting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCancelEdit(chunk.id)}
+                            disabled={isSubmitting}
+                            className="h-8 px-2"
+                          >
+                            <X className="h-4 w-4"/>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell className="whitespace-pre-wrap break-words">
+                        {expandedChunks[chunk.id] 
+                          ? (
+                            <>
+                              {chunk.memory}
+                              <button 
+                                onClick={() => toggleExpandChunk(chunk.id)} 
+                                className="ml-1 text-gray-500 text-xs hover:underline"
+                              >
+                                Show less
+                              </button>
+                            </>
+                          ) 
+                          : chunk.memory.length > MAX_LENGTH 
+                            ? (
+                              <>
+                                {truncateText(chunk.memory, MAX_LENGTH)}
+                                <button 
+                                  onClick={() => toggleExpandChunk(chunk.id)} 
+                                  className="ml-1 text-gray-500 text-xs hover:underline"
+                                >
+                                  Show more
+                                </button>
+                              </>
+                            )
+                            : chunk.memory
+                        }
+                      </TableCell>
+                      <TableCell>{chunk.tool || "General"}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditChunk(chunk.id, chunk.memory, chunk.tool)}
+                              disabled={disabled || isEditing[chunk.id]}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteChunk(chunk.id)}
+                              disabled={isDeleting[chunk.id] || disabled}
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              {isDeleting[chunk.id] ? (
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 mr-2" />
+                              )}
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
