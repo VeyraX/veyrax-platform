@@ -242,7 +242,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuItem className='cursor-pointer' key={item.title}>
                         <SidebarMenuButton
                           asChild
-                          isActive={pathname === item.url}
+                          isActive={Boolean(pathname === item.url || (item.url && pathname.startsWith(item.url)))}
                           onClick={() => handleItemClick(item)}
                           tooltip={item.title}
                         >

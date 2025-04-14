@@ -272,23 +272,27 @@ export default function DeployCreatePage() {
               
               <div>
                 <h2 className="text-xl font-medium mb-4">Environment Variables</h2>
-                <div className="space-y-3">
-                  {envVars.map((env, index) => (
-                    <div key={env.name} className="flex items-center gap-4">
-                      <div className="w-64 text-sm font-mono text-muted-foreground truncate">
-                        {env.name}
+                {envVars.length > 0 ? (
+                  <div className="space-y-3">
+                    {envVars.map((env, index) => (
+                      <div key={env.name} className="flex items-center gap-4">
+                        <div className="w-64 text-sm font-mono text-muted-foreground truncate">
+                          {env.name}
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            value={env.value}
+                            onChange={(e) => updateEnvVar(index, e.target.value)}
+                            placeholder="Value"
+                            className="h-9 text-sm"
+                          />
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <Input
-                          value={env.value}
-                          onChange={(e) => updateEnvVar(index, e.target.value)}
-                          placeholder="Value"
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">We didn't find any environment variables for this MCP. You can proceed with the deployment.</div>
+                )}
               </div>
             </div>
             

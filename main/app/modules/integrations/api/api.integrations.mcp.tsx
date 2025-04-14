@@ -3,6 +3,12 @@ import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
 
+// Client-side cache for GitHub repo info
+const githubRepoCache = new Map<string, { data: GitHubRepoInfo | null, timestamp: number }>();
+const CACHE_TTL = 24 * 3600 * 1000; // 24 hours cache
+
+const pendingRequests = new Map<string, Promise<GitHubRepoInfo | null>>();
+
 export const getAllMcpRepositories = async (): Promise<McpDetails[]> => {
   try {
     const { data, error } = await supabase
@@ -92,47 +98,59 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
       return null;
     }
     
-    const normalizedUrl = repoUrl.endsWith('/') ? repoUrl.slice(0, -1) : repoUrl;
-    const parts = normalizedUrl.split('/');
-    const repo = parts[parts.length - 1];
-    const owner = parts[parts.length - 2];
-    
-    if (!owner || !repo) {
-      console.error('Could not extract owner or repo from URL:', repoUrl);
-      return null;
-    }
-
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: {
-        ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {}),
-        'Accept': 'application/vnd.github.v3+json'
+    // Check if this URL is already in our cache
+    if (githubRepoCache.has(repoUrl)) {
+      const cached = githubRepoCache.get(repoUrl)!;
+      const now = Date.now();
+      
+      // If cache is still valid, return cached data
+      if (now - cached.timestamp < CACHE_TTL) {
+        return cached.data;
       }
-    });
-    
-    if (!response.ok) {
-      console.error('Error fetching GitHub repo info:', response.statusText);
-      return null;
     }
     
-    const data = await response.json();
-
-    console.log('GitHub repo info:', data);
-    return {
-      stars: data.stargazers_count,
-      forks: data.forks_count,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      owner: owner,
-      name: repo,
-      avatar_url: data.owner?.avatar_url,
-      description: data.description,
-      license: data.license ? {
-        name: data.license.name,
-        spdx_id: data.license.spdx_id
-      } : undefined
-    };
+    // Check if there's already a request in flight for this URL
+    if (pendingRequests.has(repoUrl)) {
+      return pendingRequests.get(repoUrl)!;
+    }
+    
+    // Create a new request
+    const requestPromise = (async () => {
+      try {
+        const response = await fetch('/api/github/repo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ repoUrl })
+        });
+        
+        if (!response.ok) {
+          return null;
+        }
+        
+        const data = await response.json();
+        
+        // Store in cache
+        githubRepoCache.set(repoUrl, { 
+          data: data as GitHubRepoInfo, 
+          timestamp: Date.now() 
+        });
+        
+        return data as GitHubRepoInfo;
+      } catch (error) {
+        return null;
+      } finally {
+        // Clean up pending request
+        pendingRequests.delete(repoUrl);
+      }
+    })();
+    
+    // Store the promise to prevent duplicate requests
+    pendingRequests.set(repoUrl, requestPromise);
+    
+    return requestPromise;
   } catch (error) {
-    console.error('Error fetching GitHub repo info:', error);
     return null;
   }
 };

@@ -103,9 +103,15 @@ export const McpCard: FC<McpCardProps> = ({
             
             <div className="flex items-center gap-1 mb-3">
               <Github className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
+              <a 
+                href={githubUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {owner && repo ? `${owner}/${repo}` : imageName}
-              </span>
+              </a>
             </div>
             
             <div className="flex-1 min-w-0">
@@ -115,12 +121,10 @@ export const McpCard: FC<McpCardProps> = ({
 
           <div className="flex items-center mt-3 pt-3 justify-between gap-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              {repoInfo?.stars && (
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 text-yellow-500" />
-                  <span>{repoInfo.stars} stars</span>
-                </div>
-              )}
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3 text-yellow-500" />
+                <span>{repoInfo?.stars || 0} stars</span>
+              </div>
             </div>
             
             {!isPublic && (
