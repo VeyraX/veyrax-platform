@@ -113,8 +113,6 @@ async def push_mcp_to_dockerhub(
                 timeout=30.0
             )
         
-        print(f"GitHub API response status code: {response.status_code}")
-        
         if response.status_code != 204:
             try:
                 response_body = response.json()
