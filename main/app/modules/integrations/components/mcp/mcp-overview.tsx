@@ -94,9 +94,9 @@ export function McpOverview({
           
           <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1 text-xs">
             <Award size={12} className="text-green-500" />
-            <span>{repoInfo?.license?.name || ''}</span>
+            <span>{repoInfo?.license?.name || 'No License'}</span>
           </div>
-        </div>
+        </div>  
         
         <div className="text-foreground/90">
           <p>{mcpDetails?.description || "No description available"}</p>

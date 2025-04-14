@@ -1,8 +1,15 @@
 export const featureData = [
-    {
-      id: 1,
-      title: "Connect Your Tools",
-      description: "Choose from 20+ tools to integrate with any MCP-compatible environment.",
+  {
+    id: 1, 
+    title: "Deploy",
+    description: "Deployment any MCP by sending a single link.",
+    video: "/mcp_video/veyrax_deploy.mp4",
+    duration: 14000
+  },
+  {
+    id: 2,
+    title: "Choose and Connect Your Tools",
+      description: "Choose from 3000+ MCPs you want to connect with.",
       video: "/mcp_video/integration.mp4",
       duration: 8000 
     },

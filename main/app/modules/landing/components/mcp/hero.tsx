@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import Particles from "@/components/ui/particles";
 import { useTheme } from "next-themes";
 import { BorderBeam } from "@/components/ui/border-beam";
-import HeroVideoDialog from "@/components/ui/hero-video-dialog";
 import { Input } from "@/components/ui/input";
 import { WaitlistService } from '../../api/api.service';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -89,14 +88,13 @@ export const Hero = () => {
                   </span>
                   <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
                     <div>
-                      <div><span className="font-semibold">Single tool</span> to control</div>
-                      <div>them all</div>
+                      <div>Deploy & Connect any MCP <span className="font-semibold">in just 2 clicks</span></div>
                     </div>
                   </h1>
                 </div>
 
                 <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
-                  VeyraX MCP is the only connection you need to get access to all your tools in any MCP-compatible environment.{" "}
+                  VeyraX is platform that allow you deploy any MCP from link and connect to any existing MCP instantly.{" "}
                 </p>
               </div>
 
@@ -117,20 +115,16 @@ export const Hero = () => {
               <div className="relative w-full max-w-7xl z-10">
                 <div className="relative w-full border border-border rounded-xl overflow-hidden">
                   <BorderBeam size={350} duration={12} delay={9} />
-                  <HeroVideoDialog
-                    className="dark:hidden block"
-                    animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg?modestbranding=1&showinfo=0&rel=0&fs=1&color=white"
-                    thumbnailSrc="/landing/hero_mcp.png"
-                    thumbnailAlt="Hero Video"
-                  />
-                  <HeroVideoDialog
-                    className="hidden dark:block"
-                    animationStyle="from-center"
-                    videoSrc="https://www.youtube.com/embed/f46EsOCF7fg?modestbranding=1&showinfo=0&rel=0&fs=1&color=white"
-                    thumbnailSrc="/landing/hero_mcp.png"
-                    thumbnailAlt="Hero Video"
-                  />
+                  <video
+                    className="w-full h-auto rounded-xl block mt-[-30px]"
+                    src="/mcp_video/veyrax_deploy.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  >
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               </div>
             </div>
