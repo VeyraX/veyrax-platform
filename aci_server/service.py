@@ -188,8 +188,15 @@ class ToolsService:
                 "parameters": params
             }
             
+            # Forward all relevant headers from the original request
+            headers = {}
             auth_header = request.headers.get("Authorization")
-            headers = {"Authorization": auth_header} if auth_header else {}
+            veyrax_api_key = request.headers.get("VEYRAX_API_KEY")
+            
+            if auth_header:
+                headers["Authorization"] = auth_header
+            if veyrax_api_key:
+                headers["VEYRAX_API_KEY"] = veyrax_api_key
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
