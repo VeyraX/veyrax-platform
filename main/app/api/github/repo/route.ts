@@ -44,6 +44,14 @@ export async function POST(request: NextRequest) {
     });
     
     if (!response.ok) {
+      console.log('GitHub API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+      const errorBody = await response.json();
+      console.log('GitHub API Error Body:', errorBody);
+      
       return NextResponse.json(
         { error: `Error fetching GitHub repo info: ${response.statusText}` }, 
         { status: response.status }

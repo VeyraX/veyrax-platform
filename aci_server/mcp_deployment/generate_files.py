@@ -104,6 +104,7 @@ async def push_mcp_to_dockerhub(
             }
         }
         
+        
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"https://api.github.com/repos/{github_repo}/actions/workflows/{workflow_id}/dispatches", 
@@ -111,6 +112,8 @@ async def push_mcp_to_dockerhub(
                 json=workflow_data,
                 timeout=30.0
             )
+        
+        print(f"GitHub API response status code: {response.status_code}")
         
         if response.status_code != 204:
             try:
