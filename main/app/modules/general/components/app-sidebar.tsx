@@ -29,6 +29,7 @@ import { getChats } from "@/app/modules/agent/api/api.agent"
 import { authApi } from '@/app/modules/auth/api/api.auth'
 import { useGetChats } from "@/app/modules/agent/api/quries.agent"
 import FeedbackDialog from './feedback-dialog'
+import DeployWaitlistDialog from './deploy-waitlist-dialog'
 import { LogoutIcon as Logout } from "@/components/ui/logout"
 import { BoxesIcon as Boxes } from "@/components/ui/boxes"
 import { HandHeartIcon as HandHeart } from "@/components/ui/hand-heart"
@@ -37,13 +38,29 @@ import { DiscordIcon as Discord } from "@/components/ui/discord"
 import { WorkflowIcon as Workflow } from "@/components/ui/workflow"
 import { LayersIcon as Layers } from "@/components/ui/layers"
 import { ConnectIcon as Connect } from "@/components/ui/connect"
+import { TerminalIcon as Terminal } from "@/components/ui/terminal"
 import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { FlowsAnnouncement } from "./flows-announcement"
 
 const items = [
   {
-    title: "ACI",
+    title: "Connect",
+    items: [
+      {
+        title: "Integrations",
+        url: "/integrations",
+        icon: <Connect size={16} />,
+      },
+      {
+        title: "Deployment",
+        action: "deployment",
+        icon: <Terminal size={16} />,
+      },
+    ],
+  },
+  {
+    title: "Build",
     items: [
       {
         title: "Playground",
@@ -55,13 +72,13 @@ const items = [
         url: "/flows",
         icon: <Layers size={16} />,
       },
+    ],
+  },
+  {
+    title: "Feedback",
+    items: [
       {
-        title: "Integrations",
-        url: "/integrations",
-        icon: <Connect size={16} />,
-      },
-      {
-        title: "Feedback",
+        title: "Give Feedback",
         action: "feedback",
         icon: <HandHeart size={16} />,
       },
@@ -157,6 +174,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [mounted, setMounted] = useState(false)
   const { data: chatData } = useGetChats()
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
+  const [deployWaitlistDialogOpen, setDeployWaitlistDialogOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -169,7 +187,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: `/agent/${chat.id}`
       }));
       
-      items[1].items = chatItems as any;
+      items[3].items = chatItems as any;
       setChats(chatData);
     }
   }, [mounted, chatData]);
@@ -188,6 +206,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const handleItemClick = (item: any) => {
     if (item.action === 'feedback') {
       setFeedbackDialogOpen(true);
+    } else if (item.action === 'deployment') {
+      setDeployWaitlistDialogOpen(true);
     } else if (item.action === 'discord') {
       window.open(item.url, '_blank');
     } else if (item.url) {
@@ -221,12 +241,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {(state === "expanded" || group.title === "ACI") && 
+                  {(state === "expanded" || group.title !== "Recent Chats") && 
                     group.items?.slice(0, group.title === "Recent Chats" ? (showAllChats ? undefined : 5) : undefined).map((item) => (
                       <SidebarMenuItem className='cursor-pointer' key={item.title}>
                         <SidebarMenuButton
                           asChild
-                          isActive={pathname === item.url}
+                          isActive={Boolean(pathname === item.url || (item.url && pathname.startsWith(item.url)))}
                           onClick={() => handleItemClick(item)}
                           tooltip={item.title}
                         >
@@ -278,6 +298,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <FeedbackDialog 
         open={feedbackDialogOpen} 
         onOpenChange={setFeedbackDialogOpen} 
+      />
+      
+      <DeployWaitlistDialog 
+        open={deployWaitlistDialogOpen} 
+        onOpenChange={setDeployWaitlistDialogOpen}
       />
     </>
   )

@@ -3,7 +3,7 @@
 import { FC, useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpRight, Plus, Files, Loader2 } from 'lucide-react'
+import { ArrowUpRight, Plus, Users, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IntegrationCardProps } from '../api/types.integrations'
 import { useRouter } from 'next/navigation'
@@ -42,7 +42,9 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
     }
   };
 
-  const handleConnect = async () => {
+  const handleConnect = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
     if (isRequestCard) {
       setShowRequestForm(true);
       return;
@@ -80,12 +82,14 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
     }
   };
   
-  const handleDocsClick = () => {
-    if (isPublic) {
-      router.push(`/marketplace/${props.provider_tag}`);
-    } else {
-      router.push(`/integrations/${props.provider_tag}`);
+  const handleCardClick = () => {
+    if (isRequestCard) {
+      setShowRequestForm(true);
+      return;
     }
+    
+    // Navigate to integration details page
+    router.push(`/integrations/${props.provider_tag}`);
   };
   
   const handleRequestFormSubmit = () => {
@@ -102,7 +106,8 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
           isRequestCard 
             ? "border-2 border-dashed border-primary" 
             : "border"
-        }`}
+        } cursor-pointer`}
+        onClick={handleCardClick}
       >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex flex-col gap-3 flex-1">
@@ -131,15 +136,10 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
 
           <div className="flex items-center mt-3 pt-3 justify-between gap-2">
             {!isRequestCard && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDocsClick}
-                className="text-xs"
-              >
-                Docs
-                <Files className="h-3 w-3 ml-1" />
-              </Button>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Users className="h-3 w-3 text-muted-foreground" />
+                <span>{props.count_of_users?.toLocaleString() || '0'} users</span>
+              </div>
             )}
             
             {isRequestCard ? (
@@ -157,7 +157,10 @@ export const IntegrationCard: FC<IntegrationCardProps & { isPublic?: boolean }> 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowManage(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowManage(true);
+                  }}
                   className="text-xs"
                 >
                   Manage

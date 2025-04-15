@@ -1,4 +1,4 @@
-import { UserFeedback, FeedbackSubmitData, TeamRequestData } from "./general.types"
+import { UserFeedback, FeedbackSubmitData, TeamRequestData, DeployWaitlistRequestData, ContactRequestData } from "./general.types"
 
 import { createClient } from '@/lib/utils/supabase/client'
 
@@ -41,3 +41,38 @@ export const submitTeamRequest = async (requestData: TeamRequestData): Promise<v
     throw error
   }
 }
+
+export const submitDeployWaitlistRequest = async (requestData: DeployWaitlistRequestData): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+  
+  const { error } = await supabase
+    .from('deploy_waitlist')
+    .insert({
+      user_id: user.id,
+      reason: requestData.reason,
+      deploy_type: requestData.deploy_type,
+    });
+  
+  if (error) {
+    console.error('Error submitting deploy waitlist request:', error);
+    throw error;
+  }
+};
+
+export const submitContactRequest = async (requestData: ContactRequestData): Promise<void> => {
+  const { error } = await supabase
+    .from('contact_us_requests')
+    .insert({
+      email: requestData.email,
+      reason: requestData.reason,
+    });
+  
+  if (error) {
+    console.error('Error submitting contact request:', error);
+    throw error;
+  }
+};

@@ -35,3 +35,13 @@ export interface PackageInfo {
     yearly_price: number | null;
     custom_price?: string;
 }
+
+export interface DeployWaitlistRequestData {
+    reason: string;
+    deploy_type: string;
+}
+
+export interface ContactRequestData {
+    email: string;
+    reason: string;
+}

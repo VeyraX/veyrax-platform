@@ -1,42 +1,91 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Header, Request, Depends, Query
 from pydantic import BaseModel, Field, validator
 from typing import Dict, Any, List, Optional
 import json
+import httpx
+import os
 
-from .schema import PushMCPRequest, PushMCPResponse, EnvVariablesRequest, EnvVariablesResponse
+from .schema import (
+    PushMCPRequest, 
+    PushMCPResponse, 
+    RepositoryMetaRequest, 
+    RepositoryMetaResponse,
+    ExternalMCPResponse
+)
 from .parse_repo import parse_repository
-from .generate_files import generate_dockerfile, extract_env_variables, push_mcp_to_dockerhub
+from .generate_files import (
+    push_mcp_to_dockerhub,
+    extract_repo_metadata,
+    extract_env_variables
+)
+from db.supabase import get_supabase
+from integrations.common.auth import get_user_from_request
+from .queries import create_mcp_deployment_record, update_mcp_deployment_status
 
 router = APIRouter(
     prefix="/mcp_deployment",
     tags=["mcp_deployment"],
 )   
 
-@router.post("/generate-env-variables", response_model=EnvVariablesResponse)
-async def create_env_variables(request: EnvVariablesRequest = Body(...)):
+async def get_auth_token(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header
+    
+    api_key = request.headers.get("VEYRAX_API_KEY")
+    if api_key:
+        return api_key
+    
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required. Provide either Bearer token in Authorization header or VEYRAX_API_KEY header."
+    )
+
+@router.post("/generate-repository-meta", response_model=RepositoryMetaResponse)
+async def generate_repository_meta_endpoint(
+    request: RepositoryMetaRequest = Body(...),
+    is_local: bool = Query(False, description="Flag indicating if the environment variables are for local development")
+):
     try:
         repo_data = parse_repository(repo_url=request.repo_url)
         
         context = json.dumps(repo_data)
-        env_variables_json = extract_env_variables(context)
-        env_variables = json.loads(env_variables_json)
         
-        return EnvVariablesResponse(
-            env_variables=env_variables
+        env_variables = extract_env_variables(context, is_local=is_local)
+        
+        repo_metadata = extract_repo_metadata(context)
+        return RepositoryMetaResponse(
+            env_variables=env_variables,
+            name=repo_metadata.get("name", ""),
+            description=repo_metadata.get("description", ""),
+            is_local=is_local
         )
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse environment variables JSON")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate environment variables: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate repository metadata: {str(e)}")
 
 @router.post("/push-mcp-to-dockerhub", response_model=PushMCPResponse)
-async def push_mcp_dockerhub_endpoint(request: PushMCPRequest = Body(...)):
+async def push_mcp_dockerhub_endpoint(
+    request: Request,
+    push_request: PushMCPRequest = Body(...),
+    auth_token: str = Depends(get_auth_token)
+):
     try:
-        result = await push_mcp_to_dockerhub(
-            repo_url=request.repo_url,
-            image_name=request.image_name
+        user_id = await get_user_from_request(request)
+        deployment_record = await create_mcp_deployment_record(
+            repository_id=push_request.repository_id,
+            commit_hash=push_request.commit_hash,
+            status="started"
         )
         
+        result = await push_mcp_to_dockerhub(
+            repo_url=push_request.repo_url,
+            image_name=push_request.image_name,
+            auth_token=auth_token,
+            repository_id=push_request.repository_id,
+            deployment_id=deployment_record.get('deployment_id'),
+            commit_hash=push_request.commit_hash
+        )
+  
         return PushMCPResponse(**result)
         
     except Exception as e:

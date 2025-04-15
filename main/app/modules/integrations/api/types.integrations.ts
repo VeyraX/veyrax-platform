@@ -45,7 +45,6 @@ export interface UserDbAccess {
 
 export interface IntegrationCardProps extends Provider {
   connected: boolean;
-  isPopular?: boolean;
   hasIndex: false;
   indexStatus: null;
   lastSyncDate?: null;
@@ -54,6 +53,7 @@ export interface IntegrationCardProps extends Provider {
   isPublic?: boolean;
   onShowSettings?: (provider: Provider) => void;
   return_url?: string;
+  count_of_users?: number;
 }
 
 export interface UserProvider {

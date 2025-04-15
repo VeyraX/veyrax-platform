@@ -1,5 +1,5 @@
-import IntegrationsPage from "@/app/modules/integrations/pages/integrations-page"
+import IntegrationsMainPage from "@/app/modules/integrations/pages/integrations-main-page"
 
 export default function Integrations() {
-  return <IntegrationsPage isPublic={false} />
+  return <IntegrationsMainPage isPublic={false} />
 }

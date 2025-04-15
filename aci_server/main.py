@@ -94,6 +94,8 @@ from integrations.bybit_p2p.route import router as bybit_p2p_router
 from integrations.okx_p2p.route import router as okx_p2p_router
 from integrations.twentyfirst_dev.route import router as dev_router
 from mcp_deployment.route import router as mcp_deployment_router
+from mcp_deployment.queries import get_user_connected_mcp_actions, get_user_mcp_image_names
+from service import ToolsService
 import os
 import json
 import inspect
@@ -120,7 +122,6 @@ sentry_sdk.init(
 )
 
 INTEGRATION_ROUTERS = {
-    #"gmail": gmail_router,
     "google-calendar": google_calendar_router,
     "notion": notion_router,
     "slack": slack_router,
@@ -216,8 +217,9 @@ async def check_user_permission(request: Request, tool: str, method: str):
         user_id = await get_user_from_request(request)
         user_tools = get_user_tools_from_actions(user_id)
 
-        if not user_tools:
-            raise HTTPException(status_code=401, detail="User not found")
+        mcp_image_names = await get_user_mcp_image_names(user_id)
+        if tool in mcp_image_names:
+            return
         
         if tool not in user_tools:
             raise HTTPException(status_code=403, detail=f"Tool {tool} is not availiable for this user")
@@ -243,7 +245,6 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
             if tool and method:
                 try:
-                    # pass
                     await check_user_permission(request, tool, method)
                 except HTTPException as e:
                     if e.status_code in [401, 403]:
@@ -253,7 +254,6 @@ class PermissionMiddleware(BaseHTTPMiddleware):
                         )
                     raise e
 
-        # Proceed if allowed
         return await call_next(request)
 
 
@@ -289,6 +289,8 @@ app.include_router(mcp_deployment_router)
 app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
+tools_service = ToolsService(INTEGRATION_ROUTERS)
+
 for router in INTEGRATION_ROUTERS.values():
     app.include_router(router)
 
@@ -296,13 +298,11 @@ for router in INTEGRATION_ROUTERS.values():
 async def root():
     return {"message": "Hello World"}
 
-## healthcheck route
 @app.head("/")
 async def root_head():
     try:
         start_time = time.time()
         
-        # Take 3 random tools to check
         sample_tools = list(INTEGRATION_ROUTERS.keys())
         sample_tools = random.sample(sample_tools, 3)
         
@@ -341,16 +341,6 @@ async def get_tools(simple_schema: bool = False, format: str = "default"):
     return {"tools": tools}
 
 def convert_to_brief_format(tools_dict):
-    """
-    Convert tools to a very brief format with structure:
-    {
-      "tools": {
-        "tool_name": {
-          "method_name": "description"
-        }
-      }
-    }
-    """
     brief_tools = {}
     
     for tool_name, tool_functions in tools_dict.items():
@@ -361,7 +351,6 @@ def convert_to_brief_format(tools_dict):
                 method_name = func["function"].get("name", "")
                 description = func["function"].get("description", "")
                 
-                # Try to get a better description from examples if available
                 if "examples" in func and func["examples"] and "description" in func["examples"][0]:
                     description = func["examples"][0]["description"]
                 
@@ -395,156 +384,11 @@ def find_route_by_tool_and_method(tool: str, method: str):
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request, include_component: bool = True):
-    success = 0
-    response = None
-    error_message = None
-    user_id = None
-    
-    query_params = dict(request.query_params)
-    question = query_params.get("question")
-    
-    user_id = await get_user_from_request(request)
-        
-    try:
-        try:
-            params = await request.json()
-        except:
-            params = {}
-        
-        metadata = {
-            "parameters": params,
-            "question": question
-        }
-        
-        if tool not in INTEGRATION_ROUTERS:
-            error_message = f"Tool '{tool}' not found"
-            raise HTTPException(status_code=404, detail=error_message)
-        
-        router = INTEGRATION_ROUTERS[tool]
-        
-        for route in router.routes:
-            if route_method(route) == method:
-                signature = inspect.signature(route.endpoint)
-                
-                endpoint_args = {}
-                
-                for name, param in signature.parameters.items():
-                    if param.default != inspect.Parameter.empty and hasattr(param.default, "__class__") and param.default.__class__.__name__ == "Depends":
-                        dep_func = param.default.dependency
-                        try:
-                            # Define recursive dependency resolution function
-                            async def resolve_dependency_recursively(dep_func, req):
-                                sig = inspect.signature(dep_func)
-                                dep_args = {}
-                                
-                                for dep_name, dep_param in sig.parameters.items():
-                                    if dep_param.default != inspect.Parameter.empty and hasattr(dep_param.default, "__class__") and dep_param.default.__class__.__name__ == "Depends":
-                                        nested_dep_func = dep_param.default.dependency
-                                        dep_args[dep_name] = await resolve_dependency_recursively(nested_dep_func, req)
-                                    elif dep_name == "request":
-                                        dep_args[dep_name] = req
-                                
-                                # Check if function is a coroutine function that needs to be awaited
-                                if asyncio.iscoroutinefunction(dep_func):
-                                    return await dep_func(**dep_args)
-                                else:
-                                    return dep_func(**dep_args)
-                            
-                            # Use recursive resolution instead of simple awaiting
-                            dependency_result = await resolve_dependency_recursively(dep_func, request)
-                            
-                            if hasattr(dependency_result, "__class__") and dependency_result.__class__.__name__ == "Depends":
-                                error_message = f"Dependency resolution error: got Depends object instead of service instance"
-                                raise ValueError(error_message)
-                                
-                            endpoint_args[name] = dependency_result
-                        except Exception as dep_error:
-                            error_message = f"Error resolving dependency {name}: {str(dep_error)}"
-                            raise HTTPException(status_code=500, detail=error_message)
-                
-                for name, param in signature.parameters.items():
-                    if name in endpoint_args:
-                        continue
-                        
-                    is_body_param = (
-                        param.default != inspect.Parameter.empty 
-                        and hasattr(param.default, "__class__") 
-                        and param.default.__class__.__name__ == "Body"
-                    )
-                    
-                    if name in params:
-                        endpoint_args[name] = params
-                    elif name == "params" and is_body_param:
-                        endpoint_args[name] = params
-                    elif name == "request" and name not in endpoint_args:
-                        endpoint_args[name] = request
-                
-                try:
-                    response = await route.endpoint(**endpoint_args)
-                    success = 1
-                except Exception as exc:
-                    success = 0 
-                    error_message = str(exc)
-                    raise
-                
-                if not include_component:
-                    if isinstance(response, dict) and "component" in response:
-                        response.pop("component")
-                    elif hasattr(response, "component") and hasattr(response, "dict"):
-                        response_dict = response.dict()
-                        if "component" in response_dict:
-                            response_dict.pop("component")
-                        return response_dict
-                
-                return response
-        
-        error_message = f"Method '{method}' not found in tool '{tool}'"
-        raise HTTPException(status_code=404, detail=error_message)
-    
-    except HTTPException as http_exc:
-        success = 0
-        error_message = str(http_exc.detail)
-        log_api_call(
-            user_id=user_id,
-            endpoint=f"/tool-call/{tool}/{method}",
-            success=success,
-            error_message=error_message,
-            metadata=metadata
-        )
-        raise
-    
-    except Exception as exc:
-        success = 0
-        error_message = str(exc)
-        log_api_call(
-            user_id=user_id,
-            endpoint=f"/tool-call/{tool}/{method}",
-            success=success,
-            error_message=error_message,
-            metadata=metadata
-        )
-        raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
-    
-    finally:
-        if success == 1:
-            try:
-                log_api_call(
-                    user_id=user_id,
-                    endpoint=f"/tool-call/{tool}/{method}",
-                    success=success,
-                    error_message=None,
-                    metadata=metadata
-                )
-            except Exception as log_error:
-                print(f"Error logging API call for Supabase: {str(log_error)}")
+    return await tools_service.handle_tool_call(tool, method, request, include_component)
 
 @app.get("/tools/{tool_name}")
-async def get_tool_spec(tool_name: str):
-    if tool_name not in INTEGRATION_ROUTERS:
-        raise HTTPException(status_code=404, detail=f"Tool '{tool_name}' not found")
-    
-    router = INTEGRATION_ROUTERS[tool_name]
-    return {"tools": get_router_tools(router)}
+async def get_tool_spec(tool_name: str, request: Request):
+    return await tools_service.get_tool_spec(tool_name, request)
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
@@ -565,7 +409,9 @@ async def get_user_tools(request: Request):
         if isinstance(user_tools, dict) and "error" in user_tools:
             raise Exception(user_tools["error"])
             
-        if not user_tools:
+        mcp_actions = await get_user_connected_mcp_actions(user_id)
+            
+        if not user_tools and not mcp_actions:
             tools_response = {"tools": {}}
             tools_response["tools"]["veyrax_auth"] = get_auth_tool()
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
@@ -585,6 +431,7 @@ async def get_user_tools(request: Request):
         response_tools["tools"]["veyrax_auth"] = get_auth_tool()
         response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
         
+        response_tools["tools"].update(mcp_actions)
         
         user_memories = await get_user_memories(user_id)
         response_tools["tools"]["memories"] = user_memories
@@ -625,7 +472,9 @@ async def get_dev_user_tools(request: Request):
             .eq('user_id', user_id) \
             .execute()
             
-        if not user_providers.data:
+        mcp_actions = await get_user_connected_mcp_actions(user_id)
+            
+        if not user_providers.data and not mcp_actions:
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
@@ -651,7 +500,6 @@ async def get_dev_user_tools(request: Request):
         user_tools = {}
         user_tools['examples'] = json.loads(get_tools_example_prompt)
         
-        # Always include veyrax_auth
         user_tools['veyrax_auth'] = get_router_tools(veyrax_auth_router)
         
         for name, router in INTEGRATION_ROUTERS.items():
@@ -664,9 +512,11 @@ async def get_dev_user_tools(request: Request):
                 
                 user_tools[name] = provider_tools
         
+
+        user_tools.update(mcp_actions)
+        
         user_memories = await get_user_memories(user_id)
         user_tools['memories'] = user_memories
-        
         
         return {"tools": user_tools}
     except Exception as e:
@@ -680,6 +530,9 @@ async def get_dev_user_tools(request: Request):
 
 @app.post("/tool-execute")
 async def execute_tool_from_body(request: Request, include_component: bool = False):
+    """
+    Обрабатывает вызов инструмента через POST-запрос.
+    """
     success = 0
     error_message = None
     user_id = None
@@ -713,7 +566,7 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
         new_request = Request(scope=request.scope)
         new_request._json = params
         
-        response = await handle_tool_call(tool=tool, method=method, request=new_request, include_component=include_component)
+        response = await tools_service.handle_tool_call(tool=tool, method=method, request=new_request, include_component=include_component)
         success = 1
         return response
         

@@ -1,6 +1,6 @@
 'use client'
 import { Features } from "../components/web/features"
-import { Hero } from "../components/web/hero"
+import { HeroNew } from "../components/web/hero-new"
 import { CTA } from "../components/web/cta"
 import { TextBlock } from "../components/web/text"
 import { useEffect } from "react"
@@ -15,9 +15,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col gap-32">
-      <Hero />
-      <TextBlock />
-      <Features />
+      <HeroNew />
       <CTA />
       <Footer />
     </div>

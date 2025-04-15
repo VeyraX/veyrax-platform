@@ -21,9 +21,7 @@ export default function PricingPage() {
             <div className="py-4 md:py-8">
                 <FaqSectionDemo />
             </div>
-            <div className="py-4 md:py-8">
-                <Footer />
-            </div>
+            <Footer />
         </div>
     );
 }

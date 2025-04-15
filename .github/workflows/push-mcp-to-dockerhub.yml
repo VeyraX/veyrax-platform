@@ -78,7 +78,6 @@ jobs:
             
             if [[ -d "target-repo/${{ steps.repo-info.outputs.subdirectory }}" ]]; then
               echo "Moving contents from subdirectory to root of target-repo"
-              # Create a temp directory
               mkdir -p temp-subdir
               # Move subdirectory contents to temp
               mv target-repo/${{ steps.repo-info.outputs.subdirectory }}/* temp-subdir/

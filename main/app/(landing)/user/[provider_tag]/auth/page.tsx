@@ -6,10 +6,11 @@ export default function ProviderAuthPage({
   searchParams
 }: { 
   params: { provider_tag: string },
-  searchParams: { code?: string, api_key?: string, success?: string, status_code?: string, oauth_return?: string }
+  searchParams: { code?: string, api_key?: string, success?: string, status_code?: string, oauth_return?: string, type?: string }
 }) {
   const code = searchParams.code || '';
   const apiKey = searchParams.api_key || '';
+  const type = searchParams.type || '';
   
   return (
     <Suspense fallback={
@@ -21,6 +22,7 @@ export default function ProviderAuthPage({
         providerTag={params.provider_tag} 
         code={code} 
         apiKey={apiKey} 
+        type={type}
       />
     </Suspense>
   )
