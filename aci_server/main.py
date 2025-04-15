@@ -400,6 +400,8 @@ async def get_tool_spec(tool_name: str, request: Request):
 
 @app.get("/get-tools")
 async def get_user_tools(request: Request):
+    query_params = dict(request.query_params)
+    question = query_params.get("question")
     
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
         return await get_dev_user_tools(request)
@@ -427,7 +429,8 @@ async def get_user_tools(request: Request):
             log_api_call(
                 user_id=user_id,
                 endpoint="/get-tools",
-                success=1
+                success=1,
+                metadata={"question": question} if question else None
             )
             
             return tools_response
@@ -448,7 +451,8 @@ async def get_user_tools(request: Request):
         log_api_call(
             user_id=user_id,
             endpoint="/get-tools",
-            success=1
+            success=1,
+            metadata={"question": question} if question else None
         )
         
         return response_tools
@@ -457,7 +461,8 @@ async def get_user_tools(request: Request):
             user_id=user_id,
             endpoint="/get-tools",
             success=0,
-            error_message=str(e)
+            error_message=str(e),
+            metadata={"question": question} if question else None
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 

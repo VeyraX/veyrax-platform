@@ -30,6 +30,10 @@ class ToolsService:
         error_message = None
         user_id = None
         
+        # Extract question from query params
+        query_params = dict(request.query_params)
+        question = query_params.get("question")
+        
         try:
             user_id = await get_user_from_request(request)
         except Exception as e:
@@ -40,6 +44,12 @@ class ToolsService:
                 params = await request.json()
             except:
                 params = {}
+            
+            # Create metadata with parameters and question
+            metadata = {
+                "parameters": params,
+                "question": question
+            }
             
             if tool in self.integration_routers:
                 response = await self._handle_integration_tool(tool, method, request, params, include_component)
@@ -66,7 +76,8 @@ class ToolsService:
                 user_id=user_id,
                 endpoint=f"/tool-call/{tool}/{method}",
                 success=success,
-                error_message=error_message
+                error_message=error_message,
+                metadata=metadata
             )
             raise
         
@@ -77,7 +88,8 @@ class ToolsService:
                 user_id=user_id,
                 endpoint=f"/tool-call/{tool}/{method}",
                 success=success,
-                error_message=error_message
+                error_message=error_message,
+                metadata=metadata
             )
             raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
         
@@ -88,7 +100,8 @@ class ToolsService:
                         user_id=user_id,
                         endpoint=f"/tool-call/{tool}/{method}",
                         success=success,
-                        error_message=None
+                        error_message=None,
+                        metadata=metadata
                     )
                 except Exception as log_error:
                     print(f"Error logging API call for Supabase: {str(log_error)}")
@@ -245,13 +258,14 @@ class ToolsService:
                 detail=f"Error processing MCP tool request: {str(e)}"
             )
     
-    def _log_api_call(self, user_id: str, endpoint: str, success: int, error_message: Optional[str] = None):
+    def _log_api_call(self, user_id: str, endpoint: str, success: int, error_message: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None):
         try:
             log_api_call(
                 user_id=user_id,
                 endpoint=endpoint,
                 success=success,
-                error_message=error_message
+                error_message=error_message,
+                metadata=metadata
             )
         except Exception as e:
             print(f"Error logging API call: {str(e)}")
