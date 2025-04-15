@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Header } from '@/app/modules/general/components/header'
@@ -26,7 +26,7 @@ interface McpRepositoryData {
   isConnected: boolean;
 }
 
-const IntegrationsMainPage: FC<IntegrationsMainPageProps> = ({ isPublic = false, hideHeader = false }) => {
+const IntegrationsMainContent: FC<IntegrationsMainPageProps> = ({ isPublic = false, hideHeader = false }) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -193,6 +193,28 @@ const IntegrationsMainPage: FC<IntegrationsMainPageProps> = ({ isPublic = false,
         </div>
       </div>
     </div>
+  )
+}
+
+const IntegrationsMainPage: FC<IntegrationsMainPageProps> = (props) => {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex flex-col p-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-6">{props.isPublic ? "Marketplace" : "Integrations"}</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, index) => (
+            <div key={index} className="p-6 border rounded-lg space-y-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-10 w-[100px]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
+      <IntegrationsMainContent {...props} />
+    </Suspense>
   )
 }
 
