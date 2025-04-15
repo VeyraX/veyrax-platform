@@ -72,7 +72,7 @@ export function McpManage({
   };
 
   const handleSave = async () => {
-    if (!envChanged) {
+    if (envVars.length > 0 && !envChanged) {
       onClose();
       return;
     }
@@ -203,7 +203,7 @@ export function McpManage({
           
           <Button 
             onClick={handleSave} 
-            disabled={isSaving || isLoading || !envChanged}
+            disabled={isSaving || isLoading || (envVars.length > 0 && !envChanged)}
           >
             {isSaving ? (
               <>
