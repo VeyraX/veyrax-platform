@@ -36,6 +36,7 @@ class RepositoryMetaResponse(BaseModel):
     env_variables: Dict[str, str]
     name: Optional[str] = None
     description: Optional[str] = None
+    is_local: bool = False
 
 class ExternalMCPServer(BaseModel):
     name: str

@@ -30,9 +30,12 @@ def generate_dockerfile(context):
     human_message = context
     return openai_call(system_message, human_message)
 
-def extract_env_variables(context):
+def extract_env_variables(context, is_local: bool = False):
     system_message = extract_env_variables_prompt
-    human_message = context
+    context_with_flag = json.loads(context)
+    context_with_flag["is_local"] = is_local
+    human_message = json.dumps(context_with_flag)
+    
     try:
         env_variables_json = openai_call(system_message, human_message)
         return json.loads(env_variables_json)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body, Header, Request, Depends
+from fastapi import APIRouter, HTTPException, Body, Header, Request, Depends, Query
 from pydantic import BaseModel, Field, validator
 from typing import Dict, Any, List, Optional
 import json
@@ -42,19 +42,23 @@ async def get_auth_token(request: Request):
     )
 
 @router.post("/generate-repository-meta", response_model=RepositoryMetaResponse)
-async def generate_repository_meta_endpoint(request: RepositoryMetaRequest = Body(...)):
+async def generate_repository_meta_endpoint(
+    request: RepositoryMetaRequest = Body(...),
+    is_local: bool = Query(False, description="Flag indicating if the environment variables are for local development")
+):
     try:
         repo_data = parse_repository(repo_url=request.repo_url)
         
         context = json.dumps(repo_data)
         
-        env_variables = extract_env_variables(context)
+        env_variables = extract_env_variables(context, is_local=is_local)
         
         repo_metadata = extract_repo_metadata(context)
         return RepositoryMetaResponse(
             env_variables=env_variables,
             name=repo_metadata.get("name", ""),
-            description=repo_metadata.get("description", "")
+            description=repo_metadata.get("description", ""),
+            is_local=is_local
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate repository metadata: {str(e)}")

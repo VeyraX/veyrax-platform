@@ -3,12 +3,13 @@
 import { FC, useState, useMemo } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpRight, Star, Plus, Loader2, Github } from 'lucide-react'
+import { ArrowUpRight, Star, Plus, Loader2, Github, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { McpDetails, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { formatDistanceToNow } from "date-fns";
 import { McpManage } from "./mcp-manage";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface McpCardProps {
   imageName: string;
@@ -37,6 +38,10 @@ export const McpCard: FC<McpCardProps> = ({
   const description = mcpDetails?.description || "No description available";
   const githubUrl = mcpDetails?.repo_url || "";
   const repositoryId = mcpDetails?.id;
+  
+  // Get connection status and error from user environment
+  const connectionStatus = userEnvironment?.status || (isConnected ? "connected" : "disconnected");
+  const connectionError = userEnvironment?.error || null;
   
   const { owner, repo } = useMemo(() => {
     try {
@@ -79,8 +84,133 @@ export const McpCard: FC<McpCardProps> = ({
     }
   };
   
+  const handleRefresh = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onConnectionUpdate) {
+      await onConnectionUpdate();
+    }
+  };
+  
   const handleCardClick = () => {
     router.push(`/integrations/mcp/${imageName}`);
+  };
+  
+  const renderConnectionStatus = () => {
+    if (isPublic) return null;
+    
+    if (connectionStatus === "connecting") {
+      return (
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 transition-colors text-xs flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Connecting
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Deployment in progress. This might take up to 2 minutes.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    }
+    
+    if (connectionStatus === "error") {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="secondary" className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 transition-colors text-xs flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Error
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{connectionError || "Connection error"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    
+    if (connectionStatus === "connected") {
+      return (
+        <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors text-xs">
+          Connected
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+  
+  // Render proper action button based on connection status
+  const renderActionButton = () => {
+    if (isPublic) return null;
+    
+    if (connectionStatus === "connecting") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="text-xs"
+        >
+          <RefreshCw className="h-3 w-3 mr-1" />
+          Refresh
+        </Button>
+      );
+    }
+    
+    if (connectionStatus === "error") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleConnect}
+          className="text-xs"
+        >
+          Reconnect
+          <Plus className="h-3 w-3 ml-1" />
+        </Button>
+      );
+    }
+    
+    if (connectionStatus === "connected") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleConnect}
+          className="text-xs"
+        >
+          Manage
+          <ArrowUpRight className="h-3 w-3 ml-1" />
+        </Button>
+      );
+    }
+    
+    return (
+      <Button 
+        variant="outline"
+        size="sm"
+        onClick={handleConnect}
+        disabled={isConnecting}
+        className="text-xs"
+      >
+        {isConnecting ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <>
+            Connect
+            <Plus className="h-3 w-3 ml-1" />
+          </>
+        )}
+      </Button>
+    );
   };
   
   return (
@@ -94,11 +224,7 @@ export const McpCard: FC<McpCardProps> = ({
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-base md:text-lg font-semibold truncate">{repoName}</h2>
               
-              {!isPublic && isConnected && (
-                <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 transition-colors text-xs">
-                  Connected
-                </Badge>
-              )}
+              {!isPublic && renderConnectionStatus()}
             </div>
             
             <div className="flex items-center gap-1 mb-3">
@@ -127,36 +253,7 @@ export const McpCard: FC<McpCardProps> = ({
               </div>
             </div>
             
-            {!isPublic && (
-              isConnected ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleConnect}
-                  className="text-xs"
-                >
-                  Manage
-                  <ArrowUpRight className="h-3 w-3 ml-1" />
-                </Button>
-              ) : (
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={handleConnect}
-                  disabled={isConnecting}
-                  className="text-xs"
-                >
-                  {isConnecting ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <>
-                      Connect
-                      <Plus className="h-3 w-3 ml-1" />
-                    </>
-                  )}
-                </Button>
-              )
-            )}
+            {!isPublic && renderActionButton()}
           </div>
         </CardContent>
       </Card>

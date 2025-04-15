@@ -156,7 +156,7 @@ export default function DeployCreatePage() {
   };
 
   const isEnvVarsValid = () => {
-    return envVars.every(env => !env.required || env.value.trim() !== "");
+    return true; // Allow deployment even with empty environment variables
   };
 
   const handleGoToExistingMcp = () => {
