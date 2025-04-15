@@ -90,7 +90,13 @@ const IntegrationsMainPage: FC<IntegrationsMainPageProps> = ({ isPublic = false,
         })
       );
       
-      setMcpRepositories(mcpDetailsWithInfo);
+      const sortedMcpDetails = mcpDetailsWithInfo.sort((a, b) => {
+        const starsA = a.repoInfo?.stars || 0;
+        const starsB = b.repoInfo?.stars || 0;
+        return starsB - starsA;
+      });
+      
+      setMcpRepositories(sortedMcpDetails);
     } catch (error) {
       console.error('Failed to fetch MCP repositories:', error);
     } finally {

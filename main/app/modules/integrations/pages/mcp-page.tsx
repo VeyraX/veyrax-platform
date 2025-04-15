@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { McpDetails, GitHubRepoInfo, UserMcpEnvironment } from "../api/types.integrations.mcp"
 import { createClient } from '@/lib/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
+import { getSingleMcpRepositoryData } from '../api/api.integrations.mcp'
 
 interface McpPageProps {
   isPublic?: boolean
@@ -102,6 +103,28 @@ const McpPage: FC<McpPageProps> = ({
     }
   };
 
+  const handleSingleMcpUpdate = async (repositoryId: string) => {
+    if (!repositoryId) return;
+    
+    try {
+      const updatedRepoData = await getSingleMcpRepositoryData(repositoryId);
+      console.log(updatedRepoData);
+      
+      if (updatedRepoData) {
+        setMcpRepositories(prev => {
+          return prev.map(repo => {
+            if (repo.mcpDetails.id === repositoryId) {
+              return updatedRepoData;
+            }
+            return repo;
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Error updating single MCP repository:", error);
+    }
+  };
+
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
   };
@@ -162,6 +185,7 @@ const McpPage: FC<McpPageProps> = ({
                     isConnected={repo.isConnected}
                     userEnvironment={repo.userEnvironment}
                     onConnectionUpdate={handleMcpConnectionUpdate}
+                    onSingleMcpUpdate={handleSingleMcpUpdate}
                     repoInfo={repo.repoInfo}
                     isPublic={isPublic}
                   />

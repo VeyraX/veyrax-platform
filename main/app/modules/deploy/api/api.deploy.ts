@@ -5,10 +5,15 @@ const supabase = createClient();
 
 export const getLatestCommitHash = async (repoUrl: string): Promise<string | null> => {
   try {
-    const url = repoUrl.trim();
-    const parts = url.split('/');
-    const owner = parts[parts.length - 2];
-    const repo = parts[parts.length - 1].replace('.git', '');
+    const url = new URL(repoUrl.trim());
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    
+    if (pathSegments.length < 2) {
+      return null;
+    }
+    
+    const owner = pathSegments[0];
+    const repo = pathSegments[1].replace('.git', '');
 
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits/HEAD`);
     
@@ -26,10 +31,22 @@ export const getLatestCommitHash = async (repoUrl: string): Promise<string | nul
 
 const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: string | null): Promise<RepositoryMetaResponse | null> => {
   try {
+    const url = new URL(repoUrl.trim());
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    
+    if (pathSegments.length < 2) {
+      return null;
+    }
+    
+    const owner = pathSegments[0];
+    const repo = pathSegments[1].replace('.git', '');
+    
+    const normalizedUrl = `https://github.com/${owner}/${repo}`;
+    
     const { data: existingRepo, error } = await supabase
       .from('mcp_repositories')
       .select('env, last_commit_hash, name, description, is_approved, image_name')
-      .eq('repo_url', repoUrl)
+      .eq('repo_url', normalizedUrl)
       .single();
     
     if (error || !existingRepo || !existingRepo.env) {
@@ -140,10 +157,26 @@ export const fetchRepositoryMeta = async (
 
 export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exists: boolean, is_approved: boolean, image_name: string, env: Record<string, string> }> => {
   try {
+    // Извлекаем только владельца/название репозитория из URL
+    const url = new URL(repoUrl.trim());
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    
+    // Путь должен содержать минимум owner/repo
+    if (pathSegments.length < 2) {
+      return false;
+    }
+    
+    // Первые два сегмента после github.com - это owner и repo
+    const owner = pathSegments[0];
+    const repo = pathSegments[1].replace('.git', ''); // Удаляем расширение .git если есть
+    
+    // Строим стандартизированный URL репозитория
+    const normalizedUrl = `https://github.com/${owner}/${repo}`;
+    
     const { data, error } = await supabase
       .from('mcp_repositories')
       .select('id, is_approved, image_name, env')
-      .eq('repo_url', repoUrl)
+      .eq('repo_url', normalizedUrl)
       .single();
     
     if (error || !data) {

@@ -1,5 +1,6 @@
 import re
 import requests
+import os
 from urllib.parse import urlparse
 from typing import Dict, Any, List, Optional, Tuple
 
@@ -38,7 +39,12 @@ def get_repository_contents(owner: str, repo_name: str, path: str = "", recursiv
     api_url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{path}"
     print(f"Fetching repository contents from: {api_url}")
     
-    response = requests.get(api_url)
+    github_token = os.environ.get("GITHUB_TOKEN")
+    headers = {}
+    if github_token:
+        headers["Authorization"] = f"Bearer {github_token}"
+    
+    response = requests.get(api_url, headers=headers)
     
     if response.status_code != 200:
         print(f"Error fetching contents: {response.status_code} - {response.text}")
@@ -62,7 +68,13 @@ def get_repository_contents(owner: str, repo_name: str, path: str = "", recursiv
 
 def get_file_content(download_url: str):
     try:
-        response = requests.get(download_url)
+        # Используем GITHUB_TOKEN для авторизации запросов
+        github_token = os.environ.get("GITHUB_TOKEN")
+        headers = {}
+        if github_token:
+            headers["Authorization"] = f"Bearer {github_token}"
+        
+        response = requests.get(download_url, headers=headers)
         
         if response.status_code != 200:
             print(f"Error fetching file content: {response.status_code}")

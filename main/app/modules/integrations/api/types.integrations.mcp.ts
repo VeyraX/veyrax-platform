@@ -80,6 +80,6 @@ export interface UserMcpEnvironment {
   user_id: string;
   repo_id: string;
   env: Record<string, string>;
-  status?: 'connected' | 'connecting' | 'error' | 'disconnected';
+  status?: 'connected' | 'connecting' | 'failed' | 'disconnected';
   error?: string | null;
 }

@@ -19,6 +19,7 @@ interface McpManageProps {
   onConnectionUpdate?: () => Promise<void>;
   encrypted_api_key?: string;
   code?: string;
+  connectionError?: string | null;
 }
 
 interface EnvVar {
@@ -35,7 +36,8 @@ export function McpManage({
   isConnected = false,
   onConnectionUpdate,
   encrypted_api_key,
-  code
+  code,
+  connectionError
 }: McpManageProps) {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [originalEnvVars, setOriginalEnvVars] = useState<EnvVar[]>([]);
@@ -53,10 +55,10 @@ export function McpManage({
       
       setEnvVars(envVarsArray);
       setOriginalEnvVars(JSON.parse(JSON.stringify(envVarsArray)));
-      setErrorMessage(null);
+      setErrorMessage(connectionError || null);
       setEnvChanged(false);
     }
-  }, [open, predefinedEnv]);
+  }, [open, predefinedEnv, connectionError]);
 
   const handleEnvVarChange = (index: number, value: string) => {
     const newVars = [...envVars];
@@ -152,9 +154,12 @@ export function McpManage({
         </DialogHeader>
 
         <div className="flex flex-col gap-6 py-4">
-          {errorMessage && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{errorMessage}</span>
+          {(errorMessage || connectionError) && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex items-start gap-2" role="alert">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="block sm:inline">{errorMessage || connectionError}</span>
+              </div>
             </div>
           )}
           

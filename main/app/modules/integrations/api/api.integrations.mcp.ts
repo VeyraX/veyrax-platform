@@ -98,20 +98,30 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
       return null;
     }
     
-    // Check if this URL is already in our cache
-    if (githubRepoCache.has(repoUrl)) {
-      const cached = githubRepoCache.get(repoUrl)!;
+    const url = new URL(repoUrl);
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    
+    if (pathSegments.length < 2) {
+      return null;
+    }
+    
+    const owner = pathSegments[0];
+    const repo = pathSegments[1];
+    
+    const normalizedUrl = `https://github.com/${owner}/${repo}`;
+    
+    if (githubRepoCache.has(normalizedUrl)) {
+      const cached = githubRepoCache.get(normalizedUrl)!;
       const now = Date.now();
       
-      // If cache is still valid, return cached data
       if (now - cached.timestamp < CACHE_TTL) {
         return cached.data;
       }
     }
     
     // Check if there's already a request in flight for this URL
-    if (pendingRequests.has(repoUrl)) {
-      return pendingRequests.get(repoUrl)!;
+    if (pendingRequests.has(normalizedUrl)) {
+      return pendingRequests.get(normalizedUrl)!;
     }
     
     // Create a new request
@@ -122,7 +132,7 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ repoUrl })
+          body: JSON.stringify({ repoUrl: normalizedUrl })
         });
         
         if (!response.ok) {
@@ -132,7 +142,7 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
         const data = await response.json();
         
         // Store in cache
-        githubRepoCache.set(repoUrl, { 
+        githubRepoCache.set(normalizedUrl, { 
           data: data as GitHubRepoInfo, 
           timestamp: Date.now() 
         });
@@ -142,15 +152,16 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
         return null;
       } finally {
         // Clean up pending request
-        pendingRequests.delete(repoUrl);
+        pendingRequests.delete(normalizedUrl);
       }
     })();
     
     // Store the promise to prevent duplicate requests
-    pendingRequests.set(repoUrl, requestPromise);
+    pendingRequests.set(normalizedUrl, requestPromise);
     
     return requestPromise;
   } catch (error) {
+    console.error("Error parsing GitHub URL:", error);
     return null;
   }
 };
@@ -296,5 +307,37 @@ export const enableMcpIntegration = async (
   } catch (error) {
     console.error('Error enabling MCP integration:', error);
     return false;
+  }
+};
+
+export const getSingleMcpRepositoryData = async (repositoryId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('mcp_repositories')
+      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
+      .eq('id', repositoryId)
+      .single();
+    
+    if (error || !data) {
+      console.error('Error fetching single MCP repository:', error);
+      return null;
+    }
+    
+    const mcpDetails = data as McpDetails;
+    
+    const repoInfo = mcpDetails.repo_url ? 
+      await getGitHubRepoInfo(mcpDetails.repo_url) : null;
+    
+    const userEnvironment = await getUserMcpEnvironment(repositoryId);
+    
+    return {
+      mcpDetails,
+      repoInfo,
+      userEnvironment,
+      isConnected: !!userEnvironment
+    };
+  } catch (error) {
+    console.error('Error fetching single MCP repository data:', error);
+    return null;
   }
 };

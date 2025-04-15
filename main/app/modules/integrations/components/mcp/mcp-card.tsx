@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation'
 import { McpDetails, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { formatDistanceToNow } from "date-fns";
 import { McpManage } from "./mcp-manage";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface McpCardProps {
   imageName: string;
@@ -17,6 +16,7 @@ interface McpCardProps {
   isConnected?: boolean;
   userEnvironment?: UserMcpEnvironment | null;
   onConnectionUpdate?: () => Promise<void>;
+  onSingleMcpUpdate?: (repositoryId: string) => Promise<void>;
   repoInfo?: GitHubRepoInfo | null;
   isPublic?: boolean;
 }
@@ -27,12 +27,15 @@ export const McpCard: FC<McpCardProps> = ({
   isConnected = false,
   userEnvironment,
   onConnectionUpdate,
+  onSingleMcpUpdate,
   repoInfo,
   isPublic = false
 }) => {
   const router = useRouter();
   const [showManage, setShowManage] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
   
   const repoName = mcpDetails?.name || imageName;
   const description = mcpDetails?.description || "No description available";
@@ -79,15 +82,32 @@ export const McpCard: FC<McpCardProps> = ({
   const handleManageClose = async (connected?: boolean) => {
     setShowManage(false);
     
-    if (connected && onConnectionUpdate) {
-      await onConnectionUpdate();
+    if (connected) {
+      if (onSingleMcpUpdate && repositoryId) {
+        await onSingleMcpUpdate(repositoryId);
+      } else if (onConnectionUpdate) {
+        await onConnectionUpdate();
+      }
     }
   };
   
   const handleRefresh = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onConnectionUpdate) {
-      await onConnectionUpdate();
+    
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      if (onSingleMcpUpdate && repositoryId) {
+        await onSingleMcpUpdate(repositoryId);
+      } else if (onConnectionUpdate) {
+        await onConnectionUpdate();
+      }
+    } catch (error) {
+      console.error("Error refreshing connection status:", error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
   
@@ -100,39 +120,19 @@ export const McpCard: FC<McpCardProps> = ({
     
     if (connectionStatus === "connecting") {
       return (
-        <div className="flex items-center gap-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 transition-colors text-xs flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Connecting
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Deployment in progress. This might take up to 2 minutes.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 transition-colors text-xs flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Connecting...
+        </Badge>
       );
     }
     
-    if (connectionStatus === "error") {
+    if (connectionStatus === "failed") {
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="secondary" className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 transition-colors text-xs flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Error
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{connectionError || "Connection error"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Badge variant="secondary" className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 transition-colors text-xs flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          Failed
+        </Badge>
       );
     }
     
@@ -157,15 +157,16 @@ export const McpCard: FC<McpCardProps> = ({
           variant="outline"
           size="sm"
           onClick={handleRefresh}
+          disabled={isRefreshing}
           className="text-xs"
         >
-          <RefreshCw className="h-3 w-3 mr-1" />
+          <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       );
     }
     
-    if (connectionStatus === "error") {
+    if (connectionStatus === "failed") {
       return (
         <Button
           variant="outline"
@@ -268,6 +269,7 @@ export const McpCard: FC<McpCardProps> = ({
           repositoryId={repositoryId}
           isConnected={isConnected}
           onConnectionUpdate={onConnectionUpdate}
+          connectionError={connectionError}
         />
       )}
     </>

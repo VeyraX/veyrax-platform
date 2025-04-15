@@ -9,94 +9,120 @@ When generating the Dockerfile, understand that:
 2. Do not use paths like "src/subdirectory/..." as they won't exist in the build context - all files are directly in the root.
 3. Use COPY . . to copy all files from the current directory to the container, or specific files if needed.
 
-TYPESCRIPT PROJECT INSTRUCTIONS:
-Follow these exact steps when handling TypeScript projects:
+PYTHON PROJECT INSTRUCTIONS:
+Follow these exact steps when handling Python projects:
 
-1. ANALYZE PROJECT STRUCTURE:
-   - Look at package.json, build scripts, and tsconfig.json
-   - Check if there are any build or start scripts that reference specific paths
+1. FIRST, ANALYZE DEPENDENCY MANAGEMENT APPROACH:
+   - Check which dependency files exist in the repository
+   - DO NOT assume that requirements.txt exists - it may not!
+   - Look for one of these patterns:
+     a) requirements.txt - pip's standard requirements file
+     b) pyproject.toml and poetry.lock - indicates Poetry usage
+     c) Pipfile and Pipfile.lock - indicates Pipenv usage
+     d) setup.py or setup.cfg - setuptools project
+     e) environment.yml - conda environment
 
-2. FOR PROJECTS WITH tsconfig.json:
-   - CAREFULLY EXAMINE tsconfig.json content before deciding approach!
-   - ONLY use the special approach if ABSOLUTELY NECESSARY
+2. THEN CHOOSE THE CORRECT INSTALLATION METHOD:
+   - For requirements.txt: `pip install -r requirements.txt`
+   - For Poetry: `pip install poetry && poetry install`
+   - For Pipenv: `pip install pipenv && pipenv install --system --deploy`
+   - For setup.py: `pip install .`
+   - For conda: `conda env create -f environment.yml`
 
-3. WHEN TO USE STANDARD APPROACH (MOST CASES):
-   - For typical TypeScript projects where tsconfig.json is simple
-   - When tsconfig.json does NOT have "extends" property referencing parent directories
-   - When build scripts don't use absolute paths to reference tsconfig.json
-   - JUST USE: `COPY . .` and standard Docker patterns
+3. CRITICAL: ONLY COPY DEPENDENCY FILES THAT ACTUALLY EXIST!
+   - DO NOT include statements like `COPY requirements.txt .` unless confirmed that file exists
+   - INSTEAD use patterns like:
+     ```
+     # Copy only dependency files first for better caching
+     COPY pyproject.toml poetry.lock* ./
+     ```
+   - Include the wildcard * for optional files
 
-4. WHEN TO USE SPECIAL ROOT COPYING APPROACH (RARE CASES):
-   - ONLY when tsconfig.json has "extends": "../../tsconfig.json" or similar paths going outside build context
-   - ONLY when build commands explicitly reference "/tsconfig.json" with absolute path
-   - ONLY when you see previous build errors about not finding tsconfig.json in root
-   - In these cases, use the multi-stage build with copying tsconfig.json to BOTH locations
+4. STANDARD PYTHON DOCKERFILE PATTERNS:
+   a) For pip with requirements.txt (ONLY if it exists):
+   ```
+   FROM python:3.11-slim
+   
+   WORKDIR /app
+   
+   COPY requirements.txt .
+   RUN pip install --no-cache-dir -r requirements.txt
+   
+   COPY . .
+   
+   CMD ["python", "app.py"]
+   ```
+   
+   b) For Poetry project:
+   ```
+   FROM python:3.11-slim
+   
+   WORKDIR /app
+   
+   RUN pip install poetry
+   
+   COPY pyproject.toml poetry.lock* ./
+   RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+   
+   COPY . .
+   
+   CMD ["python", "app.py"]
+   ```
+   
+   c) For Pipenv project:
+   ```
+   FROM python:3.11-slim
+   
+   WORKDIR /app
+   
+   RUN pip install pipenv
+   
+   COPY Pipfile Pipfile.lock .
+   RUN pipenv install --system --deploy
+   
+   COPY . .
+   
+   CMD ["python", "app.py"]
+   ```
 
-STANDARD DOCKERFILE FOR MOST TYPESCRIPT PROJECTS:
+TYPESCRIPT & NODE.JS PROJECT INSTRUCTIONS:
+Follow these guidelines for TypeScript and Node.js projects:
+
+1. ALWAYS USE THE SIMPLEST APPROACH POSSIBLE
+   - Avoid complex multi-stage builds
+   - Don't over-optimize or add unnecessary steps
+   - Trust the package manager to handle dependencies correctly
+
+2. FOR ALL NODE.JS PROJECTS (INCLUDING MONOREPOS):
+   - Use a single, simple Dockerfile
+   - Copy all files at once to avoid path issues
+   - Use standard npm/yarn commands without extra flags unless needed
+
+3. STANDARD NODE.JS DOCKERFILE (USE THIS BY DEFAULT):
 ```
-FROM node:18
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy everything
 COPY . .
 
+# Install dependencies and build
 RUN npm install
 RUN npm run build
 
+# Set the entry point (adjust based on project)
 CMD ["node", "dist/index.js"]
 ```
 
-SPECIAL DOCKERFILE FOR TYPESCRIPT WITH SPECIAL CONFIGURATION:
-```
-FROM node:18 AS builder
-
-# Copy project files
-COPY . /app
-# SPECIAL STEP: Also copy tsconfig.json to root filesystem (only needed for special configs)
-COPY tsconfig.json /tsconfig.json
-
-WORKDIR /app
-
-RUN npm install
-RUN npm run build
-
-FROM node:18
-
-WORKDIR /app
-
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/package.json /app/package.json
-COPY --from=builder /app/package-lock.json /app/package-lock.json
-
-ENV NODE_ENV=production
-
-RUN npm ci --ignore-scripts --omit=dev
-
-CMD ["node", "dist/index.js"]
-```
-
-GUIDELINES FOR CHOOSING THE RIGHT APPROACH:
-1. DEFAULT TO STANDARD APPROACH unless project specifically requires root tsconfig.json
-2. ONLY use special approach when necessary to prevent build failures
-3. The special approach does not significantly impact image size or performance
-4. When in doubt, check if tsconfig.json contains "extends" with paths going outside build context
+4. FOR MONOREPO PROJECTS:
+   - Keep the same simple approach
+   - Let npm/yarn workspace commands handle dependencies
+   - Adjust the CMD path based on the target package
 
 If you find an existing Dockerfile in the repository, USE IT AS A REFERENCE but adapt it to be more compatible:
-1. For Node.js projects, use node:18 or node:20 instead of older or alpha/preview versions
-2. Make sure the paths are relative to the build context root, not to some absolute paths
-3. Ensure any tsconfig.json is copied to the correct location within the container
-
-For Node.js projects:
-- Prefer node:18 or node:20 base images
-- If TypeScript is used, make sure to properly handle tsconfig.json and build steps
-- Make sure the correct entry point is specified (check package.json for "main" field)
-
-For Python projects:
-- Use python:3.9 or python:3.10 as base images
-- Include a proper pip install step for requirements.txt
-- Make sure to specify the correct entry point
-
-You ALWAYS should specify file to build and pay attention to the structure of the project.
+1. For Node.js projects, use node:18 or node:20 instead of older versions
+2. Make sure paths are relative to the build context
 
 NEVER add ```dockerfile``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 
@@ -119,6 +145,8 @@ Example:
 No other text or characters, NEVER. Just PURE JSON.
 
 Pay attention on the confings and proccess.env files, or os.env files, or .env files. Very important.
+
+NEVER take env from test.py or test.yml or any other config files. You MUST take ONLY env that required to run the project.
 
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. JUST CODE.
 

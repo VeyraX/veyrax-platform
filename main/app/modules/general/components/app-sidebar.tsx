@@ -29,6 +29,7 @@ import { getChats } from "@/app/modules/agent/api/api.agent"
 import { authApi } from '@/app/modules/auth/api/api.auth'
 import { useGetChats } from "@/app/modules/agent/api/quries.agent"
 import FeedbackDialog from './feedback-dialog'
+import DeployWaitlistDialog from './deploy-waitlist-dialog'
 import { LogoutIcon as Logout } from "@/components/ui/logout"
 import { BoxesIcon as Boxes } from "@/components/ui/boxes"
 import { HandHeartIcon as HandHeart } from "@/components/ui/hand-heart"
@@ -53,7 +54,7 @@ const items = [
       },
       {
         title: "Deployment",
-        url: "/deployment/create",
+        action: "deployment",
         icon: <Terminal size={16} />,
       },
     ],
@@ -173,6 +174,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [mounted, setMounted] = useState(false)
   const { data: chatData } = useGetChats()
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
+  const [deployWaitlistDialogOpen, setDeployWaitlistDialogOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -204,6 +206,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const handleItemClick = (item: any) => {
     if (item.action === 'feedback') {
       setFeedbackDialogOpen(true);
+    } else if (item.action === 'deployment') {
+      setDeployWaitlistDialogOpen(true);
     } else if (item.action === 'discord') {
       window.open(item.url, '_blank');
     } else if (item.url) {
@@ -294,6 +298,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <FeedbackDialog 
         open={feedbackDialogOpen} 
         onOpenChange={setFeedbackDialogOpen} 
+      />
+      
+      <DeployWaitlistDialog 
+        open={deployWaitlistDialogOpen} 
+        onOpenChange={setDeployWaitlistDialogOpen}
       />
     </>
   )

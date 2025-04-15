@@ -5,16 +5,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Github, ArrowLeft, AlertCircle } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Github, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository, updateMcpImageName } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { enableMcpIntegration } from "../../integrations/api/api.integrations.mcp";
-import { McpCard } from "@/app/modules/integrations/components/mcp/mcp-card";
-import { GitHubRepoInfo } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { ExistingMcpCard } from "../components/deploy-create/mcp-card-existing-repo";
 
 interface EnvVar {
