@@ -108,7 +108,7 @@ export default function DeployCreatePage() {
         envVars.map(env => [env.name, env.value])
       );
       
-      const imageName = repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'mcp-server';
+      const imageName = (repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'default') + '-mcp-server';
       
       await updateMcpImageName(repositoryId, imageName);
       
@@ -118,7 +118,8 @@ export default function DeployCreatePage() {
           githubUrl,
           imageName,
           repositoryId,
-          commitHash || undefined
+          commitHash || undefined,
+          envVariablesObj
         );
         
         router.push(`/integrations/mcp/${imageName}?tab=deployment`);
@@ -141,7 +142,7 @@ export default function DeployCreatePage() {
   };
 
   const isEnvVarsValid = () => {
-    return true; // Allow deployment even with empty environment variables
+    return true;
   };
 
   const handleGoToExistingMcp = () => {

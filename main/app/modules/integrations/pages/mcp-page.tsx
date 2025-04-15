@@ -79,6 +79,11 @@ const McpPage: FC<McpPageProps> = ({
         
         if (repo.mcpDetails.description && repo.mcpDetails.description.toLowerCase().includes(query)) return true;
         
+        if (repo.mcpDetails.metadata) {
+          const metadataStr = JSON.stringify(repo.mcpDetails.metadata).toLowerCase();
+          if (metadataStr.includes(query)) return true;
+        }
+        
         if (repo.mcpDetails.input_schema && Array.isArray(repo.mcpDetails.input_schema)) {
           const toolNames = repo.mcpDetails.input_schema.map(tool => tool.name?.toLowerCase() || '');
           if (toolNames.some(name => name.includes(query))) return true;

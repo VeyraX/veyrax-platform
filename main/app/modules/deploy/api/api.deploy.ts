@@ -233,8 +233,12 @@ export const deployMcpRepository = async (
   repoUrl: string,
   imageName: string,
   repositoryId: string,
-  commitHash?: string
-): Promise<DeployMCPResponse> => {
+  commitHash?: string,
+  environmentVariables?: Record<string, string>,
+  encrypted_api_key?: string, 
+  code?: string,
+  metadata?: Record<string, any>
+): Promise<DeployMCPResponse & { connectionCreated: boolean }> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     const authToken = session?.access_token;
@@ -253,7 +257,8 @@ export const deployMcpRepository = async (
         repo_url: repoUrl,
         image_name: imageName,
         repository_id: repositoryId,
-        commit_hash: commitHash
+        commit_hash: commitHash,
+        metadata
       }),
     });
 
@@ -262,7 +267,40 @@ export const deployMcpRepository = async (
       throw new Error(`Failed to deploy MCP: ${errorData.detail || response.statusText}`);
     }
 
-    return await response.json();
+    const deployResult = await response.json();
+    
+    let connectionCreated = false;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const connectionResponse = await fetch('/api/integrations/mcp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          image_name: imageName,
+          env: environmentVariables,
+          user_id: user?.id,
+          encrypted_api_key,
+          status: 'connecting',
+          code,
+          metadata
+        })
+      });
+      
+      if (connectionResponse.ok) {
+        const data = await connectionResponse.json();
+        connectionCreated = data.success || false;
+      }
+    } catch (connectionError) {
+      console.error('Error creating user MCP connection:', connectionError);
+    }
+
+    return {
+      ...deployResult,
+      connectionCreated
+    };
   } catch (error) {
     console.error('Error deploying MCP:', error);
     throw error;
@@ -291,48 +329,6 @@ export const updateMcpImageName = async (repositoryId: string, imageName: string
     return true;
   } catch (error) {
     console.error('Error updating MCP image name:', error);
-    return false;
-  }
-};
-
-
-export const CreateUserMCPConnection = async (
-  imageName: string, 
-  environmentVariables?: Record<string, string>,
-  encrypted_api_key?: string, 
-  code?: string,
-): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const response = await fetch('/api/integrations/mcp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        image_name: imageName,
-        env: environmentVariables,
-        user_id: user?.id,
-        encrypted_api_key,
-        status: 'connecting',
-        code
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to enable MCP integration');
-    }
-    
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to enable MCP integration');
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error creating user MCP connection:', error);
     return false;
   }
 };

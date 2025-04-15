@@ -250,7 +250,7 @@ export const McpCard: FC<McpCardProps> = ({
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Star className="h-3 w-3 text-yellow-500" />
-                <span>{repoInfo?.stars || 0} stars</span>
+                <span>{mcpDetails?.metadata?.stars ? Number(mcpDetails.metadata.stars) : (repoInfo?.stars || 0)} stars</span>
               </div>
             </div>
             

@@ -1,5 +1,5 @@
 generate_dockerfile_prompt = """
-You are an expert at creating optimal Dockerfiles for different application types. Generate a Dockerfile based on the repository context provided.
+You are an expert at creating simple, functional Dockerfiles for different application types. Generate a Dockerfile based on the repository context provided.
 
 IMPORTANT CONTEXT:
 All files from subdirectories have been flattened to the root of the build context. 
@@ -21,38 +21,37 @@ PYTHON PROJECTS - Follow this analysis process:
    - For setup.py: `pip install .`
    - For Conda: `conda env create -f environment.yml`
 
-3. Only copy dependency files that actually exist, using wildcards for optional files:
-   Example: `COPY pyproject.toml poetry.lock* ./`
+NODE.JS/TYPESCRIPT PROJECTS - SIMPLE APPROACH:
 
-NODE.JS/TYPESCRIPT PROJECTS - Critical considerations:
-1. For TypeScript projects, be extremely cautious of prepare scripts:
-   - Many dependencies run build scripts during installation that require TypeScript files
-   - These will fail if TypeScript files aren't available in the container
+For Node.js/TypeScript projects, use this straightforward pattern:
 
-2. ALWAYS use one of these two patterns for Node.js/TypeScript:
+```
+FROM node:18-alpine
+WORKDIR /app
 
-   OPTION A (SAFEST APPROACH):
-   ```
-   FROM node:18-alpine
-   WORKDIR /app
-   COPY . .
-   RUN npm install
-   RUN npm run build
-   CMD ["node", "dist/index.js"]
-   ```
+# Copy everything upfront
+COPY . .
 
-   OPTION B (FOR BETTER CACHING):
-   ```
-   FROM node:18-alpine
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm install --ignore-scripts
-   COPY . .
-   RUN npm run build
-   CMD ["node", "dist/index.js"]
-   ```
+# Install all dependencies
+RUN npm install --ignore-scripts
+RUN npm install -g typescript
 
-USE OPTION B WHENEVER POSSIBLE, as it provides better layer caching while avoiding prepare script issues.
+# Build the application
+RUN npm run build
+
+# Run the application
+CMD ["node", "dist/index.js"]
+```
+
+TYPESCRIPT TROUBLESHOOTING:
+If you see "tsc: not found" errors, make sure to include:
+```
+RUN npm install -g typescript
+```
+
+NEVER add any multi-stage builds with "AS builder".
+NEVER use --omit=dev or --production flags.
+ALWAYS use --ignore-scripts with npm install.
 
 For both Python and Node.js, adjust the final CMD based on the actual entry point of the application.
 
@@ -65,22 +64,21 @@ THE DOCKERFILE.
 
 
 extract_env_variables_prompt = """
-You are an expert at identifying required environment variables in codebases. Analyze the provided repository context and extract ONLY the environment variables required to run the project in production.
+You are an expert at identifying required environment variables in codebases. Analyze the provided repository context and extract ONLY the environment variables required to run the project.
 
 Return your analysis as a plain JSON object with environment variable names as keys and their default values as values. Do not include any explanations, markdown formatting, or code blocks - just the raw JSON.
 
 Example output format:
 {
     "API_KEY": "YOUR_API_KEY",
-    "DATABASE_URL": "YOUR_DATABASE_URL",
-    "NODE_ENV": "production"
+    "DATABASE_URL": "YOUR_DATABASE_URL"
 }
 
 IMPORTANT GUIDELINES:
 1. Focus on variables referenced in main application code (process.env, os.environ, etc.)
 2. Examine .env.example files or configuration templates
 3. Ignore test-specific environment variables
-4. Do not include variables used only in development environments
+4. DO NOT include NODE_ENV - this should be set in the Dockerfile
 
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. 
 JUST CODE.

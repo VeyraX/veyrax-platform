@@ -17,9 +17,11 @@ export interface McpDetails {
   description: string | null;
   input_schema: any[];
   env: Record<string, string>;
+  metadata?: Record<string, any>;
   created_at: string;
   author_user_id: string | null;
   last_commit_hash?: string | null;
+  is_approved?: boolean;
 }
 
 export interface SchemaProperty {

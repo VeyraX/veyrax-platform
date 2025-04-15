@@ -3,9 +3,8 @@ import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
 
-// Client-side cache for GitHub repo info
 const githubRepoCache = new Map<string, { data: GitHubRepoInfo | null, timestamp: number }>();
-const CACHE_TTL = 24 * 3600 * 1000; // 24 hours cache
+const CACHE_TTL = 24 * 3600 * 1000;
 
 const pendingRequests = new Map<string, Promise<GitHubRepoInfo | null>>();
 
@@ -13,7 +12,8 @@ export const getAllMcpRepositories = async (): Promise<McpDetails[]> => {
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
+      .select('id, image_name, repo_url, name, description, input_schema, env, metadata, created_at, author_user_id, last_commit_hash')
+      .eq('is_approved', true)
       .order('created_at', { ascending: false });
     
     if (error || !data) {
@@ -32,7 +32,7 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
+      .select('id, image_name, repo_url, name, description, input_schema, env, metadata, created_at, author_user_id, last_commit_hash')
       .eq('image_name', imageName);
     
     if (error) {
@@ -119,12 +119,10 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
       }
     }
     
-    // Check if there's already a request in flight for this URL
     if (pendingRequests.has(normalizedUrl)) {
       return pendingRequests.get(normalizedUrl)!;
     }
     
-    // Create a new request
     const requestPromise = (async () => {
       try {
         const response = await fetch('/api/github/repo', {
@@ -141,7 +139,6 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
         
         const data = await response.json();
         
-        // Store in cache
         githubRepoCache.set(normalizedUrl, { 
           data: data as GitHubRepoInfo, 
           timestamp: Date.now() 
@@ -151,12 +148,10 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
       } catch (error) {
         return null;
       } finally {
-        // Clean up pending request
         pendingRequests.delete(normalizedUrl);
       }
     })();
     
-    // Store the promise to prevent duplicate requests
     pendingRequests.set(normalizedUrl, requestPromise);
     
     return requestPromise;
@@ -223,7 +218,8 @@ export const enableMcpIntegration = async (
   environmentVariables?: Record<string, string>,
   encrypted_api_key?: string, 
   code?: string,
-  repository_id?: string
+  repository_id?: string,
+  metadata?: Record<string, any>
 ): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -240,7 +236,8 @@ export const enableMcpIntegration = async (
         encrypted_api_key,
         status: 'connecting',
         code,
-        repository_id
+        repository_id,
+        metadata
       })
     });
     
@@ -285,7 +282,8 @@ export const enableMcpIntegration = async (
           body: JSON.stringify({
             repository_id: repositoryId,
             code,
-            encrypted_api_key
+            encrypted_api_key,
+            metadata
           })
         });
         
@@ -317,7 +315,7 @@ export const getSingleMcpRepositoryData = async (repositoryId: string) => {
   try {
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, created_at, author_user_id, last_commit_hash')
+      .select('id, image_name, repo_url, name, description, input_schema, env, metadata, created_at, author_user_id, last_commit_hash')
       .eq('id', repositoryId)
       .single();
     
@@ -328,7 +326,8 @@ export const getSingleMcpRepositoryData = async (repositoryId: string) => {
     
     const mcpDetails = data as McpDetails;
     
-    const repoInfo = mcpDetails.repo_url ? 
+    // Only fetch GitHub info if metadata.stars is not available
+    const repoInfo = (!mcpDetails.metadata?.stars && mcpDetails.repo_url) ? 
       await getGitHubRepoInfo(mcpDetails.repo_url) : null;
     
     const userEnvironment = await getUserMcpEnvironment(repositoryId);

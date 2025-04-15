@@ -77,7 +77,9 @@ const IntegrationsMainPage: FC<IntegrationsMainPageProps> = ({ isPublic = false,
       
       const mcpDetailsWithInfo = await Promise.all(
         mcpData.map(async (repo) => {
-          const repoInfo = repo.repo_url ? await getGitHubRepoInfo(repo.repo_url) : null;
+          const repoInfo = (!repo.metadata?.stars && repo.repo_url) 
+            ? await getGitHubRepoInfo(repo.repo_url) 
+            : null;
           
           const userEnvironment = !isPublic ? await getUserMcpEnvironment(repo.id) : null;
           
@@ -91,8 +93,8 @@ const IntegrationsMainPage: FC<IntegrationsMainPageProps> = ({ isPublic = false,
       );
       
       const sortedMcpDetails = mcpDetailsWithInfo.sort((a, b) => {
-        const starsA = a.repoInfo?.stars || 0;
-        const starsB = b.repoInfo?.stars || 0;
+        const starsA = a.mcpDetails.metadata?.stars ? Number(a.mcpDetails.metadata.stars) : (a.repoInfo?.stars || 0);
+        const starsB = b.mcpDetails.metadata?.stars ? Number(b.mcpDetails.metadata.stars) : (b.repoInfo?.stars || 0);
         return starsB - starsA;
       });
       

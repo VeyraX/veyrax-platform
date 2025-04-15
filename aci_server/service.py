@@ -14,6 +14,9 @@ class ToolsService:
     def __init__(self, integration_routers: Dict[str, Any]):
         self.integration_routers = integration_routers
         self.mcp_api_url = os.getenv("VEYRAX_DEPLOY_API_URL")
+        if not self.mcp_api_url:
+            self.mcp_api_url = ""
+            print("Warning: VEYRAX_DEPLOY_API_URL environment variable is not set")
     
     async def handle_tool_call(
         self, 
@@ -198,8 +201,12 @@ class ToolsService:
                 headers["VEYRAX_API_KEY"] = veyrax_api_key
             
             async with httpx.AsyncClient() as client:
+                base_url = self.mcp_api_url or ""
+                endpoint = "/call_mcp_tool"
+                full_url = f"{base_url.rstrip('/')}{endpoint}"
+                
                 response = await client.post(
-                    self.mcp_api_url + "/call_mcp_tool",
+                    full_url,
                     json=payload,
                     headers=headers,
                     timeout=60.0
