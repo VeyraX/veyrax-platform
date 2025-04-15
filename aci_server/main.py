@@ -216,8 +216,6 @@ async def check_user_permission(request: Request, tool: str, method: str):
         user_tools = get_user_tools_from_actions(user_id)
 
         mcp_image_names = await get_user_mcp_image_names(user_id)
-        print(mcp_image_names)
-        print(tool)
         if tool in mcp_image_names:
             return
         
@@ -384,18 +382,10 @@ def find_route_by_tool_and_method(tool: str, method: str):
 
 @app.post("/tool-call/{tool}/{method}")
 async def handle_tool_call(tool: str, method: str, request: Request, include_component: bool = True):
-    """
-    Обрабатывает вызов инструмента через маршрут /tool-call.
-    Теперь использует новый сервис ToolsService для обработки вызовов.
-    """
     return await tools_service.handle_tool_call(tool, method, request, include_component)
 
 @app.get("/tools/{tool_name}")
 async def get_tool_spec(tool_name: str, request: Request):
-    """
-    Получает спецификацию инструмента.
-    Теперь использует новый сервис ToolsService.
-    """
     return await tools_service.get_tool_spec(tool_name, request)
 
 @app.get("/get-tools")
