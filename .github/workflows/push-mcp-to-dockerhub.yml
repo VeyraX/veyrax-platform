@@ -38,8 +38,16 @@ jobs:
         run: |
           REPO_URL="${{ github.event.inputs.repo_url }}"
           if [[ $REPO_URL == *"github.com"* ]]; then
-            REPO_PATH=$(echo $REPO_URL | sed -E 's|https?://github.com/||' | sed -E 's|\.git$||')
+            BASE_REPO_URL=$(echo $REPO_URL | sed -E 's|(https?://github.com/[^/]+/[^/]+)(/tree/|/blob/).*|\1|')
+            REPO_PATH=$(echo $BASE_REPO_URL | sed -E 's|https?://github.com/||' | sed -E 's|\.git$||')
             REPO_NAME=$(echo $REPO_PATH | awk -F/ '{print $2}')
+            
+            if [[ $REPO_URL =~ /tree/[^/]+/(.+)$ ]]; then
+              SUBDIRECTORY=${BASH_REMATCH[1]}
+              echo "subdirectory=$SUBDIRECTORY" >> $GITHUB_OUTPUT
+              echo "Using subdirectory: $SUBDIRECTORY"
+            fi
+            
             echo "repo_path=$REPO_PATH" >> $GITHUB_OUTPUT
             echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
             echo "Extracted repository path: $REPO_PATH"
@@ -53,6 +61,29 @@ jobs:
         with:
           repository: ${{ steps.repo-info.outputs.repo_path }}
           path: target-repo
+          
+      - name: Handle subdirectory if specified
+        run: |
+          if [[ -n "${{ steps.repo-info.outputs.subdirectory }}" ]]; then
+            echo "Subdirectory specified: ${{ steps.repo-info.outputs.subdirectory }}"
+            
+            if [[ -d "target-repo/${{ steps.repo-info.outputs.subdirectory }}" ]]; then
+              echo "Moving contents from subdirectory to root of target-repo"
+              # Create a temp directory
+              mkdir -p temp-subdir
+              # Move subdirectory contents to temp
+              mv target-repo/${{ steps.repo-info.outputs.subdirectory }}/* temp-subdir/
+              # Clean target-repo
+              rm -rf target-repo/*
+              # Move contents back to target-repo
+              mv temp-subdir/* target-repo/
+              # Remove temp directory
+              rm -rf temp-subdir
+            else
+              echo "Error: Specified subdirectory not found!"
+              exit 1
+            fi
+          fi
           
       - name: Decode and save Dockerfile
         run: |
