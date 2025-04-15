@@ -54,6 +54,7 @@ export const submitDeployWaitlistRequest = async (requestData: DeployWaitlistReq
     .insert({
       user_id: user.id,
       reason: requestData.reason,
+      deploy_type: requestData.deploy_type,
     });
   
   if (error) {

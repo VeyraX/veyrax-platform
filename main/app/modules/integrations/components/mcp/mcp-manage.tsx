@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
-import { createClient } from "@/lib/utils/supabase/client";
-import { enableMcpIntegration, disconnectUserMcp, connectUserMcpContainer } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { enableMcpIntegration, disconnectUserMcp } from "@/app/modules/integrations/api/api.integrations.mcp";
 
 interface McpManageProps {
   imageName: string;
@@ -91,18 +90,12 @@ export function McpManage({
         imageName,
         envObject,
         encrypted_api_key,
-        code
+        code,
+        repositoryId
       );
       
       if (!success) {
         throw new Error("Failed to save configuration");
-      }
-      
-      if (repositoryId) {
-        const connectSuccess = await connectUserMcpContainer(repositoryId, encrypted_api_key, code);
-        if (!connectSuccess) {
-          console.warn("Container connection initiated, but there might be issues");
-        }
       }
       
       if (onConnectionUpdate) {

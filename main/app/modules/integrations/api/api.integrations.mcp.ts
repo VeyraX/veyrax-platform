@@ -218,62 +218,12 @@ export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> 
   }
 };
 
-export const connectUserMcpContainer = async (
-  repositoryId: string,
-  encrypted_api_key?: string,
-  code?: string
-): Promise<boolean> => {
-  try {
-    let token;
-    
-    if (encrypted_api_key) {
-      token = encrypted_api_key;
-    } else {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user || !user.id) {
-        throw new Error('User not authenticated');
-      }
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      token = session?.access_token;
-      
-      if (!token) {
-        throw new Error('No auth token available');
-      }
-    }
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_VEYRAX_DEPLOY_BASE_URL}/repo/connect`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        repository_id: repositoryId,
-        code,
-        encrypted_api_key
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error connecting user MCP container:', errorData);
-      throw new Error(`Failed to connect MCP container: ${response.statusText}`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error connecting user MCP container:', error);
-    return false;
-  }
-};
-
 export const enableMcpIntegration = async (
   imageName: string, 
   environmentVariables?: Record<string, string>,
   encrypted_api_key?: string, 
-  code?: string
+  code?: string,
+  repository_id?: string
 ): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -289,7 +239,8 @@ export const enableMcpIntegration = async (
         user_id: user?.id,
         encrypted_api_key,
         status: 'connecting',
-        code
+        code,
+        repository_id
       })
     });
     
@@ -301,6 +252,58 @@ export const enableMcpIntegration = async (
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || 'Failed to enable MCP integration');
+    }
+    
+    let repositoryId = repository_id || data.repository_id;
+    
+    if (!repositoryId) {
+      const mcpDetails = await getMcpDetailsByImageName(imageName);
+      repositoryId = mcpDetails?.id;
+    }
+    
+    if (repositoryId) {
+      try {
+        let token;
+        
+        if (encrypted_api_key) {
+          token = encrypted_api_key;
+        } else {
+          const { data: { session } } = await supabase.auth.getSession();
+          token = session?.access_token;
+          
+          if (!token) {
+            throw new Error('No auth token available');
+          }
+        }
+        
+        const connectResponse = await fetch('/api/integrations/mcp/connect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            repository_id: repositoryId,
+            code,
+            encrypted_api_key
+          })
+        });
+        
+        if (!connectResponse.ok) {
+          let errorMessage = `Failed to connect MCP container: ${connectResponse.statusText}`;
+          try {
+            const errorData = await connectResponse.json();
+            console.error('Error connecting user MCP container:', errorData);
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+          }
+          throw new Error(errorMessage);
+        }
+      } catch (containerError) {
+        console.warn("MCP integration enabled, but container connection failed:", containerError);
+      }
     }
     
     return true;

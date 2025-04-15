@@ -73,7 +73,7 @@ export default function HowTo() {
                     muted
                     loop
                     playsInline
-                    className="w-full aspect-video object-cover -translate-y-4"
+                    className="w-full aspect-video object-cover"
                   >
                     <source src={feature.video} type="video/mp4" />
                     Your browser does not support the video tag.

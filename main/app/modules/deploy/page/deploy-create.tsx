@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository, updateMcpImageName } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 import { toast } from "sonner";
-import { enableMcpIntegration } from "../../integrations/api/api.integrations.mcp";
 import { ExistingMcpCard } from "../components/deploy-create/mcp-card-existing-repo";
 
 interface EnvVar {
@@ -113,16 +112,6 @@ export default function DeployCreatePage() {
       
       await updateMcpImageName(repositoryId, imageName);
       
-      const savedEnv = await enableMcpIntegration(
-        imageName,
-        envVariablesObj,
-      );
-      
-      if (!savedEnv) {
-        toast.error("Failed to save environment variables. Please try again.");
-        setIsLoading(false);
-        return;
-      }
       
       try {
         await deployMcpRepository(

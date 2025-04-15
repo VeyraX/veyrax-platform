@@ -135,6 +135,7 @@ async def get_user_connected_repo_ids(user_id: str) -> List[str]:
         result = supabase.table('users_mcp') \
             .select('repo_id') \
             .eq('user_id', user_id) \
+            .eq('status', 'connected') \
             .execute()
         
         if not result.data:

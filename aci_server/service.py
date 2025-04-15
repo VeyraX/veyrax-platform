@@ -188,7 +188,6 @@ class ToolsService:
                 "parameters": params
             }
             
-            # Forward all relevant headers from the original request
             headers = {}
             auth_header = request.headers.get("Authorization")
             veyrax_api_key = request.headers.get("VEYRAX_API_KEY")

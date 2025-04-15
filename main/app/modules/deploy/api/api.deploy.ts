@@ -157,20 +157,16 @@ export const fetchRepositoryMeta = async (
 
 export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exists: boolean, is_approved: boolean, image_name: string, env: Record<string, string> }> => {
   try {
-    // Извлекаем только владельца/название репозитория из URL
     const url = new URL(repoUrl.trim());
     const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
     
-    // Путь должен содержать минимум owner/repo
     if (pathSegments.length < 2) {
       return false;
     }
     
-    // Первые два сегмента после github.com - это owner и repo
     const owner = pathSegments[0];
-    const repo = pathSegments[1].replace('.git', ''); // Удаляем расширение .git если есть
+    const repo = pathSegments[1].replace('.git', '');
     
-    // Строим стандартизированный URL репозитория
     const normalizedUrl = `https://github.com/${owner}/${repo}`;
     
     const { data, error } = await supabase
@@ -200,7 +196,6 @@ export const fetchExternalMcpRepositories = async (
   pageSize: number = 6
 ): Promise<{ data: ExternalMcpRepository[], count: number }> => {
   try {
-    // Получаем общее количество репозиториев для расчета пагинации
     const { count, error: countError } = await supabase
       .from('external_mcp_repositories')
       .select('*', { count: 'exact', head: true });
@@ -210,11 +205,9 @@ export const fetchExternalMcpRepositories = async (
       return { data: [], count: 0 };
     }
     
-    // Рассчитываем смещение на основе номера страницы и размера страницы
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
     
-    // Получаем данные для текущей страницы
     const { data, error } = await supabase
       .from('external_mcp_repositories')
       .select('*')
@@ -298,6 +291,48 @@ export const updateMcpImageName = async (repositoryId: string, imageName: string
     return true;
   } catch (error) {
     console.error('Error updating MCP image name:', error);
+    return false;
+  }
+};
+
+
+export const CreateUserMCPConnection = async (
+  imageName: string, 
+  environmentVariables?: Record<string, string>,
+  encrypted_api_key?: string, 
+  code?: string,
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const response = await fetch('/api/integrations/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        image_name: imageName,
+        env: environmentVariables,
+        user_id: user?.id,
+        encrypted_api_key,
+        status: 'connecting',
+        code
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to enable MCP integration');
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to enable MCP integration');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error creating user MCP connection:', error);
     return false;
   }
 };

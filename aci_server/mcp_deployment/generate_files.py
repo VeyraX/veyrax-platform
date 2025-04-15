@@ -130,7 +130,6 @@ async def push_mcp_to_dockerhub(
             "Content-Type": "application/json"
         }
         
-            
         workflow_data = {
             "ref": "main",
             "inputs": {

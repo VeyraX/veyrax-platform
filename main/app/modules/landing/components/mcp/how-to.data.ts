@@ -3,7 +3,7 @@ export const featureData = [
     id: 1, 
     title: "Deploy in just 2 clicks",
     description: "Deploy any MCP by sending a single link.",
-    longDescription: "Choose any GitHub repository, paste the link and deploy it in 2 clicks. Any framework, any language.",
+    longDescription: "Choose any GitHub repository, paste the link and deploy it in 2 clicks. Any framework, any language. Avaliable in VeyraX and as separate /sse endpoint.",
     bulletPoints: [
       "One-click deployment with a shareable link",
       "No complex infrastructure configuration required",

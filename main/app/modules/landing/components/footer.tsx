@@ -31,6 +31,7 @@ export const Footer = () => {
             </a>
             <a href="/marketplace" className="transition-colors hover:text-gray-300 dark:hover:text-gray-200">Integrations</a>
             <a href="/web/flow" className="transition-colors hover:text-gray-300 dark:hover:text-gray-200">Flow</a>
+            <a href="/contact" className="transition-colors hover:text-gray-300 dark:hover:text-gray-200">Contact</a>
           </nav>
           <div className="mb-8 flex space-x-4">
             <Button

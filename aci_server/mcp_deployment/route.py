@@ -30,7 +30,7 @@ router = APIRouter(
 async def get_auth_token(request: Request):
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
-        return auth_header.replace("Bearer ", "")
+        return auth_header
     
     api_key = request.headers.get("VEYRAX_API_KEY")
     if api_key:

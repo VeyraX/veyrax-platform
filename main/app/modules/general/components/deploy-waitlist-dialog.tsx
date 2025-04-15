@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, AlertCircleIcon } from "lucide-react"
 import { 
   Dialog,
@@ -16,6 +17,7 @@ import {
 import { submitDeployWaitlistRequest } from "../api/general.api" 
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Label } from "@/components/ui/label"
 
 interface DeployWaitlistDialogProps {
   open: boolean;
@@ -25,21 +27,28 @@ interface DeployWaitlistDialogProps {
 export default function DeployWaitlistDialog({ open, onOpenChange }: DeployWaitlistDialogProps) {
     const router = useRouter();
     const [waitlistText, setWaitlistText] = useState("")
+    const [useVrx, setUseVrx] = useState(false)
+    const [useSse, setUseSse] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [submissionSent, setSubmissionSent] = useState(false)
     const [error, setError] = useState(false)
     const [textError, setTextError] = useState(false)
+    const [typeError, setTypeError] = useState(false)
     
     const resetForm = () => {
       setWaitlistText("");
+      setUseVrx(false);
+      setUseSse(false);
       setSubmissionSent(false);
       setError(false);
       setTextError(false);
+      setTypeError(false);
     }
 
     const handleSubmit = async () => {
         setIsSubmitting(true)
         setTextError(false)
+        setTypeError(false)
         setError(false)
 
         if (!waitlistText.trim()) {
@@ -48,9 +57,21 @@ export default function DeployWaitlistDialog({ open, onOpenChange }: DeployWaitl
           return
         }
 
+        if (!useVrx && !useSse) {
+          setTypeError(true)
+          setIsSubmitting(false)
+          return
+        }
+
         try {
+          // Create deployment type string with selected options
+          const deployTypes = [];
+          if (useVrx) deployTypes.push('vrx');
+          if (useSse) deployTypes.push('sse');
+          
           await submitDeployWaitlistRequest({
             reason: waitlistText,
+            deploy_type: deployTypes.join(',')
           })
           
           toast.success("Request submitted!", {
@@ -101,6 +122,12 @@ export default function DeployWaitlistDialog({ open, onOpenChange }: DeployWaitl
                 <AlertTitle className="flex items-center">Please provide some details before submitting</AlertTitle>
               </Alert>
             )}
+            {typeError && (
+              <Alert variant="destructive" className="p-4 mb-4">
+                <AlertCircleIcon className="h-4 w-4" />
+                <AlertTitle className="flex items-center">Please select at least one deployment type</AlertTitle>
+              </Alert>
+            )}
             {error && (
               <Alert variant="destructive" className="p-4 mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
@@ -120,6 +147,38 @@ export default function DeployWaitlistDialog({ open, onOpenChange }: DeployWaitl
               }}
               disabled={submissionSent || isSubmitting}
             />
+            
+            <div className="space-y-3">
+              <Label>How would you like to use deployed MCP?</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="vrx" 
+                    checked={useVrx}
+                    onCheckedChange={(checked) => {
+                      setUseVrx(checked === true);
+                      setTypeError(false);
+                    }}
+                  />
+                  <Label htmlFor="vrx" className="cursor-pointer">
+                    I want to deploy and use within VeyraX
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="sse" 
+                    checked={useSse}
+                    onCheckedChange={(checked) => {
+                      setUseSse(checked === true);
+                      setTypeError(false);
+                    }}
+                  />
+                  <Label htmlFor="sse" className="cursor-pointer">
+                    I want to deploy and use as a separate /sse endpoint
+                  </Label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="flex justify-between sm:justify-end pt-4">
