@@ -48,6 +48,8 @@ class ToolsService:
             
             else:
                 mcp_image_names = await get_user_mcp_image_names(user_id)
+
+                print("User MCP image names: ", mcp_image_names)
                 
                 if tool in mcp_image_names:
                     response = await self._handle_mcp_tool(tool, method, params, request)
@@ -214,7 +216,10 @@ class ToolsService:
                 
                 response.raise_for_status()
                 
-                return response.json()
+                return {
+                    "data": response.json(),
+                    "component": None
+                }
         
         except httpx.HTTPStatusError as e:
             try:
