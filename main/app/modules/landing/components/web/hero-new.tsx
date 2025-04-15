@@ -26,8 +26,8 @@ export const HeroNew = () => {
   const features = [
     {
       Icon: Connect,
-      name: "Integrations",
-      description: "Access 100+ tools and 3000+ MCPs seamlessly.",
+      name: "Integrations & MCPs",
+      description: "Connect your Agent to 100+ tools and 3000+ MCPs seamlessly.",
       href: "/mcp",
       cta: "Learn more",
       className: "col-span-6 md:col-span-4 min-h-[280px] relative overflow-hidden",
@@ -51,7 +51,7 @@ export const HeroNew = () => {
     {
       Icon: Compass,
       name: "Memory",
-      description: "VeyraX Memory saves and retains user information.",
+      description: "Retain information automatically based on all user requests.",
       href: "/web/memory",
       cta: "Learn more",
       className: "col-span-6 md:col-span-2 min-h-[280px] relative overflow-hidden",
@@ -75,7 +75,7 @@ export const HeroNew = () => {
     {
       Icon: Fingerprint,
       name: "Auth",
-      description: "Seamlessly authenticate with VeyraX providers.",
+      description: "Authenticate your users with VeyraX integrations and MCPs.",
       href: "#",
       cta: "Soon...",
       className: "col-span-6 md:col-span-2 min-h-[280px] relative overflow-hidden",
@@ -99,7 +99,7 @@ export const HeroNew = () => {
     {
       Icon: Layers,
       name: "Flow",
-      description: "Create powerful agentic workflows with ease.",
+      description: "Agent-powered tools execution workflows.",
       className: "col-span-6 md:col-span-4 min-h-[280px] relative overflow-hidden",
       href: "/web/flow",
       cta: "Learn more",

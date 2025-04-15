@@ -39,3 +39,8 @@ export interface PackageInfo {
 export interface DeployWaitlistRequestData {
     reason: string;
 }
+
+export interface ContactRequestData {
+    email: string;
+    reason: string;
+}

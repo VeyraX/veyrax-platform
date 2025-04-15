@@ -18,7 +18,7 @@ export const Footer = () => {
     <footer className="bg-primary dark:bg-primary/90 py-12 text-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center">
-          <div className="mb-8 rounded-full bg-white dark:bg-gray-800 h-10 w-10">
+          <div className="mb-8 rounded-full h-10 w-10">
             <img src="/logo_light.svg" alt="Logo" className="h-10 w-10" />
           </div>
           <nav className="mb-8 flex flex-wrap justify-center gap-6">

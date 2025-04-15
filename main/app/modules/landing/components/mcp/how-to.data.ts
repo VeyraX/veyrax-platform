@@ -9,8 +9,8 @@ export const featureData = [
       "No complex infrastructure configuration required",
       "Instantly available for use across your organization"
     ],
-    ctaText: "Explore deployment",
-    ctaLink: "/docs/deployment",
+    ctaText: "Deploy MCP",
+    ctaLink: "/register",
     video: "/mcp_video/veyrax_deploy.mp4",
   },
   {
@@ -37,8 +37,8 @@ export const featureData = [
       "Access 100+ different tool operations",
       "Automate complex workflows between multiple services"
     ],
-    ctaText: "See in action",
-    ctaLink: "/features",
+    ctaText: "Try it out",
+    ctaLink: "/register",
     video: "/mcp_video/mcp_use.mp4",
   }
 ];
