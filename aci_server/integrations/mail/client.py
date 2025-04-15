@@ -12,7 +12,7 @@ import time
 from typing import Dict, Any, List, Optional, Union, Tuple
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import socket
 
 class MailSMTPError(Exception):
@@ -336,9 +336,21 @@ class MailSMTPClient:
         limit: int = 20,
         offset: int = 0,
         search_query: Optional[str] = None,
-        mark_as_read: bool = False
+        mark_as_read: bool = False,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Get messages from a specific folder."""
+        """Get messages from a specific folder.
+        
+        Args:
+            folder: Mailbox folder to fetch from
+            limit: Maximum number of messages to return
+            offset: Number of messages to skip
+            search_query: Optional text to search in subject or from fields
+            mark_as_read: Whether to mark fetched messages as read
+            from_date: Optional start date filter in format YYYY-MM-DD
+            to_date: Optional end date filter in format YYYY-MM-DD
+        """
         try:
             imap = self._get_imap_connection()
             
@@ -350,18 +362,78 @@ class MailSMTPClient:
             # Get total message count
             total_messages = int(data[0])
             
-            # Create search query
-            search_criteria = "ALL"
+            # Build search criteria
+            search_criteria_list = []
+            
+            # Add text search if provided
             if search_query:
-                # Create a simple search by subject or sender
-                search_criteria = f'(OR SUBJECT "{search_query}" FROM "{search_query}")'
+                search_criteria_list.append(f'(OR SUBJECT "{search_query}" FROM "{search_query}")')
             
-            # Search for messages
-            result, data = imap.search(None, search_criteria)
-            if result != 'OK':
-                raise MailSMTPError(f"Search failed: {data[0].decode()}")
+            # Add date filters if provided
+            if from_date:
+                try:
+                    # Convert YYYY-MM-DD to DD-MMM-YYYY format required by IMAP
+                    parsed_date = datetime.strptime(from_date, "%Y-%m-%d")
+                    formatted_date = parsed_date.strftime("%d-%b-%Y")
+                    search_criteria_list.append(f'(SINCE "{formatted_date}")')
+                except ValueError:
+                    # If date parsing fails, ignore the filter
+                    pass
             
-            message_nums = data[0].split()
+            if to_date:
+                try:
+                    # Convert YYYY-MM-DD to DD-MMM-YYYY format required by IMAP
+                    # Add one day to make the search inclusive of the to_date
+                    parsed_date = datetime.strptime(to_date, "%Y-%m-%d")
+                    next_day = parsed_date + timedelta(days=1)
+                    formatted_date = next_day.strftime("%d-%b-%Y")
+                    search_criteria_list.append(f'(BEFORE "{formatted_date}")')
+                except ValueError:
+                    # If date parsing fails, ignore the filter
+                    pass
+            
+            # Combine all search criteria or use ALL if none specified
+            if search_criteria_list:
+                search_criteria = " ".join(search_criteria_list)
+            else:
+                search_criteria = "ALL"
+            
+            # First, try to use SORT command if available (for server-side sorting)
+            has_sort_capability = False
+            try:
+                # Check if server supports SORT
+                capability_result, capability_data = imap.capability()
+                if capability_result == 'OK':
+                    capabilities = ' '.join(x.decode() for x in capability_data).upper()
+                    has_sort_capability = 'SORT' in capabilities
+                
+                if has_sort_capability:
+                    # Use SORT command to sort by date in descending order (newest first)
+                    result, data = imap.uid('SORT', '(REVERSE DATE)', 'UTF-8', search_criteria)
+                    if result == 'OK':
+                        # Get message IDs from sorted results
+                        if data and data[0]:
+                            message_nums = data[0].split()
+                        else:
+                            message_nums = []
+                    else:
+                        # Fall back to regular search if SORT failed
+                        has_sort_capability = False
+            except (imaplib.IMAP4.error, AttributeError):
+                # Server doesn't support SORT or there was an error
+                has_sort_capability = False
+            
+            # Fall back to regular search if SORT is not available
+            if not has_sort_capability:
+                result, data = imap.search(None, search_criteria)
+                if result != 'OK':
+                    raise MailSMTPError(f"Search failed: {data[0].decode()}")
+                
+                message_nums = data[0].split()
+                # Since we can't sort on server, we'll reverse the list to get newest first (approximate)
+                # This assumes message IDs are assigned chronologically, which is often but not always true
+                message_nums = message_nums[::-1]
+            
             total = len(message_nums)
             
             # Apply offset and limit
@@ -394,6 +466,22 @@ class MailSMTPClient:
             
             imap.close()
             imap.logout()
+            
+            # If we couldn't sort on the server, ensure proper sorting here
+            if not has_sort_capability:
+                # Sort messages by date (newest first)
+                from email.utils import parsedate_tz
+                
+                def get_date_timestamp(msg):
+                    date_str = msg.get('date')
+                    if date_str:
+                        date_tuple = parsedate_tz(date_str)
+                        if date_tuple:
+                            return email.utils.mktime_tz(date_tuple)
+                    return 0  # Default timestamp if date parsing fails
+                
+                # Sort messages with newest first
+                messages.sort(key=get_date_timestamp, reverse=True)
             
             return {
                 "messages": messages,

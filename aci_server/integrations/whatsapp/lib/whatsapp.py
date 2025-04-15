@@ -12,7 +12,7 @@ from io import BytesIO
 # Use environment variable for the API base URL with fallback
 WHATSAPP_API_BASE_URL = os.environ.get("WHATSAPP_API_BASE_URL", "http://localhost:8080/api")
 # Default timeout for API requests (in seconds)
-DEFAULT_TIMEOUT = 5
+DEFAULT_TIMEOUT = 15
 
 @dataclass
 class Message:

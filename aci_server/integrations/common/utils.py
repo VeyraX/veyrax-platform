@@ -109,8 +109,9 @@ def log_api_call(user_id: str, endpoint: Optional[str] = None, success: Optional
             "error_message": error_message,
             "metadata": metadata
         }
-        
+
         supabase.table("api_calls").insert(api_call_data).execute()
+
     except Exception as e:
         print(f"Error logging API call: {str(e)}")
 

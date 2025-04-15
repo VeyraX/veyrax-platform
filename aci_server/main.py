@@ -92,6 +92,7 @@ from integrations.common.get_memory import get_user_memories
 from integrations.binance_p2p.route import router as binance_p2p_router
 from integrations.bybit_p2p.route import router as bybit_p2p_router
 from integrations.okx_p2p.route import router as okx_p2p_router
+from integrations.twentyfirst_dev.route import router as dev_router
 from mcp_deployment.route import router as mcp_deployment_router
 from mcp_deployment.queries import get_user_connected_mcp_actions, get_user_mcp_image_names
 from service import ToolsService
@@ -195,7 +196,8 @@ INTEGRATION_ROUTERS = {
     "binance_p2p": binance_p2p_router,
     "bybit_p2p": bybit_p2p_router,
     "okx_p2p": okx_p2p_router,
-    "apollo": apollo_router
+    "apollo": apollo_router,
+    "twentyfirst_dev": dev_router
 }
 
 
@@ -549,7 +551,6 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
     try:
         try:
             request_data = await request.json()
-            print(request_data)
             tool = request_data.get("tool")
             method = request_data.get("method")
             params = request_data.get("params", request_data.get("parameters", {}))
