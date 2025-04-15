@@ -38,19 +38,28 @@ jobs:
         run: |
           REPO_URL="${{ github.event.inputs.repo_url }}"
           if [[ $REPO_URL == *"github.com"* ]]; then
-            BASE_REPO_URL=$(echo $REPO_URL | sed -E 's|(https?://github.com/[^/]+/[^/]+)(/tree/|/blob/).*|\1|')
-            REPO_PATH=$(echo $BASE_REPO_URL | sed -E 's|https?://github.com/||' | sed -E 's|\.git$||')
-            REPO_NAME=$(echo $REPO_PATH | awk -F/ '{print $2}')
+            REPO_URL_TRIMMED=${REPO_URL#*github.com/}
             
-            if [[ $REPO_URL =~ /tree/[^/]+/(.+)$ ]]; then
-              SUBDIRECTORY=${BASH_REMATCH[1]}
-              echo "subdirectory=$SUBDIRECTORY" >> $GITHUB_OUTPUT
-              echo "Using subdirectory: $SUBDIRECTORY"
+            if [[ $REPO_URL_TRIMMED == *"/tree/"* ]]; then
+              BASE_REPO=${REPO_URL_TRIMMED%%/tree/*}
+              AFTER_TREE=${REPO_URL_TRIMMED#*/tree/*/}
+              echo "subdirectory=$AFTER_TREE" >> $GITHUB_OUTPUT
+              echo "Using subdirectory: $AFTER_TREE"
+            elif [[ $REPO_URL_TRIMMED == *"/blob/"* ]]; then
+              BASE_REPO=${REPO_URL_TRIMMED%%/blob/*}
+            else
+              BASE_REPO=$REPO_URL_TRIMMED
             fi
             
-            echo "repo_path=$REPO_PATH" >> $GITHUB_OUTPUT
+            BASE_REPO=${BASE_REPO%.git}
+            
+            REPO_OWNER=$(echo $BASE_REPO | cut -d'/' -f1)
+            REPO_NAME=$(echo $BASE_REPO | cut -d'/' -f2)
+            
+            echo "repo_path=$BASE_REPO" >> $GITHUB_OUTPUT
+            echo "repo_owner=$REPO_OWNER" >> $GITHUB_OUTPUT 
             echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-            echo "Extracted repository path: $REPO_PATH"
+            echo "Extracted repository path: $BASE_REPO"
           else
             echo "Error: Invalid GitHub URL format"
             exit 1
