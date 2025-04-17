@@ -90,7 +90,7 @@ jobs:
 
       - name: Verify Docker image works
         run: |
-          docker run --rm -d --name test-container ${{ github.event.inputs.image_name }}:test tail -f /dev/null
+          docker run --rm -d --name test-container --entrypoint tail ${{ github.event.inputs.image_name }}:test -f /dev/null
           sleep 5
           docker ps | grep test-container >/dev/null || { echo "Container failed to start"; docker logs test-container || true; exit 1; }
           docker stop test-container
