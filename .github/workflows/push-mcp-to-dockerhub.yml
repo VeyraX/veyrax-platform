@@ -71,34 +71,22 @@ jobs:
           repository: ${{ steps.repo-info.outputs.repo_path }}
           path: target-repo
           
-      - name: Handle subdirectory if specified
+      - name: Detect build context
+        id: ctx
         run: |
+          CTX="./target-repo"
           if [[ -n "${{ steps.repo-info.outputs.subdirectory }}" ]]; then
-            echo "Subdirectory specified: ${{ steps.repo-info.outputs.subdirectory }}"
-            
-            if [[ -d "target-repo/${{ steps.repo-info.outputs.subdirectory }}" ]]; then
-              echo "Moving contents from subdirectory to root of target-repo"
-              mkdir -p temp-subdir
-              # Move subdirectory contents to temp
-              mv target-repo/${{ steps.repo-info.outputs.subdirectory }}/* temp-subdir/
-              # Clean target-repo
-              rm -rf target-repo/*
-              # Move contents back to target-repo
-              mv temp-subdir/* target-repo/
-              # Remove temp directory
-              rm -rf temp-subdir
-            else
-              echo "Error: Specified subdirectory not found!"
-              exit 1
-            fi
+            CTX="$CTX/${{ steps.repo-info.outputs.subdirectory }}"
           fi
+          echo "context=$CTX" >> $GITHUB_OUTPUT
           
       - name: Decode and save Dockerfile
         run: |
-          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > target-repo/Dockerfile
+          mkdir -p "${{ steps.ctx.outputs.context }}"
+          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > "${{ steps.ctx.outputs.context }}/Dockerfile"
           
       - name: Show Dockerfile
-        run: cat target-repo/Dockerfile
+        run: cat "${{ steps.ctx.outputs.context }}/Dockerfile"
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -106,8 +94,8 @@ jobs:
       - name: Build and test Docker image locally
         uses: docker/build-push-action@v4
         with:
-          context: ./target-repo
-          file: ./target-repo/Dockerfile
+          context: ${{ steps.ctx.outputs.context }}
+          file: ${{ steps.ctx.outputs.context }}/Dockerfile
           load: true
           tags: ${{ github.event.inputs.image_name }}:test
           
@@ -145,8 +133,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./target-repo
-          file: ./target-repo/Dockerfile
+          context: ${{ steps.ctx.outputs.context }}
+          file: ${{ steps.ctx.outputs.context }}/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
           

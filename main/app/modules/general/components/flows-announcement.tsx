@@ -43,7 +43,7 @@ export function FlowsAnnouncement() {
       </Button>
 
       <div className="p-3">
-        <h4 className="text-sm font-medium mb-1">Deploy and Connect any MCP</h4>
+        <h4 className="text-sm font-medium mb-1">Connect any MCP</h4>
         <p className="text-xs text-muted-foreground leading-snug mb-2">
          You can now deploy and connect any MCP to your VeyraX account.
         </p>
