@@ -35,21 +35,25 @@ jobs:
     env:
       CONTEXT_ROOT: ./target-repo
     steps:
-
       - name: Extract repo owner and name
         id: repo-info
         run: |
           REPO_URL="${{ github.event.inputs.repo_url }}"
-          REPO_PATH=${REPO_URL#*github.com/}
-          REPO_PATH=${REPO_PATH%.git}
-          echo "repo_path=$REPO_PATH" >> "$GITHUB_OUTPUT"
+          REPO_PATH=${REPO_URL#*github.com/}   # strip domain
+          REPO_PATH=${REPO_PATH%.git}          # strip .git if any
 
-          # Detect optional subdirectory after /tree/<branch>/
-          if [[ "$REPO_PATH" == *"/tree/"* ]]; then
-            SUBDIR=${REPO_PATH#*/tree/*/}
-            REPO_PATH=${REPO_PATH%%/tree/*}
+          # Detect /tree/<branch>/path or /blob/<branch>/path
+          if [[ "$REPO_PATH" == */tree/* ]]; then
+            SUBDIR=${REPO_PATH#*/tree/*/}      # after branch/
+            REPO_PATH=${REPO_PATH%%/tree/*}    # owner/repo
+            echo "subdirectory=$SUBDIR" >> "$GITHUB_OUTPUT"
+          elif [[ "$REPO_PATH" == */blob/* ]]; then
+            SUBDIR=${REPO_PATH#*/blob/*/}
+            REPO_PATH=${REPO_PATH%%/blob/*}
             echo "subdirectory=$SUBDIR" >> "$GITHUB_OUTPUT"
           fi
+
+          echo "repo_path=$REPO_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Checkout target repository
         uses: actions/checkout@v3
@@ -59,8 +63,7 @@ jobs:
 
       - name: Detect build context
         id: ctx
-        run: |
-          echo "context=${{ env.CONTEXT_ROOT }}" >> "$GITHUB_OUTPUT"
+        run: echo "context=${{ env.CONTEXT_ROOT }}" >> "$GITHUB_OUTPUT"
 
       - name: Decode and save Dockerfile
         run: |
