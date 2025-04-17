@@ -78,10 +78,9 @@ jobs:
         run: |
           mkdir -p "${{ steps.ctx.outputs.context }}"
           echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > "${{ steps.ctx.outputs.context }}/Dockerfile"
-        run: |
-          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > "${{ env.CONTEXT_ROOT }}/Dockerfile"
 
       - name: Show Dockerfile
+        run: cat "${{ steps.ctx.outputs.context }}/Dockerfile"
         run: cat "${{ env.CONTEXT_ROOT }}/Dockerfile"
 
       - name: Set up Docker Buildx
