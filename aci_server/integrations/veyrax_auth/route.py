@@ -44,6 +44,9 @@ async def generate_connection_link(
     service: VeyraxAuthService = Depends(get_veyrax_auth_service)
 ):
     validated_params = GenerateConnectionLinkParams(**params)
-    return service.generate_connection_link(provider_tag=validated_params.provider_tag)
+    return service.generate_connection_link(
+        provider_tag=validated_params.provider_tag,
+        provider_type=validated_params.type
+    )
 
 apply_error_handler_to_router(router)

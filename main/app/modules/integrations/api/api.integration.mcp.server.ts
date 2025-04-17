@@ -41,3 +41,28 @@ export const connectMcpRepository = async (options: {
   
   return { success: true };
 };
+
+export const getUserApiKey = async (userId: string): Promise<string | null> => {
+  try {
+    const client = createServiceClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!
+    );
+    
+    const { data, error } = await client
+      .from('users_api_keys')
+      .select('api_key')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) {
+      console.error('Error getting user API key:', error);
+      return null;
+    }
+    
+    return data.api_key;
+  } catch (error) {
+    console.error('Error getting user API key:', error);
+    return null;
+  }
+};

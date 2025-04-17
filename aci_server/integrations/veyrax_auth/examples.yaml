@@ -2,7 +2,7 @@ routes:
   - endpoint: /veyrax_auth/get_tools_connection_status
     examples:
       - scenario: "Get All Provider Statuses"
-        description: "Retrieve connection status for all available tools"
+        description: "Retrieve connection status for all available tools and MCP"
         input_json: |
           {}
         output_json: |
@@ -10,19 +10,29 @@ routes:
             "data": {
               "items": [
                 {
-                  "provider_id": "provider-1",
                   "provider_tag": "gmail",
-                  "is_connected": true
+                  "is_connected": true,
+                  "type": "tool"
                 },
                 {
-                  "provider_id": "provider-2",
                   "provider_tag": "slack",
-                  "is_connected": false
+                  "is_connected": false,
+                  "type": "tool"
                 },
                 {
-                  "provider_id": "provider-3",
                   "provider_tag": "google_calendar",
-                  "is_connected": true
+                  "is_connected": true,
+                  "type": "tool"
+                },
+                {
+                  "provider_tag": "example-mcp",
+                  "is_connected": true,
+                  "type": "mcp"
+                },
+                {
+                  "provider_tag": "another-mcp",
+                  "is_connected": false,
+                  "type": "mcp"
                 }
               ]
             }
@@ -30,11 +40,12 @@ routes:
 
   - endpoint: /veyrax_auth/generate_connection_link
     examples:
-      - scenario: "Generate Auth Link"
-        description: "Create a secure auth link for provider connection"
+      - scenario: "Generate Auth Link for Tool"
+        description: "Create a secure auth link for tool provider connection"
         input_json: |
           {
-            "provider_tag": "slack"
+            "provider_tag": "slack",
+            "type": "tool"
           }
         output_json: |
           {

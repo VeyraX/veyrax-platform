@@ -30,7 +30,6 @@ class ToolsService:
         error_message = None
         user_id = None
         
-        # Extract question from query params
         query_params = dict(request.query_params)
         question = query_params.get("question")
         
@@ -45,7 +44,6 @@ class ToolsService:
             except:
                 params = {}
             
-            # Create metadata with parameters and question
             metadata = {
                 "parameters": params,
                 "question": question
@@ -58,8 +56,6 @@ class ToolsService:
             
             else:
                 mcp_image_names = await get_user_mcp_image_names(user_id)
-
-                print("User MCP image names: ", mcp_image_names)
                 
                 if tool in mcp_image_names:
                     response = await self._handle_mcp_tool(tool, method, params, request)

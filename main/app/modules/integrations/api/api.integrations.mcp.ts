@@ -276,13 +276,13 @@ export const enableMcpIntegration = async (
         const connectResponse = await fetch('/api/integrations/mcp/connect', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             repository_id: repositoryId,
             code,
             encrypted_api_key,
+            auth_token: token,
             metadata
           })
         });
@@ -326,7 +326,6 @@ export const getSingleMcpRepositoryData = async (repositoryId: string) => {
     
     const mcpDetails = data as McpDetails;
     
-    // Only fetch GitHub info if metadata.stars is not available
     const repoInfo = (!mcpDetails.metadata?.stars && mcpDetails.repo_url) ? 
       await getGitHubRepoInfo(mcpDetails.repo_url) : null;
     

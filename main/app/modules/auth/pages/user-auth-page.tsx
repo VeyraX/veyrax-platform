@@ -298,7 +298,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type }: UserAuthPagePr
       
       {showMcpDialog && mcpDetails && (
         <McpManage
-          imageName={mcpDetails.name || providerTag}
+          imageName={mcpDetails.image_name || providerTag}
           open={showMcpDialog}
           onClose={handleCloseDialog}
           predefinedEnv={mcpDetails.env || {}}

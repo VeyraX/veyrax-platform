@@ -112,7 +112,7 @@ async def get_mcp_repositories(repo_ids: List[str] = None) -> List[Dict[str, Any
     try:
         supabase = get_supabase()
         
-        query = supabase.table('mcp_repositories').select('id, image_name, input_schema')
+        query = supabase.table('mcp_repositories').select('id, image_name, input_schema').eq('is_approved', True)
         
         if repo_ids:
             query = query.in_('id', repo_ids)

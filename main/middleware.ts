@@ -5,6 +5,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const { response, session } = await updateSession(request)
 
+  if (pathname.includes('/oauth/') || 
+      pathname.includes('/user/') && pathname.includes('/auth') || 
+      request.nextUrl.search.includes('oauth_return=') || 
+      request.nextUrl.search.includes('success=')) {
+    console.log('Skipping middleware for OAuth path:', pathname);
+    return response;
+  }
+
   if (pathname === '/pricing/success') {
     const url = new URL(request.url)
     const sessionId = url.searchParams.get('session_id')
