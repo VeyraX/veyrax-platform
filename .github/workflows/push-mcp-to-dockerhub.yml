@@ -62,21 +62,20 @@ jobs:
         id: ctx
         run: |
           CTX="${{ env.CONTEXT_ROOT }}"
+          DOCKERFILE="${{ env.CONTEXT_ROOT }}/Dockerfile"
           if [[ -n "${{ steps.repo-info.outputs.subdirectory }}" ]]; then
-            CTX="$CTX/${{ steps.repo-info.outputs.subdirectory }}"
-            if [[ -f ${{ env.CONTEXT_ROOT }}/tsconfig.json ]]; then
-              cp ${{ env.CONTEXT_ROOT }}/tsconfig.json "$CTX/tsconfig.json"
-            fi
+            DOCKERFILE="${{ env.CONTEXT_ROOT }}/${{ steps.repo-info.outputs.subdirectory }}/Dockerfile"
+            mkdir -p "${{ env.CONTEXT_ROOT }}/${{ steps.repo-info.outputs.subdirectory }}"
           fi
           echo "context=$CTX" >> "$GITHUB_OUTPUT"
+          echo "dockerfile=$DOCKERFILE" >> "$GITHUB_OUTPUT"
 
       - name: Decode and save Dockerfile
         run: |
-          mkdir -p "${{ steps.ctx.outputs.context }}"
-          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > "${{ steps.ctx.outputs.context }}/Dockerfile"
+          echo "${{ github.event.inputs.dockerfile_base64 }}" | base64 -d > "${{ steps.ctx.outputs.dockerfile }}"
 
       - name: Show Dockerfile
-        run: cat "${{ steps.ctx.outputs.context }}/Dockerfile"
+        run: cat "${{ steps.ctx.outputs.dockerfile }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -84,8 +83,8 @@ jobs:
       - name: Build and test Docker image locally
         uses: docker/build-push-action@v4
         with:
-          context: ${{ steps.ctx.outputs.context }}
-          file: ${{ steps.ctx.outputs.context }}/Dockerfile
+          context: ${{ env.CONTEXT_ROOT }}
+          file: ${{ steps.ctx.outputs.dockerfile }}
           load: true
           tags: ${{ github.event.inputs.image_name }}:test
 
@@ -105,8 +104,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ${{ steps.ctx.outputs.context }}
-          file: ${{ steps.ctx.outputs.context }}/Dockerfile
+          context: ${{ env.CONTEXT_ROOT }}
+          file: ${{ steps.ctx.outputs.dockerfile }}
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
 
