@@ -35,7 +35,6 @@ def parse_github_url(repo_url: str) -> Tuple[str, str, str]:
     return owner, repo_name, subdir_path
 
 def get_repository_contents(owner: str, repo_name: str, path: str = "", recursive: bool = True):
-    """Получает содержимое репозитория через GitHub API с учетом поддиректории"""
     api_url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{path}"
     print(f"Fetching repository contents from: {api_url}")
     
@@ -68,7 +67,6 @@ def get_repository_contents(owner: str, repo_name: str, path: str = "", recursiv
 
 def get_file_content(download_url: str):
     try:
-        # Используем GITHUB_TOKEN для авторизации запросов
         github_token = os.environ.get("GITHUB_TOKEN")
         headers = {}
         if github_token:
@@ -139,10 +137,108 @@ def should_skip_file(file_path: str):
     
     return False
 
+def generate_file_structure_tree(contents: List[Dict[str, Any]], subdir_path: str = ""):
+    """Generate a text representation of the file structure tree with focus on the working directory."""
+    file_tree = {}
+    workdir_parts = subdir_path.split('/') if subdir_path else []
+    
+    # Separate files into workdir and non-workdir
+    workdir_files = []
+    
+    for item in contents:
+        file_path = item['path']
+        if should_skip_file(file_path) or not is_text_file(file_path):
+            continue
+        
+        # Check if file is in workdir or its subdirectories
+        is_in_workdir = False
+        if subdir_path and (file_path == subdir_path or file_path.startswith(subdir_path + '/')):
+            is_in_workdir = True
+            workdir_files.append(item)
+        
+        # Check if this is a root file
+        is_root_file = '/' not in file_path
+            
+        # Build the tree structure
+        path_parts = file_path.split('/')
+        current = file_tree
+        for i, part in enumerate(path_parts):
+            # If we're on the path to workdir, or inside workdir, always add
+            on_workdir_path = (i < len(workdir_parts) and part == workdir_parts[i])
+            
+            # For the last part (file)
+            if i == len(path_parts) - 1:
+                # Include file if:
+                # 1. It's on path to workdir
+                # 2. It's in workdir
+                # 3. It's a root file - we show ALL root files
+                if on_workdir_path or is_in_workdir or is_root_file:
+                    current.setdefault('__files__', []).append(part)
+            else:
+                # For directories: always include if on workdir path or in workdir
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+    
+    # Generate the text tree representation
+    tree_text = []
+    
+    def build_tree(node, path_so_far="", indent=""):
+        # Process files first so they appear before directories at each level
+        if '__files__' in node:
+            files = sorted(node['__files__'])
+            for i, file_name in enumerate(files):
+                is_last = (i == len(files) - 1) and not [k for k in node.keys() if k != '__files__']
+                tree_text.append(f"{indent}{'└── ' if is_last else '├── '}{file_name}")
+        
+        # Find dirs that are on the path to workdir
+        dirs = sorted([(k, v) for k, v in node.items() if k != '__files__'])
+        
+        # Process directories
+        for i, (dir_name, contents) in enumerate(dirs):
+            is_last_dir = (i == len(dirs) - 1)
+            current_path = f"{path_so_far}/{dir_name}" if path_so_far else dir_name
+            
+            # Check if this dir is on path to workdir
+            is_on_workdir_path = False
+            for j, wp in enumerate(workdir_parts):
+                if j < len(current_path.split('/')) and current_path.split('/')[j] == wp:
+                    is_on_workdir_path = True
+                else:
+                    is_on_workdir_path = False
+                    break
+            
+            # Check if this is the workdir itself
+            is_workdir = (current_path == subdir_path)
+            
+            # Always highlight workdir with an asterisk
+            dir_indicator = f"{dir_name}/" + (" [*]" if is_workdir else "")
+            tree_text.append(f"{indent}{'└── ' if is_last_dir else '├── '}{dir_indicator}")
+            
+            # Determine recursion
+            next_indent = indent + ('    ' if is_last_dir else '│   ')
+            
+            # Always recurse if we're on path to workdir or if this is workdir
+            if is_on_workdir_path or is_workdir or current_path.startswith(subdir_path + '/'):
+                build_tree(contents, path_so_far=current_path, indent=next_indent)
+    
+    # Start building the tree
+    tree_text.append("Repository structure (focused on working directory):")
+    tree_text.append(".")
+    build_tree(file_tree)
+    
+    # Add workdir information
+    if subdir_path:
+        tree_text.append("")
+        tree_text.append(f"Working path: {subdir_path}")
+    
+    return "\n".join(tree_text)
+
 def parse_repository(repo_url: str):
     owner, repo_name, subdir_path = parse_github_url(repo_url)
     
-    print(f"Parsing repository: {owner}/{repo_name}, subdirectory: {subdir_path or 'root'}")
+    full_repo_contents = get_repository_contents(owner, repo_name, "")
+    file_structure_tree = generate_file_structure_tree(full_repo_contents, subdir_path)
     
     contents = get_repository_contents(owner, repo_name, subdir_path)
     
@@ -158,6 +254,7 @@ def parse_repository(repo_url: str):
             "name": repo_name,
             "subdirectory": subdir_path
         },
+        "file_structure": file_structure_tree,
         "files": []
     }
     
@@ -203,5 +300,8 @@ def parse_repository(repo_url: str):
     result["skipped_count"] = skipped_count
     
     print(f"Repository parsing completed. Added {file_count} files, skipped {skipped_count} files.")
+
+
+    print(result)
     
     return result 

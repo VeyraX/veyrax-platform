@@ -92,8 +92,18 @@ def extract_repo_metadata(context):
         raise HTTPException(status_code=500, detail=f"Failed to extract repository metadata: {str(e)}")
 
 def generate_dockerfile_with_base64_from_repo(repo_data):
-    context = json.dumps(repo_data)
-    dockerfile = generate_dockerfile(context)
+    dockerfile_content = None
+    for file in repo_data.get("files", []):
+        if file.get("path", "").lower() == "dockerfile" or file.get("path", "").endswith("/dockerfile"):
+            dockerfile_content = file.get("content")
+            break
+    
+    if dockerfile_content:
+        dockerfile = dockerfile_content
+    else:
+        context = json.dumps(repo_data)
+        dockerfile = generate_dockerfile(context)
+    
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
     return dockerfile_base64
 

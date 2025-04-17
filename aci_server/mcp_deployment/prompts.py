@@ -2,8 +2,10 @@ generate_dockerfile_prompt = """
 You are an expert at creating simple, functional Dockerfiles for different application types. Generate a Dockerfile based on the repository context provided.
 
 IMPORTANT CONTEXT:
-All files from subdirectories have been flattened to the root of the build context. 
-Do not use paths like "src/subdirectory/..." as they won't exist.
+The Docker build will use the ENTIRE REPOSITORY as the build context, regardless of where the Dockerfile is placed.
+The Dockerfile may be placed in the repository root or in a subdirectory, but the build context is always the root.
+This means all COPY and ADD commands should use paths relative to the repository root, not the Dockerfile location.
+For example, if your code is in "src" directory and Dockerfile is in "deploy" directory, use: COPY ./src /app/src
 Just output the raw Dockerfile code with no markdown formatting, explanations, or additional text.
 
 PYTHON PROJECTS - Follow this analysis process:
