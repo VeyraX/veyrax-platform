@@ -25,7 +25,14 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
   try {
     const { data: integrations, error } = await supabase
       .from('providers')
-      .select('*');
+      .select(`
+        *,
+        provider_scopes (
+          id,
+          scope_id,
+          scope_name
+        )
+      `);
     
     if (error) {
       console.error('Error fetching integrations:', error);
@@ -56,6 +63,13 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       
       const userCount = connectedData?.count_of_users || 0;
       
+      // Format scopes properly
+      const scopes = integration.provider_scopes?.map((scope: { id: string, scope_id: string, scope_name: string }) => ({
+        id: scope.id,
+        scope_id: scope.scope_id,
+        scope_name: scope.scope_name
+      })) || [];
+      
       return {
         id: integration.id,
         name: integration.name,
@@ -64,7 +78,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
         categories: integration.categories,
         provider_tag: integration.provider_tag,
         auth_method: integration.auth_method,
-        scopes: integration.scopes,
+        scopes: scopes, // Use properly formatted scopes
         is_enabled: integration.is_enabled,
         connected: userConnections.some(conn => conn.provider_id === integration.id),
         hasIndex: false,
@@ -468,7 +482,6 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     exampleSchema[endpoint.name] = endpoint.examples;
   });
 
-  // Remove provider_scopes from provider object and add transformed scopes
   const { provider_scopes: _, ...providerWithoutScopes } = provider;
   const providerWithScopes = {
     ...providerWithoutScopes,
