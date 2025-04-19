@@ -413,7 +413,7 @@ async def get_user_tools(request: Request):
             
         if not user_tools and not mcp_actions:
             tools_response = {"tools": {}}
-            tools_response["tools"]["veyrax_auth"] = get_auth_tool()
+            tools_response["tools"]["veyrax-auth"] = get_auth_tool()
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
             tools_response["tools"]["available_flows"] = []
@@ -428,7 +428,7 @@ async def get_user_tools(request: Request):
             return tools_response
         
         response_tools = {"tools": user_tools}
-        response_tools["tools"]["veyrax_auth"] = get_auth_tool()
+        response_tools["tools"]["veyrax-auth"] = get_auth_tool()
         response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
         
         response_tools["tools"].update(mcp_actions)
@@ -478,7 +478,7 @@ async def get_dev_user_tools(request: Request):
             tools_response = {"tools": {}}
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
             tools_response["tools"]["memories"] = {}
-            tools_response["tools"]["veyrax_auth"] = get_router_tools(veyrax_auth_router)
+            tools_response["tools"]["veyrax-auth"] = get_router_tools(veyrax_auth_router)
             
             log_api_call(
                 user_id=user_id,
@@ -500,7 +500,7 @@ async def get_dev_user_tools(request: Request):
         user_tools = {}
         user_tools['examples'] = json.loads(get_tools_example_prompt)
         
-        user_tools['veyrax_auth'] = get_router_tools(veyrax_auth_router)
+        user_tools['veyrax-auth'] = get_router_tools(veyrax_auth_router)
         
         for name, router in INTEGRATION_ROUTERS.items():
             if name in provider_tags:

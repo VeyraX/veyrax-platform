@@ -1,5 +1,5 @@
 routes:
-  - endpoint: /veyrax_auth/get_tools_connection_status
+  - endpoint: /veyrax-auth/get_tools_connection_status
     examples:
       - scenario: "Get All Provider Statuses"
         description: "Retrieve connection status for all available tools and MCP"
@@ -38,7 +38,7 @@ routes:
             }
           }
 
-  - endpoint: /veyrax_auth/generate_connection_link
+  - endpoint: /veyrax-auth/generate_connection_link
     examples:
       - scenario: "Generate Auth Link for Tool"
         description: "Create a secure auth link for tool provider connection"

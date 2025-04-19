@@ -14,7 +14,7 @@ class VeyraxAuthService:
         return load_components(current_dir)
         
     def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
-        tool_name = "veyrax_auth"
+        tool_name = "veyrax-auth"
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
     
