@@ -21,8 +21,22 @@ export const authApi = {
     }
   },
 
-  register: async (email: string, password: string) => {
+  register: async (email: string, password: string, turnstileToken?: string) => {
     try {
+      if (turnstileToken) {
+        const verificationResponse = await fetch('/api/verify-turnstile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: turnstileToken })
+        });
+        
+        const verification = await verificationResponse.json();
+        
+        if (!verification.success) {
+          return { data: null, error: { message: 'Human verification failed. Please try again.' } };
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password
