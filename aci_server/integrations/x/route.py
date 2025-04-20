@@ -14,7 +14,7 @@ examples = ExamplesLoader()
 
 async def get_twitter_service(request: Request):
     try:
-        api_key = os.environ.get("RAPID_API_TWITTER_API_KEY") or  os.environ.get("RAPID_API_LINKEDIN_API_KEY")  # they are usually same
+        api_key = os.environ.get("RAPID_API_TWITTER_API_KEY") or  os.environ.get("RAPID_API_LINKEDIN_API_KEY")
         client = TwitterClient(api_key)
         service = TwitterService(client)
         apply_error_handler_to_client(client)

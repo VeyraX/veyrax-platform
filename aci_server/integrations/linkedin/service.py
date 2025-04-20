@@ -1,349 +1,301 @@
 from typing import Dict, Any, List, Optional
-import os
 from .client import LinkedInClient
 from .schema import (
-    ApiResponse,
     GetProfileParams,
-    ProfileData,
     SearchPeopleParams,
-    SearchPeopleResponse,
     GetProfilePostsParams,
-    ProfilePostsResponse,
-    GetProfilePostCommentsParams,
-    ProfilePostCommentsResponse,
     GetConnectionCountParams,
-    ConnectionCountResponse,
     GetDataConnectionCountParams,
+    GetPostCommentsParams,
+    Profile,
+    SearchPeopleResults,
+    ProfilePost,
+    GetProfilePostsResult,
+    ConnectionCount,
+    DataConnectionCount,
+    PostComment,
+    GetPostCommentsResult,
+    ProfileResponse,
+    SearchPeopleResponse,
+    GetProfilePostsResponse,
+    ConnectionCountResponse,
+    DataConnectionCountResponse,
+    GetPostCommentsResponse,
+    PostCommentAuthor,
+    ApiResponse,
+    SimilarProfilesParams,
+    SimilarProfilesResponse,
     GetCompanyDetailsParams,
+    CompanyDetails,
     CompanyDetailsResponse,
+    CompanyHeadquarter,
     SearchCompaniesParams,
+    SearchCompaniesData,
     SearchCompaniesResponse,
     CompanyJobsParams,
+    CompanyJobsData,
     CompanyJobsResponse,
     GetCompanyPostsParams,
-    CompanyPostsResponse,
-    GetProfileEmailParams,
-    ProfileEmailResponse,
-    GetCompanyEmployeesCountParams,
-    CompanyEmployeesCountResponse,
-    SearchJobsParams,
-    SearchJobsResponse,
-    GetJobDetailsParams,
-    JobDetailsResponse,
-    GetHiringTeamParams,
-    HiringTeamResponse,
+    CompanyPostsList,
+    GetCompanyPostCommentsParams,
+    CompanyPostCommentsList,
+    SortOption,
     SearchPostsParams,
-    SearchPostsResponse,
+    SearchPostsData,
     GetPostParams,
-    GetPostResponse,
-    GetArticleParams,
-    GetArticleResponse,
-    GetArticleCommentsParams,
-    GetArticleCommentsResponse,
+    GetPostData,
+    GetJobDetailsParams,
+    JobDetails,
+    SearchJobsParams,
+    JobSearchItem,
+    JobSearchList,
     SearchLocationsParams,
-    SearchLocationsResponse
+    LocationItem,
+    LocationsList
 )
+import os
 from ..common.component_handler import load_components, prepare_components_auto
 
 class LinkedInService:
     def __init__(self, client: LinkedInClient):
         self.client = client
         self.components_data = self._load_components()
-    
+
     def _load_components(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         return load_components(current_dir)
-    
+        
     def prepare_response(self, data: Any, component_name: str = None) -> ApiResponse:
         tool_name = "linkedin"
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
-    
 
     def get_profile(self, params: GetProfileParams) -> ApiResponse:
-        """Get LinkedIn profile data"""
-        username = params.username
-        response = self.client.get_profile(username)
-        transformed_profile = ProfileData(**response)
-        return self.prepare_response(transformed_profile, None)
-        
+        response = self.client.get_profile(params.username)
+        processed_data = self._process_profile_data(response)
+        validated_profile = Profile(**processed_data)
+        return self.prepare_response(validated_profile)
+    
     def search_people(self, params: SearchPeopleParams) -> ApiResponse:
-        """Search for people on LinkedIn"""
-        response = self.client.search_people(
-            keywords=params.keywords,
-            start=params.start,
-            geo=params.geo
-        )    
+        query_params = {k: v for k, v in params.model_dump().items() if v is not None}
+        response = self.client.search_people(query_params)
         
-        # Transform the raw response to match our schema
-        transformed_response = {
-            "success": True,
-            "message": "",
-            "data": {
-                "total": response.get("data", {}).get("total", 0),
-                "items": []
-            }
-        }
-        
-        # Transform items if they exist in the response
-        items = response.get("data", {}).get("items", [])
-        if items:
-            transformed_response["data"]["items"] = [
-                {
-                    "fullName": item.get("fullName", ""),
-                    "headline": item.get("headline", ""),
-                    "summary": item.get("summary", ""),
-                    "profilePicture": item.get("profilePicture", ""),
-                    "location": item.get("location", ""),
-                    "profileURL": item.get("profileURL", ""),
-                    "username": item.get("username", "")
-                }
-                for item in items
-            ]
-        
-        # Transform response data to match our schema
-        search_response = SearchPeopleResponse(**transformed_response)
-        
-        return self.prepare_response(search_response, None)
-        
+        search_data = response.get("data", {})
+        validated_results = SearchPeopleResults(
+            total=search_data.get("total", 0),
+            items=search_data.get("items", [])
+        )
+        return self.prepare_response(validated_results, "LinkedInSearchResultsCard")
+
     def get_profile_posts(self, params: GetProfilePostsParams) -> ApiResponse:
-        """Get posts from a LinkedIn profile"""
-        response = self.client.get_profile_posts(
-            username=params.username,
-            pagination_token=params.pagination_token
-        )
+        query_params = {k: v for k, v in params.model_dump().items() if v is not None}
+        response = self.client.get_profile_posts(query_params)
 
-        # Transform response data to match our schema
-        posts_response = ProfilePostsResponse(**response)
+        posts_data = response.get("data", [])
+        pagination_token = response.get("paginationToken")
+
+        validated_posts = [ProfilePost(post_data=post) for post in posts_data]
         
-        return self.prepare_response(posts_response, None)
-        
-    def get_profile_post_comments(self, params: GetProfilePostCommentsParams) -> ApiResponse:
-        """Get comments for a LinkedIn post"""
-        response = self.client.get_profile_post_comments(
-            urn=params.urn,
-            sort=params.sort,
-            page=params.page
+        result = GetProfilePostsResult(
+            items=validated_posts,
+            paginationToken=pagination_token
         )
-        
-        if response.get('data') is None:
-            response['data'] = []
-            
-        # Transform response data to match our schema
-        comments_response = ProfilePostCommentsResponse(**response)
-        
-        return self.prepare_response(comments_response, None)
-        
+        return self.prepare_response(result, "LinkedInPostsCard")
+
     def get_connection_count(self, params: GetConnectionCountParams) -> ApiResponse:
-        """Get connection count and profile information for a LinkedIn user"""
-        response = self.client.get_connection_count(
-            username=params.username
+        response = self.client.get_connection_count(params.username)
+        validated_count = ConnectionCount(**response)
+        return self.prepare_response(validated_count, "LinkedInConnectionCountCard")
+
+    def get_post_comments(self, params: GetPostCommentsParams) -> ApiResponse:
+        query_params = {k: v for k, v in params.model_dump().items() if v is not None}
+        if 'sort' in query_params:
+            query_params['sort'] = query_params['sort'].value
+            
+        response = self.client.get_post_comments(query_params)
+
+        comments_data = response.get("data", [])
+        
+        validated_comments = []
+        for comment in comments_data:
+            author_data = comment.pop('author', None)
+            validated_comment = PostComment(**comment)
+            if author_data:
+                validated_comment.author = PostCommentAuthor(author_data=author_data)
+            validated_comments.append(validated_comment)
+
+        result = GetPostCommentsResult(
+            items=validated_comments,
+            total=response.get("total"),
+            totalPage=response.get("totalPage"),
+            paginationToken=response.get("paginationToken")
         )
-        
-        # Transform response data to match our schema
-        connection_count_response = ConnectionCountResponse(**response)
-        
-        return self.prepare_response(connection_count_response, None)
-        
-    def get_data_connection_count(self, params: GetDataConnectionCountParams) -> ApiResponse:
-        """Get detailed connection count data for a LinkedIn user"""
-        response = self.client.get_data_connection_count(
-            username=params.username
-        )
-        
-        # Since the schema might be similar to ConnectionCountResponse, we'll use the same model
-        data_connection_count_response = ConnectionCountResponse(**response)
-        
-        return self.prepare_response(data_connection_count_response, None)
-        
+        return self.prepare_response(result, "LinkedInCommentsCard")
+
+    def get_similar_profiles(self, params: SimilarProfilesParams) -> ApiResponse:
+        response = self.client.get_similar_profiles(params.url)
+        validated_response = SimilarProfilesResponse(**response)
+        return self.prepare_response(validated_response, "LinkedInSimilarProfilesCard")
+
     def get_company_details(self, params: GetCompanyDetailsParams) -> ApiResponse:
-        """Get detailed information about a LinkedIn company"""
-        response = self.client.get_company_details(
-            username=params.username
-        )
-        
-        # Transform response data to match our schema
-        company_details_response = CompanyDetailsResponse(**response)
-        
-        return self.prepare_response(company_details_response, None)
-        
-    def search_companies(self, params: SearchCompaniesParams) -> ApiResponse:
-        """Search for companies on LinkedIn"""
-        response = self.client.search_companies(
-            keyword=params.keyword,
-            locations=params.locations,
-            company_sizes=params.companySizes,
-            has_jobs=params.hasJobs,
-            industries=params.industries,
-            page=params.page
-        )
-        
-        # Transform response data to match our schema
-        search_companies_response = SearchCompaniesResponse(**response)
-        
-        return self.prepare_response(search_companies_response, None)
-        
-    def get_company_jobs(self, params: CompanyJobsParams) -> ApiResponse:
-        """Get jobs from specified companies on LinkedIn"""
-        response = self.client.get_company_jobs(
-            company_ids=params.companyIds,
-            page=params.page,
-            sort=params.sort
-        )
-        
-        # Transform response data to match our schema
-        company_jobs_response = CompanyJobsResponse(**response)
-        
-        return self.prepare_response(company_jobs_response, None)
-        
-    def get_company_posts(self, params: GetCompanyPostsParams) -> ApiResponse:
-        """Get posts from a LinkedIn company"""
-        response = self.client.get_company_posts(
-            username=params.username,
-            start=params.start
-        )
-        
-        # Transform response data to match our schema
-        company_posts_response = CompanyPostsResponse(**response)
-        
-        return self.prepare_response(company_posts_response, None)
-        
-    def get_profile_email(self, params: GetProfileEmailParams) -> ApiResponse:
-        """Get email and profile data for a LinkedIn profile URL"""
-        response = self.client.get_profile_email(
-            profile_url=params.url
-        )
-        
-        # Transform response data to match our schema
-        profile_email_response = ProfileEmailResponse(**response)
-        
-        return self.prepare_response(profile_email_response, None)
-        
-    def get_company_employees_count(self, params: GetCompanyEmployeesCountParams) -> ApiResponse:
-        """Get employee count and distribution data for a LinkedIn company"""
-        response = self.client.get_company_employees_count(
-            company_id=params.companyId,
-            locations=params.locations
-        )
-        
-        # Transform response data to match our schema
-        employees_count_response = CompanyEmployeesCountResponse(**response)
-        
-        return self.prepare_response(employees_count_response, None)
+        api_response = self.client.get_company_details(params.username)
+        raw_data = api_response.get("data") if isinstance(api_response, dict) else None
 
-    def search_jobs(self, params: SearchJobsParams) -> ApiResponse:
-
-        if 'urn:li:geo:' in params.locationId:
-            location_id = params.locationId.split('urn:li:geo:')[1]
+        if not raw_data or not isinstance(raw_data, dict):
+            validated_details = CompanyDetails() 
         else:
-            location_id = params.locationId
-        
-        response = self.client.search_jobs(
-            keywords=params.keywords,
-            location_id=location_id,
-            date_posted=params.datePosted,
-            sort=params.sort
-        )
+            processed_data = {
+                "id": raw_data.get("id"),
+                "name": raw_data.get("name"),
+                "universalName": raw_data.get("universalName"),
+                "linkedinUrl": raw_data.get("linkedinUrl"),
+                "tagline": raw_data.get("tagline"),
+                "description": raw_data.get("description"),
+                "logoUrl": raw_data.get("Images", {}).get("logo"),
+                "staffCount": raw_data.get("staffCount"),
+                "headquarter": raw_data.get("headquarter"),
+                "industries": raw_data.get("industries"),
+                "specialities": raw_data.get("specialities"),
+                "website": raw_data.get("website"),
+                "followerCount": raw_data.get("followerCount"),
+                "staffCountRange": raw_data.get("staffCountRange"),
+                "fundingType": raw_data.get("fundingData", {}).get("lastFundingRound", {}).get("fundingType")
+            }
+            validated_details = CompanyDetails(**processed_data)
+            
+        return self.prepare_response(validated_details, "LinkedInCompanyCard")
 
-        if response.get('data', None) is None:
-            response['data'] = []
-        
-        # Transform response data to match our schema
-        search_jobs_response = SearchJobsResponse(**response)
-        
-        return self.prepare_response(search_jobs_response, None)
+    def search_companies(self, params: SearchCompaniesParams) -> ApiResponse:
+        payload = params.model_dump(exclude_none=True)
+        api_response = self.client.search_companies(payload)
+        response_data = api_response.get("data") if isinstance(api_response, dict) else None
 
-    def get_job_details(self, params: GetJobDetailsParams) -> ApiResponse:
-        """Get detailed information about a specific LinkedIn job"""
-        response = self.client.get_job_details(
-            job_id=params.id
-        )
+        if not response_data or not isinstance(response_data, dict):
+            validated_data = SearchCompaniesData(items=[])
+        else:
+            if response_data.get('items') is None:
+                response_data['items'] = []
+            validated_data = SearchCompaniesData(**response_data)
         
-        # Transform response data to match our schema
-        job_details_response = JobDetailsResponse(**response)
-        
-        return self.prepare_response(job_details_response, None)
+        return self.prepare_response(validated_data, "LinkedInCompanySearchResultsCard")
 
-    def get_hiring_team(self, params: GetHiringTeamParams) -> ApiResponse:
-        """Get hiring team information for a specific LinkedIn job"""
-        response = self.client.get_hiring_team(
-            job_id=params.id,
-            job_url=params.url
-        )
+    def get_company_jobs(self, params: CompanyJobsParams) -> ApiResponse:
+        payload = params.model_dump(exclude_none=True)
+        if 'sort' in payload and payload['sort'] is not None:
+             payload['sort'] = payload['sort'].value
+
+        api_response = self.client.get_company_jobs(payload)
+        response_data = api_response.get("data") if isinstance(api_response, dict) else None
         
-        # Handle case where items is None by converting to empty list
-        if response.get('data', {}).get('items') is None:
-            response['data']['items'] = []
+        if not response_data or not isinstance(response_data, dict):
+            validated_data = CompanyJobsData(items=[])
+        else:
+            if response_data.get('items') is None:
+                response_data['items'] = []
+            validated_data = CompanyJobsData(**response_data)
+            
+        return self.prepare_response(validated_data, "LinkedInCompanyJobsCard")
+
+    def get_company_posts(self, params: GetCompanyPostsParams) -> ApiResponse:
+        query_params = params.model_dump(exclude_none=True)
+        api_response = self.client.get_company_posts(query_params)
+        posts_list = []
+        if api_response.get("success") and isinstance(api_response.get("data"), list):
+            posts_list = api_response["data"]
+        else:
+            pass 
+            
+        validated_data = CompanyPostsList(posts=posts_list)
+        return self.prepare_response(validated_data, "LinkedInCompanyPostsCard")
+
+    def get_company_post_comments(self, params: GetCompanyPostCommentsParams) -> ApiResponse:
+        query_params = params.model_dump(exclude_none=True)
+        if 'sort' in query_params and query_params['sort'] is not None:
+            query_params['sort'] = query_params['sort'].value
+
+        api_response = self.client.get_company_post_comments(query_params)
+        comments_list = []
+        if api_response.get("success") and isinstance(api_response.get("data"), list):
+            comments_list = api_response["data"]
+        else:
+            pass
+
+        validated_data = CompanyPostCommentsList(comments=comments_list)
+        return self.prepare_response(validated_data, "LinkedInCompanyPostCommentsCard")
+
+    def _process_profile_data(self, response: Dict[str, Any]) -> Dict[str, Any]:
+        processed_data = {}
+        data_to_process = response
+        if isinstance(response, dict) and 'data' in response and isinstance(response['data'], dict):
+             pass
+
+        for key in Profile.__annotations__:
+            if key in data_to_process:
+                 processed_data[key] = data_to_process.get(key)
         
-        # Transform response data to match our schema
-        hiring_team_response = HiringTeamResponse(**response)
-        
-        return self.prepare_response(hiring_team_response, None)
+        return processed_data
 
     def search_posts(self, params: SearchPostsParams) -> ApiResponse:
-        """Search for posts on LinkedIn with various filters"""
-        response = self.client.search_posts(
-            keyword=params.keyword,
-            sort_by=params.sortBy,
-            date_posted=params.datePosted,
-            page=params.page,
-            content_type=params.contentType,
-            from_member=params.fromMember,
-            from_company=params.fromCompany,
-            mentions_member=params.mentionsMember,
-            mentions_organization=params.mentionsOrganization,
-            author_industry=params.authorIndustry,
-            author_company=params.authorCompany,
-            author_title=params.authorTitle
-        )
+        payload = params.model_dump(exclude_none=True)
+        if 'sortBy' in payload and payload['sortBy'] is not None:
+             payload['sortBy'] = payload['sortBy'].value
+             
+        api_response = self.client.search_posts(payload)
+        response_data = api_response.get("data") if isinstance(api_response, dict) else None
+
+        if not response_data or not isinstance(response_data, dict):
+             validated_data = SearchPostsData(items=[]) 
+        else:
+             
+             validated_data = SearchPostsData(**response_data)
+
         
-        # Transform response data to match our schema
-        search_posts_response = SearchPostsResponse(**response)
-        
-        return self.prepare_response(search_posts_response, None)
+        return self.prepare_response(validated_data, "LinkedInPostsSearchResultsCard")
 
     def get_post(self, params: GetPostParams) -> ApiResponse:
-        """Get detailed information about a specific LinkedIn post"""
-        response = self.client.get_post(
-            post_url=params.url
-        )
-        
-        # Transform response data to match our schema
-        post_response = GetPostResponse(**response)
-        
-        return self.prepare_response(post_response, None)
+        api_response = self.client.get_post(params.url)
+        response_data = api_response.get("data") if isinstance(api_response, dict) else None
 
-    def get_article(self, params: GetArticleParams) -> ApiResponse:
-        """Get detailed information about a LinkedIn article"""
-        response = self.client.get_article(
-            article_url=params.url
-        )
+        if not response_data or not isinstance(response_data, dict):
+            validated_data = None 
+        else:
+            validated_data = GetPostData(**response_data)
+            
         
-        # Transform response data to match our schema
-        article_response = GetArticleResponse(**response)
-        
-        return self.prepare_response(article_response, None)
+        return self.prepare_response(validated_data, "LinkedInPostDetailsCard")
 
-    def get_article_comments(self, params: GetArticleCommentsParams) -> ApiResponse:
-        """Get comments for a LinkedIn article"""
-        response = self.client.get_article_comments(
-            article_url=params.url,
-            page=params.page,
-            sort=params.sort
-        )
+    def get_job_details(self, params: GetJobDetailsParams) -> ApiResponse:
+        api_response = self.client.get_job_details(params.id)
         
-        # Transform response data to match our schema
-        article_comments_response = GetArticleCommentsResponse(**response)
+        if not api_response.get("success") or not isinstance(api_response.get("data"), dict):
+            validated_data = JobDetails()
+        else:
+            validated_data = JobDetails(**api_response.get("data", {}))
         
-        return self.prepare_response(article_comments_response, None)
+        return self.prepare_response(validated_data, "LinkedInJobDetailsCard")
+
+    def search_jobs(self, params: SearchJobsParams) -> ApiResponse:
+        query_params = params.model_dump(exclude_none=True)
+        api_response = self.client.search_jobs(query_params)
+        
+        job_items = []
+        total = 0
+        
+        if api_response.get("success") and isinstance(api_response.get("data"), list):
+            job_items = [JobSearchItem(**item) for item in api_response.get("data", [])]
+            total = api_response.get("total", 0)
+        
+        validated_data = JobSearchList(jobs=job_items, total=total)
+        return self.prepare_response(validated_data, "LinkedInJobSearchResultsCard")
 
     def search_locations(self, params: SearchLocationsParams) -> ApiResponse:
-        """Search for LinkedIn locations"""
-        response = self.client.search_locations(
-            keyword=params.keyword
-        )
+        api_response = self.client.search_locations(params.keyword)
         
-        # Transform response data to match our schema
-        locations_response = SearchLocationsResponse(**response)
+        location_items = []
         
-        return self.prepare_response(locations_response, None)
+        if api_response.get("success") and isinstance(api_response.get("data"), dict):
+            items = api_response.get("data", {}).get("items", [])
+            location_items = [LocationItem(**item) for item in items]
+        
+        validated_data = LocationsList(locations=location_items)
+        return self.prepare_response(validated_data, "LinkedInLocationsCard")
