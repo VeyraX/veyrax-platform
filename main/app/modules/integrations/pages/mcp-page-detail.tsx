@@ -7,9 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
-import { getMcpDetailsByImageName, getGitHubRepoInfo, getMcpDeployments, getUserMcpEnvironment } from "@/app/modules/integrations/api/api.integrations.mcp";
+import { 
+  getMcpDetailsByImageName, 
+  getGitHubRepoInfo, 
+  getMcpDeployments, 
+  getUserMcpEnvironment, 
+  getUserApiKey 
+} from "@/app/modules/integrations/api/api.integrations.mcp";
 import { McpOverview } from "../components/mcp/mcp-overview";
-import { McpUsage } from "../components/mcp/mcp-installation";
+import { McpUsage } from "../components/mcp/mcp-usage";
+import { McpInstallation } from "../components/mcp/mcp-installation";
 import { McpDocumentation } from "../components/mcp/mcp-documentation";
 import { createClient } from '@/lib/utils/supabase/client';
 import { McpDeployments } from "../components/mcp/mcp-deployments";
@@ -31,6 +38,7 @@ export default function McpViewPage({
   const [deployments, setDeployments] = useState<McpDeployment[]>([]);
   const [userMcpEnvironment, setUserMcpEnvironment] = useState<UserMcpEnvironment | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -94,12 +102,27 @@ export default function McpViewPage({
     fetchAllData();
   }, [imageName]);
   
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      const apiKey = await getUserApiKey();
+      if (apiKey) {
+        setApiKey(apiKey);
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+  
   const handleConnectionUpdate = async () => {
     if (mcpDetails) {
       const userEnv = await getUserMcpEnvironment(mcpDetails.id);
       setUserMcpEnvironment(userEnv);
       setIsConnected(!!userEnv);
     }
+  };
+  
+  const handleApiKeyGenerated = (newApiKey: string) => {
+    setApiKey(newApiKey);
   };
   
   const handleBack = () => {
@@ -241,12 +264,14 @@ export default function McpViewPage({
                 
                 <div className="space-y-6">
                   {/* Right column - Installation Component */}
-                  <McpUsage 
+                  <McpInstallation 
                     imageName={imageName} 
                     mcpDetails={mcpDetails} 
                     userEnvironment={userMcpEnvironment}
                     isConnected={isConnected}
+                    apiKey={apiKey}
                     onConnectionUpdate={handleConnectionUpdate}
+                    onApiKeyGenerated={handleApiKeyGenerated}
                   />
                 </div>
               </div>

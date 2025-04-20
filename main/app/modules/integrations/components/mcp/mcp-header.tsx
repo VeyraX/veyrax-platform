@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { McpSettingsDialog } from "./mcp-settings-dialog";
-
+import { useRouter } from "next/navigation";
 interface McpHeaderProps {
   repoName: string;
   onBack: () => void;
@@ -12,12 +12,13 @@ interface McpHeaderProps {
 
 export function McpHeader({ repoName, onBack, isAuthor, repoUrl }: McpHeaderProps) {
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
       <div className="flex items-center justify-between w-full px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <button onClick={onBack} className="text-gray-700 dark:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button onClick={() => router.push("/integrations?tab=mcps")} className="text-gray-700 dark:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
             <ArrowLeft size={16} />
           </button>
           <div className="flex items-center text-sm">
@@ -25,7 +26,6 @@ export function McpHeader({ repoName, onBack, isAuthor, repoUrl }: McpHeaderProp
           </div>
         </div>
         
-        {/* Right side of the header */}
         <div className="flex items-center gap-2">
           <Button 
             size="sm"
