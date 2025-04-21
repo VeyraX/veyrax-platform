@@ -38,8 +38,8 @@ routes:
               "message": "People search results",
               "data": {
                 "total": 10,
-                "items": [
-                  {
+              "items": [
+                {
                     "fullName": "John Doe",
                     "headline": "Senior Software Engineer at Tech Company",
                     "summary": "Experienced software engineer with expertise in cloud technologies",
@@ -140,7 +140,7 @@ routes:
                   "text": "Great post! Looking forward to learning more about this.",
                   "author": {
                     "id": 12345678,
-                    "firstName": "Jane",
+                      "firstName": "Jane",
                     "lastName": "Smith",
                     "headline": "Product Manager at Tech Company",
                     "username": "janesmith",
@@ -350,11 +350,11 @@ routes:
             "data": {
               "success": true,
               "message": "Company details retrieved successfully",
-              "data": {
-                "id": "1441",
-                "name": "Google",
-                "universalName": "google",
-                "linkedinUrl": "https://www.linkedin.com/company/google/",
+            "data": {
+              "id": "1441",
+              "name": "Google",
+              "universalName": "google",
+              "linkedinUrl": "https://www.linkedin.com/company/google/",
                 "tagline": "Organizing the world's information",
                 "description": "Google's mission is to organize the world's information and make it universally accessible and useful.",
                 "type": "Public Company",
@@ -384,20 +384,20 @@ routes:
                   }
                 ],
                 "staffCount": 156000,
-                "headquarter": {
+              "headquarter": {
                   "geographicArea": "California",
                   "country": "United States",
-                  "city": "Mountain View",
+                "city": "Mountain View",
                   "postalCode": "94043",
-                  "line1": "1600 Amphitheatre Parkway"
-                },
+                "line1": "1600 Amphitheatre Parkway"
+              },
                 "locations": [],
-                "industries": [
+              "industries": [
                   "Internet",
                   "Technology",
                   "Software Development"
-                ],
-                "specialities": [
+              ],
+              "specialities": [
                   "Search",
                   "Cloud Computing",
                   "Artificial Intelligence",
@@ -465,11 +465,11 @@ routes:
             "data": {
               "success": true,
               "message": "Company search results",
-              "data": {
-                "items": [
-                  {
-                    "name": "Google",
-                    "url": "https://www.linkedin.com/company/google/",
+            "data": {
+              "items": [
+                {
+                  "name": "Google",
+                  "url": "https://www.linkedin.com/company/google/",
                     "logo": "https://media.licdn.com/dms/image/example_logo.jpg",
                     "tagline": "Organizing the world's information",
                     "location": "Mountain View, California, United States",
@@ -481,8 +481,8 @@ routes:
                     "jobsUrl": "https://www.linkedin.com/company/google/jobs/"
                   },
                   {
-                    "name": "Microsoft",
-                    "url": "https://www.linkedin.com/company/microsoft/",
+                   "name": "Microsoft",
+                   "url": "https://www.linkedin.com/company/microsoft/",
                     "logo": "https://media.licdn.com/dms/image/example_ms_logo.jpg",
                     "tagline": "Empowering every person and organization on the planet to achieve more",
                     "location": "Redmond, Washington, United States",
@@ -496,11 +496,11 @@ routes:
                 ],
                 "total": 245,
                 "totalPages": 25,
-                "currentPage": 1
+              "currentPage": 1
               }
             },
             "component": null
-          }
+            }
   - endpoint: /linkedin/company-jobs
     examples:
       - scenario: "Get Company Jobs"
@@ -516,11 +516,11 @@ routes:
             "data": {
               "success": true,
               "message": "Company jobs retrieved successfully",
-              "data": {
-                "items": [
-                  {
+            "data": {
+              "items": [
+                {
                     "title": "Software Engineer",
-                    "companyName": "Google",
+                  "companyName": "Google",
                     "location": "Mountain View, CA",
                     "listDate": "2024-03-20T10:30:00Z",
                     "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
@@ -533,7 +533,7 @@ routes:
                   },
                   {
                     "title": "Product Manager",
-                    "companyName": "Microsoft",
+                  "companyName": "Microsoft",
                     "location": "Redmond, WA",
                     "listDate": "2024-03-19T15:45:00Z",
                     "jobUrl": "https://www.linkedin.com/jobs/view/987654321",
@@ -854,11 +854,11 @@ routes:
             "data": {
               "success": true,
               "message": "Posts found successfully",
-              "data": {
-                "total": 150,
-                "count": 10,
-                "items": [
-                  {
+            "data": {
+              "total": 150,
+              "count": 10,
+              "items": [
+                {
                     "urn": "urn:li:activity:7123456789",
                     "url": "https://www.linkedin.com/posts/satyanadella_microsoft-ai-innovation-activity-7123456789",
                     "template": "SHARED_NEWS",
@@ -866,7 +866,7 @@ routes:
                     "postedAt": "2h",
                     "postedDate": "2024-03-20T10:00:00Z",
                     "postedDateTimestamp": 1710928800000,
-                    "reposted": false,
+                  "reposted": false,
                     "resharedPost": {},
                     "video": {
                       "thumbnails": null,
@@ -875,13 +875,13 @@ routes:
                     "entity": {},
                     "article": {},
                     "object": {},
-                    "author": {
+                  "author": {
                       "fullName": "Satya Nadella",
                       "headline": "CEO at Microsoft",
                       "username": "satyanadella",
                       "url": "https://www.linkedin.com/in/satyanadella/",
-                      "profilePictures": [
-                        {
+                    "profilePictures": [
+                      {
                           "width": 100,
                           "height": 100,
                           "url": "https://media.licdn.com/dms/image/small.jpg"
@@ -893,8 +893,8 @@ routes:
                         }
                       ],
                       "type": "PERSON"
-                    },
-                    "socialActivityCountsInsight": {
+                  },
+                  "socialActivityCountsInsight": {
                       "numComments": 150,
                       "likeCount": 2500,
                       "appreciationCount": 1200,
@@ -924,8 +924,8 @@ routes:
             "data": {
               "success": true,
               "message": "Post details retrieved successfully",
-              "data": {
-                "isBrandPartnership": false,
+            "data": {
+              "isBrandPartnership": false,
                 "text": "Excited to share our latest developments...",
                 "totalReactionCount": 5550,
                 "likeCount": 2500,
@@ -938,17 +938,17 @@ routes:
                 "postedAt": "2h",
                 "postedDate": "2024-03-20T10:00:00Z",
                 "postedDateTimestamp": 1710928800000,
-                "urn": "urn:li:activity:7219434359085252608",
+              "urn": "urn:li:activity:7219434359085252608",
                 "shareUrn": "urn:li:share:7219434359085252608",
-                "author": {
+              "author": {
                   "id": 12345678,
                   "firstName": "John",
                   "lastName": "Doe",
                   "headline": "Software Engineer at Tech Company",
                   "username": "johndoe",
                   "url": "https://www.linkedin.com/in/johndoe/",
-                  "profilePictures": [
-                    {
+                "profilePictures": [
+                  {
                       "width": 100,
                       "height": 100,
                       "url": "https://media.licdn.com/dms/image/small.jpg"
@@ -1024,7 +1024,7 @@ routes:
                     ]
                   },
                   "video": null,
-                  "company": {
+              "company": {
                     "id": 1441,
                     "name": "Microsoft",
                     "url": "https://www.linkedin.com/company/microsoft",
@@ -1148,11 +1148,11 @@ routes:
               "message": "Locations found successfully",
               "data": {
                 "items": [
-                  {
+                {
                     "id": "103644278",
-                    "name": "Berlin, Germany"
-                  },
-                  {
+                  "name": "Berlin, Germany"
+                },
+                {
                     "id": "106967825",
                     "name": "Berlin, New Hampshire, United States"
                   }

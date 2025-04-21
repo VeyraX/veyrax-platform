@@ -36,10 +36,13 @@ export function McpUsage({
 
   const jsonConfig = {
     [`veyrax-${extractedPart || "process"}`]: {
-      "command": "veyrax-deploy",
+      "command": "npx",
       "args": [
+        "-y",
+        "@veyrax/mcp-cli",
+        "deploy",
         "--sse",
-        `http://${processId || "[process_id]"}.veyraxapp.com/sse`,
+        `http://${processId || "[process_id]"}.mcp.veyraxapp.com/sse`,
         "--header",
         `VEYRAX_API_KEY:${apiKey || "API_KEY"}`
       ]
