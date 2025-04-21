@@ -1,197 +1,98 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any, Union
-
+from pydantic import BaseModel, Field, validator
+from typing import List, Optional, Dict, Any, Union
+from enum import Enum
 
 class GetProfileParams(BaseModel):
-    username: str = Field(..., description="LinkedIn username or profile ID")
-
+    username: str = Field(
+        ...,
+        description="LinkedIn username to get profile information for"
+    )
 
 class SearchPeopleParams(BaseModel):
-    keywords: str = Field(..., description="Search keywords")
-    start: Optional[int] = Field(0, description="Starting position for pagination")
-    geo: Optional[str] = Field(None, description="Geographic location IDs, comma separated")
-
+    keywords: Optional[str] = Field(
+        None,
+        description="Keywords to search for"
+    )
+    start: Optional[str] = Field(
+        "0",
+        description="Pagination start index (0, 10, 20, etc.) as a string"
+    )
+    geo: Optional[str] = Field(
+        None,
+        description="Location IDs, comma separated (e.g., 103644278,101165590)"
+    )
+    schoolId: Optional[str] = Field(
+        None,
+        description="Filter by school ID"
+    )
+    firstName: Optional[str] = Field(
+        None,
+        description="Filter by first name"
+    )
+    lastName: Optional[str] = Field(
+        None,
+        description="Filter by last name"
+    )
+    keywordSchool: Optional[str] = Field(
+        None,
+        description="Filter by school keyword"
+    )
+    keywordTitle: Optional[str] = Field(
+        None,
+        description="Filter by job title keyword"
+    )
+    company: Optional[str] = Field(
+        None,
+        description="Filter by company name"
+    )
 
 class GetProfilePostsParams(BaseModel):
+    username: str = Field(
+        ...,
+        description="LinkedIn username to get posts for"
+    )
+    start: Optional[str] = Field(
+        None,
+        description="Pagination start index (0, 50, 100, etc.) for posts"
+    )
+    paginationToken: Optional[str] = Field(
+        None,
+        description="Token from previous call for fetching next page"
+    )
+    postedAt: Optional[str] = Field(
+        None,
+        description="Filter posts newer than this date (YYYY-MM-DD HH:MM)"
+    )
+
+class GetConnectionCountParams(BaseModel):
     username: str = Field(..., description="LinkedIn username")
-    pagination_token: Optional[str] = Field(None, description="Pagination token for next page of results")
 
+class GetDataConnectionCountParams(BaseModel):
+    username: str = Field(..., description="LinkedIn username")
 
-class DateInfo(BaseModel):
-    year: Optional[int] = None
-    month: Optional[int] = None
-    day: Optional[int] = None
+class SortOption(str, Enum):
+    mostRelevant = "mostRelevant"
+    mostRecent = "mostRecent"
 
+class GetPostCommentsParams(BaseModel):
+    urn: str = Field(..., description="Post (activity) urn value")
+    sort: SortOption = Field(SortOption.mostRelevant, description="Sort order for comments")
+    page: Optional[str] = Field(None, description="Page number for pagination")
+    paginationToken: Optional[str] = Field(
+        None, 
+        description="Token from previous call for fetching next page"
+    )
 
-class Image(BaseModel):
-    url: str
-    width: Optional[int] = None
-    height: Optional[int] = None
+    @validator('page', pre=True, always=True)
+    def validate_page(cls, v):
+        if v is not None and not isinstance(v, str):
+            return str(v)
+        return v
 
+class PostCommentAuthor(BaseModel):
+    author_data: Optional[Dict[str, Any]] = None
 
-class Geo(BaseModel):
-    country: Optional[str] = None
-    city: Optional[str] = None
-    full: Optional[str] = None
-    countryCode: Optional[str] = None
-
-
-class Education(BaseModel):
-    start: Optional[DateInfo] = None
-    end: Optional[DateInfo] = None
-    fieldOfStudy: Optional[str] = None
-    degree: Optional[str] = None
-    grade: Optional[str] = None
-    schoolName: Optional[str] = None
-    description: Optional[str] = None
-    activities: Optional[str] = None
-    url: Optional[str] = None
-    schoolId: Optional[str] = None
-    logo: Optional[List[Image]] = None
-
-
-class MultiLocale(BaseModel):
-    en_US: Optional[str] = None
-    en: Optional[str] = None
-
-
-class Position(BaseModel):
-    companyId: Optional[int] = None
-    companyName: Optional[str] = None
-    companyUsername: Optional[str] = None
-    companyURL: Optional[str] = None
-    companyLogo: Optional[str] = None
-    companyIndustry: Optional[str] = None
-    companyStaffCountRange: Optional[str] = None
-    title: Optional[str] = None
-    multiLocaleTitle: Optional[MultiLocale] = None
-    multiLocaleCompanyName: Optional[MultiLocale] = None
-    location: Optional[str] = None
-    description: Optional[str] = None
-    employmentType: Optional[str] = None
-    start: Optional[DateInfo] = None
-    end: Optional[DateInfo] = None
-
-
-class Skill(BaseModel):
-    name: Optional[str] = None
-    passedSkillAssessment: Optional[bool] = None
-    endorsementsCount: Optional[int] = None
-
-
-class SupportedLocale(BaseModel):
-    country: Optional[str] = None
-    language: Optional[str] = None
-
-
-class ProfileData(BaseModel):
-    id: Optional[int] = None
-    urn: Optional[str] = None
-    username: Optional[str] = None
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
-    isTopVoice: Optional[bool] = None
-    isCreator: Optional[bool] = None
-    isPremium: Optional[bool] = None
-    profilePicture: Optional[str] = None
-    backgroundImage: Optional[List[Image]] = None
-    summary: Optional[str] = None
-    headline: Optional[str] = None
-    geo: Optional[Geo] = None
-    educations: Optional[List[Education]] = None
-    position: Optional[List[Position]] = None
-    fullPositions: Optional[List[Position]] = None
-    skills: Optional[List[Skill]] = None
-    projects: Optional[Dict[str, Any]] = None
-    supportedLocales: Optional[List[SupportedLocale]] = None
-    multiLocaleFirstName: Optional[MultiLocale] = None
-    multiLocaleLastName: Optional[MultiLocale] = None
-    multiLocaleHeadline: Optional[MultiLocale] = None
-
-
-class PersonSearchItem(BaseModel):
-    fullName: str
-    headline: Optional[str] = None
-    summary: Optional[str] = None
-    profilePicture: Optional[str] = None
-    location: Optional[str] = None
-    profileURL: Optional[str] = None
-    username: Optional[str] = None
-
-
-class SearchPeopleData(BaseModel):
-    total: int
-    items: List[PersonSearchItem] = []
-
-
-class SearchPeopleResponse(BaseModel):
-    success: bool
-    message: Optional[str] = None
-    data: SearchPeopleData
-
-
-class ProfilePicture(BaseModel):
-    width: Optional[int] = None
-    height: Optional[int] = None
-    url: Optional[str] = None
-
-
-class Author(BaseModel):
-    id: Optional[int] = None
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
-    headline: Optional[str] = None
-    username: Optional[str] = None
-    url: Optional[str] = None
-    profilePictures: Optional[List[ProfilePicture]] = None
-    urn: Optional[str] = None
-
-
-class Video(BaseModel):
-    url: Optional[str] = None
-    poster: Optional[str] = None
-    duration: Optional[int] = None
-    thumbnails: Optional[Dict[str, Any]] = None
-    video: Optional[Dict[str, Any]] = None
-
-
-class Post(BaseModel):
-    isBrandPartnership: Optional[bool] = None
-    text: Optional[str] = None
-    totalReactionCount: Optional[int] = None
-    likeCount: Optional[int] = None
-    repostsCount: Optional[int] = None
-    commentsCount: Optional[int] = None
-    postUrl: Optional[str] = None
-    shareUrl: Optional[str] = None
-    postedAt: Optional[str] = None
-    postedDate: Optional[str] = None
-    postedDateTimestamp: Optional[int] = None
-    urn: Optional[str] = None
-    author: Optional[Author] = None
-    video: Optional[List[Video]] = None
-    company: Optional[Dict[str, Any]] = None
-    document: Optional[Dict[str, Any]] = None
-    celebration: Optional[Dict[str, Any]] = None
-    poll: Optional[Dict[str, Any]] = None
-    article: Optional[Dict[str, Any]] = None
-    entity: Optional[Dict[str, Any]] = None
-
-
-class ProfilePostsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: List[Post] = []
-    paginationToken: Optional[str] = None
-
-
-class GetProfilePostCommentsParams(BaseModel):
-    urn: str = Field(..., description="LinkedIn post URN")
-    sort: Optional[str] = Field("mostRelevant", description="Sort order for comments (mostRelevant, latest)")
-    page: Optional[int] = Field(1, description="Page number for pagination")
-
-
-class Comment(BaseModel):
+class PostComment(BaseModel):
     isPinned: Optional[bool] = None
     isEdited: Optional[bool] = None
     threadUrn: Optional[str] = None
@@ -199,33 +100,108 @@ class Comment(BaseModel):
     createdAtString: Optional[str] = None
     permalink: Optional[str] = None
     text: Optional[str] = None
-    author: Optional[Dict[str, Any]] = None
+    author: Optional[PostCommentAuthor] = None
 
-
-class ProfilePostCommentsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: List[Comment] = []
+class GetPostCommentsResult(BaseModel):
+    items: List[PostComment]
     total: Optional[int] = None
     totalPage: Optional[int] = None
     paginationToken: Optional[str] = None
 
+class ProfilePosition(BaseModel):
+    companyId: Optional[int] = None
+    companyName: Optional[str] = None
+    title: Optional[str] = None
+    location: Optional[str] = None
+    description: Optional[str] = None
+    start: Optional[Dict[str, Any]] = None
+    end: Optional[Dict[str, Any]] = None
 
-class GetConnectionCountParams(BaseModel):
-    username: str = Field(..., description="LinkedIn username")
+class ProfileEducation(BaseModel):
+    schoolName: Optional[str] = None
+    fieldOfStudy: Optional[str] = None
+    degree: Optional[str] = None
+    start: Optional[Dict[str, Any]] = None
+    end: Optional[Dict[str, Any]] = None
 
+class ProfileSkill(BaseModel):
+    name: Optional[str] = None
+
+class Geo(BaseModel):
+    country: Optional[str] = None
+    city: Optional[str] = None
+    full: Optional[str] = None
+
+class ProfileImageItem(BaseModel):
+    width: Optional[int] = None
+    height: Optional[int] = None
+    url: Optional[str] = None
+
+class Profile(BaseModel):
+    id: Optional[int] = None
+    username: Optional[str] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    profilePicture: Optional[str] = None
+    backgroundImage: Optional[List[ProfileImageItem]] = None
+    isPremium: Optional[bool] = None
+    isTopVoice: Optional[bool] = None
+    isCreator: Optional[bool] = None
+    geo: Optional[Geo] = None
+    position: Optional[List[ProfilePosition]] = None
+    educations: Optional[List[ProfileEducation]] = None
+    skills: Optional[List[ProfileSkill]] = None
+
+class SearchPersonResult(BaseModel):
+    fullName: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    profilePicture: Optional[str] = None
+    location: Optional[str] = None
+    profileURL: Optional[str] = None
+    username: Optional[str] = None
+
+class ProfilePost(BaseModel):
+    post_data: Dict[str, Any]
+
+class SearchPeopleResults(BaseModel):
+    total: int
+    items: List[SearchPersonResult]
+
+class GetProfilePostsResult(BaseModel):
+    items: List[ProfilePost]
+    paginationToken: Optional[str] = None
+
+class ProfileList(BaseModel):
+    profiles: List[Profile]
+
+class ProfileResponse(BaseModel):
+    data: Profile
+
+class ProfileListResponse(BaseModel):
+    data: ProfileList
+
+class SearchPeopleResponse(BaseModel):
+    data: SearchPeopleResults
+
+class GetProfilePostsResponse(BaseModel):
+    data: GetProfilePostsResult
+
+class ConnectionCount(BaseModel):
+    connection: Optional[int] = None
+    follower: Optional[int] = None
 
 class Language(BaseModel):
     name: Optional[str] = None
     proficiency: Optional[str] = None
 
-
 class Course(BaseModel):
     name: Optional[str] = None
     number: Optional[str] = None
 
-
-class ConnectionData(BaseModel):
+class DataConnectionCountData(BaseModel):
     firstName: Optional[str] = None
     lastName: Optional[str] = None
     isOpenToWork: Optional[bool] = None
@@ -235,229 +211,323 @@ class ConnectionData(BaseModel):
     headline: Optional[str] = None
     geo: Optional[Geo] = None
     languages: Optional[List[Language]] = None
-    educations: Optional[List[Education]] = None
-    position: Optional[List[Position]] = None
-    skills: Optional[List[Skill]] = None
+    educations: Optional[List[ProfileEducation]] = None
+    position: Optional[List[ProfilePosition]] = None
+    skills: Optional[List[ProfileSkill]] = None
     courses: Optional[List[Course]] = None
 
-
-class ConnectionCountResponse(BaseModel):
+class DataConnectionCount(BaseModel):
     connection: Optional[int] = None
-    data: Optional[ConnectionData] = None
+    data: Optional[DataConnectionCountData] = None
     follower: Optional[int] = None
 
+class GetPostCommentsResponse(BaseModel):
+    data: GetPostCommentsResult
+    component: Optional[Dict[str, Any]] = None
 
-class GetDataConnectionCountParams(BaseModel):
-    username: str = Field(..., description="LinkedIn username")
+class SimilarProfilesParams(BaseModel):
+    url: str = Field(..., description="URL of the LinkedIn profile to find similar profiles for")
 
+class ProfilePicture(BaseModel):
+    url: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+
+class SimilarProfileItem(BaseModel):
+    id: Optional[int] = None
+    urn: Optional[str] = None
+    username: Optional[str] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    profilePictures: Optional[List[ProfilePicture]] = Field(None, alias='profilePictures')
+    headline: Optional[str] = None
+    geo: Optional[Dict[str, Any]] = None
+    projects: Optional[Dict[str, Any]] = None
+
+class SimilarProfilesData(BaseModel):
+    items: Optional[List[SimilarProfileItem]] = None
+
+    @validator('items', pre=True, always=True)
+    def set_items_to_empty_list_if_none(cls, v):
+        if v is None:
+            return []
+        return v
+
+class SimilarProfilesResponse(BaseModel):
+    success: bool
+    message: str
+    data: SimilarProfilesData
 
 class GetCompanyDetailsParams(BaseModel):
-    username: str = Field(..., description="LinkedIn company username")
+    username: str = Field(..., description="The company's LinkedIn page username (e.g., 'google')")
 
-
-class HeadquarterInfo(BaseModel):
-    geographicArea: Optional[str] = None
-    country: Optional[str] = None
+class CompanyHeadquarter(BaseModel):
     city: Optional[str] = None
-    postalCode: Optional[str] = None
+    country: Optional[str] = None
     line1: Optional[str] = None
 
-
-class CompanyImages(BaseModel):
-    logo: Optional[str] = None
-    cover: Optional[str] = None
-
-
-class CallToActionMessage(BaseModel):
-    textDirection: Optional[str] = None
-    text: Optional[str] = None
-
-
-class CallToAction(BaseModel):
-    callToActionType: Optional[str] = None
-    visible: Optional[bool] = None
-    callToActionMessage: Optional[CallToActionMessage] = None
-    url: Optional[str] = None
-
-
-class MoneyRaised(BaseModel):
-    currencyCode: Optional[str] = None
-    amount: Optional[str] = None
-
-
-class AnnouncedOn(BaseModel):
-    month: Optional[int] = None
-    day: Optional[int] = None
-    year: Optional[int] = None
-
-
-class LeadInvestor(BaseModel):
-    name: Optional[str] = None
-    investorCrunchbaseUrl: Optional[str] = None
-
-
-class LastFundingRound(BaseModel):
-    investorsCrunchbaseUrl: Optional[str] = None
-    leadInvestors: Optional[List[LeadInvestor]] = None
-    fundingRoundCrunchbaseUrl: Optional[str] = None
-    fundingType: Optional[str] = None
-    moneyRaised: Optional[MoneyRaised] = None
-    numOtherInvestors: Optional[int] = None
-    announcedOn: Optional[AnnouncedOn] = None
-
-
-class FundingData(BaseModel):
-    updatedAt: Optional[str] = None
-    updatedDate: Optional[str] = None
-    numFundingRounds: Optional[int] = None
-    lastFundingRound: Optional[LastFundingRound] = None
-
-
-class CompanyDetailsData(BaseModel):
+class CompanyDetails(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
     universalName: Optional[str] = None
     linkedinUrl: Optional[str] = None
     tagline: Optional[str] = None
     description: Optional[str] = None
-    type: Optional[str] = None
-    phone: Optional[str] = None
-    Images: Optional[CompanyImages] = None
-    isClaimable: Optional[bool] = None
-    backgroundCoverImages: Optional[List[Image]] = None
-    logos: Optional[List[Image]] = None
+    logoUrl: Optional[str] = None
     staffCount: Optional[int] = None
-    headquarter: Optional[HeadquarterInfo] = None
-    locations: Optional[List[Dict[str, Any]]] = None
+    headquarter: Optional[CompanyHeadquarter] = None
     industries: Optional[List[str]] = None
     specialities: Optional[List[str]] = None
     website: Optional[str] = None
-    founded: Optional[Any] = None
-    callToAction: Optional[CallToAction] = None
     followerCount: Optional[int] = None
     staffCountRange: Optional[str] = None
-    crunchbaseUrl: Optional[str] = None
-    fundingData: Optional[FundingData] = None
+    fundingType: Optional[str] = None   
 
+class CompanyDetailsApiResponse(BaseModel):
+    success: bool
+    message: str
+    data: CompanyDetails
 
 class CompanyDetailsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[CompanyDetailsData] = None
-
+    data: CompanyDetails
+    component: Optional[Dict[str, Any]] = None
 
 class SearchCompaniesParams(BaseModel):
-    keyword: Optional[str] = Field("", description="Search keyword")
-    locations: Optional[List[int]] = Field(None, description="Location IDs")
-    companySizes: Optional[List[str]] = Field(None, description="Company sizes (e.g. 'D', 'E', 'F', 'G')")
-    hasJobs: Optional[bool] = Field(None, description="Filter for companies with job listings")
-    industries: Optional[List[int]] = Field(None, description="Industry IDs")
-    page: Optional[int] = Field(1, description="Page number for pagination")
-
+    keyword: Optional[str] = Field(None, description="Keyword to search for companies")
+    locations: Optional[List[int]] = Field(None, description="List of location IDs")
+    companySizes: Optional[List[str]] = Field(None, description="List of company size codes (e.g., D, E, F, G)")
+    hasJobs: Optional[bool] = Field(None, description="Filter by companies that have job openings")
+    industries: Optional[List[int]] = Field(None, description="List of industry codes")
+    page: Optional[int] = Field(1, ge=1, description="Page number for results")
 
 class SearchCompaniesData(BaseModel):
-    items: Optional[List[Dict[str, Any]]] = []
+    items: List[Dict[str, Any]]
     total: Optional[int] = None
     totalPages: Optional[int] = None
     currentPage: Optional[int] = None
 
-
 class SearchCompaniesResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[SearchCompaniesData] = None
+    success: bool
+    message: str
+    data: SearchCompaniesData
 
+class SearchCompaniesEndpointResponse(BaseModel):
+    data: SearchCompaniesData
+    component: Optional[Dict[str, Any]] = None
+
+class ConnectionCountResponse(BaseModel):
+    data: ConnectionCount
+
+class DataConnectionCountResponse(BaseModel):
+    data: DataConnectionCount
+
+class CompanyJobsSortOption(str, Enum):
+    mostRecent = "mostRecent"
+    mostRelevant = "mostRelevant"
 
 class CompanyJobsParams(BaseModel):
-    companyIds: List[int] = Field(..., description="List of company IDs")
-    page: Optional[int] = Field(1, description="Page number for pagination")
-    sort: Optional[str] = Field("mostRecent", description="Sort order for jobs (e.g. 'mostRecent')")
+    companyIds: List[int] = Field(..., description="List of company IDs to fetch jobs for")
+    page: Optional[int] = Field(1, ge=1, description="Page number for results")
+    sort: Optional[CompanyJobsSortOption] = Field(CompanyJobsSortOption.mostRecent, description="Sorting criteria for jobs")
 
+class CompanyJobItem(BaseModel):
+    job_details: Dict[str, Any]
 
 class CompanyJobsData(BaseModel):
-    items: Optional[List[Dict[str, Any]]] = []
+    items: Optional[List[Dict[str, Any]]] = None
     total: Optional[int] = None
 
-
 class CompanyJobsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[CompanyJobsData] = None
+    success: bool
+    message: str
+    data: CompanyJobsData
+
+class CompanyJobsEndpointResponse(BaseModel):
+    data: CompanyJobsData
+    component: Optional[Dict[str, Any]] = None
+
 
 
 class GetCompanyPostsParams(BaseModel):
-    username: str = Field(..., description="LinkedIn company username")
-    start: Optional[int] = Field(0, description="Starting position for pagination")
+    username: str = Field(..., description="Company username (e.g., 'google')")
+    start: Optional[str] = Field("0", description="Pagination start index (0, 50, 100, etc.)")
+    paginationToken: Optional[str] = Field(None, description="Token from previous call for next page")
+
+class CompanyPostItem(BaseModel):
+    post_details: Dict[str, Any]
+
+class CompanyPostsList(BaseModel):
+    posts: List[Dict[str, Any]]
+
+class GetCompanyPostsApiResponse(BaseModel):
+    success: bool
+    message: str
+    data: List[Dict[str, Any]]
+
+class GetCompanyPostsEndpointResponse(BaseModel):
+    data: CompanyPostsList
+    component: Optional[Dict[str, Any]] = None
 
 
-class CompanyPostsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[List[Dict[str, Any]]] = []
 
+class GetCompanyPostCommentsParams(BaseModel):
+    urn: str = Field(..., description="Company post URN value")
+    sort: SortOption = Field(SortOption.mostRelevant, description="Sort order for comments")
+    page: Optional[str] = Field("1", description="Page number for pagination")
 
-class GetProfileEmailParams(BaseModel):
-    url: str = Field(..., description="LinkedIn profile URL")
+    @validator('page', pre=True, always=True)
+    def validate_page(cls, v):
+        if v is not None and not isinstance(v, str):
+            return str(v)
+        return v
 
+class CompanyPostCommentItem(BaseModel):
+    comment_details: Dict[str, Any]
 
-class ProfileEmailData(BaseModel):
-    emails: Optional[Any] = None
-    profileData: Optional[ProfileData] = None
+class CompanyPostCommentsList(BaseModel):
+    comments: List[Dict[str, Any]]
 
+class GetCompanyPostCommentsApiResponse(BaseModel):
+    success: bool
+    message: str
+    data: List[Dict[str, Any]]
 
-class ProfileEmailResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[ProfileEmailData] = None
+class GetCompanyPostCommentsEndpointResponse(BaseModel):
+    data: CompanyPostCommentsList
+    component: Optional[Dict[str, Any]] = None
 
+class SearchPostsSortBy(str, Enum):
+    date_posted = "date_posted"
 
-class GetCompanyEmployeesCountParams(BaseModel):
-    companyId: str = Field(..., description="LinkedIn company ID")
-    locations: List[str] = Field(default_factory=list, description="List of location IDs")
+class SearchPostsParams(BaseModel):
+    keyword: Optional[str] = Field(None, description="Keyword to search in posts")
+    sortBy: Optional[SearchPostsSortBy] = Field(None, description="Sort order for posts")
+    datePosted: Optional[str] = Field(None, description="Filter by date posted (e.g., last_24_hours, last_week)")
+    page: Optional[int] = Field(1, ge=1, description="Page number")
+    contentType: Optional[str] = Field(None, description="Filter by content type (e.g., ARTICLE, VIDEO, IMAGE)")
+    fromMember: Optional[List[str]] = Field(None, description="List of member profile URNs to filter posts from")
+    fromCompany: Optional[List[int]] = Field(None, description="List of company IDs to filter posts from")
+    mentionsMember: Optional[List[str]] = Field(None, description="List of member profile URNs mentioned in posts")
+    mentionsOrganization: Optional[List[int]] = Field(None, description="List of company IDs mentioned in posts")
+    authorIndustry: Optional[List[int]] = Field(None, description="List of author industry codes")
+    authorCompany: Optional[List[int]] = Field(None, description="List of author company IDs")
+    authorTitle: Optional[str] = Field(None, description="Filter by author job title keyword")
 
+class SearchPostsAuthor(BaseModel):
+    fullName: Optional[str] = None
+    headline: Optional[str] = None
+    username: Optional[str] = None
+    url: Optional[str] = None
+    profilePictures: Optional[List[ProfilePicture]] = None # Reusing ProfilePicture
+    type: Optional[str] = None
 
-class CompanyEmployeesGroupData(BaseModel):
-    Current_Function: Optional[List[Dict[str, Any]]] = Field(None, alias="Current Function")
-    Field_of_Study: Optional[List[Dict[str, Any]]] = Field(None, alias="Field of Study")
-    Locations: Optional[List[Dict[str, Any]]] = None
-    School: Optional[List[Dict[str, Any]]] = None
-    Service_categories: Optional[List[Dict[str, Any]]] = Field(None, alias="Service categories")
-    Skill_Explicit: Optional[List[Dict[str, Any]]] = Field(None, alias="Skill Explicit")
+class SearchPostsSocialActivity(BaseModel):
+    numComments: Optional[int] = None
+    likeCount: Optional[int] = None
+    appreciationCount: Optional[int] = None
+    empathyCount: Optional[int] = None
+    InterestCount: Optional[int] = None # Note: Case might be different in actual API
+    praiseCount: Optional[int] = None
+    funnyCount: Optional[int] = None
+    maybeCount: Optional[int] = None
+    totalReactionCount: Optional[int] = None
 
+class SearchPostsItem(BaseModel):
+    urn: Optional[str] = None
+    url: Optional[str] = None
+    template: Optional[str] = None
+    text: Optional[str] = None
+    postedAt: Optional[str] = None
+    postedDate: Optional[str] = None
+    postedDateTimestamp: Optional[int] = None
+    reposted: Optional[bool] = None
+    resharedPost: Optional[Dict[str, Any]] = None # Structure unknown
+    video: Optional[Dict[str, Any]] = None # Structure mostly null/unknown
+    entity: Optional[Dict[str, Any]] = None # Structure unknown
+    article: Optional[Dict[str, Any]] = None # Structure unknown
+    object: Optional[Dict[str, Any]] = None # Structure unknown
+    author: Optional[SearchPostsAuthor] = None
+    socialActivityCountsInsight: Optional[SearchPostsSocialActivity] = None
 
-class CompanyEmployeesCountData(BaseModel):
-    byGroup: Optional[CompanyEmployeesGroupData] = None
+class SearchPostsData(BaseModel):
     total: Optional[int] = None
+    count: Optional[int] = None
+    items: Optional[List[SearchPostsItem]] = None # Items can be null/missing
 
+    @validator('items', pre=True, always=True)
+    def set_items_to_empty_list_if_none(cls, v):
+        if v is None:
+            return []
+        return v
 
-class CompanyEmployeesCountResponse(BaseModel):
-    success: Optional[bool] = None
+class SearchPostsResponse(BaseModel): # Raw API Response
+    success: bool
     message: Optional[str] = None
-    data: Optional[CompanyEmployeesCountData] = None
+    data: Optional[SearchPostsData] = None
+
+class SearchPostsEndpointResponse(BaseModel):
+    data: Optional[SearchPostsData] = None
+    component: Optional[Dict[str, Any]] = None
 
 
-class SearchJobsParams(BaseModel):
-    keywords: str = Field(..., description="Search keywords for jobs")
-    locationId: str = Field(..., description="Location ID for job search in the format 102277331")
-    datePosted: str = Field("anyTime", description="Filter for job posting date (e.g. 'anyTime')")
-    sort: str = Field("mostRelevant", description="Sort order for results (e.g. 'mostRelevant')")
+class GetPostParams(BaseModel):
+    url: str = Field(..., description="URL of the LinkedIn post")
 
+class GetPostAuthor(BaseModel):
+    id: Optional[int] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    headline: Optional[str] = None
+    username: Optional[str] = None
+    url: Optional[str] = None
+    profilePictures: Optional[List[ProfilePicture]] = None
+    urn: Optional[str] = None
 
-class SearchJobsResponse(BaseModel):
-    success: Optional[bool] = None
+class GetPostArticle(BaseModel):
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    link: Optional[str] = None
+    newsletter: Optional[Dict[str, Any]] = None
+
+class GetPostData(BaseModel):
+    isBrandPartnership: Optional[bool] = None
+    text: Optional[str] = None
+    totalReactionCount: Optional[int] = None
+    likeCount: Optional[int] = None
+    appreciationCount: Optional[int] = None
+    empathyCount: Optional[int] = None
+    praiseCount: Optional[int] = None
+    commentsCount: Optional[int] = None
+    repostsCount: Optional[int] = None
+    shareUrl: Optional[str] = None
+    postedAt: Optional[str] = None
+    postedDate: Optional[str] = None
+    postedDateTimestamp: Optional[int] = None
+    urn: Optional[str] = None
+    shareUrn: Optional[str] = None
+    author: Optional[GetPostAuthor] = None
+    company: Optional[Dict[str, Any]] = None
+    document: Optional[Dict[str, Any]] = None
+    celebration: Optional[Dict[str, Any]] = None
+    poll: Optional[Dict[str, Any]] = None
+    article: Optional[GetPostArticle] = None
+    entity: Optional[Dict[str, Any]] = None
+
+class GetPostResponse(BaseModel):
+    success: bool
     message: Optional[str] = None
-    data: Optional[List[Dict[str, Any]]] = None
-    total: Optional[int] = None
+    data: Optional[GetPostData] = None
 
+class GetPostEndpointResponse(BaseModel):
+    data: Optional[GetPostData] = None
+    component: Optional[Dict[str, Any]] = None
 
 class GetJobDetailsParams(BaseModel):
-    id: str = Field(..., description="LinkedIn job ID")
+    id: str = Field(..., description="LinkedIn job listing ID")
 
-
-class StaffCountRange(BaseModel):
-    start: Optional[int] = None
-    end: Optional[int] = None
-
+class JobApplyMethod(BaseModel):
+    companyApplyUrl: Optional[str] = None
+    easyApplyUrl: Optional[str] = None
 
 class JobCompanyHeadquarter(BaseModel):
     geographicArea: Optional[str] = None
@@ -467,6 +537,9 @@ class JobCompanyHeadquarter(BaseModel):
     line2: Optional[str] = None
     line1: Optional[str] = None
 
+class JobCompanyStaffCountRange(BaseModel):
+    start: Optional[int] = None
+    end: Optional[int] = None
 
 class JobCompany(BaseModel):
     id: Optional[int] = None
@@ -477,31 +550,24 @@ class JobCompany(BaseModel):
     url: Optional[str] = None
     followerCount: Optional[int] = None
     staffCount: Optional[int] = None
-    staffCountRange: Optional[StaffCountRange] = None
+    staffCountRange: Optional[JobCompanyStaffCountRange] = None
     specialities: Optional[List[str]] = None
     industries: Optional[List[str]] = None
     headquarter: Optional[JobCompanyHeadquarter] = None
 
-
-class ApplyMethod(BaseModel):
-    companyApplyUrl: Optional[str] = None
-    easyApplyUrl: Optional[str] = None
-
-
-class ContentLanguage(BaseModel):
+class JobContentLanguage(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
 
-
-class JobDetailsData(BaseModel):
+class JobDetails(BaseModel):
     id: Optional[str] = None
     state: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
     url: Optional[str] = None
-    applyMethod: Optional[ApplyMethod] = None
+    applyMethod: Optional[JobApplyMethod] = None
     company: Optional[JobCompany] = None
-    contentLanguage: Optional[ContentLanguage] = None
+    contentLanguage: Optional[JobContentLanguage] = None
     location: Optional[str] = None
     type: Optional[str] = None
     applies: Optional[int] = None
@@ -519,303 +585,101 @@ class JobDetailsData(BaseModel):
     originalListedAt: Optional[int] = None
     originalListedDate: Optional[str] = None
 
+class GetJobDetailsData(BaseModel):
+    success: bool
+    message: str
+    data: JobDetails
 
-class JobDetailsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[JobDetailsData] = None
+class GetJobDetailsResponse(BaseModel):
+    data: JobDetails
+    component: Optional[Dict[str, Any]] = None
 
+class SearchJobsParams(BaseModel):
+    keywords: str = Field(..., description="Keywords to search for jobs")
+    locationId: Optional[str] = Field(None, description="Location ID for job search")
+    datePosted: Optional[str] = Field(None, description="Filter by date posted (anyTime, pastMonth, pastWeek, past24Hours)")
+    salary: Optional[str] = Field(None, description="Salary filter (e.g., 40k+, 60k+, 80k+, etc.)")
+    jobType: Optional[str] = Field(None, description="Job type (fullTime, partTime, contract, internship)")
+    experienceLevel: Optional[str] = Field(None, description="Experience level (internship, associate, director, entryLevel, midSeniorLevel, executive)")
+    titleIds: Optional[str] = Field(None, description="Comma-separated title IDs")
+    functionIds: Optional[str] = Field(None, description="Comma-separated function IDs")
+    start: Optional[str] = Field("0", description="Start index for pagination (0, 25, 50, etc.)")
+    industryIds: Optional[str] = Field(None, description="Comma-separated industry IDs")
+    onsiteRemote: Optional[str] = Field(None, description="Work setting (onSite, remote, hybrid)")
+    sort: Optional[str] = Field("mostRelevant", description="Sort option (mostRelevant, mostRecent)")
+    companyIds: Optional[str] = Field(None, description="Comma-separated company IDs")
 
-class GetHiringTeamParams(BaseModel):
-    id: str = Field(..., description="LinkedIn job ID")
-    url: str = Field(..., description="LinkedIn job URL")
-
-
-class HiringTeamMemberProfilePicture(BaseModel):
-    width: Optional[int] = None
-    height: Optional[int] = None
-    url: Optional[str] = None
-
-
-class HiringTeamMember(BaseModel):
-    fullName: Optional[str] = None
-    username: Optional[str] = None
-    url: Optional[str] = None
-    headline: Optional[str] = None
-    profilePicture: Optional[List[HiringTeamMemberProfilePicture]] = None
-
-
-class HiringTeamData(BaseModel):
-    items: List[HiringTeamMember] = []
-
-
-class HiringTeamResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[HiringTeamData] = None
-
-
-class SearchPostsParams(BaseModel):
-    keyword: Optional[str] = Field("", description="Search keyword")
-    sortBy: str = Field("date_posted", description="Sort order for posts, i.e. CHRON, REV_CHRON; can't sort by popularity or likes etc. if so, try to call search multiple times with different pages")
-    datePosted: Optional[str] = Field("", description="Filter by date posted")
-    page: Optional[int] = Field(1, description="Page number")
-    contentType: Optional[str] = Field("", description="Type of content to filter")
-    fromMember: Optional[List[str]] = Field(None, description="Filter by member URNs")
-    fromCompany: Optional[List[int]] = Field(None, description="Filter by company IDs")
-    mentionsMember: Optional[List[str]] = Field(None, description="Filter by mentioned member URNs")
-    mentionsOrganization: Optional[List[int]] = Field(None, description="Filter by mentioned organization IDs")
-    authorIndustry: Optional[List[int]] = Field(None, description="Filter by author industry IDs")
-    authorCompany: Optional[List[int]] = Field(None, description="Filter by author company IDs")
-    authorTitle: Optional[str] = Field("", description="Filter by author title")
-
-
-class PostAuthorProfilePicture(BaseModel):
-    width: Optional[int] = None
-    height: Optional[int] = None
-    url: Optional[str] = None
-
-
-class PostAuthor(BaseModel):
-    fullName: Optional[str] = None
-    headline: Optional[str] = None
-    username: Optional[str] = None
-    url: Optional[str] = None
-    profilePictures: Optional[List[PostAuthorProfilePicture]] = None
-    type: Optional[str] = None
-
-
-class SocialActivityCountsInsight(BaseModel):
-    numComments: Optional[int] = None
-    likeCount: Optional[int] = None
-    appreciationCount: Optional[int] = None
-    empathyCount: Optional[int] = None
-    InterestCount: Optional[int] = None
-    praiseCount: Optional[int] = None
-    funnyCount: Optional[int] = None
-    maybeCount: Optional[int] = None
-    totalReactionCount: Optional[int] = None
-
-
-class PostVideo(BaseModel):
-    thumbnails: Optional[Any] = None
-    video: Optional[Any] = None
-
-
-class Post(BaseModel):
-    urn: Optional[str] = None
-    url: Optional[str] = None
-    template: Optional[str] = None
-    text: Optional[str] = None
-    postedAt: Optional[str] = None
-    postedDate: Optional[str] = None
-    postedDateTimestamp: Optional[int] = None
-    reposted: Optional[bool] = None
-    resharedPost: Optional[Dict[str, Any]] = None
-    video: Optional[PostVideo] = None
-    entity: Optional[Dict[str, Any]] = None
-    article: Optional[Dict[str, Any]] = None
-    object: Optional[Dict[str, Any]] = None
-    author: Optional[PostAuthor] = None
-    socialActivityCountsInsight: Optional[SocialActivityCountsInsight] = None
-
-
-class SearchPostsData(BaseModel):
-    total: Optional[int] = None
-    count: Optional[int] = None
-    items: List[Post] = []
-
-
-class SearchPostsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[SearchPostsData] = None
-
-
-class GetPostParams(BaseModel):
-    url: str = Field(..., description="LinkedIn post URL")
-
-
-class PostArticle(BaseModel):
-    title: Optional[str] = None
-    subtitle: Optional[str] = None
-    link: Optional[str] = None
-    newsletter: Optional[Dict[str, Any]] = None
-
-
-class PostAuthorProfilePicture(BaseModel):
-    width: Optional[int] = None
-    height: Optional[int] = None
-    url: Optional[str] = None
-
-
-class PostAuthor(BaseModel):
-    id: Optional[int] = None
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
-    headline: Optional[str] = None
-    username: Optional[str] = None
-    url: Optional[str] = None
-    profilePictures: Optional[List[PostAuthorProfilePicture]] = None
-    urn: Optional[str] = None
-
-
-class PostData(BaseModel):
-    isBrandPartnership: Optional[bool] = None
-    text: Optional[str] = None
-    totalReactionCount: Optional[int] = None
-    likeCount: Optional[int] = None
-    appreciationCount: Optional[int] = None
-    empathyCount: Optional[int] = None
-    praiseCount: Optional[int] = None
-    commentsCount: Optional[int] = None
-    repostsCount: Optional[int] = None
-    shareUrl: Optional[str] = None
-    postedAt: Optional[str] = None
-    postedDate: Optional[str] = None
-    postedDateTimestamp: Optional[int] = None
-    urn: Optional[str] = None
-    shareUrn: Optional[str] = None
-    author: Optional[PostAuthor] = None
-    company: Optional[Dict[str, Any]] = None
-    document: Optional[Dict[str, Any]] = None
-    celebration: Optional[Dict[str, Any]] = None
-    poll: Optional[Dict[str, Any]] = None
-    article: Optional[PostArticle] = None
-    entity: Optional[Dict[str, Any]] = None
-
-
-class GetPostResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[PostData] = None
-
-
-class GetArticleParams(BaseModel):
-    url: str = Field(..., description="LinkedIn article URL")
-
-
-class ArticleImage(BaseModel):
+class JobSearchItem(BaseModel):
+    id: str
+    title: str
     url: str
-    width: Optional[int] = None
-    height: Optional[int] = None
+    referenceId: Optional[str] = None
+    posterId: Optional[str] = None
+    company: Optional[Dict[str, Any]] = None
+    location: Optional[str] = None
+    type: Optional[str] = None
+    postDate: Optional[str] = None
+    benefits: Optional[str] = None
 
-
-class ArticleSocialActivityCounts(BaseModel):
-    numComments: Optional[int] = None
-    likeCount: Optional[int] = None
-    appreciationCount: Optional[int] = None
-    empathyCount: Optional[int] = None
-    InterestCount: Optional[int] = None
-    praiseCount: Optional[int] = None
-    funnyCount: Optional[int] = None
-    maybeCount: Optional[int] = None
-    totalReactionCount: Optional[int] = None
-    numShares: Optional[int] = None
-
-
-class ArticleData(BaseModel):
-    urn: Optional[str] = None
-    url: Optional[str] = None
-    title: Optional[str] = None
-    images: Optional[List[ArticleImage]] = None
-    contentHTML: Optional[str] = None
-    publishedAt: Optional[int] = None
-    publishedDate: Optional[str] = None
-    totalSocialActivityCounts: Optional[ArticleSocialActivityCounts] = None
-    permalink: Optional[str] = None
-    state: Optional[str] = None
-    articleType: Optional[str] = None
-
-
-class GetArticleResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[ArticleData] = None
-
-
-class GetArticleCommentsParams(BaseModel):
-    url: str = Field(..., description="LinkedIn article URL")
-    page: Optional[int] = Field(1, description="Page number for pagination")
-    sort: Optional[str] = Field("REVERSE_CHRONOLOGICAL", description="Sort order for comments")
-
-
-class ArticleCommentAuthorProfile(BaseModel):
-    id: Optional[str] = None
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
-    headline: Optional[str] = None
-    profilePicture: Optional[List[ProfilePicture]] = None
-
-
-class ArticleComment(BaseModel):
-    text: Optional[str] = None
-    permalink: Optional[str] = None
-    authorProfile: Optional[ArticleCommentAuthorProfile] = None
-    createdAt: Optional[int] = None
-    createdDate: Optional[str] = None
-    totalSocialActivityCounts: Optional[Dict[str, Any]] = None
-
-
-class ArticleCommentsData(BaseModel):
-    currentPage: Optional[str] = None
-    items: List[ArticleComment] = []
+class JobSearchData(BaseModel):
+    items: List[JobSearchItem]
     total: Optional[int] = None
-    totalPages: Optional[int] = None
 
+class JobSearchResponse(BaseModel):
+    success: bool
+    message: str
+    data: List[JobSearchItem]
+    total: Optional[int] = None
 
-class GetArticleCommentsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[ArticleCommentsData] = None
+class JobSearchList(BaseModel):
+    jobs: List[JobSearchItem]
+    total: Optional[int] = None
 
+class JobSearchEndpointResponse(BaseModel):
+    data: JobSearchList
+    component: Optional[Dict[str, Any]] = None
 
 class SearchLocationsParams(BaseModel):
-    keyword: str = Field(..., description="Search keyword for locations")
-
+    keyword: str = Field(..., description="Location keyword to search for (e.g., 'berlin', 'new york')")
 
 class LocationItem(BaseModel):
-    id: str = Field(..., description="Location ID")
-    name: str = Field(..., description="Location name")
-
+    id: Optional[str] = None
+    name: Optional[str] = None
 
 class LocationsData(BaseModel):
-    items: List[LocationItem] = Field(default_factory=list, description="List of locations")
-
+    items: List[LocationItem]
 
 class SearchLocationsResponse(BaseModel):
-    success: Optional[bool] = None
-    message: Optional[str] = None
-    data: Optional[LocationsData] = None
+    success: bool
+    message: str
+    data: LocationsData
 
+class LocationsList(BaseModel):
+    locations: List[LocationItem]
+
+class SearchLocationsEndpointResponse(BaseModel):
+    data: LocationsList
+    component: Optional[Dict[str, Any]] = None
 
 class ApiResponse(BaseModel):
     data: Union[
-        Dict[str, Any],
-        ProfileData,
-        SearchPeopleResponse,
-        ProfilePostsResponse,
-        ProfilePostCommentsResponse,
-        ConnectionCountResponse,
-        CompanyDetailsResponse,
-        SearchCompaniesResponse,
-        CompanyJobsResponse,
-        CompanyPostsResponse,
-        ProfileEmailResponse,
-        CompanyEmployeesCountResponse,
-        SearchJobsResponse,
-        JobDetailsResponse,
-        HiringTeamResponse,
-        SearchPostsResponse,
-        GetPostResponse,
-        GetArticleResponse,
-        GetArticleCommentsResponse,
-        SearchLocationsResponse
+        Profile, 
+        ProfileList, 
+        SearchPeopleResults, 
+        GetProfilePostsResult, 
+        ConnectionCount, 
+        DataConnectionCount,
+        GetPostCommentsResult,
+        SimilarProfilesResponse,
+        CompanyDetails,
+        SearchCompaniesData,
+        CompanyJobsData,
+        CompanyPostsList,
+        CompanyPostCommentsList,
+        SearchPostsData,
+        GetPostData,
+        JobDetails,
+        JobSearchList,
+        LocationsList
     ]
-    component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = Field(
-        None,
-        description="UI components configuration for rendering results"
-    ) 
-
-
-    
+    component: Optional[Dict[str, Any]] = None

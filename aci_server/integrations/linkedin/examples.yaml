@@ -1,62 +1,139 @@
 routes:
   - endpoint: /linkedin/get_profile
     examples:
-      - scenario: "Get LinkedIn Profile"
-        description: "Retrieve details of a specific LinkedIn profile"
+      - scenario: "Get LinkedIn Profile Information"
+        description: "Retrieve profile information for a LinkedIn user"
         input_json: |
           {
-            "username": "satyanadella"
+            "username": "adamselipsky"
           }
         output_json: |
           {
             "data": {
-             "id": 467421172,
-              "urn": "ACoAABvcR_QB6ONkoRqqBvAROFVVcmZMxEpPCSg",
-              "username": "alexmsecurity",
-              "firstName": "Alex",
-              "lastName": "Varga",
-              "isTopVoice": null,
-              "isCreator": null,
-              "isPremium": false
+              "id": 12345678,
+              "username": "adamselipsky",
+              "firstName": "Adam",
+              "lastName": "Selipsky",
+              "headline": "CEO at Amazon Web Services (AWS)",
+              "profilePicture": "https://media.licdn.com/dms/image/profile-picture.jpg",
+              "isPremium": true,
+              "geo": {
+                "country": "United States",
+                "city": "Seattle",
+                "full": "Seattle, Washington, United States"
+              },
+              "position": [
+                {
+                  "companyId": 1586,
+                  "companyName": "Amazon Web Services (AWS)",
+                  "title": "Chief Executive Officer",
+                  "location": "Seattle, Washington, United States",
+                  "start": {
+                    "year": 2021,
+                    "month": 5
+                  }
+                }
+              ],
+              "educations": [
+                {
+                  "schoolName": "Harvard Business School",
+                  "degree": "Master of Business Administration (MBA)",
+                  "fieldOfStudy": "Business Administration",
+                  "start": {
+                    "year": 1991
+                  },
+                  "end": {
+                    "year": 1993
+                  }
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInProfileCard"
+            }
           }
+
   - endpoint: /linkedin/search_people
     examples:
       - scenario: "Search LinkedIn People"
-        description: "Search for people on LinkedIn based on keywords and location"
+        description: "Search for people on LinkedIn with various filters"
         input_json: |
           {
-            "keywords": "software engineer",
-            "start": 0,
+            "keywords": "max",
+            "start": "0",
             "geo": "103644278,101165590"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "People search results",
-              "data": {
-                "total": 10,
+              "total": 67,
               "items": [
                 {
-                    "fullName": "John Doe",
-                    "headline": "Senior Software Engineer at Tech Company",
-                    "summary": "Experienced software engineer with expertise in cloud technologies",
-                    "profilePicture": "https://media.licdn.com/dms/image/example.jpg",
-                    "location": "San Francisco Bay Area",
-                    "profileURL": "https://www.linkedin.com/in/johndoe/",
-                    "username": "johndoe"
-                  }
-                ]
-              }
+                  "fullName": "Max Johnson",
+                  "headline": "Software Engineer at Google",
+                  "profilePicture": "https://media.licdn.com/dms/image/profile-picture-max.jpg",
+                  "location": "San Francisco, California, United States",
+                  "profileURL": "https://www.linkedin.com/in/maxjohnson/",
+                  "username": "maxjohnson"
+                },
+                {
+                  "fullName": "Max Williams",
+                  "headline": "Product Manager at Microsoft",
+                  "profilePicture": "https://media.licdn.com/dms/image/profile-picture-williams.jpg",
+                  "location": "Seattle, Washington, United States",
+                  "profileURL": "https://www.linkedin.com/in/maxwilliams/",
+                  "username": "maxwilliams"
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInSearchResultsCard"
+            }
           }
+
   - endpoint: /linkedin/get_profile_posts
     examples:
-      - scenario: "Get LinkedIn Profile Posts"
-        description: "Retrieve posts from a specific LinkedIn profile"
+      - scenario: "Get Profile Posts"
+        description: "Retrieve the latest posts from a LinkedIn user profile"
+        input_json: |
+          {
+            "username": "adamselipsky",
+            "start": "0"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "post_data": {
+                    "postId": "urn:li:activity:7123456789012345678",
+                    "text": "Excited about the latest developments in cloud computing!",
+                    "timestamp": 1678886400000,
+                    "likes": 150,
+                    "comments": 25
+                  }
+                },
+                {
+                  "post_data": {
+                    "postId": "urn:li:activity:7123456789012345677",
+                    "text": "Great discussion at the recent tech conference.",
+                    "timestamp": 1678800000000,
+                    "likes": 120,
+                    "comments": 15
+                  }
+                }
+              ],
+              "paginationToken": "nextToken12345"
+            },
+            "component": {
+              "name": "LinkedInPostsCard"
+            }
+          }
+
+  - endpoint: /linkedin/get_connection_count
+    examples:
+      - scenario: "Get Connection Count"
+        description: "Retrieve the connection and follower counts for a user"
         input_json: |
           {
             "username": "adamselipsky"
@@ -64,283 +141,117 @@ routes:
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Profile posts retrieved successfully",
-              "data": [
-                {
-                  "isBrandPartnership": false,
-                  "text": "Excited to announce our latest product launch!",
-                  "totalReactionCount": 280,
-                  "likeCount": 230,
-                  "repostsCount": 15,
-                  "commentsCount": 45,
-                  "postUrl": "https://www.linkedin.com/posts/adamselipsky_product-launch-activity-1234567890",
-                  "shareUrl": "https://www.linkedin.com/feed/update/urn:li:activity:1234567890",
-                  "postedAt": "2d",
-                  "postedDate": "2023-05-15T14:30:00Z",
-                  "postedDateTimestamp": 1684162200000,
-                  "urn": "urn:li:activity:1234567890",
-                  "author": {
-                    "id": 12345678,
-                    "firstName": "Adam",
-                    "lastName": "Selipsky",
-                    "headline": "CEO at Amazon Web Services (AWS)",
-                    "username": "adamselipsky",
-                    "url": "https://www.linkedin.com/in/adamselipsky/",
-                    "profilePictures": [
-                      {
-                        "width": 100,
-                        "height": 100,
-                        "url": "https://media.licdn.com/dms/image/example_small.jpg"
-                      },
-                      {
-                        "width": 400,
-                        "height": 400,
-                        "url": "https://media.licdn.com/dms/image/example_large.jpg"
-                      }
-                    ],
-                    "urn": "urn:li:person:12345678"
-                  },
-                  "video": null,
-                  "company": null,
-                  "document": null,
-                  "celebration": null,
-                  "poll": null,
-                  "article": null,
-                  "entity": null
-                }
-              ],
-              "paginationToken": "next_page_token_value"
+              "connection": 500,
+              "follower": 12345
             },
-            "component": null
+            "component": {
+              "name": "LinkedInConnectionCountCard"
+            }
           }
-  - endpoint: /linkedin/get_profile_post_comments
+
+  - endpoint: /linkedin/get_post_comments
     examples:
-      - scenario: "Get LinkedIn Post Comments"
+      - scenario: "Get Post Comments"
         description: "Retrieve comments for a specific LinkedIn post"
         input_json: |
           {
             "urn": "7169084130104737792",
             "sort": "mostRelevant",
-            "page": 1
+            "page": "1"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "isPinned": false,
+                  "isEdited": false,
+                  "threadUrn": "urn:li:comment:(activity:7169084130104737792,7169084130104737793)",
+                  "createdAt": 1678900000000,
+                  "createdAtString": "2 days ago",
+                  "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7169084130104737792?commentUrn=urn:li:comment:(activity:7169084130104737792,7169084130104737793)",
+                  "text": "Great insights!",
+                  "author": {
+                    "author_data": {
+                      "firstName": "Jane",
+                      "lastName": "Doe",
+                      "headline": "Marketing Manager",
+                      "profilePicture": "https://media.licdn.com/dms/image/profile-picture-jane.jpg",
+                      "username": "janedoe"
+                    }
+                  }
+                }
+              ],
+              "total": 25,
+              "totalPage": 3,
+              "paginationToken": "nextPageTokenComment123"
+            },
+            "component": {
+              "name": "LinkedInCommentsCard"
+            }
+          }
+
+  - endpoint: /linkedin/similar_profiles
+    examples:
+      - scenario: "Find Similar Profiles"
+        description: "Find LinkedIn profiles similar to a given profile URL"
+        input_json: |
+          {
+            "url": "https://www.linkedin.com/in/williamhgates/"
           }
         output_json: |
           {
             "data": {
               "success": true,
-              "message": "Comments retrieved successfully",
-              "data": [
-                {
-                  "isPinned": false,
-                  "isEdited": false,
-                  "threadUrn": "urn:li:comment:1234567890",
-                  "createdAt": 1684162200000,
-                  "createdAtString": "2023-05-15T14:30:00Z",
-                  "permalink": "https://www.linkedin.com/feed/update/urn:li:activity:7169084130104737792?commentUrn=urn%3Ali%3Acomment%3A1234567890",
-                  "text": "Great post! Looking forward to learning more about this.",
-                  "author": {
-                    "id": 12345678,
-                      "firstName": "Jane",
-                    "lastName": "Smith",
-                    "headline": "Product Manager at Tech Company",
-                    "username": "janesmith",
-                    "url": "https://www.linkedin.com/in/janesmith/",
+              "message": "Similar profiles retrieved successfully",
+              "data": {
+                "items": [
+                  {
+                    "id": 1234567,
+                    "urn": "urn:li:profile:1234567",
+                    "username": "melindafrenchgates",
+                    "firstName": "Melinda",
+                    "lastName": "French Gates",
                     "profilePictures": [
                       {
-                        "width": 100,
-                        "height": 100,
-                        "url": "https://media.licdn.com/dms/image/example_small.jpg"
+                        "url": "https://media.licdn.com/dms/image/profile-picture-melinda.jpg",
+                        "width": 200,
+                        "height": 200
                       }
-                    ]
-                  }
-                }
-              ],
-              "total": 45,
-              "totalPage": 5,
-              "paginationToken": "next_page_token_value"
-            },
-            "component": null
-          }
-  - endpoint: /linkedin/get_connection_count
-    examples:
-      - scenario: "Get LinkedIn Connection Count"
-        description: "Retrieve connection count and profile information for a LinkedIn user"
-        input_json: |
-          {
-            "username": "adamselipsky"
-          }
-        output_json: |
-          {
-            "data": {
-              "connection": 2500,
-              "data": {
-                "firstName": "Adam",
-                "lastName": "Selipsky",
-                "isOpenToWork": false,
-                "isHiring": true,
-                "profilePicture": "https://media.licdn.com/dms/image/example.jpg",
-                "summary": "CEO at Amazon Web Services (AWS)",
-                "headline": "CEO at Amazon Web Services (AWS)",
-                "geo": {
-                  "country": "United States",
-                  "city": "Seattle",
-                  "full": "Seattle, Washington, United States"
-                },
-                "languages": [
-                  {
-                    "name": "English",
-                    "proficiency": "Native or bilingual"
-                  }
-                ],
-                "educations": [
-                  {
-                    "start": {
-                      "year": 1985,
-                      "month": 9,
-                      "day": null
-                    },
-                    "end": {
-                      "year": 1989,
-                      "month": 5,
-                      "day": null
-                    },
-                    "fieldOfStudy": "Computer Science",
-                    "degree": "Bachelor's degree",
-                    "grade": null,
-                    "schoolName": "Harvard University",
-                    "description": null,
-                    "activities": null
-                  }
-                ],
-                "position": [
-                  {
-                    "companyName": "Amazon Web Services (AWS)",
-                    "title": "CEO",
-                    "location": "Seattle, Washington, United States",
-                    "description": "Leading AWS's global operations and strategy",
-                    "employmentType": "Full-time",
-                    "start": {
-                      "year": 2021,
-                      "month": 7,
-                      "day": null
-                    },
-                    "end": null
-                  }
-                ],
-                "skills": [
-                  {
-                    "name": "Cloud Computing"
+                    ],
+                    "headline": "Co-chair, Bill & Melinda Gates Foundation",
+                    "geo": { "country": "United States", "city": "Seattle" },
+                    "projects": {}
                   },
                   {
-                    "name": "Leadership"
-                  },
-                  {
-                    "name": "Business Strategy"
-                  }
-                ],
-                "courses": [
-                  {
-                    "name": "Executive Leadership",
-                    "number": "MBA-506"
+                    "id": 9876543,
+                    "urn": "urn:li:profile:9876543",
+                    "username": "satyanadella",
+                    "firstName": "Satya",
+                    "lastName": "Nadella",
+                    "profilePictures": [
+                       {
+                        "url": "https://media.licdn.com/dms/image/profile-picture-satya.jpg",
+                        "width": 200,
+                        "height": 200
+                      }
+                    ],
+                    "headline": "Chairman and CEO at Microsoft",
+                    "geo": { "country": "United States", "city": "Bellevue" },
+                    "projects": {}
                   }
                 ]
-              },
-              "follower": 35000
+              }
             },
-            "component": null
+            "component": {
+              "name": "LinkedInSimilarProfilesCard"
+            }
           }
-  - endpoint: /linkedin/get_data_connection_count
-    examples:
-      - scenario: "Get LinkedIn Data Connection Count"
-        description: "Retrieve detailed connection count data for a LinkedIn user"
-        input_json: |
-          {
-            "username": "adamselipsky"
-          }
-        output_json: |
-          {
-            "data": {
-              "connection": 2500,
-              "data": {
-                "firstName": "Adam",
-                "lastName": "Selipsky",
-                "isOpenToWork": false,
-                "isHiring": true,
-                "profilePicture": "https://media.licdn.com/dms/image/example.jpg",
-                "summary": "CEO at Amazon Web Services (AWS)",
-                "headline": "CEO at Amazon Web Services (AWS)",
-                "geo": {
-                  "country": "United States",
-                  "city": "Seattle",
-                  "full": "Seattle, Washington, United States"
-                },
-                "languages": [
-                  {
-                    "name": "English",
-                    "proficiency": "Native or bilingual"
-                  }
-                ],
-                "educations": [
-                  {
-                    "start": {
-                      "year": 1985,
-                      "month": 9,
-                      "day": null
-                    },
-                    "end": {
-                      "year": 1989,
-                      "month": 5,
-                      "day": null
-                    },
-                    "fieldOfStudy": "Computer Science",
-                    "degree": "Bachelor's degree",
-                    "grade": null,
-                    "schoolName": "Harvard University",
-                    "description": null,
-                    "activities": null
-                  }
-                ],
-                "position": [
-                  {
-                    "companyName": "Amazon Web Services (AWS)",
-                    "title": "CEO",
-                    "location": "Seattle, Washington, United States",
-                    "description": "Leading AWS's global operations and strategy",
-                    "employmentType": "Full-time",
-                    "start": {
-                      "year": 2021,
-                      "month": 7,
-                      "day": null
-                    },
-                    "end": null
-                  }
-                ],
-                "skills": [
-                  {
-                    "name": "Cloud Computing"
-                  },
-                  {
-                    "name": "Leadership"
-                  },
-                  {
-                    "name": "Business Strategy"
-                  }
-                ],
-                "courses": [
-                  {
-                    "name": "Executive Leadership",
-                    "number": "MBA-506"
-                  }
-                ]
-              },
-              "follower": 35000
-            },
-            "component": null
-          }
+
   - endpoint: /linkedin/get_company_details
     examples:
-      - scenario: "Get LinkedIn Company Details"
-        description: "Retrieve detailed information about a LinkedIn company"
+      - scenario: "Get Google Company Details"
+        description: "Retrieve detailed information about Google's LinkedIn company page"
         input_json: |
           {
             "username": "google"
@@ -348,573 +259,319 @@ routes:
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Company details retrieved successfully",
-            "data": {
               "id": "1441",
               "name": "Google",
               "universalName": "google",
               "linkedinUrl": "https://www.linkedin.com/company/google/",
-                "tagline": "Organizing the world's information",
-                "description": "Google's mission is to organize the world's information and make it universally accessible and useful.",
-                "type": "Public Company",
-                "phone": "+1 (650) 253-0000",
-                "Images": {
-                  "logo": "https://media.licdn.com/dms/image/example_logo.jpg",
-                  "cover": "https://media.licdn.com/dms/image/example_cover.jpg"
-                },
-                "isClaimable": false,
-                "backgroundCoverImages": [
-                  {
-                    "url": "https://media.licdn.com/dms/image/example_bg.jpg",
-                    "width": 1200,
-                    "height": 400
-                  }
-                ],
-                "logos": [
-                  {
-                    "url": "https://media.licdn.com/dms/image/example_logo_sm.jpg",
-                    "width": 100,
-                    "height": 100
-                  },
-                  {
-                    "url": "https://media.licdn.com/dms/image/example_logo_lg.jpg",
-                    "width": 400,
-                    "height": 400
-                  }
-                ],
-                "staffCount": 156000,
+              "tagline": "Organizing the world's information and making it universally accessible and useful.",
+              "description": "Google is a global technology company focused on improving the ways people connect with information. Google's innovations in web search and advertising have made its website a top internet destination and its brand one of the most recognized in the world.",
+              "logoUrl": "https://media.licdn.com/dms/image/C4D0BAQFkoM0r5f_-_A/company-logo_200_200/0/1519856215309?e=1734144000&v=beta&t=EXAMPLE_TOKEN",
+              "staffCount": 293992,
               "headquarter": {
-                  "geographicArea": "California",
-                  "country": "United States",
                 "city": "Mountain View",
-                  "postalCode": "94043",
+                "country": "US",
                 "line1": "1600 Amphitheatre Parkway"
               },
-                "locations": [],
               "industries": [
-                  "Internet",
-                  "Technology",
-                  "Software Development"
+                "Software Development",
+                "Advertising Services",
+                "IT Services and IT Consulting"
               ],
               "specialities": [
-                  "Search",
-                  "Cloud Computing",
-                  "Artificial Intelligence",
-                  "Machine Learning"
-                ],
-                "website": "https://www.google.com",
-                "founded": null,
-                "callToAction": {
-                  "callToActionType": "VISIT_WEBSITE",
-                  "visible": true,
-                  "callToActionMessage": {
-                    "textDirection": "FIRST_STRONG",
-                    "text": "Visit our website"
-                  },
-                  "url": "https://www.google.com"
-                },
-                "followerCount": 28000000,
-                "staffCountRange": "10001+",
-                "crunchbaseUrl": "https://www.crunchbase.com/organization/google",
-                "fundingData": {
-                  "updatedAt": "2023-08-15T14:30:00Z",
-                  "updatedDate": "August 15, 2023",
-                  "numFundingRounds": 8,
-                  "lastFundingRound": {
-                    "investorsCrunchbaseUrl": "https://www.crunchbase.com/funding_round/google-ipo--874b0183",
-                    "leadInvestors": [
-                      {
-                        "name": "Kleiner Perkins",
-                        "investorCrunchbaseUrl": "https://www.crunchbase.com/organization/kleiner-perkins"
-                      }
-                    ],
-                    "fundingRoundCrunchbaseUrl": "https://www.crunchbase.com/funding_round/google-ipo--874b0183",
-                    "fundingType": "IPO",
-                    "moneyRaised": {
-                      "currencyCode": "USD",
-                      "amount": "1.9B"
-                    },
-                    "numOtherInvestors": 2,
-                    "announcedOn": {
-                      "month": 8,
-                      "day": 19,
-                      "year": 2004
-                    }
-                  }
-                }
-              }
+                "search",
+                "ads",
+                "mobile",
+                "android",
+                "machine learning",
+                "virtual reality",
+                "cloud",
+                "hardware",
+                "artificial intelligence",
+                "youtube",
+                "software"
+              ],
+              "website": "http://www.google.com",
+              "followerCount": 30000000,
+              "staffCountRange": "10,001+",
+              "fundingType": "Post-IPO Equity"
             },
-            "component": null
+            "component": {
+              "name": "LinkedInCompanyCard"
+            }
           }
+
   - endpoint: /linkedin/search_companies
     examples:
-      - scenario: "Search LinkedIn Companies"
-        description: "Search for companies on LinkedIn based on various criteria"
+      - scenario: "Search for Tech Companies in California with Jobs"
+        description: "Search for large tech companies in California that have job openings, focusing on software and IT industries."
         input_json: |
           {
-            "keyword": "",
-            "locations": [103644278],
-            "companySizes": ["D", "E", "F", "G"],
+            "keyword": "technology",
+            "locations": [102221965, 103644278], 
+            "companySizes": ["F", "G", "H", "I", "J"],
             "hasJobs": true,
-            "industries": [96, 4],
+            "industries": [4, 96],
             "page": 1
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Company search results",
-            "data": {
               "items": [
                 {
+                  "companyUrn": "urn:li:company:1441",
+                  "entityUrn": "urn:li:fs_salesCompany:1441",
                   "name": "Google",
-                  "url": "https://www.linkedin.com/company/google/",
-                    "logo": "https://media.licdn.com/dms/image/example_logo.jpg",
-                    "tagline": "Organizing the world's information",
-                    "location": "Mountain View, California, United States",
-                    "industry": "Technology",
-                    "employeesCount": 156000,
-                    "employeesRange": "10001+",
-                    "followerCount": 28000000,
-                    "jobsCount": 843,
-                    "jobsUrl": "https://www.linkedin.com/company/google/jobs/"
+                  "logo": {
+                    "image": {
+                      "com.linkedin.common.VectorImage": {
+                        "rootUrl": "https://media.licdn.com/dms/image/C4D0BAQFkoM0r5f_-",
+                        "artifacts": [
+                          {
+                            "width": 200,
+                            "fileIdentifyingUrlPathSegment": "company-logo_200_200/0/1519856215309?e=1734144000&v=beta&t=EXAMPLE_TOKEN",
+                            "height": 200
+                          }
+                        ]
+                      }
+                    }
                   },
-                  {
-                   "name": "Microsoft",
-                   "url": "https://www.linkedin.com/company/microsoft/",
-                    "logo": "https://media.licdn.com/dms/image/example_ms_logo.jpg",
-                    "tagline": "Empowering every person and organization on the planet to achieve more",
-                    "location": "Redmond, Washington, United States",
-                    "industry": "Technology",
-                    "employeesCount": 221000,
-                    "employeesRange": "10001+",
-                    "followerCount": 19000000,
-                    "jobsCount": 765,
-                    "jobsUrl": "https://www.linkedin.com/company/microsoft/jobs/"
+                  "url": "https://www.linkedin.com/company/google/",
+                  "employeeRange": {
+                    "start": 10001,
+                    "end": null
+                  },
+                  "headquarter": {
+                    "country": "US",
+                    "geographicArea": "California",
+                    "city": "Mountain View",
+                    "postalCode": "94043",
+                    "line1": "1600 Amphitheatre Parkway"
                   }
-                ],
-                "total": 245,
-                "totalPages": 25,
+                },
+                {
+                   "companyUrn": "urn:li:company:1035",
+                   "entityUrn": "urn:li:fs_salesCompany:1035",
+                   "name": "Microsoft",
+                   "logo": {
+                    "image": {
+                      "com.linkedin.common.VectorImage": {
+                         "rootUrl": "https://media.licdn.com/dms/image/C560BAQE88xCsONDW_A/",
+                         "artifacts": [
+                            {
+                               "width": 200,
+                               "fileIdentifyingUrlPathSegment": "company-logo_200_200/0/1651160924884/microsoft_logo?e=1734144000&v=beta&t=EXAMPLE_TOKEN",
+                               "height": 200
+                            }
+                         ]
+                      }
+                    }
+                   },
+                   "url": "https://www.linkedin.com/company/microsoft/",
+                   "employeeRange": {
+                     "start": 10001,
+                     "end": null
+                   },
+                   "headquarter": {
+                     "country": "US",
+                     "geographicArea": "Washington", 
+                     "city": "Redmond",
+                     "postalCode": "98052",
+                     "line1": "One Microsoft Way"
+                   }
+                }
+              ],
+              "total": 500,
+              "totalPages": 50,
               "currentPage": 1
-              }
             },
-            "component": null
+            "component": {
+              "name": "LinkedInCompanySearchResultsCard"
             }
-  - endpoint: /linkedin/company-jobs
+          }
+
+  - endpoint: /linkedin/company_jobs
     examples:
-      - scenario: "Get Company Jobs"
-        description: "Retrieve job listings from specified companies on LinkedIn"
+      - scenario: "Get Recent Jobs from Specific Companies"
+        description: "Retrieve the most recent job postings from Google (ID 1441) and Microsoft (ID 1035)"
         input_json: |
           {
-            "companyIds": [5383240, 2382910],
+            "companyIds": [1441, 1035],
             "page": 1,
             "sort": "mostRecent"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Company jobs retrieved successfully",
-            "data": {
               "items": [
                 {
-                    "title": "Software Engineer",
+                  "title": "Software Engineer, Cloud",
+                  "location": "Mountain View, CA",
+                  "postedTime": "2 days ago",
                   "companyName": "Google",
-                    "location": "Mountain View, CA",
-                    "listDate": "2024-03-20T10:30:00Z",
-                    "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
-                    "applyUrl": "https://careers.google.com/jobs/123456789",
-                    "employmentType": "Full-time",
-                    "experienceLevel": "Mid-Senior level",
-                    "description": "Join our engineering team to build next-generation products...",
-                    "workplaceType": "Hybrid",
-                    "applicantCount": 150
-                  },
-                  {
-                    "title": "Product Manager",
-                  "companyName": "Microsoft",
-                    "location": "Redmond, WA",
-                    "listDate": "2024-03-19T15:45:00Z",
-                    "jobUrl": "https://www.linkedin.com/jobs/view/987654321",
-                    "applyUrl": "https://careers.microsoft.com/jobs/987654321",
-                    "employmentType": "Full-time",
-                    "experienceLevel": "Senior level",
-                    "description": "Lead product development for our cloud services...",
-                    "workplaceType": "On-site",
-                    "applicantCount": 85
-                  }
-                ],
-                "total": 245
-              }
-            },
-            "component": null
-          }
-  - endpoint: /linkedin/linkedin-to-email
-    examples:
-      - scenario: "Get LinkedIn Profile Email"
-        description: "Retrieve email and profile data for a LinkedIn profile URL"
-        input_json: |
-          {
-            "url": "https://www.linkedin.com/in/taylorotwell"
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "message": "Profile data retrieved successfully",
-              "data": {
-                "emails": null,
-                "profileData": {
-                  "urn": "urn:li:fs_profile:123456789",
-                  "username": "taylorotwell",
-                  "firstName": "Taylor",
-                  "lastName": "Otwell",
-                  "isOpenToWork": false,
-                  "isHiring": false,
-                  "profilePicture": "https://media.licdn.com/dms/image/profile.jpg",
-                  "backgroundImage": null,
-                  "summary": "Creator of Laravel",
-                  "headline": "Creator of Laravel | Founder of Laravel LLC",
-                  "geo": {
-                    "country": "United States",
-                    "city": "Little Rock",
-                    "full": "Little Rock, Arkansas, United States"
-                  },
-                  "languages": null,
-                  "educations": [],
-                  "position": [],
-                  "skills": [
-                    {
-                      "name": "PHP",
-                      "passedSkillAssessment": true
-                    }
-                  ],
-                  "givenRecommendation": null,
-                  "givenRecommendationCount": 0,
-                  "receivedRecommendation": null,
-                  "receivedRecommendationCount": 0,
-                  "courses": null,
-                  "certifications": null,
-                  "honors": null,
-                  "projects": {
-                    "total": 0,
-                    "items": null
-                  },
-                  "volunteering": null,
-                  "supportedLocales": [
-                    {
-                      "country": "US",
-                      "language": "en"
-                    }
-                  ]
-                }
-              }
-            },
-            "component": null
-          }
-  - endpoint: /linkedin/get-company-employees-count
-    examples:
-      - scenario: "Get Company Employees Count"
-        description: "Retrieve employee count and distribution data for a LinkedIn company"
-        input_json: |
-          {
-            "companyId": "1441",
-            "locations": []
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "message": "Company employees count data retrieved successfully",
-              "data": {
-                "byGroup": {
-                  "Current Function": [
-                    {
-                      "name": "Engineering",
-                      "count": 45000
-                    },
-                    {
-                      "name": "Sales",
-                      "count": 15000
-                    }
-                  ],
-                  "Field of Study": [
-                    {
-                      "name": "Computer Science",
-                      "count": 35000
-                    },
-                    {
-                      "name": "Business Administration",
-                      "count": 12000
-                    }
-                  ],
-                  "Locations": [
-                    {
-                      "name": "United States",
-                      "count": 85000
-                    },
-                    {
-                      "name": "India",
-                      "count": 25000
-                    }
-                  ],
-                  "School": [
-                    {
-                      "name": "Stanford University",
-                      "count": 8000
-                    },
-                    {
-                      "name": "Massachusetts Institute of Technology",
-                      "count": 6500
-                    }
-                  ],
-                  "Service categories": [
-                    {
-                      "name": "Software Development",
-                      "count": 40000
-                    },
-                    {
-                      "name": "Cloud Computing",
-                      "count": 20000
-                    }
-                  ],
-                  "Skill Explicit": [
-                    {
-                      "name": "Python",
-                      "count": 25000
-                    },
-                    {
-                      "name": "Machine Learning",
-                      "count": 15000
-                    }
-                  ]
+                  "jobId": "3876543210",
+                  "url": "https://www.linkedin.com/jobs/view/3876543210/"
                 },
-                "total": 156000
-              }
-            },
-            "component": null
-          }
-  - endpoint: /linkedin/search-jobs
-    examples:
-      - scenario: "Search LinkedIn Jobs"
-        description: "Search for jobs on LinkedIn based on keywords and location"
-        input_json: |
-          {
-            "keywords": "golang",
-            "locationId": "92000000",
-            "datePosted": "anyTime",
-            "sort": "mostRelevant"
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "message": "Jobs found successfully",
-              "data": [
                 {
-                  "title": "Senior Golang Developer",
-                  "companyName": "Tech Company",
-                  "location": "San Francisco, CA",
-                  "listDate": "2024-03-20T10:30:00Z",
-                  "jobUrl": "https://www.linkedin.com/jobs/view/123456789",
-                  "applyUrl": "https://company.com/careers/123456789",
-                  "employmentType": "Full-time",
-                  "experienceLevel": "Senior level",
-                  "description": "Looking for an experienced Golang developer...",
-                  "workplaceType": "Remote",
-                  "applicantCount": 45
+                  "title": "Product Manager, Azure",
+                  "location": "Redmond, WA",
+                  "postedTime": "3 days ago",
+                  "companyName": "Microsoft",
+                  "jobId": "3876543211",
+                  "url": "https://www.linkedin.com/jobs/view/3876543211/"
                 }
               ],
-              "total": 150
+              "total": 1500
             },
-            "component": null
+            "component": {
+              "name": "LinkedInCompanyJobsCard"
+            }
           }
-  - endpoint: /linkedin/get-job-details
+
+  - endpoint: /linkedin/get_company_posts
     examples:
-      - scenario: Get LinkedIn Job Details
-        description: Retrieve detailed information about a specific job posting on LinkedIn
+      - scenario: "Get Latest Posts from Google Company Page"
+        description: "Retrieve the first page of posts from Google's company page"
         input_json: |
           {
-            "id": "3764678292"
+            "username": "google",
+            "start": "0"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Job details retrieved successfully", 
-              "data": {
-                "id": "3764678292",
-                "state": "ACTIVE",
-                "title": "Senior Software Engineer",
-                "description": "We are looking for an experienced Software Engineer...",
-                "url": "https://www.linkedin.com/jobs/view/3764678292",
-                "applyMethod": {
-                  "applyUrl": "https://www.linkedin.com/jobs/apply/3764678292",
-                  "directApplyUrl": "https://company.careers/job/3764678292"
+              "posts": [
+                {
+                  "urn": "urn:li:activity:7179144327430844416",
+                  "text": "Learn how AI is transforming healthcare. #AI #Healthcare",
+                  "timestamp": 1689187200000,
+                  "likes": 5000,
+                  "commentsCount": 300,
+                  "mediaUrl": "https://media.licdn.com/dms/image/google-ai-post.jpg"
                 },
-                "company": {
-                  "id": "1234567",
-                  "name": "Tech Company Inc",
-                  "url": "https://www.linkedin.com/company/tech-company-inc",
-                  "logo": "https://media.licdn.com/dms/image/company-logo.png",
-                  "staffCountRange": {
-                    "start": 1001,
-                    "end": 5000
-                  },
-                  "headquarters": {
-                    "country": "United States",
-                    "city": "San Francisco", 
-                    "state": "CA"
-                  }
-                },
-                "contentLanguage": {
-                  "locale": "en_US",
-                  "languageTag": "en"
-                },
-                "location": "San Francisco, CA",
-                "workplaceTypes": ["REMOTE", "HYBRID"],
-                "employmentType": "FULL_TIME",
-                "experienceLevel": "MID_SENIOR_LEVEL",
-                "postedAt": "2024-02-20T10:00:00Z",
-                "expiresAt": "2024-03-20T10:00:00Z",
-                "salary": {
-                  "min": 150000,
-                  "max": 200000,
-                  "currency": "USD",
-                  "period": "YEARLY"
-                },
-                "skills": ["Python", "Go", "Kubernetes", "AWS"],
-                "benefits": ["Health Insurance", "401k", "Remote Work"],
-                "applicantCount": 75
-              }
+                {
+                  "urn": "urn:li:activity:7179000000000000000",
+                  "text": "Celebrating 25 years of innovation!",
+                  "timestamp": 1689000000000,
+                  "likes": 10000,
+                  "commentsCount": 800
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInCompanyPostsCard"
+            }
           }
-  - endpoint: /linkedin/get-hiring-team
+
+  - endpoint: /linkedin/get_company_post_comments
     examples:
-      - scenario: "Get LinkedIn Job Hiring Team"
-        description: "Retrieve information about the hiring team for a specific job posting"
+      - scenario: "Get Comments for a Google Company Post"
+        description: "Retrieve the most relevant comments for a specific post on Google's company page"
         input_json: |
           {
-            "id": "3903094332",
-            "url": "https://www.linkedin.com/jobs/view/3903094332/"
+            "urn": "7179144327430844416",
+            "sort": "mostRelevant",
+            "page": "1"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Hiring team retrieved successfully",
-              "data": {
-                "items": [
-                  {
-                    "fullName": "John Doe",
-                    "username": "johndoe",
-                    "url": "https://www.linkedin.com/in/johndoe/",
-                    "headline": "Technical Recruiter at Tech Company",
-                    "profilePicture": [
-                      {
-                        "width": 100,
-                        "height": 100,
-                        "url": "https://media.licdn.com/dms/image/example_small.jpg"
-                      },
-                      {
-                        "width": 400,
-                        "height": 400,
-                        "url": "https://media.licdn.com/dms/image/example_large.jpg"
-                      }
-                    ]
-                  }
-                ]
-              }
+              "comments": [
+                {
+                  "urn": "urn:li:comment:(activity:7179144327430844416,7179144327430844417)",
+                  "text": "Great overview of AI applications in medicine!",
+                  "createdAt": 1689190800000,
+                  "author": {
+                     "firstName": "Alice",
+                     "lastName": "Wonder",
+                     "headline": "AI Researcher",
+                     "profileUrl": "https://linkedin.com/in/alicewonder"
+                   }
+                },
+                {
+                  "urn": "urn:li:comment:(activity:7179144327430844416,7179144327430844418)",
+                  "text": "Looking forward to seeing more advancements.",
+                  "createdAt": 1689194400000,
+                  "author": {
+                     "firstName": "Bob",
+                     "lastName": "Builder",
+                     "headline": "Healthcare Innovator",
+                     "profileUrl": "https://linkedin.com/in/bobbuilder"
+                   }
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInCompanyPostCommentsCard"
+            }
           }
-  - endpoint: /linkedin/search-posts
+
+  - endpoint: /linkedin/search_posts
     examples:
-      - scenario: "Search LinkedIn Posts"
-        description: "Search for posts on LinkedIn with various filters"
+      - scenario: "Search for recent Microsoft posts mentioning Google"
+        description: "Search for posts from Microsoft or Google, mentioning Google or Microsoft, sorted by date."
         input_json: |
           {
-            "keyword": "microsoft",
+            "keyword": "AI",
             "sortBy": "date_posted",
-            "datePosted": "",
-            "page": 1,
-            "contentType": "",
-            "fromMember": ["ACoAAAEkwwAB9KEc2TrQgOLEQ-vzRyZeCDyc6DQ", "ACoAAA8BYqEBCGLg_vT_ca6mMEqkpp9nVffJ3hc"],
-            "fromCompany": [1441, 1035],
-            "mentionsMember": ["ACoAAAEkwwAB9KEc2TrQgOLEQ-vzRyZeCDyc6DQ"],
-            "mentionsOrganization": [1441, 1035],
-            "authorIndustry": [96, 4],
-            "authorCompany": [1035],
-            "authorTitle": ""
+            "page": 1
           }
         output_json: |
           {
-            "data": {
-              "success": true,
-              "message": "Posts found successfully",
             "data": {
               "total": 150,
               "count": 10,
               "items": [
                 {
-                    "urn": "urn:li:activity:7123456789",
-                    "url": "https://www.linkedin.com/posts/satyanadella_microsoft-ai-innovation-activity-7123456789",
-                    "template": "SHARED_NEWS",
-                    "text": "Excited to announce our latest AI innovations...",
-                    "postedAt": "2h",
-                    "postedDate": "2024-03-20T10:00:00Z",
-                    "postedDateTimestamp": 1710928800000,
+                  "urn": "urn:li:activity:7219434359085252608",
+                  "url": "https://www.linkedin.com/feed/update/urn:li:activity:7219434359085252608/",
+                  "template": "AGGREGATE",
+                  "text": "Exploring the future of AI with insights from @Google Cloud.",
+                  "postedAt": "2 days ago",
+                  "postedDate": "2024-07-18",
+                  "postedDateTimestamp": 1721280000000,
                   "reposted": false,
-                    "resharedPost": {},
-                    "video": {
-                      "thumbnails": null,
-                      "video": null
-                    },
-                    "entity": {},
-                    "article": {},
-                    "object": {},
+                  "resharedPost": null,
+                  "video": null,
+                  "entity": null,
+                  "article": null,
+                  "object": null,
                   "author": {
-                      "fullName": "Satya Nadella",
-                      "headline": "CEO at Microsoft",
-                      "username": "satyanadella",
-                      "url": "https://www.linkedin.com/in/satyanadella/",
+                    "fullName": "Microsoft",
+                    "headline": "Computer Software",
+                    "username": "microsoft",
+                    "url": "https://www.linkedin.com/company/microsoft/",
                     "profilePictures": [
                       {
-                          "width": 100,
-                          "height": 100,
-                          "url": "https://media.licdn.com/dms/image/small.jpg"
-                        },
-                        {
-                          "width": 400,
-                          "height": 400,
-                          "url": "https://media.licdn.com/dms/image/large.jpg"
-                        }
-                      ],
-                      "type": "PERSON"
+                         "width": 200,
+                         "height": 200,
+                         "url": "https://media.licdn.com/dms/image/microsoft-logo.png"
+                      }
+                    ],
+                    "type": "company"
                   },
                   "socialActivityCountsInsight": {
-                      "numComments": 150,
-                      "likeCount": 2500,
-                      "appreciationCount": 1200,
-                      "empathyCount": 300,
-                      "InterestCount": 450,
-                      "praiseCount": 800,
-                      "funnyCount": 100,
-                      "maybeCount": 50,
-                      "totalReactionCount": 5550
-                    }
+                    "numComments": 50,
+                    "likeCount": 1200,
+                    "appreciationCount": 100,
+                    "empathyCount": 10,
+                    "InterestCount": 50,
+                    "praiseCount": 20,
+                    "funnyCount": 5,
+                    "maybeCount": 0,
+                    "totalReactionCount": 1385
                   }
-                ]
-              }
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInPostsSearchResultsCard"
+            }
           }
-  - endpoint: /linkedin/get-post
+
+  - endpoint: /linkedin/get_post
     examples:
-      - scenario: "Get LinkedIn Post Details"
-        description: "Retrieve detailed information about a specific LinkedIn post"
+      - scenario: "Get Details for a Specific LinkedIn Post"
+        description: "Retrieve details for a specific post using its URL."
         input_json: |
           {
             "url": "https://www.linkedin.com/feed/update/urn:li:activity:7219434359085252608/"
@@ -922,221 +579,170 @@ routes:
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Post details retrieved successfully",
-            "data": {
               "isBrandPartnership": false,
-                "text": "Excited to share our latest developments...",
-                "totalReactionCount": 5550,
-                "likeCount": 2500,
-                "appreciationCount": 1200,
-                "empathyCount": 300,
-                "praiseCount": 800,
-                "commentsCount": 150,
-                "repostsCount": 75,
-                "shareUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7219434359085252608/",
-                "postedAt": "2h",
-                "postedDate": "2024-03-20T10:00:00Z",
-                "postedDateTimestamp": 1710928800000,
+              "text": "Exploring the future of AI with insights from @Google Cloud.",
+              "totalReactionCount": 1385,
+              "likeCount": 1200,
+              "appreciationCount": 100,
+              "empathyCount": 10,
+              "praiseCount": 20,
+              "commentsCount": 50,
+              "repostsCount": 30,
+              "shareUrl": "https://www.linkedin.com/feed/update/urn:li:share:7219434359085252607",
+              "postedAt": "2 days ago",
+              "postedDate": "2024-07-18",
+              "postedDateTimestamp": 1721280000000,
               "urn": "urn:li:activity:7219434359085252608",
-                "shareUrn": "urn:li:share:7219434359085252608",
+              "shareUrn": "urn:li:share:7219434359085252607",
               "author": {
-                  "id": 12345678,
-                  "firstName": "John",
-                  "lastName": "Doe",
-                  "headline": "Software Engineer at Tech Company",
-                  "username": "johndoe",
-                  "url": "https://www.linkedin.com/in/johndoe/",
+                "id": 1035,
+                "firstName": null,
+                "lastName": null,
+                "headline": "Computer Software",
+                "username": "microsoft",
+                "url": "https://www.linkedin.com/company/microsoft/",
                 "profilePictures": [
                   {
-                      "width": 100,
-                      "height": 100,
-                      "url": "https://media.licdn.com/dms/image/small.jpg"
-                    },
-                    {
-                      "width": 400,
-                      "height": 400,
-                      "url": "https://media.licdn.com/dms/image/large.jpg"
-                    }
-                  ],
-                  "urn": "urn:li:person:12345678"
-                },
-                "company": {},
-                "document": {},
-                "celebration": {},
-                "poll": {},
-                "article": {
-                  "title": "New Technology Announcement",
-                  "subtitle": "Revolutionizing the Industry",
-                  "link": "https://company.com/blog/announcement",
-                  "newsletter": {}
-                },
-                "entity": {}
-              }
+                    "width": 200,
+                    "height": 200,
+                    "url": "https://media.licdn.com/dms/image/microsoft-logo.png"
+                  }
+                ],
+                "urn": "urn:li:organization:1035"
+              },
+              "company": null,
+              "document": null,
+              "celebration": null,
+              "poll": null,
+              "article": null,
+              "entity": null
             },
-            "component": null
+            "component": {
+              "name": "LinkedInPostDetailsCard"
+            }
           }
-  - endpoint: /linkedin/get_company_posts
+
+  - endpoint: /linkedin/get_job_details
     examples:
-      - scenario: "Get LinkedIn Company Posts"
-        description: "Retrieve posts from a specific LinkedIn company page"
+      - scenario: "Get Details for a LinkedIn Job"
+        description: "Retrieve detailed information about a job posting by its ID"
         input_json: |
           {
-            "username": "microsoft",
-            "start": 0
+            "id": "4090994054"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Company posts retrieved successfully",
-              "data": [
-                {
-                  "text": "Today, we're excited to announce new AI innovations...",
-                  "totalReactionCount": 5500,
-                  "likeCount": 4800,
-                  "repostsCount": 350,
-                  "commentsCount": 280,
-                  "postUrl": "https://www.linkedin.com/posts/microsoft_ai-innovation-technology-activity-1234567890",
-                  "shareUrl": "https://www.linkedin.com/feed/update/urn:li:activity:1234567890",
-                  "postedAt": "2d",
-                  "postedDate": "2024-03-18T15:30:00Z",
-                  "postedDateTimestamp": 1710772200000,
-                  "urn": "urn:li:activity:1234567890",
-                  "author": {
-                    "id": 1441,
-                    "firstName": "Microsoft",
-                    "lastName": "",
-                    "headline": "Technology Company",
-                    "username": "microsoft",
-                    "url": "https://www.linkedin.com/company/microsoft",
-                    "profilePictures": [
-                      {
-                        "width": 100,
-                        "height": 100,
-                        "url": "https://media.licdn.com/dms/image/small.jpg"
-                      },
-                      {
-                        "width": 400,
-                        "height": 400,
-                        "url": "https://media.licdn.com/dms/image/large.jpg"
-                      }
-                    ]
-                  },
-                  "video": null,
+              "id": "4090994054",
+              "state": "ACTIVE",
+              "title": "Senior Software Engineer - Golang",
+              "description": "We are looking for a skilled Golang developer to join our team...",
+              "url": "https://www.linkedin.com/jobs/view/4090994054",
+              "applyMethod": {
+                "companyApplyUrl": "https://company-careers.com/apply/4090994054",
+                "easyApplyUrl": "https://www.linkedin.com/jobs/apply/4090994054"
+              },
               "company": {
-                    "id": 1441,
-                    "name": "Microsoft",
-                    "url": "https://www.linkedin.com/company/microsoft",
-                    "logo": "https://media.licdn.com/dms/image/company_logo.jpg"
-                  },
-                  "document": null,
-                  "celebration": null,
-                  "poll": null,
-                  "article": null
-                }
-              ]
-            },
-            "component": null
-          }
-  - endpoint: /linkedin/get-article
-    examples:
-      - scenario: "Get LinkedIn Article Details"
-        description: "Retrieve detailed information about a LinkedIn article"
-        input_json: |
-          {
-            "url": "https://www.linkedin.com/pulse/hidden-costs-unreliable-electricity-bill-gates/"
-          }
-        output_json: |
-          {
-            "data": {
-              "success": true,
-              "message": "Article details retrieved successfully",
-              "data": {
-                "urn": "urn:li:article:8675309",
-                "url": "https://www.linkedin.com/pulse/hidden-costs-unreliable-electricity-bill-gates/",
-                "title": "The Hidden Costs of Unreliable Electricity",
-                "images": [
-                  {
-                    "url": "https://media.licdn.com/dms/image/article_cover.jpg",
-                    "width": 1200,
-                    "height": 630
-                  }
-                ],
-                "contentHTML": "<p>In many parts of the world, unreliable electricity...</p>",
-                "publishedAt": 1710928800000,
-                "publishedDate": "2024-03-20T10:00:00Z",
-                "totalSocialActivityCounts": {
-                  "numComments": 250,
-                  "likeCount": 5000,
-                  "appreciationCount": 2000,
-                  "empathyCount": 500,
-                  "InterestCount": 800,
-                  "praiseCount": 1200,
-                  "funnyCount": 100,
-                  "maybeCount": 50,
-                  "totalReactionCount": 9900,
-                  "numShares": 750
+                "id": 12345,
+                "name": "Tech Innovations Inc.",
+                "universalName": "tech-innovations",
+                "description": "Leading technology company focused on cloud solutions",
+                "logo": "https://media.licdn.com/dms/image/company-logo.jpg",
+                "url": "https://www.linkedin.com/company/tech-innovations/",
+                "followerCount": 50000,
+                "staffCount": 5000,
+                "staffCountRange": {
+                  "start": 1001,
+                  "end": 5000
                 },
-                "permalink": "https://www.linkedin.com/pulse/hidden-costs-unreliable-electricity-bill-gates/",
-                "state": "PUBLISHED",
-                "articleType": "PULSE"
-              }
+                "specialities": ["Cloud Computing", "Software Development", "DevOps"],
+                "industries": ["Information Technology", "Computer Software"],
+                "headquarter": {
+                  "geographicArea": "Bay Area",
+                  "country": "United States",
+                  "city": "San Francisco",
+                  "postalCode": "94105"
+                }
+              },
+              "contentLanguage": {
+                "code": "en",
+                "name": "English"
+              },
+              "location": "San Francisco, CA (Hybrid)",
+              "type": "Full-time",
+              "applies": 75,
+              "views": 1250,
+              "workRemoteAllowed": true,
+              "workPlace": "hybrid",
+              "listedAt": 1689321600000,
+              "listedAtDate": "2023-07-14",
+              "formattedJobFunctions": ["Engineering", "Information Technology"],
+              "formattedExperienceLevel": "Mid-Senior level"
             },
-            "component": null
+            "component": {
+              "name": "LinkedInJobDetailsCard"
+            }
           }
-  - endpoint: /linkedin/get-article-comments
+
+  - endpoint: /linkedin/search_jobs
     examples:
-      - scenario: "Get LinkedIn Article Comments"
-        description: "Retrieve comments for a specific LinkedIn article"
+      - scenario: "Search for Golang Jobs"
+        description: "Search for job listings with specific criteria"
         input_json: |
           {
-            "url": "https://www.linkedin.com/pulse/2024-corporate-climate-pivot-bill-gates-u89mc/",
-            "page": 1,
-            "sort": "REVERSE_CHRONOLOGICAL"
+            "keywords": "golang",
+            "locationId": "92000000",
+            "datePosted": "anyTime",
+            "jobType": "fullTime",
+            "sort": "mostRelevant"
           }
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Article comments retrieved successfully",
-              "data": {
-                "currentPage": "1",
-                "items": [
-                  {
-                    "text": "Great insights on corporate climate initiatives!",
-                    "permalink": "https://www.linkedin.com/feed/update/comment-123456",
-                    "authorProfile": {
-                      "id": "abc123",
-                      "firstName": "John",
-                      "lastName": "Doe",
-                      "headline": "Climate Tech Investor",
-                      "profilePicture": [
-                        {
-                          "width": 100,
-                          "height": 100,
-                          "url": "https://media.licdn.com/dms/image/small.jpg"
-                        }
-                      ]
-                    },
-                    "createdAt": 1710928800000,
-                    "createdDate": "2024-03-20T10:00:00Z",
-                    "totalSocialActivityCounts": {
-                      "numLikes": 25,
-                      "numReplies": 3
-                    }
-                  }
-                ],
-                "total": 150,
-                "totalPages": 15
-              }
+              "jobs": [
+                {
+                  "id": "3847401358",
+                  "title": "Go Developer",
+                  "url": "https://www.linkedin.com/jobs/view/3847401358",
+                  "referenceId": "aYFvP5j3neBOlxUSmxYANA==",
+                  "posterId": "22219443",
+                  "company": {
+                    "name": "5V Video | Certified B Corp™",
+                    "logo": "https://media.licdn.com/dms/image/company-logo.jpg",
+                    "url": "https://www.linkedin.com/company/5vvideo/life"
+                  },
+                  "location": "New York City Metropolitan Area (Hybrid)",
+                  "type": "Contract",
+                  "postDate": "1 week ago",
+                  "benefits": "$65/hr - $88/hr"
+                },
+                {
+                  "id": "3823520534",
+                  "title": "Developer Golang",
+                  "url": "https://www.linkedin.com/jobs/view/3823520534",
+                  "referenceId": "aYFvP5j3neBOlxUSmxYANA==",
+                  "posterId": "47622752",
+                  "company": {
+                    "name": "Tata Consultancy Services",
+                    "logo": "https://media.licdn.com/dms/image/company-logo.jpg",
+                    "url": "https://www.linkedin.com/company/tata-consultancy-services/life"
+                  },
+                  "location": "Weston, FL (On-site)",
+                  "type": "Full-time",
+                  "postDate": "3 weeks ago"
+                }
+              ],
+              "total": 135942
             },
-            "component": null
+            "component": {
+              "name": "LinkedInJobSearchResultsCard"
+            }
           }
-  - endpoint: /linkedin/search-locations
+
+  - endpoint: /linkedin/search_locations
     examples:
-      - scenario: "Search LinkedIn Locations"
-        description: "Search for locations on LinkedIn based on a keyword"
+      - scenario: "Search for Locations by Keyword"
+        description: "Search for LinkedIn location IDs using a keyword"
         input_json: |
           {
             "keyword": "berlin"
@@ -1144,20 +750,30 @@ routes:
         output_json: |
           {
             "data": {
-              "success": true,
-              "message": "Locations found successfully",
-              "data": {
-                "items": [
+              "locations": [
                 {
-                    "id": "103644278",
+                  "id": "106967730",
                   "name": "Berlin, Germany"
                 },
                 {
-                    "id": "106967825",
-                    "name": "Berlin, New Hampshire, United States"
-                  }
-                ]
-              }
+                  "id": "111399268",
+                  "name": "Berlin, Berlin, Germany"
+                },
+                {
+                  "id": "102307009",
+                  "name": "Berlin Area, Germany"
+                },
+                {
+                  "id": "107268498",
+                  "name": "Berlin, Connecticut, United States"
+                },
+                {
+                  "id": "108770726",
+                  "name": "Berlin, New Jersey, United States"
+                }
+              ]
             },
-            "component": null
+            "component": {
+              "name": "LinkedInLocationsCard"
+            }
           }

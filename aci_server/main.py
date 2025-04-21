@@ -197,7 +197,7 @@ INTEGRATION_ROUTERS = {
     "bybit_p2p": bybit_p2p_router,
     "okx_p2p": okx_p2p_router,
     "apollo": apollo_router,
-    "twentyfirst_dev": dev_router
+    "twentyfirst_dev": dev_router,
 }
 
 

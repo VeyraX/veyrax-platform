@@ -1,7 +1,0 @@
-{
-    "name": "LinkedIn",
-    "provider_tag": "linkedin",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//linkedin-logo.png",
-    "description": "Get posts, find jobs, explore companies on LinkedIn",
-    "auth_method": "none"
-} 
