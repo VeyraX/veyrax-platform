@@ -342,3 +342,29 @@ export const getSingleMcpRepositoryData = async (repositoryId: string) => {
     return null;
   }
 };
+
+export const getUserApiKey = async (): Promise<string | null> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return null;
+    }
+    
+    const { data, error } = await supabase
+      .from('users_api_keys')
+      .select('api_key')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (error || !data) {
+      console.error('Error fetching user API key:', error);
+      return null;
+    }
+    
+    return data.api_key;
+  } catch (error) {
+    console.error('Error fetching user API key:', error);
+    return null;
+  }
+};

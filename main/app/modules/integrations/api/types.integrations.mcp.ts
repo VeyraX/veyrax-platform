@@ -84,4 +84,5 @@ export interface UserMcpEnvironment {
   env: Record<string, string>;
   status?: 'connected' | 'connecting' | 'failed' | 'disconnected';
   error?: string | null;
+  process_id?: string;
 }
