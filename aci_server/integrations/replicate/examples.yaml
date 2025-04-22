@@ -1386,7 +1386,6 @@ routes:
         description: "Use LogoAI model to create a new brand logo"
         input_json: |
           {
-            "version": "67ed00e8999fecd32035074fa0f2e9a31ee03b57a8415e6a5e2f93a242ddd8d2",
             "input": {
               "prompt": "Minimalist tech startup logo"
             }
