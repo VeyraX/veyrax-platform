@@ -26,6 +26,7 @@ export default function DeployCreatePage() {
   const [envVars, setEnvVars] = useState<EnvVar[]>([]);
   const [isFetched, setIsFetched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [noDockerfileError, setNoDockerfileError] = useState<boolean>(false);
   const [repoName, setRepoName] = useState("");
   const [repoDescription, setRepoDescription] = useState("");
   const [mcpExists, setMcpExists] = useState(false);
@@ -36,6 +37,10 @@ export default function DeployCreatePage() {
     image_name: string;
     env: Record<string, string>;
   } | null>(null);
+  const [isGithubUrl, setIsGithubUrl] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleFetch = async () => {
     if (!githubUrl) return;
@@ -43,6 +48,7 @@ export default function DeployCreatePage() {
     setError(null);
     setMcpExists(false);
     setExistingMcpData(null);
+    setNoDockerfileError(false);
 
     try {
       const response = await fetchRepositoryMeta(githubUrl);
@@ -87,7 +93,15 @@ export default function DeployCreatePage() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch environment variables";
-      setError(errorMessage);
+      
+      if (errorMessage.includes("No Dockerfile found") || 
+          (typeof err === 'object' && err && 'detail' in err && 
+           typeof err.detail === 'string' && err.detail.includes("No Dockerfile found"))) {
+        setNoDockerfileError(true);
+      } else {
+        setError(errorMessage);
+      }
+      
       console.error("Error fetching environment variables:", err);
     } finally {
       setIsFetching(false);
@@ -151,6 +165,23 @@ export default function DeployCreatePage() {
 
   const handleSelectRepository = (repoUrl: string) => {
     setGithubUrl(repoUrl);
+    setIsGithubUrl(true);
+  };
+
+  const handleGithubUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setGithubUrl(url);
+
+    const isValidGithubUrl = url.startsWith("https://github.com/") && 
+                             url.includes("/", "https://github.com/".length);
+    
+    setIsGithubUrl(isValidGithubUrl);
+    
+    if (!isValidGithubUrl) {
+      setSearchQuery(url);
+    } else {
+      setSearchQuery("");
+    }
   };
 
   return (
@@ -172,17 +203,22 @@ export default function DeployCreatePage() {
             </div>
             <Input
               type="text"
-              placeholder="https://github.com/username/repository"
-              className="pl-10 h-10"
+              placeholder="https://github.com/username/repository or search by name"
+              className="pl-10 h-10 pr-10"
               value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
+              onChange={handleGithubUrlChange}
               disabled={isFetching || isFetched}
             />
+            {isSearching && !isGithubUrl && !isFetched && (
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
           <Button 
             variant="default" 
             onClick={handleFetch} 
-            disabled={!githubUrl || isFetching || isLoading || isFetched}
+            disabled={!githubUrl || isFetching || isLoading || isFetched || !isGithubUrl}
             className="gap-1 min-w-[90px] h-10"
           >
             {isFetching ? (
@@ -191,9 +227,30 @@ export default function DeployCreatePage() {
           </Button>
         </div>
         
-        {error && (
+        {error && !noDockerfileError && (
           <div className="mt-2 text-sm text-red-500">
             {error}
+          </div>
+        )}
+
+        {noDockerfileError && (
+          <div className="mt-6 p-4 border border-yellow-300 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700/50 rounded-lg">
+            <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-300 mb-2">
+              Missing Dockerfile
+            </h3>
+            <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
+              We couldn't find a Dockerfile in your repository. A Dockerfile is required for MCP deployment. Please add one to your repository and try again.
+            </p>
+            <Button 
+              onClick={() => {
+                setNoDockerfileError(false);
+                setGithubUrl("");
+              }}
+              variant="outline"
+              className="mt-2 text-xs h-8"
+            >
+              Try another repository
+            </Button>
           </div>
         )}
 
@@ -316,7 +373,11 @@ export default function DeployCreatePage() {
         ) : null}
 
         {!isFetched && (
-          <McpRegistry onSelect={handleSelectRepository} />
+          <McpRegistry 
+            onSelect={handleSelectRepository} 
+            externalSearchQuery={searchQuery}
+            onSearchStateChange={(searching) => setIsSearching(searching)}
+          />
         )}
       </div>
     </div>

@@ -83,7 +83,16 @@ const getRepositoryMetaFromApi = async (repoUrl: string): Promise<RepositoryMeta
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch repository metadata: ${response.statusText}`);
+      let errorDetail = `Failed to fetch repository metadata: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData && errorData.detail) {
+          errorDetail = errorData.detail;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+      }
+      throw new Error(errorDetail);
     }
 
     return await response.json();

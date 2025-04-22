@@ -8,6 +8,7 @@ import base64
 import httpx
 import json
 from typing import Dict, Any, Optional
+from .parse_repo import check_dockerfile_exists
 
 load_dotenv()
 
@@ -101,6 +102,12 @@ def generate_dockerfile_with_base64_from_repo(repo_data):
     if dockerfile_content:
         dockerfile = dockerfile_content
     else:
+        if not check_dockerfile_exists(repo_data.get("files", [])):
+            raise HTTPException(
+                status_code=400, 
+                detail="No Dockerfile found in repository. A Dockerfile is required for MCP deployment."
+            )
+            
         context = json.dumps(repo_data)
         dockerfile = generate_dockerfile(context)
     

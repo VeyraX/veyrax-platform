@@ -105,7 +105,7 @@ export function McpCard({ repository, onSelect }: McpCardProps) {
               width={12}
               height={12}
             />
-            <span className="truncate">
+            <span className="truncate max-w-[200px]">
               {new URL(source_code_url).pathname.split('/').slice(-2).join('/')}
             </span>
           </Link>

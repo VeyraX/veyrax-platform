@@ -41,4 +41,29 @@ export interface ExternalMcpRepository {
     package_download_count?: number;
     ai_generated_description?: string;
   };
+}
+
+export interface SearchResult {
+  id?: string;
+  name?: string;
+  github_url?: string;
+  short_description?: string;
+  score: number;
+}
+
+export interface SearchResponse {
+  results: SearchResult[];
+  error?: string;
+}
+
+export interface VectorMatch {
+  id: string | number;
+  score: number;
+  metadata?: {
+    id?: string;
+    name?: string;
+    source_code_url?: string;
+    short_description?: string;
+    [key: string]: any;
+  };
 } 

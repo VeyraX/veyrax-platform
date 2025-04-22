@@ -137,6 +137,23 @@ def should_skip_file(file_path: str):
     
     return False
 
+def check_dockerfile_exists(repo_files):
+    try:
+        if not repo_files or not isinstance(repo_files, list):
+            return False
+            
+        for file in repo_files:
+            if not isinstance(file, dict) or "path" not in file:
+                continue
+                
+            file_path = file.get("path", "").lower()
+            if file_path == "dockerfile" or file_path.endswith("/dockerfile") or "/dockerfile" in file_path:
+                return True
+                
+        return False
+    except Exception as e:
+        return False
+
 def generate_file_structure_tree(contents: List[Dict[str, Any]], subdir_path: str = ""):
     file_tree = {}
     workdir_parts = subdir_path.split('/') if subdir_path else []
@@ -214,13 +231,18 @@ def generate_file_structure_tree(contents: List[Dict[str, Any]], subdir_path: st
 def parse_repository(repo_url: str):
     owner, repo_name, subdir_path = parse_github_url(repo_url)
     
+    print(f"Starting to fetch repository contents for {owner}/{repo_name}")
     full_repo_contents = get_repository_contents(owner, repo_name, "")
+    print(f"Fetched {len(full_repo_contents)} files from full repository")
+    
     file_structure_tree = generate_file_structure_tree(full_repo_contents, subdir_path)
     
     contents = get_repository_contents(owner, repo_name, subdir_path)
     
     if not contents:
         print(f"Warning: No contents found in repository subdirectory: {subdir_path}")
+    else:
+        print(f"Fetched {len(contents)} files from subdirectory: {subdir_path}")
     
     contents.sort(key=lambda x: x['path'])
     
@@ -238,6 +260,8 @@ def parse_repository(repo_url: str):
     file_count = 0
     max_files = 50 
     skipped_count = 0
+    
+    print(f"Starting to process {len(contents)} repository files (max: {max_files})")
     
     for item in contents:
         if file_count >= max_files:
@@ -277,8 +301,9 @@ def parse_repository(repo_url: str):
     result["skipped_count"] = skipped_count
     
     print(f"Repository parsing completed. Added {file_count} files, skipped {skipped_count} files.")
-
-
-    print(result)
+    
+    # Check explicitly for Dockerfile before returning
+    has_dockerfile = check_dockerfile_exists(result.get("files", []))
+    print(f"Dockerfile check result: {has_dockerfile}")
     
     return result 

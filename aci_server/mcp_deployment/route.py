@@ -12,7 +12,7 @@ from .schema import (
     RepositoryMetaResponse,
     ExternalMCPResponse
 )
-from .parse_repo import parse_repository
+from .parse_repo import parse_repository, check_dockerfile_exists
 from .generate_files import (
     push_mcp_to_dockerhub,
     extract_repo_metadata,
@@ -47,21 +47,49 @@ async def generate_repository_meta_endpoint(
     is_local: bool = Query(False, description="Flag indicating if the environment variables are for local development")
 ):
     try:
-        repo_data = parse_repository(repo_url=request.repo_url)
+        try:
+            repo_data = parse_repository(repo_url=request.repo_url)
+        except Exception as repo_error:
+            error_msg = f"Failed to parse repository: {str(repo_error)}"
+            raise HTTPException(status_code=500, detail=error_msg)
         
-        context = json.dumps(repo_data)
+        try:
+            if not check_dockerfile_exists(repo_data.get("files", [])):
+                error_msg = "No Dockerfile found in repository. A Dockerfile is required for MCP deployment."
+                raise HTTPException(
+                    status_code=400, 
+                    detail=error_msg
+                )
+        except HTTPException:
+            raise
+        except Exception as docker_error:
+            error_msg = f"Error checking for Dockerfile: {str(docker_error)}"
+            raise HTTPException(status_code=500, detail=error_msg)
         
-        env_variables = extract_env_variables(context, is_local=is_local)
+        try:
+            context = json.dumps(repo_data)
+            env_variables = extract_env_variables(context, is_local=is_local)
+        except Exception as env_error:
+            error_msg = f"Failed to extract environment variables: {str(env_error)}"
+            raise HTTPException(status_code=500, detail=error_msg)
         
-        repo_metadata = extract_repo_metadata(context)
+        try:
+            repo_metadata = extract_repo_metadata(context)
+        except Exception as meta_error:
+            error_msg = f"Failed to extract repository metadata: {str(meta_error)}"
+            raise HTTPException(status_code=500, detail=error_msg)
+            
         return RepositoryMetaResponse(
             env_variables=env_variables,
             name=repo_metadata.get("name", ""),
             description=repo_metadata.get("description", ""),
             is_local=is_local
         )
+    except HTTPException as e:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate repository metadata: {str(e)}")
+        error_msg = f"Failed to generate repository metadata: {str(e)}"
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.post("/push-mcp-to-dockerhub", response_model=PushMCPResponse)
 async def push_mcp_dockerhub_endpoint(
