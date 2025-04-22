@@ -34,12 +34,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/integrations', request.url))
   }
 
+  const marketplaceMcpMatch = pathname.match(/^\/marketplace\/mcp\/([^\/]+)$/);
+  if (marketplaceMcpMatch) {
+    if (session) {
+      const mcpName = marketplaceMcpMatch[1];
+      return NextResponse.redirect(new URL(`/integrations/mcp/${mcpName}`, request.url));
+    }
+  }
+
   if (pathname === '/integrations/gmail') {
     return NextResponse.redirect(new URL('integrations/mail', request.url))
   }
 
   if (pathname === '/integrations' && !session) {
     return NextResponse.redirect(new URL('/marketplace', request.url))
+  }
+
+  const integrationsMcpMatch = pathname.match(/^\/integrations\/mcp\/([^\/]+)$/);
+  if (integrationsMcpMatch) {
+    if (!session) {
+      const mcpName = integrationsMcpMatch[1];
+      return NextResponse.redirect(new URL(`/marketplace/mcp/${mcpName}`, request.url));
+    }
   }
 
   const providerTagMatch = pathname.match(/^\/integrations\/([^\/]+)$/);
@@ -57,7 +73,8 @@ export async function middleware(request: NextRequest) {
     (pathname.startsWith('/integrations') && !isAuthCompletePath) ||
     (pathname.startsWith('/integrations/') && !isAuthCompletePath) ||
     pathname.startsWith('/flows') ||
-    (pathname.startsWith('/flow/') && !pathname.includes('/shared'))
+    (pathname.startsWith('/flow/') && !pathname.includes('/shared')) ||
+    pathname.startsWith('/deployment')
   ) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
@@ -80,10 +97,15 @@ export const config = {
     '/components/:path*',
     '/web',
     '/marketplace',
+    '/marketplace/:path*',
+    '/marketplace/mcp/:path*',
     '/integrations',
     '/integrations/:path*',
+    '/integrations/mcp/:path*',
     '/flows',
     '/flow/:path*',
     '/pricing/success',
+    '/deployment',
+    '/deployment/:path*',
   ]
 }

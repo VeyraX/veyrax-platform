@@ -54,7 +54,7 @@ const items = [
       },
       {
         title: "Deployment",
-        action: "deployment",
+        url: "/deployment/create",
         icon: <Terminal size={16} />,
       },
     ],

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Github, ArrowLeft } from "lucide-react";
+import { Loader2, Github, ArrowLeft, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository, updateMcpImageName } from "../api/api.deploy";
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
@@ -190,9 +191,20 @@ export default function DeployCreatePage() {
         <h1 className="text-4xl font-medium text-foreground">
           Deploy MCP Server
         </h1>
-        <p className="text-xl text-muted-foreground font-normal">
-          Enter a GitHub repository URL to get started
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-xl text-muted-foreground font-normal">
+            Enter a GitHub repository URL to get started
+          </p>
+          <Link 
+            href="https://docs.veyrax.com/deployment/deploy" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-primary transition-colors"
+            title="Documentation"
+          >
+            <FileText size={12} />
+          </Link>
+        </div>
       </div>
 
       <div className="w-full space-y-6">

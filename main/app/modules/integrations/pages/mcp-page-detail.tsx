@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
-import { Tool, McpDetails, McpViewPageProps, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
+import { Tool, McpDetails, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
 import { 
   getMcpDetailsByImageName, 
   getGitHubRepoInfo, 
@@ -25,9 +25,15 @@ import { McpHeader } from "../components/mcp/mcp-header";
 
 const supabase = createClient();
 
+interface McpDetailPageProps {
+  imageName: string;
+  isPublic?: boolean;
+}
+
 export default function McpViewPage({ 
-  imageName = "notion-mcp"
-}: McpViewPageProps) {
+  imageName = "notion-mcp",
+  isPublic = false
+}: McpDetailPageProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -39,6 +45,21 @@ export default function McpViewPage({
   const [userMcpEnvironment, setUserMcpEnvironment] = useState<UserMcpEnvironment | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [apiKey, setApiKey] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Check user authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      setUserId(user?.id || null);
+    };
+    
+    if (!isPublic) {
+      checkAuth();
+    }
+  }, [isPublic]);
   
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -62,14 +83,18 @@ export default function McpViewPage({
         if (data) {
           setMcpDetails(data);
           
-          // Check if user has connected this MCP
-          const userEnv = await getUserMcpEnvironment(data.id);
-          setUserMcpEnvironment(userEnv);
-          setIsConnected(!!userEnv);
+          // Check if user has connected this MCP (only if authenticated and not public)
+          if (!isPublic) {
+            const userEnv = await getUserMcpEnvironment(data.id);
+            setUserMcpEnvironment(userEnv);
+            setIsConnected(!!userEnv);
+          }
           
-          const { data: { user } } = await supabase.auth.getUser();
-          console.log("user", user);
-          setIsAuthor(user?.id === data.author_user_id);
+          // Check if the current user is the author
+          if (!isPublic) {
+            const { data: { user } } = await supabase.auth.getUser();
+            setIsAuthor(user?.id === data.author_user_id);
+          }
           
           if (data.input_schema && Array.isArray(data.input_schema)) {
             const parsedTools = data.input_schema.map((schema, index) => ({
@@ -89,8 +114,11 @@ export default function McpViewPage({
             }
           }
           
-          const deploymentData = await getMcpDeployments(data.id);
-          setDeployments(deploymentData);
+          // Only fetch deployments if not in public mode
+          if (!isPublic) {
+            const deploymentData = await getMcpDeployments(data.id);
+            setDeployments(deploymentData);
+          }
         }
       } catch (error) {
         console.error("Error fetching MCP data:", error);
@@ -100,21 +128,23 @@ export default function McpViewPage({
     };
     
     fetchAllData();
-  }, [imageName]);
+  }, [imageName, isPublic]);
   
   useEffect(() => {
     const fetchApiKey = async () => {
-      const apiKey = await getUserApiKey();
-      if (apiKey) {
-        setApiKey(apiKey);
+      if (!isPublic) {
+        const apiKey = await getUserApiKey();
+        if (apiKey) {
+          setApiKey(apiKey);
+        }
       }
     };
 
     fetchApiKey();
-  }, []);
+  }, [isPublic]);
   
   const handleConnectionUpdate = async () => {
-    if (mcpDetails) {
+    if (mcpDetails && !isPublic) {
       const userEnv = await getUserMcpEnvironment(mcpDetails.id);
       setUserMcpEnvironment(userEnv);
       setIsConnected(!!userEnv);
@@ -126,7 +156,15 @@ export default function McpViewPage({
   };
   
   const handleBack = () => {
-    router.back();
+    if (isPublic) {
+      router.push('/marketplace?tab=mcps');
+    } else {
+      router.push('/integrations?tab=mcps');
+    }
+  };
+  
+  const handleLogin = () => {
+    router.push(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`);
   };
   
   if (isLoading) {
@@ -186,15 +224,15 @@ export default function McpViewPage({
 
   return (
     <div className="h-screen overflow-hidden flex flex-col">
-      {/* Header */}
-      <McpHeader 
-        repoName={repoName}
-        onBack={handleBack}
-        isAuthor={isAuthor}
-        repoUrl={githubUrl}
-      />
+      {!isPublic && (
+        <McpHeader 
+          repoName={repoName}
+          onBack={handleBack}
+          isAuthor={isAuthor}
+          repoUrl={githubUrl}
+        />
+      )}
       
-      {/* Content */}
       <div className="flex-1 overflow-auto">
         <div className="w-full px-6 py-6">
           <Tabs 
@@ -203,7 +241,6 @@ export default function McpViewPage({
             value={activeTab}
             onValueChange={(value) => {
               setActiveTab(value);
-              // Update URL query parameter when tab changes
               const url = new URL(window.location.href);
               url.searchParams.set('tab', value);
               window.history.pushState({}, '', url);
@@ -245,11 +282,9 @@ export default function McpViewPage({
               )}
             </div>
 
-            {/* Tab Content */}
             <TabsContent value="overview" className="mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="w-full">
-                  {/* Left column - Overview Component */}
                   <McpOverview 
                     imageName={imageName}
                     mcpDetails={mcpDetails}
@@ -263,7 +298,6 @@ export default function McpViewPage({
                 </div>
                 
                 <div className="space-y-6">
-                  {/* Right column - Installation Component */}
                   <McpInstallation 
                     imageName={imageName} 
                     mcpDetails={mcpDetails} 
@@ -272,6 +306,8 @@ export default function McpViewPage({
                     apiKey={apiKey}
                     onConnectionUpdate={handleConnectionUpdate}
                     onApiKeyGenerated={handleApiKeyGenerated}
+                    onLogin={handleLogin}
+                    isPublic={isPublic}
                   />
                 </div>
               </div>

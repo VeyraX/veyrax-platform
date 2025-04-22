@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ArrowUpRight, CheckIcon, CopyIcon, AlertCircle } from "lucide-react";
+import { ArrowUpRight, CheckIcon, CopyIcon, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,6 +15,8 @@ interface McpUsageProps {
   isConnected?: boolean;
   apiKey?: string;
   onApiKeyGenerated?: (apiKey: string) => void;
+  onLogin?: () => void;
+  isPublic?: boolean;
 }
 
 export function McpUsage({ 
@@ -23,7 +25,9 @@ export function McpUsage({
   userEnvironment, 
   isConnected = false,
   apiKey,
-  onApiKeyGenerated
+  onApiKeyGenerated,
+  onLogin,
+  isPublic = false
 }: McpUsageProps) {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('cursor');
@@ -92,7 +96,7 @@ export function McpUsage({
     }
   };
 
-  const shouldShowSseUrl = isConnected && processId;
+  const shouldShowSseUrl = !isPublic && apiKey && isConnected && processId;
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800">
@@ -104,7 +108,7 @@ export function McpUsage({
           </div>
         </div>
 
-        {!apiKey && (
+        {!isPublic && apiKey === "" ? (
           <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50 flex items-center justify-between">
             <div className="flex items-center">
               <AlertCircle className="h-4 w-4 text-amber-500" />
@@ -121,7 +125,7 @@ export function McpUsage({
               {isGeneratingApiKey ? "Generating..." : "Generate"}
             </Button>
           </Alert>
-        )}
+        ) : null}
 
         {shouldShowSseUrl ? (
           <Tabs defaultValue="cursor" className="w-full">
@@ -202,7 +206,11 @@ export function McpUsage({
         ) : (
           <div className="flex items-center justify-center p-6 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
             <p className="text-sm text-muted-foreground">
-              Connect MCP to view installation commands.
+              {isPublic 
+                ? "Login to view installation commands." 
+                : !apiKey 
+                  ? "Login to view installation commands."
+                  : "Connect MCP to view installation commands."}
             </p>
           </div>
         )}

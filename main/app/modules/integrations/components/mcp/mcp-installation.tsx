@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowUpRight, Loader2, AlertCircle, RefreshCw, Plus } from "lucide-react";
+import { ArrowUpRight, Loader2, AlertCircle, RefreshCw, Plus, ExternalLink, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import { McpManage } from "./mcp-manage";
 import { McpUsage } from "./mcp-usage";
 import { McpDetails, UserMcpEnvironment } from "@/app/modules/integrations/api/types.integrations.mcp";
@@ -14,6 +15,8 @@ interface McpInstallationProps {
   onConnectionUpdate?: () => Promise<void>;
   apiKey?: string;
   onApiKeyGenerated?: (apiKey: string) => void;
+  onLogin?: () => void;
+  isPublic?: boolean;
 }
 
 export function McpInstallation({ 
@@ -23,12 +26,13 @@ export function McpInstallation({
   isConnected = false,
   onConnectionUpdate,
   apiKey,
-  onApiKeyGenerated
+  onApiKeyGenerated,
+  onLogin,
+  isPublic = false
 }: McpInstallationProps) {
   const [showManageDialog, setShowManageDialog] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Get information about connection status
   const connectionStatus = userEnvironment?.status || (isConnected ? "connected" : "disconnected");
   const connectionError = userEnvironment?.error || null;
   
@@ -88,8 +92,26 @@ export function McpInstallation({
     return null;
   };
   
-  // Function to render action button based on status
   const renderActionButton = () => {
+    if (isPublic) {
+      return null;
+    }
+    
+    // Get user authentication state
+    const hasUser = !isPublic && apiKey;
+    
+    if (!hasUser) {
+      return (
+        <Button 
+          onClick={onLogin}
+          className="gap-2"
+        >
+          Login
+          <LogIn className="h-4 w-4" />
+        </Button>
+      );
+    }
+    
     if (connectionStatus === "connecting") {
       return (
         <Button 
@@ -149,10 +171,16 @@ export function McpInstallation({
             <div className="space-y-3">
               <div>
                 <h2 className="text-xl font-medium text-foreground">Connection</h2>
-                <p className="text-muted-foreground mt-1">Connect to use this MCP in your applications</p>
+                <p className="text-muted-foreground mt-1">
+                  {isPublic 
+                    ? "Login to connect this MCP to your account" 
+                    : apiKey 
+                      ? "Connect to use this MCP in your applications" 
+                      : "Login to connect this MCP to your account"}
+                </p>
               </div>
               
-              {(connectionStatus === "connecting" || connectionStatus === "failed") && (
+              {!isPublic && apiKey && (connectionStatus === "connecting" || connectionStatus === "failed") && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Status:</span>
                   {renderConnectionStatus()}
@@ -160,7 +188,21 @@ export function McpInstallation({
               )}
             </div>
             
-            <div>
+            <div className="flex gap-2">
+              {!isPublic && apiKey && (
+                <Link 
+                  href="https://docs.veyrax.com/deployment/connect" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Button 
+                    variant="link" 
+                    className="gap-1"
+                  >
+                    Docs
+                  </Button>
+                </Link>
+              )}
               {renderActionButton()}
             </div>
           </div>
@@ -175,6 +217,8 @@ export function McpInstallation({
         isConnected={isConnected}
         apiKey={apiKey}
         onApiKeyGenerated={onApiKeyGenerated}
+        onLogin={onLogin}
+        isPublic={isPublic}
       />
 
       {/* MCP Manage Dialog */}

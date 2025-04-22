@@ -112,7 +112,11 @@ export const McpCard: FC<McpCardProps> = ({
   };
   
   const handleCardClick = () => {
-    router.push(`/integrations/mcp/${imageName}`);
+    if (isPublic) {
+      router.push(`/marketplace/mcp/${imageName}`);
+    } else {
+      router.push(`/integrations/mcp/${imageName}`);
+    }
   };
   
   const renderConnectionStatus = () => {
