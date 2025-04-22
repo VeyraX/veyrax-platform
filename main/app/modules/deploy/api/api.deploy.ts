@@ -15,12 +15,8 @@ export const getLatestCommitHash = async (repoUrl: string): Promise<string | nul
     const owner = pathSegments[0];
     const repo = pathSegments[1].replace('.git', '');
 
-    console.log('Getting latest commit hash for:', owner, repo);
-
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits/HEAD`);
     
-
-    console.log('Response:', response);
     if (!response.ok) {
       return null;
     }
@@ -110,11 +106,8 @@ export const fetchRepositoryMeta = async (
   repoUrl: string
 ): Promise<RepositoryMetaResponse & { repository_id?: string, last_commit_hash?: string }> => {
   try {
-    console.log('Fetching repository meta for:', repoUrl);
     const latestCommitHash = await getLatestCommitHash(repoUrl);
-    console.log('Latest commit hash:', latestCommitHash);
     const dbResult = await getRepositoryMetaFromDb(repoUrl, latestCommitHash);
-    console.log('DB result:', dbResult);
     
     const url = new URL(repoUrl.trim());
     const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
