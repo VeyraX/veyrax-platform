@@ -128,7 +128,32 @@ def should_skip_file(file_path: str):
         '.tar',
         '.min.js',
         '.min.css',
-        'node_modules/'
+        'node_modules/',
+        '_next/',
+        '.log',
+        '.bak',
+        '.tmp',
+        '.sqlite',
+        '.db',
+        '.DS_Store',
+        'node_modules/',
+        'public/',
+        '_next/',
+        '.next/',
+        '.output/',
+        '.vercel/',
+        'dist/',
+        'build/',
+        '.cache/',
+        '.vite/',
+        '.turbo/',
+        'static/',
+        'logs/',
+        'coverage/',
+        '.expo/',
+        '.android/',
+        '.ios/',
+        'src/assets/'
     ]
     
     for skip in skip_files:
@@ -258,7 +283,7 @@ def parse_repository(repo_url: str):
     }
     
     file_count = 0
-    max_files = 50 
+    max_files = 35 
     skipped_count = 0
     
     print(f"Starting to process {len(contents)} repository files (max: {max_files})")
@@ -270,6 +295,8 @@ def parse_repository(repo_url: str):
             
         file_path = item['path']
         download_url = item['download_url']
+
+
         
         if should_skip_file(file_path):
             skipped_count += 1
@@ -280,6 +307,8 @@ def parse_repository(repo_url: str):
             continue
         
         content = get_file_content(download_url)
+
+        print(f"Processing file: {file_path}, len: {len(content)}")
         
         if content is not None:
             truncated_content = content[:50000] if len(content) > 50000 else content
