@@ -54,7 +54,6 @@ export default function DeployCreatePage() {
     setNoDockerfileError(false);
 
     try {
-      console.log('Fetching repository meta for:', githubUrl); 
       const response = await fetchRepositoryMeta(githubUrl);
       console.log('Response from API:', response);
       
