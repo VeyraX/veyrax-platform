@@ -10,6 +10,7 @@ export interface RepositoryMetaResponse {
   last_commit_hash?: string;
   is_approved?: boolean;
   image_name?: string;
+  owner?: string;
 }
 
 export interface DeployMCPRequest {

@@ -12,6 +12,7 @@ import { fetchRepositoryMeta, checkMcpExists, deployMcpRepository, updateMcpImag
 import { McpRegistry } from "../components/deploy-create/mcp-registry";
 import { toast } from "sonner";
 import { ExistingMcpCard } from "../components/deploy-create/mcp-card-existing-repo";
+import { Badge } from "@/components/ui/badge";
 
 interface EnvVar {
   name: string;
@@ -33,6 +34,7 @@ export default function DeployCreatePage() {
   const [mcpExists, setMcpExists] = useState(false);
   const [repositoryId, setRepositoryId] = useState<string | null>(null);
   const [commitHash, setCommitHash] = useState<string | null>(null);
+  const [ownerName, setOwnerName] = useState<string>("");
   const [existingMcpData, setExistingMcpData] = useState<{
     is_approved: boolean;
     image_name: string;
@@ -89,6 +91,7 @@ export default function DeployCreatePage() {
         setRepoDescription(response.description || "");
         setRepositoryId(response.repository_id || null);
         setCommitHash(response.last_commit_hash || null);
+        setOwnerName(response.owner || "");
       } else {
         setError("No environment variables found");
       }
@@ -123,7 +126,9 @@ export default function DeployCreatePage() {
         envVars.map(env => [env.name, env.value])
       );
       
-      const imageName = (repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'default') + '-mcp-server';
+      const imageName = (repoName.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'default') + 
+        (ownerName ? `-${ownerName.toLowerCase().replace(/[^a-z0-9-]/g, '-')}` : '') + 
+        '-mcp-server';
       
       await updateMcpImageName(repositoryId, imageName);
       
@@ -188,6 +193,9 @@ export default function DeployCreatePage() {
   return (
     <div className="flex flex-col items-start justify-center min-h-screen max-w-4xl mx-auto px-4 w-full py-12 space-y-8">
       <div className="flex flex-col items-start space-y-2">
+        <Badge className="text-xs bg-primary text-primary-foreground rounded-full">
+          Beta
+        </Badge>
         <h1 className="text-4xl font-medium text-foreground">
           Deploy MCP Server
         </h1>

@@ -115,7 +115,7 @@ export const McpCard: FC<McpCardProps> = ({
     if (isPublic) {
       router.push(`/marketplace/mcp/${imageName}`);
     } else {
-      router.push(`/integrations/mcp/${imageName}`);
+    router.push(`/integrations/mcp/${imageName}`);
     }
   };
   

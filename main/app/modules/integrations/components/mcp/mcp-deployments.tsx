@@ -52,9 +52,9 @@ export function McpDeployments({ deployments, repoName }: McpDeploymentsProps) {
                   <td className="px-6 py-4">
                     <StatusBadge status={deployment.status} />
                   </td>
-                  <td className="px-6 py-4 text-sm font-mono text-gray-700 flex items-center">
+                  <td className="px-6 py-4 text-sm font-mono text-gray-700">
                     {deployment.commit_hash ? (
-                      <>
+                      <div className="flex items-center">
                         <span>{deployment.commit_hash.substring(0, 7)}</span>
                         <Button
                           variant="ghost"
@@ -67,7 +67,7 @@ export function McpDeployments({ deployments, repoName }: McpDeploymentsProps) {
                             <Copy className="h-3 w-3" />
                           }
                         </Button>
-                      </>
+                      </div>
                     ) : '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">

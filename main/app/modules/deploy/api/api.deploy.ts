@@ -109,6 +109,10 @@ export const fetchRepositoryMeta = async (
     const latestCommitHash = await getLatestCommitHash(repoUrl);
     const dbResult = await getRepositoryMetaFromDb(repoUrl, latestCommitHash);
     
+    const url = new URL(repoUrl.trim());
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    const owner = pathSegments.length >= 2 ? pathSegments[0] : '';
+    
     if (dbResult) {
       const { data: repoData } = await supabase
         .from('mcp_repositories')
@@ -119,7 +123,8 @@ export const fetchRepositoryMeta = async (
       return {
         ...dbResult,
         repository_id: repoData?.id,
-        last_commit_hash: repoData?.last_commit_hash
+        last_commit_hash: repoData?.last_commit_hash,
+        owner
       };
     }
     
@@ -146,17 +151,18 @@ export const fetchRepositoryMeta = async (
       
       if (error) {
         console.error('Error saving to database:', error);
-        return apiResult;
+        return { ...apiResult, owner };
       }
       
       return {
         ...apiResult,
         repository_id: insertData?.id,
-        last_commit_hash: insertData?.last_commit_hash
+        last_commit_hash: insertData?.last_commit_hash,
+        owner
       };
     } catch (saveError) {
       console.error('Error saving to database:', saveError);
-      return apiResult;
+      return { ...apiResult, owner };
     }
   } catch (error) {
     console.error('Error fetching repository metadata:', error);
