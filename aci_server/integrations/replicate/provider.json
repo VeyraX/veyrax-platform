@@ -1,0 +1,8 @@
+{
+    "name": "Replicate",
+    "provider_tag": "replicate",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//replicate-logo.png",
+    "description": "Generate images, videos, 3D models, remove backgrounds, fine tune models.",
+    "auth_method": "api_key",
+    "id": "77dae8fe-97ce-4cc0-8c02-8c5f3a0d6bb2"
+}

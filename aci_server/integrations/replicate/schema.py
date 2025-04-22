@@ -241,7 +241,7 @@ class LogoAIRequest(PredictionRequest):
         prompt: str = Field(description="Text prompt describing the logo to generate")
         
     input: LogoAIInput = Field(description="LogoAI generation input parameters")
-    version: str = Field(
+    version: Optional[str] = Field(
         default="67ed00e8999fecd32035074fa0f2e9a31ee03b57a8415e6a5e2f93a242ddd8d2",
         description="LogoAI model version ID"
     )
@@ -252,7 +252,7 @@ class BirefNetRequest(PredictionRequest):
         resolution: Optional[str] = Field(default="", description="Resolution for output")
         
     input: BirefNetInput = Field(description="BirefNet background removal input parameters")
-    version: str = Field(
+    version: Optional[str] = Field(
         default="f74986db0355b58403ed20963af156525e2891ea3c2d499bfbfb2a28cd87c5d7",
         description="BirefNet model version ID"
     )
