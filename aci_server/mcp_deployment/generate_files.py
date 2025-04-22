@@ -47,6 +47,8 @@ def openai_call(system_message, human_message):
 
 def openrouter_claude_call(system_message, human_message):
     client = setup_openrouter_client()
+
+    print(f"[openrouter_claude_call] setup client: {client}")
     
     response = client.chat.completions.create(
         model="anthropic/claude-3-7-sonnet",
@@ -56,6 +58,8 @@ def openrouter_claude_call(system_message, human_message):
         ],
         temperature=0
     )
+
+    print(f"[openrouter_claude_call] response: {response}")
     
     return response.choices[0].message.content
 
