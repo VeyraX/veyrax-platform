@@ -3,6 +3,32 @@ import { createClient } from '@/lib/utils/supabase/client';
 
 const supabase = createClient();
 
+export const getRepoStars = async (repoUrl: string): Promise<number | null> => {
+  try {
+    const url = new URL(repoUrl.trim());
+    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    
+    if (pathSegments.length < 2) {
+      return null;
+    }
+    
+    const owner = pathSegments[0];
+    const repo = pathSegments[1].replace('.git', '');
+
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    
+    if (!response.ok) {
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.stargazers_count || 0;
+  } catch (error) {
+    console.error('Error fetching repository stars:', error);
+    return null;
+  }
+};
+
 export const getLatestCommitHash = async (repoUrl: string): Promise<string | null> => {
   try {
     const url = new URL(repoUrl.trim());
@@ -45,7 +71,7 @@ const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: strin
     
     const { data: existingRepo, error } = await supabase
       .from('mcp_repositories')
-      .select('env, last_commit_hash, name, description, is_approved, image_name')
+      .select('env, last_commit_hash, name, description, is_approved, image_name, metadata')
       .eq('repo_url', normalizedUrl)
       .single();
     
@@ -62,7 +88,9 @@ const getRepositoryMetaFromDb = async (repoUrl: string, latestCommitHash?: strin
       name: existingRepo.name,
       description: existingRepo.description,
       is_approved: existingRepo.is_approved,
-      image_name: existingRepo.image_name
+      image_name: existingRepo.image_name,
+      dockerfile_exists: existingRepo.metadata?.dockerfile_exists,
+      stars: existingRepo.metadata?.stars
     };
   } catch (error) {
     console.error('Error fetching from database:', error);
@@ -104,9 +132,10 @@ const getRepositoryMetaFromApi = async (repoUrl: string): Promise<RepositoryMeta
 
 export const fetchRepositoryMeta = async (
   repoUrl: string
-): Promise<RepositoryMetaResponse & { repository_id?: string, last_commit_hash?: string }> => {
+): Promise<RepositoryMetaResponse & { repository_id?: string, last_commit_hash?: string, stars?: number }> => {
   try {
     const latestCommitHash = await getLatestCommitHash(repoUrl);
+    const stars = await getRepoStars(repoUrl);
     const dbResult = await getRepositoryMetaFromDb(repoUrl, latestCommitHash);
     
     const url = new URL(repoUrl.trim());
@@ -116,14 +145,27 @@ export const fetchRepositoryMeta = async (
     if (dbResult) {
       const { data: repoData } = await supabase
         .from('mcp_repositories')
-        .select('id, last_commit_hash, is_approved, image_name')
+        .select('id, last_commit_hash, is_approved, image_name, metadata')
         .eq('repo_url', repoUrl)
         .single();
+      
+      if (stars !== null && stars !== repoData?.metadata?.stars) {
+        await supabase
+          .from('mcp_repositories')
+          .update({
+            metadata: {
+              ...repoData?.metadata,
+              stars
+            }
+          })
+          .eq('id', repoData?.id);
+      }
       
       return {
         ...dbResult,
         repository_id: repoData?.id,
         last_commit_hash: repoData?.last_commit_hash,
+        stars: stars !== null ? stars : repoData?.metadata?.stars,
         owner
       };
     }
@@ -142,11 +184,15 @@ export const fetchRepositoryMeta = async (
           last_commit_hash: latestCommitHash,
           name: apiResult.name,
           description: apiResult.description,
-          author_user_id: currentUserId
+          author_user_id: currentUserId,
+          metadata: {
+            dockerfile_exists: apiResult.dockerfile_exists,
+            stars: stars
+          }
         }, {
           onConflict: 'repo_url'
         })
-        .select('id, last_commit_hash')
+        .select('id, last_commit_hash, metadata')
         .single();
       
       if (error) {
@@ -158,6 +204,8 @@ export const fetchRepositoryMeta = async (
         ...apiResult,
         repository_id: insertData?.id,
         last_commit_hash: insertData?.last_commit_hash,
+        dockerfile_exists: insertData?.metadata?.dockerfile_exists,
+        stars: stars !== null ? stars : insertData?.metadata?.stars,
         owner
       };
     } catch (saveError) {
@@ -170,7 +218,14 @@ export const fetchRepositoryMeta = async (
   }
 };
 
-export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exists: boolean, is_approved: boolean, image_name: string, env: Record<string, string> }> => {
+export const checkMcpExists = async (repoUrl: string): Promise<boolean | { 
+  exists: boolean, 
+  is_approved: boolean, 
+  image_name: string, 
+  env: Record<string, string>, 
+  dockerfile_exists?: boolean,
+  stars?: number 
+}> => {
   try {
     const url = new URL(repoUrl.trim());
     const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
@@ -186,7 +241,7 @@ export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exist
     
     const { data, error } = await supabase
       .from('mcp_repositories')
-      .select('id, is_approved, image_name, env')
+      .select('id, is_approved, image_name, env, metadata')
       .eq('repo_url', normalizedUrl)
       .single();
     
@@ -198,7 +253,9 @@ export const checkMcpExists = async (repoUrl: string): Promise<boolean | { exist
       exists: true,
       is_approved: !!data.is_approved,
       image_name: data.image_name || '',
-      env: data.env || {}
+      env: data.env || {},
+      dockerfile_exists: data.metadata?.dockerfile_exists,
+      stars: data.metadata?.stars
     };
   } catch (error) {
     console.error('Error checking MCP existence:', error);

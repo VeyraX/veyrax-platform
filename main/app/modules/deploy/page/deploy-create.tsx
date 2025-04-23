@@ -35,6 +35,7 @@ export default function DeployCreatePage() {
   const [repositoryId, setRepositoryId] = useState<string | null>(null);
   const [commitHash, setCommitHash] = useState<string | null>(null);
   const [ownerName, setOwnerName] = useState<string>("");
+  const [resetKey, setResetKey] = useState<number>(0);
   const [existingMcpData, setExistingMcpData] = useState<{
     is_approved: boolean;
     image_name: string;
@@ -57,10 +58,18 @@ export default function DeployCreatePage() {
       const response = await fetchRepositoryMeta(githubUrl);
       console.log('Response from API:', response);
       
+      if (response.dockerfile_exists === false) {
+        setNoDockerfileError(true);
+      }
+      
       const mcpCheck = await checkMcpExists(githubUrl);
       
       if (typeof mcpCheck !== 'boolean' && mcpCheck.exists) {
         setMcpExists(true);
+        
+        if (mcpCheck.dockerfile_exists === false) {
+          setNoDockerfileError(true);
+        }
         
         if (response.is_approved && response.image_name) {
           setExistingMcpData({
@@ -97,15 +106,7 @@ export default function DeployCreatePage() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch environment variables";
-      
-      if (errorMessage.includes("No Dockerfile found") || 
-          (typeof err === 'object' && err && 'detail' in err && 
-           typeof err.detail === 'string' && err.detail.includes("No Dockerfile found"))) {
-        setNoDockerfileError(true);
-      } else {
-        setError(errorMessage);
-      }
-      
+      setError(errorMessage);
       console.error("Error fetching environment variables:", err);
     } finally {
       setIsFetching(false);
@@ -259,18 +260,44 @@ export default function DeployCreatePage() {
               Missing Dockerfile
             </h3>
             <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
-              We couldn't find a Dockerfile in your repository. A Dockerfile is required for MCP deployment. Please add one to your repository and try again.
+              We couldn't find a Dockerfile in your repository. Dockerfile is very important for MCP deployment. Continuing without a Dockerfile may cause deployment issues.
             </p>
-            <Button 
-              onClick={() => {
-                setNoDockerfileError(false);
-                setGithubUrl("");
-              }}
-              variant="outline"
-              className="mt-2 text-xs h-8"
-            >
-              Try another repository
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  setIsFetched(false);
+                  setEnvVars([]);
+                  setError(null);
+                  setGithubUrl("");
+                  setRepoName("");
+                  setRepoDescription("");
+                  setMcpExists(false);
+                  setExistingMcpData(null);
+                  setNoDockerfileError(false);
+                  setRepositoryId(null);
+                  setCommitHash(null);
+                  setOwnerName("");
+                  setSearchQuery("");
+                  setSearchResults([]);
+                  setIsSearching(false);
+                  setIsGithubUrl(false);
+                  setResetKey(prevKey => prevKey + 1);
+                }}
+                variant="outline"
+                className="mt-2 text-xs h-8"
+              >
+                Try another repository
+              </Button>
+              <Button 
+                onClick={() => {
+                  setNoDockerfileError(false);
+                }}
+                variant="default"
+                className="mt-2 text-xs h-8"
+              >
+                Try Anyway
+              </Button>
+            </div>
           </div>
         )}
 
@@ -292,6 +319,15 @@ export default function DeployCreatePage() {
                 setRepoDescription("");
                 setMcpExists(false);
                 setExistingMcpData(null);
+                setNoDockerfileError(false);
+                setRepositoryId(null);
+                setCommitHash(null);
+                setOwnerName("");
+                setSearchQuery("");
+                setSearchResults([]);
+                setIsSearching(false);
+                setIsGithubUrl(false);
+                setResetKey(prevKey => prevKey + 1);
               }}
             />
           </div>
@@ -370,6 +406,15 @@ export default function DeployCreatePage() {
                   setRepoDescription("");
                   setMcpExists(false);
                   setExistingMcpData(null);
+                  setNoDockerfileError(false);
+                  setRepositoryId(null);
+                  setCommitHash(null);
+                  setOwnerName("");
+                  setSearchQuery("");
+                  setSearchResults([]);
+                  setIsSearching(false);
+                  setIsGithubUrl(false);
+                  setResetKey(prevKey => prevKey + 1);
                 }}
                 variant="outline"
                 className="px-4 gap-2"
@@ -394,6 +439,7 @@ export default function DeployCreatePage() {
 
         {!isFetched && (
           <McpRegistry 
+            key={resetKey}
             onSelect={handleSelectRepository} 
             externalSearchQuery={searchQuery}
             onSearchStateChange={(searching) => setIsSearching(searching)}

@@ -36,7 +36,14 @@ class RepositoryMetaResponse(BaseModel):
     env_variables: Dict[str, str]
     name: Optional[str] = None
     description: Optional[str] = None
-    is_local: bool = False
+    is_local: Optional[bool] = False
+    dockerfile_exists: Optional[bool] = True
+
+class DeploymentStatusUpdate(BaseModel):
+    deployment_id: str = Field(..., description="ID of the deployment to update")
+    status: str = Field(..., description="New status of the deployment")
+    build_logs: Optional[str] = Field(None, description="Build logs from the Docker build process")
+    repository_id: Optional[str] = Field(None, description="Repository ID for connecting to Veyrax")
 
 class ExternalMCPServer(BaseModel):
     name: str

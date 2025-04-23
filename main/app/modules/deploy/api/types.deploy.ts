@@ -11,6 +11,8 @@ export interface RepositoryMetaResponse {
   is_approved?: boolean;
   image_name?: string;
   owner?: string;
+  dockerfile_exists?: boolean;
+  stars?: number;
 }
 
 export interface DeployMCPRequest {

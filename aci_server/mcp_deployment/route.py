@@ -10,7 +10,8 @@ from .schema import (
     PushMCPResponse, 
     RepositoryMetaRequest, 
     RepositoryMetaResponse,
-    ExternalMCPResponse
+    ExternalMCPResponse,
+    DeploymentStatusUpdate
 )
 from .parse_repo import parse_repository, check_dockerfile_exists
 from .generate_files import (
@@ -53,15 +54,10 @@ async def generate_repository_meta_endpoint(
             error_msg = f"Failed to parse repository: {str(repo_error)}"
             raise HTTPException(status_code=500, detail=error_msg)
         
+        # Check for Dockerfile but don't throw error
+        dockerfile_exists = True
         try:
-            if not check_dockerfile_exists(repo_data.get("files", [])):
-                error_msg = "No Dockerfile found in repository. A Dockerfile is required for MCP deployment."
-                raise HTTPException(
-                    status_code=400, 
-                    detail=error_msg
-                )
-        except HTTPException:
-            raise
+            dockerfile_exists = check_dockerfile_exists(repo_data.get("files", []))
         except Exception as docker_error:
             error_msg = f"Error checking for Dockerfile: {str(docker_error)}"
             raise HTTPException(status_code=500, detail=error_msg)
@@ -83,7 +79,8 @@ async def generate_repository_meta_endpoint(
             env_variables=env_variables,
             name=repo_metadata.get("name", ""),
             description=repo_metadata.get("description", ""),
-            is_local=is_local
+            is_local=is_local,
+            dockerfile_exists=dockerfile_exists
         )
     except HTTPException as e:
         raise
@@ -118,4 +115,28 @@ async def push_mcp_dockerhub_endpoint(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to push MCP to Docker Hub: {str(e)}")
+
+@router.post("/update-deployment-status", response_model=Dict[str, Any])
+async def update_deployment_status_endpoint(
+    request: DeploymentStatusUpdate = Body(...),
+    auth_token: str = Depends(get_auth_token)
+):
+    try:
+        # Update the deployment status in the database
+        result = await update_mcp_deployment_status(
+            deployment_id=request.deployment_id,
+            status=request.status,
+            build_logs=request.build_logs
+        )
+        
+        return {
+            "success": True,
+            "deployment_id": request.deployment_id,
+            "status": request.status
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to update deployment status: {str(e)}"
+        )
 

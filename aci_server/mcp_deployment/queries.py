@@ -1,6 +1,7 @@
 from db.supabase import get_supabase
 from typing import Dict, Any, Optional, List
 import uuid
+from datetime import datetime
 
 async def create_mcp_deployment_record(
     repository_id: str,
@@ -34,22 +35,18 @@ async def create_mcp_deployment_record(
 async def update_mcp_deployment_status(
     deployment_id: str,
     status: str,
-    error: Optional[str] = None,
-    build_logs: Optional[str] = None
+    build_logs: str = None
 ) -> Dict[str, Any]:
     try:
         supabase = get_supabase()
         
-        data = {"status": status}
-        
-        if error:
-            data["error"] = error
+        update_data = {
+            "status": status,
+            "build_logs": build_logs,
+        }
             
-        if build_logs:
-            data["build_logs"] = build_logs
-        
         result = supabase.table('mcp_repository_deployments') \
-            .update(data) \
+            .update(update_data) \
             .eq("deployment_id", deployment_id) \
             .execute()
         

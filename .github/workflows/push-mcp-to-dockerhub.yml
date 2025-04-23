@@ -81,27 +81,105 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and test Docker image locally
-        uses: docker/build-push-action@v4
-        with:
-          context: ${{ env.CONTEXT_ROOT }}
-          file: ${{ steps.ctx.outputs.dockerfile }}
-          load: true
-          tags: ${{ github.event.inputs.image_name }}:test
-
-      - name: Verify Docker image works
+        id: build-test
         run: |
-          docker run --rm -d --name test-container --entrypoint tail ${{ github.event.inputs.image_name }}:test -f /dev/null
-          sleep 5
-          docker ps | grep test-container >/dev/null || { echo "Container failed to start"; docker logs test-container || true; exit 1; }
-          docker stop test-container
+          BUILD_LOG_FILE="build_log.txt"
+          touch $BUILD_LOG_FILE
+          
+          BUILD_EXIT_CODE=0
+          BUILD_SUCCESS=true
+          
+          report_deployment_status() {
+            local status="$1"
+            local logs="$2"
+            local auth_token="${{ github.event.inputs.auth_token }}"
+            local deployment_id="${{ github.event.inputs.deployment_id }}"
+            local repository_id="${{ github.event.inputs.repository_id }}"
+            
+            if [[ "$auth_token" == Bearer* ]]; then
+              local auth_header="Authorization: $auth_token"
+            else
+              local auth_header="VEYRAX_API_KEY: $auth_token"
+            fi
+            
+            local logs_escaped=$(echo "$logs" | jq -Rs .)
+            
+            local payload=$(jq -n \
+              --arg deployment_id "$deployment_id" \
+              --arg status "$status" \
+              --arg build_logs "$logs_escaped" \
+              --arg repository_id "$repository_id" \
+              '{
+                deployment_id: $deployment_id,
+                status: $status,
+                build_logs: $build_logs,
+                repository_id: $repository_id
+              }')
+            
+            curl -X POST "${{ secrets.VEYRAX_DEPLOY_BASE_URL }}/mcp_deployment/update-deployment-status" \
+                 -H "Content-Type: application/json" \
+                 -H "$auth_header" \
+                 -d "$payload"
+          }
+          
+          {
+            docker build -t ${{ github.event.inputs.image_name }}:test ${{ env.CONTEXT_ROOT }} -f ${{ steps.ctx.outputs.dockerfile }} 2>&1 | tee $BUILD_LOG_FILE
+            BUILD_EXIT_CODE=${PIPESTATUS[0]}
+            
+            if [ $BUILD_EXIT_CODE -ne 0 ]; then
+              BUILD_SUCCESS=false
+              BUILD_LOGS_BASE64=$(cat $BUILD_LOG_FILE | base64 -w 0)
+              echo "build_logs_base64=$BUILD_LOGS_BASE64" >> "$GITHUB_OUTPUT"
+              echo "build_exit_code=$BUILD_EXIT_CODE" >> "$GITHUB_OUTPUT"
+              echo "build_success=false" >> "$GITHUB_OUTPUT"
+              
+              BUILD_LOGS_DECODED=$(echo "$BUILD_LOGS_BASE64" | base64 -d)
+              report_deployment_status "failed" "$BUILD_LOGS_DECODED"
+              
+              echo "::error::Docker build failed. See deployment logs for details."
+              exit 1
+            fi
+            
+            docker run --rm -d --name test-container --entrypoint tail ${{ github.event.inputs.image_name }}:test -f /dev/null
+            sleep 5
+            if ! docker ps | grep test-container >/dev/null; then
+              echo "Container failed to start" | tee -a $BUILD_LOG_FILE
+              docker logs test-container >> $BUILD_LOG_FILE 2>&1 || true
+              BUILD_SUCCESS=false
+              BUILD_LOGS_BASE64=$(cat $BUILD_LOG_FILE | base64 -w 0)
+              echo "build_logs_base64=$BUILD_LOGS_BASE64" >> "$GITHUB_OUTPUT"
+              echo "build_success=false" >> "$GITHUB_OUTPUT"
+              
+              BUILD_LOGS_DECODED=$(echo "$BUILD_LOGS_BASE64" | base64 -d)
+              report_deployment_status "failed" "$BUILD_LOGS_DECODED"
+              
+              echo "::error::Container failed to start. See deployment logs for details."
+              exit 1
+            fi
+            docker stop test-container
+            
+            echo "build_success=true" >> "$GITHUB_OUTPUT"
+          } || {
+            BUILD_SUCCESS=false
+            BUILD_LOGS_BASE64=$(cat $BUILD_LOG_FILE 2>/dev/null | base64 -w 0 || echo "Failed to capture logs")
+            echo "build_logs_base64=$BUILD_LOGS_BASE64" >> "$GITHUB_OUTPUT"
+            echo "build_success=false" >> "$GITHUB_OUTPUT"
+            
+            report_deployment_status "failed" "Unexpected build failure occurred"
+            
+            echo "::error::Unexpected failure during build or test. See deployment logs for details."
+            exit 1
+          }
 
       - name: Login to Docker Hub
+        if: steps.build-test.outputs.build_success == 'true'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
+        if: steps.build-test.outputs.build_success == 'true'
         uses: docker/build-push-action@v4
         with:
           context: ${{ env.CONTEXT_ROOT }}
@@ -110,6 +188,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.inputs.image_name }}:latest
 
       - name: Setup Container for User
+        if: steps.build-test.outputs.build_success == 'true'
         env:
           AUTH_TOKEN: ${{ github.event.inputs.auth_token }}
         run: |
