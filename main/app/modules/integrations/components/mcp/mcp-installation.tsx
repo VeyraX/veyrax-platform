@@ -130,12 +130,9 @@ export function McpInstallation({
       return (
         <Button 
           variant="outline"
-          size="sm"
           onClick={handleConnect}
-          className="text-xs"
         >
           Reconnect
-          <Plus className="h-3 w-3 ml-1" />
         </Button>
       );
     }

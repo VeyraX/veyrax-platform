@@ -151,7 +151,6 @@ export const McpCard: FC<McpCardProps> = ({
     return null;
   };
   
-  // Render proper action button based on connection status
   const renderActionButton = () => {
     if (isPublic) return null;
     
@@ -159,7 +158,6 @@ export const McpCard: FC<McpCardProps> = ({
       return (
         <Button
           variant="outline"
-          size="sm"
           onClick={handleRefresh}
           disabled={isRefreshing}
           className="text-xs"
@@ -174,12 +172,9 @@ export const McpCard: FC<McpCardProps> = ({
       return (
         <Button
           variant="outline"
-          size="sm"
           onClick={handleConnect}
-          className="text-xs"
         >
           Reconnect
-          <Plus className="h-3 w-3 ml-1" />
         </Button>
       );
     }
