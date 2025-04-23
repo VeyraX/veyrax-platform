@@ -103,13 +103,11 @@ def generate_dockerfile_with_base64_from_repo(repo_data):
         dockerfile = dockerfile_content
     else:
         if not check_dockerfile_exists(repo_data.get("files", [])):
-            raise HTTPException(
-                status_code=400, 
-                detail="No Dockerfile found in repository. A Dockerfile is required for MCP deployment."
-            )
-            
-        context = json.dumps(repo_data)
-        dockerfile = generate_dockerfile(context)
+            context = json.dumps(repo_data)
+            dockerfile = generate_dockerfile(context)
+        else:    
+            context = json.dumps(repo_data)
+            dockerfile = generate_dockerfile(context)
     
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
     return dockerfile_base64
