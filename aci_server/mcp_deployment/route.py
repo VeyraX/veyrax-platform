@@ -129,11 +129,17 @@ async def update_deployment_status_endpoint(
         except Exception as e:
             raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
     
+        build_logs = status_update.build_logs
+        if build_logs and isinstance(build_logs, str):
+            if build_logs.startswith('"') and build_logs.endswith('"'):
+                build_logs = build_logs[1:-1]
+            elif build_logs.startswith("'") and build_logs.endswith("'"):
+                build_logs = build_logs[1:-1]
         
         result = await update_mcp_deployment_status(
             deployment_id=status_update.deployment_id,
             status=status_update.status,
-            build_logs=status_update.build_logs
+            build_logs=build_logs
         )
         
         return {
