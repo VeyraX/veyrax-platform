@@ -185,3 +185,42 @@ async def get_user_connected_mcp_actions(user_id: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"Error getting user connected MCP actions: {str(e)}")
         return {}
+
+async def update_users_mcp_status_by_deployment_id(deployment_id: str, status: str) -> bool:
+    try:
+        supabase = get_supabase()
+        
+        deploy_result = supabase.table('mcp_repository_deployments') \
+            .select('repo_id') \
+            .eq("deployment_id", deployment_id) \
+            .execute()
+        
+        if not deploy_result.data or len(deploy_result.data) == 0:
+            return False
+            
+        repo_id = deploy_result.data[0].get("repo_id")
+        if not repo_id:
+            return False
+            
+        users_result = supabase.table('users_mcp') \
+            .select('user_id') \
+            .eq("repo_id", repo_id) \
+            .execute()
+        
+        if not users_result.data or len(users_result.data) == 0:
+            return False
+            
+        for user_data in users_result.data:
+            user_id = user_data.get("user_id")
+            if user_id:
+                supabase.table('users_mcp') \
+                    .update({"status": status}) \
+                    .eq("user_id", user_id) \
+                    .eq("repo_id", repo_id) \
+                    .execute()
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error updating users_mcp status: {str(e)}")
+        return False

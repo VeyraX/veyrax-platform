@@ -21,7 +21,7 @@ from .generate_files import (
 )
 from db.supabase import get_supabase
 from integrations.common.auth import get_user_from_request
-from .queries import create_mcp_deployment_record, update_mcp_deployment_status
+from .queries import create_mcp_deployment_record, update_mcp_deployment_status, update_users_mcp_status_by_deployment_id
 
 router = APIRouter(
     prefix="/mcp_deployment",
@@ -141,6 +141,12 @@ async def update_deployment_status_endpoint(
             status=status_update.status,
             build_logs=build_logs
         )
+
+        if status_update.status == "failed":
+            await update_users_mcp_status_by_deployment_id(
+                deployment_id=status_update.deployment_id,
+                status="failed"
+            )
         
         return {
             "success": True,
