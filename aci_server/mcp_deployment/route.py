@@ -122,7 +122,10 @@ async def update_deployment_status_endpoint(
     auth_token: str = Depends(get_auth_token)
 ):
     try:
-        # Update the deployment status in the database
+        user_id = await get_user_from_request(request)
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        
         result = await update_mcp_deployment_status(
             deployment_id=request.deployment_id,
             status=request.status,

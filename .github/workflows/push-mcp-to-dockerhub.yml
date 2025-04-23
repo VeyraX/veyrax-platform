@@ -116,7 +116,7 @@ jobs:
                 repository_id: $repository_id
               }')
             
-            curl -X POST "${{ secrets.VEYRAX_DEPLOY_BASE_URL }}/mcp_deployment/update-deployment-status" \
+            curl -X POST "https://veyraxapp.com/mcp_deployment/update-deployment-status" \
                  -H "Content-Type: application/json" \
                  -H "$auth_header" \
                  -d "$payload"
