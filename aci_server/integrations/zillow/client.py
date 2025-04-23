@@ -99,7 +99,6 @@ class ZillowClient:
             params=self._clean_params(params)
         )
         response.raise_for_status()
-        print(response.json())
         return response.json()
 
     def get_market_location(self, params: Dict[str, Any]) -> Dict[str, Any]:
