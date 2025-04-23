@@ -118,24 +118,29 @@ async def push_mcp_dockerhub_endpoint(
 
 @router.post("/update-deployment-status", response_model=Dict[str, Any])
 async def update_deployment_status_endpoint(
-    request: DeploymentStatusUpdate = Body(...),
+    request: Request,
+    status_update: DeploymentStatusUpdate = Body(...),
     auth_token: str = Depends(get_auth_token)
 ):
     try:
-        user_id = await get_user_from_request(request)
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Unauthorized")
+        user_id = None
+        try:
+            user_id = await get_user_from_request(request)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+    
         
         result = await update_mcp_deployment_status(
-            deployment_id=request.deployment_id,
-            status=request.status,
-            build_logs=request.build_logs
+            deployment_id=status_update.deployment_id,
+            status=status_update.status,
+            build_logs=status_update.build_logs
         )
         
         return {
             "success": True,
-            "deployment_id": request.deployment_id,
-            "status": request.status
+            "deployment_id": status_update.deployment_id,
+            "status": status_update.status,
+            "user_id": user_id
         }
     except Exception as e:
         raise HTTPException(
