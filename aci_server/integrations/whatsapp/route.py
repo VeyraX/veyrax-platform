@@ -16,7 +16,6 @@ examples = ExamplesLoader()
 async def get_whatsapp_service(request: Request):
     try:
         user_id = await get_user_from_request(request)
-        print(f"user_id: {user_id}")
         
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")
@@ -32,14 +31,6 @@ async def verify_whatsapp_connection(
     request: Request,
     service: WhatsAppService = Depends(get_whatsapp_service)
 ):
-    """
-    Dependency to verify user's WhatsApp connection status.
-    Excluded from authenticate and check_status endpoints.
-    With a 15-second timeout to prevent hanging requests.
-    """
-    # Skip verification for authenticate and check_status
-    if request.url.path.endswith("/authenticate") or request.url.path.endswith("/check_status"):
-        return service
     
     try:
         # Add a 15-second timeout for the verify operation
@@ -192,7 +183,7 @@ async def validate_user(request: Request):
 @schema(input_schema_class=DisconnectRequest, output_schema_class=DisconnectResponse, examples=examples["/whatsapp/disconnect"])
 async def disconnect(
     request: Request,
-    service: WhatsAppService = Depends(verify_whatsapp_connection)
+    service: WhatsAppService = Depends(get_whatsapp_service)
 ):
     """Disconnect a user from WhatsApp and delete all their data."""
     return service.disconnect()
