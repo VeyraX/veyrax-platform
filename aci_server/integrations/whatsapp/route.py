@@ -32,6 +32,9 @@ async def verify_whatsapp_connection(
     service: WhatsAppService = Depends(get_whatsapp_service)
 ):
     
+    if request.url.path.endswith("/authenticate") or request.url.path.endswith("/check_status"):
+        return service
+    
     try:
         # Add a 15-second timeout for the verify operation
         async with asyncio.timeout(30):
