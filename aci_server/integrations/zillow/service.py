@@ -66,10 +66,8 @@ class ZillowService:
     def get_property(self, params: PropertyParams) -> ApiResponse:
         processed_params = self._process_property_params(params)
         response = self.client.get_property(processed_params)        
-        # Fix listed_by.phone if it's a string instead of a Phone object
         if isinstance(response, dict) and 'listed_by' in response and isinstance(response['listed_by'], dict):
             if 'phone' in response['listed_by'] and isinstance(response['listed_by']['phone'], str):
-                # Create an empty Phone object
                 response['listed_by']['phone'] = {
                     'prefix': None,
                     'areacode': None,
@@ -83,16 +81,13 @@ class ZillowService:
         processed_params = self._process_search_params(params)
         response = self.client.search_properties(processed_params)
 
-        # Case 1: Response is a list of properties
         if isinstance(response, list):
-            # Convert list of properties to PropertySearchResult objects
             props = []
             for item in response:
                 if isinstance(item, dict) and 'zpid' in item:
-                    props.append(PropertySearchResult(
-                        zpid=str(item.get('zpid')),
-                        address=item.get('address')
-                    ))
+                    if 'dateSold' in item and item['dateSold'] is not None and not isinstance(item['dateSold'], str):
+                        item['dateSold'] = str(item['dateSold'])
+                    props.append(PropertySearchResult(**item))
             
             search_response = PropertySearchResponse(
                 props=props,
@@ -101,9 +96,7 @@ class ZillowService:
                 totalResultCount=len(props),
                 currentPage=1
             )
-        # Case 2: Simple zpid response
         elif isinstance(response, dict) and 'zpid' in response and len(response.keys()) <= 2:
-            # Create a minimal response with the single property
             search_result = PropertySearchResult(zpid=str(response.get('zpid')))
             search_response = PropertySearchResponse(
                 props=[search_result],
@@ -112,9 +105,7 @@ class ZillowService:
                 totalResultCount=1,
                 currentPage=1
             )
-        # Case 3: Response without props field
         elif isinstance(response, dict) and 'props' not in response:
-            # Create an empty props list but keep other metadata
             search_response = PropertySearchResponse(
                 props=[],
                 resultsPerPage=response.get('resultsPerPage', 0),
@@ -122,8 +113,12 @@ class ZillowService:
                 totalResultCount=response.get('totalResultCount', 0),
                 currentPage=response.get('currentPage', 1)
             )
-        # Case 4: Normal response
         else:
+            if 'props' in response and isinstance(response['props'], list):
+                for prop in response['props']:
+                    if isinstance(prop, dict) and 'dateSold' in prop and prop['dateSold'] is not None and not isinstance(prop['dateSold'], str):
+                        prop['dateSold'] = str(prop['dateSold'])
+            
             search_response = PropertySearchResponse(**response)
             
         search_result_list = PropertySearchResultList(results=search_response)
