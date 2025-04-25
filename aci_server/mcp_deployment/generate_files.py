@@ -103,12 +103,8 @@ def generate_dockerfile_with_base64_from_repo(repo_data):
     if dockerfile_content:
         dockerfile = dockerfile_content
     else:
-        if not check_dockerfile_exists(repo_data.get("files", [])):
-            context = json.dumps(repo_data)
-            dockerfile = generate_dockerfile(context)
-        else:    
-            context = json.dumps(repo_data)
-            dockerfile = generate_dockerfile(context)
+        context = json.dumps(repo_data)
+        dockerfile = generate_dockerfile(context)
     
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
     return dockerfile_base64

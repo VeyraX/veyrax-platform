@@ -44,17 +44,18 @@ export function McpDeploymentSheet({ isOpen, onClose, deployment }: McpDeploymen
 
   const processBuildLogs = (logs: string): string => {
     if (!logs) return '';
-    const stepRegex = /^(#\d+)\s+(.*)/; // Regex to capture #<number> and the rest
-    return logs
-      .split('\\n') // Split by literal '\n'
+    
+    const logsStr = String(logs);
+    
+    const stepRegex = /^(#\d+)\s+(.*)/; 
+    return logsStr
+      .split('\\n')
       .map(line => {
         const trimmedLine = line.trim();
         const match = trimmedLine.match(stepRegex);
         if (match) {
-          // If it matches #<number> pattern, split it onto a new line with indentation
           return `${match[1]}\n  ${match[2]}`;
         }
-        // Keep other lines as they are (potentially trimming them)
         return trimmedLine; 
       })
       .join('\n');
