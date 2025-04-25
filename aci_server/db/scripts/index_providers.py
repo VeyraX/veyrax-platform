@@ -125,8 +125,6 @@ def main():
         vectors.append(vector)
         print(f"Progress: {i}/{len(providers)} providers processed")
     
-    # Fetch and index MCP repositories
-    print("Fetching MCP repositories from Supabase...")
     repositories_data = supabase.table("mcp_repositories").select(
         "id",
         "name",
@@ -155,7 +153,7 @@ def main():
                 "created_at": repo.get('created_at', ''),
                 "image_name": repo.get('image_name', ''),
                 "repo_url": repo.get('repo_url', ''),
-                "type": "mcp_repository"  # Adding type to distinguish between providers and repositories
+                "type": "mcp_repository"
             }
         )
         vectors.append(vector)

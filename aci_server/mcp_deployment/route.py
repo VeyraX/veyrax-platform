@@ -21,7 +21,7 @@ from .generate_files import (
 )
 from db.supabase import get_supabase
 from integrations.common.auth import get_user_from_request
-from .queries import create_mcp_deployment_record, update_mcp_deployment_status, update_users_mcp_status_by_deployment_id, add_repository_to_providers_index, get_repo_id_from_deployment
+from .queries import create_mcp_deployment_record, update_mcp_deployment_status, update_users_mcp_status_by_deployment_id
 
 router = APIRouter(
     prefix="/mcp_deployment",
