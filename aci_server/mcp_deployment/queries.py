@@ -2,6 +2,9 @@ from db.supabase import get_supabase
 from typing import Dict, Any, Optional, List
 import uuid
 from datetime import datetime
+import os
+from upstash_vector import Index, Vector
+from openai import OpenAI
 
 async def create_mcp_deployment_record(
     repository_id: str,
@@ -224,3 +227,90 @@ async def update_users_mcp_status_by_deployment_id(deployment_id: str, status: s
     except Exception as e:
         print(f"Error updating users_mcp status: {str(e)}")
         return False
+
+async def add_repository_to_providers_index(repo_id: str) -> Dict[str, Any]:
+    try:
+        supabase = get_supabase()
+        
+        result = supabase.table('mcp_repositories') \
+            .select('id, name, description, created_at, image_name, repo_url, input_schema') \
+            .eq('id', repo_id) \
+            .limit(1) \
+            .execute()
+            
+        if not result.data or len(result.data) == 0:
+            return {"error": "Repository not found"}
+            
+        repo = result.data[0]
+        
+        text = f"{repo.get('name', '')}\n"
+        if repo.get('description'):
+            text += f"{repo.get('description')}\n"
+        if repo.get('image_name'):
+            text += f"{repo.get('image_name')}\n"
+            
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return {"error": "Missing OpenAI API key"}
+        openai_client = OpenAI(api_key=api_key)
+        
+        embedding_response = openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text
+        )
+        embedding = embedding_response.data[0].embedding
+        
+        url = os.getenv("UPSTASH_PROVIDERS_URL")
+        token = os.getenv("UPSTASH_PROVIDERS_TOKEN")
+        if not url or not token:
+            return {"error": "Missing Upstash Vector credentials for Providers index"}
+        vector_index = Index(url=url, token=token)
+        
+        check_result = vector_index.query(
+            vector=embedding,
+            top_k=1,
+            include_metadata=True,
+            filter={"id": {"$eq": str(repo_id)}}
+        )
+        
+        if check_result and check_result.matches and len(check_result.matches) > 0:
+            return {"success": True, "message": f"Repository {repo_id} already exists in Providers index"}
+        
+        vector = Vector(
+            id=str(repo['id']),
+            vector=embedding,
+            metadata={
+                "id": str(repo['id']),
+                "name": repo.get('name', ''),
+                "description": repo.get('description', ''),
+                "created_at": repo.get('created_at', ''),
+                "image_name": repo.get('image_name', ''),
+                "repo_url": repo.get('repo_url', ''),
+                "input_schema": repo.get('input_schema', {})
+            }
+        )
+        
+        vector_index.upsert(vectors=[vector])
+        
+        return {"success": True, "message": f"Repository {repo_id} added to Providers index"}
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+async def get_repo_id_from_deployment(deployment_id: str) -> Optional[str]:
+    try:
+        supabase = get_supabase()
+        deployment_result = supabase.table('mcp_repository_deployments') \
+            .select('repo_id') \
+            .eq("deployment_id", deployment_id) \
+            .limit(1) \
+            .execute()
+            
+        if deployment_result.data and len(deployment_result.data) > 0:
+            return deployment_result.data[0].get("repo_id")
+            
+        return None
+        
+    except Exception as e:
+        print(f"Error getting repo_id from deployment: {str(e)}")
+        return None

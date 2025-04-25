@@ -54,6 +54,7 @@ from integrations.reddit.route import router as reddit_router
 from integrations.common.utils import get_router_tools, log_api_call, get_user_flows_actions, get_user_tools_from_actions, get_user_flows, get_auth_tool, is_usage_limit_exceeded
 from integrations.common.route_identifier import route_method
 from integrations.common.prompt_example import get_tools_example_prompt, get_tools_example_prompt_empty
+from integrations.common.vector_utils import get_user_tools_with_vector_search, get_user_mcp_repositories_with_vector_search, get_user_combined_tools_with_vector_search
 from integrations.linkedin.route import router as linkedin_router
 from integrations.replicate.route import router as replicate_router
 from integrations.posthog.route import router as posthog_router
@@ -394,6 +395,7 @@ async def get_tool_spec(tool_name: str, request: Request):
 async def get_user_tools(request: Request):
     query_params = dict(request.query_params)
     question = query_params.get("question")
+    tool = query_params.get("tool")
     
     if NEXT_PUBLIC_SENTRY_ENVIRONMENT.lower() == 'development':
         return await get_dev_user_tools(request)
@@ -404,14 +406,56 @@ async def get_user_tools(request: Request):
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
     try:
-        user_tools = get_user_tools_from_actions(user_id)
+        if not tool:
+            user_tools = get_user_tools_from_actions(user_id)
+            
+            mcp_actions = await get_user_connected_mcp_actions(user_id)
+            
+            if not user_tools and not mcp_actions:
+                tools_response = {"tools": {}}
+                tools_response["tools"]["veyrax-auth"] = get_auth_tool()
+                tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
+                tools_response["tools"]["memories"] = {}
+                tools_response["tools"]["available_flows"] = []
+                
+                log_api_call(
+                    user_id=user_id,
+                    endpoint="/get-tools",
+                    success=1,
+                    metadata={"fallback": "true", "reason": "no_tools"}
+                )
+                
+                return tools_response
+                
+            if not user_tools:
+                user_tools = {}
+                
+            user_tools.update(mcp_actions)
+                
+            response_tools = {"tools": user_tools}
+            response_tools["tools"]["veyrax-auth"] = get_auth_tool()
+            response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
+            
+            user_memories = await get_user_memories(user_id)
+            response_tools["tools"]["memories"] = user_memories
+            
+            user_flows = get_user_flows(user_id)
+            if user_flows and not isinstance(user_flows, dict):
+                response_tools["tools"]["available_flows"] = user_flows
+            
+            log_api_call(
+                user_id=user_id,
+                endpoint="/get-tools",
+                success=1,
+                metadata={"fallback": "true", "question": question}
+            )
+            
+            return response_tools
         
-        if isinstance(user_tools, dict) and "error" in user_tools:
-            raise Exception(user_tools["error"])
-            
-        mcp_actions = await get_user_connected_mcp_actions(user_id)
-            
-        if not user_tools and not mcp_actions:
+        query = f'User question: {question}, tool: {tool}'
+        combined_tools = await get_user_combined_tools_with_vector_search(user_id, query, 4)
+        
+        if not combined_tools:
             tools_response = {"tools": {}}
             tools_response["tools"]["veyrax-auth"] = get_auth_tool()
             tools_response["tools"]["examples"] = json.loads(get_tools_example_prompt_empty)
@@ -422,16 +466,14 @@ async def get_user_tools(request: Request):
                 user_id=user_id,
                 endpoint="/get-tools",
                 success=1,
-                metadata={"question": question} if question else None
+                metadata={"question": question, "tool": tool}
             )
             
             return tools_response
         
-        response_tools = {"tools": user_tools}
+        response_tools = {"tools": combined_tools}
         response_tools["tools"]["veyrax-auth"] = get_auth_tool()
         response_tools["tools"]["examples"] = json.loads(get_tools_example_prompt)
-        
-        response_tools["tools"].update(mcp_actions)
         
         user_memories = await get_user_memories(user_id)
         response_tools["tools"]["memories"] = user_memories
@@ -444,7 +486,7 @@ async def get_user_tools(request: Request):
             user_id=user_id,
             endpoint="/get-tools",
             success=1,
-            metadata={"question": question} if question else None
+            metadata={"question": question, "tool": tool}
         )
         
         return response_tools
@@ -454,7 +496,7 @@ async def get_user_tools(request: Request):
             endpoint="/get-tools",
             success=0,
             error_message=str(e),
-            metadata={"question": question} if question else None
+            metadata={"question": question, "tool": tool}
         )
         raise HTTPException(status_code=500, detail=f"Failed to get user tools: {str(e)}")
 

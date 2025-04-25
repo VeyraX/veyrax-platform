@@ -21,7 +21,7 @@ from .generate_files import (
 )
 from db.supabase import get_supabase
 from integrations.common.auth import get_user_from_request
-from .queries import create_mcp_deployment_record, update_mcp_deployment_status, update_users_mcp_status_by_deployment_id
+from .queries import create_mcp_deployment_record, update_mcp_deployment_status, update_users_mcp_status_by_deployment_id, add_repository_to_providers_index, get_repo_id_from_deployment
 
 router = APIRouter(
     prefix="/mcp_deployment",
@@ -54,7 +54,6 @@ async def generate_repository_meta_endpoint(
             error_msg = f"Failed to parse repository: {str(repo_error)}"
             raise HTTPException(status_code=500, detail=error_msg)
         
-        # Check for Dockerfile but don't throw error
         dockerfile_exists = True
         try:
             dockerfile_exists = check_dockerfile_exists(repo_data.get("files", []))
@@ -142,11 +141,17 @@ async def update_deployment_status_endpoint(
             build_logs=build_logs
         )
 
+        repo_id = await get_repo_id_from_deployment(status_update.deployment_id)
+        if repo_id:
+            await add_repository_to_providers_index(repo_id)
+
         if status_update.status == "failed":
             await update_users_mcp_status_by_deployment_id(
                 deployment_id=status_update.deployment_id,
                 status="failed"
             )
+        elif status_update.status == "success":
+            pass
         
         return {
             "success": True,

@@ -7,6 +7,8 @@ import argparse
 from typing import List, Dict, Any, Optional
 import yaml
 import datetime
+from openai import OpenAI
+from upstash_vector import Index, Vector
 
 sys.path.append('/app')
 
@@ -222,6 +224,71 @@ def get_provider_schemas(provider_tag: str) -> Dict[str, Any]:
         print(f"Error getting provider schemas: {str(e)}")
         return {}
 
+async def add_provider_to_providers_index(provider_id: str, provider_data: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        # Create text representation for embedding
+        text = f"{provider_data.get('name', '')}\n"
+        if provider_data.get('description'):
+            text += f"{provider_data.get('description')}\n"
+        if provider_data.get('provider_tag'):
+            text += f"{provider_data.get('provider_tag')}\n"
+            
+        # Get OpenAI client for embeddings
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return {"error": "Missing OpenAI API key"}
+        openai_client = OpenAI(api_key=api_key)
+        
+        # Generate embedding
+        embedding_response = openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text
+        )
+        embedding = embedding_response.data[0].embedding
+        
+        # Get vector index for Providers
+        url = os.getenv("UPSTASH_PROVIDERS_URL")
+        token = os.getenv("UPSTASH_PROVIDERS_TOKEN")
+        if not url or not token:
+            return {"error": "Missing Upstash Vector credentials for Providers index"}
+        vector_index = Index(url=url, token=token)
+        
+        # Check if the provider already exists in the index
+        check_result = vector_index.query(
+            vector=embedding,
+            top_k=1,
+            include_metadata=True,
+            filter={"id": {"$eq": str(provider_id)}}
+        )
+        
+        if check_result and check_result.matches and len(check_result.matches) > 0:
+            return {"success": True, "message": f"Provider {provider_id} already exists in Providers index"}
+        
+        # Create vector with metadata
+        vector = Vector(
+            id=str(provider_id),
+            vector=embedding,
+            metadata={
+                "id": str(provider_id),
+                "name": provider_data.get('name', ''),
+                "description": provider_data.get('description', ''),
+                "logo_url": provider_data.get('logo_url', ''),
+                "created_at": provider_data.get('created_at', ''),
+                "provider_tag": provider_data.get('provider_tag', ''),
+                "auth_method": provider_data.get('auth_method', ''),
+                "is_enabled": provider_data.get('is_enabled', True)
+            }
+        )
+        
+        # Upsert vector to index
+        vector_index.upsert(vectors=[vector])
+        
+        return {"success": True, "message": f"Provider {provider_id} added to Providers index"}
+        
+    except Exception as e:
+        print(f"Error adding provider to Providers index: {str(e)}")
+        return {"error": str(e)}
+
 async def create_or_update_provider(provider_data: Dict[str, Any]):
     try:
         supabase = get_supabase()
@@ -257,6 +324,14 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
             provider = supabase.table("providers").insert(provider_record).execute().data[0]
             provider_id = provider["id"]
             print(f"\n=== Created new provider: {provider['name']} ===")
+            
+        # Add provider to Providers vector index
+        provider_record["id"] = provider_id
+        index_result = await add_provider_to_providers_index(provider_id, provider_record)
+        if "error" in index_result:
+            print(f"Warning: {index_result['error']}")
+        else:
+            print(index_result["message"])
         
         # Create or update scopes
         existing_actions, existing_scopes = get_existing_provider_data(supabase, provider_id)
