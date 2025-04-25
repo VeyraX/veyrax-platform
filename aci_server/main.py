@@ -237,13 +237,17 @@ class PermissionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path.strip("/")
         segments = path.split("/")
-        
-        if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] == "tool-call"):
+
+        if segments and (segments[0] in INTEGRATION_ROUTERS or segments[0] in ["tool-call", "tool-execute"]):
             if segments[0] == "tool-call" and len(segments) >= 3:
                 tool, method = segments[1], segments[2]
+            elif segments[0] == "tool-execute":
+                request_body = await request.json()
+                tool = request_body.get("tool")
+                method = request_body.get("method")
             else:
                 tool, method = segments[0], segments[1] if len(segments) > 1 else None
-
+        
             if tool and method:
                 try:
                     await check_user_permission(request, tool, method)
@@ -254,7 +258,7 @@ class PermissionMiddleware(BaseHTTPMiddleware):
                             content={"detail": f"Method not available: {e.detail}"}
                         )
                     raise e
-
+                
         return await call_next(request)
 
 
