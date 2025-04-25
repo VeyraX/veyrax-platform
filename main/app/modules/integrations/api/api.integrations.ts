@@ -7,7 +7,6 @@ const supabase = createClient()
 export const getTopConnectedProviders = async (): Promise<{ provider_id: string, name: string, provider_tag: string, count_of_users: number }[]> => {
   try {
     const { data, error } = await supabase.rpc('get_top_connected_providers');
-    console.log(data)
     
     if (error) {
       console.error('Error fetching top connected providers:', error);
@@ -78,6 +77,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
         categories: integration.categories,
         provider_tag: integration.provider_tag,
         auth_method: integration.auth_method,
+        auth_schema: integration.auth_schema,
         scopes: scopes, // Use properly formatted scopes
         is_enabled: integration.is_enabled,
         connected: userConnections.some(conn => conn.provider_id === integration.id),
@@ -787,7 +787,7 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
       .eq('user_id', user?.id)
       .eq('provider_id', providerId)
       .single();
-    
+
     if (error) {
       if (error.code === 'PGRST116') {
         return null;
@@ -799,8 +799,7 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
     
     const rawData = typeof data.raw_data === 'string' 
       ? JSON.parse(data.raw_data) 
-      : data.raw_data;
-  
+      : data.raw_data;  
     
     return rawData;
   } catch (error) {
