@@ -141,17 +141,11 @@ async def update_deployment_status_endpoint(
             build_logs=build_logs
         )
 
-        repo_id = await get_repo_id_from_deployment(status_update.deployment_id)
-        if repo_id:
-            await add_repository_to_providers_index(repo_id)
-
         if status_update.status == "failed":
             await update_users_mcp_status_by_deployment_id(
                 deployment_id=status_update.deployment_id,
                 status="failed"
             )
-        elif status_update.status == "success":
-            pass
         
         return {
             "success": True,

@@ -9,6 +9,7 @@ import httpx
 import json
 from typing import Dict, Any, Optional
 from .parse_repo import check_dockerfile_exists
+from .queries import add_repository_to_providers_index
 
 load_dotenv()
 
@@ -174,6 +175,10 @@ async def push_mcp_to_dockerhub(
                 print(f"GitHub API response text: {response.text}")
         
         if response.status_code == 204:
+            if repository_id:
+                index_result = await add_repository_to_providers_index(repository_id)
+
+                
             return {
                 "status": "success",
                 "dockerfile_b64": dockerfile_base64,
