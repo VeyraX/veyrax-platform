@@ -83,7 +83,6 @@ async def get_cached_dockerfile(
         return {}
         
     except Exception as e:
-        print(f"Error getting cached dockerfile: {str(e)}")
         return {}
 
 async def save_dockerfile(
@@ -105,7 +104,6 @@ async def save_dockerfile(
         return True
         
     except Exception as e:
-        print(f"Error saving dockerfile: {str(e)}")
         return False
 
 async def get_mcp_repositories(repo_ids: List[str] = None) -> List[Dict[str, Any]]:
@@ -125,7 +123,6 @@ async def get_mcp_repositories(repo_ids: List[str] = None) -> List[Dict[str, Any
         return result.data
         
     except Exception as e:
-        print(f"Error getting MCP repositories: {str(e)}")
         return []
 
 async def get_user_connected_repo_ids(user_id: str) -> List[str]:
@@ -144,7 +141,6 @@ async def get_user_connected_repo_ids(user_id: str) -> List[str]:
         return [item["repo_id"] for item in result.data]
         
     except Exception as e:
-        print(f"Error getting user connected repo IDs: {str(e)}")
         return []
 
 async def get_user_mcp_image_names(user_id: str) -> List[str]:
@@ -162,7 +158,6 @@ async def get_user_mcp_image_names(user_id: str) -> List[str]:
         return [repo["image_name"] for repo in repos]
         
     except Exception as e:
-        print(f"Error getting user MCP image names: {str(e)}")
         return []
 
 async def get_user_connected_mcp_actions(user_id: str) -> Dict[str, Any]:
@@ -186,7 +181,6 @@ async def get_user_connected_mcp_actions(user_id: str) -> Dict[str, Any]:
         return connected_repos
         
     except Exception as e:
-        print(f"Error getting user connected MCP actions: {str(e)}")
         return {}
 
 async def update_users_mcp_status_by_deployment_id(deployment_id: str, status: str) -> bool:
@@ -225,7 +219,6 @@ async def update_users_mcp_status_by_deployment_id(deployment_id: str, status: s
         return True
         
     except Exception as e:
-        print(f"Error updating users_mcp status: {str(e)}")
         return False
 
 async def add_repository_to_providers_index(repo_id: str) -> Dict[str, Any]:
@@ -270,7 +263,7 @@ async def add_repository_to_providers_index(repo_id: str) -> Dict[str, Any]:
             vector=embedding,
             top_k=1,
             include_metadata=True,
-            filter={"repo_id": {"$eq": str(repo_id)}}
+            filter=f"repo_id = '{str(repo_id)}' AND type = 'mcp_repository'"
         )
         
         if check_result and check_result.matches and len(check_result.matches) > 0:
@@ -283,7 +276,7 @@ async def add_repository_to_providers_index(repo_id: str) -> Dict[str, Any]:
                 "repo_id": str(repo['id']),
                 "name": repo.get('name', ''),
                 "description": repo.get('description', ''),
-                "created_at": repo.get('created_at', ''),
+                "created_at": str(repo.get('created_at', '')),
                 "image_name": repo.get('image_name', ''),
                 "repo_url": repo.get('repo_url', ''),
                 "type": "mcp_repository"
@@ -312,5 +305,4 @@ async def get_repo_id_from_deployment(deployment_id: str) -> Optional[str]:
         return None
         
     except Exception as e:
-        print(f"Error getting repo_id from deployment: {str(e)}")
-        return None
+        return f'Error getting repo_id from deployment: {str(e)}'
