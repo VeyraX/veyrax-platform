@@ -107,6 +107,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import httpx
 import asyncio
 from pydantic import BaseModel
+from typing import Dict, List, Any, Union
 
 load_dotenv()
 
@@ -665,3 +666,79 @@ async def handle_simplified_tool_call_endpoint(call_request: SimplifiedToolCallR
         question=call_request.question,
         request=request
     )
+
+def _simplify_tool_schema(tool_schema: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[str]:
+    method_names = []
+    if isinstance(tool_schema, list):
+        for item in tool_schema:
+            if isinstance(item, dict):
+                if item.get("type") == "function" and "function" in item:
+                    func = item.get("function", {})
+                    name = func.get("name")
+                    if name:
+                        method_names.append(name)
+                elif "name" in item:
+                    name = item.get("name")
+                    if name:
+                        method_names.append(name)
+    elif isinstance(tool_schema, dict):
+        if len(tool_schema) == 1 and next(iter(tool_schema)) == "veyrax-auth":
+            inner_value = tool_schema["veyrax-auth"]
+            if isinstance(inner_value, dict):
+                method_names.extend(list(inner_value.keys()))
+        else:
+            method_names.extend(list(tool_schema.keys()))
+            
+    return method_names
+
+async def _get_simplified_user_tools(user_id: str) -> Dict[str, Any]:
+    simplified_response_tools = {}
+    try:
+        user_integration_tools = get_user_tools_from_actions(user_id)
+        if user_integration_tools:
+            for tool_name, methods_schema in user_integration_tools.items():
+                simplified_methods = _simplify_tool_schema(methods_schema)
+                if simplified_methods:
+                    simplified_response_tools[tool_name] = simplified_methods
+
+        mcp_actions = await get_user_connected_mcp_actions(user_id)
+        if mcp_actions:
+             for mcp_name, methods_schema in mcp_actions.items():
+                 simplified_methods = _simplify_tool_schema(methods_schema)
+                 if simplified_methods:
+                    simplified_response_tools[mcp_name] = simplified_methods
+                    
+        has_any_tools = bool(user_integration_tools or mcp_actions)
+
+        auth_tool_schema = get_auth_tool()
+        simplified_response_tools["veyrax-auth"] = _simplify_tool_schema(auth_tool_schema)
+
+        example_prompt_string = get_tools_example_prompt if has_any_tools else get_tools_example_prompt_empty
+        simplified_response_tools['examples'] = json.loads(example_prompt_string)
+        
+        user_memories = await get_user_memories(user_id)
+        simplified_response_tools['memories'] = user_memories
+        
+        user_flows = get_user_flows(user_id)
+        if user_flows and not isinstance(user_flows, dict):
+            simplified_response_tools['available_flows'] = user_flows
+                 
+    except Exception as e:
+        print(f"Error fetching simplified user tools structure for {user_id}: {e}")
+        return {}
+        
+    return simplified_response_tools
+
+@app.get("/get-tools-simplified")
+async def get_user_tools_simplified(request: Request):
+    try:
+        user_id = await get_user_from_request(request)
+        simplified_tools_content = await _get_simplified_user_tools(user_id)
+        
+        return {"tools": simplified_tools_content}
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Failed to get simplified user tools: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve simplified tools list.")

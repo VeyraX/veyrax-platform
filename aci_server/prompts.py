@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from typing import Dict, List
 
 def get_parameter_generation_prompt(tool: str, method: str, question: str, tool_schema: dict) -> str:
     today = date.today().isoformat()
@@ -16,5 +17,50 @@ Generate the JSON parameters required to call the '{method}' function to address
 Only output the JSON object containing the parameters. Do not include any explanations, apologies, or surrounding text.
 If no parameters are needed, output an empty JSON object {{}}.
 If you cannot determine the parameters from the question and schema, output an empty JSON object {{}}.
+"""
+    return prompt 
+
+
+def get_tool_method_parameter_generation_prompt(question: str, simplified_tools: Dict[str, List[str]]) -> str:
+    today = date.today().isoformat()
+    
+    # Format the simplified tools for the prompt
+    formatted_tools = "\n".join([f"- {tool_name}: Methods = {', '.join(methods)}" for tool_name, methods in simplified_tools.items()])
+    
+    prompt = f"""
+Today's date is {today}.
+
+Based on the user's question below, select the most appropriate tool and method from the available list and generate the required parameters in JSON format.
+
+User Question: "{question}"
+
+Available Tools and Methods:
+{formatted_tools}
+
+Your task:
+1. Analyze the user question and the available tools/methods.
+2. Determine the single best tool name and method name to fulfill the request.
+3. Generate the necessary parameters for the chosen method based *only* on the user question and today's date.
+4. Respond ONLY with a single JSON object containing three keys: "tool" (string), "method" (string), and "params" (JSON object).
+
+Example Response Format:
+{{
+  "tool": "google-calendar",
+  "method": "create_event",
+  "params": {{
+    "summary": "Team Meeting",
+    "start_time": "{today}T14:00:00",
+    "end_time": "{today}T15:00:00"
+  }}
+}}
+
+If no suitable tool/method is found or parameters cannot be determined, respond with:
+{{
+  "tool": null,
+  "method": null,
+  "params": {{}}
+}}
+
+Do not include any explanations, apologies, or surrounding text outside the JSON object.
 """
     return prompt 
