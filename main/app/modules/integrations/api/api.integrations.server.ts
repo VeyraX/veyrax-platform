@@ -214,11 +214,7 @@ export const validateUserAuthentication = async (options: {
   code?: string;
 }) => {
   const { user_id, encrypted_api_key, code } = options;
-  
-  if (user_id) {
-    return user_id;
-  }
-  
+
   if (encrypted_api_key && code) {
     try {
       const { decrypt, decrypt_with_code } = await import('@/lib/utils/encryption');
@@ -243,13 +239,14 @@ export const validateUserAuthentication = async (options: {
         return userId;
       }
     } catch (error) {
-      console.error('Error processing API key:', error);
     }
-    
-    throw new Error('Invalid API key or user not found');
   }
   
-  throw new Error('User identification (user_id or encrypted_api_key with code) is required');
+  if (user_id) { 
+    return user_id;
+  }
+  
+  throw new Error('User identification (valid user_id or encrypted_api_key with code) is required');
 };
 
 export const saveApiKey = async (options: {

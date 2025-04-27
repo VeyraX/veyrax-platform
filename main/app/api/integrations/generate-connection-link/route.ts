@@ -142,7 +142,6 @@ export async function POST(request: Request) {
   const aciServerUrl = process.env.ACI_SERVER_URL || 'http://localhost:8000';
 
   try {
-    // Validate request body first
     const rawBody = await request.json();
     const validationResult = requestBodySchema.safeParse(rawBody);
 
@@ -155,10 +154,8 @@ export async function POST(request: Request) {
     
     const { omi_user_id, provider_tag, type = 'tool', redirect_url: frontendRedirectUrl } = validationResult.data; 
 
-    // Get user and API key
     const { user_id, api_key } = await getOrCreateUserAndApiKey(supabase, omi_user_id);
 
-    // Prepare backend request
     const backendUrl = `${aciServerUrl}/tool-call/veyrax-auth/generate_connection_link`;
     const redirectUrl = frontendRedirectUrl || `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
     const backendPayload = {
@@ -169,7 +166,6 @@ export async function POST(request: Request) {
 
     console.log(`Proxying request for user ${user_id} to ${backendUrl} with type ${type}`);
 
-    // Fetch backend response
     const backendResponse = await fetch(backendUrl, {
       method: 'POST',
       headers: {
