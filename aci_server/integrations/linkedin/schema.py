@@ -2,6 +2,9 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 
+class GetMeParams(BaseModel):
+    pass
+
 class GetProfileParams(BaseModel):
     username: str = Field(
         ...,

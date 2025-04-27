@@ -4,6 +4,7 @@ from starlette.requests import Request as FastAPIRequest
 from typing import Dict, Any
 from .schema import (
     GetProfileParams,
+    GetMeParams,
     SearchPeopleParams,
     GetProfilePostsParams,
     GetConnectionCountParams,
@@ -41,7 +42,7 @@ from .schema import (
 )
 from .service import LinkedInService
 from .client import LinkedInClient
-from ..common.auth import validate_provider_api_key
+from ..common.auth import validate_provider_api_key, get_provider_custom_auth
 from ..common.input_schema_decorator import schema, input_schema, output_schema
 from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, format_validation_error, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
@@ -52,7 +53,16 @@ examples = ExamplesLoader()
 async def get_linkedin_service(request: FastAPIRequest):
     try:
         api_key = os.getenv("RAPID_API_LINKEDIN_API_KEY")
+        
+        # Get custom auth params to retrieve username
+        auth_params = await get_provider_custom_auth(request, "linkedin")
+        raw_username = auth_params.get("username")
+        
         client = LinkedInClient(api_key)
+        if raw_username:
+            # Use the parser to clean and extract the username
+            client.set_username(raw_username)  # set_username internally uses the parser
+            
         apply_error_handler_to_client(client)
         service = LinkedInService(client)
         
@@ -64,6 +74,19 @@ async def get_linkedin_service(request: FastAPIRequest):
             status_code=401,
             detail=f"Failed to initialize LinkedIn service: {str(e)}"
         )
+
+@router.post("/get_me", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetMeParams,
+    output_schema_class=ProfileResponse,
+    examples=examples["/linkedin/get_me"]
+)
+async def get_me(
+    params: Dict[str, Any] = Body(...),
+    service: LinkedInService = Depends(get_linkedin_service)
+):
+    validated_params = GetMeParams(**params)
+    return service.get_me(validated_params)
 
 @router.post("/get_profile", response_model=ApiResponse)
 @schema(
@@ -272,5 +295,45 @@ async def search_locations(
 ):
     validated_params = SearchLocationsParams(**params)
     return service.search_locations(validated_params)
+
+@router.post("/validate_key")
+async def validate_key(params: Dict[str, Any] = Body(...)):
+    try:
+        raw_username = params.get("username", "")
+        
+        # Handle empty username
+        if not raw_username:
+            return {"valid": False, "message": "LinkedIn username is required"}
+        
+        # Parse the username using our utility function
+        username = LinkedInClient.parse_linkedin_username(raw_username)
+        
+        # Handle empty username after parsing
+        if not username:
+            return {"valid": False, "message": "Could not extract a valid LinkedIn username"}
+        
+        # Validate username format (LinkedIn usernames are typically alphanumeric with hyphens)
+        if not all(c.isalnum() or c == '-' for c in username):
+            return {"valid": False, "message": "LinkedIn username can only contain letters, numbers, and hyphens"}
+        
+        # If we have the API key in environment, we could do a more thorough validation
+        # by actually checking if the user exists
+        api_key = os.getenv("RAPID_API_LINKEDIN_API_KEY")
+        if api_key:
+            client = LinkedInClient(api_key)
+            try:
+                # Try to get the user profile to verify the username exists
+                result = client.get_profile(username)
+                if result and isinstance(result, dict) and result.get('id'):
+                    return {"valid": True, "message": f"Username '{username}' is valid"}
+                else:
+                    return {"valid": False, "message": f"Username '{username}' not found or invalid"}
+            except Exception as e:
+                return {"valid": False, "message": f"Error validating username '{username}': {str(e)}"}
+        
+        # If we don't have an API key or couldn't validate, return based on format check
+        return {"valid": True, "message": f"Username '{username}' format is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Error validating username: {str(e)}"}
 
 apply_error_handler_to_router(router)

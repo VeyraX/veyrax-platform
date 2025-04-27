@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Optional
 from .client import LinkedInClient
 from .schema import (
     GetProfileParams,
+    GetMeParams,
     SearchPeopleParams,
     GetProfilePostsParams,
     GetConnectionCountParams,
@@ -70,6 +71,16 @@ class LinkedInService:
         components = prepare_components_auto(data, component_name, self.components_data, tool_name)
         return ApiResponse(data=data, component=components)
 
+    def get_me(self, params: GetMeParams) -> ApiResponse:
+        """
+        Retrieve the authenticated user's profile based on the stored username.
+        """
+        # Make API call through client
+        response = self.client.get_me()
+        processed_data = self._process_profile_data(response)
+        validated_profile = Profile(**processed_data)
+        return self.prepare_response(validated_profile)
+
     def get_profile(self, params: GetProfileParams) -> ApiResponse:
         response = self.client.get_profile(params.username)
         processed_data = self._process_profile_data(response)
@@ -89,6 +100,10 @@ class LinkedInService:
             potential_items = search_data.get("items")
             if isinstance(potential_items, list):
                 items = potential_items
+
+        if items is None or (isinstance(items, list) and len(items) == 0):
+            total = 0
+            items = []
         
         validated_results = SearchPeopleResults(
             total=total,

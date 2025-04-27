@@ -5,6 +5,9 @@ class GetUserProfileParams(BaseModel):
     screenname: str = Field(..., description="Twitter username/screenname without the @ symbol")
     rest_id: Optional[str] = Field(None, description="Twitter user ID for more precise lookup")
 
+class GetMeParams(BaseModel):
+    pass
+
 class UserProfileData(BaseModel):
     profile: Optional[str] = Field(None, description="Profile URL")
     rest_id: Optional[str] = Field(None, description="Twitter user ID")

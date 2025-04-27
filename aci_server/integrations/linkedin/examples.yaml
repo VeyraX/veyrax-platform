@@ -777,3 +777,55 @@ routes:
               "name": "LinkedInLocationsCard"
             }
           }
+
+  - endpoint: /linkedin/get_me
+    examples:
+      - scenario: "Get Current User Profile"
+        description: "Retrieve profile information for the authenticated LinkedIn user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "id": "YOUR-LINKEDIN-ID",
+              "username": "john-doe",
+              "firstName": "John",
+              "lastName": "Doe",
+              "headline": "Software Engineer at Example Corp",
+              "profilePicture": "https://media.licdn.com/dms/image/profile-picture.jpg",
+              "isPremium": true,
+              "geo": {
+                "country": "United States",
+                "city": "San Francisco",
+                "full": "San Francisco, California, United States"
+              },
+              "position": [
+                {
+                  "companyId": 2468,
+                  "companyName": "Example Corp",
+                  "title": "Senior Software Engineer",
+                  "location": "San Francisco, California, United States",
+                  "start": {
+                    "year": 2020,
+                    "month": 6
+                  }
+                }
+              ],
+              "educations": [
+                {
+                  "schoolName": "Stanford University",
+                  "degree": "Master of Science",
+                  "fieldOfStudy": "Computer Science",
+                  "start": {
+                    "year": 2014
+                  },
+                  "end": {
+                    "year": 2016
+                  }
+                }
+              ]
+            },
+            "component": {
+              "name": "LinkedInProfileCard"
+            }
+          }
