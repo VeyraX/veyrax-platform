@@ -46,9 +46,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('integrations/mail', request.url))
   }
 
-  // if (pathname === '/integrations' && !session) {
-  //   return NextResponse.redirect(new URL('/marketplace', request.url))
-  // }
+  if (pathname === '/integrations' && !session) {
+    return NextResponse.redirect(new URL('/marketplace', request.url))
+  }
 
   const integrationsMcpMatch = pathname.match(/^\/integrations\/mcp\/([^\/]+)$/);
   if (integrationsMcpMatch) {
