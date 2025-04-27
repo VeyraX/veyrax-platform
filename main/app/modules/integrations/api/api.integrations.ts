@@ -76,7 +76,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
         logo_url: integration.logo_url,
         categories: integration.categories,
         provider_tag: integration.provider_tag,
-        auth_method: integration.provider_tag === 'linkedin' ? 'custom' : integration.auth_method,
+        auth_method: integration.auth_method,
         auth_schema: integration.auth_schema,
         scopes: scopes, // Use properly formatted scopes
         is_enabled: integration.is_enabled,
