@@ -7,6 +7,7 @@ import { ScopeDialog } from '@/app/modules/integrations/components/integration-s
 import { McpManage } from '@/app/modules/integrations/components/mcp/mcp-manage';
 import { initiateOAuthFlow, getProviderAuthInfo } from '@/app/modules/integrations/api/api.integrations';
 import { getMcpDetailsByImageName } from '@/app/modules/integrations/api/api.integrations.mcp';
+import { Copy, Check } from 'lucide-react';
 
 interface UserAuthPageProps {
   providerTag: string;
@@ -33,6 +34,24 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
   const verificationAttempted = useRef(false);
   const isMcp = type === 'mcp';
+  const [copied, setCopied] = useState(false);
+
+  const extractUid = () => {
+    if (!returnUrl) return null;
+    const match = returnUrl.match(/prompt=uid=([^&]+)/);
+    return match ? match[1] : null;
+  };
+
+  const uid = extractUid();
+
+  const copyToClipboard = () => {
+    if (uid) {
+      navigator.clipboard.writeText(uid).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
 
   useEffect(() => {
     setMessage('Authenticating...');
@@ -282,16 +301,56 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     <div className="min-h-screen flex items-center justify-center bg-white">
       {isRedirecting ? (
         <div className="text-center">
+          {uid && (
+            <div className="mb-2">
+              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
+                <span className="text-[10px] text-gray-400">UID:</span>
+                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
+                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
+              </div>
+            </div>
+          )}
           <p suppressHydrationWarning>{message}</p>
         </div>
       ) : connectionComplete ? (
         <div className="text-center">
+          {uid && (
+            <div className="mb-2">
+              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
+                <span className="text-[10px] text-gray-400">UID:</span>
+                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
+                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
+              </div>
+            </div>
+          )}
           <p suppressHydrationWarning>Provider successfully connected.</p>
         </div>
       ) : showScopeDialog || showIntegrationDialog || showMcpDialog ? (
-        <p className="text-black" suppressHydrationWarning>Loading provider settings...</p>
+        <div>
+          {uid && (
+            <div className="mb-2 text-center">
+              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
+                <span className="text-[10px] text-gray-400">UID:</span>
+                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
+                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
+              </div>
+            </div>
+          )}
+          <p className="text-black" suppressHydrationWarning>Loading provider settings...</p>
+        </div>
       ) : (
-        <p className="text-black" suppressHydrationWarning>{getDisplayMessage()}</p>
+        <div>
+          {uid && (
+            <div className="mb-2 text-center">
+              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
+                <span className="text-[10px] text-gray-400">UID:</span>
+                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
+                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
+              </div>
+            </div>
+          )}
+          <p className="text-black" suppressHydrationWarning>{getDisplayMessage()}</p>
+        </div>
       )}
       
       {showScopeDialog && providerDetails && (
