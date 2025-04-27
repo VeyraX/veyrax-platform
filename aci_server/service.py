@@ -24,7 +24,6 @@ class ToolsService:
     
     async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict) -> dict:
         prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
-        print(prompt)
         
         try:
             api_key = os.getenv("OPENAI_API_KEY")

@@ -15,6 +15,14 @@ And the available tool '{tool}' with method '{method}', which has the following 
 
 Generate the JSON parameters required to call the '{method}' function to address the user's question based *only* on the provided information (question, schema, today's date).
 Only output the JSON object containing the parameters. Do not include any explanations, apologies, or surrounding text.
+
+Twitter / X specific instructions:
+- For endpoint get_user_profile, if the user provides a screenname, use it to get the user's profile. Not anything else.
+
+Doesn't matter what question ask you to do, you always MUST check the real schema and use input schema to generate the parameters.
+
+Even 1 param is wrong, the whole action is wrong.
+
 If no parameters are needed, output an empty JSON object {{}}.
 If you cannot determine the parameters from the question and schema, output an empty JSON object {{}}.
 """
