@@ -81,9 +81,18 @@ class LinkedInService:
         response = self.client.search_people(query_params)
         
         search_data = response.get("data", {})
+        items = []
+        total = 0
+        
+        if isinstance(search_data, dict):
+            total = search_data.get("total", 0)
+            potential_items = search_data.get("items")
+            if isinstance(potential_items, list):
+                items = potential_items
+        
         validated_results = SearchPeopleResults(
-            total=search_data.get("total", 0),
-            items=search_data.get("items", [])
+            total=total,
+            items=items
         )
         return self.prepare_response(validated_results, "LinkedInSearchResultsCard")
 

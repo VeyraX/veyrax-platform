@@ -910,6 +910,7 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
 
 export const validateApiKey = async (providerId: string, apiKey: string, baseUrl?: string): Promise<{valid: boolean, message: string}> => {
   try {
+    console.log('Validating API key for provider:', providerId);
     const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || '';
     
     const requestBody: any = { api_key: apiKey };
@@ -1249,6 +1250,7 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
   name: string;
   auth_method: string;
   logo_url: string;
+  provider_tag: string;
   scopes: ProviderScope[];
 } | null> => {
   try {
@@ -1259,6 +1261,7 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
         name,
         auth_method,
         logo_url,
+        provider_tag,
         provider_scopes (
           id,
           scope_id,
