@@ -157,14 +157,13 @@ export async function POST(request: Request) {
     const { user_id, api_key } = await getOrCreateUserAndApiKey(supabase, omi_user_id);
 
     const backendUrl = `${aciServerUrl}/tool-call/veyrax-auth/generate_connection_link`;
-    const redirectUrl = frontendRedirectUrl || `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
+    const promptMessage = `Paste this UID in ChatGPT ${omi_user_id} =>`;
+    const redirectUrl = frontendRedirectUrl || `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=${encodeURIComponent(promptMessage)}`;
     const backendPayload = {
       provider_tag: provider_tag,
       type: type,
       redirect_url: redirectUrl,
     };
-
-    console.log(`Proxying request for user ${user_id} to ${backendUrl} with type ${type}`);
 
     const backendResponse = await fetch(backendUrl, {
       method: 'POST',
