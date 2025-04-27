@@ -24,16 +24,20 @@ class ToolsService:
     
     async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict) -> dict:
         prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
+        print(prompt)
         
         try:
-            api_key = os.getenv("OPENAI_API_KEY")
+            api_key = os.getenv("OPENROUTER_API_KEY")
             if not api_key:
-                raise ValueError("OPENAI_API_KEY is not configured")
+                raise ValueError("OPENROUTER_API_KEY is not configured")
                 
-            client = openai.AsyncOpenAI(api_key=api_key)
+            client = openai.AsyncOpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
+            )
             
             completion = await client.chat.completions.create(
-                model="gpt-4o",
+                model="openai/gpt-4.1",
                 messages=[
                     {"role": "system", "content": "You are an expert API parameter generator. Respond only with the JSON object containing the parameters based on the user query and tool schema."},
                     {"role": "user", "content": prompt}
@@ -43,6 +47,7 @@ class ToolsService:
             )
             
             generated_params_json = completion.choices[0].message.content
+            print(generated_params_json)
             
             if not generated_params_json:
                  return {}

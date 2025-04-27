@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { appendResponseMessages, streamText } from 'ai';
 import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
@@ -8,6 +8,11 @@ import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
 import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
 
 export const maxDuration = 150;
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY || '',
+});
+const modelName = 'openai/gpt-4.1';
 
 export async function POST(req: Request) {
   const clonedReq = req.clone();
@@ -94,7 +99,7 @@ To continue using the chat, please upgrade your plan at [veyrax.com/pricing](htt
     
     const customSystemPrompt = `${main_system_prompt}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
 
-    let model = openai('gpt-4o');
+    let model = openrouter(modelName);
     
     const traceId = generateTraceId();
     

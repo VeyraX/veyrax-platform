@@ -8,8 +8,6 @@ def get_parameter_generation_prompt(tool: str, method: str, question: str, tool_
     prompt = f"""
 Today's date is {today}.
 
-Given the user's question: "{question}"
-
 And the available tool '{tool}' with method '{method}', which has the following schema:
 {json.dumps(tool_schema, indent=2)}
 
@@ -23,8 +21,14 @@ Doesn't matter what question ask you to do, you always MUST check the real schem
 
 Even 1 param is wrong, the whole action is wrong.
 
+Think step by step and check with deep attention the schema.
+
 If no parameters are needed, output an empty JSON object {{}}.
 If you cannot determine the parameters from the question and schema, output an empty JSON object {{}}.
+
+In most of the cases params should not be empty.
+
+Generate params based on the user question: "{question}"
 """
     return prompt 
 
