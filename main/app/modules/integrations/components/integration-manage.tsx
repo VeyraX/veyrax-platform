@@ -74,6 +74,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
     phone: undefined
   });
   const [canRentKeys, setCanRentKeys] = useState<boolean>(false);
+  const [hasRequiredFields, setHasRequiredFields] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -90,6 +91,14 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
       } else if (provider.auth_method === 'custom') {
         fetchCustomAuth();
         setCustomAuthChanged(false);
+        
+        // Check if schema has required fields
+        if (provider.auth_schema) {
+          const requiredFields = provider.auth_schema.filter(field => field.required);
+          setHasRequiredFields(requiredFields.length > 0);
+        } else {
+          setHasRequiredFields(false);
+        }
       } else if (provider.provider_tag === 'whatsapp') {
         checkWhatsAppConnectionStatus();
       }
@@ -97,7 +106,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
     if (open && provider.is_rentable) {
       checkRentPermission();
     }
-  }, [open, provider.id, provider.auth_method, provider.provider_tag, provider.connected, provider.is_rentable]);
+  }, [open, provider.id, provider.auth_method, provider.provider_tag, provider.connected, provider.is_rentable, provider.auth_schema]);
 
   const fetchApiKey = async () => {
     if (provider.auth_method !== 'api_key' && provider.auth_method !== 'api_key_with_base') return;
@@ -362,6 +371,26 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
   };
 
   const handleSaveCustomAuth = async () => {
+    // If nothing changed but there are no required fields and not connected yet,
+    // allow saving to establish the connection
+    if (!customAuthChanged && (!hasRequiredFields && !provider.connected)) {
+      try {
+        setIsValidating(true);
+        setValidationError(null);
+        await updateProviderCustomAuth(provider.id, customAuthData, encrypted_api_key, code);
+        onUpdate();
+        setIsValidating(false);
+        onClose();
+        return;
+      } catch (error) {
+        console.error("Error saving custom auth data:", error);
+        setValidationError(error instanceof Error ? error.message : "Failed to save authentication data");
+        setIsValidating(false);
+        return;
+      }
+    }
+    
+    // For connected providers, don't send request if nothing changed
     if (!customAuthChanged) {
       onClose();
       return;
@@ -867,7 +896,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
           {provider.auth_method === 'custom' && (
             <Button 
               onClick={handleSaveCustomAuth} 
-              disabled={isLoading || isValidating || !customAuthChanged}
+              disabled={isLoading || isValidating || (!customAuthChanged && (hasRequiredFields || provider.connected))}
             >
               {isValidating ? (
                 <>
