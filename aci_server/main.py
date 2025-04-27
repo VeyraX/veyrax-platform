@@ -731,14 +731,36 @@ async def _get_simplified_user_tools(user_id: str) -> Dict[str, Any]:
 
 @app.get("/get-tools-simplified")
 async def get_user_tools_simplified(request: Request):
+    user_id = None
     try:
         user_id = await get_user_from_request(request)
         simplified_tools_content = await _get_simplified_user_tools(user_id)
         
+        log_api_call(
+            user_id=user_id,
+            endpoint="/get-tools-simplified",
+            success=1
+        )
+        
         return {"tools": simplified_tools_content}
         
     except HTTPException as e:
-        raise e
+         if user_id:
+             log_api_call(
+                 user_id=user_id,
+                 endpoint="/get-tools-simplified",
+                 success=0,
+                 error_message=f"HTTPException: {e.status_code} - {e.detail}"
+             )
+         raise e
     except Exception as e:
-        print(f"Failed to get simplified user tools: {e}")
+        error_message = f"Failed to get simplified user tools: {str(e)}"
+        print(error_message)
+        if user_id:
+             log_api_call(
+                 user_id=user_id,
+                 endpoint="/get-tools-simplified",
+                 success=0,
+                 error_message=error_message
+             )
         raise HTTPException(status_code=500, detail="Failed to retrieve simplified tools list.")
