@@ -37,7 +37,27 @@ class ApolloService:
     def search_people(self, params: SearchPeopleParams) -> ApiResponse:
         processed_params = self._process_search_people_params(params)
         response = self.client.search_people(processed_params)
-        people_list = PeopleList(**response["data"])
+        
+        raw_data = response.get("data")
+        
+        # Provide defaults if data is missing or not a dict, or keys are missing
+        people_data = []
+        pagination_data = {}
+        
+        if isinstance(raw_data, dict):
+            people_data = raw_data.get("people", [])
+            pagination_data = raw_data.get("pagination", {})
+            # Ensure people_data is actually a list, default to empty if not
+            if not isinstance(people_data, list):
+                people_data = []
+            # Ensure pagination_data is actually a dict, default to empty if not
+            if not isinstance(pagination_data, dict):
+                pagination_data = {}
+                
+        people_list = PeopleList(
+            people=people_data,
+            pagination=pagination_data
+        )
         return self.prepare_response(people_list, "ApolloPeopleList")
         
     def search_people_by_url(self, params: SearchPeopleByUrlParams) -> ApiResponse:

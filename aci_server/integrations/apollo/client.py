@@ -19,6 +19,7 @@ class ApolloClient:
             headers=self.headers,
             params=query_params
         )
+        print(response.json())
         response.raise_for_status()
         return response.json()
         

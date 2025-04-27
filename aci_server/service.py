@@ -162,7 +162,7 @@ class ToolsService:
                     )
                     
                     if name in params:
-                        endpoint_args[name] = params
+                        endpoint_args[name] = params[name]
                     elif name == "params" and is_body_param:
                         endpoint_args[name] = params
                     elif name == "request" and name not in endpoint_args:
