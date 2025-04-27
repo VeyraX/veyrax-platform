@@ -154,12 +154,12 @@ export async function POST(request: Request) {
     const backendUrl = `${aciServerUrl}/tool-call/veyrax-auth/generate_connection_link`;
     console.log(`Calling backend: ${backendUrl} for user ${user_id}`);
 
-    const hardcodedRedirectUrl = 'https://chatgpt.com/g/g-67e48bd7823081918b4bedcd23e889ae-dima';
+    const redirectUrl = `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
 
     const backendPayload = {
       provider_tag: provider_tag,
       type: 'tool',
-      redirect_url: hardcodedRedirectUrl,
+      redirect_url: redirectUrl,
     };
 
     const backendResponse = await fetch(backendUrl, {
