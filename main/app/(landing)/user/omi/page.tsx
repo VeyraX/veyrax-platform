@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function OmiRedirectPage() {
+function OmiRedirectContent() {
+  'use client';
+
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'error' | 'redirecting'>('loading');
   const [message, setMessage] = useState<string>('Initializing...');
@@ -62,8 +64,9 @@ export default function OmiRedirectPage() {
 
   }, [searchParams]);
 
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-5 text-center bg-background">
+    <>
       <p className="text-foreground" suppressHydrationWarning>{message}</p>
       {status === 'loading' && (
         <div className="mt-4">
@@ -76,6 +79,17 @@ export default function OmiRedirectPage() {
       {status === 'error' && (
          <p className="mt-4 text-destructive font-semibold" suppressHydrationWarning>Please check the console for details or try again.</p>
       )}
+    </>
+  );
+}
+
+
+export default function OmiRedirectPage() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-5 text-center bg-background">
+      <Suspense fallback={<p className="text-foreground">Loading page...</p>}>
+        <OmiRedirectContent />
+      </Suspense>
     </div>
   );
 }
