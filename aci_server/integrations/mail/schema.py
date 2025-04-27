@@ -25,7 +25,12 @@ class GetMessagesParams(BaseModel):
     folder: Optional[str] = Field("INBOX", description="Folder to fetch messages from")
     limit: Optional[int] = Field(5, description="Maximum number of messages to fetch", ge=1, le=100)
     offset: Optional[int] = Field(0, description="Number of messages to skip", ge=0)
-    search_query: Optional[str] = Field(None, description="Search query for message content or sender")
+    search_query: Optional[str] = Field(
+        None, 
+        description="Search query for messages. Supports complex IMAP search syntax with operators: AND, OR, NOT. "
+                    "Examples: 'meeting', 'subject:meeting', 'from:john', 'body:urgent', 'Feedback OR visits', "
+                    "'subject:report AND from:manager', 'subject:important NOT body:postponed'"
+    )
     mark_as_read: Optional[bool] = Field(False, description="Mark fetched messages as read")
     from_date: Optional[str] = Field(None, description="Filter messages sent on or after this date (format: YYYY-MM-DD)")
     to_date: Optional[str] = Field(None, description="Filter messages sent on or before this date (format: YYYY-MM-DD)")
@@ -37,7 +42,6 @@ class GetMessageParams(BaseModel):
 
 
 class SendMessageParams(BaseModel):
-    from_email: EmailAddress = Field(..., description="Sender email address")
     to: List[EmailAddress] = Field(..., description="Recipient email addresses")
     cc: Optional[List[EmailAddress]] = Field(None, description="CC recipient email addresses")
     bcc: Optional[List[EmailAddress]] = Field(None, description="BCC recipient email addresses")

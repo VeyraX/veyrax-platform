@@ -411,6 +411,10 @@ async def create_or_update_provider(provider_data: Dict[str, Any]):
                     "output_schema": schemas["output_schemas"].get(endpoint_name, {}),
                     "examples": schemas["example_schemas"].get(endpoint_name, [])
                 }
+
+                if action_slug == 'validate_key':
+                    print(f"Skipping action: {action_slug}")
+                    continue
                 
                 if action_slug in existing_actions:
                     action_id = existing_actions[action_slug]

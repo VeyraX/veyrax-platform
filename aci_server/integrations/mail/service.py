@@ -149,6 +149,10 @@ class MailSMTPService:
                 k: v for k, v in params.model_dump(exclude_none=True).items()
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
             }
+            
+            # Set from_email to username
+            message_data["from_email"] = {"email": self.client.username, "name": self.client.username}
+            
             response = self.client.send_message(message_data)
             
             validated_response = SendMessageResponse(**response)
