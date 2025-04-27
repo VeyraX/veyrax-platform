@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pympler import muppy, summary
 from db.supabase import get_supabase
-from integrations.common.auth import get_user_from_request
+from integrations.common.auth import get_user_from_request, get_user_id_from_omi_user_id, get_api_key_for_user
 from integrations.google_calendar.schema import EventFilters
 from integrations.google_calendar.route import get_calendar_service
 from integrations.gmail.route import router as gmail_router
@@ -108,6 +108,9 @@ import httpx
 import asyncio
 from pydantic import BaseModel
 from typing import Dict, List, Any, Union
+import traceback
+from starlette.datastructures import MutableHeaders
+from starlette.requests import Request as StarletteRequest
 
 load_dotenv()
 
@@ -277,9 +280,54 @@ class UsageLimitMiddleware(BaseHTTPMiddleware):
         except:
             return await call_next(request)
 
+class OmiAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        if request.url.path == "/tool-call-simplified" and request.method == "POST":
+            body = await request.body()
+            async def receive():
+                return {"type": "http.request", "body": body, "more_body": False}
+
+            try:
+                request_data = json.loads(body)
+                omi_user_id = request_data.get("omi_user_id")
+
+                if omi_user_id:
+                    user_id = await get_user_id_from_omi_user_id(request, omi_user_id)
+                    if user_id:
+                        api_key = await get_api_key_for_user(user_id)
+                        if api_key:
+                            new_headers = MutableHeaders(scope=request.scope)
+                            new_headers["VEYRAX_API_KEY"] = api_key
+                            request.scope["headers"] = new_headers.raw
+
+                            response = await call_next(Request(request.scope, receive=receive))
+                            return response
+                        else:
+                             print(f"Warning: API key not found for user_id {user_id} derived from omi_user_id {omi_user_id} in OmiAuthMiddleware")
+                    else:
+                         print(f"Warning: User ID not found for omi_user_id {omi_user_id} in OmiAuthMiddleware")
+            except json.JSONDecodeError:
+                print("Warning: Invalid JSON in body for /tool-call-simplified in OmiAuthMiddleware")
+                pass
+            except HTTPException as e:
+                 print(f"HTTPException during omi_user_id lookup in middleware: {e.detail}")
+                 return JSONResponse(status_code=e.status_code, content={"detail": f"Error processing identifier: {e.detail}"}) 
+            except Exception as e:
+                print(f"Exception during omi_user_id lookup in middleware: {e}")
+                traceback.print_exc()
+                return JSONResponse(status_code=500, content={"detail": "Internal server error processing identifier."}) 
+
+            response = await call_next(Request(request.scope, receive=receive))
+            return response
+        else:
+            response = await call_next(request)
+            return response
+
 app = FastAPI()
 
 app.state.celery = celery_app
+
+app.add_middleware(OmiAuthMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -657,6 +705,7 @@ class SimplifiedToolCallRequest(BaseModel):
     tool: str
     method: str
     question: str
+    omi_user_id: str | None = None
 
 @app.post("/tool-call-simplified")
 async def handle_simplified_tool_call_endpoint(call_request: SimplifiedToolCallRequest, request: Request):
@@ -733,7 +782,9 @@ async def _get_simplified_user_tools(user_id: str) -> Dict[str, Any]:
 async def get_user_tools_simplified(request: Request):
     user_id = None
     try:
-        user_id = await get_user_from_request(request)
+        query_params = dict(request.query_params)
+        omi_user_id = query_params.get("omi_user_id")
+        user_id = await get_user_id_from_omi_user_id(request, omi_user_id)
         simplified_tools_content = await _get_simplified_user_tools(user_id)
         
         log_api_call(

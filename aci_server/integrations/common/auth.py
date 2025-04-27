@@ -13,6 +13,7 @@ import aiohttp
 import time
 import logging
 from .encryption import safe_decrypt, safe_encrypt, is_encrypted
+from starlette.datastructures import MutableHeaders
 
 
 class TokenService:
@@ -679,6 +680,27 @@ async def get_user_from_request(request: Request) -> str:
         raise
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
+    
+
+async def get_user_id_from_omi_user_id(request: Request, omi_user_id: str) -> str:
+    try:
+        supabase = get_supabase()
+        omi_user_res = supabase.table('omi_users') \
+            .select('user_id') \
+            .eq('omi_user_id', omi_user_id) \
+            .execute()
+        
+        if not omi_user_res.data:
+            raise HTTPException(status_code=404, detail="OMI user not found")
+        
+        return omi_user_res.data[0]['user_id']
+    
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get user ID from OMI user ID: {str(e)}")
+            
+    
 
 async def get_custom_base_url(request: Request, provider_tag: str) -> str:
     try:
@@ -904,5 +926,21 @@ async def update_provider_custom_auth(request: Request, provider_tag: str, auth_
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update provider custom auth: {str(e)}")
-    
+
+async def get_api_key_for_user(user_id: str) -> str | None:
+    try:
+        supabase = get_supabase()
+        result = supabase.table('users_api_keys') \
+            .select('api_key') \
+            .eq('user_id', user_id) \
+            .limit(1) \
+            .execute()
+        
+        if result.data:
+            return result.data[0]['api_key']
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching API key for user {user_id}: {str(e)}")
+        return None
 
