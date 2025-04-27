@@ -190,6 +190,15 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     verifyAuth();
   }, [code, apiKey, providerTag, connectionComplete, isMcp, type]);
 
+  useEffect(() => {
+    if (connectionComplete && returnUrl) {
+      setMessage('Redirecting...');
+      setTimeout(() => {
+        router.push(returnUrl);
+      }, 1500);
+    }
+  }, [connectionComplete, returnUrl, router]);
+
   const handleUpdateIntegration = async () => {
     setShowIntegrationDialog(false);
     setShowScopeDialog(false);
@@ -222,7 +231,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     
     try {
       const baseReturnUrl = `/user/${providerTag}/auth?returnUrl=${returnUrl}`;
-      const finalReturnUrl = `${baseReturnUrl}?status_code=200&oauth_return=success`;
+      const finalReturnUrl = `${baseReturnUrl}&status_code=200&oauth_return=success`;
       
       const url = await initiateOAuthFlow(providerTag, scopes, finalReturnUrl, encryptedApiKey || undefined, verificationCode || undefined);
       window.location.href = url;
