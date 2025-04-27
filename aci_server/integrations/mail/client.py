@@ -330,6 +330,69 @@ class MailSMTPClient:
         
         return email_message
     
+    def _parse_search_query(self, search_query: str) -> str:
+        """
+        Parse a user-friendly search query into IMAP search syntax.
+        
+        Supports:
+        1. Simple queries: 'meeting'
+        2. Field-specific queries: 'subject:meeting', 'from:john'
+        3. Basic OR operator: 'term1 OR term2'
+        
+        Returns:
+            IMAP compatible search string
+        """
+        if not search_query or search_query.strip() == "":
+            return "ALL"
+            
+        # Handle OR operator (simplest case: "word1 OR word2")
+        if " OR " in search_query:
+            parts = search_query.split(" OR ")
+            terms = [part.strip() for part in parts if part.strip()]
+            
+            # If we have multiple terms, combine them with OR
+            if len(terms) >= 2:
+                # Build a search for each term
+                term_searches = []
+                for term in terms:
+                    # For each term, search in subject, from, and body
+                    term_searches.append(f'SUBJECT "{term.lower()}"')
+                    term_searches.append(f'FROM "{term.lower()}"')
+                
+                # Chain the ORs together
+                if term_searches:
+                    if len(term_searches) == 2:
+                        return f'OR {term_searches[0]} {term_searches[1]}'
+                    else:
+                        # For more complex OR chains, we need to construct them properly
+                        or_query = term_searches[0]
+                        for i in range(1, len(term_searches)):
+                            or_query = f'OR {term_searches[i]} {or_query}'
+                        return or_query
+            
+            # Fallback for invalid OR syntax
+            return f'OR SUBJECT "{search_query.lower()}" FROM "{search_query.lower()}"'
+            
+        # Handle field-specific searches
+        if ":" in search_query:
+            parts = search_query.split(":", 1)
+            if len(parts) == 2:
+                field, term = parts[0].strip().upper(), parts[1].strip().lower()
+                
+                if field == "SUBJECT":
+                    return f'SUBJECT "{term}"'
+                elif field == "FROM":
+                    return f'FROM "{term}"'
+                elif field == "BODY" or field == "TEXT":
+                    # Some servers support TEXT or BODY
+                    return f'OR SUBJECT "{term}" FROM "{term}"'
+                else:
+                    # Default to OR on subject and from
+                    return f'OR SUBJECT "{term}" FROM "{term}"'
+        
+        # Simple term search
+        return f'OR SUBJECT "{search_query.lower()}" FROM "{search_query.lower()}"'
+    
     def get_messages(
         self, 
         folder: str = 'INBOX',
@@ -346,7 +409,8 @@ class MailSMTPClient:
             folder: Mailbox folder to fetch from
             limit: Maximum number of messages to return
             offset: Number of messages to skip
-            search_query: Optional text to search in subject or from fields
+            search_query: Optional text to search. Supports basic IMAP search syntax with AND, OR operators
+                          and prefixes like subject:, from: to target specific fields
             mark_as_read: Whether to mark fetched messages as read
             from_date: Optional start date filter in format YYYY-MM-DD
             to_date: Optional end date filter in format YYYY-MM-DD
@@ -362,12 +426,8 @@ class MailSMTPClient:
             # Get total message count
             total_messages = int(data[0])
             
-            # Build search criteria
-            search_criteria_list = []
-            
-            # Add text search if provided
-            if search_query:
-                search_criteria_list.append(f'(OR SUBJECT "{search_query}" FROM "{search_query}")')
+            # Parse search query
+            search_criteria = self._parse_search_query(search_query)
             
             # Add date filters if provided
             if from_date:
@@ -375,7 +435,13 @@ class MailSMTPClient:
                     # Convert YYYY-MM-DD to DD-MMM-YYYY format required by IMAP
                     parsed_date = datetime.strptime(from_date, "%Y-%m-%d")
                     formatted_date = parsed_date.strftime("%d-%b-%Y")
-                    search_criteria_list.append(f'(SINCE "{formatted_date}")')
+                    
+                    # Combine with existing criteria
+                    if search_criteria != "ALL":
+                        # Use AND logic by space-separating criteria
+                        search_criteria = f'{search_criteria} SINCE "{formatted_date}"'
+                    else:
+                        search_criteria = f'SINCE "{formatted_date}"'
                 except ValueError:
                     # If date parsing fails, ignore the filter
                     pass
@@ -387,16 +453,16 @@ class MailSMTPClient:
                     parsed_date = datetime.strptime(to_date, "%Y-%m-%d")
                     next_day = parsed_date + timedelta(days=1)
                     formatted_date = next_day.strftime("%d-%b-%Y")
-                    search_criteria_list.append(f'(BEFORE "{formatted_date}")')
+                    
+                    # Combine with existing criteria
+                    if search_criteria != "ALL":
+                        # Use AND logic by space-separating criteria
+                        search_criteria = f'{search_criteria} BEFORE "{formatted_date}"'
+                    else:
+                        search_criteria = f'BEFORE "{formatted_date}"'
                 except ValueError:
                     # If date parsing fails, ignore the filter
                     pass
-            
-            # Combine all search criteria or use ALL if none specified
-            if search_criteria_list:
-                search_criteria = " ".join(search_criteria_list)
-            else:
-                search_criteria = "ALL"
             
             # First, try to use SORT command if available (for server-side sorting)
             has_sort_capability = False
@@ -425,14 +491,23 @@ class MailSMTPClient:
             
             # Fall back to regular search if SORT is not available
             if not has_sort_capability:
-                result, data = imap.search(None, search_criteria)
-                if result != 'OK':
-                    raise MailSMTPError(f"Search failed: {data[0].decode()}")
-                
-                message_nums = data[0].split()
-                # Since we can't sort on server, we'll reverse the list to get newest first (approximate)
-                # This assumes message IDs are assigned chronologically, which is often but not always true
-                message_nums = message_nums[::-1]
+                try:
+                    result, data = imap.search(None, search_criteria)
+                    if result != 'OK':
+                        raise MailSMTPError(f"Search failed: {data[0].decode() if data and hasattr(data[0], 'decode') else str(data)}")
+                    
+                    message_nums = data[0].split() if data and data[0] else []
+                    # Since we can't sort on server, we'll reverse the list to get newest first (approximate)
+                    # This assumes message IDs are assigned chronologically, which is often but not always true
+                    message_nums = message_nums[::-1]
+                except Exception as e:
+                    # If search fails with complex criteria, try a fallback to ALL
+                    result, data = imap.search(None, "ALL")
+                    if result != 'OK':
+                        raise MailSMTPError(f"Search failed even with ALL: {str(e)}")
+                    
+                    message_nums = data[0].split() if data and data[0] else []
+                    message_nums = message_nums[::-1]
             
             total = len(message_nums)
             
@@ -765,7 +840,7 @@ class MailSMTPClient:
             msg = MIMEMultipart('alternative')
             
             # Required parameters
-            from_email = params.get('from_email', {})
+            from_email = params.get('from_email', {"email": self.username, "name": None})
             to = params.get('to', [])
             subject = params.get('subject', '')
             
@@ -778,7 +853,7 @@ class MailSMTPClient:
             
             # Validate required fields
             if not from_email or not (from_email.get('email') or from_email.get('address')):
-                raise MailSMTPError("From email is required")
+                from_email = {"email": self.username, "name": None}
             
             if not to or not any(recipient.get('email') or recipient.get('address') for recipient in to):
                 raise MailSMTPError("At least one recipient is required")

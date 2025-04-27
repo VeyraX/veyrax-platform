@@ -175,6 +175,122 @@ routes:
               "name": "MailSMTPMessageList"
             }
           }
+      - scenario: "Search with Complex Query"
+        description: "Search emails using complex operators (OR, AND, NOT)"
+        input_json: |
+          {
+            "folder": "INBOX",
+            "limit": 10,
+            "search_query": "Feedback OR visits",
+            "mark_as_read": false
+          }
+        output_json: |
+          {
+            "data": {
+              "messages": [
+                {
+                  "id": "123456",
+                  "subject": "Website Feedback",
+                  "from_email": {
+                    "email": "customer@example.com",
+                    "name": "Customer"
+                  },
+                  "to": [
+                    {
+                      "email": "support@company.com",
+                      "name": "Support Team"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 10 Jul 2023 10:30:45 +0000",
+                  "body": {
+                    "text": "Here's my feedback about the new website design.",
+                    "html": "<p>Here's my feedback about the new website design.</p>"
+                  },
+                  "attachments": [],
+                  "folder": "INBOX",
+                  "is_read": false
+                },
+                {
+                  "id": "123457",
+                  "subject": "Recent Store Visits",
+                  "from_email": {
+                    "email": "manager@example.com",
+                    "name": "Store Manager"
+                  },
+                  "to": [
+                    {
+                      "email": "team@company.com",
+                      "name": "Team"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 9 Jul 2023 15:45:22 +0000",
+                  "body": {
+                    "text": "Here's a report of all store visits this month.",
+                    "html": "<p>Here's a report of all store visits this month.</p>"
+                  },
+                  "attachments": [],
+                  "folder": "INBOX",
+                  "is_read": false
+                }
+              ],
+              "total": 2,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "MailSMTPMessageList"
+            }
+          }
+      - scenario: "Search with Field Targeting"
+        description: "Search emails with specific field targeting"
+        input_json: |
+          {
+            "folder": "INBOX",
+            "limit": 10,
+            "search_query": "subject:Report AND from:manager",
+            "mark_as_read": false
+          }
+        output_json: |
+          {
+            "data": {
+              "messages": [
+                {
+                  "id": "123458",
+                  "subject": "Monthly Report",
+                  "from_email": {
+                    "email": "manager@example.com",
+                    "name": "Team Manager"
+                  },
+                  "to": [
+                    {
+                      "email": "team@company.com",
+                      "name": "Team"
+                    }
+                  ],
+                  "cc": [],
+                  "bcc": [],
+                  "date": "Mon, 5 Jul 2023 09:15:30 +0000",
+                  "body": {
+                    "text": "Please find attached the monthly report.",
+                    "html": "<p>Please find attached the monthly report.</p>"
+                  },
+                  "attachments": [],
+                  "folder": "INBOX",
+                  "is_read": false
+                }
+              ],
+              "total": 1,
+              "offset": 0,
+              "limit": 10
+            },
+            "component": {
+              "name": "MailSMTPMessageList"
+            }
+          }
 
   - endpoint: /mail/get_message
     examples:
@@ -242,10 +358,6 @@ routes:
         description: "Send a plain text email to a recipient"
         input_json: |
           {
-            "from_email": {
-              "email": "jane.smith@example.com",
-              "name": "Jane Smith"
-            },
             "to": [
               {
                 "email": "john.doe@example.com",
@@ -270,10 +382,6 @@ routes:
         description: "Send an email with an attachment"
         input_json: |
           {
-            "from_email": {
-              "email": "jane.smith@example.com",
-              "name": "Jane Smith"
-            },
             "to": [
               {
                 "email": "john.doe@example.com",
