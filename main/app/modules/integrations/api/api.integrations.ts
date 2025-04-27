@@ -1251,6 +1251,7 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
   logo_url: string;
   provider_tag: string;
   scopes: ProviderScope[];
+  auth_schema?: any[];
 } | null> => {
   try {
     const { data: provider, error } = await supabase
@@ -1261,6 +1262,7 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
         auth_method,
         logo_url,
         provider_tag,
+        auth_schema,
         provider_scopes (
           id,
           scope_id,

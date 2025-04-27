@@ -38,15 +38,16 @@ async def get_tools_connection_status(
     return service.get_tools_connection_status()
 
 @router.post("/generate_connection_link", response_model=ApiResponse)
-@schema(input_schema_class=GenerateConnectionLinkParams, output_schema_class=GenerateConnectionLinkResponse, examples=examples["/veyrax_auth/generate_connection_link"])
+@schema(input_schema_class=GenerateConnectionLinkParams, output_schema_class=GenerateConnectionLinkResponse, examples=examples.get("/veyrax_auth/generate_connection_link"))
 async def generate_connection_link(
     params: Dict[str, Any] = Body(...),
     service: VeyraxAuthService = Depends(get_veyrax_auth_service)
 ):
     validated_params = GenerateConnectionLinkParams(**params)
     return service.generate_connection_link(
-        provider_tag=validated_params.provider_tag,
-        provider_type=validated_params.type
+        validated_params.provider_tag,
+        validated_params.type,
+        validated_params.redirect_url
     )
 
 apply_error_handler_to_router(router)

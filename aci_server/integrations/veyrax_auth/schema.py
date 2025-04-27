@@ -18,6 +18,7 @@ class GetToolsConnectionStatusResponse(BaseModel):
 class GenerateConnectionLinkParams(BaseModel):
     provider_tag: str = Field(..., description="Provider tag to connect")
     type: str = Field(..., description="Type of provider (tool or mcp)")
+    redirect_url: Optional[str] = Field(None, description="Optional URL to redirect to after successful connection")
 
 class GenerateConnectionLinkResponse(BaseModel):
     data: Dict[str, str]

@@ -13,9 +13,10 @@ interface UserAuthPageProps {
   code: string;
   apiKey?: string;
   type?: string;
+  returnUrl?: string;
 }
 
-export function UserAuthPage({ providerTag, code, apiKey, type }: UserAuthPageProps) {
+export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: UserAuthPageProps) {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('Authenticating...');
   const [initialized, setInitialized] = useState<boolean>(false);
@@ -196,17 +197,13 @@ export function UserAuthPage({ providerTag, code, apiKey, type }: UserAuthPagePr
     
     setConnectionComplete(true);
     setStatus('success');
-    setMessage('Provider successfully connected.');
+    setMessage('Provider successfully connected. Redirecting...');
     
-    try {
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.set('success', 'true');
-        window.history.replaceState({}, '', url.toString());
+    setTimeout(() => {
+      if (returnUrl) {
+        router.push(returnUrl);
       }
-    } catch (e) {
-      console.error("Failed to update URL:", e);
-    }
+    }, 1500);
   };
 
   const handleCloseDialog = () => {
@@ -224,10 +221,13 @@ export function UserAuthPage({ providerTag, code, apiKey, type }: UserAuthPagePr
     setShowScopeDialog(false);
     
     try {
-      const baseReturnUrl = `/user/${providerTag}/auth`;
-      const returnUrl = `${baseReturnUrl}?status_code=200&oauth_return=success`;
+      const baseOauthReturnUrl = `/user/${providerTag}/auth?status_code=200&oauth_return=success`;
+      let finalOauthReturnUrl = baseOauthReturnUrl;
+      if (returnUrl) {
+        finalOauthReturnUrl += `&returnUrl=${encodeURIComponent(returnUrl)}`;
+      }
       
-      const url = await initiateOAuthFlow(providerTag, scopes, returnUrl, encryptedApiKey || undefined, verificationCode || undefined);
+      const url = await initiateOAuthFlow(providerTag, scopes, finalOauthReturnUrl, encryptedApiKey || undefined, verificationCode || undefined);
       window.location.href = url;
     } catch (error) {
       console.error(`Failed to start OAuth flow for ${providerTag}:`, error);

@@ -46,6 +46,6 @@ class VeyraxAuthService:
         provider_list = ProviderInfoList(items=provider_info_list)
         return self.prepare_response(provider_list, "provider_status")
     
-    def generate_connection_link(self, provider_tag: str, provider_type: str) -> ApiResponse:
-        connection_data = self.client.generate_connection_link(provider_tag, provider_type)
+    def generate_connection_link(self, provider_tag: str, provider_type: str, redirect_url: Optional[str] = None) -> ApiResponse:
+        connection_data = self.client.generate_connection_link(provider_tag, provider_type, redirect_url)
         return self.prepare_response(connection_data, "connection_link")

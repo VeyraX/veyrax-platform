@@ -76,7 +76,7 @@ class VeyraxAuthClient:
         
         return [repo["image_name"] for repo in response.data]
     
-    def generate_connection_link(self, provider_tag: str, provider_type: str) -> Dict[str, str]:
+    def generate_connection_link(self, provider_tag: str, provider_type: str, redirect_url: Optional[str] = None) -> Dict[str, str]:
         code = str(uuid.uuid4())
         encrypted_user_id = encrypt_with_code(self.user_id, code)
         
@@ -144,4 +144,8 @@ class VeyraxAuthClient:
             
             auth_url = f"{self.frontend_url}/user/{provider_tag}/auth?code={code}&api_key={url_safe_key}"
         
+        if redirect_url:
+            encoded_redirect_url = urllib.parse.quote(redirect_url)
+            auth_url += f"&returnUrl={encoded_redirect_url}"
+
         return {"connection_url": auth_url}

@@ -151,7 +151,7 @@ export async function POST(request: Request) {
         type: 'magiclink',
         email: userEmail,
         options: {
-          redirectTo: `${process.env.FRONTEND_URL}/integrations/`
+          redirectTo: `${process.env.FRONTEND_URL}/agent/`
         }
     });
 
