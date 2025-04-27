@@ -7,6 +7,7 @@ from ..common.auth import validate_provider_api_key
 from ..common.input_schema_decorator import schema
 from ..common.utils import apply_error_handler_to_service, apply_error_handler_to_router, apply_error_handler_to_client
 from ..common.examples_handler import ExamplesLoader
+from ..common.auth import get_provider_custom_auth
 import os
 
 router = APIRouter(prefix="/x", tags=["x"])
@@ -15,7 +16,10 @@ examples = ExamplesLoader()
 async def get_twitter_service(request: Request):
     try:
         api_key = os.environ.get("RAPID_API_TWITTER_API_KEY") or  os.environ.get("RAPID_API_LINKEDIN_API_KEY")
-        client = TwitterClient(api_key)
+        auth_params = await get_provider_custom_auth(request, "x")
+        raw_username = auth_params.get("username")
+        # The TwitterClient constructor will use the parse_twitter_username method
+        client = TwitterClient(api_key, raw_username)
         service = TwitterService(client)
         apply_error_handler_to_client(client)
         apply_error_handler_to_service(service)
@@ -35,6 +39,19 @@ async def get_user_profile(
 ):
     validated_params = GetUserProfileParams(**params)
     return service.get_user_profile(validated_params)
+
+@router.post("/get_me", response_model=ApiResponse)
+@schema(
+    input_schema_class=GetMeParams,
+    output_schema_class=UserProfileResponse,
+    examples=examples["/x/get_me"]
+)
+async def get_me(
+    params: Dict[str, Any] = Body(...),
+    service: TwitterService = Depends(get_twitter_service)
+):
+    validated_params = GetMeParams(**params)
+    return service.get_me(validated_params)
 
 @router.post("/get_user_timeline", response_model=ApiResponse)
 @schema(
@@ -197,6 +214,51 @@ async def get_space(
     service: TwitterService = Depends(get_twitter_service)
 ):
     return service.get_space(params)
+
+@router.post("/validate_key")
+async def validate_key(params: Dict[str, Any] = Body(...)):
+    try:
+        raw_username = params.get("username", "")
+        
+        # Handle empty username
+        if not raw_username:
+            return {"valid": False, "message": "Username is required"}
+        
+        # Parse the username using our utility function
+        username = TwitterClient.parse_twitter_username(raw_username)
+        
+        # Handle empty username after parsing
+        if not username:
+            return {"valid": False, "message": "Could not extract a valid Twitter/X username"}
+        
+        # Basic validation - Twitter usernames should be between 1-15 characters
+        # and contain only alphanumeric characters and underscores
+        if not 1 <= len(username) <= 15:
+            return {"valid": False, "message": f"Twitter username '{username}' must be between 1-15 characters"}
+        
+        if not all(c.isalnum() or c == '_' for c in username):
+            return {"valid": False, "message": f"Twitter username '{username}' can only contain letters, numbers, and underscores"}
+        
+        # If we have the API key in environment, we could do a more thorough validation
+        # by actually checking if the user exists, but for now we'll just do basic validation
+        api_key = os.environ.get("RAPID_API_TWITTER_API_KEY") or os.environ.get("RAPID_API_LINKEDIN_API_KEY")
+        if api_key:
+            client = TwitterClient(api_key, username)
+            try:
+                # Try to get the user profile to verify the username exists
+                result = client.get_user_profile(screenname=username)
+                if result and 'id' in result:
+                    return {"valid": True, "message": f"Username '{username}' is valid"}
+                else:
+                    return {"valid": False, "message": f"Username '{username}' not found"}
+            except Exception as e:
+                return {"valid": False, "message": f"Error validating username '{username}': {str(e)}"}
+        
+        # If we don't have an API key or couldn't validate against the API,
+        # we'll just return valid based on the format check
+        return {"valid": True, "message": f"Username '{username}' format is valid"}
+    except Exception as e:
+        return {"valid": False, "message": f"Error validating username: {str(e)}"}
 
 # Apply centralized error handling
 apply_error_handler_to_router(router) 

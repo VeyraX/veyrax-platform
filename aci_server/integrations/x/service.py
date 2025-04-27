@@ -47,6 +47,25 @@ class TwitterService:
         )
         
         return self.prepare_response(user_profile_response, None)
+    
+    def get_me(self, params: GetMeParams) -> ApiResponse:
+        """
+        Retrieve the authenticated user's profile based on the stored username.
+        """
+        # Make API call through client
+        response = self.client.get_me()
+        
+        # Transform the API response to match our schema
+        user_profile_data = UserProfileData(**response)
+        
+        # Create the standard response structure
+        user_profile_response = UserProfileResponse(
+            success=True,
+            message="User profile retrieved successfully",
+            data=user_profile_data
+        )
+        
+        return self.prepare_response(user_profile_response, None)
         
     def get_user_timeline(self, params: GetUserTimelineParams) -> ApiResponse:
         # Prepare request parameters

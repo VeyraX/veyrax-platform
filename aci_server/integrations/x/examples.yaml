@@ -1319,3 +1319,36 @@ routes:
             }
           }
         }'
+
+  - endpoint: /x/get_me
+    examples:
+      - scenario: "Get Current User's X Profile"
+        description: "Retrieve profile information for the authenticated X (Twitter) user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "success": true,
+              "message": "User profile retrieved successfully",
+              "data": {
+                "profile": "https://twitter.com/your_username",
+                "rest_id": "1234567890",
+                "avatar": "https://pbs.twimg.com/profile_images/your_profile_image.jpg",
+                "desc": "Software developer | AI enthusiast | Building things for the web",
+                "name": "Your Name",
+                "username": "your_username",
+                "followers": 1024,
+                "friends": 512,
+                "statuses": 3456,
+                "created_at": "2015-08-20T14:31:32.000Z",
+                "verified": false,
+                "location": "San Francisco, CA",
+                "website": "https://yourwebsite.com",
+                "blue_verified": true
+              }
+            },
+            "component": {
+              "name": "XProfileCard"
+            }
+          }
