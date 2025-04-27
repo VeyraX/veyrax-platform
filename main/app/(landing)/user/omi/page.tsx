@@ -76,9 +76,6 @@ function OmiRedirectContent() {
           </svg>
         </div>
       )}
-      {status === 'error' && (
-         <p className="mt-4 text-destructive font-semibold" suppressHydrationWarning>Please check the console for details or try again.</p>
-      )}
     </>
   );
 }
