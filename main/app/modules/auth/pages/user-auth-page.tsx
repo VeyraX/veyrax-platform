@@ -202,7 +202,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     if (connectionComplete && returnUrl) {
       setMessage('Redirecting...');
       setTimeout(() => {
-        router.push(returnUrl);
+        window.location.href = returnUrl;
       }, 1500);
     }
   }, [connectionComplete, returnUrl, router]);
@@ -218,7 +218,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     
     setTimeout(() => {
       if (returnUrl) {
-        router.push(returnUrl);
+        window.location.href = returnUrl;
       }
     }, 1500);
   };
