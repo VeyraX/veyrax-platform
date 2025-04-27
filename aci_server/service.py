@@ -32,6 +32,8 @@ class ToolsService:
         
         query_params = dict(request.query_params)
         question = query_params.get("question")
+
+        print(f"Tool: {tool}, Method: {method}, Request: {request}")
         
         try:
             user_id = await get_user_from_request(request)
