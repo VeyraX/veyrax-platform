@@ -23,7 +23,7 @@ export const addActionsUser = async (providerId: string, userId?: string): Promi
     
     const { data: provider, error: providersError } = await client
           .from('providers')
-          .select('id, name, auth_method')
+          .select('id, name, auth_method, provider_tag')
           .eq('id', providerId).single();
 
     if (!provider) {
@@ -102,7 +102,7 @@ export const addActionsUser = async (providerId: string, userId?: string): Promi
     } else {
         const { data: actions, error: actionsError } = await client
             .from('provider_actions')
-            .select('id')
+            .select('id, action_slug')
             .eq('provider_id', providerId);
 
         if (actionsError) {
@@ -112,9 +112,42 @@ export const addActionsUser = async (providerId: string, userId?: string): Promi
             return;
         }
   
-        const insertData = actions.map(action => ({
-            action_id: action.id,
-            user_id: userIdToUse
+        let actionsToInsert = actions;
+
+        if (provider.provider_tag === 'linkedin' || provider.provider_tag === 'x') {
+            const { data: customAuth, error: customAuthError } = await client
+                .from('user_provider_custom_auth')
+                .select('raw_data')
+                .eq('user_id', userIdToUse)
+                .eq('provider_id', providerId)
+                .single();
+            
+            const actionIdsToRemove = actions.filter(action => action.action_slug == 'get_me').map(action => action.id);
+            
+            if (customAuth && customAuth.raw_data) {
+                const rawData = typeof customAuth.raw_data === 'string'
+                    ? JSON.parse(customAuth.raw_data)
+                    : customAuth.raw_data;
+                
+                if (!rawData.username) {
+                    actionsToInsert = actions.filter(action => !actionIdsToRemove.includes(action.id));
+
+                    const { error: deleteError } = await client
+                        .from('users_provider_actions')
+                        .delete()
+                        .match({ user_id: userIdToUse })
+                        .in('action_id', actionIdsToRemove);
+
+                    if (deleteError) {
+                        throw deleteError;
+                    }
+                }
+            }
+        }
+
+        const insertData = actionsToInsert.map(action => ({
+            user_id: userIdToUse,
+            action_id: action.id
         }));
 
         const { error: insertError } = await client

@@ -909,7 +909,6 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
 
 export const validateApiKey = async (providerId: string, apiKey: string, baseUrl?: string): Promise<{valid: boolean, message: string}> => {
   try {
-    console.log('Validating API key for provider:', providerId);
     const baseApiUrl = process.env.NEXT_PUBLIC_API_URL || '';
     
     const requestBody: any = { api_key: apiKey };
@@ -963,7 +962,7 @@ export const addActionsUser = async (providerId: string, user_id?: string): Prom
 
   const { data: provider, error: providersError } = await supabase
         .from('providers')
-        .select('id, name, auth_method')
+        .select('id, name, auth_method, provider_tag')
         .eq('id', providerId).single();
 
   if (!provider) {
@@ -1028,7 +1027,7 @@ export const addActionsUser = async (providerId: string, user_id?: string): Prom
   } else {
     const { data: actions, error: actionsError } = await supabase
       .from('provider_actions')
-      .select('id')
+      .select('id, action_slug')
       .eq('provider_id', providerId);
 
     if (actionsError) {
@@ -1038,7 +1037,40 @@ export const addActionsUser = async (providerId: string, user_id?: string): Prom
       return;
     }
 
-    const insertData = actions.map(action => ({
+    let actionsToInsert = actions;
+
+    if (provider.provider_tag === 'linkedin' || provider.provider_tag === 'x') {
+      const { data: customAuth, error: customAuthError } = await supabase
+        .from('user_provider_custom_auth')
+        .select('raw_data')
+        .eq('user_id', userId)
+        .eq('provider_id', providerId)
+        .single();
+      
+      const actionIdsToRemove = actions.filter(action => action.action_slug == 'get_me').map(action => action.id);
+      
+      if (customAuth && customAuth.raw_data) {
+        const rawData = typeof customAuth.raw_data === 'string' 
+          ? JSON.parse(customAuth.raw_data) 
+          : customAuth.raw_data || {};
+          
+        if (!rawData.username) {
+          actionsToInsert = actions.filter(action => !actionIdsToRemove.includes(action.id));
+
+          const { error: deleteError } = await supabase
+            .from('users_provider_actions')
+            .delete()
+            .match({ user_id: userId })
+            .in('action_id', actionIdsToRemove);
+
+          if (deleteError) {
+            throw deleteError;
+          }
+        }
+      }
+    }
+
+    const insertData = actionsToInsert.map(action => ({
       user_id: userId,
       action_id: action.id
     }));
