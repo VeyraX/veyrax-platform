@@ -36,7 +36,7 @@ async def verify_whatsapp_connection(
         return service
     
     try:
-        # Add a 15-second timeout for the verify operation
+        # Add a 30-second timeout for the verify operation
         async with asyncio.timeout(30):
             status = service.client.check_status()
             if not status.is_logged_in:
