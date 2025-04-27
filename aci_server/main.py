@@ -759,9 +759,6 @@ async def _get_simplified_user_tools(user_id: str) -> Dict[str, Any]:
                     
         has_any_tools = bool(user_integration_tools or mcp_actions)
 
-        auth_tool_schema = get_auth_tool()
-        simplified_response_tools["veyrax-auth"] = _simplify_tool_schema(auth_tool_schema)
-
         example_prompt_string = get_tools_example_prompt if has_any_tools else get_tools_example_prompt_empty
         simplified_response_tools['examples'] = json.loads(example_prompt_string)
         
