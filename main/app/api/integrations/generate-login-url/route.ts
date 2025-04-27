@@ -151,7 +151,7 @@ export async function POST(request: Request) {
         type: 'magiclink',
         email: userEmail,
         options: {
-          redirectTo: `${process.env.FRONTEND_URL}/agent/`
+          redirectTo: `${process.env.FRONTEND_URL}/auth/callback?next=/integrations`
         }
     });
 
@@ -160,17 +160,32 @@ export async function POST(request: Request) {
        return NextResponse.json({ success: false, error: 'Failed to generate magic link.' }, { status: 500 });
     }
 
-    const properties = linkData.properties;
-    if (properties && properties.action_link) {
-       return NextResponse.json({
-          success: true,
-          link: properties.action_link,
-          omi_user_id: omi_user_id,
-       });
-     } else {
-       console.error(`Failed to extract link properties for user ${userId}. Response data:`, JSON.stringify(linkData, null, 2));
-       return NextResponse.json({ success: false, error: 'Failed to generate necessary link properties.' }, { status: 500 });
-     }
+    if (linkData?.properties?.action_link) {
+      const actionLink = new URL(linkData.properties.action_link);
+
+      // Transfer tokens from hash to query
+      const fragment = new URLSearchParams(actionLink.hash.replace('#', ''));
+      fragment.forEach((value, key) => {
+        actionLink.searchParams.set(key, value);
+      });
+      
+      // Ensure we have a next parameter in both places for good measure
+      // Adding directly to hash for clients that might inspect it
+      fragment.set('next', '/integrations');
+      actionLink.hash = fragment.toString();
+      
+      // Also set in query params for our callback handler
+      actionLink.searchParams.set('next', '/integrations');
+
+      return NextResponse.json({
+        success: true,
+        link: actionLink.toString(),
+        omi_user_id: omi_user_id,
+      });
+    } else {
+      console.error(`Failed to extract link properties for user ${userId}. Response data:`, JSON.stringify(linkData, null, 2));
+      return NextResponse.json({ success: false, error: 'Failed to generate necessary link properties.' }, { status: 500 });
+    }
 
   } catch (error: any) {
     console.error('Error in /generate-login-url endpoint:', error);

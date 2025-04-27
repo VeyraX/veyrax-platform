@@ -71,8 +71,8 @@ export function UserDropdown({ profile, onOpenSettings }: UserDropdownProps) {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium leading-none">{profile?.full_name}</span>
-            <span className="text-xs text-muted-foreground mt-1">{profile?.email}</span>
+            <span className="text-sm font-medium leading-none truncate">{profile?.full_name}</span>
+            <span className="text-xs text-muted-foreground mt-1 truncate">{profile?.email}</span>
           </div>
         </div>
         <DropdownMenuSeparator />
