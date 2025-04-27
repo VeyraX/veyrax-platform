@@ -6,7 +6,6 @@ import { randomBytes } from 'crypto';
 const requestBodySchema = z.object({
   omi_user_id: z.string(),
   provider_tag: z.string(),
-  // redirect_url: z.string().url().optional(), // Removed, will be hardcoded
 });
 
 function generatePassword(length = 16): string {
@@ -154,12 +153,12 @@ export async function POST(request: Request) {
     const backendUrl = `${aciServerUrl}/tool-call/veyrax-auth/generate_connection_link`;
     console.log(`Calling backend: ${backendUrl} for user ${user_id}`);
 
-    const redirectUrl = `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
+    const hardcodedRedirectUrl = 'https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=[uid]';
 
     const backendPayload = {
       provider_tag: provider_tag,
       type: 'tool',
-      redirect_url: redirectUrl,
+      redirect_url: hardcodedRedirectUrl,
     };
 
     const backendResponse = await fetch(backendUrl, {

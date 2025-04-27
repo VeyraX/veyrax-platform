@@ -221,13 +221,10 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     setShowScopeDialog(false);
     
     try {
-      const baseOauthReturnUrl = `/user/${providerTag}/auth?status_code=200&oauth_return=success`;
-      let finalOauthReturnUrl = baseOauthReturnUrl;
-      if (returnUrl) {
-        finalOauthReturnUrl += `&returnUrl=${encodeURIComponent(returnUrl)}`;
-      }
+      const baseReturnUrl = `/user/${providerTag}/auth?returnUrl=${returnUrl}`;
+      const finalReturnUrl = `${baseReturnUrl}?status_code=200&oauth_return=success`;
       
-      const url = await initiateOAuthFlow(providerTag, scopes, finalOauthReturnUrl, encryptedApiKey || undefined, verificationCode || undefined);
+      const url = await initiateOAuthFlow(providerTag, scopes, finalReturnUrl, encryptedApiKey || undefined, verificationCode || undefined);
       window.location.href = url;
     } catch (error) {
       console.error(`Failed to start OAuth flow for ${providerTag}:`, error);
