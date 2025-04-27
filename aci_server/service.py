@@ -6,9 +6,13 @@ import inspect
 import httpx
 import traceback
 import os
+import json
+import openai
+from datetime import date
 from integrations.common.utils import log_api_call
 from integrations.common.auth import get_user_from_request
 from mcp_deployment.queries import get_user_mcp_image_names, get_user_connected_mcp_actions
+from prompts import get_parameter_generation_prompt
 
 class ToolsService:
     def __init__(self, integration_routers: Dict[str, Any]):
@@ -18,6 +22,86 @@ class ToolsService:
             self.mcp_api_url = ""
             print("Warning: VEYRAX_DEPLOY_API_URL environment variable is not set")
     
+    async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict) -> dict:
+        prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
+        print(prompt)
+        
+        try:
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                raise ValueError("OPENAI_API_KEY is not configured")
+                
+            client = openai.AsyncOpenAI(api_key=api_key)
+            
+            completion = await client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert API parameter generator. Respond only with the JSON object containing the parameters based on the user query and tool schema."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0
+            )
+            
+            generated_params_json = completion.choices[0].message.content
+            
+            if not generated_params_json:
+                 return {}
+                 
+            return json.loads(generated_params_json)
+            
+        except json.JSONDecodeError as json_err:
+            raise HTTPException(status_code=500, detail=f"LLM failed to generate valid JSON parameters. Response: {generated_params_json}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"LLM parameter generation failed: {str(e)}")
+
+    async def handle_simplified_tool_call(
+        self, 
+        tool: str, 
+        method: str, 
+        question: str, 
+        request: Request
+    ) -> Dict[str, Any]:
+        try:
+            tool_spec_full = await self.get_tool_spec(tool, request)
+            tool_actions = tool_spec_full.get("tools", {})
+            method_schema = None
+
+            if isinstance(tool_actions, dict):
+                if method in tool_actions:
+                    method_schema = tool_actions[method]
+            elif isinstance(tool_actions, list):
+                for action in tool_actions:
+                    if isinstance(action, dict) and action.get("type") == "function":
+                        func_details = action.get("function", {})
+                        if func_details.get("name") == method:
+                            method_schema = action
+                            break
+                            
+            if not method_schema:
+                raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}' schema.")
+
+            generated_params = await self._generate_params_with_llm(tool, method, question, method_schema)
+
+            new_scope = dict(request.scope)
+            new_scope['method'] = 'POST'
+            
+            async def receive():
+                 return {"type": "http.request", "body": json.dumps(generated_params).encode('utf-8'), "more_body": False}
+
+            new_request = Request(scope=new_scope, receive=receive)
+            
+            new_request._json = generated_params 
+
+            response = await self.handle_tool_call(tool=tool, method=method, request=new_request, include_component=False)
+            return response
+
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            print(f"Error in simplified tool call processing: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to execute simplified tool call: {str(e)}")
+
     async def handle_tool_call(
         self, 
         tool: str, 
@@ -32,8 +116,6 @@ class ToolsService:
         
         query_params = dict(request.query_params)
         question = query_params.get("question")
-
-        print(f"Tool: {tool}, Method: {method}, Request: {request}")
         
         try:
             user_id = await get_user_from_request(request)
@@ -163,10 +245,10 @@ class ToolsService:
                         and param.default.__class__.__name__ == "Body"
                     )
                     
-                    if name == "params" and is_body_param:
+                    if name in params:
                         endpoint_args[name] = params
-                    elif name in params:
-                        endpoint_args[name] = params[name]
+                    elif name == "params" and is_body_param:
+                        endpoint_args[name] = params
                     elif name == "request" and name not in endpoint_args:
                         endpoint_args[name] = request
                 

@@ -106,6 +106,7 @@ import time
 from starlette.middleware.base import BaseHTTPMiddleware
 import httpx
 import asyncio
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -649,3 +650,18 @@ async def execute_tool_from_body(request: Request, include_component: bool = Fal
                 )
             except Exception as log_error:
                 print(f"Error logging API call for Supabase: {str(log_error)}")
+
+
+class SimplifiedToolCallRequest(BaseModel):
+    tool: str
+    method: str
+    question: str
+
+@app.post("/tool-call-simplified")
+async def handle_simplified_tool_call_endpoint(call_request: SimplifiedToolCallRequest, request: Request):
+    return await tools_service.handle_simplified_tool_call(
+        tool=call_request.tool,
+        method=call_request.method,
+        question=call_request.question,
+        request=request
+    )
