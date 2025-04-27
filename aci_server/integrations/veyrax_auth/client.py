@@ -87,6 +87,8 @@ class VeyraxAuthClient:
             
             repo_id = repo.get("id")
             if self.is_mcp_connected(repo_id):
+                if redirect_url:
+                    return {"message": "MCP already connected", "redirect_url": redirect_url}
                 raise HTTPException(status_code=400, detail=f"MCP with image name {provider_tag} is already connected")
             
             api_key_str = f"{encrypted_user_id}:{repo_id}:{code}"
@@ -119,6 +121,8 @@ class VeyraxAuthClient:
             
             provider_id = provider.get("id")
             if self.is_provider_connected(provider_id):
+                if redirect_url:
+                    return {"message": "Provider already connected", "redirect_url": redirect_url}
                 raise HTTPException(status_code=400, detail=f"Provider with tag {provider_tag} is already connected")
             
             api_key_str = f"{encrypted_user_id}:{provider_id}:{code}"

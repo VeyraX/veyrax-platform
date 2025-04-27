@@ -36,18 +36,28 @@ function OmiRedirectContent() {
           }),
         });
 
-        const data = await response.json();
+        const responseData = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to generate connection link');
-        }
-
-        if (data.success && data.link) {
-          setStatus('redirecting');
-          setMessage('Redirecting to provider...');
-          window.location.href = data.link;
+        if (response.ok) {
+          if (responseData.data && responseData.data.redirect_url) {
+            setStatus('redirecting');
+            setMessage(responseData.data.message || 'Provider already connected. Redirecting...');
+            window.location.href = responseData.data.redirect_url;
+          } else if (responseData.data && responseData.data.connection_url) {
+            setStatus('redirecting');
+            setMessage('Redirecting to provider...');
+            window.location.href = responseData.data.connection_url;
+          } else {
+            throw new Error(responseData.data?.error || responseData.data?.detail || 'Invalid successful response from API. Missing connection_url or redirect_url.');
+          }
         } else {
-          throw new Error('Invalid response received from the server.');
+          if (responseData.data && responseData.data.redirect_url) {
+            setStatus('redirecting');
+            setMessage(responseData.data.message || 'Redirecting based on API instruction...');
+            window.location.href = responseData.data.redirect_url;
+          } else {
+            throw new Error(responseData.data?.error || responseData.data?.detail || `Request failed with status ${response.status}`);
+          }
         }
       } catch (err: any) {
         console.error('API call failed:', err);

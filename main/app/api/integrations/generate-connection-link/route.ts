@@ -6,6 +6,8 @@ import { randomBytes } from 'crypto';
 const requestBodySchema = z.object({
   omi_user_id: z.string(),
   provider_tag: z.string(),
+  type: z.string().optional(),
+  redirect_url: z.string().optional(),
 });
 
 function generatePassword(length = 16): string {
@@ -140,27 +142,34 @@ export async function POST(request: Request) {
   const aciServerUrl = process.env.ACI_SERVER_URL || 'http://localhost:8000';
 
   try {
+    // Validate request body first
     const rawBody = await request.json();
     const validationResult = requestBodySchema.safeParse(rawBody);
 
     if (!validationResult.success) {
-      return NextResponse.json({ success: false, error: 'Invalid request body', details: validationResult.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid request body', details: validationResult.error.flatten() },
+        { status: 400 }
+      );
     }
-    const { omi_user_id, provider_tag } = validationResult.data; 
+    
+    const { omi_user_id, provider_tag, type = 'tool', redirect_url: frontendRedirectUrl } = validationResult.data; 
 
+    // Get user and API key
     const { user_id, api_key } = await getOrCreateUserAndApiKey(supabase, omi_user_id);
 
+    // Prepare backend request
     const backendUrl = `${aciServerUrl}/tool-call/veyrax-auth/generate_connection_link`;
-    console.log(`Calling backend: ${backendUrl} for user ${user_id}`);
-
-    const redirectUrl = `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
-
+    const redirectUrl = frontendRedirectUrl || `https://chatgpt.com/g/g-67e2772d0af081919a5baddf4a12aacf-omigpt?prompt=uid=${omi_user_id}`;
     const backendPayload = {
       provider_tag: provider_tag,
-      type: 'tool',
+      type: type,
       redirect_url: redirectUrl,
     };
 
+    console.log(`Proxying request for user ${user_id} to ${backendUrl} with type ${type}`);
+
+    // Fetch backend response
     const backendResponse = await fetch(backendUrl, {
       method: 'POST',
       headers: {
@@ -168,36 +177,38 @@ export async function POST(request: Request) {
         'VEYRAX_API_KEY': `${api_key}`,
       },
       body: JSON.stringify(backendPayload),
+      redirect: 'manual' 
     });
 
-    const backendResult = await backendResponse.json();
+    console.log(`Backend returned status: ${backendResponse.status}`);
 
-    if (!backendResponse.ok) {
-        console.error(`Backend call failed with status ${backendResponse.status}:`, backendResult);
-        const errorMessage = backendResult?.detail || backendResult?.error || 'Backend request failed';
-        return NextResponse.json({ success: false, error: errorMessage }, { status: backendResponse.status });
-    }
-
-    if (backendResult && backendResult.data && backendResult.data.connection_url) {
-         return NextResponse.json({
-             success: true,
-             link: backendResult.data.connection_url,
-             omi_user_id: omi_user_id,
-             provider_tag: provider_tag,
-             type: 'tool'
-         });
-    } else {
-         console.error('Backend response did not contain expected connection_url:', backendResult);
-         return NextResponse.json({ success: false, error: 'Invalid response format from backend' }, { status: 500 });
-    }
+    return new NextResponse(backendResponse.body, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      headers: backendResponse.headers,
+    });
 
   } catch (error: any) {
-    console.error('Error in /generate-connection-link endpoint:', error);
-    const message = error.message || 'Internal Server Error';
-    const status = (error instanceof SyntaxError) ? 400
-                  : (error.message.includes('already exists but is not linked')) ? 409
-                  : (error.code === 'PGRST116') ? 404
-                  : 500;
-    return NextResponse.json({ success: false, error: message }, { status });
+    console.error('Error in /generate-connection-link proxy:', error);
+    let message = 'Internal Server Error';
+    let status = 500;
+
+    if (error instanceof SyntaxError) { // Error parsing initial request JSON
+        message = 'Invalid request body format';
+        status = 400;
+    } else if (error.message.includes('already exists but is not linked')) {
+        message = error.message;
+        status = 409;
+    } else if (error.code === 'PGRST116') { // Error finding user during getOrCreateUserAndApiKey
+        message = 'User lookup failed'; // More generic message for client
+        status = 404; 
+    } else if (error.cause instanceof Error && error.cause.code === 'ECONNREFUSED') {
+        message = 'Could not connect to backend service.';
+        status = 503; // Service Unavailable
+    } else {
+        message = error.message || message;
+    }
+
+    return NextResponse.json({ error: message }, { status });
   }
 }

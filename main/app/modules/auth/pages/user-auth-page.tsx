@@ -23,6 +23,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
   const [connectionComplete, setConnectionComplete] = useState<boolean>(false);
   const router = useRouter();
   
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
   const [showScopeDialog, setShowScopeDialog] = useState(false);
   const [showMcpDialog, setShowMcpDialog] = useState(false);
@@ -128,6 +129,13 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
         const data = await response.json();
 
         if (data.success) {
+          if (data.redirect_url) {
+            setMessage('Connection already exists. Redirecting...');
+            setIsRedirecting(true);
+            router.push(data.redirect_url);
+            return;
+          }
+
           if (data.encrypted_api_key) {
             setEncryptedApiKey(data.encrypted_api_key);
             setVerificationCode(data.code);
@@ -272,7 +280,11 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      {connectionComplete ? (
+      {isRedirecting ? (
+        <div className="text-center">
+          <p suppressHydrationWarning>{message}</p>
+        </div>
+      ) : connectionComplete ? (
         <div className="text-center">
           <p suppressHydrationWarning>Provider successfully connected.</p>
         </div>
