@@ -186,13 +186,12 @@ class MailSMTPClient:
         
         name, email = parseaddr(address)
         if not email:
-            # Try to extract email if parsing failed
             match = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', address)
             if match:
                 email = match.group(0)
         
         return {
-            "email": email,
+            "email": email or None,
             "name": self._decode_mime_words(name) if name else None
         }
     
@@ -845,8 +844,8 @@ class MailSMTPClient:
             subject = params.get('subject', '')
             
             # Optional parameters
-            cc = params.get('cc', [])
-            bcc = params.get('bcc', [])
+            cc = [recipient for recipient in params.get('cc', []) if recipient.get('email')]
+            bcc = [recipient for recipient in params.get('bcc', []) if recipient.get('email')]
             body_text = params.get('body_text', '')
             body_html = params.get('body_html', '')
             attachments = params.get('attachments', [])

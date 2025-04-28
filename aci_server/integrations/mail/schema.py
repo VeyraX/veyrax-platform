@@ -11,7 +11,7 @@ class CommonParams(BaseModel):
 
 
 class EmailAddress(BaseModel):
-    email: str
+    email: Optional[str] = None
     name: Optional[str] = None
 
 

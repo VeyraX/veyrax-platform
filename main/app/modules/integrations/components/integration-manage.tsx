@@ -34,6 +34,7 @@ import { SnowflakeConfigForm } from "./provider-connection-forms/snowflake-confi
 import { VeyraxConfig } from "./provider-connection-forms/veyrax-config";
 import { CustomAuthForm } from "./provider-connection-forms/custom-auth-form";
 import { EmailAuthForm } from "./provider-connection-forms/email-auth-form";
+import { MailAuthForm } from "./provider-connection-forms/mail-auth-form";
 import { WhatsAppConfigForm } from "./provider-connection-forms/whatsapp-config";
 
 interface WhatsAppConfig {
@@ -257,7 +258,7 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
       const { allowed } = await canUserRentKey();
       setCanRentKeys(allowed);
     } catch (error) {
-      console.error('Failed to check rent permission:', error);
+      // Silently handle error and set rentable to false
       setCanRentKeys(false);
     }
   };
@@ -611,23 +612,37 @@ export function ManageDialog({ provider, open, onClose, onUpdate, encrypted_api_
         {isMail && (
           <div className="p-3 border rounded-lg bg-amber-50 border-amber-200 -mt-2 mb-3">
             <p className="text-sm text-amber-700">
-              To connect your email, enter your Gmail address and an app password.
+              To connect your email, enter your Gmail address and generate an app password.
               {provider.name?.toLowerCase().includes('gmail') && (
                 <> You can generate an app password at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline">myaccount.google.com/apppasswords</a>.</>
               )}
             </p>
           </div>
         )}
-        <CustomAuthForm
-          authSchema={provider.auth_schema}
-          authData={customAuthData}
-          onChange={(authData) => {
-            setCustomAuthData(authData);
-            setCustomAuthChanged(true);
-            setValidationError(null);
-          }}
-          disabled={isValidating || isLoading}
-        />
+        
+        {isMail && !provider.connected ? (
+          <MailAuthForm
+            authSchema={provider.auth_schema}
+            authData={customAuthData}
+            onChange={(authData) => {
+              setCustomAuthData(authData);
+              setCustomAuthChanged(true);
+              setValidationError(null);
+            }}
+            disabled={isValidating || isLoading}
+          />
+        ) : (
+          <CustomAuthForm
+            authSchema={provider.auth_schema}
+            authData={customAuthData}
+            onChange={(authData) => {
+              setCustomAuthData(authData);
+              setCustomAuthChanged(true);
+              setValidationError(null);
+            }}
+            disabled={isValidating || isLoading}
+          />
+        )}
       </>
     );
   };

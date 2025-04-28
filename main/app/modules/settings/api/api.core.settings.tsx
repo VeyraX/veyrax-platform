@@ -201,16 +201,13 @@ export async function getUserSubscription(supabase: SupabaseClient): Promise<Use
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-      console.error('Error fetching subscription data:', error);
+      // Silently handle all errors including 406 Not Acceptable
       return null;
     }
 
     return data as UserSubscription;
   } catch (error) {
-    console.error('Error in getUserSubscription:', error);
+    // Silently catch any errors
     return null;
   }
 }

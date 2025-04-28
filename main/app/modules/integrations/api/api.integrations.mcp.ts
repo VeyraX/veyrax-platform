@@ -17,13 +17,13 @@ export const getAllMcpRepositories = async (): Promise<McpDetails[]> => {
       .order('created_at', { ascending: false });
     
     if (error || !data) {
-      console.error('Error fetching all MCP repositories:', error);
+      // Silently handle errors
       return [];
     }
     
     return data as McpDetails[];
   } catch (error) {
-    console.error('Error fetching all MCP repositories:', error);
+    // Silently catch any errors
     return [];
   }
 };
@@ -36,18 +36,18 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
       .eq('image_name', imageName);
     
     if (error) {
-      console.error('Error fetching MCP details:', error);
+      // Silently handle errors
       return null;
     }
     
     if (!data || data.length === 0) {
-      console.error('MCP details not found for image name:', imageName);
+      // Silently handle missing data
       return null;
     }
     
     return data[0] as McpDetails;
   } catch (error) {
-    console.error('Error fetching MCP details:', error);
+    // Silently catch any errors
     return null;
   }
 };
@@ -61,13 +61,13 @@ export const getMcpDeployments = async (repoId: string): Promise<McpDeployment[]
       .order('created_at', { ascending: false });
 
     if (error || !data) {
-      console.error('Error fetching MCP deployments:', error);
+      // Silently handle errors
       return [];
     }
 
     return data as McpDeployment[];
   } catch (error) {
-    console.error('Error fetching MCP deployments:', error);
+    // Silently catch any errors
     return [];
   }
 };
@@ -81,13 +81,13 @@ export const getMcpDeploymentById = async (deploymentId: string): Promise<McpDep
       .single();
 
     if (error || !data) {
-      console.error('Error fetching MCP deployment:', error);
+      // Silently handle errors
       return null;
     }
 
     return data as McpDeployment;
   } catch (error) {
-    console.error('Error fetching MCP deployment:', error);
+    // Silently catch any errors
     return null;
   }
 };
@@ -176,13 +176,14 @@ export const getUserMcpEnvironment = async (repositoryId: string): Promise<UserM
       .eq('repo_id', repositoryId)
       .single();
     
-    if (error || !data) {
+    if (error) {
+      // Silently handle errors including 406 Not Acceptable
       return null;
     }
     
     return data as UserMcpEnvironment;
   } catch (error) {
-    console.error('Error fetching user MCP environment:', error);
+    // Silently catch any errors
     return null;
   }
 };
@@ -192,7 +193,7 @@ export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> 
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user || !user.id) {
-      throw new Error('User not authenticated');
+      return false;
     }
     
     const { error } = await supabase
@@ -202,13 +203,13 @@ export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> 
       .eq('repo_id', repositoryId);
     
     if (error) {
-      console.error('Error disconnecting user MCP:', error);
+      // Silently handle errors
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error disconnecting user MCP:', error);
+    // Silently catch any errors
     return false;
   }
 };
