@@ -27,6 +27,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - PYTHONPATH=/app
+      - API_URL=http://host.docker.internal:8000
     depends_on:
       - redis
       - aci_server

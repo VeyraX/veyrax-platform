@@ -99,6 +99,14 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
+
+    try:
+        body = await request.json()
+        user_input = body.get("input", None)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid request body: {str(e)}")
+    
     try:
         supabase = get_supabase()
         api_key_response = supabase.table('users_api_keys') \
@@ -119,11 +127,14 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
         if skipping_draft and flow_data.data['status'] == 'Draft':
             return {"status": "skipped", "message": "Draft flow execution skipped"}
         
-        run_id = create_flow_run(flow_id)
+
+        print("[run_flow] user_input: ", user_input , "creating run_id")
+        run_id = create_flow_run(flow_id, user_input)
         trace_id = str(uuid.uuid4())
         FRONTEND_URL = os.environ.get("FRONTEND_URL")
         
-        run_flow_task.delay(flow_id, run_id, api_key, trace_id, user_id)
+        print("[run_flow] running flow_task")
+        run_flow_task.delay(flow_id, run_id, api_key, trace_id, user_id, user_input)
         
         log_api_call(
             user_id=user_id,
@@ -155,6 +166,12 @@ async def run_flow_sync(flow_id: str, request: Request, skipping_draft: bool = F
         raise HTTPException(status_code=401, detail=f"Invalid authentication: {str(e)}")
     
     try:
+        body = await request.json()
+        user_input = body.get("input", None)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid request body: {str(e)}")
+    
+    try:
         supabase = get_supabase()
         api_key_response = supabase.table('users_api_keys') \
             .select('api_key') \
@@ -174,7 +191,7 @@ async def run_flow_sync(flow_id: str, request: Request, skipping_draft: bool = F
         if skipping_draft and flow_data.data['status'] == 'Draft':
             return {"status": "skipped", "message": "Draft flow execution skipped"}
         
-        run_id = create_flow_run(flow_id)
+        run_id = create_flow_run(flow_id, user_input)
         
         FRONTEND_URL = os.environ.get("FRONTEND_URL")
         
@@ -189,7 +206,7 @@ async def run_flow_sync(flow_id: str, request: Request, skipping_draft: bool = F
             response = await client.post(
                 agent_url,
                 headers=headers,
-                json={"run_id": run_id}
+                json={"run_id": run_id, "input": user_input}
             )
             
             if response.status_code >= 400:
