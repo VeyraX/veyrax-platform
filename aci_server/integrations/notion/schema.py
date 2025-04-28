@@ -156,9 +156,9 @@ class DatabaseFilters(BaseModel):
         description="Sort object for ordering database entries"
     )
     max_results: Optional[int] = Field(
-        default=100,
-        le=100,
-        description="Maximum number of results to return (max: 100)"
+        default=10,
+        le=25,
+        description="Maximum number of results to return (max: 25)"
     )
 
 class PageFilters(BaseModel):
@@ -179,9 +179,9 @@ class PageFilters(BaseModel):
         description="Direction to sort results (ascending or descending)"
     )
     max_results: Optional[int] = Field(
-        default=100,
-        le=100,
-        description="Maximum number of results to return (max: 100)"
+        default=5,
+        le=25,
+        description="Maximum number of results to return (max: 25)"
     )
 
 
@@ -526,14 +526,14 @@ class ListPagesRequest(BaseModel):
     filter: Optional[Dict[str, Any]] = None
     sorts: Optional[List[Dict[str, Any]]] = None
     page_size: Optional[int] = Field(
-        default=100,
-        le=100,
-        description="REQUIRED MAX: 100. Use pagination for more results"
+        default=10,
+        le=25,
+        description="REQUIRED MAX: 25. Use pagination for more results"
     )
 
 class ListDatabasesParams(BaseModel):
     start_cursor: Optional[str] = None
-    max_results: Optional[int] = Field(default=100, le=100)
+    max_results: Optional[int] = Field(default=10, le=25)
 
 class GetDatabaseParams(BaseModel):
     database_id: str
@@ -558,7 +558,7 @@ class QueryDatabaseParams(BaseModel):
         description="Array of sort objects. Can sort by property values or timestamps"
     )
     start_cursor: Optional[str] = None
-    page_size: Optional[int] = Field(default=100, le=100)
+    page_size: Optional[int] = Field(default=10, le=25)
 
 class CreatePageParams(BaseModel):
     page: PageCreate
@@ -573,7 +573,7 @@ class UpdatePageParams(BaseModel):
 class SearchParams(BaseModel):
     query: Optional[str] = ''
     start_cursor: Optional[str] = None
-    page_size: Optional[int] = Field(default=100, le=100)
+    page_size: Optional[int] = Field(default=10, le=25)
     sort_direction: Optional[str] = None
 
 
@@ -908,7 +908,7 @@ class AppendBlockChildrenParams(BaseModel):
     children: List[NotionBlock] = Field(
         ...,
         description="REQUIRED. List of block objects to append. "
-                    "Max 100 blocks per request. Total content size < 50KB."
+                    "Max 25 blocks per request. Total content size < 50KB."
     )
     after: Optional[str] = Field(
         None,
@@ -968,7 +968,7 @@ class UserList(BaseModel):
 
 class GetUsersParams(BaseModel):
     start_cursor: Optional[str] = None
-    page_size: Optional[int] = Field(default=100, le=100)
+    page_size: Optional[int] = Field(default=10, le=25)
 
 class GetUserParams(BaseModel):
     user_id: str
