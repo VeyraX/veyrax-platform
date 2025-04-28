@@ -111,6 +111,17 @@ class MailSMTPService:
             messages = []
             for msg in response["messages"]:
                 msg_copy = {k: v for k, v in msg.items() if k != 'body'}
+                
+                # Filter out invalid email addresses (with None email)
+                if 'to' in msg_copy:
+                    msg_copy['to'] = [addr for addr in msg_copy['to'] if addr.get('email') is not None]
+                
+                if 'cc' in msg_copy:
+                    msg_copy['cc'] = [addr for addr in msg_copy['cc'] if addr.get('email') is not None]
+                
+                if 'bcc' in msg_copy:
+                    msg_copy['bcc'] = [addr for addr in msg_copy['bcc'] if addr.get('email') is not None]
+                
                 short_body = self._short_body(msg['body'])
                 messages.append(EmailMessage(**msg_copy, body=short_body))
             
@@ -135,6 +146,17 @@ class MailSMTPService:
                 if k not in ['host', 'port', 'username', 'password', 'use_ssl', 'use_tls']
             }
             response = self.client.get_message(**processed_params)
+            
+            # Filter out invalid email addresses (with None email)
+            if 'to' in response:
+                response['to'] = [addr for addr in response['to'] if addr.get('email') is not None]
+            
+            if 'cc' in response:
+                response['cc'] = [addr for addr in response['cc'] if addr.get('email') is not None]
+            
+            if 'bcc' in response:
+                response['bcc'] = [addr for addr in response['bcc'] if addr.get('email') is not None]
+            
             validated_response = EmailMessage(**response)
             return self.prepare_response(validated_response, "MailSMTPMessageDetail")
         except MailSMTPError as e:
