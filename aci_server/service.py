@@ -97,12 +97,54 @@ class ToolsService:
             
             new_request._json = generated_params 
 
-            response = await self.handle_tool_call(tool=tool, method=method, request=new_request, include_component=False)
+            metadata = {
+                "parameters": generated_params,
+                "question": question,
+                "simplified": True
+            }
+
+            user_id = await get_user_from_request(request)
+            response = await self.handle_tool_call(tool=tool, method=method, request=new_request, include_component=False, skip_logging=True)
+            
+            self._log_api_call(
+                user_id=user_id,
+                endpoint=f"/tool-call-simplified/{tool}/{method}",
+                success=1,
+                error_message=None,
+                metadata=metadata
+            )
+            
             return response
 
         except HTTPException as e:
+            user_id = await get_user_from_request(request)
+            metadata = {
+                "parameters": {},
+                "question": question,
+                "simplified": True
+            }
+            self._log_api_call(
+                user_id=user_id,
+                endpoint=f"/tool-call-simplified/{tool}/{method}",
+                success=0,
+                error_message=str(e.detail),
+                metadata=metadata
+            )
             raise e
         except Exception as e:
+            user_id = await get_user_from_request(request)
+            metadata = {
+                "parameters": {},
+                "question": question,
+                "simplified": True
+            }
+            self._log_api_call(
+                user_id=user_id,
+                endpoint=f"/tool-call-simplified/{tool}/{method}",
+                success=0,
+                error_message=str(e),
+                metadata=metadata
+            )
             print(f"Error in simplified tool call processing: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to execute simplified tool call: {str(e)}")
 
@@ -111,7 +153,8 @@ class ToolsService:
         tool: str, 
         method: str, 
         request: Request, 
-        include_component: bool = True
+        include_component: bool = True,
+        skip_logging: bool = False
     ) -> Dict[str, Any]:
         success = 0
         response = None
@@ -156,29 +199,31 @@ class ToolsService:
         except HTTPException as http_exc:
             success = 0
             error_message = str(http_exc.detail)
-            self._log_api_call(
-                user_id=user_id,
-                endpoint=f"/tool-call/{tool}/{method}",
-                success=success,
-                error_message=error_message,
-                metadata=metadata
-            )
+            if not skip_logging:
+                self._log_api_call(
+                    user_id=user_id,
+                    endpoint=f"/tool-call/{tool}/{method}",
+                    success=success,
+                    error_message=error_message,
+                    metadata=metadata
+                )
             raise
         
         except Exception as exc:
             success = 0
             error_message = str(exc)
-            self._log_api_call(
-                user_id=user_id,
-                endpoint=f"/tool-call/{tool}/{method}",
-                success=success,
-                error_message=error_message,
-                metadata=metadata
-            )
+            if not skip_logging:
+                self._log_api_call(
+                    user_id=user_id,
+                    endpoint=f"/tool-call/{tool}/{method}",
+                    success=success,
+                    error_message=error_message,
+                    metadata=metadata
+                )
             raise HTTPException(status_code=500, detail=f"Internal server error: {error_message}")
         
         finally:
-            if success == 1:
+            if success == 1 and not skip_logging:
                 try:
                     self._log_api_call(
                         user_id=user_id,
