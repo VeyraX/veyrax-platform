@@ -10,7 +10,7 @@ from agent.queries import get_flow_by_id, update_flow_run_completed
 from agent.prompts import flow_prompt
 
 @shared_task(name='flow.tasks.run_flow_task')
-def run_flow_task(flow_id, run_id, api_key, trace_id, user_id):
+def run_flow_task(flow_id, run_id, api_key, trace_id, user_id, user_input):
     try:
         user_flows = get_flow_by_id(flow_id)
         system_prompt = flow_prompt
@@ -31,7 +31,9 @@ def run_flow_task(flow_id, run_id, api_key, trace_id, user_id):
             trace_id=trace_id
         )
         
-        response_str = asyncio.run(run_flow_agent(agent, "Run the flow.", flow_id=flow_id, trace_id=trace_id, user_id=user_id))
+        input = "Run the flow; User Input: " + user_input if user_input else "Run the flow."
+
+        response_str = asyncio.run(run_flow_agent(agent, input, flow_id=flow_id, trace_id=trace_id, user_id=user_id))
         
         response_data = json.loads(response_str)
         

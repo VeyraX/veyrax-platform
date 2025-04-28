@@ -56,13 +56,22 @@ async def tool_call(tool: str, method: str, params_json: str) -> Dict[str, Any]:
         "params": params
     }
     
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{base_url}/tool-execute",
-            headers=headers,
-            json=payload
-        )
-        response.raise_for_status()
-        return response.json()
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            response = await client.post(
+                f"{base_url}/tool-execute",
+                headers=headers,
+                json=payload
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.TimeoutException as e:
+            error_detail = f"Timeout error after {e.timeout} seconds; {e.__dict__}"
+            print(error_detail)
+            return {"error": error_detail}
+        except Exception as e:
+            error_detail = f"API error: {str(e)} {e.__dict__}"
+            print(error_detail)
+            return {"error": error_detail}
     
     
