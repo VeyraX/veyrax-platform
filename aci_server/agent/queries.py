@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 from db.supabase import get_supabase
 import uuid
 from datetime import datetime
-
+from typing import Optional
 client = get_supabase()
 
 def get_flow_by_id(flow_id: str) -> List[Dict[str, Any]]:
@@ -34,7 +34,7 @@ def get_user_api_key(user_id: str) -> str:
         print(f"Error getting user api key: {e}")
         return None
 
-def create_flow_run(flow_id: str) -> str:
+def create_flow_run(flow_id: str, user_input: Optional[str] = None) -> str:
     try:    
         run_id = str(uuid.uuid4())
         now = datetime.now().isoformat()
@@ -42,6 +42,7 @@ def create_flow_run(flow_id: str) -> str:
         client.table('user_flow_runs').insert({
             'run_id': run_id,
             'flow_id': flow_id,
+            'user_input': user_input,
             'run_status': 'started',
             'run_at': now,
             'payload': None,

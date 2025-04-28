@@ -55,8 +55,11 @@ async def get_linkedin_service(request: FastAPIRequest):
         api_key = os.getenv("RAPID_API_LINKEDIN_API_KEY")
         
         # Get custom auth params to retrieve username
-        auth_params = await get_provider_custom_auth(request, "linkedin")
-        raw_username = auth_params.get("username")
+        try:
+            auth_params = await get_provider_custom_auth(request, "linkedin")
+            raw_username = auth_params.get("username")
+        except Exception as e:
+            raw_username = None
         
         client = LinkedInClient(api_key)
         if raw_username:

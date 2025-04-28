@@ -1,0 +1,284 @@
+routes:
+  - endpoint: /yelp/search_businesses
+    examples:
+      - scenario: "Search for Restaurants"
+        description: "Search for restaurants in New York City"
+        input_json: |
+          {
+            "location": "New York, NY",
+            "search_term": "Pizza",
+            "limit": 10,
+            "offset": 0,
+            "business_details_type": "basic"
+          }
+        output_json: |
+          {
+            "data": {
+              "total": 1000,
+              "businesses": [
+                {
+                  "id": "BCUhfgjbVVvjs0ro4ATRsg",
+                  "alias": "mancinis-wood-fired-pizza-brooklyn-2",
+                  "name": "Mancini's Wood Fired Pizza",
+                  "image_url": "https://s3-media2.fl.yelpcdn.com/bphoto/example/example/o.jpg",
+                  "is_closed": false,
+                  "url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2",
+                  "review_count": 328,
+                  "categories": [
+                    {
+                      "alias": "pizza",
+                      "title": "Pizza"
+                    }
+                  ],
+                  "rating": 4.5,
+                  "coordinates": {
+                    "latitude": 40.6923432,
+                    "longitude": -73.9904343
+                  },
+                  "transactions": [
+                    "pickup",
+                    "delivery"
+                  ],
+                  "price": "$$",
+                  "location": {
+                    "address1": "191 7th Ave",
+                    "address2": "",
+                    "address3": "",
+                    "city": "Brooklyn",
+                    "zip_code": "11215",
+                    "country": "US",
+                    "state": "NY",
+                    "display_address": [
+                      "191 7th Ave",
+                      "Brooklyn, NY 11215"
+                    ]
+                  },
+                  "phone": "+17187881800",
+                  "display_phone": "(718) 788-1800",
+                  "distance": 2736.3260773503474
+                }
+              ],
+              "region": {
+                "center": {
+                  "longitude": -73.98989868164062,
+                  "latitude": 40.71282385858957
+                }
+              }
+            },
+            "component": {
+              "name": "YelpBusinessSearchResults"
+            }
+          }
+
+  - endpoint: /yelp/get_business_details
+    examples:
+      - scenario: "Get Business Details"
+        description: "Get detailed information about a business"
+        input_json: |
+          {
+            "business_url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "BCUhfgjbVVvjs0ro4ATRsg",
+              "alias": "mancinis-wood-fired-pizza-brooklyn-2",
+              "name": "Mancini's Wood Fired Pizza",
+              "image_url": "https://s3-media2.fl.yelpcdn.com/bphoto/example/example/o.jpg",
+              "is_closed": false,
+              "url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2",
+              "review_count": 328,
+              "categories": [
+                {
+                  "alias": "pizza",
+                  "title": "Pizza"
+                }
+              ],
+              "rating": 4.5,
+              "coordinates": {
+                "latitude": 40.6923432,
+                "longitude": -73.9904343
+              },
+              "transactions": [
+                "pickup",
+                "delivery"
+              ],
+              "price": "$$",
+              "hours": [
+                {
+                  "hours_type": "REGULAR",
+                  "is_open_now": true,
+                  "open": [
+                    {
+                      "is_overnight": false,
+                      "start": "1200",
+                      "end": "2200",
+                      "day": 0
+                    },
+                    {
+                      "is_overnight": false,
+                      "start": "1200",
+                      "end": "2200",
+                      "day": 1
+                    }
+                  ]
+                }
+              ],
+              "location": {
+                "address1": "191 7th Ave",
+                "address2": "",
+                "address3": "",
+                "city": "Brooklyn",
+                "zip_code": "11215",
+                "country": "US",
+                "state": "NY",
+                "display_address": [
+                  "191 7th Ave",
+                  "Brooklyn, NY 11215"
+                ]
+              },
+              "phone": "+17187881800",
+              "display_phone": "(718) 788-1800",
+              "photos": [
+                "https://s3-media2.fl.yelpcdn.com/bphoto/example1/o.jpg",
+                "https://s3-media1.fl.yelpcdn.com/bphoto/example2/o.jpg",
+                "https://s3-media3.fl.yelpcdn.com/bphoto/example3/o.jpg"
+              ]
+            },
+            "component": {
+              "name": "YelpBusinessDetails"
+            }
+          }
+
+      - scenario: "Get Multiple Businesses Details by IDs"
+        description: "Get details for multiple businesses by their IDs"
+        input_json: |
+          {
+            "business_ids": "BCUhfgjbVVvjs0ro4ATRsg,wj7ekipyvssV3Ok7p8zxGg,V2_qfjnwAVWqIphf7y866w"
+          }
+        output_json: |
+          {
+            "data": {
+              "id": "BCUhfgjbVVvjs0ro4ATRsg",
+              "alias": "mancinis-wood-fired-pizza-brooklyn-2",
+              "name": "Mancini's Wood Fired Pizza",
+              "image_url": "https://s3-media2.fl.yelpcdn.com/bphoto/example/example/o.jpg",
+              "is_closed": false,
+              "url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2",
+              "review_count": 328,
+              "categories": [
+                {
+                  "alias": "pizza",
+                  "title": "Pizza"
+                }
+              ],
+              "rating": 4.5
+            },
+            "component": {
+              "name": "YelpBusinessDetails"
+            }
+          }
+
+  - endpoint: /yelp/get_business_reviews
+    examples:
+      - scenario: "Get Business Reviews"
+        description: "Get reviews for a specific business"
+        input_json: |
+          {
+            "business_id": "BCUhfgjbVVvjs0ro4ATRsg",
+            "reviews_per_page": 20
+          }
+        output_json: |
+          {
+            "data": {
+              "total": 100,
+              "reviews": [
+                {
+                  "id": "qEcPEMOZI_35F6diBYZqsQ",
+                  "url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2?hrid=qEcPEMOZI_35F6diBYZqsQ",
+                  "text": "Amazing pizza! The crust is perfectly crispy and the sauce is so flavorful. Will definitely be coming back!",
+                  "rating": 5,
+                  "time_created": "2023-08-15 18:42:32",
+                  "user": {
+                    "id": "u123456",
+                    "profile_url": "https://www.yelp.com/user_details?userid=u123456",
+                    "image_url": "https://s3-media1.fl.yelpcdn.com/photo/user-example/o.jpg",
+                    "name": "John D."
+                  }
+                },
+                {
+                  "id": "K8KmkZ2f5QYrF-dFt6Bqpw",
+                  "url": "https://www.yelp.com/biz/mancinis-wood-fired-pizza-brooklyn-2?hrid=K8KmkZ2f5QYrF-dFt6Bqpw",
+                  "text": "Good pizza but a bit overpriced for what you get. Service was fast and friendly though.",
+                  "rating": 4,
+                  "time_created": "2023-08-10 14:22:12",
+                  "user": {
+                    "id": "u789012",
+                    "profile_url": "https://www.yelp.com/user_details?userid=u789012",
+                    "image_url": "https://s3-media2.fl.yelpcdn.com/photo/user-example2/o.jpg",
+                    "name": "Sarah L."
+                  }
+                }
+              ],
+              "possible_languages": ["en"]
+            },
+            "component": {
+              "name": "YelpBusinessReviews"
+            }
+          }
+
+  - endpoint: /yelp/get_business_menus
+    examples:
+      - scenario: "Get Business Menus"
+        description: "Get menu information for a specific business"
+        input_json: |
+          {
+            "business_id": "5uUs2b4bQdS3WS8z16LJKw"
+          }
+        output_json: |
+          {
+            "data": {
+              "menus": [
+                {
+                  "name": "Main Menu",
+                  "sections": [
+                    {
+                      "name": "Appetizers",
+                      "description": "Start your meal with our delicious appetizers",
+                      "items": [
+                        {
+                          "name": "Garlic Bread",
+                          "description": "Freshly baked bread with garlic butter and herbs",
+                          "price": "$5.99"
+                        },
+                        {
+                          "name": "Mozzarella Sticks",
+                          "description": "Breaded mozzarella served with marinara sauce",
+                          "price": "$7.99"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Specialty Pizzas",
+                      "description": "Our signature wood-fired pizzas",
+                      "items": [
+                        {
+                          "name": "Margherita",
+                          "description": "Fresh mozzarella, tomato sauce, and basil",
+                          "price": "$14.99"
+                        },
+                        {
+                          "name": "Pepperoni",
+                          "description": "Classic pepperoni with mozzarella and tomato sauce",
+                          "price": "$16.99"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "component": {
+              "name": "YelpBusinessMenus"
+            }
+          } 

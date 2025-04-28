@@ -28,7 +28,7 @@ class CompletionResponse(BaseModel):
     created: int
     citations: List[str]
     choices: List[Dict[str, Any]]
-    usage: Dict[str, int]
+    usage: Dict[str, Union[int, str]]
     component: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 class ApiResponse(BaseModel):

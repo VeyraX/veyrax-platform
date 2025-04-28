@@ -21,9 +21,12 @@ async def execute_agent_query(
 ):
     user_id = await get_user_from_request(request)
     
+
+    
     body = await request.json()
     run_id = body.get("run_id")
     trace_id = body.get("trace_id")
+    input = body.get("input", "")
     
     try:
         api_key = get_user_api_key(user_id)
@@ -44,6 +47,10 @@ async def execute_agent_query(
         )
 
         query = "Run the flow."
+
+        if input:
+            query += f"\n\nUser Input:\n```json\n{input}\n```"
+
         response = await run_flow_agent(
             agent=agent, 
             user_input=query,

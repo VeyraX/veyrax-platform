@@ -1,4 +1,5 @@
 from typing import Dict, Any, List, Optional
+from fastapi import HTTPException
 from .client import LinkedInClient
 from .schema import (
     GetProfileParams,
@@ -82,7 +83,17 @@ class LinkedInService:
         return self.prepare_response(validated_profile)
 
     def get_profile(self, params: GetProfileParams) -> ApiResponse:
-        response = self.client.get_profile(params.username)
+        # Check if username is provided in the params
+        if params.username:
+            username = params.username
+        # If not provided, use the client's username
+        elif self.client.username:
+            username = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Username is required but not provided, and no authenticated username is available")
+        
+        response = self.client.get_profile(username)
         processed_data = self._process_profile_data(response)
         validated_profile = Profile(**processed_data)
         return self.prepare_response(validated_profile)
@@ -113,6 +124,15 @@ class LinkedInService:
 
     def get_profile_posts(self, params: GetProfilePostsParams) -> ApiResponse:
         query_params = {k: v for k, v in params.model_dump().items() if v is not None}
+        
+        # Check if username is provided in the params
+        if not params.username and not self.client.username:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Username is required but not provided, and no authenticated username is available")
+        elif not params.username and self.client.username:
+            # If not in params but client has username, add it to query params
+            query_params["username"] = self.client.username
+        
         response = self.client.get_profile_posts(query_params)
 
         posts_data = response.get("data", [])
@@ -127,7 +147,17 @@ class LinkedInService:
         return self.prepare_response(result, "LinkedInPostsCard")
 
     def get_connection_count(self, params: GetConnectionCountParams) -> ApiResponse:
-        response = self.client.get_connection_count(params.username)
+        # Check if username is provided in the params
+        if params.username:
+            username = params.username
+        # If not provided, use the client's username
+        elif self.client.username:
+            username = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Username is required but not provided, and no authenticated username is available")
+        
+        response = self.client.get_connection_count(username)
         validated_count = ConnectionCount(**response)
         return self.prepare_response(validated_count, "LinkedInConnectionCountCard")
 
@@ -162,7 +192,17 @@ class LinkedInService:
         return self.prepare_response(validated_response, "LinkedInSimilarProfilesCard")
 
     def get_company_details(self, params: GetCompanyDetailsParams) -> ApiResponse:
-        api_response = self.client.get_company_details(params.username)
+        # Check if username is provided in the params
+        if params.username:
+            username = params.username
+        # If not provided, use the client's username
+        elif self.client.username:
+            username = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Username is required but not provided, and no authenticated username is available")
+        
+        api_response = self.client.get_company_details(username)
         raw_data = api_response.get("data") if isinstance(api_response, dict) else None
 
         if not raw_data or not isinstance(raw_data, dict):

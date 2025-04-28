@@ -16,8 +16,11 @@ examples = ExamplesLoader()
 async def get_twitter_service(request: Request):
     try:
         api_key = os.environ.get("RAPID_API_TWITTER_API_KEY") or  os.environ.get("RAPID_API_LINKEDIN_API_KEY")
-        auth_params = await get_provider_custom_auth(request, "x")
-        raw_username = auth_params.get("username")
+        try:
+            auth_params = await get_provider_custom_auth(request, "x")
+            raw_username = auth_params.get("username")
+        except Exception as e:
+            raw_username = None
         # The TwitterClient constructor will use the parse_twitter_username method
         client = TwitterClient(api_key, raw_username)
         service = TwitterService(client)

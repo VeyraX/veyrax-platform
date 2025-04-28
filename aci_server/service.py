@@ -24,7 +24,6 @@ class ToolsService:
     
     async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict) -> dict:
         prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
-        print(prompt)
         
         try:
             api_key = os.getenv("OPENROUTER_API_KEY")
@@ -45,6 +44,9 @@ class ToolsService:
                 response_format={"type": "json_object"},
                 temperature=0
             )
+
+            if (completion is None) or (completion.choices is None) or (isinstance(completion.choices, list) and len(completion.choices) == 0):
+                return {}
             
             generated_params_json = completion.choices[0].message.content
             print(generated_params_json)
