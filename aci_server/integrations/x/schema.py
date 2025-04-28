@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional, Union
 
 class GetUserProfileParams(BaseModel):
-    screenname: str = Field(..., description="Twitter username/screenname without the @ symbol")
+    screenname: Optional[str] = Field(None, description="Twitter username/screenname without the @ symbol. If not provided, will use the authenticated username.")
     rest_id: Optional[str] = Field(None, description="Twitter user ID for more precise lookup")
 
 class GetMeParams(BaseModel):
@@ -25,7 +25,7 @@ class UserProfileResponse(BaseModel):
 
 # Timeline endpoint
 class GetUserTimelineParams(BaseModel):
-    screenname: str = Field(..., description="Twitter username/screenname without the @ symbol")
+    screenname: Optional[str] = Field(None, description="Twitter username/screenname without the @ symbol. If not provided, will use the authenticated username.")
     cursor: Optional[str] = Field(None, description="Cursor for pagination")
 
 
@@ -43,7 +43,7 @@ class UserTimelineResponse(BaseModel):
 
 # Following endpoint
 class GetUserFollowingParams(BaseModel):
-    screenname: str = Field(..., description="Twitter username/screenname without the @ symbol")
+    screenname: Optional[str] = Field(None, description="Twitter username/screenname without the @ symbol. If not provided, will use the authenticated username.")
     cursor: Optional[str] = Field(None, description="Cursor for pagination")
 
 class FollowingUser(BaseModel):
@@ -68,7 +68,7 @@ class UserFollowingResponse(BaseModel):
 
 # Followers endpoint
 class GetUserFollowersParams(BaseModel):
-    screenname: str = Field(..., description="Twitter username/screenname without the @ symbol")
+    screenname: Optional[str] = Field(None, description="Twitter username/screenname without the @ symbol. If not provided, will use the authenticated username.")
     cursor: Optional[str] = Field(None, description="Cursor for pagination")
 
 class UserFollowersData(BaseModel):

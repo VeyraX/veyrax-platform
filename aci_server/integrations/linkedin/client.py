@@ -53,7 +53,7 @@ class LinkedInClient:
     def get_me(self) -> Dict[str, Any]:
         """Get the authenticated user's profile based on the stored username."""
         if not self.username:
-            raise HTTPException(status_code=405, detail="Username is not set. Please provide a username during client initialization.")
+            raise HTTPException(status_code=401, detail="Username is not set. Please provide a username during client initialization.")
         
         return self.get_profile(self.username)
 

@@ -6,9 +6,9 @@ class GetMeParams(BaseModel):
     pass
 
 class GetProfileParams(BaseModel):
-    username: str = Field(
-        ...,
-        description="LinkedIn username to get profile information for"
+    username: Optional[str] = Field(
+        None,
+        description="LinkedIn username to get profile information for. If not provided, will use the authenticated username."
     )
 
 class SearchPeopleParams(BaseModel):
@@ -50,9 +50,9 @@ class SearchPeopleParams(BaseModel):
     )
 
 class GetProfilePostsParams(BaseModel):
-    username: str = Field(
-        ...,
-        description="LinkedIn username to get posts for"
+    username: Optional[str] = Field(
+        None,
+        description="LinkedIn username to get posts for. If not provided, will use the authenticated username."
     )
     start: Optional[str] = Field(
         None,
@@ -68,10 +68,10 @@ class GetProfilePostsParams(BaseModel):
     )
 
 class GetConnectionCountParams(BaseModel):
-    username: str = Field(..., description="LinkedIn username")
+    username: Optional[str] = Field(None, description="LinkedIn username. If not provided, will use the authenticated username.")
 
 class GetDataConnectionCountParams(BaseModel):
-    username: str = Field(..., description="LinkedIn username")
+    username: Optional[str] = Field(None, description="LinkedIn username. If not provided, will use the authenticated username.")
 
 class SortOption(str, Enum):
     mostRelevant = "mostRelevant"
@@ -262,7 +262,7 @@ class SimilarProfilesResponse(BaseModel):
     data: SimilarProfilesData
 
 class GetCompanyDetailsParams(BaseModel):
-    username: str = Field(..., description="The company's LinkedIn page username (e.g., 'google')")
+    username: Optional[str] = Field(None, description="The company's LinkedIn page username (e.g., 'google'). If not provided, will use the authenticated username.")
 
 class CompanyHeadquarter(BaseModel):
     city: Optional[str] = None
