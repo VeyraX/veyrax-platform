@@ -29,6 +29,12 @@ class PerplexityService:
         
         if not response:
             raise ValueError("Empty response received from Perplexity API")
+        
+        # Convert string values in usage to integers where possible
+        if 'usage' in response and isinstance(response['usage'], dict):
+            for key, value in response['usage'].items():
+                if isinstance(value, str) and value.isdigit():
+                    response['usage'][key] = int(value)
             
         completion_response = CompletionResponse(**response)
         return self.prepare_response(completion_response, "PerplexityResponseView")
