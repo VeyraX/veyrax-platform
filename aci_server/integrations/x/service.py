@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional
 import os
 import logging
+from fastapi import HTTPException
 from .client import TwitterClient
 from .schema import *
 from ..common.component_handler import load_components, prepare_components_auto
@@ -27,12 +28,21 @@ class TwitterService:
     
     def get_user_profile(self, params: GetUserProfileParams) -> ApiResponse:
         # Prepare request parameters
-        request_params = {"screenname": params.screenname}
-        print('get_user_profile params', params)
+        request_params = {}
+        
+        # Check if screenname is provided in the params
+        if params.screenname:
+            request_params["screenname"] = params.screenname
+        # If not provided, use the client's username
+        elif self.client.username:
+            request_params["screenname"] = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Screenname is required but not provided, and no authenticated username is available")
+        
         if params.rest_id:
             request_params["rest_id"] = params.rest_id
         
-        print('get_user_profile request_params', request_params)
         # Make API call through client
         response = self.client.get_user_profile(**request_params)
         
@@ -69,7 +79,18 @@ class TwitterService:
         
     def get_user_timeline(self, params: GetUserTimelineParams) -> ApiResponse:
         # Prepare request parameters
-        request_params = {"screenname": params.screenname}
+        request_params = {}
+        
+        # Check if screenname is provided in the params
+        if params.screenname:
+            request_params["screenname"] = params.screenname
+        # If not provided, use the client's username
+        elif self.client.username:
+            request_params["screenname"] = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Screenname is required but not provided, and no authenticated username is available")
+        
         if params.cursor:
             request_params["cursor"] = params.cursor
         
@@ -102,7 +123,18 @@ class TwitterService:
         
     def get_user_following(self, params: GetUserFollowingParams) -> ApiResponse:
         # Prepare request parameters
-        request_params = {"screenname": params.screenname}
+        request_params = {}
+        
+        # Check if screenname is provided in the params
+        if params.screenname:
+            request_params["screenname"] = params.screenname
+        # If not provided, use the client's username
+        elif self.client.username:
+            request_params["screenname"] = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Screenname is required but not provided, and no authenticated username is available")
+        
         if params.cursor:
             request_params["cursor"] = params.cursor
         
@@ -126,7 +158,18 @@ class TwitterService:
         
     def get_user_followers(self, params: GetUserFollowersParams) -> ApiResponse:
         # Prepare request parameters
-        request_params = {"screenname": params.screenname}
+        request_params = {}
+        
+        # Check if screenname is provided in the params
+        if params.screenname:
+            request_params["screenname"] = params.screenname
+        # If not provided, use the client's username
+        elif self.client.username:
+            request_params["screenname"] = self.client.username
+        else:
+            # If neither is available, raise an HTTP error
+            raise HTTPException(status_code=401, detail="Screenname is required but not provided, and no authenticated username is available")
+        
         if params.cursor:
             request_params["cursor"] = params.cursor
         
