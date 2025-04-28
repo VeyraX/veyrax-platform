@@ -1140,7 +1140,7 @@ class NotionService:
                     "timestamp": "last_edited_time"
                 }
             if filters.max_results:
-                search_params["page_size"] = min(filters.max_results, 100)
+                search_params["page_size"] = min(filters.max_results, 25)
         
         if start_cursor:
             search_params["start_cursor"] = start_cursor

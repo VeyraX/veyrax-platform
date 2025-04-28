@@ -154,7 +154,8 @@ async def search(
     return service.search(
         filters=PageFilters(
             query=validated_params.query,
-            sort_direction=validated_params.sort_direction
+            sort_direction=validated_params.sort_direction,
+            max_results=validated_params.page_size
         ),
         start_cursor=validated_params.start_cursor
     )
