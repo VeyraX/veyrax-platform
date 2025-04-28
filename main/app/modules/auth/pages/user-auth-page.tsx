@@ -7,7 +7,8 @@ import { ScopeDialog } from '@/app/modules/integrations/components/integration-s
 import { McpManage } from '@/app/modules/integrations/components/mcp/mcp-manage';
 import { initiateOAuthFlow, getProviderAuthInfo } from '@/app/modules/integrations/api/api.integrations';
 import { getMcpDetailsByImageName } from '@/app/modules/integrations/api/api.integrations.mcp';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface UserAuthPageProps {
   providerTag: string;
@@ -35,18 +36,33 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
   const verificationAttempted = useRef(false);
   const isMcp = type === 'mcp';
   const [copied, setCopied] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const extractUid = () => {
     if (!returnUrl) return null;
-    const match = returnUrl.match(/prompt=uid=([^&]+)/);
-    return match ? match[1] : null;
+    
+    try {
+      let match = returnUrl.match(/prompt=uid=([^&]+)/);
+      
+      if (match) {
+        return match[1];
+      }
+      
+      const decodedUrl = decodeURIComponent(returnUrl);
+      match = decodedUrl.match(/Paste\s+this\s+UID\s+in\s+ChatGPT\s+([a-zA-Z0-9]+)/);
+      
+      return match ? match[1] : null;
+    } catch (error) {
+      console.error("Error extracting UID:", error);
+      return null;
+    }
   };
 
   const uid = extractUid();
 
   const copyToClipboard = () => {
     if (uid) {
-      navigator.clipboard.writeText(uid).then(() => {
+      navigator.clipboard.writeText(`Omi UID: ${uid}`).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       });
@@ -56,6 +72,19 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
   useEffect(() => {
     setMessage('Authenticating...');
     setInitialized(true);
+    
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const isMobileByAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      const isMobileBySize = typeof window !== 'undefined' && window.innerWidth <= 768;
+      setIsMobile(isMobileByAgent || isMobileBySize);
+    };
+    
+    if (typeof window !== 'undefined') {
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
   useEffect(() => {
@@ -151,7 +180,12 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
           if (data.redirect_url) {
             setMessage('Connection already exists. Redirecting...');
             setIsRedirecting(true);
-            router.push(data.redirect_url);
+            
+            if (isMobile) {
+              setStatus('success');
+            } else {
+              router.push(data.redirect_url);
+            }
             return;
           }
 
@@ -215,16 +249,27 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     };
 
     verifyAuth();
-  }, [code, apiKey, providerTag, connectionComplete, isMcp, type]);
+  }, [code, apiKey, providerTag, connectionComplete, isMcp, type, isMobile, router]);
 
   useEffect(() => {
     if (connectionComplete && returnUrl) {
-      setMessage('Redirecting...');
-      setTimeout(() => {
-        window.location.href = returnUrl;
-      }, 1500);
+      setIsRedirecting(true);
+      if (isMobile) {
+        setMessage('Provider successfully connected.');
+      } else {
+        setMessage('Redirecting...');
+        setTimeout(() => {
+          window.location.href = returnUrl;
+        }, 1500);
+      }
     }
-  }, [connectionComplete, returnUrl, router]);
+  }, [connectionComplete, returnUrl, isMobile]);
+
+  const handleManualRedirect = () => {
+    if (returnUrl) {
+      window.location.href = returnUrl;
+    }
+  };
 
   const handleUpdateIntegration = async () => {
     setShowIntegrationDialog(false);
@@ -233,13 +278,17 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     
     setConnectionComplete(true);
     setStatus('success');
-    setMessage('Provider successfully connected. Redirecting...');
     
-    setTimeout(() => {
-      if (returnUrl) {
-        window.location.href = returnUrl;
-      }
-    }, 1500);
+    if (isMobile) {
+      setMessage('Provider successfully connected.');
+    } else {
+      setMessage('Provider successfully connected. Redirecting...');
+      setTimeout(() => {
+        if (returnUrl) {
+          window.location.href = returnUrl;
+        }
+      }, 1500);
+    }
   };
 
   const handleCloseDialog = () => {
@@ -297,61 +346,47 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     return message;
   };
 
+  const renderUidDisplay = () => {
+    if (!uid || !connectionComplete || !isMobile) return null;
+    
+    return (
+      <div className="mb-4">
+        <div className="text-center mb-2">
+          <h2 className="font-medium text-lg">Step 1: Copy Your Omni ID</h2>
+        </div>
+        <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
+          <span className="font-mono text-gray-700 group-hover:text-gray-900">{uid}</span>
+          {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} className="text-gray-400 group-hover:text-gray-600" />}
+        </div>
+      </div>
+    );
+  };
+
+  const renderRedirectButton = () => {
+    if (!returnUrl || !connectionComplete || !isMobile) return null;
+    
+    return (
+      <div className="mt-4 flex flex-col items-center">
+        <div className="text-center mb-2">
+          <h2 className="font-medium text-lg">Step 2: Go to ChatGPT and paste your Omni ID</h2>
+        </div>
+        <Button 
+          onClick={handleManualRedirect}
+          className="flex items-center justify-center gap-2 mx-auto"
+        >
+          Continue in ChatGPT
+        </Button>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      {isRedirecting ? (
-        <div className="text-center">
-          {uid && (
-            <div className="mb-2">
-              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
-                <span className="text-[10px] text-gray-400">UID:</span>
-                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
-                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
-              </div>
-            </div>
-          )}
-          <p suppressHydrationWarning>{message}</p>
-        </div>
-      ) : connectionComplete ? (
-        <div className="text-center">
-          {uid && (
-            <div className="mb-2">
-              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
-                <span className="text-[10px] text-gray-400">UID:</span>
-                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
-                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
-              </div>
-            </div>
-          )}
-          <p suppressHydrationWarning>Provider successfully connected.</p>
-        </div>
-      ) : showScopeDialog || showIntegrationDialog || showMcpDialog ? (
-        <div>
-          {uid && (
-            <div className="mb-2 text-center">
-              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
-                <span className="text-[10px] text-gray-400">UID:</span>
-                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
-                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
-              </div>
-            </div>
-          )}
-          <p className="text-black" suppressHydrationWarning>Loading provider settings...</p>
-        </div>
-      ) : (
-        <div>
-          {uid && (
-            <div className="mb-2 text-center">
-              <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
-                <span className="text-[10px] text-gray-400">UID:</span>
-                <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-700">{uid}</span>
-                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} className="text-gray-400 group-hover:text-gray-600" />}
-              </div>
-            </div>
-          )}
-          <p className="text-black" suppressHydrationWarning>{getDisplayMessage()}</p>
-        </div>
-      )}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="text-center">
+        <p className="text-foreground mb-4" suppressHydrationWarning>{getDisplayMessage()}</p>
+        {renderUidDisplay()}
+        {renderRedirectButton()}
+      </div>
       
       {showScopeDialog && providerDetails && (
         <ScopeDialog
