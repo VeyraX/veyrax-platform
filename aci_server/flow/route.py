@@ -127,13 +127,10 @@ async def run_flow(flow_id: str, request: Request, skipping_draft: bool = False)
         if skipping_draft and flow_data.data['status'] == 'Draft':
             return {"status": "skipped", "message": "Draft flow execution skipped"}
         
-
-        print("[run_flow] user_input: ", user_input , "creating run_id")
         run_id = create_flow_run(flow_id, user_input)
         trace_id = str(uuid.uuid4())
         FRONTEND_URL = os.environ.get("FRONTEND_URL")
-        
-        print("[run_flow] running flow_task")
+    
         run_flow_task.delay(flow_id, run_id, api_key, trace_id, user_id, user_input)
         
         log_api_call(

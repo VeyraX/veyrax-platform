@@ -24,14 +24,11 @@ def create_agent(api_key: str, instructions: str = None, flow_id: str = None, ru
 
 async def run_flow_agent(agent: Agent, user_input: str, flow_id: str = None, trace_id: str = None, user_id: str = None) -> str:
     try:
-
-        print("[async run_flow_agent] user_input: ", user_input)
         result = await Runner.run(
             agent, 
             user_input, 
             max_turns=30
         )
-        print("[async run_flow_agent] result: ", result)
 
         formatted_result = format_agent_result(result)
         
