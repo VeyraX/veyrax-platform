@@ -95,6 +95,7 @@ from integrations.bybit_p2p.route import router as bybit_p2p_router
 from integrations.okx_p2p.route import router as okx_p2p_router
 from integrations.twentyfirst_dev.route import router as dev_router
 from mcp_deployment.route import router as mcp_deployment_router
+from integrations.yelp.route import router as yelp_router
 from mcp_deployment.queries import get_user_connected_mcp_actions, get_user_mcp_image_names
 from service import ToolsService
 import os
@@ -204,6 +205,7 @@ INTEGRATION_ROUTERS = {
     "okx_p2p": okx_p2p_router,
     "apollo": apollo_router,
     "twentyfirst_dev": dev_router,
+    "yelp": yelp_router
 }
 
 
