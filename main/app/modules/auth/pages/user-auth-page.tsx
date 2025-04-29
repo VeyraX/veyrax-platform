@@ -290,7 +290,14 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
 
   const handleManualRedirect = () => {
     if (returnUrl) {
-      window.location.href = returnUrl;
+      try {
+        const url = new URL(returnUrl);
+        url.searchParams.delete('prompt');
+        window.location.href = url.toString();
+      } catch (error) {
+        console.error("Error modifying return URL for manual redirect:", error);
+        window.location.href = returnUrl;
+      }
     }
   };
 
@@ -400,7 +407,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     return (
       <div className="mb-4">
         <div className="text-center mb-2">
-          <h2 className="font-medium text-lg">Step 1: Copy Your Omni ID</h2>
+          <h2 className="font-medium text-lg">Step 1: Copy Your Omi ID</h2>
         </div>
         <div className="flex items-center justify-center space-x-1 cursor-pointer group" onClick={copyToClipboard}>
           <span className="font-mono text-gray-700 group-hover:text-gray-900">{uid}</span>
@@ -416,7 +423,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     return (
       <div className="mt-4 flex flex-col items-center">
         <div className="text-center mb-2">
-          <h2 className="font-medium text-lg">Step 2: Go to ChatGPT and paste your Omni ID</h2>
+          <h2 className="font-medium text-lg">Step 2: Go to ChatGPT and paste your Omi ID</h2>
         </div>
         <Button 
           onClick={handleManualRedirect}

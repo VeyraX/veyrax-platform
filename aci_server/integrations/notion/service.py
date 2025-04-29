@@ -1046,13 +1046,11 @@ class NotionService:
             
             return self.prepare_response(database, "NotionDatabaseTable")
         else:
-            # If no updates provided, just get the current database
             return self.get_database(formatted_database_id)
 
     def query_database(self, database_id: str, filter_data: Dict[str, Any] = None, 
                       sorts: List[Dict[str, Any]] = None, start_cursor: Optional[str] = None, 
-                      page_size: int = 100) -> ApiResponse:
-        # Format the database ID to ensure it has the correct format
+                      page_size: int = 30) -> ApiResponse:
         formatted_database_id = self.format_page_id(database_id)
         
         params = {
@@ -1060,17 +1058,13 @@ class NotionService:
         }
         
         if filter_data:
-            # Convert filter_data to dict if it's a Pydantic model
             if hasattr(filter_data, "model_dump"):
-                # Pydantic v2
                 filter_dict = filter_data.model_dump(exclude_none=True)
             elif hasattr(filter_data, "dict"):
-                # Pydantic v1
                 filter_dict = filter_data.dict(exclude_none=True)
             else:
                 filter_dict = filter_data
                 
-            # Handle compound filters
             if "and_" in filter_dict:
                 filter_dict["and"] = filter_dict.pop("and_")
             if "or_" in filter_dict:
@@ -1079,14 +1073,11 @@ class NotionService:
             params["filter"] = filter_dict
             
         if sorts:
-            # Convert each sort object to dict if it's a Pydantic model
             serialized_sorts = []
             for sort in sorts:
                 if hasattr(sort, "model_dump"):
-                    # Pydantic v2
                     sort_dict = sort.model_dump(exclude_none=True)
                 elif hasattr(sort, "dict"):
-                    # Pydantic v1
                     sort_dict = sort.dict(exclude_none=True)
                 else:
                     sort_dict = sort
