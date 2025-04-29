@@ -36,11 +36,8 @@ export function MailAuthForm({ authSchema, authData, onChange, disabled = false 
   };
 
   const handleGeneratePassword = () => {
+    setShowPasswordField(true);
     window.open("https://myaccount.google.com/apppasswords", "_blank");
-    
-    setTimeout(() => {
-      setShowPasswordField(true);
-    }, 2000);
   };
 
   return (
