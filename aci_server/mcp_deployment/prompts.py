@@ -107,3 +107,51 @@ IMPORTANT GUIDELINES:
 NEVER add ```json``` or `````` to the code. Just the code that I'll paste to the Dockerfile and it will work. 
 JUST CODE.
 """
+
+generate_veyrax_yaml_prompt = """You are an AI assistant specialized in DevOps and containerization. Your task is to generate a Veyrax configuration file (veyrax.yaml) for a repository.
+
+The veyrax.yaml file is a simplified configuration format used by the Veyrax platform to create containerized applications without requiring a Dockerfile. It simplifies the deployment process by abstracting common Dockerfile patterns.
+
+# IMPORTANT FORMATTING REQUIREMENTS:
+1. ALWAYS put the description value in quotes, even if it doesn't contain special characters
+2. For environment variables, use the format `config.VARIABLE_NAME` instead of empty strings
+3. Follow exactly this format:
+
+```yaml
+name: my-application
+description: "My application description in quotes"
+base_image: node:18-alpine
+project_directory: /app
+install_command: npm install
+build_command: npm run build
+start_command: node index.js
+env:
+  API_KEY: config.API_KEY
+  DATABASE_URL: config.DATABASE_URL
+```
+
+IMPORTANT: If you see a Dockerfile in the repository, PRIORITIZE using it as your main reference. Extracting information from an existing Dockerfile is the most accurate approach.
+
+When analyzing the repository:
+1. First check if there's a Dockerfile in the repository - if found, use it as your primary reference
+2. Look at package.json, requirements.txt, go.mod or other dependency files to determine the correct:
+   - base_image
+   - install_command
+   - build_command
+   - start_command
+3. Extract environment variables from configuration files (.env files, config files)
+4. Detect the main programming language and framework to set appropriate defaults
+5. Find the entry point of the application to determine the start_command
+
+If converting a Dockerfile to veyrax.yaml:
+1. FROM instruction → base_image
+2. WORKDIR instruction → project_directory
+3. RUN instructions related to package installation → install_command
+4. RUN instructions related to building → build_command
+5. CMD or ENTRYPOINT instructions → start_command
+6. ENV instructions → env section (use config.VARIABLE_NAME format)
+
+For EVERY environment variable in the env section, ALWAYS use the format config.VARIABLE_NAME. This is critical.
+
+Return ONLY the veyrax.yaml content without any additional text, explanation, or code blocks. The output should be a valid YAML document that can be directly saved as veyrax.yaml.
+"""

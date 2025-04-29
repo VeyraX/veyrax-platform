@@ -257,10 +257,11 @@ export default function DeployCreatePage() {
         {noDockerfileError && (
           <div className="mt-6 p-4 border border-yellow-300 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-700/50 rounded-lg">
             <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-              Missing Dockerfile
+              Missing Dockerfile or veyrax.yaml
             </h3>
             <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-3">
-              We couldn't find a Dockerfile in your repository. Dockerfile is very important for MCP deployment. Continuing without a Dockerfile may cause deployment issues.
+              We couldn't find a Dockerfile or veyrax.yaml configuration in your repository. Either one is required for MCP deployment. 
+              Check out our <Link href="https://docs.veyrax.com/deployment/deploy" className="underline font-medium" target="_blank" rel="noopener noreferrer">deployment documentation</Link> for more information. You can proceed with the deployment without a Dockerfile or veyrax.yaml, but high chance of deployment issues.
             </p>
             <div className="flex gap-2">
               <Button 

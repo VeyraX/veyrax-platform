@@ -312,8 +312,7 @@ export const deployMcpRepository = async (
   metadata?: Record<string, any>
 ): Promise<DeployMCPResponse & { connectionCreated: boolean }> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const authToken = session?.access_token;
+    const authToken = await getAuthToken();
     
     if (!authToken) {
       throw new Error('Authentication required');
@@ -381,26 +380,60 @@ export const deployMcpRepository = async (
 
 export const updateMcpImageName = async (repositoryId: string, imageName: string): Promise<boolean> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const authToken = session?.access_token;
-    
-    if (!authToken) {
-      throw new Error('Authentication required');
-    }
-
     const { error } = await supabase
       .from('mcp_repositories')
       .update({ image_name: imageName })
       .eq('id', repositoryId);
     
     if (error) {
-      console.error('Error updating MCP image name:', error);
+      console.error('Error updating image name:', error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error updating MCP image name:', error);
+    console.error('Error updating image name:', error);
     return false;
   }
 };
+
+export const generateVeyraxYaml = async (
+  repoUrl: string
+): Promise<{ success: boolean; veyrax_yaml: string; message: string }> => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mcp_deployment/generate-veyrax-yaml`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${await getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        repo_url: repoUrl
+      }),
+    });
+
+    if (!response.ok) {
+      let errorDetail = `Failed to generate veyrax.yaml: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData && errorData.detail) {
+          errorDetail = errorData.detail;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+      }
+      throw new Error(errorDetail);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating veyrax.yaml:', error);
+    throw error;
+  }
+};
+
+// Helper function to get auth token
+async function getAuthToken(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token || '';
+}

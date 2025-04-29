@@ -11,13 +11,17 @@ from .schema import (
     RepositoryMetaRequest, 
     RepositoryMetaResponse,
     ExternalMCPResponse,
-    DeploymentStatusUpdate
+    DeploymentStatusUpdate,
+    GenerateVeyraxYamlRequest
 )
-from .parse_repo import parse_repository, check_dockerfile_exists
+from .parse_repo import parse_repository, check_dockerfile_exists, check_veyrax_yaml_exists, extract_veyrax_yaml_file
 from .generate_files import (
     push_mcp_to_dockerhub,
     extract_repo_metadata,
-    extract_env_variables
+    extract_env_variables,
+    extract_metadata_from_veyrax_yaml,
+    extract_env_variables_from_veyrax_yaml,
+    generate_veyrax_yaml
 )
 from db.supabase import get_supabase
 from integrations.common.auth import get_user_from_request
@@ -54,25 +58,35 @@ async def generate_repository_meta_endpoint(
             error_msg = f"Failed to parse repository: {str(repo_error)}"
             raise HTTPException(status_code=500, detail=error_msg)
         
+        veyrax_config = extract_veyrax_yaml_file(repo_data.get("files", []))
+        
         dockerfile_exists = True
-        try:
-            dockerfile_exists = check_dockerfile_exists(repo_data.get("files", []))
-        except Exception as docker_error:
-            error_msg = f"Error checking for Dockerfile: {str(docker_error)}"
-            raise HTTPException(status_code=500, detail=error_msg)
+        env_variables = {}
+        repo_metadata = {}
         
-        try:
-            context = json.dumps(repo_data)
-            env_variables = extract_env_variables(context, is_local=is_local)
-        except Exception as env_error:
-            error_msg = f"Failed to extract environment variables: {str(env_error)}"
-            raise HTTPException(status_code=500, detail=error_msg)
-        
-        try:
-            repo_metadata = extract_repo_metadata(context)
-        except Exception as meta_error:
-            error_msg = f"Failed to extract repository metadata: {str(meta_error)}"
-            raise HTTPException(status_code=500, detail=error_msg)
+        if veyrax_config:
+            dockerfile_exists = True
+            env_variables = extract_env_variables_from_veyrax_yaml(veyrax_config, is_local=is_local)
+            repo_metadata = extract_metadata_from_veyrax_yaml(veyrax_config)
+        else:
+            try:
+                dockerfile_exists = check_dockerfile_exists(repo_data.get("files", []))
+            except Exception as docker_error:
+                error_msg = f"Error checking for Dockerfile: {str(docker_error)}"
+                raise HTTPException(status_code=500, detail=error_msg)
+            
+            try:
+                context = json.dumps(repo_data)
+                env_variables = extract_env_variables(context, is_local=is_local)
+            except Exception as env_error:
+                error_msg = f"Failed to extract environment variables: {str(env_error)}"
+                raise HTTPException(status_code=500, detail=error_msg)
+            
+            try:
+                repo_metadata = extract_repo_metadata(context)
+            except Exception as meta_error:
+                error_msg = f"Failed to extract repository metadata: {str(meta_error)}"
+                raise HTTPException(status_code=500, detail=error_msg)
             
         return RepositoryMetaResponse(
             env_variables=env_variables,
@@ -157,5 +171,42 @@ async def update_deployment_status_endpoint(
         raise HTTPException(
             status_code=500, 
             detail=f"Failed to update deployment status: {str(e)}"
+        )
+
+@router.post("/generate-veyrax-yaml", response_model=Dict[str, Any])
+async def generate_veyrax_yaml_endpoint(
+    request: Request,
+    generate_request: GenerateVeyraxYamlRequest = Body(...),
+    auth_token: str = Depends(get_auth_token)
+):
+    try:
+        await get_user_from_request(request)
+        
+        if not generate_request.repo_url:
+            raise HTTPException(
+                status_code=400,
+                detail="GitHub repository URL must be provided"
+            )
+            
+        try:
+            repo_data = parse_repository(repo_url=generate_request.repo_url)
+            yaml_content = await generate_veyrax_yaml(repo_data)
+            
+            return {
+                "success": True,
+                "veyrax_yaml": yaml_content,
+                "message": "Successfully generated veyrax.yaml from repository"
+            }
+        except Exception as repo_error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to parse repository: {str(repo_error)}"
+            )
+    except HTTPException as e:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate veyrax.yaml: {str(e)}"
         )
 

@@ -2,13 +2,13 @@ from fastapi import HTTPException
 from openai import OpenAI
 from openai import AsyncOpenAI
 import os
-from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt, extract_repo_metadata_prompt
+from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt, extract_repo_metadata_prompt, generate_veyrax_yaml_prompt
 from dotenv import load_dotenv
 import base64
 import httpx
 import json
 from typing import Dict, Any, Optional
-from .parse_repo import check_dockerfile_exists
+from .parse_repo import check_dockerfile_exists, check_veyrax_yaml_exists, extract_veyrax_yaml_file
 from .queries import add_repository_to_providers_index
 
 load_dotenv()
@@ -93,20 +93,85 @@ def extract_repo_metadata(context):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract repository metadata: {str(e)}")
 
+def generate_dockerfile_from_veyrax_yaml(veyrax_config):
+    try:
+        base_image = veyrax_config.get('base_image', 'node:18-alpine')
+        project_dir = veyrax_config.get('project_directory', '/app')
+        install_cmd = veyrax_config.get('install_command', 'npm install')
+        build_cmd = veyrax_config.get('build_command', '')
+        start_cmd = veyrax_config.get('start_command', 'npm start')
+        
+        dockerfile = f"""
+        FROM {base_image}
+
+        WORKDIR {project_dir}
+
+        COPY . .
+
+        RUN {install_cmd}
+        """
+        
+        if build_cmd:
+            dockerfile += f"\nRUN {build_cmd}\n"
+            
+        env_vars = veyrax_config.get('env', {})
+        if env_vars:
+            for key, value in env_vars.items():
+                clean_value = value
+                if isinstance(value, str) and value.startswith("config."):
+                    clean_value = value[7:]
+                dockerfile += f"\nENV {key}={clean_value}"
+        
+        dockerfile += f"\nCMD {start_cmd}\n"
+        
+        return dockerfile
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate Dockerfile from veyrax.yaml: {str(e)}")
+
+def extract_metadata_from_veyrax_yaml(veyrax_config):
+    try:
+        return {
+            "name": veyrax_config.get('name', ''),
+            "description": veyrax_config.get('description', '')
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract metadata from veyrax.yaml: {str(e)}")
+
+def extract_env_variables_from_veyrax_yaml(veyrax_config, is_local=False):
+    try:
+        env_vars = veyrax_config.get('env', {})
+        processed_vars = {}
+        for key, value in env_vars.items():
+            if isinstance(value, str) and value.startswith("config."):
+                processed_vars[key] = value[7:]
+            else:
+                processed_vars[key] = value
+        return processed_vars
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract env variables from veyrax.yaml: {str(e)}")
+
 def generate_dockerfile_with_base64_from_repo(repo_data):
-    dockerfile_content = None
-    for file in repo_data.get("files", []):
-        if file.get("path", "").lower() == "dockerfile" or file.get("path", "").endswith("/dockerfile"):
-            dockerfile_content = file.get("content")
-            break
-    
-    if dockerfile_content:
-        dockerfile = dockerfile_content
+    veyrax_config = extract_veyrax_yaml_file(repo_data.get("files", []))
+    if veyrax_config:
+        print("Generating Dockerfile from veyrax.yaml")
+        dockerfile = generate_dockerfile_from_veyrax_yaml(veyrax_config)
     else:
-        context = json.dumps(repo_data)
-        dockerfile = generate_dockerfile(context)
-    
+        print("Generating Dockerfile from Dockerfile")
+        dockerfile_content = None
+        for file in repo_data.get("files", []):
+            if file.get("path", "").lower() == "dockerfile" or file.get("path", "").endswith("/dockerfile"):
+                dockerfile_content = file.get("content")
+                break
+        
+        if dockerfile_content:
+            dockerfile = dockerfile_content
+        else:
+            context = json.dumps(repo_data)
+            dockerfile = generate_dockerfile(context)
+    print("Dockerfile generated")
+    print(dockerfile)
     dockerfile_base64 = base64.b64encode(dockerfile.encode()).decode()
+    print("Dockerfile base64 encoded")
     return dockerfile_base64
 
 async def push_mcp_to_dockerhub(
@@ -196,4 +261,27 @@ async def push_mcp_to_dockerhub(
             "message": f"Error: {str(e)}",
             "deployment_id": deployment_id
         }
+
+async def generate_veyrax_yaml(data):
+    try:
+        system_message = generate_veyrax_yaml_prompt
+        
+        if "dockerfile" in data:
+            human_message = json.dumps({
+                "dockerfile": data["dockerfile"],
+                "source_type": "dockerfile"
+            })
+        else:
+            repo_context = {
+                "files": data.get("files", []),
+                "file_tree": data.get("file_tree", ""),
+                "source_type": "repository"
+            }
+            
+            human_message = json.dumps(repo_context)
+        
+        yaml_content = openrouter_claude_call(system_message, human_message)
+        return yaml_content.strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate veyrax.yaml: {str(e)}")
     

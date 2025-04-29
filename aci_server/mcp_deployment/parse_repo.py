@@ -1,6 +1,7 @@
 import re
 import requests
 import os
+import yaml
 from urllib.parse import urlparse
 from typing import Dict, Any, List, Optional, Tuple
 
@@ -178,6 +179,65 @@ def check_dockerfile_exists(repo_files):
         return False
     except Exception as e:
         return False
+
+def check_veyrax_yaml_exists(repo_files):
+    if not repo_files or not isinstance(repo_files, list):
+        return False
+        
+    for file in repo_files:
+        if not isinstance(file, dict) or "path" not in file:
+            continue
+            
+        file_path = file.get("path", "").lower()
+        if file_path == "veyrax.yaml" or file_path == "vrx.yaml" or file_path.endswith("/veyrax.yaml") or file_path.endswith("/vrx.yaml"):
+            return True
+            
+    return False
+
+def extract_veyrax_yaml_file(repo_files):
+    if not repo_files or not isinstance(repo_files, list):
+        return None
+        
+    for file in repo_files:
+        if not isinstance(file, dict) or "path" not in file or "content" not in file:
+            continue
+            
+        file_path = file.get("path", "").lower()
+        if file_path == "veyrax.yaml" or file_path == "vrx.yaml" or file_path.endswith("/veyrax.yaml") or file_path.endswith("/vrx.yaml"):
+            try:
+                content = file.get("content", "")
+                if "description:" in content and "\"" not in content.split("description:", 1)[1].split("\n", 1)[0]:
+                    lines = content.split("\n")
+                    for i, line in enumerate(lines):
+                        if line.strip().startswith("description:"):
+                            desc_value = line.split("description:", 1)[1].strip()
+                            if ":" in desc_value and not (desc_value.startswith("\"") and desc_value.endswith("\"")):
+                                lines[i] = f"description: \"{desc_value}\""
+                    content = "\n".join(lines)
+                
+                return yaml.safe_load(content)
+            except Exception as e:
+                print(f"Error parsing veyrax.yaml: {str(e)}")
+                try:
+                    result = {}
+                    content = file.get("content", "").split("\n")
+                    for line in content:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        if ":" in line and not line.startswith(" ") and not line.startswith("\t"):
+                            key, value = line.split(":", 1)
+                            result[key.strip()] = value.strip().strip('\"\'')
+                        elif ":" in line and (line.startswith(" ") or line.startswith("\t")) and line.count(":") == 1:
+                            key, value = line.strip().split(":", 1)
+                            if "env" in result and isinstance(result["env"], dict):
+                                result["env"][key.strip()] = value.strip().strip('\"\'')
+                    return result
+                except Exception as fallback_e:
+                    print(f"Fallback parsing also failed: {str(fallback_e)}")
+                    return None
+                
+    return None
 
 def generate_file_structure_tree(contents: List[Dict[str, Any]], subdir_path: str = ""):
     file_tree = {}

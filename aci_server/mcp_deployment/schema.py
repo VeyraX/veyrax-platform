@@ -80,3 +80,12 @@ class DeployMCPResponse(BaseModel):
     dockerfile_base64: Optional[str] = None
     github_workflow_url: Optional[str] = None
     message: Optional[str] = None
+
+class GenerateVeyraxYamlRequest(BaseModel):
+    repo_url: str = Field(..., description="GitHub repository URL")
+    
+    @validator('repo_url')
+    def validate_repo_url(cls, v):
+        if 'github.com' not in v:
+            raise ValueError("Only GitHub repositories are supported")
+        return v
