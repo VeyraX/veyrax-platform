@@ -45,18 +45,6 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const { error: updateError } = await serviceClient
-            .from('user_auth_codes')
-            .update({ used: true })
-            .eq('code', code);
-
-        if (updateError) {
-            return NextResponse.json({ 
-                success: false,
-                error: 'Error validating authentication code' 
-            }, { status: 500 });
-        }
-
         return NextResponse.json({
             success: true,
             encrypted_api_key: authCode.encrypted_api_key,

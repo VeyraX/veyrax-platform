@@ -122,7 +122,7 @@ class VeyraxAuthClient:
             provider_id = provider.get("id")
             if self.is_provider_connected(provider_id):
                 if redirect_url:
-                    return {"message": "Provider already connected", "redirect_url": redirect_url}
+                    return {"message": "Provider already connected.", "redirect_url": redirect_url}
                 raise HTTPException(status_code=400, detail=f"Provider with tag {provider_tag} is already connected")
             
             api_key_str = f"{encrypted_user_id}:{provider_id}:{code}"

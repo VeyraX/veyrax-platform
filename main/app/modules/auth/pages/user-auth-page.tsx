@@ -33,6 +33,8 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
   const [providerDetails, setProviderDetails] = useState<any>(null);
   const [mcpDetails, setMcpDetails] = useState<any>(null);
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  const [processCancelled, setProcessCancelled] = useState<boolean>(false);
+  const [authMethod, setAuthMethod] = useState<'oauth' | 'api' | 'mcp' | null>(null);
   const verificationAttempted = useRef(false);
   const isMcp = type === 'mcp';
   const [copied, setCopied] = useState(false);
@@ -94,6 +96,24 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
       const url = window.location.href;
       
       if (url.includes('oauth_return=success') && url.includes('status_code=200')) {
+        const storedCode = sessionStorage.getItem('oauthVerificationCode');
+        if (storedCode) {
+          sessionStorage.removeItem('oauthVerificationCode');
+          fetch('/api/auth/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: storedCode }),
+          }).then(response => {
+            if (!response.ok) {
+              console.error('Failed to complete authentication process after OAuth return');
+            }
+          }).catch(error => {
+            console.error('Error completing authentication process after OAuth return:', error);
+          });
+        } else {
+          console.warn('OAuth return successful, but no verification code found in session storage.');
+        }
+
         setConnectionComplete(true);
         setStatus('success');
         setMessage('Provider successfully connected.');
@@ -201,6 +221,7 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
                 const details = await getMcpDetailsByImageName(providerTag);
                 if (details) {
                   setMcpDetails(details);
+                  setAuthMethod('mcp');
                   setTimeout(() => {
                     setShowMcpDialog(true);
                   }, 1000);
@@ -218,10 +239,12 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
                   });
                   
                   if (authInfo.auth_method === 'oauth') {
+                    setAuthMethod('oauth');
                     setTimeout(() => {
                       setShowScopeDialog(true);
                     }, 1000);
                   } else {
+                    setAuthMethod('api');
                     setTimeout(() => {
                       setShowIntegrationDialog(true);
                     }, 1000);
@@ -276,18 +299,38 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     setShowScopeDialog(false);
     setShowMcpDialog(false);
     
+    if (verificationCode) {
+      try {
+        const response = await fetch('/api/auth/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: verificationCode }),
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to complete authentication process');
+        }
+      } catch (error) {
+        console.error('Error completing authentication process:', error);
+      }
+    }
+    
     setConnectionComplete(true);
     setStatus('success');
     
     if (isMobile) {
       setMessage('Provider successfully connected.');
     } else {
-      setMessage('Provider successfully connected. Redirecting...');
-      setTimeout(() => {
-        if (returnUrl) {
+      if (returnUrl) {
+        setMessage('Provider successfully connected. Redirecting...');
+        setTimeout(() => {
           window.location.href = returnUrl;
-        }
-      }, 1500);
+        }, 1500);
+      } else {
+        setMessage('Provider successfully connected.');
+      }
     }
   };
 
@@ -297,8 +340,9 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     setShowMcpDialog(false);
     
     if (!connectionComplete) {
+      setProcessCancelled(true);
       setStatus('error');
-      setMessage('Integration setup was cancelled.');
+      setMessage('Integration setup was cancelled. You can retry using the button below.');
     }
   };
 
@@ -306,8 +350,12 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     setShowScopeDialog(false);
     
     try {
-      const baseReturnUrl = `/user/${providerTag}/auth?returnUrl=${returnUrl}`;
+      const baseReturnUrl = `/user/${providerTag}/auth?returnUrl=${encodeURIComponent(returnUrl || '')}`;
       const finalReturnUrl = `${baseReturnUrl}&status_code=200&oauth_return=success`;
+      
+      if (verificationCode) {
+        sessionStorage.setItem('oauthVerificationCode', verificationCode);
+      }
       
       const url = await initiateOAuthFlow(providerTag, scopes, finalReturnUrl, encryptedApiKey || undefined, verificationCode || undefined);
       window.location.href = url;
@@ -380,11 +428,74 @@ export function UserAuthPage({ providerTag, code, apiKey, type, returnUrl }: Use
     );
   };
 
+  const handleRetryConnection = async () => {
+    setProcessCancelled(false);
+    setStatus('success');
+    setMessage('Establishing connection...');
+    
+    try {
+      if (authMethod === 'mcp' && mcpDetails) {
+        setShowMcpDialog(true);
+      } else if (authMethod === 'oauth' && providerDetails) {
+        setShowScopeDialog(true);
+      } else if (authMethod === 'api' && providerDetails) {
+        setShowIntegrationDialog(true);
+      } else {
+        if (verificationCode && encryptedApiKey) {
+          if (isMcp) {
+            const details = await getMcpDetailsByImageName(providerTag);
+            if (details) {
+              setMcpDetails(details);
+              setAuthMethod('mcp');
+              setShowMcpDialog(true);
+            }
+          } else {
+            const authInfo = await getProviderAuthInfo(providerTag);
+            if (authInfo) {
+              setProviderDetails({ ...authInfo, connected: false });
+              if (authInfo.auth_method === 'oauth') {
+                setAuthMethod('oauth');
+                setShowScopeDialog(true);
+              } else {
+                setAuthMethod('api');
+                setShowIntegrationDialog(true);
+              }
+            } else {
+              throw new Error('Could not determine provider authentication method');
+            }
+          }
+        } else {
+          throw new Error('Missing verification data. Please restart the authentication process.');
+        }
+      }
+    } catch (error) {
+      console.error('Error retrying connection:', error);
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Failed to retry connection');
+    }
+  };
+
+  const renderRetryButton = () => {
+    if (!processCancelled || !verificationCode || connectionComplete) return null;
+    
+    return (
+      <div className="mt-4">
+        <Button
+          onClick={handleRetryConnection}
+          className="mt-2"
+        >
+          Retry Connection Setup
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <div className="text-center">
         <p className="text-foreground mb-4" suppressHydrationWarning>{getDisplayMessage()}</p>
         {renderUidDisplay()}
+        {renderRetryButton()}
         {renderRedirectButton()}
       </div>
       
