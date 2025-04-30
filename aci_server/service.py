@@ -60,7 +60,7 @@ class ToolsService:
             completion = await client.chat.completions.create(
                 model="openai/gpt-4.1",
                 messages=[
-                    {"role": "system", "content": "You are an expert API parameter generator. Respond only with the JSON object containing the parameters based on the user query and tool schema."},
+                    {"role": "system", "content": "You are an expert API parameter generator. When receiving a query, carefully analyze and reason through the user's intent. Consider the logical context provided by the intelligent AI agent. Your goal is to identify and produce the optimal JSON parameters that will effectively solve the user's request based on the given tool schema. Respond strictly with a JSON object containing these parameters."},
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
