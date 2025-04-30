@@ -8,6 +8,8 @@ import traceback
 import os
 import json
 import openai
+import posthog
+from posthog.ai.openai import AsyncOpenAI as PosthogAsyncOpenAI
 from datetime import date
 from integrations.common.utils import log_api_call
 from integrations.common.auth import get_user_from_request
@@ -22,18 +24,38 @@ class ToolsService:
             self.mcp_api_url = ""
             print("Warning: VEYRAX_DEPLOY_API_URL environment variable is not set")
     
-    async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict) -> dict:
+    async def _generate_params_with_llm(self, tool: str, method: str, question: str, tool_schema: dict, user_id: str) -> dict:
         prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
         
         try:
             api_key = os.getenv("OPENROUTER_API_KEY")
             if not api_key:
                 raise ValueError("OPENROUTER_API_KEY is not configured")
-                
-            client = openai.AsyncOpenAI(
+            
+            posthog_api_key = os.getenv("POSTHOG_API_KEY")
+            posthog_host = os.getenv("POSTHOG_HOST", "https://us.i.posthog.com")
+            posthog_client = None
+            if posthog_api_key:
+                posthog.project_api_key = posthog_api_key
+                posthog.host = posthog_host
+                posthog_client = posthog
+                print("PostHog Observability enabled for LLM parameter generation.")
+            else:
+                print("Warning: POSTHOG_API_KEY not set. PostHog Observability for LLM parameter generation is disabled.")
+            
+            client = PosthogAsyncOpenAI(
                 base_url="https://openrouter.ai/api/v1",
-                api_key=api_key
+                api_key=api_key,
+                posthog_client=posthog_client
             )
+            
+            custom_properties = {
+                "endpoint": "tool-call-simplified",
+                "tool_name": tool,
+                "tool_method": method,
+                "user_question": question[:400],
+                "user_id": user_id
+            }
             
             completion = await client.chat.completions.create(
                 model="openai/gpt-4.1",
@@ -42,7 +64,9 @@ class ToolsService:
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0
+                temperature=0,
+                posthog_properties=custom_properties,
+                posthog_distinct_id=user_id # Use distinct_id for user identification
             )
 
             if (completion is None) or (completion.choices is None) or (isinstance(completion.choices, list) and len(completion.choices) == 0):
@@ -69,6 +93,8 @@ class ToolsService:
         request: Request
     ) -> Dict[str, Any]:
         try:
+            user_id = await get_user_from_request(request)
+            
             tool_spec_full = await self.get_tool_spec(tool, request)
             tool_actions = tool_spec_full.get("tools", {})
             method_schema = None
@@ -87,7 +113,8 @@ class ToolsService:
             if not method_schema:
                 raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}' schema.")
 
-            generated_params = await self._generate_params_with_llm(tool, method, question, method_schema)
+            # Pass user_id to the LLM function
+            generated_params = await self._generate_params_with_llm(tool, method, question, method_schema, user_id)
 
             new_scope = dict(request.scope)
             new_scope['method'] = 'POST'
@@ -105,7 +132,6 @@ class ToolsService:
                 "simplified": True
             }
 
-            user_id = await get_user_from_request(request)
             response = await self.handle_tool_call(tool=tool, method=method, request=new_request, include_component=False, skip_logging=True)
             
             self._log_api_call(
@@ -119,14 +145,15 @@ class ToolsService:
             return response
 
         except HTTPException as e:
-            user_id = await get_user_from_request(request)
+            user_id_on_error = await get_user_from_request(request) 
+
             metadata = {
                 "parameters": {},
                 "question": question,
                 "simplified": True
             }
             self._log_api_call(
-                user_id=user_id,
+                user_id=user_id_on_error,
                 endpoint=f"/tool-call-simplified/{tool}/{method}",
                 success=0,
                 error_message=str(e.detail),
@@ -134,14 +161,15 @@ class ToolsService:
             )
             raise e
         except Exception as e:
-            user_id = await get_user_from_request(request)
+            user_id_on_error = await get_user_from_request(request)
+            
             metadata = {
                 "parameters": {},
                 "question": question,
                 "simplified": True
             }
             self._log_api_call(
-                user_id=user_id,
+                user_id=user_id_on_error,
                 endpoint=f"/tool-call-simplified/{tool}/{method}",
                 success=0,
                 error_message=str(e),
