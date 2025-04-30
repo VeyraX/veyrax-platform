@@ -628,9 +628,6 @@ async def get_dev_user_tools(request: Request):
 
 @app.post("/tool-execute")
 async def execute_tool_from_body(request: Request, include_component: bool = False):
-    """
-    Обрабатывает вызов инструмента через POST-запрос.
-    """
     success = 0
     error_message = None
     user_id = None
@@ -718,64 +715,119 @@ async def handle_simplified_tool_call_endpoint(call_request: SimplifiedToolCallR
         request=request
     )
 
-def _simplify_tool_schema(tool_schema: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[str]:
-    method_names = []
+def _simplify_tool_schema(tool_schema: Union[List[Dict[str, Any]], Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    method_schemas = {}
     if isinstance(tool_schema, list):
         for item in tool_schema:
             if isinstance(item, dict):
                 if item.get("type") == "function" and "function" in item:
-                    func = item.get("function", {})
-                    name = func.get("name")
+                    func_details = item.get("function", {})
+                    name = func_details.get("name")
                     if name:
-                        method_names.append(name)
+                        method_schemas[name] = func_details 
                 elif "name" in item:
-                    name = item.get("name")
-                    if name:
-                        method_names.append(name)
+                     name = item.get("name")
+                     if name:
+
+                         method_schemas[name] = item 
+
     elif isinstance(tool_schema, dict):
-        if len(tool_schema) == 1 and next(iter(tool_schema)) == "veyrax-auth":
-            inner_value = tool_schema["veyrax-auth"]
-            if isinstance(inner_value, dict):
-                method_names.extend(list(inner_value.keys()))
-        else:
-            method_names.extend(list(tool_schema.keys()))
+        for name, details in tool_schema.items():
+             if isinstance(details, dict) and details.get("type") == "function" and "function" in details:
+                 method_schemas[name] = details["function"]
+             elif isinstance(details, dict) and "name" in details and "parameters" in details:
+                 method_schemas[name] = details
+             elif isinstance(details, dict) and "parameters" in details and "name" not in details:
+                 method_schemas[name] = {"name": name, "parameters": details.get("parameters", {}), "description": details.get("description", "")}
+             elif isinstance(details, dict): 
+                  method_schemas[name] = details
+             else:
+                  method_schemas[name] = {"name": name, "parameters": {}, "description": "Schema details unavailable"}
             
-    return method_names
+    return method_schemas
+
+def _extract_simple_params(method_schema: Dict[str, Any]) -> Dict[str, Any]:
+    simplified = {
+        "description": "",
+        "params": []
+    }
+
+    current_level = method_schema
+    func_level_1 = current_level.get('function')
+    func_level_2 = None
+    if isinstance(func_level_1, dict):
+        func_level_2 = func_level_1.get('function')
+    
+    schema_details = None
+    if isinstance(func_level_2, dict) and 'parameters' in func_level_2:
+        schema_details = func_level_2
+    elif isinstance(func_level_1, dict) and 'parameters' in func_level_1:
+         schema_details = func_level_1
+    elif 'parameters' in current_level:
+         schema_details = current_level
+         
+    if not schema_details:
+         simplified["description"] = current_level.get('description', method_schema.get('description', ''))
+         return simplified
+
+    simplified["description"] = schema_details.get("description", "")
+    parameters = schema_details.get("parameters", {})
+    
+    if isinstance(parameters, dict):
+        properties = parameters.get("properties", {})
+        
+        if isinstance(properties, dict):
+            simplified["params"].extend(properties.keys())
+
+    return simplified
 
 async def _get_simplified_user_tools(user_id: str) -> Dict[str, Any]:
-    simplified_response_tools = {}
+    all_user_tools = {}
+    processed_tools = {}
     try:
         user_integration_tools = get_user_tools_from_actions(user_id)
         if user_integration_tools:
-            for tool_name, methods_schema in user_integration_tools.items():
-                simplified_methods = _simplify_tool_schema(methods_schema)
-                if simplified_methods:
-                    simplified_response_tools[tool_name] = simplified_methods
+             all_user_tools.update(user_integration_tools)
 
         mcp_actions = await get_user_connected_mcp_actions(user_id)
         if mcp_actions:
-             for mcp_name, methods_schema in mcp_actions.items():
-                 simplified_methods = _simplify_tool_schema(methods_schema)
-                 if simplified_methods:
-                    simplified_response_tools[mcp_name] = simplified_methods
+            all_user_tools.update(mcp_actions)
                     
-        has_any_tools = bool(user_integration_tools or mcp_actions)
+        for tool_name, tool_methods in all_user_tools.items():
+             if tool_name in ['examples', 'memories', 'available_flows']:
+                 continue
+             
+             processed_methods = {}
+             if isinstance(tool_methods, dict):
+                 for method_name, method_schema in tool_methods.items():
+                      processed_methods[method_name] = _extract_simple_params(method_schema)
+             processed_tools[tool_name] = processed_methods
 
+        has_any_tools = bool(user_integration_tools or mcp_actions)
         example_prompt_string = get_tools_example_prompt if has_any_tools else get_tools_example_prompt_empty
-        simplified_response_tools['examples'] = json.loads(example_prompt_string)
+        processed_tools['examples'] = json.loads(example_prompt_string)
         
         user_memories = await get_user_memories(user_id)
-        simplified_response_tools['memories'] = user_memories
+        processed_tools['memories'] = user_memories
         
         user_flows = get_user_flows(user_id)
         if user_flows and not isinstance(user_flows, dict):
-            simplified_response_tools['available_flows'] = user_flows
+            processed_tools['available_flows'] = user_flows
                  
     except Exception as e:
-        print(f"Error fetching simplified user tools structure for {user_id}: {e}")
-        return {}
+        print(f"Error fetching user tools structure for {user_id}: {e}")
+        fallback_tools = {}
+        try:
+            fallback_tools['examples'] = json.loads(get_tools_example_prompt_empty)
+            fallback_tools['memories'] = await get_user_memories(user_id)
+            user_flows = get_user_flows(user_id)
+            if user_flows and not isinstance(user_flows, dict):
+                 fallback_tools['available_flows'] = user_flows
+        except Exception as inner_e:
+             print(f"Error fetching fallback data for user {user_id}: {inner_e}")
+        return fallback_tools
         
-    return simplified_response_tools
+    return processed_tools
 
 @app.get("/get-tools-simplified")
 async def get_user_tools_simplified(request: Request):
