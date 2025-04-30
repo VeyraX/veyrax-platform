@@ -94,6 +94,7 @@ class NotionClient:
         Returns:
             API response
         """
+
         response = requests.patch(
             f"{self.base_url}/blocks/{block_id}/children",
             headers=self.headers,

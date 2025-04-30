@@ -73,7 +73,6 @@ class ToolsService:
                 return {}
             
             generated_params_json = completion.choices[0].message.content
-            print(generated_params_json)
             
             if not generated_params_json:
                  return {}
@@ -113,8 +112,12 @@ class ToolsService:
             if not method_schema:
                 raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}' schema.")
 
+
+            print("[debug] method_schema: ", method_schema)
             # Pass user_id to the LLM function
             generated_params = await self._generate_params_with_llm(tool, method, question, method_schema, user_id)
+
+            print("[debug] generated_params: ", generated_params)
 
             new_scope = dict(request.scope)
             new_scope['method'] = 'POST'
