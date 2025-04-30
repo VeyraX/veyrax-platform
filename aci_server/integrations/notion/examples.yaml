@@ -1736,7 +1736,6 @@ routes:
               "name": "NotionPageCard"
             }
           }
-
       - scenario: "Append Toggle with Nested Blocks"
         description: "Appends a toggle block with multiple nested child blocks"
         input_json: |
@@ -1797,6 +1796,57 @@ routes:
               "title": "Updated Page with Toggle",
               "properties": {},
               "url": "https://www.notion.so/pageABC"
+            },
+            "message": null,
+            "component": {
+              "name": "NotionPageCard"
+            }
+          }
+
+      - scenario: "Add Table with Rows (Recommended Format)"
+        description: "Appends a table with rows using the recommended format with rows in table.children"
+        input_json: |
+          {
+            "block_id": "1e59b7e6-f386-8116-b465-d04d3ae5dcc4",
+            "children": [
+              {
+                "type": "table",
+                "table": {
+                  "table_width": 2,
+                  "has_column_header": true,
+                  "has_row_header": false,
+                  "children": [
+                    {
+                      "type": "table_row",
+                      "table_row": {
+                        "cells": [
+                          [{"type": "text", "text": {"content": "Task"}}],
+                          [{"type": "text", "text": {"content": "Status"}}]
+                        ]
+                      }
+                    },
+                    {
+                      "type": "table_row",
+                      "table_row": {
+                        "cells": [
+                          [{"type": "text", "text": {"content": "Create a Landing Page"}}],
+                          [{"type": "text", "text": {"content": "In Progress"}}]
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        output_json: |
+          {
+            "status_code": 200,
+            "data": {
+              "id": "1e59b7e6-f386-8116-b465-d04d3ae5dcc4",
+              "title": "Block updated",
+              "properties": {},
+              "url": "https://www.notion.so/1e59b7e6f3868116b465d04d3ae5dcc4"
             },
             "message": null,
             "component": {
