@@ -76,6 +76,12 @@ class CalendarService:
 
     def create_event(self, event_data: EventCreate, calendar_id: str = 'primary') -> ApiResponse:
         event_body = event_data.dict(exclude_unset=True)
+
+        if 'start' in event_body and 'dateTime' in event_body['start'] and 'timeZone' not in event_body['start']:
+            event_body['start']['timeZone'] = 'UTC'
+        if 'end' in event_body and 'dateTime' in event_body['end'] and 'timeZone' not in event_body['end']:
+            event_body['end']['timeZone'] = 'UTC'
+
         response = self.client.create_event(event_body, calendar_id)
         return self.get_event(response['id'], calendar_id)
 
@@ -83,6 +89,11 @@ class CalendarService:
         existing_event = self.client.get_event(event_id, calendar_id)
         
         update_data = event_data.dict(exclude_none=True, exclude_unset=True)
+
+        if 'start' in update_data and 'dateTime' in update_data['start'] and 'timeZone' not in update_data['start']:
+            update_data['start']['timeZone'] = 'UTC'
+        if 'end' in update_data and 'dateTime' in update_data['end'] and 'timeZone' not in update_data['end']:
+            update_data['end']['timeZone'] = 'UTC'
         
         for key, value in update_data.items():
             existing_event[key] = value

@@ -62,11 +62,11 @@ class SkyscannerService:
         
         response = self.client.search_roundtrip(processed_params)
         
-        if 'data' in response and 'itineraries' in response['data']:
+        if 'data' in response and response['data'] is not None and 'itineraries' in response['data'] and response['data']['itineraries'] is not None:
             itineraries = response['data']['itineraries']
-            if len(itineraries) > params.maxResult:
+            if isinstance(itineraries, list) and len(itineraries) > params.maxResult:
                 response['data']['itineraries'] = itineraries[:params.maxResult]
-                if 'context' in response['data']:
+                if 'context' in response['data'] and response['data']['context'] is not None:
                     response['data']['context']['totalResults'] = params.maxResult
         
         validated_data = SearchRoundtripData(**response)
