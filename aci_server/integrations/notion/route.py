@@ -103,7 +103,7 @@ async def create_page(
     return service.create_page(validated_params.page)
 
 @router.post("/create_database", response_model=ApiResponse)
-@schema(input_schema_class=CreateDatabaseParams, output_schema_class=CreateDatabaseResponse)
+@schema(input_schema_class=CreateDatabaseParams, output_schema_class=CreateDatabaseResponse, examples=examples["/notion/create_database"])
 async def create_database(
     params: Dict[str, Any] = Body(...),
     service: NotionService = Depends(get_notion_service)
@@ -211,39 +211,5 @@ async def get_user(
     validated_params = GetUserParams(**params)
     return service.get_user(validated_params.user_id)
 
-@router.post("/debug_append_block_children", response_model=Dict[str, Any])
-async def debug_append_block_children(
-    params: Dict[str, Any] = Body(...),
-    service: NotionService = Depends(get_notion_service)
-):
-    """
-    Debug endpoint to examine how blocks are serialized before sending to Notion API.
-    Does not actually make the API call, just returns the serialized children for inspection.
-    """
-    try:
-        # Extract the same parameters as the real endpoint
-        block_id = params.get("block_id", "")
-        children = params.get("children", [])
-        
-        # Process blocks through serializer but don't send to API
-        serializable_children = []
-        for child in children:
-            serialized_child = service._serialize_block(child)
-            serializable_children.append(serialized_child)
-            
-        # Return both original and serialized for comparison
-        return {
-            "status": "debug_only",
-            "original_params": params,
-            "serialized_children": serializable_children,
-            "notion_api_payload": {"children": serializable_children}
-        }
-    except Exception as e:
-        import traceback
-        return {
-            "status": "error",
-            "message": str(e),
-            "traceback": traceback.format_exc()
-        }
 
 apply_error_handler_to_router(router)
