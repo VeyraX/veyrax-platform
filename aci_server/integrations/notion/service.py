@@ -1062,11 +1062,14 @@ class NotionService:
 
     def query_database(self, database_id: str, filter_data: Dict[str, Any] = None, 
                       sorts: List[Dict[str, Any]] = None, start_cursor: Optional[str] = None, 
-                      page_size: int = 30) -> ApiResponse:
+                      page_size: Optional[int] = 30) -> ApiResponse:
         formatted_database_id = self.format_page_id(database_id)
         
+        if page_size is None:
+            page_size = 25
+            
         params = {
-            "page_size": min(page_size, 100)
+            "page_size": min(page_size, 25)
         }
         
         if filter_data:
