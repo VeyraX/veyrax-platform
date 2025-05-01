@@ -778,18 +778,30 @@ class NotionService:
                     if key in child.get("table", {}):
                         table_block["table"][key] = child["table"][key]
                 
-                # Get the table rows if they exist
-                if "children" in child and isinstance(child["children"], list):
-                    # Format the rows
-                    formatted_rows = []
+                # Initialize formatted_rows
+                formatted_rows = []
+                
+                # First check if rows are defined in table.children
+                if "table" in child and isinstance(child["table"], dict) and "children" in child["table"]:
+                    table_rows = child["table"]["children"]
+                    for row in table_rows:
+                        if isinstance(row, dict):
+                            # Ensure each row has required fields
+                            row_copy = row.copy()
+                            row_copy["object"] = "block"
+                            formatted_rows.append(row_copy)
+                
+                # Then check if rows are in top-level children (alternative format)
+                if not formatted_rows and "children" in child and isinstance(child["children"], list):
                     for row in child["children"]:
                         if isinstance(row, dict):
                             # Ensure each row has required fields
                             row_copy = row.copy()
                             row_copy["object"] = "block"
                             formatted_rows.append(row_copy)
-                    
-                    # Add the formatted rows to the table.children array
+                
+                # If we have rows, add them to table.children
+                if formatted_rows:
                     table_block["table"]["children"] = formatted_rows
                 else:
                     # Create a default empty row if no rows provided

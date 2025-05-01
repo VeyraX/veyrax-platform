@@ -12,16 +12,31 @@ And the available tool '{tool}' with method '{method}', which has the following 
 {json.dumps(tool_schema, indent=2)}
 
 Generate the JSON parameters required to call the '{method}' function to address the user's question based *only* on the provided information (question, schema, today's date).
-Only output the JSON object containing the parameters. Do not include any explanations, apologies, or surrounding text.
+Only output the JSON object containing the parameters.
 
-Twitter / X specific instructions:
-- For endpoint get_user_profile, if the user provides a screenname, use it to get the user's profile. Not anything else.
+Follow this exact logical reasoning process:
+1. Understand User Intent by Carefully analyzing the user's question ("{question}") and identify clearly what outcome they want to achieve.
+2. Match Schema Carefully
+- Thoroughly review each field in the provided schema.
+- Identify required and optional fields clearly.
+- Decide logically which fields directly address the user's intent based solely on the schema definitions.
+
+3. Avoid Superficial Keywords
+- Do NOT blindly copy keywords from the user's question unless explicitly meaningful and schema-required
+
+4. Date and Time Handling
+- Precisely translate relative date terms (e.g., "last 7 days", "next week") into exact dates using today's provided date ({today}).
+
+Do not include any explanations, apologies, or surrounding text.
 
 Doesn't matter what question ask you to do, you always MUST check the real schema and use input schema to generate the parameters.
 
 Even 1 param is wrong, the whole action is wrong.
 
 Think step by step and check with deep attention the schema.
+
+Twitter / X specific instructions:
+- For endpoint get_user_profile, if the user provides a screenname, use it to get the user's profile. Not anything else.
 
 If no parameters are needed, output an empty JSON object {{}}.
 If you cannot determine the parameters from the question and schema, output an empty JSON object {{}}.

@@ -60,7 +60,7 @@ class ToolsService:
             completion = await client.chat.completions.create(
                 model="openai/gpt-4.1",
                 messages=[
-                    {"role": "system", "content": "You are an expert API parameter generator. Respond only with the JSON object containing the parameters based on the user query and tool schema."},
+                    {"role": "system", "content": "You are an expert API parameter generator. When receiving a query, carefully analyze and reason through the user's intent. Consider the logical context provided by the intelligent AI agent. Your goal is to identify and produce the optimal JSON parameters that will effectively solve the user's request based on the given tool schema. Respond strictly with a JSON object containing these parameters."},
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
@@ -73,7 +73,6 @@ class ToolsService:
                 return {}
             
             generated_params_json = completion.choices[0].message.content
-            print(generated_params_json)
             
             if not generated_params_json:
                  return {}
@@ -113,8 +112,12 @@ class ToolsService:
             if not method_schema:
                 raise HTTPException(status_code=404, detail=f"Method '{method}' not found in tool '{tool}' schema.")
 
+
+            print("[debug] method_schema: ", method_schema)
             # Pass user_id to the LLM function
             generated_params = await self._generate_params_with_llm(tool, method, question, method_schema, user_id)
+
+            print("[debug] generated_params: ", generated_params)
 
             new_scope = dict(request.scope)
             new_scope['method'] = 'POST'
