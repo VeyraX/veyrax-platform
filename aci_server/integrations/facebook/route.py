@@ -335,11 +335,21 @@ async def validate_key(params: Dict[str, Any] = Body(...)):
         if "facebook.com" not in clean_url:
             return {"valid": False, "message": f"Invalid Facebook URL: {clean_url}"}
         
-        return {
-            "valid": True, 
-            "message": "Facebook profile URL is valid", 
-            "profile_url": clean_url
-        }
+        try:
+            api_key = os.environ.get('RAPID_API_FACEBOK_API_KEY')
+            if not api_key:
+                return {"valid": False, "message": "Facebook API key not configured"}
+                
+            client = FacebookClient(api_key)
+            client.get_profile_details_url(url=clean_url)
+            
+            return {
+                "valid": True, 
+                "message": "Facebook profile URL is valid and exists", 
+                "profile_url": clean_url
+            }
+        except Exception as e:
+            return {"valid": False, "message": f"URL validation failed: {str(e)}"}
         
     except Exception as e:
         return {"valid": False, "message": str(e)}

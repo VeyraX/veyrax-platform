@@ -142,15 +142,33 @@ async def get_post_comments(
 @router.post("/validate_key")
 async def validate_key(params: Dict[str, Any] = Body(...)):
     try:
-        api_key = params.get("api_key")
-        if not api_key:
-            return {"valid": False, "message": "API key is required"}
+        username = params.get("username", "")
         
-        client = InstagramClient(api_key=api_key)
-        test_params = {"username": "instagram"}
-        test_response = client.get_user_details(**test_params)
-        return {"valid": True, "message": "API key is valid"}
+        if not username:
+            return {"valid": False, "message": "Instagram username is required"}
+        
+        clean_username = InstagramClient.parse_instagram_username(username)
+        
+        if not clean_username:
+            return {"valid": False, "message": "Could not extract a valid Instagram username"}
+        
+        try:
+            api_key = os.environ.get("RAPID_API_INSTAGRAM_API_KEY")
+            if not api_key:
+                return {"valid": False, "message": "Instagram API key not configured"}
+                
+            client = InstagramClient(api_key)
+            client.get_user_details(username=clean_username)
+            
+            return {
+                "valid": True, 
+                "message": "Instagram username is valid and exists", 
+                "username": clean_username
+            }
+        except Exception as e:
+            return {"valid": False, "message": f"Username validation failed: {str(e)}"}
+        
     except Exception as e:
-        return {"valid": False, "message": f"Invalid API key"}
+        return {"valid": False, "message": str(e)}
 
 apply_error_handler_to_router(router)
