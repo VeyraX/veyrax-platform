@@ -177,6 +177,3 @@ export const HeroNew = () => {
     </div>
   );
 };
-
-// Add default export if this is the main export of the file
-// export default HeroNew;
