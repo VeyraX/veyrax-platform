@@ -1,0 +1,904 @@
+routes:
+  - endpoint: /facebook/search_locations
+    examples:
+      - scenario: "Search for New York locations"
+        description: "Find Facebook locations related to New York"
+        input_json: |
+          {
+            "query": "New York"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "label": "Albany (Albany, New York)",
+                  "uid": "107384699291109",
+                  "city_id": 2486858,
+                  "timezone": "America/New_York"
+                },
+                {
+                  "label": "Nowy Jork (New York, New York)",
+                  "uid": "108424279189115",
+                  "city_id": 2490299,
+                  "timezone": "America/New_York"
+                },
+                {
+                  "label": "New City, New York",
+                  "uid": "109241542435052",
+                  "city_id": 2490260,
+                  "timezone": "America/New_York"
+                }
+              ]
+            },
+            "component": {
+              "name": "FacebookLocationsCard"
+            }
+          }
+
+  - endpoint: /facebook/search_posts
+    examples:
+      - scenario: "Search for recent Facebook posts"
+        description: "Find Facebook posts related to a query"
+        input_json: |
+          {
+            "query": "facebook",
+            "cursor": null,
+            "location_uid": null,
+            "start_date": null,
+            "end_date": null
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "post_id": "3986405838292150",
+                  "type": "post",
+                  "url": "https://www.facebook.com/yolanny.perez.54/posts/pfbid0oX3aURpjBYuievrtFgVvFSbNpfvLmMFjADRrTqEtVLcpSJvkqdD7qP2CJ8GpY312l",
+                  "message": "Facebook se pone como raro 🤔",
+                  "timestamp": 1743860732,
+                  "comments_count": 245,
+                  "reactions_count": 502,
+                  "reshare_count": 44,
+                  "reactions": {
+                    "angry": 46,
+                    "care": 9,
+                    "haha": 113,
+                    "like": 285,
+                    "love": 25,
+                    "sad": 2,
+                    "wow": 22
+                  },
+                  "author": {
+                    "id": "100007683184541",
+                    "name": "Gabriela Perez",
+                    "url": "https://www.facebook.com/yolanny.perez.54",
+                    "profile_picture_url": "https://scontent.example.com/profile.jpg"
+                  },
+                  "image": null,
+                  "video": null,
+                  "album_preview": null,
+                  "video_files": null,
+                  "video_thumbnail": null,
+                  "external_url": "https://l.facebook.com/example",
+                  "attached_event": null,
+                  "attached_post": null,
+                  "attached_post_url": null
+                }
+              ],
+              "cursor": "AbCdEfGhIjKlMnOpQrStUvWxYz"
+            },
+            "component": {
+              "name": "FacebookPostsCard"
+            }
+          }
+
+  - endpoint: /facebook/search_places
+    examples:
+      - scenario: "Search for pizza places"
+        description: "Find Facebook places related to pizza"
+        input_json: |
+          {
+            "query": "pizza",
+            "cursor": null
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "type": "place",
+                  "profile_url": "https://www.facebook.com/BlazePizza",
+                  "url": "https://www.facebook.com/BlazePizza",
+                  "image": {
+                    "uri": "https://scontent.example.com/pizza1.jpg",
+                    "width": 120,
+                    "height": 120,
+                    "scale": 2
+                  },
+                  "name": "Blaze Pizza",
+                  "facebook_id": "100064422170207",
+                  "is_verified": true
+                },
+                {
+                  "type": "place",
+                  "profile_url": "https://www.facebook.com/pizza.com.bd",
+                  "url": "https://www.facebook.com/pizza.com.bd",
+                  "image": {
+                    "uri": "https://scontent.example.com/pizza2.jpg",
+                    "width": 120,
+                    "height": 120,
+                    "scale": 2
+                  },
+                  "name": "Pizza.Com",
+                  "facebook_id": "100070929205099",
+                  "is_verified": false
+                }
+              ],
+              "cursor": "AbCdEfGhIjKlMnOpQrS"
+            },
+            "component": {
+              "name": "FacebookPlacesCard"
+            }
+          }
+
+  - endpoint: /facebook/search_pages
+    examples:
+      - scenario: "Search for beer pages"
+        description: "Find Facebook pages related to beer"
+        input_json: |
+          {
+            "query": "beer",
+            "cursor": null
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "type": "page",
+                  "profile_url": "https://www.facebook.com/beerherenow",
+                  "url": "https://www.facebook.com/beerherenow",
+                  "image": {
+                    "uri": "https://scontent.example.com/beer1.jpg",
+                    "width": 120,
+                    "height": 120,
+                    "scale": 2
+                  },
+                  "name": "Beer",
+                  "facebook_id": "100066799009649",
+                  "is_verified": false
+                },
+                {
+                  "type": "page",
+                  "profile_url": "https://www.facebook.com/ShinerBeer",
+                  "url": "https://www.facebook.com/ShinerBeer",
+                  "image": {
+                    "uri": "https://scontent.example.com/beer2.jpg",
+                    "width": 120,
+                    "height": 120,
+                    "scale": 2
+                  },
+                  "name": "Shiner Beer",
+                  "facebook_id": "100081355953628",
+                  "is_verified": true
+                }
+              ],
+              "cursor": "XyZaBcDeFgHiJkLmNoP"
+            },
+            "component": {
+              "name": "FacebookPagesCard"
+            }
+          }
+      
+  - endpoint: /facebook/search_events
+    examples:
+      - scenario: "Search for beer events"
+        description: "Find Facebook events related to beer"
+        input_json: |
+          {
+            "query": "beer",
+            "cursor": null
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "type": "search_event",
+                  "event_id": "428799360300862",
+                  "title": "Rock'n'Beer",
+                  "url": "https://www.facebook.com/events/428799360300862/"
+                },
+                {
+                  "type": "search_event",
+                  "event_id": "3995008264100728",
+                  "title": "Brisbane Beer Fest",
+                  "url": "https://www.facebook.com/events/3995008264100728/"
+                },
+                {
+                  "type": "search_event",
+                  "event_id": "9425486327513247",
+                  "title": "Beers for Brains! (Beer Fest)",
+                  "url": "https://www.facebook.com/events/9425486327513247/"
+                }
+              ],
+              "cursor": "AbCdEfGhIjKlMnOpQr"
+            },
+            "component": {
+              "name": "FacebookEventsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_page_details
+    examples:
+      - scenario: "Get details for Apple's Facebook page"
+        description: "Retrieve detailed information about a Facebook page"
+        input_json: |
+          {
+            "url": "https://www.facebook.com/apple"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": {
+                "name": "Apple",
+                "type": "page",
+                "page_id": "100064606995009",
+                "url": "https://www.facebook.com/apple",
+                "image": "https://scontent.example.com/apple.jpg",
+                "intro": null,
+                "likes": 14000000,
+                "followers": 15000000,
+                "categories": [
+                  "Page",
+                  "Product/service"
+                ],
+                "phone": null,
+                "email": null,
+                "address": null,
+                "rating": null,
+                "services": null,
+                "price_range": null,
+                "website": null,
+                "delegate_page": {
+                  "is_business_page_active": false,
+                  "id": "434174436675167"
+                },
+                "cover_image": "https://scontent.example.com/apple_cover.jpg",
+                "verified": true
+              }
+            },
+            "component": {
+              "name": "FacebookPageDetailsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_page_id
+    examples:
+      - scenario: "Get page ID for Facebook's page"
+        description: "Retrieve the page ID for a Facebook page URL"
+        input_json: |
+          {
+            "url": "https://facebook.com/facebook"
+          }
+        output_json: |
+          {
+            "data": {
+              "page_id": "100064860875397"
+            },
+            "component": {
+              "name": "FacebookPageIdCard"
+            }
+          }
+
+  - endpoint: /facebook/get_page_posts
+    examples:
+      - scenario: "Get posts with pagination and date filters"
+        description: "Retrieve posts from a Facebook page with pagination and date range"
+        input_json: |
+          {
+            "page_id": "100064860875397",
+            "cursor": "AbCdEfGhIjKlMnOpQrStUvWxYz",
+            "start_date": "2024-05-01",
+            "end_date": "2024-05-31"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "post_id": "1157963816375637",
+                  "type": "post",
+                  "url": "https://www.facebook.com/reel/example2",
+                  "message": "Singing in the rain: ✅ Seeing UFOs: ✅ Building DIY studios at Stagecoach Festival: ✅ Alexandra Kay's Facebook Friends tab brought up a lot fun memories. 💖✨🤠",
+                  "timestamp": 1746127650,
+                  "comments_count": 1490,
+                  "reactions_count": 10661,
+                  "reshare_count": 265,
+                  "reactions": {
+                    "angry": 8,
+                    "care": 231,
+                    "haha": 30,
+                    "like": 8822,
+                    "love": 1529,
+                    "sad": 4,
+                    "wow": 37
+                  },
+                  "author": {
+                    "id": "100064860875397",
+                    "name": "Facebook",
+                    "url": "https://www.facebook.com/facebook",
+                    "profile_picture_url": "https://scontent.example.com/fb_profile.jpg"
+                  },
+                  "image": null,
+                  "video": {
+                    "uri": "https://www.facebook.com/reel/example2"
+                  },
+                  "album_preview": null,
+                  "video_files": {
+                    "video_sd_file": "https://video.example.com/sd2.mp4",
+                    "video_hd_file": "https://video.example.com/hd2.mp4"
+                  },
+                  "video_thumbnail": {
+                    "uri": "https://scontent.example.com/video_thumb2.jpg"
+                  },
+                  "external_url": null,
+                  "attached_event": null,
+                  "attached_post": null,
+                  "attached_post_url": null
+                }
+              ],
+              "cursor": "XyZaBcDeFgHiJkLmNoPqRsTuVwXyZ"
+            },
+            "component": {
+              "name": "FacebookPagePostsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_page_reviews
+    examples:
+      - scenario: "Get reviews for a Facebook page"
+        description: "Retrieve reviews for a Facebook page using its page ID"
+        input_json: |
+          {
+            "page_id": "100063543614476"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "type": "review",
+                  "post_id": "647784968156719",
+                  "recommend": true,
+                  "message": "Polecam. \nMega Ceny!\n100%",
+                  "author": {
+                    "id": "pfbid02yXpikzc2pbgTXVZUxWDFKdbpSDg3g3UkwcVpUHfBrzKmdy7wG5z78YhG5MmGR1Tol",
+                    "name": "Antoś Go",
+                    "url": "https://www.facebook.com/people/Anto%C5%9B-Go/pfbid02yXpikzc2pbgTXVZUxWDFKdbpSDg3g3UkwcVpUHfBrzKmdy7wG5z78YhG5MmGR1Tol/",
+                    "profile_picture": {
+                      "uri": "https://scontent.example.com/review_author1.png",
+                      "width": 80,
+                      "height": 80,
+                      "scale": 2
+                    },
+                    "is_additional_profile_plus": false,
+                    "delegated_page": null,
+                    "work_info": null
+                  },
+                  "reactions_count": 1,
+                  "share": 0,
+                  "photos": [],
+                  "tags": []
+                },
+                {
+                  "type": "review",
+                  "post_id": "9291371237645411",
+                  "recommend": true,
+                  "message": "Polecam , wysyłka expres . Mój pierwszy i nie ostatni zakup . Pierścionek cudny ❤️",
+                  "author": {
+                    "id": "pfbid063uny5J7hZ4SyXrE6Zoy2NtGSXvg2cHmeXVCfafZB2QrqjPrrtmXggSxM93DSHdQl",
+                    "name": "Dagmara Piechocińska",
+                    "url": "https://www.facebook.com/dagmara.zwolinska1",
+                    "profile_picture": {
+                      "uri": "https://scontent.example.com/review_author2.jpg",
+                      "width": 80,
+                      "height": 80,
+                      "scale": 2
+                    },
+                    "is_additional_profile_plus": false,
+                    "delegated_page": null,
+                    "work_info": null
+                  },
+                  "reactions_count": 0,
+                  "share": 0,
+                  "photos": [],
+                  "tags": []
+                }
+              ],
+              "cursor": "AQHRMRPc73N_N5VlJ-n80rbD2qJmX42KJsXdlKcuVhGWswN4PfDH3kUuIJ6tThJW9riapa57hPE9gZ1LnT9aHuJw8A"
+            },
+            "component": {
+              "name": "FacebookPageReviewsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_post_comments
+    examples:
+      - scenario: "Get comments for a specific post"
+        description: "Retrieve comments for a Facebook post using its post ID"
+        input_json: |
+          {
+            "post_id": "pfbid02BzYRNmoznsZjci5FuztPUb9mKd9ameNVYSBweaBEvb8oEzSMjcs8nbXnMkYA5Benl"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "type": "comment",
+                  "comment_id": "Y29tbWVudDo5NDM5NDIxODExMTExMzZfMzgxNjMxMDE5NTM1NTQzNg==",
+                  "legacy_comment_id": "3816310195355436",
+                  "depth": 0,
+                  "created_time": 1723651442,
+                  "message": "The benefits of using AI",
+                  "author": {
+                    "id": "100070536263321",
+                    "name": "The Cluster House",
+                    "gender": "MALE",
+                    "url": "https://www.facebook.com/brunoshaffy"
+                  },
+                  "replies_count": 3,
+                  "reactions_count": "10",
+                  "expansion_token": "MjoxNzQ2MjUzOTA1OgF1kIcIQ008Rekmt6Qn3DciWVqpiw4uQLAvTKyQVtqVTNWG_xI_X-p6QDKPqZ2XR1-7nERfj-hRwyr6QPqzPz8NK5bxylguK8ZgQJdlyyDc4Gydqtu_w_TKqpDK8o5F1RhETuGX309AcFP_42I8RtSvoKWb52VEG62wRf5sN5dpxqFdvOk6ZjBSa_2xlgtm7t_xtr-UUvVgxTfAqoaxTDOHKTz2ZAshWitpmsFVKMDnK89gatuIMv-5eaLcZNGpkMNeIa9Y7htSwmZ0tAcbZT_6_lNm5az8oK004JzKmQl2uxDqC1--xqAL9pLVw6LPBQLwu2E_eNDgQdSMqVAMp6wcb-68nc8K_8h0VI_Q_z7a8-LYuFYviK4sBx_EISxeZhI34hIBk2PJVVR02aJepZjh"
+                },
+                {
+                  "type": "comment",
+                  "comment_id": "Y29tbWVudDo5NDM5NDIxODExMTExMzZfNDkxMzkzODcwMTY2MjIy",
+                  "legacy_comment_id": "491393870166222",
+                  "depth": 0,
+                  "created_time": 1723651472,
+                  "message": "Very good 👊",
+                  "author": {
+                    "id": "100094734123362",
+                    "name": "Evariste Sowadan",
+                    "gender": "MALE",
+                    "url": "https://www.facebook.com/Evariste.Sowadan.77"
+                  },
+                  "replies_count": 1,
+                  "reactions_count": "0",
+                  "expansion_token": "MjoxNzQ2MjUzOTA1OgF1E4mBP6FqvI2_6-PUY4Rm5Z3Fze18ebs8og8ZsLeP_dLphK2woA4sWg5dHRoLsHrcWMkZ5zdNj_1PhKYkEkJUEFmdQmtCzRukAL6zRyJNeSX5riAw3S3a5u1pL1q-FFZOEVRmThZzgHZMjH2v7kk32wZY0pgONg29leYvrJULUPgY6zTdQhwda1pmTUiqZx6g1mK3UU3i8H3RaYCyZUWpqWk7uQ6c3XtPl2HeJQv_IhgPEh0gCL7vOBHEjMKaVP1wT31zjNFZ84e5dhNBRcGbj02haHhBRtZhpCmckvR9zk_FQ1KOmTkojjCmlMHYjBmbvLR90gTkR4LsuQqS4_34qifuLPAlIIrt3xsuTOvxdFAiZCdJjzNYygE8WOT5NkE61ZACK_R5RfIlLFq5OCzr"
+                }
+              ],
+              "cursor": "MToxNzQ2MjUzOTA1OgF1g1uCBw0PNwT0IaPR6NlwvwGxPyey5vL9ZHJDYAAAklik_tbGXotEQ34L6NIDkV9MPGHesYDeVj1SFvti2BrFQbHhVOAlXczGz3mn1HFQqS6jX2BB5P6LQswG7sfENdlGSEf3z-mm-V2vb61NesOA0Ziby1OQAP0suMdcPwwmMamrztYflOLUGg"
+            },
+            "component": {
+              "name": "FacebookPostCommentsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_post_details
+    examples:
+      - scenario: "Get details for a specific post"
+        description: "Retrieve details for a Facebook post using its post ID"
+        input_json: |
+          {
+            "post_id": "pfbid04KTWEM9Rri6Wg3oLRBF5FUUvfPebQ6ZJRwVivymc8e8KWvy3RsnpUXyppjEZqkwZl"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": {
+                "post_id": "1017566160415404",
+                "type": "post",
+                "url": "https://www.facebook.com/facebook/posts/pfbid027qLET1mdGqKVzqS6hic8M29BdiRYQyBA2WjRu2nzPN9WptWxk9XVxAZxZSfKyomhl",
+                "message": "Nothing works when your ponytail is too tight.",
+                "timestamp": 1731700941,
+                "comments_count": 3431,
+                "reactions_count": 23188,
+                "reshare_count": 1800,
+                "reactions": {
+                  "angry": 38,
+                  "care": 109,
+                  "haha": 10503,
+                  "like": 11830,
+                  "love": 519,
+                  "sad": 40,
+                  "wow": 149
+                },
+                "author": {
+                  "id": "100064860875397",
+                  "name": "Facebook",
+                  "url": "https://www.facebook.com/facebook",
+                  "profile_picture_url": "https://scontent-mnl1-2.xx.fbcdn.net/v/t39.30808-1/380700650_10162533193146729_2379134611963304810_n.jpg?stp=cp0_dst-jpg_s80x80_tt6&_nc_cat=1&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=OBz04x_CtJkQ7kNvwGQw3fi&_nc_oc=AdnPonDHVfW-PZ0f538RFc6zu8sWnGKb0sECFWpO_3fA5uinkZ3QuBuLUrBplmFzviM&_nc_zt=24&_nc_ht=scontent-mnl1-2.xx&_nc_gid=uE2OFjiDYWUaYmK_yn2E0A&oh=00_AfE1ZwrwnI3XdPu2e_um4iLztedA1l-7BgVcR3OIOzvnhQ&oe=681B9F8E"
+                },
+                "image": null,
+                "video": null,
+                "album_preview": null,
+                "video_files": null,
+                "video_thumbnail": null,
+                "external_url": null,
+                "attached_event": null,
+                "attached_post": null,
+                "attached_post_url": null
+              }
+            },
+            "component": {
+              "name": "FacebookPostDetailsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_group_posts
+    examples:
+      - scenario: "Get sorted group posts with pagination"
+        description: "Retrieve posts from a Facebook group with custom sorting order and pagination"
+        input_json: |
+          {
+            "group_id": "1439220986320043",
+            "sorting_order": "CHRONOLOGICAL"
+          }
+        output_json: |
+          {
+            "data": {
+              "posts": [
+                {
+                  "post_id": "4011339925774790",
+                  "type": "post",
+                  "url": "https://www.facebook.com/groups/gieldagryplanszowe/posts/4011339925774790/",
+                  "message": "Witam posiadam na wymianę Brzdęk w kosmosie,Hero realms,Fallouta shelter, Solar city i być może Aeons end wszystko w bardzo dobrym stanie rozważę każdą propozycję:)",
+                  "timestamp": 1746253469,
+                  "comments_count": 0,
+                  "reactions_count": 0,
+                  "reshare_count": 0,
+                  "reactions": {
+                    "angry": 0,
+                    "care": 0,
+                    "haha": 0,
+                    "like": 0,
+                    "love": 0,
+                    "sad": 0,
+                    "wow": 0
+                  },
+                  "author": {
+                    "id": "pfbid0gFbxELJSc95Df7iYNbgkpo9niutcU7iyFgDJMAkn9FtMScnagah4cNdQCWkonc3al",
+                    "name": "MetaAds Notizce",
+                    "url": "https://www.facebook.com/romek.kolasinski",
+                    "profile_picture_url": "https://scontent-gru1-2.xx.fbcdn.net/v/t39.30808-1/218416285_4169774939797151_8139382973677144602_n.jpg?stp=c94.0.563.563a_cp0_dst-jpg_s80x80_tt6&_nc_cat=103&ccb=1-7&_nc_sid=e99d92&_nc_ohc=LTD20raiTAQQ7kNvwEuTxU7&_nc_oc=AdnZKxF7sXaGiFnYY2skLh8mm7jt1GMcNbNdG7YSdYggzrRcIxO9NAu9nAq6Y2DXX0o&_nc_zt=24&_nc_ht=scontent-gru1-2.xx&_nc_gid=sAmCWZ4qln5xjeHTOUHq4Q&oh=00_AfGr37UT7ZnrSn2CBUZUk-NHQM4F6Gaj-tihRFpYGNLIUw&oe=681B988F"
+                  },
+                  "image": {
+                    "uri": "https://scontent-gru2-1.xx.fbcdn.net/v/t39.30808-6/494941417_9792109294230326_2572374644973029383_n.jpg?stp=dst-jpg_p1080x2048_tt6&_nc_cat=111&ccb=1-7&_nc_sid=aa7b47&_nc_ohc=I7y3jl0pIzkQ7kNvwHn6pKb&_nc_oc=Adm-wj6gg6Pk6Ie2syQdsATNuhb_e2cYj4_KXjPmDw6qKMbVSpEqq_WUMbcYVxZq2C8&_nc_zt=23&_nc_ht=scontent-gru2-1.xx&_nc_gid=sAmCWZ4qln5xjeHTOUHq4Q&oh=00_AfH5WF1N_A88_PFmyYP1JX00HecUF4bQFFA16qatjV38QQ&oe=681B8F1A",
+                    "height": 2400,
+                    "width": 1080
+                  },
+                  "video": null,
+                  "album_preview": null,
+                  "video_files": null,
+                  "video_thumbnail": null,
+                  "external_url": null,
+                  "attached_event": null,
+                  "attached_post": null,
+                  "attached_post_url": null
+                }
+              ],
+              "cursor": "NEXT_CURSOR_EXAMPLE"
+            },
+            "component": {
+              "name": "FacebookGroupPostsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_group_details
+    examples:
+      - scenario: "Get details for a Facebook group"
+        description: "Retrieve details about a Facebook group using its URL"
+        input_json: |
+          {
+            "url": "https://www.facebook.com/groups/gieldagryplanszowe"
+          }
+        output_json: |
+          {
+            "data": {
+              "group_details": {
+                "id": "1439220986320043",
+                "name": "Giełda GRY Planszowe",
+                "url": "https://www.facebook.com/groups/gieldagryplanszowe",
+                "description": "Sprzedajemy, kupujemy, wymieniamy gry planszowe, karciane, bitewne etc. i wszystko co z nimi związane.\n\nGrupa nie akceptuje postów informacyjnych, porad, próśb o polecenie gier, pomocy w zasadach itd. W tych tematach zapraszamy do grupy Gier Planszowych:\n\nhttps://www.facebook.com/groups/grupagryplanszowe\n\nIn this group you can buy, sell or exchange board games, card games rpgs etc.",
+                "group_location": {
+                  "name": "Poland",
+                  "id": "106085842755444"
+                },
+                "privacy": "Public group",
+                "has_questions": false,
+                "cover_photo": {
+                  "uri": "https://scontent.fcgh13-1.fna.fbcdn.net/v/t39.30808-6/464703294_1644818736383102_6825067784690758424_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=2285d6&_nc_ohc=hTcGVuH9NyEQ7kNvwFI04HZ&_nc_oc=AdlLs54nZI6aOLYI6M2RXdqaZsIjnjG-AmcJgimE-6TSX2n2Xgqm30jTqrAZbPljvUk&_nc_zt=23&_nc_ht=scontent.fcgh13-1.fna&_nc_gid=UcEe7II4aNL6P30156IZMw&oh=00_AfFasd0oXdT6NP5WZt0ySMIzuT2-7VkXttEya5SI87L6Fg&oe=681B8C28",
+                  "width": 851,
+                  "height": 315
+                },
+                "members_count": 80800
+              }
+            },
+            "component": {
+              "name": "FacebookGroupDetailsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_group_id
+    examples:
+      - scenario: "Get ID for a Facebook group"
+        description: "Retrieve the group ID for a Facebook group URL"
+        input_json: |
+          {
+            "url": "https://www.facebook.com/groups/gieldagryplanszowe"
+          }
+        output_json: |
+          {
+            "data": {
+              "group_id": "1439220986320043"
+            },
+            "component": {
+              "name": "FacebookGroupIdCard"
+            }
+          }
+
+  - endpoint: /facebook/get_profile_posts
+    examples:
+      - scenario: "Get posts from a Facebook profile"
+        description: "Retrieve posts from a Facebook profile using its profile ID"
+        input_json: |
+          {
+            "profile_id": "4"
+          }
+        output_json: |
+          {
+            "data": {
+              "results": [
+                {
+                  "post_id": "10116522560787531",
+                  "type": "post",
+                  "url": "https://www.facebook.com/zuck/posts/pfbid0TnxeDHDjahDrm6MaWXLFPjwedchMSfWEu2Nh5tgQYcAdtvVNx4fJn6SaaqzakCNtl",
+                  "message": "Just shared Meta's quarterly earnings report. AI continues to transform everything we do -- Meta AI now has almost 1 billion monthly actives, we're making good progress on AI glasses, and we're seeing good trends across our apps.\n\nHere's the full transcript of what I said:\n\nWe've had a strong start to the year. Our community keeps growing with more than 3.4 billion people now using at least one of our apps each day. Our business is also performing very well -- and I think we're well-positioned to navigate the macro economic uncertainty.\n\nThe major theme right now of course is how AI is transforming everything we do. And as we continue to increase our investments and focus more of our resources on AI, I thought it would be useful today to lay out the five major opportunities we're focused on. Those are: improved advertising, more engaging experiences, business messaging, Meta AI, and AI devices. These are each long term investments that are downstream from us building general intelligence and leading AI models and infrastructure. Even with our significant investments, we don't need to succeed in all of these areas to have a good ROI. But if we do, then I think we will be wildly happy with the investments that we are making.",
+                  "timestamp": 1746047835,
+                  "comments_count": 108566,
+                  "reactions_count": 302275,
+                  "reshare_count": 15882,
+                  "reactions": {
+                    "angry": 383,
+                    "care": 4761,
+                    "haha": 1048,
+                    "like": 241629,
+                    "love": 52687,
+                    "sad": 119,
+                    "wow": 1648
+                  },
+                  "author": {
+                    "id": "4",
+                    "name": "Mark Zuckerberg",
+                    "url": "https://www.facebook.com/zuck",
+                    "profile_picture_url": "https://scontent.ftdl1-1.fna.fbcdn.net/v/t39.30808-1/461204377_10115852257979731_20136418769041878_n.jpg?stp=c180.30.1429.1428a_cp0_dst-jpg_s40x40_tt6&_nc_cat=1&ccb=1-7&_nc_sid=1d2534&_nc_ohc=jCt9fmy0MLMQ7kNvwH1Jif7&_nc_oc=Adkx0nrywsCjFDy8WKvJQhGGqEAV7SleO1wfUF5FnzcYv4wxvgAvwPm443UTevkKzSQ&_nc_zt=24&_nc_ht=scontent.ftdl1-1.fna&_nc_gid=juad4y3J3H_VtxDuNCwyMw&oh=00_AfFyRevCPaXCh2YUd25Xfnw2w_owr2DJIzXbeF74US8LBA&oe=681B7870"
+                  },
+                  "image": null,
+                  "video": null,
+                  "album_preview": null,
+                  "video_files": null,
+                  "video_thumbnail": null,
+                  "external_url": null,
+                  "attached_event": null,
+                  "attached_post": null,
+                  "attached_post_url": null
+                },
+                {
+                  "post_id": "10116519197602381",
+                  "type": "post",
+                  "url": "https://www.facebook.com/reel/1194067775494747/",
+                  "message": "New Meta AI app out today! Almost a billion monthly actives use Meta AI across our apps so we dropped a new standalone app. Check it out!",
+                  "timestamp": 1745938625,
+                  "comments_count": 171062,
+                  "reactions_count": 795380,
+                  "reshare_count": 50223,
+                  "reactions": {
+                    "angry": 1133,
+                    "care": 10195,
+                    "haha": 4453,
+                    "like": 654242,
+                    "love": 120629,
+                    "sad": 293,
+                    "wow": 4435
+                  },
+                  "author": {
+                    "id": "4",
+                    "name": "Mark Zuckerberg",
+                    "url": "https://www.facebook.com/zuck",
+                    "profile_picture_url": "https://scontent.ftdl1-1.fna.fbcdn.net/v/t39.30808-1/461204377_10115852257979731_20136418769041878_n.jpg?stp=c180.30.1429.1428a_cp0_dst-jpg_s40x40_tt6&_nc_cat=1&ccb=1-7&_nc_sid=1d2534&_nc_ohc=jCt9fmy0MLMQ7kNvwH1Jif7&_nc_oc=Adkx0nrywsCjFDy8WKvJQhGGqEAV7SleO1wfUF5FnzcYv4wxvgAvwPm443UTevkKzSQ&_nc_zt=24&_nc_ht=scontent.ftdl1-1.fna&_nc_gid=juad4y3J3H_VtxDuNCwyMw&oh=00_AfFyRevCPaXCh2YUd25Xfnw2w_owr2DJIzXbeF74US8LBA&oe=681B7870"
+                  },
+                  "image": null,
+                  "video": {
+                    "uri": "https://www.facebook.com/reel/1194067775494747/"
+                  },
+                  "album_preview": null,
+                  "video_files": {
+                    "video_sd_file": "https://video.ftdl1-1.fna.fbcdn.net/o1/v/t2/f2/m69/AQPx9GOUxsTNVEUvevqrpTPvHzFVX_d6OwK1s6MgwXPGHhYfDSvCYeOFgj7AsfNqRLNVwTzpmjK47nbPtLH0UPnc.mp4?strext=1&_nc_cat=111&_nc_oc=AdlVvwcY0eL0-0LA8JAoGiXLPgNg6nCgoajPDJLPXKdbejrfz8ova8KgvXhWHV1Qazc&_nc_sid=8bf8fe&_nc_ht=video.ftdl1-1.fna.fbcdn.net&_nc_ohc=ZJUwE6mhKIUQ7kNvwG4h-Qp&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5GQUNFQk9PSy4uQzMuMzYwLnN2ZV9zZCIsInhwdl9hc3NldF9pZCI6MTAyNzUxNDg2ODgzNTczMSwidmlfdXNlY2FzZV9pZCI6MTAxMjAsImR1cmF0aW9uX3MiOjcyLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&_nc_zt=28&oh=00_AfEbA_BBX2IjIFJEEH5DTEcpsYyK41OQsdglm1dW_Oce7w&oe=681BA70F",
+                    "video_hd_file": "https://video.ftdl1-1.fna.fbcdn.net/o1/v/t2/f2/m69/AQMZhplHjVvFf0LApvF1YxZY_qbxapAW7E7TghuJQk5Ad5IkkoUa5pBILpbrSrTRxREzUwhSTD06Xwx3M1bVrytk.mp4?strext=1&_nc_cat=100&_nc_oc=AdkWfwWh1tRY6Jt629oBbKlYlseCTOVCSFwbkzzMnPpaErblO8JDSkIc9GeoB9CFu3Y&_nc_sid=5e9851&_nc_ht=video.ftdl1-1.fna.fbcdn.net&_nc_ohc=TAZm0N2HPM8Q7kNvwH5ECR9&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5GQUNFQk9PSy4uQzMuNzIwLmRhc2hfaDI2NC1iYXNpYy1nZW4yXzcyMHAiLCJ4cHZfYXNzZXRfaWQiOjEwMjc1MTQ4Njg4MzU3MzEsInZpX3VzZWNhc2VfaWQiOjEwMTIwLCJkdXJhdGlvbl9zIjo3MiwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=7b6cec5bafb36116&_nc_vs=HBksFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HRmgzZFIwNjFHTGs2UmNFQUdVMjJPRE12N01uYm1kakFBQUYVAALIAQAVAhg6cGFzc3Rocm91Z2hfZXZlcnN0b3JlL0dKSWVUQjF4V3ljbjJSc0dBQ0xTczBUeTA0UTRickZxQUFBRhUCAsgBACgAGAAbAogHdXNlX29pbAExEnByb2dyZXNzaXZlX3JlY2lwZQExFQAAJqaWkayeodMDFQIoAkMzLBdAUiiDEm6XjRgZZGFzaF9oMjY0LWJhc2ljLWdlbjJfNzIwcBEAdQJlkJ4BAA&_nc_zt=28&oh=00_AfGTLCMpPck9Rc-kNDVcwCbHfkn004RrDmJ-u0YOITadCA&oe=681B7A8E"
+                  },
+                  "video_thumbnail": {
+                    "uri": "https://scontent.ftdl1-1.fna.fbcdn.net/v/t15.5256-10/491717392_1215094206681962_2071998961693936401_n.jpg?stp=dst-jpg_s960x960_tt6&_nc_cat=1&ccb=1-7&_nc_sid=7965db&_nc_ohc=W6zyNVG4sbcQ7kNvwEHwuE7&_nc_oc=AdnVK-X6bfdF-LobsyuvjVsakyFHLxyv9L-hQX9LCX3Hrd3gNAoeHgctmcFTlzfhFhA&_nc_zt=23&_nc_ht=scontent.ftdl1-1.fna&_nc_gid=juad4y3J3H_VtxDuNCwyMw&oh=00_AfGX_JQAogR4GRtju8F0j7LmXbJNlv97XDsUwG-Wy2t-Hg&oe=681B8D13"
+                  },
+                  "external_url": null,
+                  "attached_event": null,
+                  "attached_post": null,
+                  "attached_post_url": null
+                }
+              ],
+              "cursor": "Cg8Ob3JnYW5pY19jdXJzb3IJAAABL0FRSFJaYk5WOXUwR1pUa0pEQ2xTbGVyRElSSUpEX0ZGdnBZeWZ1bGYyQWxFQU9tVExOS1RHSFJjN2U5RTRvekJ1S3JYbTlkVi1hckg3c1NnaU5JUzZremRHeVE5enFUbE04M1hTNWc4Y1h4TFdybVpSUTFpVGpXTk1GMTRBSDNCZ1gzMGtnaldYbDNwZjd2dnJselVORjBIZHN3Vm42NUVJQnJLNHJjbzlJQjJFNUpFS1lfNzNsb2xFZ0xKSlFSMHpxNXg4Qlc0bk9fc2M0bllCTlJtbjZGb3hnYWtfSFBvajZiZjFTU3pHOFoyaXM4dUNUTWlBTEJIRHJCYm84ZjdtZ1dzWlhqZEgtWFZHd05TRTRfTHAxSE44WGpmT2gxU0pEeXdpaUJRQ0dQU2VNUQ8JYWRfY3Vyc29yDg8PZ2xvYmFsX3Bvc2l0aW9uAgAPBm9mZnNldAIADxBsYXN0X2FkX3Bvc2l0aW9uAv8B"
+            },
+            "component": {
+              "name": "FacebookProfilePostsCard"
+            }
+          }
+ 
+  - endpoint: /facebook/get_profile_details_id
+    examples:
+      - scenario: "Get profile details by ID"
+        description: "Retrieve details about a Facebook profile using its ID"
+        input_json: |
+          {
+            "profile_id": "4"
+          }
+        output_json: |
+          {
+            "data": {
+              "profile": {
+                "name": "Mark Zuckerberg",
+                "profile_id": "4",
+                "url": "https://www.facebook.com/zuck",
+                "image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-1/461204377_10115852257979731_20136418769041878_n.jpg?stp=c180.30.1429.1428a_dst-jpg_s480x480_tt6&_nc_cat=1&ccb=1-7&_nc_sid=1d2534&_nc_ohc=jCt9fmy0MLMQ7kNvwHdA6Wq&_nc_oc=AdnuqLOZJS3t8sLQFLhhGf791OH6JLYzyls_46WcwWmNpNsYRJe-NksAuUSlYie_Ay4&_nc_zt=24&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfEJQw3V8HhxzyEdcEoNL53Fip3vuMPEX3g7iR7noVlfWg&oe=681B7870",
+                "intro": "Bringing the world closer together.",
+                "cover_image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-6/432940288_10115540568952041_8809354553538518467_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=H7e1NBnRjNYQ7kNvwHRy93U&_nc_oc=AdkoNDl0_XkLUrsLW9VqW4iiMubkGvQOP4ZaEgJGybn4AWhw6E1e9X6t1uWv-Jw4tPE&_nc_zt=23&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfHcNja0VhVzG4fHWvUDgj4aEq5mwIFkWNSdQW7CNaOsQg&oe=681B9669",
+                "gender": "MALE",
+                "about": {},
+                "about_public": [
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yC/r/qF_eflLVarp.png",
+                      "width": 40
+                    },
+                    "text": "Profile · Public figure"
+                  },
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yO/r/g11dgfo8mqn.png",
+                      "width": 40
+                    },
+                    "text": "Founder and CEO at Meta"
+                  },
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yO/r/g11dgfo8mqn.png",
+                      "width": 40
+                    },
+                    "text": "Works at Chan Zuckerberg Initiative"
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "FacebookProfileDetailsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_profile_details_url
+    examples:
+      - scenario: "Get profile details by URL"
+        description: "Retrieve details about a Facebook profile using its URL"
+        input_json: |
+          {
+            "url": "https://www.facebook.com/zuck"
+          }
+        output_json: |
+          {
+            "data": {
+              "profile": {
+                "name": "Mark Zuckerberg",
+                "profile_id": "4",
+                "url": "https://www.facebook.com/zuck",
+                "image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-1/461204377_10115852257979731_20136418769041878_n.jpg?stp=c180.30.1429.1428a_dst-jpg_s480x480_tt6&_nc_cat=1&ccb=1-7&_nc_sid=1d2534&_nc_ohc=jCt9fmy0MLMQ7kNvwHdA6Wq&_nc_oc=AdnuqLOZJS3t8sLQFLhhGf791OH6JLYzyls_46WcwWmNpNsYRJe-NksAuUSlYie_Ay4&_nc_zt=24&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfEJQw3V8HhxzyEdcEoNL53Fip3vuMPEX3g7iR7noVlfWg&oe=681B7870",
+                "intro": "Bringing the world closer together.",
+                "cover_image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-6/432940288_10115540568952041_8809354553538518467_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=H7e1NBnRjNYQ7kNvwHRy93U&_nc_oc=AdkoNDl0_XkLUrsLW9VqW4iiMubkGvQOP4ZaEgJGybn4AWhw6E1e9X6t1uWv-Jw4tPE&_nc_zt=23&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfHcNja0VhVzG4fHWvUDgj4aEq5mwIFkWNSdQW7CNaOsQg&oe=681B9669",
+                "gender": "MALE",
+                "about": {},
+                "about_public": [
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yC/r/qF_eflLVarp.png",
+                      "width": 40
+                    },
+                    "text": "Profile · Public figure"
+                  },
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yO/r/g11dgfo8mqn.png",
+                      "width": 40
+                    },
+                    "text": "Founder and CEO at Meta"
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "FacebookProfileDetailsCard"
+            }
+          }
+
+  - endpoint: /facebook/get_profile_id
+    examples:
+      - scenario: "Get profile ID from URL"
+        description: "Retrieve the profile ID for a Facebook profile URL"
+        input_json: |
+          {
+            "url": "https://www.facebook.com/zuck"
+          }
+        output_json: |
+          {
+            "data": {
+              "profile_id": "4"
+            },
+            "component": {
+              "name": "FacebookProfileIdCard"
+            }
+          }
+
+  - endpoint: /facebook/get_me
+    examples:
+      - scenario: "Get my profile details"
+        description: "Retrieve details about my Facebook profile using the stored URL"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "profile": {
+                "name": "Mark Zuckerberg",
+                "profile_id": "4",
+                "url": "https://www.facebook.com/zuck",
+                "image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-1/461204377_10115852257979731_20136418769041878_n.jpg?stp=c180.30.1429.1428a_dst-jpg_s480x480_tt6&_nc_cat=1&ccb=1-7&_nc_sid=1d2534&_nc_ohc=jCt9fmy0MLMQ7kNvwHdA6Wq&_nc_oc=AdnuqLOZJS3t8sLQFLhhGf791OH6JLYzyls_46WcwWmNpNsYRJe-NksAuUSlYie_Ay4&_nc_zt=24&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfEJQw3V8HhxzyEdcEoNL53Fip3vuMPEX3g7iR7noVlfWg&oe=681B7870",
+                "intro": "Bringing the world closer together.",
+                "cover_image": "https://scontent.fpet4-1.fna.fbcdn.net/v/t39.30808-6/432940288_10115540568952041_8809354553538518467_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=H7e1NBnRjNYQ7kNvwHRy93U&_nc_oc=AdkoNDl0_XkLUrsLW9VqW4iiMubkGvQOP4ZaEgJGybn4AWhw6E1e9X6t1uWv-Jw4tPE&_nc_zt=23&_nc_ht=scontent.fpet4-1.fna&_nc_gid=7wpjW-UP_sw8YnvskcLCAQ&oh=00_AfHcNja0VhVzG4fHWvUDgj4aEq5mwIFkWNSdQW7CNaOsQg&oe=681B9669",
+                "gender": "MALE",
+                "about": {},
+                "about_public": [
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yC/r/qF_eflLVarp.png",
+                      "width": 40
+                    },
+                    "text": "Profile · Public figure"
+                  },
+                  {
+                    "icon": {
+                      "height": 40,
+                      "scale": 2,
+                      "uri": "https://static.xx.fbcdn.net/rsrc.php/v4/yO/r/g11dgfo8mqn.png",
+                      "width": 40
+                    },
+                    "text": "Founder and CEO at Meta"
+                  }
+                ]
+              }
+            },
+            "component": {
+              "name": "FacebookProfileDetailsCard"
+            }
+          }

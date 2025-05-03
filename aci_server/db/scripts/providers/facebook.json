@@ -1,0 +1,9 @@
+{
+    "name": "Facebook",
+    "provider_tag": "facebook",
+    "description": "Facebook API for accessing profile, page, group details and social media content",
+    "auth_method": "custom",
+    "categories": "Social, Communications",
+    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos/facebook-logo.svg",
+    "created_at": 1715472000
+  } 

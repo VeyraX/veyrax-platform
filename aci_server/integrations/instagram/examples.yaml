@@ -1,0 +1,485 @@
+routes:
+  - endpoint: /instagram/get_user_details
+    examples:
+      - scenario: "Get Instagram User Details"
+        description: "Retrieve details of an Instagram user profile by username"
+        input_json: |
+          {
+            "username": "joerogan"
+          }
+        output_json: |
+          {
+            "data": {
+              "data": {
+                "user": {
+                  "ai_agent_type": null,
+                  "biography": "Dragon Believer",
+                  "bio_links": [
+                    {
+                      "title": "",
+                      "lynx_url": "https://l.instagram.com/?u=http%3A%2F%2Fspoti.fi%2FJoeRoganExperience%3Ffbclid%3DPAZXh0bgNhZW0CMTEAAadnUzh193ynHDphPl8zDTij-fwx8UE7VZspjWwScpJbKJpeNzvBOOaTy-vEJg_aem_nhHuqCuYdL-mifoWbG22sg&e=AT0j1cNFmn4BtpHeyxL-4i7Qs-MyagN-Q_2r4_Y3kqAhXYBAwC3eCyzYkAJ6gf4owqriH7Ef63XUPHjLUNaNMpen8xAF-qa1Rwj-VMI",
+                      "url": "http://spoti.fi/JoeRoganExperience",
+                      "link_type": "external"
+                    }
+                  ],
+                  "fb_profile_biolink": null,
+                  "biography_with_entities": {
+                    "raw_text": "Dragon Believer",
+                    "entities": []
+                  },
+                  "blocked_by_viewer": false,
+                  "restricted_by_viewer": false,
+                  "country_block": false,
+                  "eimu_id": "110070933714273",
+                  "external_url": "http://spoti.fi/JoeRoganExperience",
+                  "external_url_linkshimmed": "https://l.instagram.com/?u=http%3A%2F%2Fspoti.fi%2FJoeRoganExperience%3Ffbclid%3DPAZXh0bgNhZW0CMTEAAaeblNdKUuQ0EZp2fnu3_sHjhumdzHp_1s6Rg1Q3cYSx-ZbPegg4EJPrYfJleA_aem_WOFNyhnjU_muUu-7Xyv6Lg&e=AT3snDlfYpDfSDQ0_8-A7tcjAHzYIqk-lwkhf18lL02DaX0SQvkU49igBmbgjLUS7gFoU71VrJB3K_Q1PZQORegc_bsQcErXWn-5yyE",
+                  "edge_followed_by": {
+                    "count": 19843491
+                  },
+                  "fbid": "17841401845090489",
+                  "followed_by_viewer": false,
+                  "edge_follow": {
+                    "count": 5583
+                  },
+                  "follows_viewer": false,
+                  "full_name": "Joe Rogan",
+                  "group_metadata": null,
+                  "has_ar_effects": false,
+                  "has_clips": true,
+                  "has_guides": false,
+                  "has_chaining": true,
+                  "has_channel": false,
+                  "has_blocked_viewer": false,
+                  "highlight_reel_count": 5,
+                  "has_requested_viewer": false,
+                  "hide_like_and_view_counts": false,
+                  "id": "31357503",
+                  "is_business_account": false,
+                  "is_professional_account": true,
+                  "is_supervision_enabled": false,
+                  "is_guardian_of_viewer": false,
+                  "is_supervised_by_viewer": false,
+                  "is_supervised_user": false,
+                  "is_embeds_disabled": false,
+                  "is_joined_recently": false,
+                  "guardian_id": null,
+                  "business_address_json": null,
+                  "business_contact_method": "UNKNOWN",
+                  "business_email": null,
+                  "business_phone_number": null,
+                  "business_category_name": null,
+                  "overall_category_name": null,
+                  "category_enum": null,
+                  "category_name": "Comedian",
+                  "is_private": false,
+                  "is_verified": true,
+                  "is_verified_by_mv4b": false,
+                  "is_regulated_c18": false,
+                  "edge_mutual_followed_by": {
+                    "count": 0,
+                    "edges": []
+                  },
+                  "pinned_channels_list_count": 0,
+                  "profile_pic_url": "https://scontent-bcn1-1.cdninstagram.com/v/t51.2885-19/450474536_2583046791886192_5434822236251113933_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_ht=scontent-bcn1-1.cdninstagram.com&_nc_cat=1&_nc_oc=Q6cZ2QHbST4EjO3nImEBXc4TqjwV4fS-MMuXhI8Cw3-tSt_SJ_CnCnd5YwXB_wdA6JOZ5jc&_nc_ohc=lGAR9x6knR8Q7kNvwEQ1FN8&_nc_gid=Ig68OzGvNfAUCtdX7HeL4w&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfEj--FMkWOzjeyRcVn_UvxduI-KfjbPtbdfBmHVn__r3w&oe=681B8935&_nc_sid=8b3546",
+                  "profile_pic_url_hd": "https://scontent-bcn1-1.cdninstagram.com/v/t51.2885-19/450474536_2583046791886192_5434822236251113933_n.jpg?stp=dst-jpg_s320x320_tt6&_nc_ht=scontent-bcn1-1.cdninstagram.com&_nc_cat=1&_nc_oc=Q6cZ2QHbST4EjO3nImEBXc4TqjwV4fS-MMuXhI8Cw3-tSt_SJ_CnCnd5YwXB_wdA6JOZ5jc&_nc_ohc=lGAR9x6knR8Q7kNvwEQ1FN8&_nc_gid=Ig68OzGvNfAUCtdX7HeL4w&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfFHYjBNrUBSu-5TzIFYuY4_O4BvK0iPj0i9F0yrbw9uBg&oe=681B8935&_nc_sid=8b3546",
+                  "requested_by_viewer": false,
+                  "should_show_category": false,
+                  "should_show_public_contacts": false,
+                  "show_account_transparency_details": true,
+                  "transparency_label": null,
+                  "transparency_product": null,
+                  "username": "joerogan",
+                  "connected_fb_page": null,
+                  "pronouns": []
+                }
+              },
+              "status": "ok"
+            },
+            "component": {
+              "name": "InstagramUserDetailsCard"
+            }
+          }
+          
+  - endpoint: /instagram/get_me
+    examples:
+      - scenario: "Get Current User's Instagram Profile"
+        description: "Retrieve profile information for the authenticated Instagram user"
+        input_json: |
+          {}
+        output_json: |
+          {
+            "data": {
+              "data": {
+                "user": {
+                  "ai_agent_type": null,
+                  "biography": "Freelance photographer 📸 | Travel enthusiast ✈️ | Coffee lover ☕",
+                  "bio_links": [
+                    {
+                      "title": "My Portfolio",
+                      "lynx_url": "https://l.instagram.com/?u=https%3A%2F%2Fwww.myportfolio.com&e=AT1xhgQzrM4iN7bDjKH4xd5nZsMyagN-Q_2r4_Y3kqAhXYBAwC3eCyzYkAJ6gf4owqriH7Ef63XUPHjLUNaNMpen8xAF-qa1Rwj-VMI",
+                      "url": "https://www.myportfolio.com",
+                      "link_type": "external"
+                    }
+                  ],
+                  "fb_profile_biolink": null,
+                  "biography_with_entities": {
+                    "raw_text": "Freelance photographer 📸 | Travel enthusiast ✈️ | Coffee lover ☕",
+                    "entities": []
+                  },
+                  "blocked_by_viewer": false,
+                  "restricted_by_viewer": false,
+                  "country_block": false,
+                  "eimu_id": "11007093371423",
+                  "external_url": "https://www.myportfolio.com",
+                  "external_url_linkshimmed": "https://l.instagram.com/?u=https%3A%2F%2Fwww.myportfolio.com&e=AT3snDlfYpDfSDQ0_8-A7tcjAHzYIqk-lwkhf18lL02DaX0SQvkU49igBmbgjLUS7gFoU71VrJB3K_Q1PZQORegc_bsQcErXWn-5yyE",
+                  "edge_followed_by": {
+                    "count": 1243
+                  },
+                  "fbid": "1784140185709489",
+                  "followed_by_viewer": false,
+                  "edge_follow": {
+                    "count": 847
+                  },
+                  "follows_viewer": false,
+                  "full_name": "Alex Johnson",
+                  "group_metadata": null,
+                  "has_ar_effects": true,
+                  "has_clips": true,
+                  "has_guides": true,
+                  "has_chaining": true,
+                  "has_channel": false,
+                  "has_blocked_viewer": false,
+                  "highlight_reel_count": 8,
+                  "has_requested_viewer": false,
+                  "hide_like_and_view_counts": false,
+                  "id": "4823571",
+                  "is_business_account": false,
+                  "is_professional_account": true,
+                  "is_supervision_enabled": false,
+                  "is_guardian_of_viewer": false,
+                  "is_supervised_by_viewer": false,
+                  "is_supervised_user": false,
+                  "is_embeds_disabled": false,
+                  "is_joined_recently": false,
+                  "guardian_id": null,
+                  "business_address_json": null,
+                  "business_contact_method": "UNKNOWN",
+                  "business_email": "alex@example.com",
+                  "business_phone_number": null,
+                  "business_category_name": null,
+                  "overall_category_name": null,
+                  "category_enum": null,
+                  "category_name": "Photographer",
+                  "is_private": false,
+                  "is_verified": false,
+                  "is_verified_by_mv4b": false,
+                  "is_regulated_c18": false,
+                  "edge_mutual_followed_by": {
+                    "count": 0,
+                    "edges": []
+                  },
+                  "pinned_channels_list_count": 0,
+                  "profile_pic_url": "https://example.com/profile_pic_150x150.jpg",
+                  "profile_pic_url_hd": "https://example.com/profile_pic_320x320.jpg",
+                  "requested_by_viewer": false,
+                  "should_show_category": true,
+                  "should_show_public_contacts": true,
+                  "show_account_transparency_details": true,
+                  "transparency_label": null,
+                  "transparency_product": null,
+                  "username": "alexjphoto",
+                  "connected_fb_page": null,
+                  "pronouns": []
+                }
+              },
+              "status": "ok"
+            },
+            "component": {
+              "name": "InstagramUserDetailsCard"
+            }
+          }
+          
+  - endpoint: /instagram/get_user_posts
+    examples:
+      - scenario: "Get Instagram User Posts"
+        description: "Retrieve posts from an Instagram user's profile by username"
+        input_json: |
+          {
+            "username": "joerogan"
+          }
+        output_json: |
+          {
+            "data": {
+              "items": [
+                {
+                  "pk": "3298500191504638535",
+                  "id": "3298500191504638535_31357503",
+                  "code": "C3GoHKuMSJH",
+                  "media_type": 1,
+                  "taken_at": 1707431886,
+                  "like_count": 437655,
+                  "comment_count": 18944,
+                  "caption": {
+                    "text": "The podcast is now officially back on @apple We should be back on @youtube with full episodes in the coming weeks. Shoutout to @spotify for absolutely being the coolest and smartest people I've ever had the pleasure of being in partnership with. I'm very excited the podcast will now have a much broader distribution."
+                  },
+                  "user": {
+                    "id": "31357503",
+                    "username": "joerogan",
+                    "profile_pic_url": "https://instagram.fcmn3-2.fna.fbcdn.net/v/t51.2885-19/450474536_2583046791886192_5434822236251113933_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_ht=instagram.fcmn3-2.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QFCmw9fGQFVy3oN8zFjyJCAGDkndTDIzAEXlqWoMkQ-dQHUd6Sju4ugJwnlhnGbO5g&_nc_ohc=lGAR9x6knR8Q7kNvwEZgH25&_nc_gid=hMlaoX0Yuey-0pqF_wBSEA&edm=ACWDqb8BAAAA&ccb=7-5&oh=00_AfG7kGtnmr_jyoHQVCfHeHNtXA9zgUv4EswYaPfRWKo8Bg&oe=681B8935&_nc_sid=ee9879"
+                  },
+                  "original_width": 938,
+                  "original_height": 1172
+                }
+              ],
+              "num_results": 12,
+              "more_available": true,
+              "cursor": "3615287190758830637_31357503"
+            },
+            "component": {
+              "name": "InstagramUserPostsCard"
+            }
+          }
+  - endpoint: /instagram/get_user_following
+    examples:
+      - scenario: "Get Instagram User Following"
+        description: "Retrieve list of users that an Instagram user is following"
+        input_json: |
+          {
+            "user_id": "263765230",
+            "count": 20
+          }
+        output_json: |
+          {
+            "data": {
+              "users": [
+                {
+                  "pk": "71468014378",
+                  "id": "71468014378",
+                  "username": "ninamarylebone",
+                  "full_name": "nina",
+                  "is_private": false,
+                  "profile_pic_url": "https://instagram.fcmn2-2.fna.fbcdn.net/v/t51.2885-19/476599017_481236288368026_5337202374256484333_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_ht=instagram.fcmn2-2.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QHQX-G0JyDsRfS8H3Q2cGaSdCEao8aoIblPmrX-thgdH-EMg6lKu-UQMNs-ABORvAQ&_nc_ohc=ZE9lwXzmsGgQ7kNvwHbsJxI&_nc_gid=KssD4OXSHGC6XwgwOB7YtA&edm=ALB854YBAAAA&ccb=7-5&oh=00_AfGCwLojC-VkBV8w46xOaDoyr1gIDQ2BvEXAvk4jx-DB9w&oe=681B8371&_nc_sid=ce9561",
+                  "is_verified": true,
+                  "has_anonymous_profile_picture": false,
+                  "latest_reel_media": 1746226699
+                },
+                {
+                  "pk": "7890667214",
+                  "id": "7890667214",
+                  "username": "lascoglierapositano",
+                  "full_name": "La Scogliera • Positano",
+                  "is_private": false,
+                  "profile_pic_url": "https://instagram.fcmn3-1.fna.fbcdn.net/v/t51.2885-19/482411710_630680616581659_5252645377449452556_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_ht=instagram.fcmn3-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QHQX-G0JyDsRfS8H3Q2cGaSdCEao8aoIblPmrX-thgdH-EMg6lKu-UQMNs-ABORvAQ&_nc_ohc=DX9puDO_q2sQ7kNvwGS6H1Q&_nc_gid=KssD4OXSHGC6XwgwOB7YtA&edm=ALB854YBAAAA&ccb=7-5&oh=00_AfHdIvEsNJ1BAYmnmfcD2e8kRrFWr7hF8joBZ3y6O38qiA&oe=681BA630&_nc_sid=ce9561",
+                  "is_verified": false,
+                  "has_anonymous_profile_picture": false,
+                  "latest_reel_media": 0
+                }
+              ],
+              "big_list": true,
+              "page_size": 20,
+              "next_max_id": "20",
+              "has_more": false,
+              "status": "ok"
+            },
+            "component": {
+              "name": "InstagramUserFollowingCard"
+            }
+          }
+  - endpoint: /instagram/get_user_followers
+    examples:
+      - scenario: "Get Instagram User Followers"
+        description: "Retrieve list of users that follow an Instagram user"
+        input_json: |
+          {
+            "user_id": "263765230",
+            "count": 20
+          }
+        output_json: |
+          {
+            "data": {
+              "users": [
+                {
+                  "pk": "1784973722",
+                  "id": "1784973722",
+                  "username": "closeddd9988",
+                  "full_name": "",
+                  "is_private": true,
+                  "profile_pic_url": "https://scontent-atl3-1.cdninstagram.com/v/t51.2885-19/44884218_345707102882519_2446069589734326272_n.jpg?efg=e30&_nc_ht=scontent-atl3-1.cdninstagram.com&_nc_cat=1&_nc_ohc=ISzAQ1g9wHAAX9TxLTZ&edm=AAAAAAABAAAA&ccb=7-5&ig_cache_key=YW5vbnltb3VzX3Byb2ZpbGVfcGlj.2-ccb7-5&oh=00_AfAYpGzTL-IbY9Xc_WH-63KN7Mgng4hdcOetOEjpeAS-AQ&oe=65A0A08F&_nc_sid=328259",
+                  "is_verified": false,
+                  "has_anonymous_profile_picture": true,
+                  "latest_reel_media": 0
+                },
+                {
+                  "pk": "62839792258",
+                  "id": "62839792258",
+                  "username": "changggh_wa",
+                  "full_name": "",
+                  "is_private": false,
+                  "profile_pic_url": "https://scontent-ord5-2.cdninstagram.com/v/t51.2885-19/417220488_875390504590613_4776782313619249749_n.jpg?stp=dst-jpg_s150x150&efg=e30&_nc_ht=scontent-ord5-2.cdninstagram.com&_nc_cat=105&_nc_ohc=2Y5iAADtDvkAX9GeOIi&edm=APQMUHMBAAAA&ccb=7-5&oh=00_AfDu6RF_Bw_OtCBA02OHnn4j_0o82rGLCYB3ymzcMs6UzQ&oe=659EE772&_nc_sid=6ff7c8",
+                  "is_verified": false,
+                  "has_anonymous_profile_picture": false,
+                  "latest_reel_media": 0
+                }
+              ],
+              "big_list": false,
+              "page_size": 200,
+              "has_more": false,
+              "status": "ok"
+            },
+            "component": {
+              "name": "InstagramUserFollowersCard"
+            }
+          }
+  - endpoint: /instagram/get_post_details
+    examples:
+      - scenario: "Get Instagram Post Details"
+        description: "Retrieve details of an Instagram post by its shortcode"
+        input_json: |
+          {
+            "shortcode": "Cub36y0q8ph"
+          }
+        output_json: |
+          {
+            "data": {
+              "data": {
+                "xdt_api__v1__media__shortcode__web_info": {
+                  "items": [
+                    {
+                      "pk": "3142351097879579233",
+                      "id": "3142351097879579233_263765230",
+                      "code": "Cub36y0q8ph",
+                      "taken_at": 1688817486,
+                      "media_type": 2,
+                      "like_count": 31757,
+                      "comment_count": 161,
+                      "caption": {
+                        "text": "Day 2 in Puglia ☀️ #DGAltaModa @dolcegabbana #DGFamily",
+                        "pk": "18044542873461322",
+                        "has_translation": null,
+                        "created_at": 1688817489
+                      },
+                      "user": {
+                        "pk": "263765230",
+                        "username": "olafarahat",
+                        "profile_pic_url": "https://scontent.cdninstagram.com/v/t51.2885-19/307458038_810684923718441_8080994882533941898_n.jpg?stp=dst-jpg_s150x150&_nc_ht=scontent.cdninstagram.com&_nc_cat=1&_nc_ohc=Qq5Yh0xnKtwAX9LmXui&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfDcst74gBnStEADlQ8rF_zGj_8Z_Dh6Nfki6U1elvZaJg&oe=6530444F&_nc_sid=10d13b",
+                        "is_private": false,
+                        "is_verified": true,
+                        "full_name": "Ola"
+                      },
+                      "video_versions": [
+                        {
+                          "width": 720,
+                          "height": 1280,
+                          "url": "https://example.com/video.mp4",
+                          "type": 101
+                        }
+                      ],
+                      "original_width": 1080,
+                      "original_height": 1920,
+                      "is_paid_partnership": false,
+                      "clips_metadata": {
+                        "audio_type": "licensed_music",
+                        "music_info": {
+                          "music_asset_info": {
+                            "display_artist": "Dean Martin",
+                            "title": "On An Evening In Roma"
+                          }
+                        }
+                      },
+                      "usertags": {
+                        "in": [
+                          {
+                            "user": {
+                              "pk": "5123245",
+                              "full_name": "Dolce&Gabbana",
+                              "username": "dolcegabbana",
+                              "profile_pic_url": "https://example.com/profile.jpg",
+                              "is_verified": true
+                            },
+                            "position": [0, 0]
+                          }
+                        ]
+                      },
+                      "has_audio": true,
+                      "has_liked": false
+                    }
+                  ]
+                }
+              }
+            },
+            "component": {
+              "name": "InstagramPostDetailsCard"
+            }
+          }
+  - endpoint: /instagram/get_post_comments
+    examples:
+      - scenario: "Get Instagram Post Comments"
+        description: "Retrieve comments for an Instagram post by its ID"
+        input_json: |
+          {
+            "pk": "3142351097879579233"
+          }
+        output_json: |
+          {
+            "data": {
+              "comment_likes_enabled": true,
+              "comments": [
+                {
+                  "pk": "17862315710968317",
+                  "user_id": "282024285",
+                  "text": "ليلللي💜💜💜اجمل واحلى مودل بالدنيا .. عرفوا يختارون d&g 🥹😍🤍🤍🤍",
+                  "created_at": 1688819665,
+                  "comment_like_count": 3,
+                  "user": {
+                    "pk": "282024285",
+                    "username": "shadoni1",
+                    "full_name": "𝘚𝘩𝘢𝘥𝘦𝘯 ❀",
+                    "profile_pic_url": "https://scontent-ord5-2.cdninstagram.com/v/t51.2885-19/44659463_577177142720568_4025419125642756096_n.jpg?stp=dst-jpg_s150x150&efg=e30&_nc_ht=scontent-ord5-2.cdninstagram.com&_nc_cat=100&_nc_ohc=j-1sIpmk8oIAX9fL9wo&edm=AId3EpQBAAAA&ccb=7-5&oh=00_AfCqKAYy1JhTzz2PLCwlVatKb2rlA57kh5Sozc3GVnLq9g&oe=659FD707&_nc_sid=f5838a",
+                    "is_private": true,
+                    "is_verified": false
+                  },
+                  "child_comment_count": 0,
+                  "has_liked_comment": false,
+                  "has_translation": true
+                },
+                {
+                  "pk": "18197960920253365",
+                  "user_id": "13497442",
+                  "text": "Beautiful fam",
+                  "created_at": 1688899144,
+                  "comment_like_count": 3,
+                  "user": {
+                    "pk": "13497442",
+                    "username": "bryanboy",
+                    "full_name": "Bryan Yambao",
+                    "profile_pic_url": "https://scontent-ord5-2.cdninstagram.com/v/t51.2885-19/26073709_519075048464295_82689265888133120_n.jpg?stp=dst-jpg_s150x150&efg=e30&_nc_ht=scontent-ord5-2.cdninstagram.com&_nc_cat=103&_nc_ohc=DfLUmQ_k_moAX9rHbMX&edm=AId3EpQBAAAA&ccb=7-5&oh=00_AfCjwLpUw_xr922N1HkFiVOG-FKAUAhvt2XqM7A13z9DRg&oe=65A05318&_nc_sid=f5838a",
+                    "is_private": false,
+                    "is_verified": true
+                  },
+                  "child_comment_count": 0,
+                  "has_liked_comment": false
+                }
+              ],
+              "comment_count": 160,
+              "caption": {
+                "pk": "18044542873461322",
+                "user_id": "263765230",
+                "text": "Day 2 in Puglia ☀️ #DGAltaModa @dolcegabbana #DGFamily",
+                "created_at": 1688817489,
+                "user": {
+                  "pk": "263765230",
+                  "username": "olafarahat",
+                  "full_name": "Ola",
+                  "profile_pic_url": "https://scontent-ord5-1.cdninstagram.com/v/t51.2885-19/307458038_810684923718441_8080994882533941898_n.jpg?stp=dst-jpg_s150x150&efg=e30&_nc_ht=scontent-ord5-1.cdninstagram.com&_nc_cat=1&_nc_ohc=gJo0H60U19EAX9eUbPq&edm=AId3EpQBAAAA&ccb=7-5&oh=00_AfCDHW7pbRzlaHMCcTfsDqHUw9XcZ6xK3ugreCXXG0Tdzg&oe=659F024F&_nc_sid=f5838a",
+                  "is_private": false,
+                  "is_verified": true
+                },
+                "is_covered": false
+              },
+              "has_more_comments": false,
+              "status": "ok"
+            },
+            "component": {
+              "name": "InstagramPostCommentsCard"
+            }
+          }

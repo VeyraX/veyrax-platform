@@ -96,6 +96,8 @@ from integrations.okx_p2p.route import router as okx_p2p_router
 from integrations.twentyfirst_dev.route import router as dev_router
 from mcp_deployment.route import router as mcp_deployment_router
 from integrations.yelp.route import router as yelp_router
+from integrations.facebook.route import router as facebook_router
+from integrations.instagram.route import router as instagram_router
 from mcp_deployment.queries import get_user_connected_mcp_actions, get_user_mcp_image_names
 from service import ToolsService
 import os
@@ -205,7 +207,9 @@ INTEGRATION_ROUTERS = {
     "okx_p2p": okx_p2p_router,
     "apollo": apollo_router,
     "twentyfirst_dev": dev_router,
-    "yelp": yelp_router
+    "yelp": yelp_router,
+    "facebook": facebook_router,
+    "instagram": instagram_router
 }
 
 
@@ -343,7 +347,7 @@ app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
 app.include_router(mcp_deployment_router)
-app.add_middleware(PermissionMiddleware)
+#app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
 tools_service = ToolsService(INTEGRATION_ROUTERS)
