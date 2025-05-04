@@ -20,7 +20,6 @@ const USER_TABLES = [
   'api_calls'
 ];
 
-// Добавляем обработку OPTIONS запроса для CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -103,7 +102,6 @@ export async function POST(request: Request) {
     
     const migrationResults = [];
     
-    // Сценарий 1: Новый omi_user_id не существует
     if (newOmiError || !newOmiUser) {
       const { error: updateError } = await supabase
         .from('omi_users')
@@ -134,12 +132,10 @@ export async function POST(request: Request) {
       );
     }
     
-    // Сценарий 2: Полное слияние аккаунтов
     const newUserId = newOmiUser.user_id;
     
     for (const tableName of USER_TABLES) {
       try {
-        // Сначала проверим, есть ли записи для старого пользователя
         const { data: countData, error: countError } = await supabase
           .from(tableName)
           .select('*', { count: 'exact', head: true })
