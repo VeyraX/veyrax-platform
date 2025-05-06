@@ -12,7 +12,7 @@ export const maxDuration = 150;
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY || '',
 });
-const modelName = 'openai/gpt-4.1';
+const modelName = 'openai/gpt-4.1-mini';
 
 export async function POST(req: Request) {
   const clonedReq = req.clone();
