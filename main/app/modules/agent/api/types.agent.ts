@@ -43,6 +43,7 @@ export interface ChatMessage {
       result?: string;
     }>;
     finishReason?: 'stop' | 'length' | 'tool_calls' | 'error' | null;
+    selectedModelId?: string;
   };
 }
 
@@ -71,6 +72,7 @@ export interface CreateChatMessagePayload {
       result?: string;
     }>;
     finishReason?: string | null;
+    selectedModelId?: string;
   };
 }
 

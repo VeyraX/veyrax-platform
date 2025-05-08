@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
                 encrypted_api_key,
                 code
             });
-            console.log('userId', userId);
         } catch (authError: any) {
             return NextResponse.json({ 
                 success: false, 
@@ -30,7 +29,6 @@ export async function POST(request: NextRequest) {
         }
 
         const { allowed, reason } = await canUserRentKeyServer(userId);
-        console.log('allowed', allowed);
         if (!allowed) {
             return NextResponse.json({ 
                 success: false, 

@@ -885,8 +885,6 @@ export const saveRentApiKey = async (options: {
     .select('id')
     .eq('provider_id', provider_id)
     .single();
-    
-  console.log('apiKeyData', apiKeyData);
 
   const { error: rentError } = await client
     .from('users_provider_rent_api_keys')

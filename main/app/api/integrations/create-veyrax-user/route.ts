@@ -27,11 +27,9 @@ async function ensureApiKeyForUser(supabase: SupabaseClient, userId: string): Pr
   }
 
   if (existingKey) {
-    console.log(`API key already exists for user ${userId}.`);
     return existingKey;
   }
 
-  console.log(`No API key found for user ${userId}. Generating a new one.`);
   const apiKeyBytes = randomBytes(20);
   const apiKey = 'vrx-' + apiKeyBytes.toString('hex');
 
@@ -49,7 +47,6 @@ async function ensureApiKeyForUser(supabase: SupabaseClient, userId: string): Pr
     throw insertError;
   }
 
-  console.log(`Successfully created new API key for user ${userId}.`);
   return newKey;
 }
 

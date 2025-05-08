@@ -12,8 +12,6 @@ export async function GET(request: NextRequest) {
   // Get the next destination from query params, with default
   const next = requestUrl.searchParams.get('next') || '/integrations'
   
-  console.log(`[API Auth Callback] Destination: ${next}, Code: ${!!code}, Token: ${!!access_token}`)
-
   // Create initial response object
   let response = NextResponse.redirect(`${requestUrl.origin}${next}`)
 

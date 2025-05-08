@@ -1,15 +1,19 @@
 import React from "react"
 import { AIInputWithSearch } from "../components/input/ai-input"
 import { SuggestionsEmptyState } from "../components/suggestions/suggestions-empty-state"
+import { ModelId } from "../components/api/models"
 
 interface AssistantEmptyStateProps {
-  onSubmit: (message: string) => Promise<void>
+  onSubmit: (message: string, modelId?: ModelId) => Promise<void>
   isLoading: boolean
   onStop: () => void
   userTools: Record<string, any>
   onToolClick: (tool: string) => void
   connectedTools: { providerTag: string, logoUrl: string, isConnected: boolean }[]
   initialInput?: string | null
+  availableModels?: string[]
+  defaultModelId?: ModelId
+  onModelChange?: (modelId: ModelId) => void
 }
 
 export function AssistantEmptyState({
@@ -19,7 +23,10 @@ export function AssistantEmptyState({
   userTools,
   connectedTools,
   onToolClick,
-  initialInput
+  initialInput,
+  availableModels,
+  defaultModelId,
+  onModelChange
 }: AssistantEmptyStateProps) {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
@@ -61,6 +68,9 @@ export function AssistantEmptyState({
           onStop={onStop}
           userTools={userTools}
           initialInput={initialInput}
+          availableModels={availableModels}
+          defaultModelId={defaultModelId}
+          onModelChange={onModelChange}
         />
 
         <SuggestionsEmptyState 

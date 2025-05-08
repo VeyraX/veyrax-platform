@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
       pathname.includes('/user/') && pathname.includes('/auth') || 
       request.nextUrl.search.includes('oauth_return=') || 
       request.nextUrl.search.includes('success=')) {
-    console.log('Skipping middleware for OAuth path:', pathname);
     return response;
   }
 

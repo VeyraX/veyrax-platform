@@ -1,18 +1,13 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { appendResponseMessages, streamText } from 'ai';
 import { getUserTools } from '@/lib/utils/get-user-tools';
 import { main_system_prompt } from '../../prompts/main_system_prompt';
 import { createClient } from '@/lib/utils/supabase/server';
 import { tools } from '@/lib/ai/tools';
 import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
-import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
+import { canUserSendMessageServer, getUserModelServer, getUserAgentPromptServer } from '@/app/modules/settings/api/api.server.settings';
+import { DEFAULT_MODEL, ModelId, initializeModel } from '@/app/modules/agent/components/api/models';
 
 export const maxDuration = 150;
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY || '',
-});
-const modelName = 'openai/gpt-4.1-mini';
 
 export async function POST(req: Request) {
   const clonedReq = req.clone();
@@ -34,7 +29,7 @@ export async function POST(req: Request) {
       return new Response('Invalid JSON in request body', { status: 400 });
     }
     
-    const { messages, chatId } = body;
+    const { messages, chatId, selectedModelId } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return new Response('Invalid messages format', { status: 400 });
@@ -97,13 +92,86 @@ To continue using the chat, please upgrade your plan at [veyrax.com/pricing](htt
 
     const userTools = await getUserTools();
     
-    const customSystemPrompt = `${main_system_prompt}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
+    const agentPrompt = await getUserAgentPromptServer();
+    
+    const customSystemPrompt = `${main_system_prompt}${agentPrompt ? `\n\n${agentPrompt}` : ""}\n\nUser has access to the following tools: ${JSON.stringify(userTools)}`;
 
-    let model = openrouter(modelName);
+    let model;
+    try {
+      model = await getUserModelServer();
+    } catch (error: any) {
+      if (error.code === 'PREMIUM_MODEL_ACCESS_REQUIRED') {
+        const premiumMessageId = `premium-limit-${Date.now()}`;
+        
+        const premiumErrorMessage = `📣 **Premium model access required**
+
+You've selected a premium model (${error.modelName}) but your current plan doesn't include access to premium models.
+
+To use this model, you can:
+1. Upgrade your plan at [veyrax.com/pricing](https://veyrax.com/pricing) to get access to premium models
+2. Or provide your own API key in settings`;
+        
+        try {
+          await supabase
+            .from('chats_messages')
+            .insert({
+              message_id: premiumMessageId,
+              chat_id: chatId,
+              sender: 'system',
+              message_text: premiumErrorMessage,
+              parts: [{
+                type: 'text',
+                text: premiumErrorMessage
+              }],
+              metadata: {
+                isPremiumLimitMessage: true,
+                selectedModelId: error.modelId,
+                modelName: error.modelName
+              }
+            });
+        } catch (dbError) {
+          console.error('Error saving premium limit message to database:', dbError);
+        }
+        
+        return new Response(
+          JSON.stringify({
+            error: {
+              message: 'PREMIUM_MODEL_ACCESS_REQUIRED',
+              details: {
+                limitMessage: premiumErrorMessage,
+                messageId: premiumMessageId,
+                modelId: error.modelId,
+                modelName: error.modelName,
+                needsUpgrade: true
+              }
+            }
+          }),
+          { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: 'ERROR_GETTING_MODEL',
+            details: {
+              error: 'An error occurred getting the AI model'
+            }
+          }
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
     const traceId = generateTraceId();
     
-    model = traceModel(model, user.id, {
+    const tracedModel = traceModel(model, user.id, {
       trace_id: traceId,
       chat_id: chatId,
       user_email: user.email,
@@ -111,12 +179,15 @@ To continue using the chat, please upgrade your plan at [veyrax.com/pricing](htt
     });
 
     const result = streamText({
-      model: model,
+      model: tracedModel,
       messages,
       system: customSystemPrompt,
       tools: tools,
       experimental_toolCallStreaming: true,
       maxSteps: 25,
+      onError: (error) => {
+        console.error('Error in chat route:', error);
+      },
       async onFinish({ response }) {
         const allMessages = appendResponseMessages({
           messages,
@@ -148,6 +219,8 @@ To continue using the chat, please upgrade your plan at [veyrax.com/pricing](htt
           });
         }
 
+        const usedModelId = (model as any)?.modelId || DEFAULT_MODEL;
+        
         try {
           await supabase
             .from('chats_messages')
@@ -159,7 +232,8 @@ To continue using the chat, please upgrade your plan at [veyrax.com/pricing](htt
               parts: parts,
               metadata: {
                 toolInvocations: lastAiMessage.toolInvocations,
-                finishReason: null
+                finishReason: null,
+                selectedModelId: usedModelId
               }
             });
         } catch (error) {

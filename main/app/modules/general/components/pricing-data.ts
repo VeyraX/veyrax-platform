@@ -48,6 +48,7 @@ export const pricingPlans: Plan[] = [
       { name: "API Requests", included: "700 / month", category: "USAGE" },
       { name: "Messages", included: "250", category: "USAGE" },
       { name: "Active Flows", included: "3", category: "USAGE" },
+      { name: "Premium AI Models", included: false, category: "USAGE", tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Integration by Request", included: false, category: "INTEGRATIONS" },
@@ -73,12 +74,14 @@ export const pricingPlans: Plan[] = [
       { name: "1,500 API requests", included: true },
       { name: "450 Messages", included: true },
       { name: "7 Active Flows", included: true },
+      { name: "Premium AI Models", included: true, tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: false, tooltip: "Use our API keys for third-party services without needing your own accounts" },
       { name: "Integration by Request", included: false},
       
       { name: "API Requests", included: "1,500 / month", category: "USAGE" },
       { name: "Messages", included: "450", category: "USAGE" },
       { name: "Active Flows", included: "7", category: "USAGE" },
+      { name: "Premium AI Models", included: true, category: "USAGE", tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Integration by Request", included: false, category: "INTEGRATIONS" },
@@ -105,12 +108,14 @@ export const pricingPlans: Plan[] = [
       { name: "3,000 API requests", included: true },
       { name: "950 Messages", included: true },
       { name: "20 Active Flows", included: true },
+      { name: "Premium AI Models", included: true, tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: true, tooltip: "Use our API keys for third-party services without needing your own accounts" },
       { name: "Integration by Request", included: true },
       
       { name: "API Requests", included: "3,000 / month", category: "USAGE" },
       { name: "Messages", included: "950", category: "USAGE" },
       { name: "Active Flows", included: "20", category: "USAGE" },
+      { name: "Premium AI Models", included: true, category: "USAGE", tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: true, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Integration by Request", included: true, category: "INTEGRATIONS" },
@@ -132,12 +137,14 @@ export const pricingPlans: Plan[] = [
       { name: "Custom API calls", included: true },
       { name: "Custom Flows", included: true },
       { name: "Custom User Auth", included: true },
+      { name: "Premium AI Models", included: true, tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Integration by Request", included: true },
       { name: "On-premise Deployment", included: true },
       
       { name: "API Requests", included: "Custom", category: "USAGE" },
       { name: "Messages", included: "Custom", category: "USAGE" },
       { name: "Active Flows", included: "Custom", category: "USAGE" },
+      { name: "Premium AI Models", included: true, category: "USAGE", tooltip: "Access to advanced models like GPT-4.1, Claude 3.5/3.7, etc." },
       { name: "Rent providers API keys", included: false, category: "USAGE", tooltip: "Use our API keys for third-party services without needing your own accounts" },
       
       { name: "Integration by Request", included: true, category: "INTEGRATIONS" },
@@ -156,6 +163,7 @@ export const FEATURE_CATEGORIES = {
     "API Requests",
     "Messages",
     "Active Flows",
+    "Premium AI Models",
     "Rent providers API keys"
   ],
   "INTEGRATIONS": [

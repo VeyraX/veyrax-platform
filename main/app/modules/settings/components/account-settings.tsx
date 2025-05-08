@@ -176,8 +176,6 @@ export default function AccountSettings({ profile, isLoading }: AccountSettingsP
         </div>
       </div>
 
-      <Separator />
-
       {/* Buttons Section */}
       <div className="flex justify-end gap-4">
         <Button 

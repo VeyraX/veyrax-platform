@@ -35,11 +35,9 @@ async function ensureApiKeyForUser(supabase: SupabaseClient, userId: string): Pr
   }
 
   if (existingKey) {
-    console.log(`API key already exists for user ${userId}.`);
     return existingKey;
   }
 
-  console.log(`No API key found for user ${userId}. Generating a new one.`);
   const apiKeyBytes = randomBytes(20);
   const apiKey = 'vrx-' + apiKeyBytes.toString('hex');
 
@@ -62,7 +60,6 @@ async function ensureApiKeyForUser(supabase: SupabaseClient, userId: string): Pr
      throw new Error('Failed to retrieve API key after creation');
   }
 
-  console.log(`Successfully created new API key for user ${userId}.`);
   return newKey;
 }
 
@@ -83,7 +80,6 @@ async function getOrCreateUserAndApiKey(supabase: SupabaseClient, omi_user_id: s
   }
 
   if (!omiUser || !omiUser.user_id) {
-    console.log(`omi_user ${omi_user_id} not found in omi_users. Creating new Supabase user.`);
     const password = generatePassword();
 
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
@@ -105,7 +101,6 @@ async function getOrCreateUserAndApiKey(supabase: SupabaseClient, omi_user_id: s
     }
 
     userId = userData.user.id;
-    console.log(`Created new Supabase user ${userId} for omi_user ${omi_user_id}.`);
 
     const { error: omiInsertError } = await supabase
       .from('omi_users')
@@ -114,15 +109,12 @@ async function getOrCreateUserAndApiKey(supabase: SupabaseClient, omi_user_id: s
     if (omiInsertError) {
       console.error(`CRITICAL: Failed to link omi_user ${omi_user_id} to Supabase user ${userId} in omi_users table:`, omiInsertError);
       throw omiInsertError;
-    } else {
-      console.log(`Successfully linked omi_user ${omi_user_id} to Supabase user ${userId}.`);
     }
 
     apiKeyRecord = await ensureApiKeyForUser(supabase, userId);
 
   } else {
     userId = omiUser.user_id;
-    console.log(`omi_user ${omi_user_id} linked to Supabase user ${userId}. Ensuring API key.`);
     apiKeyRecord = await ensureApiKeyForUser(supabase, userId);
   }
 

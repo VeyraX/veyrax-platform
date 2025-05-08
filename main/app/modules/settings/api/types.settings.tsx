@@ -13,6 +13,15 @@ export interface UserSettings {
   language: LanguageOption
 }
 
+export interface UserPlaygroundSettings {
+  user_id: string;
+  agent_prompt: string;
+  ai_model: string;
+  api_key_provider_name: string;
+  api_key: string;
+  api_key_enabled: boolean;
+}
+
 export const DUMMY_SETTINGS: UserSettings = {
   theme: 'system',
   language: 'en'
@@ -58,6 +67,7 @@ export interface ProductAttributes {
   active_flow_count: number | string;
   rent_provider_keys: boolean;
   custom_integrations: boolean;
+  premium_models?: boolean;
   custom_branding?: boolean;
   account_manager?: boolean;
 }
@@ -75,4 +85,9 @@ export interface UserUsage {
   api_call_count: number;
   active_flow_count: number;
   message_count: number;
+}
+
+export interface UserAvailableModels {
+  models: string[];
+  isPremiumAllowed: boolean;
 }

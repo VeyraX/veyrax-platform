@@ -2,9 +2,9 @@ import { createClient } from '@/lib/utils/supabase/server';
 import * as CoreApi from './api.core.settings';
 import { fetch } from 'next/dist/compiled/@edge-runtime/primitives';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { ModelId, AI_MODELS, DEFAULT_MODEL, initializeModel } from '@/app/modules/agent/components/api/models';
+import { decrypt } from '@/lib/utils/encryption';
 
-
-// Серверные функции - обертки над ядром
 export async function getUserSubscriptionServer() {
   return CoreApi.getUserSubscription(createClient());
 }
@@ -43,6 +43,78 @@ export async function revokeApiKeyServer() {
 
 export async function deleteUserAccountServer() {
   return CoreApi.deleteUserAccount(createClient(), fetch);
+}
+
+export async function getUserPlaygroundSettingsServer() {
+  return CoreApi.getUserPlaygroundSettings(createClient());
+}
+
+export async function getUserModelServer() {
+  const client = createClient();
+  
+  try {
+    const { data: { user } } = await client.auth.getUser();
+    
+    if (user) {
+      const { data: settings } = await client
+        .from('user_playground_settings')
+        .select('ai_model, api_key_enabled, api_key_provider_name, api_key')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (settings?.ai_model) {
+        if (settings.api_key_enabled && settings.api_key && settings.api_key.includes(':')) {
+          try {
+            settings.api_key = decrypt(settings.api_key);
+          } catch (error) {
+            console.error('Error decrypting API key:', error);
+          }
+        }
+        
+        const supabase = createClient();
+        const { models: availableModels } = await CoreApi.getUserAvailableModels(
+          supabase,
+          settings.api_key_enabled ? {
+            api_key_enabled: settings.api_key_enabled,
+            api_key_provider_name: settings.api_key_provider_name
+          } : undefined
+        );
+        
+        if (availableModels.includes(settings.ai_model)) {
+          return initializeModel(settings.ai_model as ModelId, {
+            api_key_enabled: settings.api_key_enabled,
+            api_key_provider_name: settings.api_key_provider_name,
+            api_key: settings.api_key
+          });
+        }
+
+        console.log('settings.ai_model', settings.ai_model);
+        
+        const modelDetails = AI_MODELS[settings.ai_model as ModelId];
+        throw {
+          code: "PREMIUM_MODEL_ACCESS_REQUIRED",
+          message: "Premium model access required",
+          modelId: settings.ai_model,
+          modelName: modelDetails?.name || settings.ai_model
+        };
+      }
+    }
+
+    console.log('DEFAULT_MODEL', DEFAULT_MODEL);
+    
+    return initializeModel(DEFAULT_MODEL);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error) {
+      throw error;
+    }
+    
+    console.error('Error in getUserModelServer:', error);
+    return initializeModel(DEFAULT_MODEL);
+  }
+}
+
+export async function getUserAgentPromptServer() {
+  return CoreApi.getUserAgentPrompt(createClient());
 }
 
 export async function canUserRentKeyServer(userId: string) {

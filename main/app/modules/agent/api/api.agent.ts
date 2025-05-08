@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/utils/supabase/client'
 import { Chat, CreateChatPayload, ChatMessage, CreateChatMessagePayload } from './types.agent'
+import { getUserAvailableModels } from "../../settings/api/api.settings"; 
+import { UserAvailableModels } from "../../settings/api/types.settings";
+import { getUserPlaygroundSettings } from "../../settings/api/api.settings";
 
 const supabase = createClient()
 
@@ -165,4 +168,25 @@ export async function updateChatTitle(chatId: string, firstMessage: string): Pro
   }
 
   return response.json();
+}
+
+export async function getAvailableModels(): Promise<UserAvailableModels> {
+  try {
+    const playgroundSettings = await getUserPlaygroundSettings();
+    
+    if (playgroundSettings?.api_key_enabled) {
+      return await getUserAvailableModels({
+        api_key_enabled: playgroundSettings.api_key_enabled,
+        api_key_provider_name: playgroundSettings.api_key_provider_name
+      });
+    }
+    
+    return await getUserAvailableModels();
+  } catch (error) {
+    console.error('Error getting available models:', error);
+    return {
+      models: [],
+      isPremiumAllowed: false
+    };
+  }
 }

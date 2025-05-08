@@ -113,7 +113,6 @@ const McpPage: FC<McpPageProps> = ({
     
     try {
       const updatedRepoData = await getSingleMcpRepositoryData(repositoryId);
-      console.log(updatedRepoData);
       
       if (updatedRepoData) {
         setMcpRepositories(prev => {

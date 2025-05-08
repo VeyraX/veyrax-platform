@@ -1,21 +1,25 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { UserCircle2, Key, Terminal, CreditCard } from "lucide-react"
+import { UserCircle2, Key, Terminal, CreditCard, FlaskConical } from "lucide-react"
 import Link from "next/link"
 import AccountSettings from "../components/account-settings"
 import ApiKeySettings from "../components/api-key-settings"
 import MCPSettings from "../components/mcp-settings"
 import BillingSettings from "../components/billing-settings"
 import { useState, useEffect } from "react"
-import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey, getUserSubscription } from "../api/api.settings"
-import { UserProfile, UserApiKey, UserSubscription } from "../api/types.settings"
+import { getUserProfile, getUserApiKey, generateApiKey, revokeApiKey, getUserSubscription, getUserPlaygroundSettings, saveUserPlaygroundSettings, getUserAvailableModels } from "../api/api.settings"
+import { UserProfile, UserApiKey, UserSubscription, UserPlaygroundSettings, UserAvailableModels } from "../api/types.settings"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import PlaygroundSettings from "../components/playground-settings"
+import { ModelId } from "../../agent/components/api/models"
+import { toast } from "sonner"
+import { CacheUtils, CACHE_KEYS } from "@/lib/utils/cache-utils"
 
 interface AccountSettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initialTab?: 'account' | 'api-key' | 'mcp' | 'billing'
+  initialTab?: 'account' | 'api-key' | 'mcp' | 'billing' | 'playground'
 }
 
 export function AccountSettingsDialog({ 
@@ -23,17 +27,21 @@ export function AccountSettingsDialog({
   onOpenChange, 
   initialTab = 'account' 
 }: AccountSettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'api-key' | 'mcp' | 'billing'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'account' | 'api-key' | 'mcp' | 'billing' | 'playground'>(initialTab);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [apiKey, setApiKey] = useState<UserApiKey | null>(null);
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+  const [playgroundSettings, setPlaygroundSettings] = useState<UserPlaygroundSettings | null>(null);
+  const [availableModels, setAvailableModels] = useState<UserAvailableModels | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+  const [isLoadingPlaygroundSettings, setIsLoadingPlaygroundSettings] = useState(true);
+  const [isLoadingAvailableModels, setIsLoadingAvailableModels] = useState(true);
 
   useEffect(() => {
     if (open) {
-      const fetchProfile = async () => {
+      const fetchInitialData = async () => {
         setIsLoadingProfile(true);
         try {
           const data = await getUserProfile();
@@ -45,14 +53,13 @@ export function AccountSettingsDialog({
         }
       };
       
-      fetchProfile();
+      fetchInitialData();
     }
   }, [open]);
 
   useEffect(() => {
-    if (open && (activeTab === 'api-key' || activeTab === 'mcp')) {
+    if (open && activeTab === 'api-key' && isLoadingApiKey) {
       const fetchApiKey = async () => {
-        setIsLoadingApiKey(true);
         try {
           const data = await getUserApiKey();
           setApiKey(data);
@@ -65,12 +72,11 @@ export function AccountSettingsDialog({
       
       fetchApiKey();
     }
-  }, [open, activeTab]);
+  }, [open, activeTab, isLoadingApiKey]);
 
   useEffect(() => {
-    if (open && (activeTab === 'billing')) {
+    if (open && activeTab === 'billing' && isLoadingSubscription) {
       const fetchSubscription = async () => {
-        setIsLoadingSubscription(true);
         try {
           const data = await getUserSubscription();
           setSubscription(data);
@@ -83,7 +89,69 @@ export function AccountSettingsDialog({
       
       fetchSubscription();
     }
-  }, [open, activeTab]);
+  }, [open, activeTab, isLoadingSubscription]);
+
+  useEffect(() => {
+    if (open && activeTab === 'playground' && isLoadingPlaygroundSettings) {
+      const fetchPlaygroundSettings = async () => {
+        try {
+          const data = await getUserPlaygroundSettings();
+          setPlaygroundSettings(data);
+        } catch (error) {
+          console.error('Error fetching playground settings:', error);
+        } finally {
+          setIsLoadingPlaygroundSettings(false);
+        }
+      };
+      
+      fetchPlaygroundSettings();
+    }
+  }, [open, activeTab, isLoadingPlaygroundSettings]);
+
+  useEffect(() => {
+    if (open && activeTab === 'playground' && !isLoadingPlaygroundSettings && isLoadingAvailableModels) {
+      const fetchAvailableModels = async () => {
+        try {
+          let data;
+          if (playgroundSettings && playgroundSettings.api_key_enabled) {
+            data = await getUserAvailableModels({
+              api_key_enabled: playgroundSettings.api_key_enabled,
+              api_key_provider_name: playgroundSettings.api_key_provider_name
+            });
+          } else {
+            data = await getUserAvailableModels();
+          }
+          setAvailableModels(data);
+        } catch (error) {
+          console.error('Error fetching available models:', error);
+        } finally {
+          setIsLoadingAvailableModels(false);
+        }
+      };
+      
+      fetchAvailableModels();
+    }
+  }, [open, activeTab, playgroundSettings, isLoadingPlaygroundSettings, isLoadingAvailableModels]);
+
+  const handleTabChange = (tab: 'account' | 'api-key' | 'mcp' | 'billing' | 'playground') => {
+    setActiveTab(tab);
+    
+    if (tab === 'api-key' && apiKey === null) {
+      setIsLoadingApiKey(true);
+    }
+    
+    if (tab === 'billing' && subscription === null) {
+      setIsLoadingSubscription(true);
+    }
+    
+    if (tab === 'playground' && playgroundSettings === null) {
+      setIsLoadingPlaygroundSettings(true);
+    }
+    
+    if (tab === 'playground' && availableModels === null) {
+      setIsLoadingAvailableModels(true);
+    }
+  };
 
   const handleGenerateApiKey = async () => {
     try {
@@ -109,6 +177,87 @@ export function AccountSettingsDialog({
     }
   };
 
+  const handleSavePlaygroundSettings = async (data: {
+    modelId: ModelId;
+    prompt: string;
+    provider: string;
+    apiKey: string;
+    apiKeyEnabled: boolean;
+  }) => {
+    try {
+      const apiKeySettingsChanged = 
+        playgroundSettings && 
+        (data.apiKeyEnabled !== playgroundSettings.api_key_enabled || 
+         data.provider !== playgroundSettings.api_key_provider_name);
+      
+      if (playgroundSettings?.api_key_enabled && !data.apiKeyEnabled) {
+        CacheUtils.invalidateCache(CACHE_KEYS.AVAILABLE_MODELS);
+      }
+      
+      const result = await saveUserPlaygroundSettings({
+        ai_model: data.modelId,
+        agent_prompt: data.prompt,
+        api_key_provider_name: data.provider,
+        api_key: data.apiKey,
+        api_key_enabled: data.apiKeyEnabled
+      });
+      
+      if (result) {
+        setPlaygroundSettings(result);
+        
+        if (apiKeySettingsChanged) {
+          setTimeout(() => {
+            getUserAvailableModels({
+              api_key_enabled: data.apiKeyEnabled,
+              api_key_provider_name: data.provider
+            }).then(newModelsData => {
+              setAvailableModels(newModelsData);
+              CacheUtils.updateCache(CACHE_KEYS.AVAILABLE_MODELS, newModelsData);
+              
+              if (result.ai_model && newModelsData.models.length > 0 && 
+                  !newModelsData.models.includes(result.ai_model as string)) {
+                const newModelId = newModelsData.models[0];
+                console.log(`Model ${result.ai_model} no longer available, switching to ${newModelId}`);
+                
+                saveUserPlaygroundSettings({
+                  ...result,
+                  ai_model: newModelId as ModelId
+                }).then(updatedResult => {
+                  if (updatedResult) {
+                    setPlaygroundSettings(updatedResult);
+                  }
+                }).catch(e => {
+                  console.error('Error updating model selection:', e);
+                });
+              }
+            }).catch(error => {
+              console.error('Error updating available models:', error);
+            });
+          }, 100);
+        }
+        
+        return result;
+      } else {
+        throw new Error("Failed to save settings");
+      }
+    } catch (error) {
+      console.error('Error saving playground settings:', error);
+      throw error;
+    }
+  };
+
+  const handleApiKeySettingsChange = async (settings: {
+    api_key_enabled: boolean;
+    api_key_provider_name: string;
+  }) => {
+    try {
+      const data = await getUserAvailableModels(settings);
+      setAvailableModels(data);
+    } catch (error) {
+      console.error('Error updating available models:', error);
+    }
+  };
+
   useEffect(() => {
     if (initialTab) {
       setActiveTab(initialTab);
@@ -125,8 +274,8 @@ export function AccountSettingsDialog({
               <DialogTitle className="text-xl font-semibold tracking-tight">Settings</DialogTitle>
             </DialogHeader>
             
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-              <TabsList className="grid grid-cols-4 w-full">
+            <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as any)}>
+              <TabsList className="grid grid-cols-5 w-full">
                 <TabsTrigger value="account" className="flex items-center gap-1.5 text-xs">
                   <UserCircle2 className="h-3.5 w-3.5" />
                   <span className="hidden xs:inline">Account</span>
@@ -142,6 +291,10 @@ export function AccountSettingsDialog({
                 <TabsTrigger value="mcp" className="flex items-center gap-1.5 text-xs">
                   <Terminal className="h-3.5 w-3.5" />
                   <span className="hidden xs:inline">MCP</span>
+                </TabsTrigger>
+                <TabsTrigger value="playground" className="flex items-center gap-1.5 text-xs">
+                  <FlaskConical className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline">Playground</span>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -165,10 +318,26 @@ export function AccountSettingsDialog({
                 onGenerateApiKey={handleGenerateApiKey}
                 onRevokeApiKey={handleRevokeApiKey}
               />
-            ) : (
+            ) : activeTab === 'mcp' ? (
               <MCPSettings 
                 apiKey={apiKey}
                 onGenerateApiKey={handleGenerateApiKey}
+              />
+            ) : activeTab === 'playground' ? (
+              <PlaygroundSettings 
+                playgroundSettings={playgroundSettings}
+                isLoading={isLoadingPlaygroundSettings || isLoadingAvailableModels}
+                availableModels={availableModels}
+                onSave={handleSavePlaygroundSettings}
+                onApiKeySettingsChange={handleApiKeySettingsChange}
+              />
+            ) : (
+              <PlaygroundSettings 
+                playgroundSettings={playgroundSettings}
+                isLoading={isLoadingPlaygroundSettings || isLoadingAvailableModels}
+                availableModels={availableModels}
+                onSave={handleSavePlaygroundSettings}
+                onApiKeySettingsChange={handleApiKeySettingsChange}
               />
             )}
           </div>
@@ -187,7 +356,7 @@ export function AccountSettingsDialog({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveTab('account');
+                  handleTabChange('account');
                 }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'account' 
@@ -202,7 +371,7 @@ export function AccountSettingsDialog({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveTab('billing');
+                  handleTabChange('billing');
                 }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'billing' 
@@ -217,7 +386,7 @@ export function AccountSettingsDialog({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveTab('api-key');
+                  handleTabChange('api-key');
                 }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'api-key' 
@@ -232,7 +401,7 @@ export function AccountSettingsDialog({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveTab('mcp');
+                  handleTabChange('mcp');
                 }}
                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
                   activeTab === 'mcp' 
@@ -242,6 +411,21 @@ export function AccountSettingsDialog({
               >
                 <Terminal className="h-3.5 w-3.5" />
                 <span>MCP & Plugins</span>
+              </Link>
+              <Link
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleTabChange('playground');
+                }}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm ${
+                  activeTab === 'playground' 
+                    ? 'bg-secondary text-secondary-foreground' 
+                    : 'text-muted-foreground hover:bg-secondary'
+                }`}
+              >
+                <FlaskConical className="h-3.5 w-3.5" />
+                <span>Playground</span>
               </Link>
             </nav>
           </div>
@@ -264,10 +448,26 @@ export function AccountSettingsDialog({
                 onGenerateApiKey={handleGenerateApiKey}
                 onRevokeApiKey={handleRevokeApiKey}
               />
-            ) : (
+            ) : activeTab === 'mcp' ? (
               <MCPSettings 
                 apiKey={apiKey}
                 onGenerateApiKey={handleGenerateApiKey}
+              />
+            ) : activeTab === 'playground' ? (
+              <PlaygroundSettings 
+                playgroundSettings={playgroundSettings}
+                isLoading={isLoadingPlaygroundSettings || isLoadingAvailableModels}
+                availableModels={availableModels}
+                onSave={handleSavePlaygroundSettings}
+                onApiKeySettingsChange={handleApiKeySettingsChange}
+              />
+            ) : (
+              <PlaygroundSettings 
+                playgroundSettings={playgroundSettings}
+                isLoading={isLoadingPlaygroundSettings || isLoadingAvailableModels}
+                availableModels={availableModels}
+                onSave={handleSavePlaygroundSettings}
+                onApiKeySettingsChange={handleApiKeySettingsChange}
               />
             )}
           </div>

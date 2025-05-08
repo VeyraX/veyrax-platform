@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { UserProfile, UserApiKey, UserSubscription } from './types.settings';
+import { UserProfile, UserApiKey, UserSubscription, UserAvailableModels } from './types.settings';
+import { AI_MODELS, ModelId, initializeModel, DEFAULT_MODEL } from '../../agent/components/api/models';
 
 export async function getUserProfile(supabase: SupabaseClient): Promise<UserProfile | null> {
   try {
@@ -473,22 +474,311 @@ export async function canUserRentKey(
 }> {
   try {
     const productInfo = await getUserProductInfo(supabase);
-
     if (!productInfo) {
-      return { 
-        allowed: false, 
-        reason: 'Could not fetch user plan information'
-      };
+      return { allowed: false, reason: 'Unable to determine user plan' };
     }
 
-    const canRentKeys = productInfo.attrs?.rent_provider_keys || false;
+    const canRent = productInfo.attrs.rent_provider_keys || false;
     
     return {
-      allowed: canRentKeys,
-      reason: !canRentKeys ? 'Your current plan does not allow renting provider keys' : undefined
+      allowed: canRent,
+      reason: canRent ? undefined : 'Your current plan does not include this feature'
     };
   } catch (error) {
-    console.error('Error checking key rental permission:', error);
-    return { allowed: false, reason: 'Error checking permissions' };
+    console.error('Error checking if user can rent key:', error);
+    return { allowed: false, reason: 'An error occurred checking your subscription' };
+  }
+}
+
+export async function getUserPlaygroundSettings(supabase: SupabaseClient) {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('user_playground_settings')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      console.error('Error fetching playground settings:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getUserPlaygroundSettings:', error);
+    return null;
+  }
+}
+
+export async function saveUserPlaygroundSettings(
+  supabase: SupabaseClient,
+  settings: {
+    agent_prompt: string;
+    ai_model: string;
+    api_key_provider_name: string;
+    api_key: string;
+    api_key_enabled: boolean;
+  }
+) {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return null;
+    }
+
+    const { data: existingSettings } = await supabase
+      .from('user_playground_settings')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    let result;
+    
+    if (existingSettings) {
+      const { data, error } = await supabase
+        .from('user_playground_settings')
+        .update({
+          agent_prompt: settings.agent_prompt,
+          ai_model: settings.ai_model,
+          api_key_provider_name: settings.api_key_provider_name,
+          api_key: settings.api_key,
+          api_key_enabled: settings.api_key_enabled
+        })
+        .eq('id', existingSettings.id)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      result = data;
+    } else {
+      const { data, error } = await supabase
+        .from('user_playground_settings')
+        .insert({
+          user_id: user.id,
+          agent_prompt: settings.agent_prompt,
+          ai_model: settings.ai_model,
+          api_key_provider_name: settings.api_key_provider_name,
+          api_key: settings.api_key,
+          api_key_enabled: settings.api_key_enabled
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      result = data;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error saving playground settings:', error);
+    return null;
+  }
+}
+
+export async function getUserAvailableModels(
+  supabase: SupabaseClient,
+  userApiKeySettings?: {
+    api_key_enabled: boolean;
+    api_key_provider_name: string;
+  }
+): Promise<UserAvailableModels> {
+  try {
+    const freeModels = Object.entries(AI_MODELS)
+      .filter(([_, model]) => !model.isPremium)
+      .map(([id]) => id as ModelId);
+    
+    let availableModels = [...freeModels];
+    let isPremiumAllowed = false;
+
+    const productInfo = await getUserProductInfo(supabase);
+    if (productInfo?.attrs?.premium_models) {
+      isPremiumAllowed = true;
+      availableModels = Object.keys(AI_MODELS) as ModelId[];
+    }
+
+    if (userApiKeySettings?.api_key_enabled) {
+      const providerName = userApiKeySettings.api_key_provider_name;
+      
+      const providerPremiumModels = Object.entries(AI_MODELS)
+        .filter(([_, model]) => 
+          model.isPremium && model.originalProvider === providerName
+        )
+        .map(([id]) => id as ModelId);
+      
+      providerPremiumModels.forEach(modelId => {
+        if (!availableModels.includes(modelId)) {
+          availableModels.push(modelId);
+        }
+      });
+    }
+
+    return {
+      models: availableModels,
+      isPremiumAllowed
+    };
+  } catch (error) {
+    console.error('Error determining available models:', error);
+    const freeModels = Object.entries(AI_MODELS)
+      .filter(([_, model]) => !model.isPremium)
+      .map(([id]) => id as ModelId);
+    
+    return {
+      models: freeModels,
+      isPremiumAllowed: false
+    };
+  }
+}
+
+export async function validateApiKey(
+  provider: string, 
+  apiKey: string
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    if (provider === 'openai') {
+      return await validateOpenAIApiKey(apiKey);
+    } else if (provider === 'anthropic') {
+      return await validateAnthropicApiKey(apiKey);
+    } else {
+      return { valid: false, error: `Unsupported provider: ${provider}` };
+    }
+  } catch (error) {
+    console.error(`Error validating ${provider} API key:`, error);
+    return { valid: false, error: 'An unexpected error occurred during validation' };
+  }
+}
+
+export async function getUserModelCore(supabase: SupabaseClient) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      const { data: settings } = await supabase
+        .from('user_playground_settings')
+        .select('ai_model, api_key_enabled, api_key_provider_name, api_key')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (settings?.ai_model) {
+        const { models: availableModels } = await getUserAvailableModels(
+          supabase,
+          settings.api_key_enabled ? {
+            api_key_enabled: settings.api_key_enabled,
+            api_key_provider_name: settings.api_key_provider_name
+          } : undefined
+        );
+        
+        if (availableModels.includes(settings.ai_model)) {
+          return initializeModel(settings.ai_model as ModelId, {
+            api_key_enabled: settings.api_key_enabled,
+            api_key_provider_name: settings.api_key_provider_name,
+            api_key: settings.api_key
+          });
+        }
+        
+        const modelDetails = AI_MODELS[settings.ai_model as ModelId];
+        throw {
+          code: "PREMIUM_MODEL_ACCESS_REQUIRED",
+          message: "Premium model access required",
+          modelId: settings.ai_model,
+          modelName: modelDetails?.name || settings.ai_model
+        };
+      }
+    }
+    
+    return initializeModel(DEFAULT_MODEL);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error) {
+      throw error;
+    }
+    
+    console.error('Error in getUserModelCore:', error);
+    return initializeModel(DEFAULT_MODEL);
+  }
+}
+
+async function validateOpenAIApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/validate-openai-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ apiKey })
+    });
+
+    if (response.ok) {
+      return { valid: true };
+    } else {
+      const error = await response.json().catch(() => ({}));
+      return { 
+        valid: false, 
+        error: error.error?.message || `Invalid OpenAI API key (Status: ${response.status})` 
+      };
+    }
+  } catch (error) {
+    console.error('Error validating OpenAI API key:', error);
+    return { valid: false, error: 'Network error during OpenAI validation' };
+  }
+}
+
+async function validateAnthropicApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/validate-anthropic-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ apiKey })
+    });
+
+    if (response.ok) {
+      return { valid: true };
+    } else {
+      const error = await response.json().catch(() => ({}));
+      return { 
+        valid: false, 
+        error: error.error?.message || `Invalid Anthropic API key (Status: ${response.status})` 
+      };
+    }
+  } catch (error) {
+    console.error('Error validating Anthropic API key:', error);
+    return { valid: false, error: 'Network error during Anthropic validation' };
+  }
+}
+
+export async function getUserAgentPrompt(supabase: SupabaseClient): Promise<string | null> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('user_playground_settings')
+      .select('agent_prompt')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Record not found
+        return null;
+      }
+      console.error('Error fetching agent prompt:', error);
+      return null;
+    }
+
+    return data?.agent_prompt || null;
+  } catch (error) {
+    console.error('Error in getUserAgentPrompt:', error);
+    return null;
   }
 } 

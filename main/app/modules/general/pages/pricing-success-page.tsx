@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { CacheUtils } from '@/lib/utils/cache-utils';
 
 type SessionStatus = 'loading' | 'success' | 'not_found' | 'error';
 
@@ -35,6 +36,8 @@ export default function PaymentSuccess() {
           setStatus('error');
           return;
         }
+        
+        CacheUtils.invalidateAllCaches();
         
         setStatus('success');
       } catch (error) {

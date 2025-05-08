@@ -16,6 +16,10 @@ import { getChat } from "../api/api.agent";
 import { getUserToolsClient } from "@/lib/utils/get-user-tools-client";
 import { getUserConnectedTools } from "@/app/modules/integrations/api/api.integrations";
 import { updateChatTitle } from "../api/api.agent";
+import { getAvailableModels } from "../api/api.agent";
+import { getUserPlaygroundSettings, saveUserPlaygroundSettings } from "../../settings/api/api.settings";
+import { ModelId } from "../components/api/models";
+import { CacheUtils, CACHE_KEYS } from "@/lib/utils/cache-utils";
 
 export default function AssistantPage({
   params
@@ -104,6 +108,48 @@ export default function AssistantPage({
             });
             return;
           }
+        } else if (errorData.error?.message === 'PREMIUM_MODEL_ACCESS_REQUIRED') {
+          const details = errorData.error.details;
+          
+          if (details?.limitMessage && details?.messageId) {
+            setMessages((prev) => {
+              const userMessageExists = prev.some(msg => msg.role === 'user');
+              
+              if (!userMessageExists && currentChatIdRef.current) {
+                return [
+                  ...prev,
+                  {
+                    id: `user-msg-${Date.now()}`,
+                    content: localStorage.getItem(`last-message-${currentChatIdRef.current}`) || "Your message",
+                    role: 'user'
+                  },
+                  {
+                    id: details.messageId,
+                    content: details.limitMessage,
+                    role: 'assistant',
+                    isPremiumLimitMessage: true,
+                    modelId: details.modelId,
+                    modelName: details.modelName,
+                    needsUpgrade: details.needsUpgrade
+                  } as Message
+                ];
+              }
+              
+              return [
+                ...prev,
+                {
+                  id: details.messageId,
+                  content: details.limitMessage,
+                  role: 'assistant',
+                  isPremiumLimitMessage: true,
+                  modelId: details.modelId,
+                  modelName: details.modelName,
+                  needsUpgrade: details.needsUpgrade
+                } as Message
+              ];
+            });
+            return;
+          }
         } else if (errorData.error?.message) {
           errorMessage = errorData.error.message;
         }
@@ -118,6 +164,12 @@ export default function AssistantPage({
 
   const [userTools, setUserTools] = useState<Record<string, any>>({});
   const [connectedTools, setConnectedTools] = useState<{ providerTag: string, logoUrl: string, isConnected: boolean }[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [defaultModelId, setDefaultModelId] = useState<ModelId | undefined>(undefined);
+  const [isLoadingModels, setIsLoadingModels] = useState(true);
+  const [lastSelectedModelId, setLastSelectedModelId] = useState<ModelId | undefined>(undefined);
+  const [playgroundSettingsData, setPlaygroundSettingsData] = useState<any>(null);
+
   const [chatState, setChatState] = useState<{
     id: string | null;
   }>({
@@ -175,6 +227,22 @@ export default function AssistantPage({
               };
             }
 
+            // @ts-ignore
+            if (msg.sender === 'system' && msg.metadata?.isPremiumLimitMessage) {
+              return {
+                id: msg.message_id,
+                content: msg.message_text,
+                role: 'assistant' as const,
+                isPremiumLimitMessage: true,
+                // @ts-ignore 
+                modelId: msg.metadata.selectedModelId,
+                // @ts-ignore 
+                modelName: msg.metadata.modelName,
+                // @ts-ignore
+                needsUpgrade: true
+              };
+            }
+
             const updatedParts = msg.parts?.map((p) => {
               if ((p as any).type === 'tool-invocation') {
                 const matchingInvocation = msg.metadata?.toolInvocations?.find(
@@ -213,8 +281,44 @@ export default function AssistantPage({
     loadMessages();
   }, [chatId, isNewChat, setMessages]);
 
-  const handleNewMessage = async (value: string) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingModels(true);
+        
+        const [toolsData, connectedData, modelsData] = await Promise.all([
+          CacheUtils.getUserTools(() => getUserToolsClient()),
+          CacheUtils.getConnectedTools(() => getUserConnectedTools()),
+          CacheUtils.getAvailableModels(() => getAvailableModels())
+        ]);
+        
+        const playgroundSettings = await getUserPlaygroundSettings();
+        
+        setUserTools(toolsData);
+        setConnectedTools(connectedData);
+        setAvailableModels(modelsData.models);
+        setPlaygroundSettingsData(playgroundSettings);
+        
+        if (playgroundSettings?.ai_model) {
+          setDefaultModelId(playgroundSettings.ai_model as ModelId);
+          setLastSelectedModelId(playgroundSettings.ai_model as ModelId);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleNewMessage = async (value: string, modelId?: ModelId) => {
     try {
+      if (modelId) {
+        setLastSelectedModelId(modelId);
+      }
+      
       let chatId = currentChatIdRef.current;
       
       if (!chatId && isNewChat) {
@@ -244,6 +348,9 @@ export default function AssistantPage({
         chat_id: currentChatIdRef.current || chatId || '',
         sender: 'user',
         message_text: value,
+        metadata: modelId ? { 
+          selectedModelId: modelId
+        } : undefined
       });
 
       await append({
@@ -296,23 +403,6 @@ export default function AssistantPage({
   }, [messages, isLoading, isJustCreated]);
 
   useEffect(() => {
-    const fetchTools = async () => {
-      try {
-        const [tools, connected] = await Promise.all([
-          getUserToolsClient(),
-          getUserConnectedTools()
-        ]);
-        setUserTools(tools);
-        setConnectedTools(connected);
-      } catch (error) {
-        console.error('Error fetching tools:', error);
-      }
-    };
-
-    fetchTools();
-  }, []);
-
-  useEffect(() => {
     setIsMounted(true);
   }, []);
 
@@ -335,6 +425,34 @@ export default function AssistantPage({
       }
     }
   }, [isMounted, isNewChat, queryParam, hasSubmitted]);
+
+  const handleModelChange = async (modelId: ModelId) => {
+    setLastSelectedModelId(modelId);
+    
+    try {
+      const updatedSettings = {
+        agent_prompt: playgroundSettingsData?.agent_prompt || '',
+        ai_model: modelId,
+        api_key_provider_name: playgroundSettingsData?.api_key_provider_name || '',
+        api_key: playgroundSettingsData?.api_key || '',
+        api_key_enabled: playgroundSettingsData?.api_key_enabled || false
+      };
+      
+      const result = await saveUserPlaygroundSettings(updatedSettings);
+      
+      // Обновляем только кэш моделей
+      if (availableModels) {
+        CacheUtils.updateCache(CACHE_KEYS.AVAILABLE_MODELS, {
+          models: availableModels,
+          defaultModelId: modelId
+        });
+      }
+      
+      setPlaygroundSettingsData(result);
+    } catch (error) {
+      console.error('Error saving model preference:', error);
+    }
+  };
 
   return (
     <div className="flex h-full">
@@ -364,6 +482,9 @@ export default function AssistantPage({
             connectedTools={connectedTools}
             onToolClick={() => {}}
             initialInput={initialInput}
+            availableModels={availableModels}
+            defaultModelId={defaultModelId}
+            onModelChange={handleModelChange}
           />
         ) : (
           <>
@@ -373,6 +494,19 @@ export default function AssistantPage({
                 messages={messages as Message[]}
                 isLoading={isLoading}
                 onSendMessage={async (message: string) => {
+                  if (lastSelectedModelId) {
+                    const messageId = `msg-${Date.now()}`;
+                    await createChatMessage({
+                      message_id: messageId,
+                      chat_id: currentChatIdRef.current || '',
+                      sender: 'user',
+                      message_text: message,
+                      metadata: { 
+                        selectedModelId: lastSelectedModelId 
+                      }
+                    });
+                  }
+                  
                   await append({
                     content: message,
                     role: 'user'
@@ -393,6 +527,9 @@ export default function AssistantPage({
                   onStop={stop}
                   userTools={userTools}
                   initialInput={initialInput}
+                  availableModels={availableModels}
+                  defaultModelId={defaultModelId}
+                  onModelChange={handleModelChange}
                 />
               </div>
             </div>

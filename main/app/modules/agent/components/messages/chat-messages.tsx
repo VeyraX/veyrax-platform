@@ -17,6 +17,7 @@ interface ExtendedMessage extends Message {
   current?: number;
   limit?: number | string;
   needsUpgrade?: boolean;
+  isPremiumLimitMessage?: boolean;
 }
 
 interface ChatMessagesProps {
@@ -139,6 +140,7 @@ export function ChatMessages({ messages, isLoading, onSendMessage, isInitialLoad
             (index === messages.length - 1 || messages[index + 1]?.role === 'user');
           const isLastMessage = index === messages.length - 1;
           const isLimitMessage = (message as ExtendedMessage).isLimitMessage;
+          const isPremiumLimitMessage = (message as ExtendedMessage).isPremiumLimitMessage;
           
           return (
             <div 

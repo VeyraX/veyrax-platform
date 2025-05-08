@@ -95,8 +95,6 @@ export async function POST(request: NextRequest) {
       credentials: 'include'
     });
 
-    console.log('headers', headers);
-
     if (!response.ok) {
       const errorText = await response.text();
       return NextResponse.json(
