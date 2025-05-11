@@ -52,6 +52,7 @@ export function FlowChatPanel({
               userTools={{}}
               className="max-w-none"
               placeholder="How can I help you with testing?"
+              showModelSelector={false}
             />
           </div>
         </div>

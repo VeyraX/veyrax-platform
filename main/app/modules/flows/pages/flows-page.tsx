@@ -64,14 +64,11 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
       
       const flowToolsMap = new Map()
       
-      // Сначала соберем все ID экшенов из всех потоков
       const allActionIds = flowActionsResults.flat()
-      
-      // Если есть хотя бы один экшен, получим детальную информацию обо всех сразу
+
       let actionDetailsMap = new Map()
       if (allActionIds.length > 0) {
         const actionDetails = await getActionsByIds(allActionIds)
-        // Создаем Map для быстрого доступа к деталям экшена по ID
         actionDetails.forEach(action => {
           actionDetailsMap.set(action.action_id, action)
         })
@@ -80,10 +77,9 @@ const FlowsPage: FC<FlowsPageProps> = ({ hideHeader = false }) => {
       flowActionsResults.forEach((actionIds, index) => {
         const flowId = flowIds[index]
         
-        // Используем экшены из actionDetailsMap вместо фильтрации по allActions
         const toolsUsed = actionIds
           .map(id => actionDetailsMap.get(id))
-          .filter(Boolean) // Удаляем undefined
+          .filter(Boolean)
         
         
         const uniqueProviders = new Map()

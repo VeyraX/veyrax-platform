@@ -166,6 +166,7 @@ export function ChatFlowCreator({
             isLoading={isLoading}
             onStop={handleStop}
             userTools={{}}
+            showModelSelector={false}
           />
         </div>
       </div>

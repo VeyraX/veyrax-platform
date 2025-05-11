@@ -32,6 +32,7 @@ interface AIInputWithSearchProps {
   onChange?: (value: string) => void;
   availableModels?: string[];
   defaultModelId?: ModelId;
+  showModelSelector?: boolean;
 }
 
 export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWithSearchProps>(({
@@ -53,6 +54,7 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
   onChange,
   availableModels,
   defaultModelId,
+  showModelSelector = true,
 }, ref) => {
   const [internalValue, setInternalValue] = useState(initialInput || "");
   const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -233,13 +235,16 @@ export const AIInputWithSearch = React.forwardRef<HTMLTextAreaElement, AIInputWi
                   />
                 </Button>
 
-                <div className="h-5 w-px bg-black/10 dark:bg-white/10" />
-
-                <ModelSelector 
-                  selectedModelId={selectedModelId}
-                  onModelSelect={handleModelSelect}
-                  availableModels={availableModels}
-                />
+                {showModelSelector && (
+                  <>
+                    <div className="h-5 w-px bg-black/10 dark:bg-white/10" />
+                    <ModelSelector 
+                      selectedModelId={selectedModelId}
+                      onModelSelect={handleModelSelect}
+                      availableModels={availableModels}
+                    />
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-3 mr-1">
