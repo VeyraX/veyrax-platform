@@ -10,8 +10,8 @@ import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { getIntegrationsData } from '../api/api.integrations'
 import { IntegrationCardProps } from '../api/types.integrations'
-import { getAllMcpRepositories, getGitHubRepoInfo, getUserMcpEnvironment } from '../api/api.integrations.mcp'
-import { McpDetails, GitHubRepoInfo, UserMcpEnvironment } from "../api/types.integrations.mcp"
+import { getAllMcpRepositoriesFormatted } from '../api/api.integrations.mcp'
+import { McpDetails, UserMcpEnvironment, GitHubRepoInfo } from "../api/types.integrations.mcp"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface IntegrationsMainPageProps {
@@ -73,32 +73,8 @@ const IntegrationsMainContent: FC<IntegrationsMainPageProps> = ({ isPublic = fal
   const fetchMcpRepositories = async () => {
     setMcpLoading(true)
     try {
-      const mcpData = await getAllMcpRepositories();
-      
-      const mcpDetailsWithInfo = await Promise.all(
-        mcpData.map(async (repo) => {
-          const repoInfo = (!repo.metadata?.stars && repo.repo_url) 
-            ? await getGitHubRepoInfo(repo.repo_url) 
-            : null;
-          
-          const userEnvironment = !isPublic ? await getUserMcpEnvironment(repo.id) : null;
-          
-          return {
-            mcpDetails: repo,
-            repoInfo,
-            userEnvironment,
-            isConnected: !!userEnvironment,
-          };
-        })
-      );
-      
-      const sortedMcpDetails = mcpDetailsWithInfo.sort((a, b) => {
-        const starsA = a.mcpDetails.metadata?.stars ? Number(a.mcpDetails.metadata.stars) : (a.repoInfo?.stars || 0);
-        const starsB = b.mcpDetails.metadata?.stars ? Number(b.mcpDetails.metadata.stars) : (b.repoInfo?.stars || 0);
-        return starsB - starsA;
-      });
-      
-      setMcpRepositories(sortedMcpDetails);
+      const mcpRepositories = await getAllMcpRepositoriesFormatted(isPublic);
+      setMcpRepositories(mcpRepositories);
     } catch (error) {
       console.error('Failed to fetch MCP repositories:', error);
     } finally {

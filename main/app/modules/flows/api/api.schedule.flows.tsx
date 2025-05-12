@@ -1,12 +1,18 @@
 import { createClient } from '@/lib/utils/supabase/client';
 import { FlowSchedule, UserFlowSchedule, UserFlowRun } from './types.flows';
 import { Client } from '@upstash/qstash';
+import { getCacheItem, setCacheItem, deleteCacheItem, CacheStore } from '@/lib/utils/index-db';
 
 const supabase = createClient();
 
 const qstash = new Client({ 
   token: process.env.QSTASH_TOKEN! 
 });
+
+const CACHE_KEYS = {
+  FLOW_SCHEDULES: 'flow_schedules',
+  FLOW_RUNS: 'flow_runs'
+};
 
 export const getFlowSchedule = async (flowId: string): Promise<FlowSchedule | null> => {
   try {
@@ -125,6 +131,12 @@ export const createOrUpdateFlowSchedule = async (flowId: string, schedule: FlowS
         throw insertError;
       }
     }
+
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.FLOW_SCHEDULES,
+      user.id
+    );
   } catch (error) {
     console.error('Error creating/updating flow schedule:', error);
     throw error;
@@ -133,6 +145,12 @@ export const createOrUpdateFlowSchedule = async (flowId: string, schedule: FlowS
 
 export const deleteFlowSchedule = async (flowId: string): Promise<void> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('Not authenticated');
+    }
+    
     const { data: existingSchedule, error: checkError } = await supabase
       .from('user_flow_schedules')
       .select('id, qstash_schedule_id')
@@ -159,6 +177,12 @@ export const deleteFlowSchedule = async (flowId: string): Promise<void> => {
       .eq('flow_id', flowId);
     
     if (error) throw error;
+
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.FLOW_SCHEDULES,
+      user.id
+    );
   } catch (error) {
     console.error('Error deleting flow schedule:', error);
     throw error;
@@ -171,6 +195,16 @@ export const getAllFlowSchedules = async (): Promise<UserFlowSchedule[]> => {
     
     if (!user) {
       throw new Error('Not authenticated');
+    }
+    
+    const cachedData = await getCacheItem<UserFlowSchedule[]>(
+      CacheStore.FLOWS,
+      CACHE_KEYS.FLOW_SCHEDULES,
+      user.id
+    );
+    
+    if (cachedData) {
+      return cachedData;
     }
     
     const { data, error } = await supabase
@@ -186,10 +220,19 @@ export const getAllFlowSchedules = async (): Promise<UserFlowSchedule[]> => {
     
     if (error) throw error;
     
-    return data?.map(item => ({
+    const result = data?.map(item => ({
       flow_id: item.flow_id,
       schedule: item.schedule
     })) || [];
+    
+    await setCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.FLOW_SCHEDULES,
+      user.id,
+      result
+    );
+    
+    return result;
   } catch (error) {
     console.error('Error fetching all flow schedules:', error);
     throw error;

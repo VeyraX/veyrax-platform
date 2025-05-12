@@ -1,45 +1,79 @@
+import { getCacheItem, setCacheItem, deleteCacheItem, CacheStore } from '@/lib/utils/index-db'
 import { createClient } from '@/lib/utils/supabase/client'
 import { IntegrationCardProps, Provider, ProviderDetails, ProviderEndpoint, DbConfig, UserDbAccess, ProviderAction, ProviderScope } from './types.integrations'
 
 const supabase = createClient()
 
+const CACHE_KEYS = {
+  INTEGRATIONS_DATA: 'integrations_data',
+  USER_CONNECTED_TOOLS: 'user_connected_tools',
+  TOP_CONNECTED_PROVIDERS: 'top_connected_providers'
+};
 
 export const getTopConnectedProviders = async (): Promise<{ provider_id: string, name: string, provider_tag: string, count_of_users: number }[]> => {
   try {
-    const { data, error } = await supabase.rpc('get_top_connected_providers');
+    const cachedData = await getCacheItem<{ provider_id: string, name: string, provider_tag: string, count_of_users: number }[]>(
+      CacheStore.INTEGRATIONS,
+      CACHE_KEYS.TOP_CONNECTED_PROVIDERS,
+      'global'
+    );
     
-    if (error) {
-      console.error('Error fetching top connected providers:', error);
+    if (cachedData) {
+      return cachedData;
+    }
+    
+    const response = await fetch('/api/integrations/top-providers');
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch top providers: ${response.status} ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result) {
       return [];
     }
     
-    return data || [];
+    await setCacheItem(
+      CacheStore.INTEGRATIONS,
+      CACHE_KEYS.TOP_CONNECTED_PROVIDERS,
+      'global',
+      result
+    );
+    
+    return result;
   } catch (error) {
-    console.error('Error in getTopConnectedProviders:', error);
     return [];
   }
 };
 
 export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => {
   try {
-    const { data: integrations, error } = await supabase
-      .from('providers')
-      .select(`
-        *,
-        provider_scopes (
-          id,
-          scope_id,
-          scope_name
-        )
-      `);
-    
-    if (error) {
-      console.error('Error fetching integrations:', error);
-      throw error;
-    }
-    
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id;
+    
+    if (userId) {
+      const cachedData = await getCacheItem<IntegrationCardProps[]>(
+        CacheStore.INTEGRATIONS,
+        CACHE_KEYS.INTEGRATIONS_DATA, 
+        userId
+      );
+      if (cachedData) {
+        return cachedData;
+      }
+    }
+    
+    const response = await fetch('/api/integrations/providers');
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch providers: ${response.status} ${response.statusText}`);
+    }
+    
+    const integrations = await response.json();
+    
+    if (!integrations) {
+      throw new Error('No integrations data returned from API');
+    }
     
     let userConnections: { provider_id: string }[] = [];
     if (userId) {
@@ -55,19 +89,19 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
     
     const topConnectedProviders = await getTopConnectedProviders();
     
-    let result: IntegrationCardProps[] = integrations.map((integration) => {
+    let result: IntegrationCardProps[] = integrations.map((integration: any) => {
       const connectedData = topConnectedProviders.find(
         provider => provider.provider_id === integration.id
       );
       
       const userCount = connectedData?.count_of_users || 0;
       
-      // Format scopes properly
-      const scopes = integration.provider_scopes?.map((scope: { id: string, scope_id: string, scope_name: string }) => ({
-        id: scope.id,
-        scope_id: scope.scope_id,
-        scope_name: scope.scope_name
-      })) || [];
+      const scopes = integration.provider_scopes ? 
+        integration.provider_scopes.map((scope: { id: string, scope_id: string, scope_name: string }) => ({
+          id: scope.id,
+          scope_id: scope.scope_id,
+          scope_name: scope.scope_name
+        })) : [];
       
       return {
         id: integration.id,
@@ -78,7 +112,7 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
         provider_tag: integration.provider_tag,
         auth_method: integration.auth_method,
         auth_schema: integration.auth_schema,
-        scopes: scopes, // Use properly formatted scopes
+        scopes: scopes,
         is_enabled: integration.is_enabled,
         connected: userConnections.some(conn => conn.provider_id === integration.id),
         hasIndex: false,
@@ -106,16 +140,25 @@ export const getIntegrationsData = async (): Promise<IntegrationCardProps[]> => 
       } as IntegrationCardProps);
     }
     
+    // Cache the result if user is logged in
+    if (userId) {
+      await setCacheItem(
+        CacheStore.INTEGRATIONS,
+        CACHE_KEYS.INTEGRATIONS_DATA, 
+        userId, 
+        result
+      );
+    }
+    
     return result;
   } catch (error) {
-    console.error('Error in getIntegrationsData:', error);
     throw error;
   }
 };
 
 export const enableProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
-
   const { data: { user } } = await supabase.auth.getUser();
+  
   try {
     const response = await fetch('/api/integrations/enable', {
       method: 'POST',
@@ -134,8 +177,11 @@ export const enableProvider = async (providerId: string, encrypted_api_key?: str
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to enable provider');
     }
+    
+    if (user?.id) {
+      await clearUserIntegrationCache(user.id);
+    }
   } catch (error) {
-    console.error('Error enabling provider:', error);
     throw error;
   }
 }
@@ -143,7 +189,7 @@ export const enableProvider = async (providerId: string, encrypted_api_key?: str
 export const enableDbAccessProvider = async (providerId: string, dbConfig: DbConfig, encrypted_api_key?: string, code?: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
-  try {
+  try {    
     const response = await fetch('/api/integrations/enable-db-access', {
       method: 'POST',
       headers: {
@@ -162,8 +208,11 @@ export const enableDbAccessProvider = async (providerId: string, dbConfig: DbCon
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to enable database access');
     }
+    
+    if (user?.id) {
+      await clearUserIntegrationCache(user.id);
+    }
   } catch (error) {
-    console.error('Error enabling DB access provider:', error);
     throw error;
   }
 }
@@ -194,7 +243,6 @@ export const getUserDbCredentials = async (providerId: string, user_id?: string)
     
     return credentials;
   } catch (error) {
-    console.error('Error parsing credentials:', error);
     return null;
   }
 }
@@ -258,13 +306,12 @@ export const disconnectWhatsAppProvider = async (providerId: string, encrypted_a
       throw new Error(errorData.error || 'Failed to disconnect WhatsApp provider');
     }
   } catch (error) {
-    console.error('Error disconnecting WhatsApp provider:', error);
     throw error;
   }
 }
 
 export const disconnectProvider = async (providerId: string, encrypted_api_key?: string, code?: string): Promise<void> => {
-    const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   try {
     const response = await fetch('/api/integrations/disconnect', {
@@ -284,8 +331,12 @@ export const disconnectProvider = async (providerId: string, encrypted_api_key?:
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to disconnect provider');
     }
+    
+    if (user?.id) {
+      await deleteCacheItem(CacheStore.INTEGRATIONS, CACHE_KEYS.INTEGRATIONS_DATA, user.id);
+      await deleteCacheItem(CacheStore.INTEGRATIONS, CACHE_KEYS.USER_CONNECTED_TOOLS, user.id);
+    }
   } catch (error) {
-    console.error('Error disconnecting provider:', error);
     throw error;
   }
 };
@@ -307,6 +358,12 @@ export const initiateOAuthFlow = async (
   });
   
   const { url } = await response.json();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id) {
+    await clearUserIntegrationCache(user.id);
+  }
+  
   return url;
 }
 
@@ -332,8 +389,11 @@ export const enableApiKeyProvider = async (providerId: string, apiKey: string, e
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to enable API key provider');
     }
+    
+    if (user?.id) {
+      await clearUserIntegrationCache(user.id);
+    }
   } catch (error) {
-    console.error('Error enabling API key provider:', error);
     throw error;
   }
 }
@@ -355,6 +415,20 @@ export const getUserApiKey = async (providerId: string): Promise<string | null> 
 export const getUserConnectedTools = async (): Promise<{ providerTag: string, logoUrl: string, isConnected: boolean }[]> => {
   const { data: { user } } = await supabase.auth.getUser()
   
+  if (!user?.id) {
+    return [];
+  }
+  
+  const cachedData = await getCacheItem<{ providerTag: string, logoUrl: string, isConnected: boolean }[]>(
+    CacheStore.INTEGRATIONS,
+    CACHE_KEYS.USER_CONNECTED_TOOLS, 
+    user.id
+  );
+  
+  if (cachedData) {
+    return cachedData;
+  }
+  
   type ProviderResponse = {
     providers: {
       provider_tag: string,
@@ -371,13 +445,22 @@ export const getUserConnectedTools = async (): Promise<{ providerTag: string, lo
   
   if (!userProviders?.length) return [];
   
-  return userProviders.map(up => {
+  const result = userProviders.map(up => {
     return {
       providerTag: up.providers.provider_tag,
       logoUrl: up.providers.logo_url,
       isConnected: true
     };
   }) || [];
+  
+  await setCacheItem(
+    CacheStore.INTEGRATIONS,
+    CACHE_KEYS.USER_CONNECTED_TOOLS, 
+    user.id, 
+    result
+  );
+  
+  return result;
 }
 
 export const getProviderDetails = async (providerTag: string): Promise<ProviderDetails> => {
@@ -396,17 +479,14 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     .single();
 
   if (error) {
-    console.error('Error fetching provider details:', error);
     throw error;
   }
 
-  // Convert provider scopes to ProviderScope format
   const scopes = provider.provider_scopes?.map((s: { scope_id: string, scope_name: string }) => ({
     scope_id: s.scope_id,
     scope_name: s.scope_name
   })) || [];
 
-  // Only fetch and process OAuth tokens if the provider uses OAuth and user is authenticated
   let userScopes: ProviderScope[] = [];
   if (provider.auth_method === 'oauth' && user?.id) {
     try {
@@ -421,7 +501,6 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
         ? scopes.filter((scope: ProviderScope) => oauthToken.scopes.includes(scope.scope_id))
         : [];
     } catch (error) {
-      console.error('Error fetching OAuth token:', error);
     }
   }
 
@@ -431,7 +510,6 @@ export const getProviderDetails = async (providerTag: string): Promise<ProviderD
     .eq('provider_id', provider.id);
 
   if (actionsError) {
-    console.error('Error fetching provider actions:', actionsError);
     throw actionsError;
   }
 
@@ -614,7 +692,6 @@ export const testDbConnection = async (providerId: string, dbConfig: DbConfig, e
     const result = await response.json();
     return result.data;
   } catch (error) {
-    console.error('Error testing database connection:', error);
     return { 
       success: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -634,7 +711,6 @@ export const getUserMemoryChunks = async (): Promise<any[]> => {
     
     return data || [];
   } catch (error) {
-    console.error('Error fetching memory chunks:', error);
     throw error;
   }
 };
@@ -656,7 +732,6 @@ export const addUserMemoryChunk = async (memory: string, tool: string): Promise<
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error adding memory chunk:', error);
     throw error;
   }
 };
@@ -675,7 +750,6 @@ export const updateUserMemoryChunk = async (chunkId: string, memory: string, too
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error updating memory chunk:', error);
     throw error;
   }
 };
@@ -691,7 +765,6 @@ export const deleteUserMemoryChunk = async (chunkId: string): Promise<void> => {
     
     if (error) throw error;
   } catch (error) {
-    console.error('Error deleting memory chunk:', error);
     throw error;
   }
 };
@@ -714,7 +787,6 @@ export const upsertIntegrationRequest = async (integrationName: string): Promise
     
     if (error) throw error;
   } catch (error) {
-    console.error('Error upserting integration request:', error);
     throw error;
   }
 };
@@ -742,8 +814,11 @@ export const enableApiKeyWithBaseProvider = async (providerId: string, apiKey: s
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to enable API key with base URL');
     }
+    
+    if (user?.id) {
+      await clearUserIntegrationCache(user.id);
+    }
   } catch (error) {
-    console.error('Error enabling API key with base URL:', error);
     throw error;
   }
 }
@@ -764,7 +839,6 @@ export const getProviderBaseUrl = async (providerId: string): Promise<string | n
     const rawData = JSON.parse(data.raw_data);
     return rawData.base_url || null;
   } catch (error) {
-    console.error('Error parsing raw_data:', error);
     return null;
   }
 }
@@ -803,7 +877,6 @@ export const getProviderCustomAuth = async (providerId: string): Promise<Record<
     
     return rawData;
   } catch (error) {
-    console.error('Error fetching custom auth data:', error);
     return null;
   }
 }
@@ -839,8 +912,11 @@ export const updateProviderCustomAuth = async (providerId: string, authData: Rec
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to update custom authentication');
     }
+    
+    if (userId) {
+      await clearUserIntegrationCache(userId);
+    }
   } catch (error) {
-    console.error('Error updating custom auth data:', error);
     throw error;
   }
 }
@@ -885,7 +961,6 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
     });
 
     if (!response.ok) {
-      console.error('API validation response not OK:', response.status, response.statusText);
       return { 
         valid: false, 
         message: `API validation failed: ${response.status} ${response.statusText}` 
@@ -899,7 +974,6 @@ export const validateCustomAuthSchema = async (providerId: string, authData: Rec
     };
 
   } catch (error) {
-    console.error('Error validating custom auth:', error);
     return { 
       valid: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
@@ -925,7 +999,6 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
     });
 
     if (!response.ok) {
-      console.error('API validation response not OK:', response.status, response.statusText);
       return { 
         valid: false, 
         message: `API validation failed: ${response.status} ${response.statusText}` 
@@ -939,7 +1012,6 @@ export const validateApiKey = async (providerId: string, apiKey: string, baseUrl
       message: data.message || 'API key validation completed'
     };
   } catch (error) {
-    console.error('Error validating API key:', error);
     return { 
       valid: false, 
       message: error instanceof Error ? error.message : 'Unknown error occurred during validation' 
@@ -1119,14 +1191,11 @@ export const enableWhatsapp = async (authData: any, encrypted_api_key?: string, 
     });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("WhatsApp enable error:", errorData.error || 'Failed to enable WhatsApp');
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error("Error enabling WhatsApp:", error);
     return false;
   }
 };
@@ -1167,7 +1236,6 @@ export const authenticateWhatsApp = async (encrypted_api_key?: string, code?: st
       encrypted_api_key: result.data?.encrypted_api_key
     };
   } catch (error) {
-    console.error('Error authenticating WhatsApp:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Failed to authenticate WhatsApp'
@@ -1210,7 +1278,6 @@ export const checkWhatsAppStatus = async (encrypted_api_key?: string, code?: str
       code: result.data?.code
     };
   } catch (error) {
-    console.error('Error checking WhatsApp status:', error);
     return {
       success: false,
       isLoggedIn: false,
@@ -1241,7 +1308,6 @@ export const rentApiKey = async (providerId: string, encrypted_api_key?: string,
       throw new Error(errorData.error || 'Failed to rent API key');
     }
   } catch (error) {
-    console.error('Error renting API key:', error);
     throw error;
   }
 };
@@ -1271,7 +1337,6 @@ export const checkUserHasRentedKey = async (providerId: string): Promise<boolean
     
     return true;
   } catch (error) {
-    console.error('Error checking rented key:', error);
     return false;
   }
 };
@@ -1305,7 +1370,6 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
       .single();
     
     if (error) {
-      console.error('Error fetching provider auth info:', error);
       return null;
     }
     
@@ -1322,7 +1386,14 @@ export const getProviderAuthInfo = async (providerTag: string): Promise<{
       scopes
     };
   } catch (error) {
-    console.error('Error in getProviderAuthInfo:', error);
     return null;
+  }
+};
+
+export const clearUserIntegrationCache = async (userId: string): Promise<void> => {
+  try {
+    const { clearUserStoreCache } = await import('@/lib/utils/index-db');
+    await clearUserStoreCache(CacheStore.INTEGRATIONS, userId);
+  } catch (error) {
   }
 };

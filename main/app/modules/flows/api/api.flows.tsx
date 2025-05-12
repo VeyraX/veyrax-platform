@@ -1,10 +1,21 @@
 import { createClient } from '@/lib/utils/supabase/client'
-import { ProviderAction, UserFlow, FlowStatus, CreateFlowRequest, UpdateFlowRequest } from './types.flows'
-import { extractTextFromHTML as originalExtractTextFromHTML } from '../components/flow-description-html'
+import { ProviderAction, UserFlow, FlowStatus, CreateFlowRequest, UpdateFlowRequest, FlowSchedule } from './types.flows'
 import { canUserCreateFlow } from '@/app/modules/settings/api/api.settings'
 import { toast } from 'sonner';
+import { getCacheItem, setCacheItem, deleteCacheItem, CacheStore } from '@/lib/utils/index-db'
 
 const supabase = createClient();
+
+const CACHE_KEYS = {
+  USER_FLOWS: 'user_flows',
+  USER_ACTIONS: 'user_actions',
+  FLOW_BY_ID: 'flow_by_id',
+  FLOW_ACTIONS: 'flow_actions',
+  PUBLIC_TEMPLATES: 'public_templates',
+  USER_TEMPLATES: 'user_templates',
+  FLOW_SCHEDULES: 'flow_schedules',
+  TEMPLATE_ACTIONS: 'template_actions'
+};
 
 export const getUserActions = async (): Promise<ProviderAction[]> => {
   try {
@@ -14,15 +25,34 @@ export const getUserActions = async (): Promise<ProviderAction[]> => {
       throw new Error('Not authenticated');
     }
     
+    const cachedData = await getCacheItem<ProviderAction[]>(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_ACTIONS,
+      user.id
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data, error } = await supabase
       .from('user_actions_view')
       .select('*')
       .eq('user_id', user.id);
     
     if (error) throw error;
+    
+    if (data) {
+      await setCacheItem(
+        CacheStore.FLOWS,
+        CACHE_KEYS.USER_ACTIONS,
+        user.id,
+        data
+      );
+    }
+    
     return data || [];
   } catch (error) {
-    console.error('Error fetching user actions:', error);
     throw error;
   }
 };
@@ -44,7 +74,6 @@ export const getActionsByProvider = async (providerId: string): Promise<Provider
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching actions by provider:', error);
     throw error;
   }
 };
@@ -66,7 +95,6 @@ export const improveFlowDescription = async (description: string): Promise<strin
     const data = await response.json();
     return data.completion || '';
   } catch (error) {
-    console.error('Error improving description:', error);
     throw error;
   }
 };
@@ -79,15 +107,34 @@ export const getUserFlows = async (): Promise<UserFlow[]> => {
       throw new Error('Not authenticated');
     }
     
+    const cachedData = await getCacheItem<UserFlow[]>(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data, error } = await supabase
       .from('user_flows')
       .select('*')
       .eq('user_id', user.id);
     
     if (error) throw error;
+    
+    if (data) {
+      await setCacheItem(
+        CacheStore.FLOWS,
+        CACHE_KEYS.USER_FLOWS,
+        user.id,
+        data
+      );
+    }
+    
     return data || [];
   } catch (error) {
-    console.error('Error fetching user flows:', error);
     throw error;
   }
 };
@@ -100,6 +147,17 @@ export const getFlowById = async (flowId: string): Promise<UserFlow> => {
       throw new Error('Not authenticated');
     }
     
+    const cacheKey = `${CACHE_KEYS.FLOW_BY_ID}:${flowId}`;
+    const cachedData = await getCacheItem<UserFlow>(
+      CacheStore.FLOWS,
+      cacheKey,
+      user.id
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data, error } = await supabase
       .from('user_flows')
       .select('*')
@@ -108,15 +166,35 @@ export const getFlowById = async (flowId: string): Promise<UserFlow> => {
       .single();
     
     if (error) throw error;
+    
+    if (data) {
+      await setCacheItem(
+        CacheStore.FLOWS,
+        cacheKey,
+        user.id,
+        data
+      );
+    }
+    
     return data;
   } catch (error) {
-    console.error('Error fetching flow by ID:', error);
     throw error;
   }
 };
 
 export const getPublicFlowById = async (flowId: string): Promise<UserFlow | null> => {
   try {
+    const cacheKey = `public_flow:${flowId}`;
+    const cachedData = await getCacheItem<UserFlow>(
+      CacheStore.FLOWS,
+      cacheKey,
+      'global'
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data, error } = await supabase
       .from('user_flows')
       .select('*')
@@ -125,28 +203,55 @@ export const getPublicFlowById = async (flowId: string): Promise<UserFlow | null
       .single();
     
     if (error) {
-      console.error('Error fetching public flow:', error);
       return null;
+    }
+    
+    if (data) {
+      await setCacheItem(
+        CacheStore.FLOWS,
+        cacheKey,
+        'global',
+        data
+      );
     }
     
     return data;
   } catch (error) {
-    console.error('Error fetching public flow:', error);
     return null;
   }
 };
 
 export const getFlowActions = async (flowId: string): Promise<string[]> => {
   try {
+    const cacheKey = `${CACHE_KEYS.FLOW_ACTIONS}:${flowId}`;
+    const cachedData = await getCacheItem<string[]>(
+      CacheStore.FLOWS,
+      cacheKey,
+      'global'
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data, error } = await supabase
       .from('flow_actions')
       .select('action_id')
       .eq('flow_id', flowId);
     
     if (error) throw error;
-    return data?.map(item => item.action_id) || [];
+    
+    const result = data?.map(item => item.action_id) || [];
+    
+    await setCacheItem(
+      CacheStore.FLOWS,
+      cacheKey,
+      'global',
+      result
+    );
+    
+    return result;
   } catch (error) {
-    console.error('Error fetching flow actions:', error);
     throw error;
   }
 };
@@ -173,7 +278,6 @@ export const getPublicFlowActions = async (flowId: string): Promise<string[]> =>
     if (error) throw error;
     return data?.map(item => item.action_id) || [];
   } catch (error) {
-    console.error('Error fetching public flow actions:', error);
     return [];
   }
 };
@@ -213,7 +317,6 @@ export const getActionsByIds = async (actionIds: string[]): Promise<any[]> => {
       };
     });
   } catch (error) {
-    console.error('Error fetching actions by IDs:', error);
     return [];
   }
 };
@@ -264,9 +367,14 @@ export const createFlow = async (flowRequest: CreateFlowRequest): Promise<string
       if (actionsError) throw actionsError;
     }
     
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
     return flowId;
   } catch (error) {
-    console.error('Error creating flow:', error);
     throw error;
   }
 };
@@ -316,9 +424,34 @@ export const updateFlow = async (flowData: UpdateFlowRequest): Promise<void> => 
         
         if (insertError) throw insertError;
       }
+      
+      await deleteCacheItem(
+        CacheStore.FLOWS,
+        `${CACHE_KEYS.FLOW_ACTIONS}:${flowData.id}`,
+        'global'
+      );
+    }
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      `${CACHE_KEYS.FLOW_BY_ID}:${flowData.id}`,
+      user.id
+    );
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
+    if (flowData.is_shared !== undefined) {
+      await deleteCacheItem(
+        CacheStore.FLOWS,
+        `public_flow:${flowData.id}`,
+        'global'
+      );
     }
   } catch (error) {
-    console.error('Error updating flow:', error);
     throw error;
   }
 };
@@ -345,8 +478,31 @@ export const deleteFlow = async (flowId: string): Promise<void> => {
       .eq('user_id', user.id);
     
     if (flowError) throw flowError;
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      `${CACHE_KEYS.FLOW_BY_ID}:${flowId}`,
+      user.id
+    );
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      `${CACHE_KEYS.FLOW_ACTIONS}:${flowId}`,
+      'global'
+    );
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      `public_flow:${flowId}`,
+      'global'
+    );
   } catch (error) {
-    console.error('Error deleting flow:', error);
     throw error;
   }
 };
@@ -375,7 +531,6 @@ export async function getProviderActionsForFlow(userId?: string) {
     if (error) throw error;
     return { data: data || [], error: null };
   } catch (error) {
-    console.error('Error fetching actions for flow:', error);
     return { data: [], error };
   }
 }
@@ -402,8 +557,33 @@ export const updateFlowStatus = async (flowId: string, status: FlowStatus): Prom
       .eq('user_id', user.id);
     
     if (error) throw error;
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      `${CACHE_KEYS.FLOW_BY_ID}:${flowId}`,
+      user.id
+    );
+    
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
+    const { data: flowData } = await supabase
+      .from('user_flows')
+      .select('is_shared')
+      .eq('id', flowId)
+      .single();
+      
+    if (flowData?.is_shared) {
+      await deleteCacheItem(
+        CacheStore.FLOWS,
+        `public_flow:${flowId}`,
+        'global'
+      );
+    }
   } catch (error) {
-    console.error('Error updating flow status:', error);
     throw error;
   }
 };
@@ -438,7 +618,6 @@ export const extractActionsFromHTML = (html: string, availableActions: ProviderA
     
     return Array.from(new Set(actionIds));
   } catch (error) {
-    console.error('Error extracting actions from HTML:', error);
     return [];
   }
 };
@@ -455,7 +634,6 @@ export const extractTextFromHTML = (html: string): string => {
     const text = doc.body.textContent || '';
     return text.trim();
   } catch (error) {
-    console.error('Error extracting text from HTML:', error);
     return '';
   }
 };
@@ -481,7 +659,6 @@ export const saveFlowWithExtractedActions = async (
     
     return await createFlow(createRequest);
   } catch (error) {
-    console.error('Error saving flow with extracted actions:', error);
     throw error;
   }
 };
@@ -508,7 +685,6 @@ export const updateFlowWithExtractedActions = async (
     
     await updateFlow(updateRequest);
   } catch (error) {
-    console.error('Error updating flow with extracted actions:', error);
     throw error;
   }
 };
@@ -521,7 +697,6 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
       throw new Error('Not authenticated');
     }
     
-    // 1. Fetch the flow to be cloned
     const { data: flowToClone, error: flowError } = await supabase
       .from('user_flows')
       .select('*')
@@ -530,7 +705,6 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     if (flowError) throw flowError;
     
-    // 2. Fetch actions associated with the flow
     const { data: flowActions, error: actionsError } = await supabase
       .from('flow_actions')
       .select('action_id')
@@ -540,7 +714,6 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
     
     const actionIds = flowActions?.map(item => item.action_id) || [];
     
-    // Create new flow as a copy
     const { data: newFlow, error: createError } = await supabase
       .from('user_flows')
       .insert({
@@ -570,25 +743,55 @@ export const cloneFlow = async (flowId: string): Promise<string> => {
       if (insertError) throw insertError;
     }
     
+    await deleteCacheItem(
+      CacheStore.FLOWS,
+      CACHE_KEYS.USER_FLOWS,
+      user.id
+    );
+    
     return newFlowId;
   } catch (error) {
-    console.error('Error cloning flow:', error);
     throw error;
   }
 };
 
 export const getPublicTemplates = async (): Promise<UserFlow[]> => {
   try {
-    const { data, error } = await supabase
-      .from('user_flows')
-      .select('*')
-      .eq('is_template', true)
-      .eq('is_shared', true);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (error) throw error;
+    let cachedData = null;
+    
+    if (user?.id) {
+      cachedData = await getCacheItem<UserFlow[]>(
+        CacheStore.FLOWS,
+        CACHE_KEYS.USER_TEMPLATES,
+        user.id
+      );
+      
+      if (cachedData) {
+        return cachedData;
+      }
+    }
+    
+    const response = await fetch('/api/flow/public-templates');
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch public templates: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (user?.id && data && data.length > 0) {
+      await setCacheItem(
+        CacheStore.FLOWS,
+        CACHE_KEYS.USER_TEMPLATES,
+        user.id,
+        data
+      );
+    }
+    
     return data || [];
   } catch (error) {
-    console.error('Error fetching public templates:', error);
     throw error;
   }
 };
@@ -609,13 +812,23 @@ export const getTemplateById = async (flowId: string): Promise<UserFlow | null> 
     }
     return data;
   } catch (error) {
-    console.error('Error fetching template:', error);
     return null;
   }
 };
 
 export const getTemplateActions = async (templateId: string): Promise<ProviderAction[]> => {
   try {
+    const cacheKey = `${CACHE_KEYS.TEMPLATE_ACTIONS}:${templateId}`;
+    const cachedData = await getCacheItem<ProviderAction[]>(
+      CacheStore.FLOWS,
+      cacheKey,
+      'global'
+    );
+    
+    if (cachedData) {
+      return cachedData;
+    }
+    
     const { data: templateData, error: templateError } = await supabase
       .from('user_flows')
       .select('is_template, is_shared')
@@ -661,7 +874,7 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
     
     if (providersError) throw providersError;
     
-    return (actions || []).map(action => {
+    const result = (actions || []).map(action => {
       const provider = providersData?.find(p => p.id === action.provider_id) || { name: '', logo_url: '' };
       return {
         action_id: action.id,
@@ -673,8 +886,16 @@ export const getTemplateActions = async (templateId: string): Promise<ProviderAc
         user_id: ''
       };
     });
+    
+    await setCacheItem(
+      CacheStore.FLOWS,
+      cacheKey,
+      'global',
+      result
+    );
+    
+    return result;
   } catch (error) {
-    console.error('Error fetching template actions:', error);
     return [];
   }
 };

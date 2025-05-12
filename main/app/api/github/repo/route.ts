@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Create a simple in-memory cache
 const CACHE = new Map<string, { data: any, timestamp: number }>();
-const CACHE_TTL = 24 * 3600 * 1000; // 24 hours in milliseconds
+const CACHE_TTL = 24 * 3600 * 1000;
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,12 +11,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid GitHub repository URL' }, { status: 400 });
     }
     
-    // Check if we have a cached response
     if (CACHE.has(repoUrl)) {
       const cached = CACHE.get(repoUrl)!;
       const now = Date.now();
       
-      // If cache is still valid, return cached data
       if (now - cached.timestamp < CACHE_TTL) {
         const response = NextResponse.json(cached.data);
         response.headers.set('X-Cache', 'HIT');
@@ -68,7 +65,6 @@ export async function POST(request: NextRequest) {
       } : undefined
     };
     
-    // Cache the data
     CACHE.set(repoUrl, { data: repoData, timestamp: Date.now() });
 
     const nextResponse = NextResponse.json(repoData);

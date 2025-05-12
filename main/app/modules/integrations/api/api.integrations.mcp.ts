@@ -1,30 +1,33 @@
 import { McpDetails, McpDeployment, GitHubRepoInfo, UserMcpEnvironment } from './types.integrations.mcp';
 import { createClient } from '@/lib/utils/supabase/client';
+import { getCacheItem, setCacheItem, deleteCacheItem, CacheStore, clearUserStoreCache } from '@/lib/utils/index-db';
 
 const supabase = createClient();
 
-const githubRepoCache = new Map<string, { data: GitHubRepoInfo | null, timestamp: number }>();
-const CACHE_TTL = 24 * 3600 * 1000;
-
-const pendingRequests = new Map<string, Promise<GitHubRepoInfo | null>>();
+const CACHE_KEYS = {
+  MCP_REPOSITORIES: 'mcp_repositories',
+};
 
 export const getAllMcpRepositories = async (): Promise<McpDetails[]> => {
   try {
-    const { data, error } = await supabase
-      .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, metadata, created_at, author_user_id, last_commit_hash')
-      .eq('is_approved', true)
-      .order('created_at', { ascending: false });
+    const response = await fetch('/api/integrations/mcp/repositories')
     
-    if (error || !data) {
-      // Silently handle errors
-      return [];
+    if (!response.ok) {
+      console.error(`Error fetching MCP repositories: ${response.status}`)
+      return []
     }
     
-    return data as McpDetails[];
+    const data = await response.json()
+    
+    if (!Array.isArray(data)) {
+      console.error('Invalid response format from MCP repositories API')
+      return []
+    }
+    
+    return data as McpDetails[]
   } catch (error) {
-    // Silently catch any errors
-    return [];
+    console.error('Error in getAllMcpRepositories:', error)
+    return []
   }
 };
 
@@ -36,18 +39,15 @@ export const getMcpDetailsByImageName = async (imageName: string): Promise<McpDe
       .eq('image_name', imageName);
     
     if (error) {
-      // Silently handle errors
       return null;
     }
     
     if (!data || data.length === 0) {
-      // Silently handle missing data
       return null;
     }
     
     return data[0] as McpDetails;
   } catch (error) {
-    // Silently catch any errors
     return null;
   }
 };
@@ -61,13 +61,11 @@ export const getMcpDeployments = async (repoId: string): Promise<McpDeployment[]
       .order('created_at', { ascending: false });
 
     if (error || !data) {
-      // Silently handle errors
       return [];
     }
 
     return data as McpDeployment[];
   } catch (error) {
-    // Silently catch any errors
     return [];
   }
 };
@@ -81,13 +79,11 @@ export const getMcpDeploymentById = async (deploymentId: string): Promise<McpDep
       .single();
 
     if (error || !data) {
-      // Silently handle errors
       return null;
     }
 
     return data as McpDeployment;
   } catch (error) {
-    // Silently catch any errors
     return null;
   }
 };
@@ -98,65 +94,21 @@ export const getGitHubRepoInfo = async (repoUrl: string): Promise<GitHubRepoInfo
       return null;
     }
     
-    const url = new URL(repoUrl);
-    const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+    const response = await fetch('/api/integrations/mcp/github-repo-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ repoUrl })
+    });
     
-    if (pathSegments.length < 2) {
+    if (!response.ok) {
       return null;
     }
     
-    const owner = pathSegments[0];
-    const repo = pathSegments[1];
-    
-    const normalizedUrl = `https://github.com/${owner}/${repo}`;
-    
-    if (githubRepoCache.has(normalizedUrl)) {
-      const cached = githubRepoCache.get(normalizedUrl)!;
-      const now = Date.now();
-      
-      if (now - cached.timestamp < CACHE_TTL) {
-        return cached.data;
-      }
-    }
-    
-    if (pendingRequests.has(normalizedUrl)) {
-      return pendingRequests.get(normalizedUrl)!;
-    }
-    
-    const requestPromise = (async () => {
-      try {
-        const response = await fetch('/api/github/repo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ repoUrl: normalizedUrl })
-        });
-        
-        if (!response.ok) {
-          return null;
-        }
-        
-        const data = await response.json();
-        
-        githubRepoCache.set(normalizedUrl, { 
-          data: data as GitHubRepoInfo, 
-          timestamp: Date.now() 
-        });
-        
-        return data as GitHubRepoInfo;
-      } catch (error) {
-        return null;
-      } finally {
-        pendingRequests.delete(normalizedUrl);
-      }
-    })();
-    
-    pendingRequests.set(normalizedUrl, requestPromise);
-    
-    return requestPromise;
+    const data = await response.json();
+    return data as GitHubRepoInfo;
   } catch (error) {
-    console.error("Error parsing GitHub URL:", error);
     return null;
   }
 };
@@ -177,13 +129,11 @@ export const getUserMcpEnvironment = async (repositoryId: string): Promise<UserM
       .single();
     
     if (error) {
-      // Silently handle errors including 406 Not Acceptable
       return null;
     }
     
     return data as UserMcpEnvironment;
   } catch (error) {
-    // Silently catch any errors
     return null;
   }
 };
@@ -203,13 +153,13 @@ export const disconnectUserMcp = async (repositoryId: string): Promise<boolean> 
       .eq('repo_id', repositoryId);
     
     if (error) {
-      // Silently handle errors
       return false;
     }
     
+    await clearUserStoreCache(CacheStore.INTEGRATIONS, user.id);
+    
     return true;
   } catch (error) {
-    // Silently catch any errors
     return false;
   }
 };
@@ -305,6 +255,10 @@ export const enableMcpIntegration = async (
       }
     }
     
+    if (user?.id) {
+      await clearUserStoreCache(CacheStore.INTEGRATIONS, user.id);
+    }
+    
     return true;
   } catch (error) {
     console.error('Error enabling MCP integration:', error);
@@ -314,33 +268,29 @@ export const enableMcpIntegration = async (
 
 export const getSingleMcpRepositoryData = async (repositoryId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('mcp_repositories')
-      .select('id, image_name, repo_url, name, description, input_schema, env, metadata, created_at, author_user_id, last_commit_hash')
-      .eq('id', repositoryId)
-      .single();
+    const response = await fetch('/api/integrations/mcp/single-repository', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ repositoryId })
+    })
     
-    if (error || !data) {
-      console.error('Error fetching single MCP repository:', error);
-      return null;
+    if (!response.ok) {
+      console.error(`Error fetching single MCP repository: ${response.status}`)
+      return null
     }
     
-    const mcpDetails = data as McpDetails;
+    const result = await response.json()
     
-    const repoInfo = (!mcpDetails.metadata?.stars && mcpDetails.repo_url) ? 
-      await getGitHubRepoInfo(mcpDetails.repo_url) : null;
+    const userEnvironment = await getUserMcpEnvironment(repositoryId)
+    result.userEnvironment = userEnvironment
+    result.isConnected = !!userEnvironment
     
-    const userEnvironment = await getUserMcpEnvironment(repositoryId);
-    
-    return {
-      mcpDetails,
-      repoInfo,
-      userEnvironment,
-      isConnected: !!userEnvironment
-    };
+    return result
   } catch (error) {
-    console.error('Error fetching single MCP repository data:', error);
-    return null;
+    console.error('Error fetching single MCP repository data:', error)
+    return null
   }
 };
 
@@ -367,5 +317,103 @@ export const getUserApiKey = async (): Promise<string | null> => {
   } catch (error) {
     console.error('Error fetching user API key:', error);
     return null;
+  }
+};
+
+export const getAllMcpRepositoriesFormatted = async (isPublic = false): Promise<Array<{
+  mcpDetails: McpDetails;
+  repoInfo: GitHubRepoInfo | null;
+  userEnvironment: UserMcpEnvironment | null;
+  isConnected: boolean;
+}>> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    
+    if (!isPublic && userId) {
+      const cachedData = await getCacheItem<Array<{
+        mcpDetails: McpDetails;
+        repoInfo: GitHubRepoInfo | null;
+        userEnvironment: UserMcpEnvironment | null;
+        isConnected: boolean;
+      }>>(
+        CacheStore.INTEGRATIONS,
+        CACHE_KEYS.MCP_REPOSITORIES, 
+        userId
+      );
+      
+      if (cachedData) {
+        return cachedData;
+      }
+    }
+    
+    const response = await fetch('/api/integrations/mcp/repositories')
+    
+    if (!response.ok) {
+      return []
+    }
+    
+    const mcpData = await response.json()
+    
+    if (!Array.isArray(mcpData)) {
+      return []
+    }
+    
+    let userConnections: Record<string, UserMcpEnvironment> = {};
+    
+    if (!isPublic) {
+      try {
+        if (userId) {
+          const { data } = await supabase
+            .from('users_mcp')
+            .select('*')
+            .eq('user_id', userId);
+            
+          if (data && data.length > 0) {
+            userConnections = data.reduce((acc, connection) => {
+              acc[connection.repo_id] = connection;
+              return acc;
+            }, {} as Record<string, UserMcpEnvironment>);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user MCP connections:', error);
+      }
+    }
+    
+    const formattedRepositories = mcpData.map((repo: McpDetails) => {
+      const stars = repo.metadata?.stars ? Number(repo.metadata.stars) : 0;
+      
+      const repoInfo: GitHubRepoInfo | null = stars ? {
+        stars,
+        forks: 0,
+        created_at: repo.created_at,
+        updated_at: repo.created_at,
+        owner: '',
+        name: repo.name
+      } : null;
+      
+      return {
+        mcpDetails: repo,
+        repoInfo,
+        userEnvironment: userConnections[repo.id] || null,
+        isConnected: !!userConnections[repo.id]
+      };
+    });
+    
+    const result = formattedRepositories.sort((a, b) => (b.repoInfo?.stars || 0) - (a.repoInfo?.stars || 0));
+    
+    if (!isPublic && userId) {
+      await setCacheItem(
+        CacheStore.INTEGRATIONS,
+        CACHE_KEYS.MCP_REPOSITORIES, 
+        userId, 
+        result
+      );
+    }
+    
+    return result;
+  } catch (error) {
+    return [];
   }
 };
