@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CacheUtils } from '@/lib/utils/cache-utils';
+import { clearAllUserCache } from '@/lib/utils/index-db';
+import { createClient } from '@/lib/utils/supabase/client';
 
 type SessionStatus = 'loading' | 'success' | 'not_found' | 'error';
 
@@ -37,7 +38,11 @@ export default function PaymentSuccess() {
           return;
         }
         
-        CacheUtils.invalidateAllCaches();
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          await clearAllUserCache(user.id);
+        }
         
         setStatus('success');
       } catch (error) {

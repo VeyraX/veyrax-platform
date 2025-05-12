@@ -14,7 +14,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PlaygroundSettings from "../components/playground-settings"
 import { ModelId } from "../../agent/components/api/models"
 import { toast } from "sonner"
-import { CacheUtils, CACHE_KEYS } from "@/lib/utils/cache-utils"
+import { setCacheItem, deleteCacheItem, CacheStore } from "@/lib/utils/index-db"
+import { createClient } from '@/lib/utils/supabase/client';
 
 interface AccountSettingsDialogProps {
   open: boolean
@@ -191,7 +192,10 @@ export function AccountSettingsDialog({
          data.provider !== playgroundSettings.api_key_provider_name);
       
       if (playgroundSettings?.api_key_enabled && !data.apiKeyEnabled) {
-        CacheUtils.invalidateCache(CACHE_KEYS.AVAILABLE_MODELS);
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || 'anonymous';
+        await deleteCacheItem(CacheStore.AVAILABLE_MODELS, 'availableModels', userId);
       }
       
       const result = await saveUserPlaygroundSettings({
@@ -210,9 +214,13 @@ export function AccountSettingsDialog({
             getUserAvailableModels({
               api_key_enabled: data.apiKeyEnabled,
               api_key_provider_name: data.provider
-            }).then(newModelsData => {
+            }).then(async newModelsData => {
               setAvailableModels(newModelsData);
-              CacheUtils.updateCache(CACHE_KEYS.AVAILABLE_MODELS, newModelsData);
+              
+              const supabase = createClient();
+              const { data: { user } } = await supabase.auth.getUser();
+              const userId = user?.id || 'anonymous';
+              await setCacheItem(CacheStore.AVAILABLE_MODELS, 'availableModels', userId, newModelsData);
               
               if (result.ai_model && newModelsData.models.length > 0 && 
                   !newModelsData.models.includes(result.ai_model as string)) {

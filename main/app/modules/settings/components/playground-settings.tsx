@@ -14,7 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { validateApiKey } from "../api/api.settings";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { CacheUtils, CACHE_KEYS } from "@/lib/utils/cache-utils";
+import { setCacheItem, CacheStore } from "@/lib/utils/index-db";
+import { createClient } from '@/lib/utils/supabase/client';
 
 interface PlaygroundSettingsProps {
   playgroundSettings: UserPlaygroundSettings | null;
@@ -84,11 +85,15 @@ function PlaygroundSettings({
     apiKeyEnabled
   ]);
 
-  const handleModelSelect = (modelId: ModelId) => {
+  const handleModelSelect = async (modelId: ModelId) => {
     setSelectedModelId(modelId);
     
     if (availableModels) {
-      CacheUtils.updateCache(CACHE_KEYS.AVAILABLE_MODELS, {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || 'anonymous';
+      
+      await setCacheItem(CacheStore.AVAILABLE_MODELS, 'availableModels', userId, {
         models: availableModels.models,
         isPremiumAllowed: availableModels.isPremiumAllowed,
         defaultModelId: modelId

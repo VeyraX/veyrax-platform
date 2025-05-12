@@ -19,7 +19,8 @@ import { updateChatTitle } from "../api/api.agent";
 import { getAvailableModels } from "../api/api.agent";
 import { getUserPlaygroundSettings, saveUserPlaygroundSettings } from "../../settings/api/api.settings";
 import { ModelId } from "../components/api/models";
-import { CacheUtils, CACHE_KEYS } from "@/lib/utils/cache-utils";
+import { setCacheItem, getCacheItem, deleteCacheItem, clearUserStoreCache, CacheStore } from "@/lib/utils/index-db";
+import { createClient } from '@/lib/utils/supabase/client';
 
 export default function AssistantPage({
   params
@@ -285,18 +286,34 @@ export default function AssistantPage({
     const fetchData = async () => {
       try {
         setIsLoadingModels(true);
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || 'anonymous';
         
-        const [toolsData, connectedData, modelsData] = await Promise.all([
-          CacheUtils.getUserTools(() => getUserToolsClient()),
-          CacheUtils.getConnectedTools(() => getUserConnectedTools()),
-          CacheUtils.getAvailableModels(() => getAvailableModels())
-        ]);
+        let toolsData = await getCacheItem<Record<string, any>>(CacheStore.USER_TOOLS, 'userTools', userId);
+        let connectedData = await getCacheItem<{ providerTag: string, logoUrl: string, isConnected: boolean }[]>(CacheStore.CONNECTED_TOOLS, 'connectedTools', userId);
+        let modelsData = await getCacheItem<{models: string[]}>(CacheStore.AVAILABLE_MODELS, 'availableModels', userId);
+        
+        if (!toolsData) {
+          toolsData = await getUserToolsClient();
+          await setCacheItem(CacheStore.USER_TOOLS, 'userTools', userId, toolsData);
+        }
+        
+        if (!connectedData) {
+          connectedData = await getUserConnectedTools();
+          await setCacheItem(CacheStore.CONNECTED_TOOLS, 'connectedTools', userId, connectedData);
+        }
+        
+        if (!modelsData) {
+          modelsData = await getAvailableModels();
+          await setCacheItem(CacheStore.AVAILABLE_MODELS, 'availableModels', userId, modelsData);
+        }
         
         const playgroundSettings = await getUserPlaygroundSettings();
         
-        setUserTools(toolsData);
-        setConnectedTools(connectedData);
-        setAvailableModels(modelsData.models);
+        setUserTools(toolsData || {});
+        setConnectedTools(connectedData || []);
+        setAvailableModels(modelsData?.models || []);
         setPlaygroundSettingsData(playgroundSettings);
         
         if (playgroundSettings?.ai_model) {
@@ -440,9 +457,12 @@ export default function AssistantPage({
       
       const result = await saveUserPlaygroundSettings(updatedSettings);
       
-      // Обновляем только кэш моделей
       if (availableModels) {
-        CacheUtils.updateCache(CACHE_KEYS.AVAILABLE_MODELS, {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || 'anonymous';
+        
+        await setCacheItem(CacheStore.AVAILABLE_MODELS, 'availableModels', userId, {
           models: availableModels,
           defaultModelId: modelId
         });

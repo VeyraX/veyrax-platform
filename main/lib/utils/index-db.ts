@@ -7,7 +7,10 @@ export enum CacheStore {
   MCP = 'mcpCache',
   AGENTS = 'agentsCache',
   FLOWS = 'flowsCache',
-  USER_DATA = 'userDataCache'
+  USER_DATA = 'userDataCache',
+  AVAILABLE_MODELS = 'availableModelsCache',
+  USER_TOOLS = 'userToolsCache',
+  CONNECTED_TOOLS = 'connectedToolsCache'
 }
 
 interface CacheItem<T> {
@@ -22,7 +25,10 @@ const storeConfigs = {
   [CacheStore.MCP]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
   [CacheStore.AGENTS]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
   [CacheStore.FLOWS]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
-  [CacheStore.USER_DATA]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] }
+  [CacheStore.USER_DATA]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
+  [CacheStore.AVAILABLE_MODELS]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
+  [CacheStore.USER_TOOLS]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] },
+  [CacheStore.CONNECTED_TOOLS]: { keyPath: 'cacheKey', indexes: ['userId', 'expiresAt'] }
 };
 
 const initDB = (): Promise<IDBDatabase> => {
