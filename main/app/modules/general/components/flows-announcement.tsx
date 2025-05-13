@@ -13,7 +13,7 @@ export function FlowsAnnouncement() {
   const router = useRouter();
 
   useEffect(() => {
-    const isAnnouncementClosed = localStorage.getItem('feature_deploy_announcement_closed');
+    const isAnnouncementClosed = localStorage.getItem('feature_choose_model_announcement_closed');
     if (!isAnnouncementClosed) {
       setIsVisible(true);
     }
@@ -22,7 +22,7 @@ export function FlowsAnnouncement() {
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsVisible(false);
-    localStorage.setItem('feature_deploy_announcement_closed', 'true');
+    localStorage.setItem('feature_choose_model_announcement_closed', 'true');
   };
 
   if (!isVisible || state === 'collapsed') return null;
@@ -31,7 +31,7 @@ export function FlowsAnnouncement() {
     <Card 
       className="mx-3 mb-2 relative cursor-pointer group shadow-none border"
       style={{ maxWidth: '240px' }}
-      onClick={() => router.push('/integrations?tab=mcps')}
+      onClick={() => router.push('/agent/new')}
     >
       <Button
         variant="ghost"
@@ -43,9 +43,9 @@ export function FlowsAnnouncement() {
       </Button>
 
       <div className="p-3">
-        <h4 className="text-sm font-medium mb-1">Connect any MCP</h4>
+        <h4 className="text-sm font-medium mb-1">Choose LLM Provider</h4>
         <p className="text-xs text-muted-foreground leading-snug mb-2">
-         You can now deploy and connect any MCP to your VeyraX account.
+         You can now choose your LLM provider for your flows.
         </p>
         <p className="text-xs font-medium text-primary hover:opacity-80 transition-opacity">
           Learn more
