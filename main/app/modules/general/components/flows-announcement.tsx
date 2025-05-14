@@ -45,7 +45,7 @@ export function FlowsAnnouncement() {
       <div className="p-3">
         <h4 className="text-sm font-medium mb-1">Choose LLM Provider</h4>
         <p className="text-xs text-muted-foreground leading-snug mb-2">
-         You can now choose your LLM provider for your flows.
+         You can now choose your LLM provider for playground.
         </p>
         <p className="text-xs font-medium text-primary hover:opacity-80 transition-opacity">
           Learn more
