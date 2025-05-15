@@ -98,6 +98,7 @@ from mcp_deployment.route import router as mcp_deployment_router
 from integrations.yelp.route import router as yelp_router
 from integrations.facebook.route import router as facebook_router
 from integrations.instagram.route import router as instagram_router
+from fild.route import router as fild_router
 from mcp_deployment.queries import get_user_connected_mcp_actions, get_user_mcp_image_names
 from service import ToolsService
 import os
@@ -347,6 +348,7 @@ app.include_router(debug_router)
 app.include_router(flow_router)
 app.include_router(agent_router)
 app.include_router(mcp_deployment_router)
+app.include_router(fild_router)
 #app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
