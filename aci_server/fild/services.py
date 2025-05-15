@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional, Union, Iterable
 import re
 import logging
 from agents import Runner
+from .queries import get_sheet_by_id, update_sheet_data
 
 def setup_openrouter_client():
     try:
@@ -99,3 +100,103 @@ def format_payload(result: Any) -> List[Dict[str, Any]]:
         sequence_payload.append(step_info)
     
     return sequence_payload
+
+async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None, 
+                    row_range: Dict[str, int] = None, column_ids: List[int] = None) -> Dict[str, Any]:
+    try:
+        if not row_indexes and not row_range:
+            return {
+                "success": False,
+                "message": "Either row_indexes or row_range must be provided",
+                "error": "Missing row selection"
+            }
+            
+        if not column_ids:
+            return {
+                "success": False,
+                "message": "column_ids must be provided",
+                "error": "Missing column selection"
+            }
+        
+        sheets = get_sheet_by_id(sheet_id)
+        if not sheets:
+            return {
+                "success": False,
+                "message": f"Sheet {sheet_id} not found",
+                "error": "Sheet not found"
+            }
+        
+        sheet = sheets[0]
+        sheet_data = sheet.get("data", {})
+        
+        target_indexes = set()
+        if row_indexes:
+            target_indexes.update(row_indexes)
+        
+        if row_range:
+            for i in range(row_range["from"], row_range["to"] + 1):
+                target_indexes.add(i)
+        
+        cells_to_process = []
+        for item in sheet_data.get("data", []):
+            if item["index"] in target_indexes:
+                for col_id in column_ids:
+                    col_id_str = str(col_id)
+                    if col_id_str in item["values"]:
+                        cells_to_process.append({
+                            "row_index": item["index"],
+                            "column_id": col_id,
+                            "current_value": item["values"][col_id_str] 
+                            if not isinstance(item["values"][col_id_str], dict) else None
+                        })
+                        
+                        item["values"][col_id_str] = {"status": "queue"}
+        
+        if not cells_to_process:
+            return {
+                "success": False,
+                "message": "No valid cells found for processing",
+                "error": "No cells to process"
+            }
+        
+        update_success = update_sheet_data(sheet_id, sheet_data)
+        if not update_success:
+            return {
+                "success": False,
+                "message": "Failed to update sheet with processing status",
+                "error": "Database update error"
+            }
+        
+        from .tasks import process_cell
+        
+        task_ids = []
+        for cell in cells_to_process:
+            task = process_cell.delay(
+                sheet_id=sheet_id,
+                row_index=cell["row_index"],
+                column_id=cell["column_id"],
+                query=query,
+                current_value=cell["current_value"]
+            )
+            task_ids.append(task.id)
+        
+        return {
+            "success": True,
+            "message": f"Started waterfall process for {len(cells_to_process)} cells",
+            "process_details": {
+                "sheet_id": sheet_id,
+                "query": query,
+                "total_cells": len(cells_to_process),
+                "row_indexes": list(target_indexes),
+                "column_ids": column_ids,
+                "task_ids": task_ids
+            }
+        }
+    
+    except Exception as e:
+        logging.exception(f"Error in run_waterfall: {str(e)}")
+        return {
+            "success": False,
+            "message": f"Error running waterfall process: {str(e)}",
+            "error": str(e)
+        }
