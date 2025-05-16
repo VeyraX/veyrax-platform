@@ -5,6 +5,7 @@ from .agent import run_agent
 from .services import run_waterfall
 import logging
 import traceback
+from integrations.common.auth import get_user_from_request
 
 router = APIRouter(tags=["fild"], prefix="/fild")
 
@@ -26,6 +27,9 @@ async def perform_web_search(request: AgentRequest) -> Dict[str, Any]:
 @router.post("/run-waterfall", response_model=WaterfallResponse)
 async def perform_waterfall(request: WaterfallRequest) -> Dict[str, Any]:
     try:
+        user_id = await get_user_from_request(request)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Unauthorized")
         result = await run_waterfall(
             sheet_id=request.sheet_id,
             query=request.query, 

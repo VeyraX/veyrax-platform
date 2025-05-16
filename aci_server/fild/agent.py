@@ -7,7 +7,6 @@ from .services import setup_openrouter_client, format_payload
 from .prompts import AGENT_PROMPT, WEB_SEARCH_PROMPT
 import logging
 
-
 def create_agent() -> Agent:
     try:
         setup_openrouter_client()
@@ -33,16 +32,21 @@ async def run_agent(query: str) -> Dict[str, Any]:
         
         sequence_payload = format_payload(result)
         
+        output = result.final_output
+        
         return {
             "query": query,
-            "result": result.final_output,
+            "result": output,
             "success": True,
             "payload": sequence_payload
         }
     except Exception as e:
+        logging.exception(f"Error in run_agent: {e}")
         return {
             "query": query,
             "result": f"Unable to process this request due to an error: {str(e)}. The system is currently experiencing technical difficulties.",
             "success": False,
-            "payload": []
+            "payload": [],
+            "reasoning": None,
+            "extracted_values": None
         }

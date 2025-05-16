@@ -5,15 +5,15 @@ from typing import Dict, Any, List, Optional, Union
 class AgentRequest(BaseModel):
     query: str
 
+class ExtractedValue(BaseModel):
+    value: str
+    reasoning: str
+
 class AgentResponse(BaseModel):
     query: str
     result: str
     success: bool
     payload: Optional[List[Dict[str, Any]]] = None
-
-class WaterfallRowRange(BaseModel):
-    from_: int = None 
-    to: int = None
 
 class WaterfallRequest(BaseModel):
     sheet_id: str

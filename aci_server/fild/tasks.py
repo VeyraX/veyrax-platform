@@ -5,9 +5,10 @@ from .queries import update_cell_status, update_cell_value, get_sheet_by_id
 import asyncio
 from .agent import run_agent
 import json
+from .services import extract_data
 
 @shared_task(name="process_cell")
-def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None) -> Dict[str, Any]:
+def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None, all_columns: Optional[Dict] = None) -> Dict[str, Any]:
     try:
         update_cell_status(
             sheet_id=sheet_id,
@@ -23,12 +24,29 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         else:
             current_value_str = str(current_value)
         
+        columns_info = ""
+        if all_columns:
+            columns_info = "All Sheet Columns:\n"
+            for col in all_columns:
+                columns_info += f"        Column ID: {col['id']}, Name: {col['column']}, Type: {col['columnType']}\n"
+        
+        human_readable_row = {}
+        if full_row_data and all_columns and "values" in full_row_data:
+            for col in all_columns:
+                col_id_str = str(col["id"])
+                if col_id_str in full_row_data["values"]:
+                    human_readable_row[col["column"]] = full_row_data["values"][col_id_str]
+        
+        row_data_str = json.dumps(full_row_data) if not human_readable_row else json.dumps(human_readable_row)
+        
         prompt = f"""Process the following cell data:
         Query/Context: {query}
         Row Index: {row_index}
         Column Name: {column_name}
-        Row Data: {json.dumps(full_row_data)}
+        Column ID: {column_id}
         Current Value: {current_value_str}
+        {columns_info}
+        Row Data: {row_data_str}
 
         Generate an appropriate response for this cell based on the given context and query. 
         You are filling the "{column_name}" column with relevant information from the row data.
@@ -51,12 +69,14 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
             raise ValueError(error_msg)
         
         processed_value = result["result"].strip()
+
+        structured_output = extract_data(processed_value, column_name)
         
         update_success = update_cell_value(
             sheet_id=sheet_id,
             row_index=row_index,
             column_id=column_id,
-            value=processed_value
+            value=structured_output.value
         )
         
         if not update_success:

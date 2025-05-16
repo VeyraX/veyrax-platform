@@ -7,21 +7,41 @@ import re
 import logging
 from agents import Runner
 from .queries import get_sheet_by_id, update_sheet_data
+from openai import OpenAI
+from .prompts import STRUCTURED_OUTPUT_PROMPT
+from .schema import ExtractedValue
+
+
+def openai_llm_call(human_message, system_message, model_class=None, model_name='gpt-4o-mini'):
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    
+    if model_class:
+        response = client.responses.parse(
+            model=model_name,
+            input=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": human_message}
+            ],
+            text_format=model_class
+        )
+        return response.output_parsed
+    else:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": human_message}, {"role": "system", "content": system_message}],
+            response_format={"type": "json_object"}
+        )
+        return response.choices[0].message.content
+
 
 def setup_openrouter_client():
     try:
-        tracing_disabled = os.environ.get("OPENAI_AGENTS_DISABLE_TRACING", "0") == "1"
-        set_tracing_disabled(tracing_disabled)
+        set_tracing_disabled(True)
         
         openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-        if not openrouter_api_key:
-            logging.error("OPENROUTER_API_KEY environment variable is not set or empty")
-            raise ValueError("OPENROUTER_API_KEY environment variable is not set or empty")
         
         site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
         site_name = os.environ.get("SITE_NAME", "Veyrax")
-        
-        logging.info(f"Setting up OpenRouter client with URL: {site_url}")
         
         custom_client = AsyncOpenAI(
             api_key=openrouter_api_key,
@@ -39,6 +59,12 @@ def setup_openrouter_client():
     except Exception as e:
         logging.exception("Error setting up OpenRouter client")
         raise
+
+
+def extract_data(data: str, column_name: str) -> ExtractedValue:
+    human_message = f"Extract data from the following text: {data} for column {column_name}"
+    system_message = STRUCTURED_OUTPUT_PROMPT
+    return openai_llm_call(human_message, system_message, ExtractedValue)
 
 
 def format_payload(result: Any) -> List[Dict[str, Any]]:
@@ -181,6 +207,8 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
         
         from .tasks import process_cell
         
+        all_columns = sheet_data.get("columns", [])
+        
         task_ids = []
         for cell in cells_to_process:
             row_index = cell["row_index"]
@@ -191,7 +219,8 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
                 column_name=cell["column_name"],
                 query=query,
                 full_row_data=row_data_map.get(row_index),
-                current_value=cell["current_value"]
+                current_value=cell["current_value"],
+                all_columns=all_columns
             )
             task_ids.append(task.id)
         
