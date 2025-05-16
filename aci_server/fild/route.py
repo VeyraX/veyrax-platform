@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request, Depends
 from typing import Dict, Any, List, Optional
 from .schema import AgentRequest, AgentResponse, WaterfallRequest, WaterfallResponse
 from .agent import run_agent
@@ -25,11 +25,12 @@ async def perform_web_search(request: AgentRequest) -> Dict[str, Any]:
         }
 
 @router.post("/run-waterfall", response_model=WaterfallResponse)
-async def perform_waterfall(request: WaterfallRequest) -> Dict[str, Any]:
+async def perform_waterfall(request: WaterfallRequest, req: Request) -> Dict[str, Any]:
     try:
-        user_id = await get_user_from_request(request)
+        user_id = await get_user_from_request(req)
         if not user_id:
             raise HTTPException(status_code=401, detail="Unauthorized")
+        
         result = await run_waterfall(
             sheet_id=request.sheet_id,
             query=request.query, 
