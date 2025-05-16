@@ -6,7 +6,7 @@ load_dotenv()
 
 celery_app = Celery(
     "aci_server",
-    include=['flow.tasks', 'vector_tools.tasks']
+    include=['flow.tasks', 'vector_tools.tasks', 'fild.tasks']
 )
 
 celery_app.conf.broker_url = os.environ.get("CELERY_BROKER_URL")

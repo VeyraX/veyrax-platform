@@ -26,7 +26,7 @@ def update_sheet_data(sheet_id: str, sheet_data: Dict[str, Any]) -> bool:
         return False
 
 
-def update_cell_status(sheet_id: str, row_index: int, column_id: int, status: str, value: Optional[str] = None) -> bool:
+def update_cell_status(sheet_id: str, row_index: int, column_id: int, status: str, message: Optional[str] = None) -> bool:
     try:
         sheets = get_sheet_by_id(sheet_id)
         if not sheets:
@@ -40,8 +40,8 @@ def update_cell_status(sheet_id: str, row_index: int, column_id: int, status: st
         for item in sheet_data.get("data", []):
             if item["index"] == row_index:
                 cell_data = {"status": status}
-                if value is not None:
-                    cell_data["value"] = value
+                if message is not None:
+                    cell_data["message"] = message
                 
                 item["values"][col_id_str] = cell_data
                 found = True

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional, Union
 
 
@@ -10,3 +10,20 @@ class AgentResponse(BaseModel):
     result: str
     success: bool
     payload: Optional[List[Dict[str, Any]]] = None
+
+class WaterfallRowRange(BaseModel):
+    from_: int = None 
+    to: int = None
+
+class WaterfallRequest(BaseModel):
+    sheet_id: str
+    query: str
+    row_indexes: Optional[List[int]] = None
+    row_range: Optional[Dict[str, int]] = None
+    column_ids: List[int]
+
+class WaterfallResponse(BaseModel):
+    success: bool
+    message: str
+    process_details: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None

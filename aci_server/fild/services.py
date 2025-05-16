@@ -129,6 +129,13 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
         sheet = sheets[0]
         sheet_data = sheet.get("data", {})
         
+        column_names = {}
+        for col in sheet_data.get("columns", []):
+            col_id = col.get("id")
+            col_name = col.get("column")
+            if col_id is not None and col_name:
+                column_names[col_id] = col_name
+        
         target_indexes = set()
         if row_indexes:
             target_indexes.update(row_indexes)
@@ -138,16 +145,21 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
                 target_indexes.add(i)
         
         cells_to_process = []
+        row_data_map = {} 
+        
         for item in sheet_data.get("data", []):
             if item["index"] in target_indexes:
+                row_data_map[item["index"]] = item 
+                
                 for col_id in column_ids:
                     col_id_str = str(col_id)
                     if col_id_str in item["values"]:
+                        cell_value = item["values"][col_id_str]
                         cells_to_process.append({
                             "row_index": item["index"],
                             "column_id": col_id,
-                            "current_value": item["values"][col_id_str] 
-                            if not isinstance(item["values"][col_id_str], dict) else None
+                            "column_name": column_names.get(col_id, f"column_{col_id}"),
+                            "current_value": cell_value
                         })
                         
                         item["values"][col_id_str] = {"status": "queue"}
@@ -171,11 +183,14 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
         
         task_ids = []
         for cell in cells_to_process:
+            row_index = cell["row_index"]
             task = process_cell.delay(
                 sheet_id=sheet_id,
-                row_index=cell["row_index"],
+                row_index=row_index,
                 column_id=cell["column_id"],
+                column_name=cell["column_name"],
                 query=query,
+                full_row_data=row_data_map.get(row_index),
                 current_value=cell["current_value"]
             )
             task_ids.append(task.id)
