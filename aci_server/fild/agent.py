@@ -2,7 +2,7 @@ from agents import Agent, Runner
 from typing import Dict, Any, Optional, List
 import json
 import uuid
-from .tools import web_search
+from .tools import web_search, linkedin_search_people, linkedin_get_profile, linkedin_get_company_details, linkedin_search_companies
 from .services import setup_openrouter_client, format_payload
 from .prompts import AGENT_PROMPT, WEB_SEARCH_PROMPT
 import logging
@@ -14,7 +14,13 @@ def create_agent() -> Agent:
         agent = Agent(
             name="Fild Agent",
             instructions=AGENT_PROMPT + WEB_SEARCH_PROMPT,
-            tools=[web_search],
+            tools=[
+                web_search, 
+                linkedin_search_people, 
+                linkedin_get_profile, 
+                linkedin_get_company_details, 
+                linkedin_search_companies
+            ],
             model="anthropic/claude-3.7-sonnet"
         )
         
