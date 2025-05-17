@@ -57,12 +57,13 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         
         print(f"Processing cell - Row: {row_index}, Column: {column_name}")
         
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         
-        result = loop.run_until_complete(run_agent(prompt))
+        try:
+            result = loop.run_until_complete(run_agent(prompt))
+        finally:
+            loop.close()
         
         if not result or not result.get("success", False) or "result" not in result:
             error_msg = result.get("result", "AI processing failed") if result else "AI processing failed"
