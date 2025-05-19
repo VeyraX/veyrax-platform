@@ -61,8 +61,8 @@ def setup_openrouter_client():
         raise
 
 
-def extract_data(data: str, column_name: str) -> ExtractedValue:
-    human_message = f"Extract data from the following text: {data} for column {column_name}"
+def extract_data(data: str, column_name: str, column_type: str) -> ExtractedValue:
+    human_message = f"Extract data from the following text: {data} for column {column_name} of type {column_type}."
     system_message = STRUCTURED_OUTPUT_PROMPT
     return openai_llm_call(human_message, system_message, ExtractedValue)
 
@@ -127,7 +127,7 @@ def format_payload(result: Any) -> List[Dict[str, Any]]:
     
     return sequence_payload
 
-async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None, 
+async def run_waterfall(sheet_id: str, row_indexes: List[int] = None, 
                     row_range: Dict[str, int] = None, column_ids: List[int] = None) -> Dict[str, Any]:
     try:
         if not row_indexes and not row_range:
@@ -156,11 +156,25 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
         sheet_data = sheet.get("data", {})
         
         column_names = {}
+        column_queries = {}
+        column_types = {}
+        column_subtypes = {}
+        
         for col in sheet_data.get("columns", []):
             col_id = col.get("id")
             col_name = col.get("column")
+            col_query = col.get("query")
+            col_type = col.get("columnType")
+            col_subtype = col.get("columnSubType")
+            
             if col_id is not None and col_name:
                 column_names[col_id] = col_name
+                if col_query:
+                    column_queries[col_id] = col_query
+                if col_type:
+                    column_types[col_id] = col_type
+                if col_subtype:
+                    column_subtypes[col_id] = col_subtype
         
         target_indexes = set()
         if row_indexes:
@@ -181,10 +195,21 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
                     col_id_str = str(col_id)
                     if col_id_str in item["values"]:
                         cell_value = item["values"][col_id_str]
+                        
+                        if col_id not in column_queries:
+                            return {
+                                "success": False,
+                                "message": f"No query found for column {col_id}",
+                                "error": "Missing column query"
+                            }
+                        
                         cells_to_process.append({
                             "row_index": item["index"],
                             "column_id": col_id,
                             "column_name": column_names.get(col_id, f"column_{col_id}"),
+                            "column_query": column_queries.get(col_id, ""),
+                            "column_type": column_types.get(col_id),
+                            "column_subtype": column_subtypes.get(col_id),
                             "current_value": cell_value
                         })
                         
@@ -217,7 +242,9 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
                 row_index=row_index,
                 column_id=cell["column_id"],
                 column_name=cell["column_name"],
-                query=query,
+                query=cell["column_query"],
+                column_type=cell["column_type"],
+                column_subtype=cell["column_subtype"],
                 full_row_data=row_data_map.get(row_index),
                 current_value=cell["current_value"],
                 all_columns=all_columns
@@ -229,7 +256,6 @@ async def run_waterfall(sheet_id: str, query: str, row_indexes: List[int] = None
             "message": f"Started waterfall process for {len(cells_to_process)} cells",
             "process_details": {
                 "sheet_id": sheet_id,
-                "query": query,
                 "total_cells": len(cells_to_process),
                 "row_indexes": list(target_indexes),
                 "column_ids": column_ids,

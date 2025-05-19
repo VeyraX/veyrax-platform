@@ -33,7 +33,6 @@ async def perform_waterfall(request: WaterfallRequest, req: Request) -> Dict[str
         
         result = await run_waterfall(
             sheet_id=request.sheet_id,
-            query=request.query, 
             row_indexes=request.row_indexes,
             row_range=request.row_range,
             column_ids=request.column_ids

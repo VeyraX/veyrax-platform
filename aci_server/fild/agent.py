@@ -2,7 +2,7 @@ from agents import Agent, Runner
 from typing import Dict, Any, Optional, List
 import json
 import uuid
-from .tools import web_search
+from .tools import web_search, extract_page
 from .services import setup_openrouter_client, format_payload
 from .prompts import AGENT_PROMPT, WEB_SEARCH_PROMPT
 import logging
@@ -15,9 +15,10 @@ def create_agent() -> Agent:
             name="Fild Agent",
             instructions=AGENT_PROMPT + WEB_SEARCH_PROMPT,
             tools=[
-                web_search
+                web_search,
+                extract_page
             ],
-            model="google/gemini-2.5-flash-preview"
+            model="google/gemini-2.5-flash-preview:thinking"
         )
         
         return agent

@@ -6,7 +6,7 @@ class AgentRequest(BaseModel):
     query: str
 
 class ExtractedValue(BaseModel):
-    value: str
+    result: str
     reasoning: str
 
 class AgentResponse(BaseModel):
@@ -17,7 +17,6 @@ class AgentResponse(BaseModel):
 
 class WaterfallRequest(BaseModel):
     sheet_id: str
-    query: str
     row_indexes: Optional[List[int]] = None
     row_range: Optional[Dict[str, int]] = None
     column_ids: List[int]
@@ -38,4 +37,9 @@ class BraveWebSearchRequest(BaseModel):
     search_lang: str = "en"
     text_decorations: bool = True
 
-
+class WebSearchRequest(BaseModel):
+    query: str = Field(..., description="The search query to look up on the web")
+    max_results: int = Field(5, description="Maximum number of results to return")
+    
+class ExtractPageRequest(BaseModel):
+    url: str = Field(..., description="The URL of the webpage to extract content from")

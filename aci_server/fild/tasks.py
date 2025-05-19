@@ -8,7 +8,10 @@ import json
 from .services import extract_data
 
 @shared_task(name="process_cell")
-def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None, all_columns: Optional[Dict] = None) -> Dict[str, Any]:
+def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, 
+                column_type: Optional[str] = None, column_subtype: Optional[str] = None,
+                full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None, 
+                all_columns: Optional[Dict] = None) -> Dict[str, Any]:
     try:
         update_cell_status(
             sheet_id=sheet_id,
@@ -38,12 +41,19 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
                     human_readable_row[col["column"]] = full_row_data["values"][col_id_str]
         
         row_data_str = json.dumps(full_row_data) if not human_readable_row else json.dumps(human_readable_row)
-        
+
+        column_type_str = ""
+        if column_type:
+            column_type_str = f"Column Type: {column_type}"
+            if column_subtype:
+                column_type_str += f", Subtype: {column_subtype}"
+                
         prompt = f"""Process the following cell data:
         Query/Context: {query}
         Row Index: {row_index}
         Column Name: {column_name}
         Column ID: {column_id}
+        {column_type_str}
         Current Value: {current_value_str}
         {columns_info}
         Row Data: {row_data_str}
@@ -54,8 +64,6 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         """
 
         print(f"Prompt: {prompt}")
-        
-        print(f"Processing cell - Row: {row_index}, Column: {column_name}")
         
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -71,13 +79,20 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         
         processed_value = result["result"].strip()
 
-        structured_output = extract_data(processed_value, column_name)
+        column_type_for_extract = column_subtype if column_subtype else column_type
+        structured_output = extract_data(processed_value, column_name, column_type_for_extract)
+        
+        cell_data = {
+            "result": structured_output.result,
+            "status": "completed",
+            "reasoning": structured_output.reasoning
+        }
         
         update_success = update_cell_value(
             sheet_id=sheet_id,
             row_index=row_index,
             column_id=column_id,
-            value=structured_output.value
+            value=cell_data
         )
         
         if not update_success:

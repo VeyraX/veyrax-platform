@@ -56,7 +56,7 @@ def update_cell_status(sheet_id: str, row_index: int, column_id: int, status: st
         return False
 
 
-def update_cell_value(sheet_id: str, row_index: int, column_id: int, value: str) -> bool:
+def update_cell_value(sheet_id: str, row_index: int, column_id: int, value: Any) -> bool:
     try:
         sheets = get_sheet_by_id(sheet_id)
         if not sheets:
