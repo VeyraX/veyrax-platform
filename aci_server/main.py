@@ -349,7 +349,7 @@ app.include_router(flow_router)
 app.include_router(agent_router)
 app.include_router(mcp_deployment_router)
 app.include_router(fild_router)
-#app.add_middleware(PermissionMiddleware)
+app.add_middleware(PermissionMiddleware)
 app.add_middleware(UsageLimitMiddleware)
 
 tools_service = ToolsService(INTEGRATION_ROUTERS)
