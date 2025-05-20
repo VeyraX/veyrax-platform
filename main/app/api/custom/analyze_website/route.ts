@@ -6,35 +6,30 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const { url, apiKey, delayInSeconds = 15 } = await req.json();
+    const { url, apiKey, screenshotApiKey, delayInSeconds = 15 } = await req.json();
 
     if (!url || !apiKey) {
-      return NextResponse.json({ error: 'URL and API key are required' }, { status: 400 });
+      return NextResponse.json({ error: 'URL and OpenRouter API key are required' }, { status: 400 });
     }
 
-    const puppeteer = await import('puppeteer');
-    
-    const browser = await puppeteer.launch({
-      headless: true,
+    if (!screenshotApiKey) {
+      return NextResponse.json({ error: 'Screenshot API key is required' }, { status: 400 });
+    }
+
+    const screenshotResponse = await fetch(`https://api.screenshotone.com/take?access_key=${screenshotApiKey}&url=${encodeURIComponent(url)}&format=jpg&block_cookie_banners=true&block_trackers=true&timeout=60&image_quality=80&delay=${delayInSeconds}`, {
+      method: 'GET',
     });
-    const page = await browser.newPage();
-    
-    await page.setViewport({ width: 1280, height: 800 });
-    
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    
-    await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
-    
-    const screenshot = await page.screenshot({ 
-      encoding: 'base64',
-      fullPage: false, 
-      type: 'jpeg',
-      quality: 80
-    });
-    
-    await browser.close();
-    
-    const dataUrl = `data:image/jpeg;base64,${screenshot}`;
+
+    if (!screenshotResponse.ok) {
+      return NextResponse.json({ 
+        error: 'Failed to capture screenshot', 
+        details: `ScreenshotOne API returned ${screenshotResponse.status}` 
+      }, { status: 500 });
+    }
+
+    const imageBuffer = await screenshotResponse.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    const dataUrl = `data:image/jpeg;base64,${base64Image}`;
     
     const client = new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
