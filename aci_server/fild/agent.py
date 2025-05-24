@@ -44,7 +44,7 @@ async def run_agent(query: str) -> Dict[str, Any]:
             "payload": sequence_payload
         }
     except Exception as e:
-        logging.exception(f"Error in run_agent: {e}")
+        logging.exception(f"Error running Agent: {e}")
         return {
             "query": query,
             "result": f"Unable to process this request due to an error: {str(e)}. The system is currently experiencing technical difficulties.",
