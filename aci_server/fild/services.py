@@ -9,7 +9,8 @@ from agents import Runner
 from .queries import get_sheet_by_id, update_sheet_data
 from openai import OpenAI
 from .prompts import STRUCTURED_OUTPUT_PROMPT
-from .schema import ExtractedValue
+from .schema import ExtractedValue, PersonResult, CompanyResult
+import httpx
 
 
 def openai_llm_call(human_message, system_message, model_class=None, model_name='gpt-4o-mini'):
@@ -269,4 +270,132 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
             "success": False,
             "message": f"Error running waterfall process: {str(e)}",
             "error": str(e)
+        }
+
+async def search_people(company_query: str, people_query: str) -> Dict[str, Any]:
+    try:
+        url = "https://api.explee.com/api/leads/search"
+        
+        payload = {
+            "query": company_query,
+            "prompt_dm": people_query
+        }
+        
+        timeout = httpx.Timeout(60.0, connect=10.0)
+        
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                url,
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            results = []
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        results.append(PersonResult(
+                            url=item.get("url"),
+                            company=item.get("company"),
+                            job_title=item.get("job_title"),
+                            full_name=item.get("full_name"),
+                            linkedin_url=item.get("linkedin_url")
+                        ))
+            
+            return {
+                "success": True,
+                "results": results
+            }
+            
+    except httpx.TimeoutException as e:
+        logging.error(f"Timeout error in search_people: {str(e)}")
+        return {
+            "success": False,
+            "error": "Request timeout - API took too long to respond",
+            "results": []
+        }
+    except httpx.HTTPStatusError as e:
+        logging.error(f"HTTP error in search_people: {e.response.status_code} - {e.response.text}")
+        return {
+            "success": False,
+            "error": str(e),
+            "results": []
+        }
+    except Exception as e:
+        logging.exception(f"Error in search_people: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "results": []
+        }
+
+async def search_companies(query: str) -> Dict[str, Any]:
+    try:
+        url = "https://api.explee.com/api/companies/search"
+        
+        payload = {
+            "query": query,
+            "limit": 50
+        }
+        
+        timeout = httpx.Timeout(60.0, connect=10.0)
+        
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                url,
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            results = []
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        results.append(CompanyResult(
+                            url=item.get("url"),
+                            name=item.get("name"),
+                            description=item.get("description"),
+                            linkedin_id=item.get("linkedin_id"),
+                            geo_country=item.get("geo_country"),
+                            traffic=item.get("traffic"),
+                            size_range=item.get("size_range"),
+                            founded=item.get("founded"),
+                            domain=item.get("domain"),
+                            screenshot_url=item.get("screenshot_url"),
+                            company_relevance_score=item.get("company_relevance_score"),
+                            company_relevance_reasoning_1=item.get("company_relevance_reasoning_1"),
+                            company_relevance_reasoning_2=item.get("company_relevance_reasoning_2")
+                        ))
+            
+            return {
+                "success": True,
+                "results": results
+            }
+            
+    except httpx.TimeoutException as e:
+        logging.error(f"Timeout error in search_companies: {str(e)}")
+        return {
+            "success": False,
+            "error": "Request timeout - API took too long to respond",
+            "results": []
+        }
+    except httpx.HTTPStatusError as e:
+        logging.error(f"HTTP error in search_companies: {e.response.status_code} - {e.response.text}")
+        return {
+            "success": False,
+            "error": str(e),
+            "results": []
+        }
+    except Exception as e:
+        logging.exception(f"Error in search_companies: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "results": []
         }
