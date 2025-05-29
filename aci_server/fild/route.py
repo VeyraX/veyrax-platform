@@ -35,7 +35,8 @@ async def perform_waterfall(request: WaterfallRequest, req: Request) -> Dict[str
             sheet_id=request.sheet_id,
             row_indexes=request.row_indexes,
             row_range=request.row_range,
-            column_ids=request.column_ids
+            column_ids=request.column_ids,
+            chat_id=request.chat_id
         )
         return result
     except Exception as e:

@@ -1,7 +1,7 @@
 from celery import shared_task
 import logging
 from typing import Dict, Any, Optional
-from .queries import update_cell_status, update_cell_value, get_sheet_by_id
+from .queries import update_cell_status, update_cell_value, get_sheet_by_id, add_sheet_task
 import asyncio
 from .agent import run_agent
 import json
@@ -11,7 +11,7 @@ from .services import extract_data
 def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, 
                 column_type: Optional[str] = None, column_subtype: Optional[str] = None,
                 full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None, 
-                all_columns: Optional[Dict] = None) -> Dict[str, Any]:
+                all_columns: Optional[Dict] = None, chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
         update_cell_status(
             sheet_id=sheet_id,
@@ -75,9 +75,11 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         
         if not result or not result.get("success", False) or "result" not in result:
             error_msg = result.get("result", "AI processing failed") if result else "AI processing failed"
+            agent_steps = result.get("payload", []) if result else []
             raise ValueError(error_msg)
         
         processed_value = result["result"].strip()
+        agent_steps = result.get("payload", [])
 
         column_type_for_extract = column_subtype if column_subtype else column_type
         structured_output = extract_data(processed_value, column_name, column_type_for_extract)
@@ -118,8 +120,47 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         except Exception as inner_e:
             logging.exception(f"Error updating cell status after error: {str(inner_e)}")
         
-        return {
+        error_result = {
             "success": False,
             "message": f"Error processing cell: {str(e)}",
             "error": str(e)
         }
+        
+        try:
+            add_sheet_task(
+                sheet_id=sheet_id,
+                status="error",
+                payload={
+                    "row_index": row_index,
+                    "column_id": column_id,
+                    "column_name": column_name,
+                    "query": query,
+                    "raw_output": str(e),
+                    "agent_steps": agent_steps
+                },
+                chat_id=chat_id
+            )
+        except Exception as task_e:
+            logging.exception(f"Error saving task to sheets_tasks: {str(task_e)}")
+        
+        return error_result
+    
+    finally:
+        if 'processed_value' in locals() and 'cell_data' in locals():
+            try:
+                add_sheet_task(
+                    sheet_id=sheet_id,
+                    status="completed",
+                    payload={
+                        "row_index": row_index,
+                        "column_id": column_id,
+                        "column_name": column_name,
+                        "query": query,
+                        "raw_output": processed_value,
+                        "structured_output": cell_data,
+                        "agent_steps": agent_steps
+                    },
+                    chat_id=chat_id
+                )
+            except Exception as task_e:
+                logging.exception(f"Error saving completed task to sheets_tasks: {str(task_e)}")

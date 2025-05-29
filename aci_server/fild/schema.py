@@ -20,6 +20,7 @@ class WaterfallRequest(BaseModel):
     row_indexes: Optional[List[int]] = None
     row_range: Optional[Dict[str, int]] = None
     column_ids: List[int]
+    chat_id: Optional[str] = None
 
 class WaterfallResponse(BaseModel):
     success: bool

@@ -82,4 +82,18 @@ def update_cell_value(sheet_id: str, row_index: int, column_id: int, value: Any)
         return False
 
 
+def add_sheet_task(sheet_id: str, status: str, payload: Dict[str, Any], chat_id: Optional[str] = None) -> bool:
+    try:
+        response = client.table('sheets_tasks').insert({
+            "sheet_id": sheet_id,
+            "status": status,
+            "payload": payload,
+            "chat_id": chat_id
+        }).execute()
+        return len(response.data) > 0
+    except Exception as e:
+        print(f"Error adding sheet task: {e}")
+        return False
+
+
 

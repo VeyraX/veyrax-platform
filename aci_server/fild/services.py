@@ -129,7 +129,8 @@ def format_payload(result: Any) -> List[Dict[str, Any]]:
     return sequence_payload
 
 async def run_waterfall(sheet_id: str, row_indexes: List[int] = None, 
-                    row_range: Dict[str, int] = None, column_ids: List[int] = None) -> Dict[str, Any]:
+                    row_range: Dict[str, int] = None, column_ids: List[int] = None, 
+                    chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
         if not row_indexes and not row_range:
             return {
@@ -248,7 +249,8 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
                 column_subtype=cell["column_subtype"],
                 full_row_data=row_data_map.get(row_index),
                 current_value=cell["current_value"],
-                all_columns=all_columns
+                all_columns=all_columns,
+                chat_id=chat_id
             )
             task_ids.append(task.id)
         
