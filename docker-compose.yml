@@ -18,7 +18,7 @@ services:
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 
-  celery_worker:
+  celery_worker1:
     build: ./aci_server
     volumes:
       - ./aci_server:/app
@@ -28,17 +28,63 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - PYTHONPATH=/app
       - API_URL=http://host.docker.internal:8000
+      - WORKER_ID=1
     depends_on:
       - redis
       - aci_server
     working_dir: /app
-    command: ["celery", "-A", "celery_app", "worker", "--loglevel=debug", "--concurrency=1"]
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 400MB
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=1", "--hostname=worker1@%h"]
+
+  celery_worker2:
+    build: ./aci_server
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - API_URL=http://host.docker.internal:8000
+      - WORKER_ID=2
+    depends_on:
+      - redis
+      - aci_server
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=1", "--hostname=worker2@%h"]
+
+  celery_worker3:
+    build: ./aci_server
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - API_URL=http://host.docker.internal:8000
+      - WORKER_ID=3
+    depends_on:
+      - redis
+      - aci_server
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=1", "--hostname=worker3@%h"]
+
+  celery_worker4:
+    build: ./aci_server
+    volumes:
+      - ./aci_server:/app
+      - ./.env:/app/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - API_URL=http://host.docker.internal:8000
+      - WORKER_ID=4
+    depends_on:
+      - redis
+      - aci_server
+    working_dir: /app
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=1", "--hostname=worker4@%h"]
 
   celery_flower:
     build: ./aci_server
@@ -53,7 +99,10 @@ services:
       - PYTHONPATH=/app
     depends_on:
       - redis
-      - celery_worker
+      - celery_worker1
+      - celery_worker2
+      - celery_worker3
+      - celery_worker4
     working_dir: /app
     command: ["celery", "-A", "celery_app", "flower", "--port=5555", "--address=0.0.0.0", "--persistent=True", "--max_tasks=10000"]
 
