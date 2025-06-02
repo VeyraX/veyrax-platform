@@ -51,3 +51,4 @@ beautifulsoup4==4.13.0
 
 qrcode==8.1  # whatsapp qr code
 upstash-vector==0.8.0
+google-cloud-tasks>=2.16.0

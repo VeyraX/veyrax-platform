@@ -89,3 +89,44 @@ async def perform_company_search(request: CompanySearchRequest, req: Request) ->
             "error": str(e),
             "results": []
         }
+
+@router.post("/run-cloud-waterfall", response_model=WaterfallResponse)
+async def perform_cloud_waterfall(request: WaterfallRequest, req: Request) -> Dict[str, Any]:
+    try:
+        user_id = await get_user_from_request(req)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        
+        from .cloud_services import run_cloud_waterfall
+        
+        result = await run_cloud_waterfall(
+            sheet_id=request.sheet_id,
+            row_indexes=request.row_indexes,
+            row_range=request.row_range,
+            column_ids=request.column_ids,
+            chat_id=request.chat_id
+        )
+        return result
+    except Exception as e:
+        tb = traceback.format_exc()
+        logging.error(f"Error in cloud waterfall endpoint: {str(e)}\n{tb}")
+        return {
+            "success": False,
+            "message": f"Error processing cloud waterfall request: {str(e)}",
+            "error": str(e)
+        }
+
+@router.post("/process-batch")
+async def process_batch_endpoint(batch_data: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        from .cloud_processor import process_batch
+        
+        result = await process_batch(batch_data)
+        return result
+    except Exception as e:
+        tb = traceback.format_exc()
+        logging.error(f"Error in process-batch endpoint: {str(e)}\n{tb}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
