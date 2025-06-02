@@ -14,7 +14,16 @@ class CloudTasksService:
         if not all([self.project_id, self.service_url]):
             raise ValueError("Missing required environment variables: GOOGLE_CLOUD_PROJECT, CLOUD_RUN_SERVICE_URL")
         
-        self.client = tasks_v2.CloudTasksClient()
+        credentials_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        if credentials_json:
+            import json
+            from google.oauth2 import service_account
+            credentials_dict = json.loads(credentials_json)
+            credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+            self.client = tasks_v2.CloudTasksClient(credentials=credentials)
+        else:
+            self.client = tasks_v2.CloudTasksClient()
+            
         self.queue_path = self.client.queue_path(self.project_id, self.location, self.queue_name)
 
     def create_batch_processing_task(self, batch_data: Dict[str, Any], delay_seconds: int = 0) -> str:
