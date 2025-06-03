@@ -111,7 +111,7 @@ async def run_cloud_waterfall(sheet_id: str, row_indexes: List[int] = None,
         
         cloud_tasks_service = CloudTasksService()
         
-        batches = cloud_tasks_service.create_batches(cells_to_process, batch_size=25)
+        batches = cloud_tasks_service.create_batches(cells_to_process, batch_size=15)
         
         task_names = []
         for batch in batches:
