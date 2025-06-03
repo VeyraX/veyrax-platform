@@ -12,7 +12,7 @@ async def health_check():
 @app.post("/process-batch")
 async def process_batch_endpoint(batch_data: Dict[str, Any]) -> Dict[str, Any]:
     try:
-        from aci_server.fild.cloud_processor import process_batch
+        from fild.cloud_processor import process_batch
         result = await process_batch(batch_data)
         return result
     except Exception as e:
