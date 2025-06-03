@@ -5,8 +5,9 @@ WORKDIR /app
 COPY aci_server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY aci_server/ ./aci_server/
-COPY cloud_processor_main.py .
+COPY . .
+
+ENV PYTHONPATH=/app
 
 EXPOSE 8080
 
