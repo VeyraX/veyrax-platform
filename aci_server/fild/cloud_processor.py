@@ -65,12 +65,16 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
     all_columns = cell_data.get("all_columns")
     
     try:
+        logging.info(f"Starting cell processing: sheet={sheet_id}, row={row_index}, col={column_id}")
+        
+        logging.info(f"Updating cell status to 'processing'")
         update_cell_status(
             sheet_id=sheet_id,
             row_index=row_index,
             column_id=column_id,
             status="processing"
         )
+        logging.info(f"Cell status updated successfully")
         
         if current_value is None:
             current_value_str = "None"
@@ -115,7 +119,9 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
         Keep your response brief and to the point. 2-3 words is ideal unless more detail is necessary.
         """
         
+        logging.info(f"Calling AI agent with prompt length: {len(prompt)}")
         result = await run_agent(prompt)
+        logging.info(f"AI agent returned: {result.get('success', False) if result else False}")
         
         if not result or not result.get("success", False) or "result" not in result:
             error_msg = result.get("result", "AI processing failed") if result else "AI processing failed"
@@ -133,12 +139,14 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
             "reasoning": structured_output.reasoning
         }
         
+        logging.info(f"Updating cell value in database")
         update_success = update_cell_value(
             sheet_id=sheet_id,
             row_index=row_index,
             column_id=column_id,
             value=cell_data_result
         )
+        logging.info(f"Cell value update result: {update_success}")
         
         if not update_success:
             raise ValueError("Failed to update cell with processed value")

@@ -6,7 +6,10 @@ client = get_fild_supabase()
 
 def get_sheet_by_id(sheet_id: str) -> List[Dict[str, Any]]:
     try:
+        import logging
+        logging.info(f"Connecting to Supabase for sheet_id: {sheet_id}")
         response = client.table('sheets').select('*').eq('id', sheet_id).execute()
+        logging.info(f"Supabase response received, rows: {len(response.data) if response.data else 0}")
         
         if not response.data:
             return []
