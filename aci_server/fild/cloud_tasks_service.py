@@ -30,7 +30,7 @@ class CloudTasksService:
         task = {
             "http_request": {
                 "http_method": tasks_v2.HttpMethod.POST,
-                "url": f"{self.service_url}/fild/cloud/process-batch",
+                "url": f"{self.service_url}/process-batch",
                 "headers": {
                     "Content-Type": "application/json"
                 },
