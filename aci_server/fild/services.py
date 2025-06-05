@@ -198,18 +198,13 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
                     if col_id_str in item["values"]:
                         cell_value = item["values"][col_id_str]
                         
-                        if col_id not in column_queries:
-                            return {
-                                "success": False,
-                                "message": f"No query found for column {col_id}",
-                                "error": "Missing column query"
-                            }
+                        query = column_queries.get(col_id, "Find relevant value for column.")
                         
                         cells_to_process.append({
                             "row_index": item["index"],
                             "column_id": col_id,
                             "column_name": column_names.get(col_id, f"column_{col_id}"),
-                            "column_query": column_queries.get(col_id, ""),
+                            "column_query": query,
                             "column_type": column_types.get(col_id),
                             "column_subtype": column_subtypes.get(col_id),
                             "current_value": cell_value
