@@ -9,7 +9,7 @@ from .services import extract_data
 
 @shared_task(name="process_cell")
 def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str, query: str, 
-                column_type: Optional[str] = None, column_subtype: Optional[str] = None,
+                column_type: Optional[str] = None,
                 full_row_data: Optional[Dict] = None, current_value: Optional[Any] = None, 
                 all_columns: Optional[Dict] = None, chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
@@ -45,8 +45,6 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         column_type_str = ""
         if column_type:
             column_type_str = f"Column Type: {column_type}"
-            if column_subtype:
-                column_type_str += f", Subtype: {column_subtype}"
                 
         prompt = f"""Process the following cell data:
         Query/Context: {query}
@@ -81,7 +79,7 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         processed_value = result["result"].strip()
         agent_steps = result.get("payload", [])
 
-        column_type_for_extract = column_subtype if column_subtype else column_type
+        column_type_for_extract = column_type
         structured_output = extract_data(processed_value, column_name, column_type_for_extract)
         
         cell_data = {

@@ -160,14 +160,12 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
         column_names = {}
         column_queries = {}
         column_types = {}
-        column_subtypes = {}
         
         for col in sheet_data.get("columns", []):
             col_id = col.get("id")
             col_name = col.get("column")
             col_query = col.get("query")
             col_type = col.get("columnType")
-            col_subtype = col.get("columnSubType")
             
             if col_id is not None and col_name:
                 column_names[col_id] = col_name
@@ -175,8 +173,6 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
                     column_queries[col_id] = col_query
                 if col_type:
                     column_types[col_id] = col_type
-                if col_subtype:
-                    column_subtypes[col_id] = col_subtype
         
         target_indexes = set()
         if row_indexes:
@@ -206,7 +202,6 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
                             "column_name": column_names.get(col_id, f"column_{col_id}"),
                             "column_query": query,
                             "column_type": column_types.get(col_id),
-                            "column_subtype": column_subtypes.get(col_id),
                             "current_value": cell_value
                         })
                         
@@ -241,7 +236,6 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
                 column_name=cell["column_name"],
                 query=cell["column_query"],
                 column_type=cell["column_type"],
-                column_subtype=cell["column_subtype"],
                 full_row_data=row_data_map.get(row_index),
                 current_value=cell["current_value"],
                 all_columns=all_columns,

@@ -59,7 +59,7 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
     column_name = cell_data["column_name"]
     query = cell_data["query"]
     column_type = cell_data.get("column_type")
-    column_subtype = cell_data.get("column_subtype")
+
     full_row_data = cell_data.get("full_row_data")
     current_value = cell_data.get("current_value")
     all_columns = cell_data.get("all_columns")
@@ -97,8 +97,6 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
         column_type_str = ""
         if column_type:
             column_type_str = f"Column Type: {column_type}"
-            if column_subtype:
-                column_type_str += f", Subtype: {column_subtype}"
                 
         prompt = f"""Process the following cell data:
         Query/Context: {query}
@@ -124,7 +122,7 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
         processed_value = result["result"].strip()
         agent_steps = result.get("payload", [])
 
-        column_type_for_extract = column_subtype if column_subtype else column_type
+        column_type_for_extract = column_type
         structured_output = extract_data(processed_value, column_name, column_type_for_extract)
         
         cell_data_result = {
