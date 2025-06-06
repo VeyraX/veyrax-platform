@@ -5,6 +5,10 @@ from typing import Dict, Any, List, Optional, Union
 class AgentRequest(BaseModel):
     query: str
 
+class RowRange(BaseModel):
+    from_: int = Field(..., alias="from", description="Starting row index (inclusive)")
+    to: int = Field(..., description="Ending row index (inclusive)")
+
 class ExtractedValue(BaseModel):
     result: str
     reasoning: str
@@ -20,7 +24,7 @@ class AgentResponse(BaseModel):
 class EnrichmentRequest(BaseModel):
     sheet_id: str
     row_indexes: Optional[List[int]] = None
-    row_range: Optional[Dict[str, int]] = None
+    row_range: Optional[RowRange] = None
     column_ids: List[int]
     chat_id: Optional[str] = None
 

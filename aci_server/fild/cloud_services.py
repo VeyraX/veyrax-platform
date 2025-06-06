@@ -2,9 +2,10 @@ from typing import Dict, Any, List, Optional
 import logging
 from .queries import get_sheet_by_id, update_sheet_data
 from .cloud_tasks_service import CloudTasksService
+from .schema import RowRange
 
 async def run_cloud_enrichment(sheet_id: str, row_indexes: List[int] = None, 
-                    row_range: Dict[str, int] = None, column_ids: List[int] = None, 
+                    row_range: Optional[RowRange] = None, column_ids: List[int] = None, 
                     chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
         if not row_indexes and not row_range:
@@ -54,7 +55,7 @@ async def run_cloud_enrichment(sheet_id: str, row_indexes: List[int] = None,
             target_indexes.update(row_indexes)
         
         if row_range:
-            for i in range(row_range["from"], row_range["to"] + 1):
+            for i in range(row_range.from_, row_range.to + 1):
                 target_indexes.add(i)
         
         cells_to_process = []
