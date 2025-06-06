@@ -128,7 +128,7 @@ def format_payload(result: Any) -> List[Dict[str, Any]]:
     
     return sequence_payload
 
-async def run_waterfall(sheet_id: str, row_indexes: List[int] = None, 
+async def run_enrichment(sheet_id: str, row_indexes: List[int] = None, 
                     row_range: Dict[str, int] = None, column_ids: List[int] = None, 
                     chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
@@ -245,7 +245,7 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
         
         return {
             "success": True,
-            "message": f"Started waterfall process for {len(cells_to_process)} cells",
+            "message": f"Started enrichment process for {len(cells_to_process)} cells",
             "process_details": {
                 "sheet_id": sheet_id,
                 "total_cells": len(cells_to_process),
@@ -256,10 +256,10 @@ async def run_waterfall(sheet_id: str, row_indexes: List[int] = None,
         }
     
     except Exception as e:
-        logging.exception(f"Error in run_waterfall: {str(e)}")
+        logging.exception(f"Error in run_enrichment: {str(e)}")
         return {
             "success": False,
-            "message": f"Error running waterfall process: {str(e)}",
+            "message": f"Error running enrichment process: {str(e)}",
             "error": str(e)
         }
 

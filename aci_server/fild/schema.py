@@ -8,6 +8,8 @@ class AgentRequest(BaseModel):
 class ExtractedValue(BaseModel):
     result: str
     reasoning: str
+    confidence: int = Field(..., ge=1, le=5, description="Confidence level from 1 (very uncertain) to 5 (very confident)")
+    source: str = Field(..., description="URL where the information was found, or 'Not Found' if no source")
 
 class AgentResponse(BaseModel):
     query: str
@@ -15,14 +17,14 @@ class AgentResponse(BaseModel):
     success: bool
     payload: Optional[List[Dict[str, Any]]] = None
 
-class WaterfallRequest(BaseModel):
+class EnrichmentRequest(BaseModel):
     sheet_id: str
     row_indexes: Optional[List[int]] = None
     row_range: Optional[Dict[str, int]] = None
     column_ids: List[int]
     chat_id: Optional[str] = None
 
-class WaterfallResponse(BaseModel):
+class EnrichmentResponse(BaseModel):
     success: bool
     message: str
     process_details: Optional[Dict[str, Any]] = None

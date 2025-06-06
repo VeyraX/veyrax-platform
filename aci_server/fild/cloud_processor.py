@@ -128,7 +128,9 @@ async def process_single_cell(sheet_id: str, cell_data: Dict[str, Any], chat_id:
         cell_data_result = {
             "result": structured_output.result,
             "status": "completed",
-            "reasoning": structured_output.reasoning
+            "reasoning": structured_output.reasoning,
+            "confidence": structured_output.confidence,
+            "source": structured_output.source
         }
         
         update_success = update_cell_value(

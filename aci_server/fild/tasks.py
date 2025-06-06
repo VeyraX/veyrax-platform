@@ -85,7 +85,9 @@ def process_cell(sheet_id: str, row_index: int, column_id: int, column_name: str
         cell_data = {
             "result": structured_output.result,
             "status": "completed",
-            "reasoning": structured_output.reasoning
+            "reasoning": structured_output.reasoning,
+            "confidence": structured_output.confidence,
+            "source": structured_output.source
         }
         
         update_success = update_cell_value(

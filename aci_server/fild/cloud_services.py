@@ -3,7 +3,7 @@ import logging
 from .queries import get_sheet_by_id, update_sheet_data
 from .cloud_tasks_service import CloudTasksService
 
-async def run_cloud_waterfall(sheet_id: str, row_indexes: List[int] = None, 
+async def run_cloud_enrichment(sheet_id: str, row_indexes: List[int] = None, 
                     row_range: Dict[str, int] = None, column_ids: List[int] = None, 
                     chat_id: Optional[str] = None) -> Dict[str, Any]:
     try:
@@ -116,7 +116,7 @@ async def run_cloud_waterfall(sheet_id: str, row_indexes: List[int] = None,
         
         return {
             "success": True,
-            "message": f"Started cloud waterfall process for {len(cells_to_process)} cells in {len(batches)} batches",
+            "message": f"Started cloud enrichment process for {len(cells_to_process)} cells in {len(batches)} batches",
             "process_details": {
                 "sheet_id": sheet_id,
                 "total_cells": len(cells_to_process),
@@ -128,9 +128,9 @@ async def run_cloud_waterfall(sheet_id: str, row_indexes: List[int] = None,
         }
     
     except Exception as e:
-        logging.exception(f"Error in run_cloud_waterfall: {str(e)}")
+        logging.exception(f"Error in run_cloud_enrichment: {str(e)}")
         return {
             "success": False,
-            "message": f"Error running cloud waterfall process: {str(e)}",
+            "message": f"Error running cloud enrichment process: {str(e)}",
             "error": str(e)
         } 

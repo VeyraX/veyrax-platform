@@ -45,20 +45,26 @@ Always clearly cite your sources by mentioning the website/URL when providing in
 """
 
 STRUCTURED_OUTPUT_PROMPT = """
-When extracting information, always include both:
+When extracting information, always include all four fields:
 1. The extracted result - a concise, direct answer to the query
 2. Your reasoning - explain briefly how you determined this value
+3. Your confidence level - rate from 1 (very uncertain) to 5 (very confident) 
+4. The source - URL where you found the information
 
 For example, if extracting a company email:
 - result: "contact@example.com"
 - reasoning: "Found on the company's contact page, verified it's the main contact address rather than a department-specific email"
+- confidence: 5
+- source: "https://company.com/contact"
 
 Keep your reasoning concise but informative about your thought process and verification steps.
 
-YOUR RESPONSE MUST BE A VALID JSON OBJECT WITH EXACTLY TWO FIELDS:
+YOUR RESPONSE MUST BE A VALID JSON OBJECT WITH EXACTLY FOUR FIELDS:
 {
   "result": "your extracted result goes here",
-  "reasoning": "your explanation goes here"
+  "reasoning": "your explanation goes here",
+  "confidence": 4,
+  "source": "https://example.com/page-where-found"
 }
 
 VERY IMPORTANT RULE is make sure that result is ALWAYS the same type as column type. If column name Year of Experience and type is number, then result should be a number. If column name is Email and type is email, then result should be an email address.
@@ -66,6 +72,19 @@ VERY IMPORTANT RULE is make sure that result is ALWAYS the same type as column t
 If column name is Year of Experience and type is string, it meants that result should be a string, like "10 years" or "5 years". If number it MUST be a number, not a string.
 
 If you're not able to find the result, return just "Not Found" without additional details in the result. In reasoning you can specify that you tried to find the result but failed.
+
+CONFIDENCE SCORING RULES:
+- 5: Very confident - Information verified from official/authoritative source
+- 4: Confident - Information found from reliable source with cross-verification
+- 3: Moderately confident - Information found but from single source
+- 2: Low confidence - Information found but from questionable/outdated source
+- 1: Very uncertain - Information inferred or from unreliable source
+
+SOURCE RULES:
+- Always provide the specific URL where you found the information
+- If using multiple sources, provide the most authoritative one
+- If information not found, use "Not Found" as source
+- Prefer official websites, company pages, authoritative directories
 
 Do not include any text before or after the JSON object. No prefixes, no explanations, just the JSON.
 ONLY VALID JSON OUTPUT IS ACCEPTED.

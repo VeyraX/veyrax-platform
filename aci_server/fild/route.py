@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Body, HTTPException, Request, Depends
 from typing import Dict, Any, List, Optional
-from .schema import AgentRequest, AgentResponse, WaterfallRequest, WaterfallResponse, PeopleSearchRequest, PeopleSearchResponse, CompanySearchRequest, CompanySearchResponse
+from .schema import AgentRequest, AgentResponse, EnrichmentRequest, EnrichmentResponse, PeopleSearchRequest, PeopleSearchResponse, CompanySearchRequest, CompanySearchResponse
 from .agent import run_agent
-from .services import run_waterfall, search_people, search_companies
+from .services import run_enrichment, search_people, search_companies
 import logging
 import traceback
 from integrations.common.auth import get_user_from_request
@@ -24,14 +24,14 @@ async def perform_web_search(request: AgentRequest) -> Dict[str, Any]:
             "payload": []
         }
 
-@router.post("/run-waterfall", response_model=WaterfallResponse)
-async def perform_waterfall(request: WaterfallRequest, req: Request) -> Dict[str, Any]:
+@router.post("/run-enrichment", response_model=EnrichmentResponse)
+async def perform_enrichment(request: EnrichmentRequest, req: Request) -> Dict[str, Any]:
     try:
         user_id = await get_user_from_request(req)
         if not user_id:
             raise HTTPException(status_code=401, detail="Unauthorized")
         
-        result = await run_waterfall(
+        result = await run_enrichment(
             sheet_id=request.sheet_id,
             row_indexes=request.row_indexes,
             row_range=request.row_range,
@@ -41,10 +41,10 @@ async def perform_waterfall(request: WaterfallRequest, req: Request) -> Dict[str
         return result
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Error in run-waterfall endpoint: {str(e)}\n{tb}")
+        logging.error(f"Error in run-enrichment endpoint: {str(e)}\n{tb}")
         return {
             "success": False,
-            "message": f"Error processing waterfall request: {str(e)}",
+            "message": f"Error processing enrichment request: {str(e)}",
             "error": str(e)
         }
 
@@ -90,16 +90,16 @@ async def perform_company_search(request: CompanySearchRequest, req: Request) ->
             "results": []
         }
 
-@router.post("/run-cloud-waterfall", response_model=WaterfallResponse)
-async def perform_cloud_waterfall(request: WaterfallRequest, req: Request) -> Dict[str, Any]:
+@router.post("/run-cloud-enrichment", response_model=EnrichmentResponse)
+async def perform_cloud_enrichment(request: EnrichmentRequest, req: Request) -> Dict[str, Any]:
     try:
         user_id = await get_user_from_request(req)
         if not user_id:
             raise HTTPException(status_code=401, detail="Unauthorized")
         
-        from .cloud_services import run_cloud_waterfall
+        from .cloud_services import run_cloud_enrichment
         
-        result = await run_cloud_waterfall(
+        result = await run_cloud_enrichment(
             sheet_id=request.sheet_id,
             row_indexes=request.row_indexes,
             row_range=request.row_range,
@@ -109,10 +109,10 @@ async def perform_cloud_waterfall(request: WaterfallRequest, req: Request) -> Di
         return result
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Error in cloud waterfall endpoint: {str(e)}\n{tb}")
+        logging.error(f"Error in cloud enrichment endpoint: {str(e)}\n{tb}")
         return {
             "success": False,
-            "message": f"Error processing cloud waterfall request: {str(e)}",
+            "message": f"Error processing cloud enrichment request: {str(e)}",
             "error": str(e)
         }
 
