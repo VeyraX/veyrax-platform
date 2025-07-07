@@ -11,6 +11,8 @@ class YouTubeClient:
         self.service = build('youtube', 'v3', developerKey=api_key)
     
     def search_videos(self, **kwargs) -> Dict[str, Any]:
+        # Remove 'part' from kwargs to avoid conflicts with hardcoded part="snippet"
+        kwargs.pop('part', None)
         return self.service.search().list(
             part="snippet",
             type="video",

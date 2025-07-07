@@ -80,12 +80,12 @@ async def validate_key(
         
         client = YouTubeClient(api_key=api_key)
         test_response = client.search_videos(
-            part="snippet",
             q="test",
             maxResults=1
         )
         return {"valid": True, "message": "API key is valid"}
     except Exception as e:
+        print(f"Error validating YouTube API key: {e}")
         return {"valid": False, "message": f"Invalid API key"}
 
 apply_error_handler_to_router(router)
