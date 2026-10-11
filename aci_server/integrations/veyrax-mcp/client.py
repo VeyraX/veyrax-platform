@@ -12,7 +12,7 @@ from ..common.encryption import encrypt, safe_encrypt, encrypt_with_code
 
 class VeyraxMcpClient:
     def __init__(self, token: Optional[str] = None, user_id: Optional[str] = None):
-        self.upstash_url = os.getenv("UPSTASH_EXTERNAL_MCP_URL", "***REMOVED***")
+        self.upstash_url = os.getenv("UPSTASH_EXTERNAL_MCP_URL", "")
         self.upstash_token = os.getenv("UPSTASH_EXTERNAL_MCP_TOKEN", "")
         self.mcp_api_url = os.getenv("VEYRAX_DEPLOY_API_URL", "https://api.veyrax.com")
         self.token = token

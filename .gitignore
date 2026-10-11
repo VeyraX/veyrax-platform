@@ -71,6 +71,17 @@ venv/
 *.swp
 .env*
 *.env*
+!.env.example
+!**/.env.example
+
+*.log
+*.pyc
+.ipynb_checkpoints/
+*.pem
+*.key
+*.p12
+credentials*.json
+service-account*.json
 
 # celery redis config
 conf.d/redisdb.d/conf.yaml
