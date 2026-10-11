@@ -40,7 +40,7 @@ class VeyraxMcpClient:
             results = index.query(
                 vector=embedding,
                 top_k=limit,
-                include_metadata=True  # Всегда включаем метаданные независимо от параметра
+                include_metadata=True  # Always include metadata regardless of the parameter
             )
             
             return [

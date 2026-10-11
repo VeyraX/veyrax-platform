@@ -133,12 +133,12 @@ export const TextBlock: FC<TextBlockProps> = ({ className }) => {
                     </Circle>
                   </div>
 
-                  {/* Центр - ACI */}
+                  {/* Center: ACI */}
                   <Circle ref={centerRef} className="size-28">
                     <div className="text-2xl font-bold">ACI</div>
                   </Circle>
 
-                  {/* Нижний элемент - AI */}
+                  {/* Bottom: AI */}
                   <Circle ref={aiRef} className="size-28">
                     <Image src={AILogo} alt="AI" className="h-12 w-12" />
                   </Circle>

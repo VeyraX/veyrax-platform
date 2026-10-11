@@ -81,7 +81,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({ isRecording, isPau
     const gap = 1
     let frameCount = 0
 
-    // Получаем текущую тему из localStorage
+    // Read the current theme from localStorage
     const isDarkTheme = localStorage.getItem('theme') === 'dark'
 
     const draw = () => {

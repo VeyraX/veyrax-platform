@@ -32,17 +32,17 @@ export function parseDOMFromHTML(html: string): Document {
     return result;
   }
 
-  // Новая функция для проверки фактической пустоты HTML содержимого
+  // Check whether HTML content is effectively empty
   export function isEmptyHTML(html: string): boolean {
-    // Пустая строка - очевидно пусто
+    // Empty string is empty
     if (!html || html.trim() === '') return true;
     
-    // Проверяем, есть ли видимый текст
+    // Check for visible text
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
     const hasText = (tempDiv.textContent?.trim().length ?? 0) > 0;
     
-    // Если текста нет, проверяем на самые частые паттерны "пустого" контента
+    // No text: check the most common "empty" content patterns
     const emptyPatterns = [
       '<p><br></p>',
       '<p></p>',

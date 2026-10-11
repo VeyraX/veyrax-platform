@@ -295,7 +295,6 @@ class UpdateTaskParams(BaseModel):
     labels: Optional[List[str]] = Field(None, description="The names of the labels to be added to the task")
     assigneeId: Optional[str] = Field(None, description="The user id the task should be assigned to")
 
-# Добавьте эти модели в конец файла, перед ApiResponse
 class EmptyRequestBody(BaseModel):
     """Empty request body for endpoints that don't require any inputs"""
     pass

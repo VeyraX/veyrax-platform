@@ -338,7 +338,7 @@ class ProjectDomainResponse(BaseModel):
     verified: bool
     verification: List[DomainVerification]
 
-# Добавим модель для информации о репозитории в ответе проекта
+# Git repository info included in project responses
 class ProjectGitRepository(BaseModel):
     type: str
     repo: Optional[str] = None
@@ -350,7 +350,6 @@ class ProjectGitRepository(BaseModel):
     private: Optional[bool] = None
     branch: Optional[str] = None
 
-# Обновим модель ProjectResponse, чтобы включить информацию о репозитории
 class ProjectResponse(BaseModel):
     id: str
     name: str
@@ -358,7 +357,7 @@ class ProjectResponse(BaseModel):
     created_at: int
     updated_at: int
     framework: Optional[str] = None
-    git: Optional[ProjectGitRepository] = None  # Добавляем поле для информации о репозитории
+    git: Optional[ProjectGitRepository] = None
 
 class ProjectListResponse(BaseModel):
     projects: List[ProjectResponse]
@@ -430,12 +429,11 @@ class GetProjectEnvVarsParams(TeamParams):
     custom_environment_id: Optional[str] = None
     git_branch: Optional[str] = None
 
-# Добавляем новую модель для ответа на удаление проекта
 class DeleteProjectResponse(BaseModel):
     status: str
     message: str
 
-# Добавляем новую модель для стандартизации ответов с сообщениями
+# Standard status/message response
 class StatusMessageResponse(BaseModel):
     status: str
     message: str

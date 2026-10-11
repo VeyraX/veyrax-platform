@@ -274,7 +274,6 @@ class UpdateGoalResponse(BaseModel):
     data: Goal
     message: Optional[str] = None
 
-# Добавляем классы-списки для User и Workspace
 class UserList(BaseModel):
     items: List[User]
     offset: Optional[str] = None

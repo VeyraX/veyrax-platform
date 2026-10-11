@@ -85,26 +85,26 @@ const UseCases = () => {
     }
   }
 
-  // Разделяем шаблоны на три группы
+  // Split templates into three groups
   const splitTemplates = (templates: TemplateWithTools[]) => {
-    // Если шаблонов недостаточно, дублируем их
+    // Duplicate templates if there are not enough of them
     let workingTemplates = [...templates]
     while (workingTemplates.length < 15) {
       workingTemplates = [...workingTemplates, ...templates]
     }
     
-    // Создаем три группы с примерно равным количеством шаблонов
+    // Build three groups of roughly equal size
     const third = Math.ceil(workingTemplates.length / 3)
     return [
       workingTemplates.slice(0, third),
-      workingTemplates.slice(0, third), // Используем те же шаблоны для всех рядов
+      workingTemplates.slice(0, third), // Use the same templates for every row
       workingTemplates.slice(0, third)
     ]
   }
 
   const templateGroups = isLoading ? [[], [], []] : splitTemplates(templates)
 
-  // Функция для рендера карточек-заглушек
+  // Render placeholder cards
   const renderSkeletons = () => {
     return [...Array(8)].map((_, index) => (
       <div key={`skeleton-${index}`} style={{width: '320px'}}>

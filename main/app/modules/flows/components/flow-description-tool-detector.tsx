@@ -27,7 +27,7 @@ export function useToolsDetector(html: string, actions: any[]) {
     const providersInfo = getProviderInfoFromActionElements(actionElements);
     
     providersInfo.forEach(({ providerName, actionSlug }: { providerName: string; actionSlug: string }) => {
-      // Нормализация имени провайдера для сравнения
+      // Normalize the provider name for comparison
       const normalizedProviderName = providerName.toLowerCase().trim();
       const normalizedActionSlug = actionSlug.trim();
       

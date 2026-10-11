@@ -57,7 +57,7 @@ class Issue(BaseModel):
             
         return self
     
-    # Дополнительные поля для совместимости
+    # Additional fields for compatibility
     project_id: Optional[str] = Field(None, description="Project UUID")
     team_id: str = ""
     team_key: str = ""
@@ -159,7 +159,7 @@ class WorkflowState(BaseModel):
             self.team_name = ""
         return self
     
-    # Дополнительные поля для совместимости
+    # Additional fields for compatibility
     team_id: str = ""
     team_key: str = ""
     team_name: str = ""

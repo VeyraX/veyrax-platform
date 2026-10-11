@@ -300,7 +300,7 @@ export function AI_Prompt() {
                                         if (!value.trim()) return;
                                         setValue("");
                                         adjustHeight(true);
-                                        // Здесь можно добавить отправку сообщения
+                                        // TODO: send the message here
                                     }}
                                 >
                                     <ArrowRight

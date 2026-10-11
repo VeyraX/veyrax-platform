@@ -169,7 +169,7 @@
   overflow-x: auto;
 }
 
-/* Placeholder для ContentEditable */
+/* ContentEditable placeholder */
 [contenteditable="true"]:empty:before {
   content: attr(data-placeholder);
   color: hsl(var(--muted-foreground));

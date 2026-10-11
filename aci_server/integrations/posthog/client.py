@@ -54,7 +54,7 @@ class PosthogClient:
     
     def check_auth(self) -> bool:
         try:
-            # Получаем организации для проверки аутентификации
+            # Fetch organizations to verify authentication
             self.get_organizations()
             return True
         except Exception:

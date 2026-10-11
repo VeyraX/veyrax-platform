@@ -219,14 +219,14 @@ routes:
               "title": "Sample Document",
               "url": "https://docs.google.com/document/d/1SHswVVC2s737fmT5o_23JoGAvDz0cIae6iNzGaDPFQM",
               "revision_id": "ALm37BXhZRuVv8XQ4VJg-L45LL_3IXxvJ18vWYp9mKhL4oqhXfhwsHaRqakPMf6wXQ",
-              "content": "Это содержимое документа. Здесь находится весь текст документа, включая все абзацы и форматирование.",
+              "content": "This is the document content. It contains the full text of the document, including all paragraphs and formatting.",
               "structural_elements": [
                 {
                   "paragraph": {
                     "elements": [
                       {
                         "textRun": {
-                          "content": "Это содержимое документа. ",
+                          "content": "This is the document content. ",
                           "textStyle": {}
                         }
                       }
@@ -239,7 +239,7 @@ routes:
                     "elements": [
                       {
                         "textRun": {
-                          "content": "Здесь находится весь текст документа, включая все абзацы и форматирование.",
+                          "content": "It contains the full text of the document, including all paragraphs and formatting.",
                           "textStyle": {}
                         }
                       }

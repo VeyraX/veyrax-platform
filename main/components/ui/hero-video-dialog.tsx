@@ -77,7 +77,7 @@ export default function HeroVideoDialog({
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const selectedAnimation = animationVariants[animationStyle];
   
-  // CSS для скрытия элементов YouTube в iframe
+  // CSS that hides YouTube controls inside the iframe
   const youtubeWrapperStyle = `
     .youtube-wrapper {
       position: relative;
@@ -87,10 +87,10 @@ export default function HeroVideoDialog({
     }
     .youtube-wrapper iframe {
       position: absolute;
-      top: -60px; /* Сдвигаем iframe вверх, чтобы скрыть верхнюю панель */
+      top: -60px; /* Shift the iframe up to hide the top bar */
       left: 0;
       width: 100%;
-      height: calc(100% + 60px); /* Увеличиваем высоту для компенсации сдвига */
+      height: calc(100% + 60px); /* Increase height to compensate for the shift */
       border: none;
     }
   `;
@@ -137,7 +137,7 @@ export default function HeroVideoDialog({
               {...selectedAnimation}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="relative mx-4 aspect-video w-full max-w-4xl md:mx-0"
-              onClick={(e) => e.stopPropagation()} // Предотвращаем закрытие при клике на видео
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the video
             >
               <motion.button 
                 className="absolute -top-16 right-0 rounded-full bg-neutral-900/50 p-2 text-xl text-white ring-1 backdrop-blur-md dark:bg-neutral-100/50 dark:text-black"

@@ -53,7 +53,7 @@ export function McpCard({ repository, onSelect }: McpCardProps) {
     }
   };
 
-  // Ограничиваем описание до 50 символов
+  // Truncate the description to 50 characters
   const truncatedDescription = short_description 
     ? short_description.length > 50 
       ? `${short_description.substring(0, 50)}...` 

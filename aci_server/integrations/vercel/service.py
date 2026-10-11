@@ -209,7 +209,7 @@ class VercelService:
         
         response = self.client.create_project(data, query_params)
         
-        # Преобразуем ответ в ProjectResponse
+        # Convert the response to ProjectResponse
         project = self._convert_to_project_response(response)
         return ApiResponse(data=project)
 
@@ -246,7 +246,7 @@ class VercelService:
         
         response = self.client.create_env_vars(project_id_or_name, data, query_params)
         
-        # Преобразуем ответ в CreateEnvVarsResponse
+        # Convert the response to CreateEnvVarsResponse
         created = None
         if "created" in response:
             created = EnvVarCreatedResponse(**response["created"])
@@ -270,7 +270,7 @@ class VercelService:
         
         self.client.delete_project(project_id_or_name, query_params)
         
-        # Возвращаем структурированный ответ
+        # Return a structured response
         result = DeleteProjectResponse(
             status="success", 
             message=f"Project '{project_id_or_name}' deleted successfully"
@@ -688,7 +688,7 @@ class VercelService:
         )
     
     def _convert_to_deployment_response(self, item: Dict[str, Any]) -> DeploymentResponse:
-        # Проверяем наличие ID и используем uid как запасной вариант
+        # Use uid as a fallback when id is missing
         deployment_id = item.get('id', '')
         if not deployment_id and 'uid' in item:
             deployment_id = item.get('uid', '')

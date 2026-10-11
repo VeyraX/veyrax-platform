@@ -26,7 +26,6 @@ class DeleteQueryParams(BaseModel):
     project_id: str = Field(..., description="Project ID")
     query_id: str = Field(..., description="ID of the query to delete")
 
-# Классы для статуса и результатов запроса не изменяются
 class QueryStatus(BaseModel):
     complete: bool
     dashboard_id: Optional[str] = None
@@ -191,7 +190,7 @@ class EventsList(BaseModel):
     previous: Optional[str] = None
     results: List[Event]
 
-# Добавляем project_id для схем, связанных с проектом
+# Project-scoped schemas (require project_id)
 class ListEventsParams(BaseModel):
     project_id: str = Field(..., description="Project ID")
     after: Optional[str] = Field(None, description="Only return events with a timestamp after this time")

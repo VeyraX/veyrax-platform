@@ -36,7 +36,7 @@ export function ExistingMcpCard({
     repo_id: string;
   } | null>(null);
   
-  // Вместо useRef используем useState для обеспечения перерисовки после загрузки данных
+  // useState instead of useRef so the component re-renders once data is loaded
   const [repoInfo, setRepoInfo] = useState<GitHubRepoInfo | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   

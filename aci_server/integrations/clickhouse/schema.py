@@ -8,7 +8,6 @@ class ApiResponse(BaseModel):
     message: Optional[str] = None
 
 
-# Добавляем класс для параметров подключения
 class ClickHouseConnectionParams(BaseModel):
     host: str = Field(..., description="ClickHouse server host")
     port: int = Field(9000, description="ClickHouse server port")
