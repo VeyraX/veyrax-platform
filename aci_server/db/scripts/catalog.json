@@ -1,0 +1,3407 @@
+{
+  "airbnb": {
+    "name": "Airbnb",
+    "description": "Airbnb is a platform for booking accommodations and experiences.",
+    "categories": "Travel, Real Estate",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/airbnb.svg",
+    "created_at": 1743574107,
+    "is_enabled": true,
+    "action_names": {
+      "search": "Search Data",
+      "listing_details": "View Listing Details"
+    }
+  },
+  "airtable": {
+    "name": "Airtable",
+    "description": "Create flexible databases, manage records, and collaborate with team members in Airtable.",
+    "categories": "Productivity, Analytics",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/airtable.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "data.records:read": "See the data in records",
+      "data.records:write": "Create, edit, and delete records",
+      "data.recordComments:read": "See comments in records",
+      "data.recordComments:write": "Create, edit, and delete record comments",
+      "schema.bases:read": "See the structure of a base, like table names or field types",
+      "schema.bases:write": "Edit the structure of a base, like adding new fields or tables",
+      "user.email:read": "See the user's email address",
+      "webhook:manage": "View, create, delete webhooks for a base, as well as fetch webhook payloads"
+    },
+    "action_scopes": {
+      "list_records": [
+        "data.records:read",
+        "data.records:write"
+      ],
+      "get_record": [
+        "data.records:read",
+        "data.records:write"
+      ],
+      "create_record": [
+        "data.records:write"
+      ],
+      "create_records": [
+        "data.records:write"
+      ],
+      "update_record": [
+        "data.records:write"
+      ],
+      "update_records": [
+        "data.records:write"
+      ],
+      "delete_record": [
+        "data.records:write"
+      ],
+      "delete_records": [
+        "data.records:write"
+      ],
+      "upload_attachment": [
+        "data.records:write"
+      ],
+      "sync_csv": [
+        "data.records:write",
+        "schema.bases:write"
+      ],
+      "create_field": [
+        "schema.bases:write"
+      ],
+      "update_field": [
+        "schema.bases:write"
+      ],
+      "create_table": [
+        "schema.bases:write"
+      ],
+      "update_table": [
+        "data.records:write"
+      ],
+      "list_bases": [
+        "schema.bases:read",
+        "schema.bases:write"
+      ],
+      "get_base_schema": [
+        "schema.bases:read",
+        "schema.bases:write"
+      ],
+      "create_base": [
+        "schema.bases:write"
+      ],
+      "list_webhooks": [
+        "webhook:manage"
+      ],
+      "create_webhook": [
+        "webhook:manage"
+      ],
+      "delete_webhook": [
+        "webhook:manage"
+      ],
+      "list_webhook_payloads": [
+        "webhook:manage"
+      ],
+      "get_user_info": [
+        "data.records:read",
+        "data.records:write",
+        "user.email:read"
+      ]
+    },
+    "action_names": {
+      "list_records": "Retrieve Filtered Records",
+      "get_record": "Retrieve Record Data",
+      "create_record": "Create New Record",
+      "create_records": "Add New Records",
+      "update_record": "Update Record Details",
+      "update_records": "Update Record Fields",
+      "delete_record": "Delete Table Record",
+      "delete_records": "Delete Table Records",
+      "upload_attachment": "Upload File Attachment",
+      "sync_csv": "Sync CSV To Table",
+      "create_field": "Add New Field",
+      "update_field": "Rename Field",
+      "create_table": "Create New Table",
+      "update_table": "Update Table Data",
+      "list_bases": "List All Bases",
+      "create_base": "Create New Database",
+      "list_webhooks": "List All Webhooks",
+      "create_webhook": "Create Webhook Notification",
+      "delete_webhook": "Remove Webhook",
+      "get_user_info": "Retrieve User Information"
+    }
+  },
+  "amazon": {
+    "name": "Amazon Affiliate",
+    "description": "Search Amazon, get products, add affiliate links.",
+    "categories": "Marketing",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/amazon.png",
+    "created_at": 1742565367,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "access_key",
+        "type": "text",
+        "label": "Access Key",
+        "required": true,
+        "placeholder": "Enter Access Key"
+      },
+      {
+        "key": "secret_key",
+        "type": "password",
+        "label": "Secret Key",
+        "required": true,
+        "placeholder": "Enter Secret Key"
+      },
+      {
+        "key": "associate_tag",
+        "type": "text",
+        "label": "Associate Tag",
+        "required": true,
+        "placeholder": "abc-123"
+      },
+      {
+        "key": "authorization_url",
+        "type": "select",
+        "label": "Authorization URL",
+        "options": [
+          {
+            "label": "United States",
+            "value": "US"
+          },
+          {
+            "label": "Canada",
+            "value": "CA"
+          },
+          {
+            "label": "Mexico",
+            "value": "MX"
+          },
+          {
+            "label": "Brazil",
+            "value": "BR"
+          },
+          {
+            "label": "United Kingdom",
+            "value": "UK"
+          },
+          {
+            "label": "Germany",
+            "value": "DE"
+          },
+          {
+            "label": "Spain",
+            "value": "ES"
+          },
+          {
+            "label": "France",
+            "value": "FR"
+          },
+          {
+            "label": "India",
+            "value": "IN"
+          },
+          {
+            "label": "Italy",
+            "value": "IT"
+          },
+          {
+            "label": "United Arab Emirates",
+            "value": "AE"
+          },
+          {
+            "label": "Turkey",
+            "value": "TR"
+          },
+          {
+            "label": "Japan",
+            "value": "JP"
+          },
+          {
+            "label": "Singapore",
+            "value": "SG"
+          },
+          {
+            "label": "Australia",
+            "value": "AU"
+          }
+        ],
+        "required": true,
+        "placeholder": "US"
+      }
+    ],
+    "action_names": {
+      "search_items": "Find Items",
+      "get_items": "Retrieve Product Details",
+      "get_variations": "Get Product Variations",
+      "get_browse_nodes": "Retrieve Browse Nodes",
+      "get_asin_from_url": "Extract ASIN From URL"
+    }
+  },
+  "apollo": {
+    "name": "Apollo",
+    "description": "Apollo is a platform for finding and connecting with people and organizations.",
+    "categories": "Scraping, Leads",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/apollo.svg",
+    "created_at": 1744399345,
+    "is_enabled": true,
+    "action_names": {
+      "search_people": "Find People",
+      "search_people_by_url": "Find People By URL",
+      "search_organizations_by_url": "Find Organizations by URL",
+      "get_person_details": "Retrieve Person Details",
+      "get_organization_details": "View Organization Details"
+    }
+  },
+  "asana": {
+    "name": "Asana",
+    "description": "Plan and manage work, projects, and tasks with Asana.",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/asana.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "full_access": "Full Access"
+    },
+    "action_scopes": {
+      "get_tasks": [
+        "full_access"
+      ],
+      "get_task": [
+        "full_access"
+      ],
+      "create_task": [
+        "full_access"
+      ],
+      "update_task": [
+        "full_access"
+      ],
+      "delete_task": [
+        "full_access"
+      ],
+      "get_subtasks": [
+        "full_access"
+      ],
+      "create_subtask": [
+        "full_access"
+      ],
+      "get_workspaces": [
+        "full_access"
+      ],
+      "get_projects": [
+        "full_access"
+      ],
+      "get_project": [
+        "full_access"
+      ],
+      "get_tags": [
+        "full_access"
+      ],
+      "get_tag": [
+        "full_access"
+      ],
+      "get_teams": [
+        "full_access"
+      ],
+      "get_team": [
+        "full_access"
+      ],
+      "get_users": [
+        "full_access"
+      ],
+      "get_user": [
+        "full_access"
+      ],
+      "get_workspace": [
+        "full_access"
+      ],
+      "get_goals": [
+        "full_access"
+      ],
+      "get_goal": [
+        "full_access"
+      ],
+      "create_goal": [
+        "full_access"
+      ],
+      "update_goal": [
+        "full_access"
+      ],
+      "get_sections": [
+        "full_access"
+      ],
+      "get_section": [
+        "full_access"
+      ],
+      "get_section_tasks": [
+        "full_access"
+      ],
+      "get_time_periods": [
+        "full_access"
+      ]
+    },
+    "action_names": {
+      "get_tasks": "Fetch Task List",
+      "get_task": "Retrieve Task Details",
+      "update_task": "Update Task Status",
+      "get_subtasks": "Retrieve Subtasks",
+      "get_workspaces": "List Workspaces",
+      "get_projects": "Retrieve Project List",
+      "get_project": "Retrieve Project Details",
+      "get_tags": "Retrieve Workspace Tags",
+      "get_tag": "Retrieve Tag Details",
+      "get_teams": "List Workspace Teams",
+      "get_team": "Retrieve Team Details",
+      "get_users": "Fetch User List",
+      "get_user": "Retrieve User Details",
+      "get_workspace": "Retrieve Workspace Details",
+      "get_goals": "Retrieve Goal Details",
+      "get_goal": "View Goal Details",
+      "update_goal": "Update Goal Status",
+      "get_sections": "Retrieve Project Sections",
+      "get_section": "Retrieve Section Details",
+      "get_section_tasks": "List Section Tasks",
+      "get_time_periods": "Fetch Time Periods"
+    }
+  },
+  "bannerbear": {
+    "name": "Bannerbear",
+    "description": "Auto-generate social media visuals, ecommerce banners and more.",
+    "categories": "Design",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/bannerbear.png",
+    "created_at": 1743108329,
+    "is_enabled": true,
+    "action_names": {
+      "retrieve_account_status": "Check Account Status",
+      "retrieve_image": "Fetch Image Details",
+      "list_all_images": "Fetch All Images",
+      "create_video": "Create Custom Video",
+      "retrieve_video": "Get Video Details",
+      "update_video": "Update Video Details",
+      "retrieve_collection": "Fetch Collection Data",
+      "create_animated_gif": "Create Animated GIF",
+      "retrieve_animated_gif": "Fetch Animated GIF",
+      "list_all_animated_gifs": "Fetch Animated GIFs",
+      "create_screenshot": "Capture Website Screenshot",
+      "retrieve_screenshot": "Fetch Screenshot Details",
+      "create_template": "Create Design Template",
+      "duplicate_template": "Copy Template",
+      "retrieve_template": "Get Template Details",
+      "update_template": "Update Template Details",
+      "retrieve_template_set": "Fetch Template Set",
+      "list_all_template_sets": "List Template Sets",
+      "retrieve_video_template": "Get Video Template",
+      "list_all_video_templates": "List Video Templates",
+      "create_session": "Start New Session",
+      "retrieve_session": "Get Session Details",
+      "create_webhook": "Register New Webhook",
+      "retrieve_webhook": "Get Webhook Details",
+      "create_movie": "Create Video Montage",
+      "retrieve_movie": "Fetch Movie Details",
+      "list_all_movies": "List Rendered Movies",
+      "create_diagnosis": "Create Image Diagnosis",
+      "retrieve_diagnosis": "Get Diagnosis Details",
+      "create_signed_base": "Generate Signed URL",
+      "list_signed_bases": "Retrieve Signed Bases",
+      "create_project": "Create New Project",
+      "retrieve_project": "Retrieve Project Details",
+      "hydrate_project": "Populate Project Templates",
+      "list_all_projects": "View All Projects",
+      "list_fonts": "List Available Fonts",
+      "list_effects": "List Available Effects",
+      "join_pdf": "Merge PDF Files",
+      "retrieve_joined_pdf": "Download Merged PDF",
+      "rasterize_pdf": "Convert PDF to Images",
+      "retrieve_rasterized_pdf": "Download Rasterized PDF"
+    }
+  },
+  "binance_p2p": {
+    "name": "Binance P2P",
+    "description": "Get real-time data from Binance P2P marketplace. View buy and sell offers for cryptocurrencies across different fiat currencies.",
+    "categories": "Crypto, Analytics",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/binance_p2p.png",
+    "created_at": 1743972982,
+    "is_enabled": true,
+    "action_names": {
+      "get_p2p_offers": "View P2P Offers"
+    }
+  },
+  "brave": {
+    "name": "Brave Search",
+    "description": "Search Web, Images, Videos, News with Brave API.",
+    "categories": "Search",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/brave.svg",
+    "created_at": 1741730343,
+    "is_enabled": true,
+    "action_names": {
+      "web_search": "Search Web Results",
+      "images_search": "Search Images",
+      "videos_search": "Search Videos",
+      "news_search": "Search News Articles"
+    }
+  },
+  "browser-use": {
+    "name": "Browser Use",
+    "description": "Enable AI to control your browser and automate tasks seamlessly.",
+    "categories": "Search, Productivity, AI",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/browser-use.svg",
+    "created_at": 1739643700,
+    "is_enabled": true,
+    "action_names": {
+      "run_task": "Execute Task",
+      "stop_task": "Stop Running Task",
+      "get_task": "Retrieve Task Details",
+      "get_task_status": "Check Task Status",
+      "get_task_media": "Retrieve Task Media",
+      "list_tasks": "List All Tasks",
+      "check_balance": "Check Account Balance",
+      "me": "Validate API Key",
+      "ping": "Check API Availability"
+    }
+  },
+  "browserbase": {
+    "name": "Browserbase",
+    "description": "Automate browser tasks and web interactions with Browserbase API.",
+    "categories": "Search, Productivity",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/browserbase.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "get_session": "Retrieve Session Details",
+      "create_session": "Start New Session",
+      "update_session": "Update Session Status",
+      "list_sessions": "List Active Sessions",
+      "get_context": "Retrieve Context Details",
+      "create_context": "Create Browser Context",
+      "delete_context": "Delete Browser Context",
+      "session_logs": "Retrieve Session Logs",
+      "session_recording": "Retrieve Session Recording",
+      "session_debug": "Debug Session Pages",
+      "session_downloads": "Download Session Data",
+      "session_uploads": "Upload File to Session",
+      "list_projects": "View All Projects",
+      "get_project": "Retrieve Project Details",
+      "get_project_usage": "View Project Usage",
+      "get_extension": "Retrieve Extension Details",
+      "delete_extension": "Remove Extension",
+      "upload_extension": "Upload Browser Extension"
+    }
+  },
+  "bybit_p2p": {
+    "name": "ByBit P2P",
+    "description": "Get real-time data from ByBit P2P marketplace. View buy and sell offers for cryptocurrencies across different fiat currencies.",
+    "categories": "Crypto, Analytics",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/bybit_p2p.jpg",
+    "created_at": 1743968782,
+    "is_enabled": true,
+    "action_names": {
+      "get_p2p_offers": "View P2P Offers"
+    }
+  },
+  "cal": {
+    "name": "Cal.com",
+    "description": "Cal.com is a scheduling platform that helps users schedule meetings without back-and-forth emails. It offers features for managing availability, creating booking links, and syncing with calendars.",
+    "categories": "Productivity",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/cal.svg",
+    "created_at": 1743914858,
+    "is_enabled": true,
+    "action_names": {
+      "get_bookings": "View Bookings",
+      "get_booking": "Retrieve Booking Details",
+      "get_profile": "Retrieve User Profile",
+      "get_schedules": "Retrieve Schedules",
+      "get_schedule": "View Schedule",
+      "get_event_types": "Fetch Event Types"
+    }
+  },
+  "clickhouse": {
+    "name": "ClickHouse",
+    "description": "Fast open-source columnar database optimized for real-time analytics.",
+    "categories": "Analytics",
+    "auth_method": "db_access",
+    "logo_url": "/provider-logos/clickhouse.svg",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_tables": "List Database Tables",
+      "get_columns": "Retrieve Table Columns",
+      "test_connection": "Test Database Connection"
+    }
+  },
+  "cloudinary": {
+    "name": "Cloudinary",
+    "description": "Upload, transform, download images & videos for scalable media management.",
+    "categories": "Storage",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/cloudinary.png",
+    "created_at": 1742578055,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "api_key",
+        "type": "text",
+        "label": "API Key",
+        "required": true,
+        "placeholder": "Enter API Key"
+      },
+      {
+        "key": "api_secret",
+        "type": "password",
+        "label": "API Secret",
+        "required": true,
+        "placeholder": "Enter API Secret"
+      },
+      {
+        "key": "cloud_name",
+        "type": "text",
+        "label": "Cloud Name",
+        "required": true,
+        "placeholder": "Enter Cloud Name"
+      }
+    ],
+    "action_names": {
+      "upload": "Upload Image File",
+      "explicit": "Set Image Transformation",
+      "list_assets": "List Available Assets",
+      "get_asset_details": "Fetch Asset Details",
+      "delete_asset": "Remove Asset And Invalidate"
+    }
+  },
+  "coda": {
+    "name": "Coda",
+    "description": "Create collaborative documents and manage data with Coda.",
+    "categories": "Productivity, Knowledge",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/coda.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "list_docs": "List Documents",
+      "get_doc": "Fetch Document Details",
+      "list_pages": "Retrieve Document Pages",
+      "get_page": "Retrieve Page Details",
+      "create_page": "Add New Page",
+      "update_page": "Edit Page Details",
+      "delete_page": "Remove Document Page",
+      "export_page": "Export Page as PDF",
+      "get_export_status": "Check Export Status",
+      "list_tables": "List Document Tables",
+      "get_table": "Fetch Table Data",
+      "list_columns": "List Table Columns",
+      "get_column": "Fetch Column Details",
+      "list_rows": "List Table Rows",
+      "get_row": "Fetch Table Row",
+      "create_rows": "Add Table Rows",
+      "delete_rows": "Delete Table Rows",
+      "delete_row": "Delete Table Row",
+      "push_button": "Trigger Column Button",
+      "list_formulas": "List Document Formulas",
+      "get_formula": "Retrieve Formula Details",
+      "list_controls": "Retrieve Document Controls",
+      "get_control": "Retrieve Control Details",
+      "whoami": "Get User Identity",
+      "update_row": "Update Table Row"
+    }
+  },
+  "confluence": {
+    "name": "Confluence",
+    "description": "Create, organize, and share knowledge across teams.",
+    "categories": "Productivity, Knowledge",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/confluence.svg",
+    "created_at": 1739643640,
+    "is_enabled": true,
+    "scopes": {
+      "read:confluence-space.summary": "View Space Summary",
+      "read:confluence-content.summary": "View Content Summary",
+      "write:confluence-content": "Manage Content",
+      "read:confluence-props": "View Properties",
+      "write:confluence-props": "Manage Properties",
+      "search:confluence": "Search Confluence"
+    },
+    "action_scopes": {
+      "get_spaces": [
+        "read:confluence-space.summary",
+        "write:confluence-content",
+        "read:confluence-props",
+        "write:confluence-props",
+        "search:confluence"
+      ],
+      "get_pages": [
+        "read:confluence-content.summary",
+        "write:confluence-content"
+      ],
+      "get_page": [
+        "read:confluence-content.summary",
+        "write:confluence-content"
+      ],
+      "create_page": [
+        "write:confluence-content"
+      ],
+      "update_page": [
+        "write:confluence-content"
+      ],
+      "search_content": [
+        "read:confluence-content.summary",
+        "write:confluence-content",
+        "search:confluence"
+      ],
+      "delete_page": [
+        "write:confluence-content"
+      ]
+    },
+    "action_names": {
+      "get_spaces": "List All Spaces",
+      "get_pages": "Retrieve Space Pages",
+      "get_page": "Get Page Content",
+      "create_page": "Create New Page",
+      "update_page": "Update Page Content"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "confluence_listSpaces",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:confluence-space.summary,read:confluence-content.summary,read:confluence-props,search:confluence"
+      },
+      {
+        "tool_name": "confluence_listPages",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:confluence-space.summary,read:confluence-content.summary,read:confluence-props,search:confluence"
+      },
+      {
+        "tool_name": "confluence_getPage",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:confluence-content.summary,read:confluence-props"
+      },
+      {
+        "tool_name": "confluence_searchContent",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "search:confluence"
+      },
+      {
+        "tool_name": "confluence_vectorSearch",
+        "require_scope": false,
+        "require_index": true,
+        "scopes": ""
+      }
+    ]
+  },
+  "dropbox": {
+    "name": "Dropbox",
+    "description": "Store, manage, and share files securely across teams.",
+    "categories": "Storage",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/dropbox.svg",
+    "created_at": 1739644000,
+    "is_enabled": true,
+    "scopes": {
+      "files.metadata.read": "View File Metadata",
+      "files.metadata.write": "Edit File Metadata",
+      "files.content.read": "View File Content",
+      "files.content.write": "Upload and Edit Files",
+      "sharing.read": "View Sharing Settings",
+      "sharing.write": "Edit Sharing Settings",
+      "account_info.read": "View Account Info"
+    },
+    "action_scopes": {
+      "list_files": [
+        "files.metadata.read",
+        "files.metadata.write",
+        "files.content.read",
+        "files.content.write"
+      ],
+      "get_file": [
+        "files.metadata.read",
+        "files.metadata.write",
+        "files.content.read",
+        "files.content.write"
+      ],
+      "create_folder": [
+        "files.metadata.write",
+        "files.content.write"
+      ],
+      "upload_file": [
+        "files.content.write"
+      ],
+      "download_file": [
+        "files.metadata.read",
+        "files.metadata.write",
+        "files.content.read",
+        "files.content.write"
+      ],
+      "delete_file": [
+        "files.content.write"
+      ],
+      "move_file": [
+        "files.metadata.write",
+        "files.content.write"
+      ],
+      "read_file": [
+        "files.content.read",
+        "files.content.write"
+      ],
+      "create_shared_link": [
+        "sharing.write"
+      ],
+      "search": [
+        "files.metadata.read",
+        "files.metadata.write",
+        "files.content.read",
+        "files.content.write"
+      ],
+      "search_continue": [
+        "files.metadata.read",
+        "files.metadata.write",
+        "files.content.read",
+        "files.content.write"
+      ]
+    },
+    "action_names": {
+      "list_files": "List Files In Directory",
+      "get_file": "Retrieve File",
+      "create_folder": "Create New Folder",
+      "read_file": "Read File Content",
+      "search": "Find Active Documents",
+      "search_continue": "Resume Search Results"
+    }
+  },
+  "dub": {
+    "name": "Dub",
+    "description": "URL shortening and analytics platform for tracking links.",
+    "categories": "Analytics",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/dub.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "create_link": "Create Shortened Link",
+      "update_link": "Edit Link Information",
+      "upsert_link": "Save or Update Link",
+      "delete_link": "Remove Short Link",
+      "get_link": "Retrieve Shortened Link",
+      "get_links": "Retrieve URL Links",
+      "get_links_count": "Count Workspace Links",
+      "bulk_create_links": "Batch Create Links",
+      "get_qr_code": "Generate QR Code",
+      "get_analytics": "Retrieve Link Analytics",
+      "get_events": "Retrieve Event Logs",
+      "get_customer": "Retrieve Customer Details",
+      "get_customers": "Retrieve Customer List",
+      "update_customer": "Update Customer Details",
+      "delete_customer": "Remove Customer Record",
+      "track_lead": "Track Customer Lead",
+      "track_sale": "Record Sale Transaction",
+      "create_tag": "Create New Tag",
+      "get_tags": "Retrieve Tags List",
+      "update_tag": "Edit Existing Tag",
+      "update_domain": "Update Domain Information",
+      "delete_domain": "Remove Domain",
+      "get_domains": "List Domains",
+      "get_workspace": "Retrieve Workspace Details",
+      "update_workspace": "Modify Workspace Details"
+    }
+  },
+  "duckduckgo": {
+    "name": "DuckDuckGo",
+    "description": "DuckDuckGo is a search engine that provides a fast and secure way to find information on the web.",
+    "categories": "Search",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/duckduckgo.svg",
+    "created_at": 1743208608,
+    "is_enabled": true,
+    "action_names": {
+      "search": "Search Database",
+      "fetch_content": "Retrieve Content"
+    }
+  },
+  "e2b": {
+    "name": "E2B",
+    "description": "Run code securely in your application.",
+    "categories": "Development",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/e2b.svg",
+    "created_at": 1742238894,
+    "is_enabled": true,
+    "action_names": {
+      "create_sandbox": "Create New Sandbox",
+      "list_sandboxes": "View Sandboxes List",
+      "run_command": "Execute Shell Command",
+      "get_host": "Get External Host URL",
+      "run_code": "Execute Code",
+      "kill_sandbox": "Terminate Sandbox"
+    }
+  },
+  "exa": {
+    "name": "Exa",
+    "description": "Web search provider that helps with online queries.",
+    "categories": "Search, Scraping",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/exa.png",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "search": "Search Articles",
+      "contents": "Fetch Document Contents",
+      "find_similar": "Find Similar Content"
+    }
+  },
+  "facebook": {
+    "name": "Facebook",
+    "description": "Facebook API for accessing profile, page, group details and social media content",
+    "categories": "Social, Communications",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/facebook.svg",
+    "created_at": 1746256058,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "profile_url",
+        "type": "text",
+        "label": "Your Profile URL",
+        "required": false,
+        "placeholder": "https://www.facebook.com/zuck"
+      }
+    ],
+    "action_names": {
+      "search_locations": "Find Locations",
+      "search_posts": "Search Blog Posts",
+      "search_places": "Find Locations",
+      "search_pages": "Search Web Pages",
+      "get_page_id": "Fetch Page ID",
+      "get_page_posts": "Fetch Page Posts",
+      "get_page_reviews": "Fetch Page Reviews",
+      "get_post_comments": "Retrieve Post Comments",
+      "get_post_details": "View Post Details",
+      "get_group_posts": "Fetch Group Posts",
+      "get_group_details": "View Group Details",
+      "get_group_id": "Get Group ID",
+      "get_profile_posts": "View Profile Posts",
+      "get_profile_details_id": "Retrieve Profile Details",
+      "get_profile_details_url": "View Profile Details",
+      "get_profile_id": "Fetch Profile ID",
+      "get_me": "Retrieve User Info"
+    }
+  },
+  "falai": {
+    "name": "FalAI",
+    "description": "FalAI is a generative media platform for creating images, videos, and audio.",
+    "categories": "AI",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/falai.svg",
+    "created_at": 1743574050,
+    "is_enabled": true,
+    "action_names": {
+      "get_models": "List Available Models",
+      "search_models": "Find Models",
+      "get_schema": "Retrieve Data Schema",
+      "generate": "Create Content",
+      "get_result": "Retrieve Result",
+      "get_status": "Check Status",
+      "cancel": "Cancel Action",
+      "upload": "Upload File"
+    }
+  },
+  "figma": {
+    "name": "Figma",
+    "description": "Design, prototype, and collaborate in real-time on Figma.",
+    "categories": "Design",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/figma.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "files:read": "Read Files",
+      "file_variables:read": "Read Variables",
+      "file_variables:write": "Write Variables",
+      "library_analytics:read": "Read Library Analytics"
+    },
+    "action_scopes": {
+      "get_file": [
+        "files:read"
+      ],
+      "get_file_nodes": [
+        "files:read"
+      ],
+      "get_image": [
+        "files:read"
+      ],
+      "get_file_components": [
+        "files:read"
+      ],
+      "get_component_sets": [
+        "files:read"
+      ],
+      "get_styles": [
+        "files:read"
+      ],
+      "get_me": [
+        "files:read",
+        "file_variables:read",
+        "file_variables:write",
+        "library_analytics:read"
+      ],
+      "get_team_projects": [
+        "files:read"
+      ],
+      "get_team_components": [
+        "files:read"
+      ],
+      "get_team_component_sets": [
+        "files:read"
+      ],
+      "get_team_styles": [
+        "files:read",
+        "file_variables:read",
+        "file_variables:write"
+      ],
+      "get_project_files": [
+        "files:read"
+      ],
+      "get_all_nodes": [
+        "files:read"
+      ]
+    },
+    "action_names": {
+      "get_file": "Download File Data",
+      "get_file_nodes": "Retrieve File Nodes",
+      "get_image": "Download Image Node",
+      "get_file_components": "Retrieve File Components",
+      "get_component_sets": "Retrieve Component Sets",
+      "get_styles": "Retrieve Style Information",
+      "get_me": "Retrieve User Details",
+      "get_team_projects": "Fetch Team Projects",
+      "get_team_components": "Fetch Team Components",
+      "get_team_component_sets": "Fetch Team Component Sets",
+      "get_team_styles": "Retrieve Team Styles",
+      "get_project_files": "Fetch Project Files",
+      "get_all_nodes": "Retrieve All Nodes"
+    }
+  },
+  "firecrawl": {
+    "name": "FireCrawl",
+    "description": "Automated web crawling and data extraction at scale.",
+    "categories": "Scraping",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/firecrawl.svg",
+    "created_at": 1741500666,
+    "is_enabled": true,
+    "action_names": {
+      "scrape": "Extract Web Content",
+      "batch_scrape": "Batch Webpage Scrape",
+      "get_batch_status": "Check Batch Status",
+      "get_batch_errors": "Fetch Batch Errors",
+      "crawl": "Website Content Crawl",
+      "get_crawl_status": "Check Crawl Status",
+      "cancel_crawl": "Cancel Crawl Job",
+      "get_crawl_errors": "Retrieve Crawl Errors",
+      "map_site": "Discover Website Links",
+      "extract": "Extract Web Data",
+      "get_extract_status": "Check Extract Status",
+      "search": "Search Websites",
+      "get_credit_usage": "Check Credit Usage"
+    }
+  },
+  "github": {
+    "name": "GitHub",
+    "description": "GitHub provider enables to retrieve repository details, list commits, and manage issues.",
+    "categories": "Development",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/github.svg",
+    "created_at": 1740961079,
+    "is_enabled": true,
+    "scopes": {
+      "repo": "Repository Access",
+      "read:org": "Read Organization Info",
+      "read:user": "Read User Info",
+      "user:email": "Access User Email",
+      "workflow": "Manage Workflows"
+    },
+    "action_scopes": {
+      "get_repositories": [
+        "repo"
+      ],
+      "get_repository": [
+        "repo"
+      ],
+      "get_issues": [
+        "repo"
+      ],
+      "get_issue": [
+        "repo"
+      ],
+      "get_pull_requests": [
+        "repo"
+      ],
+      "get_pull_request": [
+        "repo"
+      ],
+      "get_commits": [
+        "repo"
+      ],
+      "get_commit": [
+        "repo"
+      ],
+      "star_repository": [
+        "repo"
+      ],
+      "unstar_repository": [
+        "repo"
+      ],
+      "create_pull_request": [
+        "repo"
+      ],
+      "update_pull_request": [
+        "repo"
+      ],
+      "merge_pull_request": [
+        "repo"
+      ],
+      "get_pull_request_reviews": [
+        "repo"
+      ],
+      "create_pull_request_review": [
+        "repo"
+      ],
+      "create_repository_from_template": [
+        "repo"
+      ],
+      "get_git_tree": [
+        "repo"
+      ],
+      "get_repository_contents": [
+        "repo"
+      ],
+      "create_blob": [
+        "repo"
+      ],
+      "get_blob": [
+        "repo"
+      ],
+      "update_file": [
+        "repo"
+      ],
+      "get_contents": [
+        "repo"
+      ],
+      "delete_file": [
+        "repo"
+      ],
+      "create_file": [
+        "repo"
+      ]
+    },
+    "action_names": {
+      "get_repositories": "Retrieve Repositories",
+      "get_repository": "Fetch Repository Details",
+      "get_issues": "Retrieve Issues",
+      "get_issue": "Get Issue Details",
+      "get_pull_requests": "Fetch Pull Requests",
+      "get_pull_request": "Retrieve Pull Request",
+      "get_commits": "Retrieve Commits",
+      "get_commit": "Retrieve Commit Details",
+      "get_pull_request_reviews": "Retrieve Pull Request Reviews",
+      "create_pull_request_review": "Submit Pull Request Review",
+      "create_repository_from_template": "Create Repository Template",
+      "get_git_tree": "Fetch Git Repository Tree",
+      "get_repository_contents": "Fetch Repository Contents",
+      "create_blob": "Create Repository Blob",
+      "get_blob": "Fetch Blob Content",
+      "update_file": "Update File Content",
+      "get_contents": "Fetch File Content",
+      "create_file": "Create New File"
+    }
+  },
+  "google-calendar": {
+    "name": "Google Calendar",
+    "description": "Schedule meetings, manage events, and coordinate calendars across teams.",
+    "categories": "Communication, Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/google-calendar.svg",
+    "created_at": 1739643397,
+    "is_enabled": true,
+    "scopes": {
+      "https://www.googleapis.com/auth/calendar.readonly": "View Calendar Events",
+      "https://www.googleapis.com/auth/calendar.events": "Manage and Create Calenadar Events"
+    },
+    "action_scopes": {
+      "list_events": [
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/calendar.events"
+      ],
+      "get_event": [
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/calendar.events"
+      ],
+      "create_event": [
+        "https://www.googleapis.com/auth/calendar.events"
+      ],
+      "update_event": [
+        "https://www.googleapis.com/auth/calendar.events"
+      ],
+      "delete_event": [
+        "https://www.googleapis.com/auth/calendar.events"
+      ],
+      "list_calendars": [
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/calendar.events"
+      ]
+    },
+    "action_names": {
+      "list_events": "Display Calendar Events",
+      "get_event": "Retrieve Event Details",
+      "create_event": "Create Calendar Event",
+      "update_event": "Update Calendar Event",
+      "delete_event": "Delete Calendar Event",
+      "list_calendars": "List User Calendars"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "googleCalendar_listEvents",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/calendar.readonly,https://www.googleapis.com/auth/calendar.events,https://www.googleapis.com/auth/calendar"
+      },
+      {
+        "tool_name": "googleCalendar_createEvent",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/calendar.events,https://www.googleapis.com/auth/calendar"
+      }
+    ]
+  },
+  "google-docs": {
+    "name": "Google Docs",
+    "description": "Access, read, edit, and manage your Google Docs documents.",
+    "categories": null,
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/google-docs.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "https://www.googleapis.com/auth/documents.readonly": "See all your Google Docs documents",
+      "https://www.googleapis.com/auth/documents": "See, edit, create and delete all your Google Docs documents"
+    },
+    "action_scopes": {
+      "get_document": [
+        "https://www.googleapis.com/auth/documents.readonly",
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "create_document": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "batch_update": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "insert_text": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "replace_all_text": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "search_text": [
+        "https://www.googleapis.com/auth/documents.readonly",
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "get_document_content": [
+        "https://www.googleapis.com/auth/documents.readonly",
+        "https://www.googleapis.com/auth/documents"
+      ]
+    },
+    "action_names": {
+      "get_document": "Fetch Document Details",
+      "batch_update": "Batch Update Document",
+      "insert_text": "Add Text To Document",
+      "search_text": "Text Search In Document",
+      "get_document_content": "Retrieve Document Content"
+    }
+  },
+  "google-drive": {
+    "name": "Google Drive",
+    "description": "Manage files and documents in the cloud, handle sharing permissions, and collaborate on content.",
+    "categories": "Storage",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/google-drive.svg",
+    "created_at": 1739643380,
+    "is_enabled": true,
+    "scopes": {
+      "https://www.googleapis.com/auth/drive.file": "Manage Created Files",
+      "https://www.googleapis.com/auth/documents": "See, edit, create and delete all of your Google Docs documents"
+    },
+    "action_scopes": {
+      "list_files": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "get_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "create_folder": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "upload_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "download_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "delete_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "move_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "list_folders": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "read_file": [
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "set_permission": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "list_permissions": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "delete_permission": [
+        "https://www.googleapis.com/auth/drive.file"
+      ],
+      "copy_file": [
+        "https://www.googleapis.com/auth/drive.file"
+      ]
+    },
+    "action_names": {
+      "list_files": "List All Files",
+      "get_file": "Retrieve File Information",
+      "create_folder": "Create New Folder",
+      "move_file": "Move File to Folder",
+      "read_file": "Read File Content",
+      "set_permission": "Set File Permission",
+      "list_permissions": "List File Permissions",
+      "delete_permission": "Revoke File Permission"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "googleDrive_listFiles",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/drive.metadata,https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive"
+      },
+      {
+        "tool_name": "googleDrive_listFolders",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/drive.metadata,https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive"
+      },
+      {
+        "tool_name": "googleDrive_getFile",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/drive.metadata,https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive"
+      },
+      {
+        "tool_name": "googleDrive_moveFile",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive"
+      },
+      {
+        "tool_name": "googleDrive_readFile",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive"
+      },
+      {
+        "tool_name": "googleDrive_vectorSearch",
+        "require_scope": false,
+        "require_index": true,
+        "scopes": null
+      }
+    ]
+  },
+  "google-maps": {
+    "name": "Google Maps",
+    "description": "Google Maps is a web mapping platform and consumer application offering satellite imagery, aerial photography, street maps, and interactive panoramic views.",
+    "categories": "Navigation, Real Estate",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/google-maps.svg",
+    "created_at": 1743914686,
+    "is_enabled": true,
+    "action_names": {
+      "get_geocode": "Get Location Coordinates",
+      "get_reverse_geocode": "Reverse Geocode Location",
+      "search_places": "Find Locations",
+      "get_place_details": "Get Location Details",
+      "get_elevation": "Get Elevation Data",
+      "get_directions": "Get Travel Directions"
+    }
+  },
+  "google-sheets": {
+    "name": "Google Sheets",
+    "description": "Access, read, edit, and manage your Google Sheets spreadsheets.",
+    "categories": "Productivity, Analytics",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/google-sheets.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "https://www.googleapis.com/auth/spreadsheets.readonly": "See all your Google Sheets spreadsheets",
+      "https://www.googleapis.com/auth/spreadsheets": "See, edit, create and delete all your Google Sheets spreadsheets"
+    },
+    "action_scopes": {
+      "get_spreadsheet": [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "get_spreadsheet_values": [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "get_spreadsheet_values_batch": [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "update_spreadsheet_values": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "append_spreadsheet_values": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "clear_spreadsheet_values": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "create_spreadsheet": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "add_sheet": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "delete_sheet": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "search_spreadsheet": [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "get_formulas": [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "add_formula": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ]
+    },
+    "action_names": {
+      "get_spreadsheet": "Retrieve Spreadsheet Details",
+      "get_spreadsheet_values": "Fetch Spreadsheet Values",
+      "get_spreadsheet_values_batch": "Batch Retrieve Sheet Values",
+      "append_spreadsheet_values": "Append Spreadsheet Data",
+      "clear_spreadsheet_values": "Clear Spreadsheet Data",
+      "add_sheet": "Add New Sheet",
+      "search_spreadsheet": "Search Spreadsheet Data",
+      "get_formulas": "Fetch Formulas",
+      "add_formula": "Insert Spreadsheet Formula"
+    }
+  },
+  "hacker-news": {
+    "name": "Hacker News",
+    "description": "Access top tech news and discussions from Hacker News.",
+    "categories": "Knowledge",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/hacker-news.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "top_stories": "Fetch Top Stories",
+      "new_stories": "Fetch Latest Stories",
+      "best_stories": "Top Rated Stories",
+      "ask_stories": "Fetch Story Summaries",
+      "show_stories": "View Stories List",
+      "job_stories": "Job Stories List",
+      "item": "Get Story Details",
+      "user": "Retrieve User Profile",
+      "comments": "Retrieve Story Comments"
+    }
+  },
+  "heygen": {
+    "name": "HeyGen",
+    "description": "Create AI avatar videos, browse voices and templates, and translate videos with HeyGen.",
+    "categories": "AI, Marketing",
+    "auth_method": "api_key",
+    "logo_url": "/default-logo.svg",
+    "created_at": 1760140800,
+    "is_enabled": true
+  },
+  "http-request": {
+    "name": "HTTP Request",
+    "description": "Make HTTP requests to debug and test.",
+    "categories": "Development",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/http-request.svg",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "execute_request": "Send API Request"
+    }
+  },
+  "hunterio": {
+    "name": "Hunter.io",
+    "description": "Find and verify professional email addresses. Search for email addresses from a domain, find emails of specific people, verify deliverability, and gather detailed information.",
+    "categories": "Marketing, Outreach, Leads",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/hunterio.png",
+    "created_at": 1743252736,
+    "is_enabled": true,
+    "action_names": {
+      "email_finder": "Find Email Address",
+      "email_verifier": "Verify Email Address",
+      "email_count": "Count Emails",
+      "email_enrichment": "Email Data Enrichment",
+      "company_enrichment": "Company Data Enrichment",
+      "combined_enrichment": "Data Enrichment Combination",
+      "account_information": "View Account Information"
+    }
+  },
+  "instagram": {
+    "name": "Instagram",
+    "description": "Instagram API for accessing profile and post content",
+    "categories": "Social, Communications",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/instagram.svg",
+    "created_at": 1746261986,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "username",
+        "type": "text",
+        "label": "Your username",
+        "required": false,
+        "placeholder": "@zuck"
+      }
+    ],
+    "action_names": {
+      "get_user_details": "Retrieve User Details",
+      "get_me": "Get My Profile",
+      "get_user_posts": "Retrieve User Posts",
+      "get_user_following": "View User Following",
+      "get_post_details": "View Post Details",
+      "get_post_comments": "Retrieve Post Comments"
+    }
+  },
+  "ipinfo": {
+    "name": "IPinfo",
+    "description": "Get accurate IP address data including geolocation, ASN information, and more. Access detailed information about any IP address.",
+    "categories": null,
+    "auth_method": "none",
+    "logo_url": "/provider-logos/ipinfo.svg",
+    "created_at": 1743242892,
+    "is_enabled": true,
+    "action_names": {
+      "get_ip_info": "Get IP Information",
+      "get_bulk_info": "Fetch Bulk Information",
+      "get_asn_info": "Retrieve ASN Information"
+    }
+  },
+  "jira": {
+    "name": "Jira",
+    "description": "Plan, track, and manage agile software development projects.",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/jira.svg",
+    "created_at": 1739643620,
+    "is_enabled": true,
+    "scopes": {
+      "read:jira-work": "View Jira Issues",
+      "write:jira-work": "Manage Jira Issues",
+      "read:jira-user": "View Jira Users"
+    },
+    "action_scopes": {
+      "get_issues": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_issue": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "create_issue": [
+        "write:jira-work"
+      ],
+      "update_issue": [
+        "write:jira-work"
+      ],
+      "delete_issue": [
+        "write:jira-work"
+      ],
+      "get_projects": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_project": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_statuses": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_priorities": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_issue_types": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_fields": [
+        "read:jira-work",
+        "write:jira-work"
+      ],
+      "get_users": [
+        "read:jira-user"
+      ],
+      "get_transitions": [
+        "read:jira-work",
+        "write:jira-work"
+      ]
+    },
+    "action_names": {
+      "get_issues": "Fetch Project Issues",
+      "get_issue": "Retrieve Issue Details",
+      "create_issue": "Create New Issue",
+      "update_issue": "Update Issue Details",
+      "get_projects": "List All Projects",
+      "get_project": "Retrieve Project Details",
+      "get_statuses": "Fetch Status List",
+      "get_priorities": "Retrieve Priority List",
+      "get_issue_types": "Fetch Issue Types",
+      "get_fields": "Fetch Field Details",
+      "get_users": "Retrieve User List",
+      "get_transitions": "View Issue Transitions"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "jira_listIssues",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work,read:jira-user"
+      },
+      {
+        "tool_name": "jira_getIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_createIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "write:jira-work"
+      },
+      {
+        "tool_name": "jira_listProjects",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_updateIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "write:jira-work"
+      },
+      {
+        "tool_name": "jira_deleteIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "write:jira-work"
+      },
+      {
+        "tool_name": "jira_getProject",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_listStatuses",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_listPriorities",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_listIssueTypes",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_listFields",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-work"
+      },
+      {
+        "tool_name": "jira_listUsers",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read:jira-user"
+      }
+    ]
+  },
+  "linear": {
+    "name": "Linear",
+    "description": "Plan and track tasks, manage projects, and coordinate workflows across teams in Linear.",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/linear.svg",
+    "created_at": 1744138966,
+    "is_enabled": true,
+    "scopes": {
+      "read": "Read Access",
+      "write": "Write Access",
+      "issues:create": "Create Issues",
+      "comments:create": "Create Comments"
+    },
+    "action_scopes": {
+      "list_issues": [
+        "read",
+        "write"
+      ],
+      "search_issues": [
+        "read",
+        "write"
+      ],
+      "filter_issues": [
+        "read",
+        "write"
+      ],
+      "create_issue": [
+        "write",
+        "issues:create"
+      ],
+      "update_issue": [
+        "write"
+      ],
+      "comment_issue": [
+        "write",
+        "comments:create"
+      ],
+      "list_projects": [
+        "read",
+        "write"
+      ],
+      "get_project": [
+        "read",
+        "write"
+      ],
+      "list_users": [
+        "read",
+        "write"
+      ],
+      "list_teams": [
+        "read",
+        "write"
+      ],
+      "get_team": [
+        "read",
+        "write"
+      ],
+      "list_workflow_states": [
+        "read",
+        "write"
+      ],
+      "list_labels": [
+        "read",
+        "write"
+      ]
+    },
+    "action_names": {
+      "comment_issue": "Add Issue Comment",
+      "list_projects": "List All Projects",
+      "get_project": "Retrieve Project Details",
+      "list_users": "List All Users",
+      "list_teams": "List All Teams",
+      "get_team": "Get Team Details",
+      "list_workflow_states": "View Workflow States",
+      "list_labels": "List All Labels"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "linear_listIssues",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read,write"
+      },
+      {
+        "tool_name": "linear_searchIssues",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read,write"
+      },
+      {
+        "tool_name": "linear_createIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "issues:create,write"
+      },
+      {
+        "tool_name": "linear_listProjects",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read,write"
+      },
+      {
+        "tool_name": "linear_listTeams",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read,write"
+      },
+      {
+        "tool_name": "linear_updateIssue",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "write,issues:create"
+      },
+      {
+        "tool_name": "linear_listWorkflowStates",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read,write"
+      }
+    ]
+  },
+  "linkedin": {
+    "name": "LinkedIn",
+    "description": "LinkedIn API integration for accessing profiles, connections, posts, and other LinkedIn data",
+    "categories": "Social, Scraping",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/linkedin.svg",
+    "created_at": 1745872869,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "username",
+        "type": "text",
+        "label": "Your username",
+        "required": false,
+        "placeholder": "Enter your_user_name from https://linkedin.com/in/your_user_name"
+      }
+    ],
+    "action_names": {
+      "get_me": "Retrieve User Info",
+      "get_profile": "View User Profile",
+      "search_people": "Find People",
+      "get_profile_posts": "View Profile Posts",
+      "get_connection_count": "Retrieve Connection Count",
+      "get_post_comments": "View Post Comments",
+      "similar_profiles": "Find Similar Profiles",
+      "get_company_details": "Retrieve Company Details",
+      "search_companies": "Find Companies",
+      "company_jobs": "List Company Jobs",
+      "get_company_posts": "View Company Posts",
+      "get_company_post_comments": "View Post Comments",
+      "search_posts": "Search Blog Posts",
+      "get_post": "View Blog Post",
+      "get_job_details": "View Job Details",
+      "search_jobs": "Find Job Listings",
+      "search_locations": "Find Locations"
+    }
+  },
+  "mail": {
+    "name": "Gmail (SMTP/IMAP)",
+    "description": "Connect Gmail, Outlook, Proton mail and other emails via SMTP and IMAP. Note: some services like gmail may require app password",
+    "categories": "Communication",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/mail.svg",
+    "created_at": 1745784859,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "username",
+        "type": "text",
+        "label": "Your Email:",
+        "required": true,
+        "placeholder": "myemail@gmail.com"
+      },
+      {
+        "key": "password",
+        "type": "password",
+        "label": "Password",
+        "required": true,
+        "placeholder": "Enter app email secret"
+      }
+    ],
+    "action_names": {
+      "get_messages": "Retrieve Messages",
+      "get_message": "Retrieve Message",
+      "get_folders": "List Folders",
+      "create_folder": "Create New Folder",
+      "test_connection": "Test Connectivity",
+      "list_services": "List Available Services",
+      "detect_settings": "Detect User Settings"
+    }
+  },
+  "motion": {
+    "name": "Motion",
+    "description": "Automate task management, scheduling, and productivity workflows.",
+    "categories": "Productivity",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/motion.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "create_comment": "Add Comment",
+      "get_comments": "Retrieve Task Comments",
+      "create_project": "Create New Project",
+      "get_project": "Retrieve Project Details",
+      "list_projects": "View Project List",
+      "delete_recurring_task": "Remove Recurring Task",
+      "get_schedules": "Retrieve Schedules",
+      "get_statuses": "Retrieve Status List",
+      "list_users": "List Workspace Users",
+      "get_my_user": "Retrieve Current User",
+      "list_workspaces": "List All Workspaces",
+      "create_task": "Create New Task",
+      "get_task": "Retrieve Task Details",
+      "list_tasks": "View Tasks In Workspace",
+      "update_task": "Edit Task Information"
+    }
+  },
+  "n8n": {
+    "name": "n8n",
+    "description": "Automate workflows and integrate with various services using n8n.",
+    "categories": "Communication, Productivity",
+    "auth_method": "api_key_with_base",
+    "logo_url": "/provider-logos/n8n.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "list_users": "List All Users",
+      "get_user": "Retrieve User Details",
+      "create_users": "Add New Users",
+      "delete_user": "Remove User Account",
+      "list_executions": "View Workflow Executions",
+      "get_execution": "Retrieve Execution Data",
+      "list_workflows": "View All Workflows",
+      "get_workflow": "Retrieve Workflow Details",
+      "update_workflow": "Update Workflow Configuration",
+      "delete_workflow": "Remove Workflow",
+      "copy_workflow": "Clone Workflow",
+      "list_tags": "Retrieve Tag List",
+      "create_credential": "Create Cloud Credential",
+      "delete_credential": "Remove Credential",
+      "get_credential_type": "Fetch Credential Type",
+      "create_tag": "Create New Tag",
+      "delete_tag": "Remove Tag",
+      "update_tag": "Edit Tag Name",
+      "pull_from_source_control": "Retrieve From Source Control",
+      "list_variables": "Retrieve Variable List",
+      "create_variable": "Create Environment Variable",
+      "delete_variable": "Delete Environment Variable",
+      "list_projects": "View Project List",
+      "create_project": "Create New Project",
+      "update_project": "Edit Project Details"
+    }
+  },
+  "neondb": {
+    "name": "NeonDB",
+    "description": "Connect to NeonDB to run SQL queries and explore your database schema.",
+    "categories": "Analytics",
+    "auth_method": "db_access",
+    "logo_url": "/provider-logos/neondb.svg",
+    "created_at": 1743208714,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_tables": "List Tables",
+      "get_columns": "Retrieve Columns"
+    }
+  },
+  "notion": {
+    "name": "Notion",
+    "description": "Create and organize documents, manage knowledge bases, and collaborate on content.",
+    "categories": "Productivity, Knowledge",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/notion.svg",
+    "created_at": 1746134379,
+    "is_enabled": true,
+    "scopes": {
+      "read_databases": "View Databases",
+      "write_databases": "Edit Databases",
+      "read_pages": "View Pages",
+      "write_pages": "Edit and Create Pages"
+    },
+    "action_scopes": {
+      "list_databases": [
+        "read_databases",
+        "write_databases"
+      ],
+      "get_database": [
+        "read_databases",
+        "write_databases"
+      ],
+      "list_database_pages": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "query_database": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "create_page": [
+        "write_databases",
+        "write_pages"
+      ],
+      "create_database": [
+        "write_databases"
+      ],
+      "get_page": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "update_page": [
+        "write_databases",
+        "write_pages"
+      ],
+      "search": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "append_block_children": [
+        "write_databases",
+        "write_pages"
+      ],
+      "get_users": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "get_user": [
+        "read_databases",
+        "write_databases",
+        "read_pages",
+        "write_pages"
+      ],
+      "update_database": [
+        "write_databases"
+      ],
+      "append_media": [
+        "write_databases",
+        "write_pages"
+      ],
+      "create_page_with_database": [
+        "write_databases",
+        "write_pages"
+      ]
+    },
+    "action_names": {
+      "list_databases": "View Database List",
+      "get_database": "Retrieve Database",
+      "query_database": "Search Database",
+      "create_page": "Create New Page",
+      "update_database": "Update Database Record",
+      "get_page": "Get Web Page",
+      "update_page": "Update Web Page",
+      "search": "Search Items",
+      "append_block_children": "Add Block Children",
+      "append_media": "Add Media File",
+      "get_users": "Retrieve Users",
+      "get_user": "Retrieve User Info"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "notion_listDatabases",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_databases,write_databases"
+      },
+      {
+        "tool_name": "notion_listPages",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_pages,write_pages"
+      },
+      {
+        "tool_name": "notion_createPage",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "write_pages"
+      },
+      {
+        "tool_name": "notion_readPage",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_pages,write_pages"
+      },
+      {
+        "tool_name": "notion_vectorSearch",
+        "require_scope": false,
+        "require_index": true,
+        "scopes": null
+      },
+      {
+        "tool_name": "notion_searchPages",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_pages,write_pages"
+      },
+      {
+        "tool_name": "notion_getDatabaseProperties",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_databases,write_databases"
+      },
+      {
+        "tool_name": "notion_updatePage",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_databases,write_databases"
+      },
+      {
+        "tool_name": "notion_queryDatabase",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "read_databases,write_databases"
+      }
+    ]
+  },
+  "okx_p2p": {
+    "name": "OKX P2P",
+    "description": "Get real-time data from OKX P2P marketplace. View buy and sell offers for cryptocurrencies across different fiat currencies.",
+    "categories": "Crypto, Analytics",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/okx_p2p.png",
+    "created_at": 1743968730,
+    "is_enabled": true,
+    "action_names": {
+      "get_p2p_offers": "View Peer Offers"
+    }
+  },
+  "openweather": {
+    "name": "OpenWeather",
+    "description": "Access real-time weather data and forecasts worldwide.",
+    "categories": "Knowledge",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/openweather.png",
+    "created_at": 1739643553,
+    "is_enabled": true,
+    "action_names": {
+      "forecast": "Get Weather Forecast"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "openweather_getWeather",
+        "require_scope": false,
+        "require_index": false,
+        "scopes": null
+      }
+    ]
+  },
+  "outlook": {
+    "name": "Outlook",
+    "description": "Manage emails and calendars with Microsoft Outlook.",
+    "categories": "Communication, Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/outlook.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "Mail.Read": "Read Emails",
+      "Mail.ReadWrite": "Read and Write Emails",
+      "Mail.Send": "Send Emails",
+      "Mail.ReadBasic": "Read Basic Email Data",
+      "Calendars.Read": "View Calendar Events",
+      "Calendars.ReadWrite": "Manage Calendar Events",
+      "Calendars.ReadBasic": "View Basic Calendar Data"
+    },
+    "action_scopes": {
+      "get_messages": [
+        "Mail.Read",
+        "Mail.ReadWrite",
+        "Mail.ReadBasic"
+      ],
+      "get_message": [
+        "Mail.Read",
+        "Mail.ReadWrite",
+        "Mail.ReadBasic"
+      ],
+      "create_draft": [
+        "Mail.ReadWrite"
+      ],
+      "send_message": [
+        "Mail.ReadWrite",
+        "Mail.Send"
+      ],
+      "delete_message": [
+        "Mail.ReadWrite"
+      ],
+      "list_calendars": [
+        "Calendars.Read",
+        "Calendars.ReadWrite",
+        "Calendars.ReadBasic"
+      ],
+      "list_events": [
+        "Calendars.Read",
+        "Calendars.ReadWrite",
+        "Calendars.ReadBasic"
+      ],
+      "get_event": [
+        "Calendars.Read",
+        "Calendars.ReadWrite",
+        "Calendars.ReadBasic"
+      ],
+      "create_event": [
+        "Calendars.ReadWrite"
+      ],
+      "update_event": [
+        "Calendars.ReadWrite"
+      ],
+      "delete_event": [
+        "Calendars.ReadWrite"
+      ]
+    },
+    "action_names": {
+      "get_messages": "Retrieve Messages",
+      "get_message": "Retrieve Message Content",
+      "create_draft": "Create Email Draft",
+      "send_message": "Send Email Message",
+      "delete_message": "Delete Email Message",
+      "list_calendars": "List User Calendars",
+      "list_events": "Fetch Event List",
+      "get_event": "Fetch Event Details",
+      "create_event": "Create Calendar Event",
+      "update_event": "Update Event Details",
+      "delete_event": "Remove Calendar Event"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "outlook_createDraft",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Mail.ReadWrite"
+      },
+      {
+        "tool_name": "outlook_listMessages",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Mail.Read,Mail.ReadWrite"
+      },
+      {
+        "tool_name": "outlook_sendMessage",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Mail.Send"
+      },
+      {
+        "tool_name": "outlook_listEvents",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Calendars.Read,Calendars.ReadWrite"
+      },
+      {
+        "tool_name": "outlook_createEvent",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Calendars.ReadWrite"
+      },
+      {
+        "tool_name": "outlook_updateEvent",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Calendars.ReadWrite"
+      },
+      {
+        "tool_name": "outlook_deleteEvent",
+        "require_scope": true,
+        "require_index": false,
+        "scopes": "Calendars.ReadWrite"
+      }
+    ]
+  },
+  "perplexity": {
+    "name": "Perplexity",
+    "description": "Access AI-powered research and information discovery.",
+    "categories": "Search, Knowledge",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/perplexity.svg",
+    "created_at": 1739643523,
+    "is_enabled": true,
+    "action_names": {
+      "create_completion": "Generate Text Response"
+    },
+    "legacy_tools": [
+      {
+        "tool_name": "perplexity_ask",
+        "require_scope": false,
+        "require_index": false,
+        "scopes": null
+      }
+    ]
+  },
+  "postgresql": {
+    "name": "PostgreSQL",
+    "description": "Enterprise-grade relational database system with advanced SQL features.",
+    "categories": "Analytics",
+    "auth_method": "db_access",
+    "logo_url": "/provider-logos/postgresql.svg",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_tables": "List Database Tables",
+      "get_columns": "Retrieve Table Columns",
+      "test_connection": "Test Database Connection"
+    }
+  },
+  "posthog": {
+    "name": "PostHog",
+    "description": "Product analytics platform for understanding user behavior and metrics.",
+    "categories": "Analytics",
+    "auth_method": "api_key_with_base",
+    "logo_url": "/provider-logos/posthog.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_query": "Retrieve Query Results",
+      "delete_query": "Remove Specific Query",
+      "list_insights": "View Project Insights",
+      "create_insight": "Create Data Insight",
+      "get_insight": "Retrieve Insight Data",
+      "update_insight": "Update Insight Details",
+      "list_dashboards": "View All Dashboards",
+      "create_dashboard": "Create Marketing Dashboard",
+      "get_dashboard": "View Dashboard Details",
+      "update_dashboard": "Update Dashboard Settings",
+      "list_events": "View Event List",
+      "get_event": "Fetch Event Details",
+      "list_projects": "View Project List",
+      "get_project": "View Project Details",
+      "list_organizations": "View Organizations List",
+      "get_organization": "Retrieve Organization Details",
+      "list_persons": "List People",
+      "get_person": "Retrieve Person Details",
+      "update_person": "Update Person Details",
+      "delete_person": "Remove Person Record",
+      "list_actions": "List Project Actions",
+      "create_action": "Create User Engagement Action",
+      "get_action": "Retrieve Action Details",
+      "update_action": "Update Signup Action",
+      "list_feature_flags": "View Feature Flags",
+      "get_feature_flag": "Retrieve Feature Flag",
+      "delete_feature_flag": "Remove Feature Flag"
+    }
+  },
+  "postman": {
+    "name": "Postman",
+    "description": "Automate API testing and monitoring with Postman API.",
+    "categories": "Development",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/postman.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "get_collections": "Retrieve Collections List",
+      "get_collection": "Fetch Collection Details",
+      "update_collection": "Update Collection Details",
+      "delete_collection": "Delete Collection by ID",
+      "create_collection": "Create API Collection",
+      "get_environments": "List Environments",
+      "get_environment": "Fetch Environment Details",
+      "create_environment": "Create New Environment",
+      "update_environment": "Update Environment Settings",
+      "fork_collection": "Duplicate Collection",
+      "get_workspaces": "List Workspaces",
+      "get_workspace": "Retrieve Workspace Details",
+      "create_workspace": "Create New Workspace",
+      "update_workspace": "Update Workspace Details"
+    }
+  },
+  "readwise": {
+    "name": "Readwise",
+    "description": "Save and sync highlights from articles, books, and PDFs.",
+    "categories": "Knowledge",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/readwise.png",
+    "created_at": 1739643541,
+    "is_enabled": true,
+    "action_names": {
+      "save": "Save Web Content",
+      "list": "Fetch Articles List",
+      "update": "Update Document Info",
+      "delete": "Delete Document"
+    }
+  },
+  "reddit": {
+    "name": "Reddit",
+    "description": "Explore and interact with Reddit posts, comments, and user data.",
+    "categories": "Communication, Social",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/reddit.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "read": "Read Content",
+      "submit": "Submit Posts and Comments",
+      "identity": "User Identity",
+      "history": "Read User History",
+      "edit": "Edit Posts and Comments",
+      "mysubreddits": "Access My Subreddits",
+      "privatemessages": "Access Private Messages",
+      "save": "Save Content",
+      "subscribe": "Manage Subscriptions",
+      "vote": "Vote on Content",
+      "flair": "Manage and see Flairs"
+    },
+    "action_scopes": {
+      "get_posts": [
+        "read"
+      ],
+      "submit_comment": [
+        "submit",
+        "edit"
+      ],
+      "submit_post": [
+        "submit",
+        "edit"
+      ],
+      "get_comment": [
+        "read",
+        "edit"
+      ],
+      "get_comments": [
+        "read",
+        "submit",
+        "history",
+        "edit"
+      ],
+      "delete_post": [
+        "submit",
+        "edit"
+      ],
+      "delete_comment": [
+        "submit",
+        "edit"
+      ],
+      "edit_post": [
+        "submit",
+        "edit"
+      ],
+      "edit_comment": [
+        "submit",
+        "edit"
+      ],
+      "search": [
+        "read"
+      ],
+      "get_user_info": [
+        "read",
+        "identity",
+        "history"
+      ],
+      "get_my_info": [
+        "read",
+        "identity"
+      ],
+      "vote_post": [
+        "submit",
+        "vote"
+      ],
+      "vote_comment": [
+        "submit",
+        "vote"
+      ],
+      "save_post": [
+        "save"
+      ],
+      "save_comment": [
+        "submit",
+        "edit",
+        "save"
+      ],
+      "unsave_post": [
+        "edit",
+        "save"
+      ],
+      "unsave_comment": [
+        "submit",
+        "edit",
+        "save"
+      ],
+      "get_my_subreddits": [
+        "read",
+        "mysubreddits"
+      ],
+      "get_link_flairs": [
+        "read",
+        "flair"
+      ]
+    },
+    "action_names": {
+      "get_posts": "Fetch Subreddit Posts",
+      "submit_comment": "Post Comment",
+      "submit_post": "Create New Post",
+      "get_comment": "Retrieve Comment Details",
+      "get_comments": "Display Post Comments",
+      "delete_post": "Remove Reddit Post",
+      "delete_comment": "Remove Comment",
+      "edit_post": "Edit Post Content",
+      "search": "Reddit Post Search",
+      "get_user_info": "Retrieve User Details",
+      "get_my_info": "Get My User Info",
+      "vote_post": "Upvote Post",
+      "vote_comment": "Upvote Comment",
+      "save_post": "Save Reddit Post",
+      "save_comment": "Save Reddit Comment",
+      "unsave_post": "Unsave Reddit Post",
+      "unsave_comment": "Remove Saved Comment",
+      "get_my_subreddits": "List My Subreddits",
+      "get_link_flairs": "Retrieve Subreddit Flairs"
+    }
+  },
+  "replicate": {
+    "name": "Replicate",
+    "description": "Generate images, videos, 3D models, remove backgrounds, fine tune models.",
+    "categories": "Design, AI",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/replicate.png",
+    "created_at": 1745251322,
+    "is_enabled": true,
+    "action_names": {
+      "get_account": "Retrieve Account Information",
+      "create_prediction_by_version_id": "Generate Prediction By Version",
+      "list_predictions": "View Predictions List",
+      "cancel_prediction": "Cancel Forecast",
+      "create_deployment_prediction": "Create Deployment Forecast",
+      "list_deployments": "View All Deployments",
+      "get_deployment": "Retrieve Deployment Details",
+      "create_deployment": "Create New Deployment",
+      "update_deployment": "Update Deployment Settings",
+      "create_prediction_by_model_name": "Create Prediction By Model",
+      "list_models": "List Available Models",
+      "create_model": "Create New Model",
+      "get_model": "Retrieve Model Data",
+      "search_models": "Search Available Models",
+      "get_model_readme": "Retrieve Model Guide",
+      "list_model_versions": "View Model Versions",
+      "get_model_version": "Retrieve Model Version",
+      "create_training": "Create Training Session",
+      "list_trainings": "List All Trainings",
+      "get_training": "Retrieve Training Data",
+      "cancel_training": "Cancel Training Process",
+      "list_collections": "View All Collections",
+      "get_collection": "Fetch Collection Data",
+      "list_hardware": "List Hardware Items",
+      "get_webhook_secret": "Retrieve Webhook Secret",
+      "create_kling_prediction": "Create Prediction Data",
+      "create_flux_pro_prediction": "Create Flux Pro Forecast",
+      "create_flux_schnell_prediction": "Create Flux Prediction",
+      "create_minimax_video_prediction": "Generate Video Prediction",
+      "create_stable_diffusion_prediction": "Generate Image Prediction",
+      "create_trellis_prediction": "Generate Trellis Prediction",
+      "create_remove_bg_prediction": "Remove Background Prediction",
+      "create_real_esrgan_prediction": "Generate Image Prediction",
+      "create_logo_ai_prediction": "Create Logo Prediction",
+      "generate_image": "Create Image",
+      "generate_video": "Create Video Content",
+      "generate_3d_asset": "Create 3D Asset",
+      "remove_background_best_model": "Remove Background"
+    }
+  },
+  "resend": {
+    "name": "Resend",
+    "description": "Send transactional and marketing emails with a developer-friendly API.",
+    "categories": "Development, Communication",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/resend.svg",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "send_email": "Send Email Message",
+      "send_batch_emails": "Send Bulk Emails",
+      "get_email": "Retrieve Email Details",
+      "update_email": "Update Email Schedule",
+      "cancel_email": "Cancel Scheduled Email",
+      "get_domain": "Retrieve Domain Details",
+      "verify_domain": "Verify Domain Records",
+      "update_domain": "Update Domain Settings",
+      "list_domains": "List All Domains",
+      "delete_domain": "Remove Domain",
+      "create_api_key": "Create API Key",
+      "list_api_keys": "View API Keys",
+      "delete_api_key": "Remove API Key",
+      "create_broadcast": "Create Email Broadcast",
+      "get_broadcast": "Retrieve Broadcast Details",
+      "send_broadcast": "Send Or Schedule Broadcast",
+      "list_broadcasts": "View Broadcast List",
+      "get_audience": "Retrieve Audience Details",
+      "list_audiences": "View All Audiences",
+      "create_contact": "Add New Contact",
+      "get_contact": "Retrieve Contact Details",
+      "update_contact": "Update Contact Details",
+      "delete_contact": "Remove Audience Contact",
+      "list_contacts": "Retrieve Contact List"
+    }
+  },
+  "revid": {
+    "name": "Revid AI",
+    "description": "Create videos for TikTok, YouTube, Instagram, and publish them using AI.",
+    "categories": "AI, Marketing",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/revid.png",
+    "created_at": 1742576008,
+    "is_enabled": true,
+    "action_names": {
+      "create_video": "Create Video Content",
+      "video_status": "Check Video Status",
+      "projects_list": "List Projects",
+      "add_to_queue": "Add Video To Queue",
+      "publish_now": "Publish Content Now"
+    }
+  },
+  "sentry": {
+    "name": "Sentry",
+    "description": "Track application errors, monitor performance, and get real-time debugging insights.",
+    "categories": "Development",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/sentry.jpeg",
+    "created_at": 1741960860,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "api_key",
+        "type": "password",
+        "label": "API Key",
+        "required": true,
+        "placeholder": "e.g. sntryu_5f..."
+      },
+      {
+        "key": "org_slug",
+        "type": "text",
+        "label": "Organization Slug",
+        "required": true,
+        "placeholder": "e.g. veyrax"
+      }
+    ],
+    "scopes": {
+      "project:read": "Read Project",
+      "team:read": "Read Team",
+      "project:admin": "Admin Release",
+      "event:read": "Read Issue & Event",
+      "event:write": "Write Issue & Event",
+      "org:read": "Read Organization",
+      "org:write": "Write Organization",
+      "member:read": "Read Member",
+      "member:write": "Write Member",
+      "project:write": "Write Alerts"
+    },
+    "action_scopes": {},
+    "action_names": {
+      "list_teams": "View Team List",
+      "create_team": "Create New Team",
+      "list_projects": "View Project List",
+      "list_issues": "View Issues List",
+      "get_issue_details": "View Issue Details",
+      "list_releases": "List Project Releases",
+      "create_release": "Create Software Release",
+      "list_user_feedback": "View User Feedback",
+      "create_service_hook": "Create Service Webhook",
+      "get_dsn": "Retrieve Project DSN"
+    }
+  },
+  "skyscanner": {
+    "name": "Skyscanner",
+    "description": "Skyscanner allows users to browse for flights, hotels across various providers.",
+    "categories": "Travel",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/skyscanner.svg",
+    "created_at": 1743914766,
+    "is_enabled": true,
+    "action_names": {
+      "search_everywhere": "Search Globally",
+      "search_roundtrip": "Search Round Trip",
+      "search_one_way": "Search One-Way Flights",
+      "get_flight_detail": "View Flight Details",
+      "get_price_calendar": "View Price Calendar",
+      "get_price_calendar_return": "Retrieve Price Calendar",
+      "get_cheapest_one_way": "Find Cheapest One-Way",
+      "search_hotels": "Find Hotels",
+      "get_hotel_detail": "View Hotel Details",
+      "get_hotel_reviews": "Fetch Hotel Reviews"
+    }
+  },
+  "slack": {
+    "name": "Slack",
+    "description": "Communicate with teams, manage channels, and send messages through Slack.",
+    "categories": "Communication",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/slack.svg",
+    "created_at": 1739645000,
+    "is_enabled": true,
+    "scopes": {
+      "channels:read": "Read Public Channels",
+      "channels:history": "View Channel History",
+      "chat:write": "Send Messages as User",
+      "im:read": "View Direct Messages",
+      "im:write": "Send Direct Messages",
+      "im:history": "View Direct Message History",
+      "users:read": "View User Profiles",
+      "groups:read": "Read Private Channels",
+      "mpim:read": "Read Group Messages",
+      "reactions:read": "Read Message Reactions",
+      "channels:write": "Send Channel Message"
+    },
+    "action_scopes": {
+      "list_channels": [
+        "channels:read",
+        "channels:history",
+        "groups:read"
+      ],
+      "list_channel_members": [
+        "channels:read",
+        "users:read",
+        "groups:read"
+      ],
+      "list_direct_messages": [
+        "im:read",
+        "im:history"
+      ],
+      "post_message": [
+        "channels:write"
+      ],
+      "send_dm": [
+        "chat:write",
+        "im:write"
+      ],
+      "reply_in_thread": [
+        "chat:write"
+      ],
+      "list_thread_messages": [
+        "channels:read",
+        "channels:history",
+        "im:read",
+        "im:history",
+        "groups:read",
+        "mpim:read"
+      ],
+      "list_channel_messages": [
+        "channels:read",
+        "channels:history"
+      ],
+      "list_direct_messages_with_user": [
+        "im:read",
+        "im:history"
+      ]
+    },
+    "action_names": {
+      "list_channels": "List Communication Channels",
+      "list_channel_members": "View Channel Members",
+      "list_direct_messages": "View Direct Messages",
+      "post_message": "Post Announcement",
+      "send_dm": "Send Direct Message",
+      "list_thread_messages": "View Thread Messages",
+      "list_channel_messages": "View Channel Messages",
+      "list_direct_messages_with_user": "View User Messages"
+    }
+  },
+  "snowflake": {
+    "name": "Snowflake",
+    "description": "Cloud-native data warehouse with scalable compute and storage.",
+    "categories": "Analytics",
+    "auth_method": "db_access",
+    "logo_url": "/provider-logos/snowflake.svg",
+    "created_at": 1739643600,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_tables": "List Database Tables",
+      "get_columns": "Fetch Table Columns",
+      "test_connection": "Test Database Connection"
+    }
+  },
+  "supabase": {
+    "name": "Supabase",
+    "description": "Connect to Supabase PostgreSQL database to run SQL queries and explore your database schema.",
+    "categories": "Analytics",
+    "auth_method": "db_access",
+    "logo_url": "/provider-logos/supabase.svg",
+    "created_at": 1743208732,
+    "is_enabled": true,
+    "action_names": {
+      "execute_query": "Run Database Query",
+      "get_tables": "Retrieve Tables",
+      "get_columns": "Retrieve Columns"
+    }
+  },
+  "svgl": {
+    "name": "SVGL",
+    "description": "Library for managing and optimizing SVG graphics.",
+    "categories": "Development, Design",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/svgl.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "get_svgs": "Fetch SVG Icons",
+      "get_svg_by_category": "Fetch SVGs By Category",
+      "get_categories": "Fetch All Categories",
+      "search_svgs": "Find SVG Icons"
+    }
+  },
+  "tavily": {
+    "name": "Tavily",
+    "description": "Connect Your LLM to the Web.\nEmpowering your AI applications with real-time,\naccurate search results tailored for LLMs and RAG.",
+    "categories": "Search, Scraping",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/tavily.webp",
+    "created_at": 1741876940,
+    "is_enabled": true,
+    "action_names": {
+      "search": "Search Articles",
+      "extract": "Extract Content"
+    }
+  },
+  "ticktick": {
+    "name": "TickTick",
+    "description": "Access a task management app: read and create new tasks",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/ticktick.jpeg",
+    "created_at": 1741697690,
+    "is_enabled": true,
+    "scopes": {
+      "tasks:read": "Read Tasks",
+      "tasks:write": "Edit Tasks"
+    },
+    "action_scopes": {
+      "tasks-get": [
+        "tasks:read",
+        "tasks:write"
+      ],
+      "tasks-create": [
+        "tasks:write"
+      ],
+      "tasks-update": [
+        "tasks:write"
+      ],
+      "tasks-complete": [
+        "tasks:write"
+      ],
+      "projects-list": [
+        "tasks:read",
+        "tasks:write"
+      ],
+      "projects-get": [
+        "tasks:read",
+        "tasks:write"
+      ],
+      "projects-create": [
+        "tasks:write"
+      ],
+      "projects-update": [
+        "tasks:write"
+      ],
+      "tasks-list": [
+        "tasks:read",
+        "tasks:write"
+      ]
+    },
+    "action_names": {
+      "tasks-get": "Get Task Details",
+      "tasks-create": "Create New Task",
+      "tasks-update": "Update Task Priority",
+      "tasks-complete": "Mark Task Complete",
+      "projects-list": "List All Projects",
+      "projects-get": "Get Project Details",
+      "projects-create": "Create Project",
+      "projects-update": "Update Project Color",
+      "tasks-list": "List Project Tasks"
+    }
+  },
+  "todoist": {
+    "name": "Todoist",
+    "description": "Manage personal and team tasks, projects, and productivity workflows with Todoist.",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/todoist.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "task:add": "Add new tasks (cannot read or modify existing data)",
+      "data:read": "Read-only access to tasks, projects, labels, and filters",
+      "data:read_write": "Full access to read and write tasks, projects, labels, and filters",
+      "data:delete": "Delete tasks, labels, and filters",
+      "project:delete": "Delete projects"
+    },
+    "action_scopes": {
+      "get_projects": [
+        "data:read",
+        "data:read_write"
+      ],
+      "create_project": [
+        "data:read_write"
+      ],
+      "get_project": [
+        "data:read",
+        "data:read_write"
+      ],
+      "update_project": [
+        "data:read_write"
+      ],
+      "delete_project": [
+        "data:read_write",
+        "project:delete"
+      ],
+      "get_collaborators": [
+        "data:read",
+        "data:read_write"
+      ],
+      "get_sections": [
+        "data:read",
+        "data:read_write"
+      ],
+      "get_section": [
+        "data:read",
+        "data:read_write"
+      ],
+      "create_section": [
+        "data:read_write"
+      ],
+      "update_section": [
+        "data:read_write"
+      ],
+      "delete_section": [
+        "data:read_write",
+        "data:delete"
+      ],
+      "get_tasks": [
+        "data:read",
+        "data:read_write"
+      ],
+      "get_task": [
+        "data:read",
+        "data:read_write"
+      ],
+      "create_task": [
+        "task:add",
+        "data:read_write"
+      ],
+      "update_task": [
+        "data:read_write"
+      ],
+      "close_task": [
+        "data:read_write"
+      ],
+      "reopen_task": [
+        "data:read_write"
+      ],
+      "delete_task": [
+        "data:read_write",
+        "data:delete"
+      ],
+      "get_comments": [
+        "data:read",
+        "data:read_write"
+      ],
+      "get_comment": [
+        "data:read",
+        "data:read_write"
+      ],
+      "create_comment": [
+        "data:read_write"
+      ],
+      "update_comment": [
+        "data:read_write"
+      ],
+      "delete_comment": [
+        "data:read_write",
+        "data:delete"
+      ],
+      "get_personal_labels": [
+        "data:read",
+        "data:read_write"
+      ],
+      "get_personal_label": [
+        "data:read",
+        "data:read_write"
+      ],
+      "create_personal_label": [
+        "data:read_write"
+      ],
+      "update_personal_label": [
+        "data:read_write"
+      ],
+      "delete_personal_label": [
+        "data:read_write",
+        "data:delete"
+      ],
+      "get_shared_labels": [
+        "data:read",
+        "data:read_write"
+      ],
+      "rename_shared_label": [
+        "data:read_write"
+      ],
+      "remove_shared_label": [
+        "data:read_write",
+        "data:delete"
+      ]
+    },
+    "action_names": {
+      "get_projects": "List Projects",
+      "create_project": "Create Shopping List",
+      "get_project": "Retrieve Project Details",
+      "update_project": "Edit Project Details",
+      "get_collaborators": "List Project Collaborators",
+      "get_sections": "Retrieve Project Sections",
+      "get_section": "Get Section Details",
+      "create_section": "Create Project Section",
+      "update_section": "Update Section Name",
+      "delete_section": "Remove Section",
+      "get_tasks": "List Project Tasks",
+      "get_task": "Retrieve Task Details",
+      "create_task": "Add New Task",
+      "update_task": "Edit Task Details",
+      "close_task": "Mark Task Complete",
+      "get_comments": "Retrieve Task Comments",
+      "get_comment": "Fetch Comment Details",
+      "create_comment": "Add Task Comment",
+      "update_comment": "Edit Comment Content",
+      "delete_comment": "Remove Comment",
+      "get_personal_labels": "Retrieve Personal Labels",
+      "get_personal_label": "Retrieve Personal Label",
+      "delete_personal_label": "Remove Personal Label",
+      "get_shared_labels": "Retrieve Shared Labels"
+    }
+  },
+  "trello": {
+    "name": "Trello",
+    "description": "Manage projects, organize tasks, and track work with Trello boards.",
+    "categories": "Productivity",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/trello.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "read": "Read Access",
+      "write": "Write Access",
+      "account": "Account Information"
+    },
+    "action_scopes": {
+      "get_cards": [
+        "read",
+        "write"
+      ],
+      "get_card": [
+        "read",
+        "write",
+        "account"
+      ],
+      "create_card": [
+        "write"
+      ],
+      "update_card": [
+        "write"
+      ],
+      "delete_card": [
+        "write"
+      ],
+      "get_boards": [
+        "read",
+        "write"
+      ],
+      "get_board": [
+        "read",
+        "write"
+      ],
+      "get_lists": [
+        "read",
+        "write"
+      ],
+      "get_list": [
+        "read",
+        "write"
+      ],
+      "get_card_checklists": [
+        "read",
+        "write"
+      ],
+      "create_checklist": [
+        "write"
+      ],
+      "create_checklist_item": [
+        "write"
+      ],
+      "get_organizations": [
+        "read",
+        "write",
+        "account"
+      ],
+      "get_organization": [
+        "read",
+        "write",
+        "account"
+      ],
+      "get_organization_boards": [
+        "read",
+        "write"
+      ],
+      "get_organization_members": [
+        "read",
+        "write",
+        "account"
+      ]
+    },
+    "action_names": {
+      "get_cards": "Retrieve Board Cards",
+      "get_card": "Fetch Card Details",
+      "create_card": "Create Task Card",
+      "update_card": "Edit Card Details",
+      "delete_card": "Remove Card",
+      "get_boards": "Retrieve All Boards",
+      "get_board": "Retrieve Board Details",
+      "get_lists": "Get Board Lists",
+      "get_list": "Get List Details",
+      "get_card_checklists": "Retrieve Card Checklists",
+      "create_checklist": "Create New Checklist",
+      "create_checklist_item": "Add Checklist Item",
+      "get_organizations": "List Organizations",
+      "get_organization": "Get Organization Details",
+      "get_organization_boards": "List Organization Boards",
+      "get_organization_members": "List Organization Members"
+    }
+  },
+  "twentyfirst_dev": {
+    "name": "21st Dev",
+    "description": "21st Dev provides a library of UI components for AI-powered development.",
+    "categories": "Development",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/twentyfirst_dev.png",
+    "created_at": 1744496533,
+    "is_enabled": true,
+    "action_names": {
+      "search": "Search Items",
+      "generate_prompt": "Create Text Prompt"
+    }
+  },
+  "typeform": {
+    "name": "Typeform",
+    "description": "Create interactive and engaging forms, surveys, and quizzes with Typeform.",
+    "categories": "Automation",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/typeform.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "action_names": {
+      "get_forms": "Retrieve Forms List",
+      "get_form": "Retrieve Form Details",
+      "get_form_responses": "Retrieve Form Responses",
+      "get_webhooks": "Retrieve Webhooks List",
+      "get_workspaces": "List Workspaces",
+      "create_form": "Create New Form",
+      "update_form": "Update Survey Form",
+      "delete_webhook": "Remove Webhook Configuration",
+      "create_workspace": "Create New Workspace"
+    }
+  },
+  "uploadthing": {
+    "name": "Upload Thing",
+    "description": "Check your files, rename, delete, upload via url.",
+    "categories": "Storage",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/uploadthing.png",
+    "created_at": 1743091049,
+    "is_enabled": true,
+    "action_names": {
+      "list_files": "View File List",
+      "poll_upload": "Check Upload Status",
+      "get_server_callback": "Check Callback Status",
+      "prepare_upload": "Prepare File Upload",
+      "upload_from_url": "Upload File From URL",
+      "debug_upload": "Upload Debug Data",
+      "get_app_info": "App Information Retrieval",
+      "get_usage_info": "Check Usage Details"
+    }
+  },
+  "vercel": {
+    "name": "Vercel",
+    "description": "Deploy web applications, manage projects, and configure deployments with Vercel.",
+    "categories": "Development",
+    "auth_method": "oauth",
+    "logo_url": "/provider-logos/vercel.svg",
+    "created_at": 1739643537,
+    "is_enabled": true,
+    "scopes": {
+      "integration-configuration": "Interact with the installation of your integration",
+      "deployment": "Interact with deployments",
+      "deployment-check": "Verify deployments with Checks",
+      "edge-config": "Create and manage Edge Configs and their tokens",
+      "project": "Access project details and settings",
+      "project-env-vars": "Create and manage integration-owned project environment variables",
+      "global-project-env-vars": "Create and manage all account project environment variables",
+      "team": "Access team details",
+      "user": "Get information about the current user",
+      "log-drain": "Create and manage log drains to forward logs",
+      "domain": "Manage and interact with domains and certificates"
+    },
+    "action_scopes": {
+      "list_deployments": [
+        "deployment",
+        "project"
+      ],
+      "get_deployment": [
+        "deployment"
+      ],
+      "delete_deployment": [
+        "deployment"
+      ],
+      "cancel_deployment": [
+        "deployment"
+      ],
+      "get_deployment_events": [
+        "deployment",
+        "deployment-check",
+        "log-drain"
+      ],
+      "add_domain_to_project": [
+        "domain"
+      ],
+      "create_project": [
+        "project",
+        "project-env-vars",
+        "global-project-env-vars"
+      ],
+      "create_env_vars": [
+        "project-env-vars",
+        "global-project-env-vars"
+      ],
+      "delete_project": [
+        "project"
+      ],
+      "edit_env_var": [
+        "integration-configuration",
+        "project-env-vars",
+        "global-project-env-vars"
+      ],
+      "get_project": [
+        "project"
+      ],
+      "get_project_domain": [
+        "project",
+        "domain"
+      ],
+      "remove_env_var": [
+        "project-env-vars",
+        "global-project-env-vars"
+      ],
+      "list_projects": [
+        "project"
+      ],
+      "get_project_domains": [
+        "project",
+        "domain"
+      ],
+      "verify_project_domain": [
+        "project",
+        "domain"
+      ],
+      "update_project": [
+        "project"
+      ],
+      "get_project_env_vars": [
+        "project",
+        "project-env-vars",
+        "global-project-env-vars"
+      ],
+      "create_deployment": [
+        "deployment",
+        "project"
+      ]
+    },
+    "action_names": {
+      "list_deployments": "View Deployments List",
+      "get_deployment": "Fetch Deployment Details",
+      "delete_deployment": "Remove Deployment",
+      "get_deployment_events": "Fetch Deployment Events",
+      "create_project": "Create New Project",
+      "create_env_vars": "Add Environment Variables",
+      "edit_env_var": "Update Environment Variable",
+      "get_project": "Retrieve Project Details",
+      "get_project_domain": "Fetch Project Domain",
+      "remove_env_var": "Remove Environment Variable",
+      "get_project_domains": "Fetch Project Domains",
+      "update_project": "Update Project Details",
+      "get_project_env_vars": "Retrieve Project Environment Variables",
+      "create_deployment": "Deploy New Project"
+    }
+  },
+  "veyrax": {
+    "name": "VeyraX Memory",
+    "description": "VeyraX Memory saves user information to provide consistent AI-driven experiences across all tools and contexts.",
+    "categories": "Knowledge",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/veyrax.svg",
+    "created_at": 1741473209,
+    "is_enabled": true,
+    "action_names": {
+      "save_memory": "Save Important Memory",
+      "get_memory": "Retrieve Memory Records",
+      "update_memory": "Update Memory Text"
+    }
+  },
+  "veyrax-auth": {
+    "name": "Veyrax Auth",
+    "description": "Seamlessly authenticate with VeyraX providers via API Key.",
+    "categories": "Auth",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/veyrax-auth.svg",
+    "created_at": 1744910329,
+    "is_enabled": false,
+    "action_names": {
+      "get_tools_connection_status": "Check Tools Connection",
+      "generate_connection_link": "Create Connection Link"
+    }
+  },
+  "whatsapp": {
+    "name": "WhatsApp",
+    "description": "Connect your WhatsApp account to send and receive messages. Requires scanning a QR code with your phone.",
+    "categories": "Communication",
+    "auth_method": "whatsapp-qr",
+    "logo_url": "/provider-logos/whatsapp.png",
+    "created_at": 1743709254,
+    "is_enabled": true,
+    "action_names": {
+      "authenticate": "User Authentication",
+      "get_chats": "Retrieve Chats",
+      "get_messages": "Retrieve Messages",
+      "get_chat": "Retrieve Chat Conversation",
+      "get_recent_messages": "Fetch Recent Messages",
+      "disconnect": "Disconnect User"
+    }
+  },
+  "x": {
+    "name": "X",
+    "description": "Get Posts and Search on X (formerly known as Twitter)",
+    "categories": "Social, Scraping",
+    "auth_method": "custom",
+    "logo_url": "/provider-logos/x.svg",
+    "created_at": 1745872812,
+    "is_enabled": true,
+    "auth_schema": [
+      {
+        "key": "username",
+        "type": "text",
+        "label": "Your username",
+        "required": false,
+        "placeholder": "@my_user_name"
+      }
+    ],
+    "action_names": {
+      "get_user_profile": "View User Profile",
+      "get_me": "Retrieve User Profile",
+      "get_user_timeline": "View User Timeline",
+      "get_user_following": "View User Following",
+      "get_user_followers": "Retrieve User Followers",
+      "get_tweet": "Fetch Tweet Details",
+      "get_tweet_retweets": "View Tweet Retweets",
+      "get_tweet_thread": "Fetch Tweet Thread",
+      "get_latest_replies": "Get Recent Replies",
+      "get_list_timeline": "Retrieve Timeline List",
+      "get_community_timeline": "View Community Timeline",
+      "get_list_followers": "Retrieve Followers List",
+      "get_list_members": "Retrieve List Members",
+      "get_space": "Retrieve Space Details"
+    }
+  },
+  "yelp": {
+    "name": "Yelp",
+    "description": "Yelp API integration for searching businesses, accessing reviews, business details, and menus",
+    "categories": "Leads, Scrape, Search",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/yelp.svg",
+    "created_at": 1745859136,
+    "is_enabled": true,
+    "action_names": {
+      "search_businesses": "Find Businesses",
+      "get_business_details": "Retrieve Business Details",
+      "get_business_reviews": "Retrieve Business Reviews",
+      "get_business_menus": "Fetch Business Menus"
+    }
+  },
+  "youtube": {
+    "name": "YouTube",
+    "description": "Access YouTube data including search, video and transcriptions.",
+    "categories": "Knowledge",
+    "auth_method": "api_key",
+    "logo_url": "/provider-logos/youtube.svg",
+    "created_at": 1739643523,
+    "is_enabled": true,
+    "action_names": {
+      "search_videos": "Find Videos",
+      "get_video": "Retrieve Video Details",
+      "get_captions": "Retrieve Video Captions",
+      "get_transcription": "Retrieve Video Transcription"
+    }
+  },
+  "zillow": {
+    "name": "Zillow",
+    "description": "Zillow is a real estate platform for buying, selling, and renting properties.",
+    "categories": "Real Estate",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/zillow.svg",
+    "created_at": 1743738447,
+    "is_enabled": true,
+    "action_names": {
+      "get_property": "Retrieve Property Details",
+      "get_zestimate": "Get Property Estimate",
+      "get_zestimate_history": "Zestimate Price History",
+      "get_price_and_tax_history": "Retrieve Price Tax History",
+      "get_property_comps": "Get Property Comparisons",
+      "get_property_value_range": "Retrieve Property Value Range",
+      "get_similar_properties": "Find Similar Properties",
+      "get_similar_sales": "Find Similar Sales",
+      "get_similar_rentals": "Find Similar Rentals",
+      "get_market_location": "Fetch Market Location",
+      "get_market_data": "Fetch Market Data"
+    }
+  },
+  "zip_code": {
+    "name": "Zip Codes",
+    "description": "Lookup postal code information for countries around the world. Get details about locations based on postal codes or find postal codes for cities. Supports over 60 countries. Integrated with Zippopotam API.",
+    "categories": "Real Estate",
+    "auth_method": "none",
+    "logo_url": "/provider-logos/zip_code.png",
+    "created_at": 1743255188,
+    "is_enabled": true,
+    "action_names": {
+      "get_by_zipcode": "Retrieve By Zipcode",
+      "get_by_city": "Get Data By City"
+    }
+  }
+}

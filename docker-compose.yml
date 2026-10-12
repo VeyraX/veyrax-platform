@@ -3,6 +3,8 @@ version: '3.8'
 services:
   aci_server:
     build: ./aci_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
     volumes:
@@ -20,6 +22,8 @@ services:
 
   celery_worker1:
     build: ./aci_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
@@ -37,6 +41,8 @@ services:
 
   celery_worker2:
     build: ./aci_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
@@ -54,6 +60,8 @@ services:
 
   celery_worker3:
     build: ./aci_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env
@@ -71,6 +79,8 @@ services:
 
   celery_worker4:
     build: ./aci_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./aci_server:/app
       - ./.env:/app/.env

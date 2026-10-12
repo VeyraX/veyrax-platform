@@ -11,9 +11,11 @@ Thanks for your interest in contributing! Bug reports, new integrations, fixes a
 
 ## Development setup
 
-Follow [Getting started](readme.md#getting-started) in the README. In short:
+The fastest way is `./quickstart.sh` (see [Quickstart](readme.md#quickstart)); it does all of the steps below and runs
+a smoke test. Manually:
 
 ```bash
+supabase start                       # local Postgres + Auth with schema and tool catalog
 cp .env.example .env                 # fill in the REQUIRED section
 cp main/.env.example main/.env.local # fill in the REQUIRED section
 docker-compose up --build            # backend on :8000
@@ -53,9 +55,14 @@ Conventions:
 Then:
 
 - Register the router in `INTEGRATION_ROUTERS` in [`aci_server/main.py`](aci_server/main.py).
-- Add the provider metadata (name, description, auth type, scopes) as JSON in
-  [`aci_server/db/scripts/providers/`](aci_server/db/scripts/providers) and load it with
-  `python aci_server/db/scripts/update_provider_new.py aci_server/db/scripts/providers/<name>.json`.
+- Add an entry keyed by the router tag to [`aci_server/db/scripts/catalog.json`](aci_server/db/scripts/catalog.json):
+  `name`, `description`, `categories`, `auth_method` (`oauth`, `api_key`, `api_key_with_base`, `db_access`, `custom`,
+  `none`, `whatsapp-qr`) and `logo_url` (put the file in `main/public/provider-logos/`). Optional: `auth_schema`
+  (form fields for `custom` auth), `action_names` (display names), and for OAuth `scopes` + `action_scopes`. OAuth
+  actions missing from `action_scopes` are never enabled for users.
+- Regenerate the seed and commit it together with your change:
+  `docker-compose run --rm --no-deps -v "$PWD/supabase:/supabase" aci_server python db/scripts/seed_tools.py --sql /supabase/seed.sql`
+  (run `--dry-run` first to see validation errors), then `supabase db reset` to load it locally.
 - If the integration uses OAuth, add start/callback routes in `main/app/api/oauth/<name>/`.
 - Add any new environment variables to `.env.example` (and `main/.env.example` if the frontend needs them).
 - Add a row to the [Integrations](readme.md#integrations) table in the README.

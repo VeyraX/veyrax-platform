@@ -224,16 +224,96 @@ Integrations marked with † are implemented but not registered in `INTEGRATION_
 | [VeyraX Auth](aci_server/integrations/veyrax_auth) | Tool connection status, connection links | VeyraX API key |
 | [VeyraX MCP](aci_server/integrations/veyrax-mcp) † | Search and deploy MCP servers, connection links | VeyraX API key |
 
+## Quickstart
+
+You need [Docker](https://docs.docker.com/get-docker/) (running), the
+[Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) and Node.js 18+. Then, from the
+repository root:
+
+```bash
+./quickstart.sh
+```
+
+One command, safe to re-run. It:
+
+1. starts a local Supabase with the full schema and the tool catalog (79 integrations, ~930 actions);
+2. creates `.env` and `main/.env.local` for it (existing files are kept);
+3. starts the backend with Docker Compose and the frontend with Next.js;
+4. runs a smoke test: creates a demo user and an API key, connects Hacker News and calls a tool through the backend.
+
+At the end it prints where everything runs:
+
+| What | Where |
+|---|---|
+| App | http://localhost:3000, log in as `demo@example.com` / `demo-password-123` |
+| Backend API docs | http://localhost:8000/docs |
+| Supabase Studio | http://127.0.0.1:54323 |
+| Demo API key | printed, together with a ready-to-run `curl` tool call |
+
+The first run takes a few minutes (Docker images, npm packages); later runs take under a minute. Stop everything with
+`./quickstart.sh stop`; the database is kept.
+
+- Tools with an API key or no auth work right away. The agent, chat and flows need LLM keys: run
+  `OPENAI_API_KEY=... OPENROUTER_API_KEY=... ./quickstart.sh` before `.env` exists, or add them to `.env` and
+  `main/.env.local` later.
+- OAuth integrations (Slack, Notion, …) also need your own OAuth app credentials in `.env`.
+- If another local Supabase project already uses the default ports, the script runs this one on ports 544xx and
+  prints the actual URLs.
+
 ## Getting started
+
+The sections below are the manual version of what `./quickstart.sh` does.
 
 ### Prerequisites
 
 - Docker and Docker Compose
 - Node.js 18+ (for the frontend)
-- A Supabase project
+- [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) for a local database,
+  or a hosted Supabase project
 - An OpenAI API key and an OpenRouter API key
 
-> Note: the Supabase database schema is not included in this repository yet.
+### Database
+
+The schema lives in [`supabase/migrations`](supabase/migrations) and the tool catalog (79 integrations, ~930 actions,
+OAuth scopes) in [`supabase/seed.sql`](supabase/seed.sql).
+
+**Local (recommended):**
+
+```bash
+supabase start            # first run pulls images; applies migrations + seed.sql
+supabase status -o env    # URLs and keys for the .env files
+```
+
+Use the legacy JWT keys from `supabase status -o env`: `ANON_KEY` and `SERVICE_ROLE_KEY`. The new `sb_publishable_…` /
+`sb_secret_…` keys are rejected by the pinned `supabase` Python client. `supabase db reset` wipes the local database and
+re-applies everything. Studio runs at `http://127.0.0.1:54323`.
+
+`port is already allocated` means another local Supabase project uses the default ports: stop it with
+`supabase stop --project-id <name>` (its data is kept), or see
+[Running multiple local projects](https://supabase.com/docs/guides/local-development/running-multiple-local-projects).
+
+**Hosted Supabase project:**
+
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push --include-seed
+```
+
+Or run the files from `supabase/migrations/` (in order) and then `supabase/seed.sql` in the SQL Editor.
+
+**Plain PostgreSQL 15+ with psql (no Supabase, e.g. for a quick check or CI):**
+
+```bash
+supabase/psql/test.sh                     # throwaway local cluster, removed afterwards (needs initdb 15+)
+supabase/psql/test.sh postgresql://...    # or an existing empty database
+```
+
+It applies [`supabase/psql/bootstrap.sql`](supabase/psql/bootstrap.sql) (the Supabase roles and `auth` helpers), then the
+migrations and `seed.sql` twice to check idempotency. It finishes with RLS smoke checks run as `anon`, two users and
+`service_role`, inside a transaction that is rolled back.
+
+Billing views read Stripe data from a `stripe` schema. The baseline migration creates empty placeholder tables there; to
+show real subscriptions, replace them with the [Supabase Stripe Wrapper](https://supabase.com/docs/guides/database/extensions/wrappers/stripe).
 
 ### Configuration
 
@@ -241,7 +321,34 @@ Integrations marked with † are implemented but not registered in `INTEGRATION_
 2. Frontend: `cp main/.env.example main/.env.local` and fill in the **REQUIRED** section.
 3. Never commit real `.env` files — they are git-ignored.
 
+With local Supabase the backend runs in Docker, so it reaches the database at `http://host.docker.internal:54321`.
+The frontend runs on the host and uses `http://127.0.0.1:54321`.
+
 Everything in the **OPTIONAL** sections can stay empty: only the integrations and features you configure will work.
+
+### Tool catalog
+
+`supabase/seed.sql` is generated; don't edit it by hand. Its sources:
+
+- the integrations registered in `INTEGRATION_ROUTERS` (`aci_server/main.py`): input/output schemas, `examples.yaml`,
+  `component.json`;
+- [`aci_server/db/scripts/catalog.json`](aci_server/db/scripts/catalog.json): name, description, category, auth method,
+  logo, custom auth fields, OAuth scopes and which scopes each action needs.
+
+```bash
+# regenerate supabase/seed.sql after changing an integration or catalog.json
+docker-compose run --rm --no-deps -v "$PWD/supabase:/supabase" aci_server python db/scripts/seed_tools.py --sql /supabase/seed.sql
+
+# validate only
+docker-compose run --rm --no-deps aci_server python db/scripts/seed_tools.py --dry-run
+
+# upsert the catalog into the database from .env (SUPABASE_URL / SUPABASE_SERVICE_KEY) without resetting it
+docker-compose run --rm --no-deps aci_server python db/scripts/seed_tools.py            # all integrations
+docker-compose run --rm --no-deps aci_server python db/scripts/seed_tools.py slack exa  # only some
+```
+
+Seeding is idempotent and never deletes rows. Actions of an OAuth integration are enabled for a user only if they
+are listed in that integration's `action_scopes`.
 
 ### Run the backend
 
