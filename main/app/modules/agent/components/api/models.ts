@@ -1,6 +1,6 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
+import { openrouter } from '@/lib/ai/openrouter';
 
 export interface AIModel {
   id: string;
@@ -16,67 +16,71 @@ export interface AIModel {
   isPremium?: boolean;
 }
 
+// Chat models offered in the playground, served through OpenRouter (https://openrouter.ai/models).
+// directModelId is used when a user brings their own OpenAI / Anthropic key in settings.
 export const AI_MODELS = {
-  'gpt-4.1-mini': {
-    id: 'gpt-4.1-mini',
-    name: 'GPT-4.1 Mini',
+  'gpt-6-luna': {
+    id: 'gpt-6-luna',
+    name: 'GPT-6 Luna',
     provider: 'openrouter' as const,
     originalProvider: 'openai' as const,
-    modelId: 'openai/gpt-4.1-mini',
-    directModelId: 'gpt-4.1-mini',
-    maxTokens: 128000,
+    modelId: 'openai/gpt-6-luna',
+    directModelId: 'gpt-6-luna',
+    maxTokens: 1050000,
     isDefault: true,
     isPremium: false
   },
-  'gpt-4.1': {
-    id: 'gpt-4.1',
-    name: 'GPT-4.1',
+  'claude-haiku-5.5': {
+    id: 'claude-haiku-5.5',
+    name: 'Claude Haiku 5.5',
+    provider: 'openrouter' as const,
+    originalProvider: 'anthropic' as const,
+    modelId: 'anthropic/claude-haiku-5.5',
+    directModelId: 'claude-haiku-5-5',
+    maxTokens: 1000000,
+    isDefault: false,
+    isPremium: false
+  },
+  'gpt-6.1-sol': {
+    id: 'gpt-6.1-sol',
+    name: 'GPT-6.1 Sol',
     provider: 'openrouter' as const,
     originalProvider: 'openai' as const,
-    modelId: 'openai/gpt-4.1',
-    directModelId: 'gpt-4.1',
+    modelId: 'openai/gpt-6.1-sol',
+    directModelId: 'gpt-6.1-sol',
+    maxTokens: 1050000,
     isDefault: false,
     isPremium: true
   },
-  'claude-3-7-sonnet-20240229': {
-    id: 'claude-3-7-sonnet-20240229',
-    name: 'Claude 3.7',
+  'claude-sonnet-5.5': {
+    id: 'claude-sonnet-5.5',
+    name: 'Claude Sonnet 5.5',
     provider: 'openrouter' as const,
     originalProvider: 'anthropic' as const,
-    modelId: 'anthropic/claude-3.7-sonnet',
-    directModelId: 'claude-3-7-sonnet-20250219',
+    modelId: 'anthropic/claude-sonnet-5.5',
+    directModelId: 'claude-sonnet-5-5',
+    maxTokens: 1000000,
     isDefault: false,
     isPremium: true
   },
-  'claude-3-5-sonnet-20240620': {
-    id: 'claude-3-5-sonnet-20240620',
-    name: 'Claude 3.5',
+  'claude-opus-5.5': {
+    id: 'claude-opus-5.5',
+    name: 'Claude Opus 5.5',
     provider: 'openrouter' as const,
     originalProvider: 'anthropic' as const,
-    modelId: 'anthropic/claude-3.5-sonnet',
-    directModelId: 'claude-3-5-sonnet-20241022',
-    maxTokens: 100000,
+    modelId: 'anthropic/claude-opus-5.5',
+    directModelId: 'claude-opus-5-5',
+    maxTokens: 1000000,
     isDefault: false,
     isPremium: true
   },
-  'gemini-2-5-flash': {
-    id: 'gemini-2-5-flash',
-    name: 'Gemini 2.5 Flash',
+  'gemini-3.8-flash': {
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
     provider: 'openrouter' as const,
     originalProvider: 'gemini' as const,
-    modelId: 'google/gemini-2.5-flash-preview',
-    directModelId: 'gemini-2.5-flash',
-    maxTokens: 1048576,
-    isDefault: false,
-    isPremium: true
-  },
-  'gemini-2-5-pro': {
-    id: 'gemini-2-5-pro',
-    name: 'Gemini 2.5 Pro',
-    provider: 'openrouter' as const,
-    originalProvider: 'gemini' as const,
-    modelId: 'google/gemini-2.5-pro-preview',
-    directModelId: 'gemini-2.5-pro',
+    modelId: 'google/gemini-3.8-flash',
+    directModelId: 'gemini-3.8-flash',
     maxTokens: 1048576,
     isDefault: false,
     isPremium: true
@@ -84,7 +88,7 @@ export const AI_MODELS = {
 } as const;
 
 export type ModelId = keyof typeof AI_MODELS;
-export const DEFAULT_MODEL: ModelId = 'gpt-4.1-mini';
+export const DEFAULT_MODEL: ModelId = 'gpt-6-luna';
 
 export const availableModels = Object.values(AI_MODELS);
 
@@ -124,34 +128,22 @@ export function getModelWithEffectiveProvider(
   return modelCopy;
 }
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-
 export function initializeModel(modelId: ModelId, settings?: ApiKeySettings) {
   const model = getModelWithEffectiveProvider(modelId, settings);
   const provider = model.provider;
-  
-  const providerModelId = (provider !== 'openrouter') ? model.directModelId : model.modelId;
   
   const useCustomApiKey = settings?.api_key_enabled && settings?.api_key_provider_name === model.originalProvider;
   const customApiKey = useCustomApiKey ? settings?.api_key : undefined;
   
   switch (provider) {
     case 'openai':
-      return createOpenAI({
-        apiKey: customApiKey || OPENAI_API_KEY || '',
-      })(providerModelId);
-      
+      // GPT-6 models need the Responses API for tool calls
+      return createOpenAI({ apiKey: customApiKey || '' }).responses(model.directModelId);
+
     case 'anthropic':
-      return createAnthropic({
-        apiKey: customApiKey || ANTHROPIC_API_KEY || '',
-      })(providerModelId);
-      
-    case 'openrouter':
+      return createAnthropic({ apiKey: customApiKey || '' })(model.directModelId);
+
     default:
-      return createOpenRouter({
-        apiKey: OPENROUTER_API_KEY || '',
-      })(providerModelId);
+      return openrouter(model.modelId);
   }
 }

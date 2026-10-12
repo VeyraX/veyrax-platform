@@ -666,7 +666,8 @@ export async function getUserModelCore(supabase: SupabaseClient) {
         .eq('user_id', user.id)
         .single();
       
-      if (settings?.ai_model) {
+      // Saved models that are no longer offered fall back to the default model
+      if (settings?.ai_model && settings.ai_model in AI_MODELS) {
         const { models: availableModels } = await getUserAvailableModels(
           supabase,
           settings.api_key_enabled ? {

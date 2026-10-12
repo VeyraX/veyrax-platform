@@ -62,7 +62,8 @@ export async function getUserModelServer() {
         .eq('user_id', user.id)
         .single();
       
-      if (settings?.ai_model) {
+      // Saved models that are no longer offered fall back to the default model
+      if (settings?.ai_model && settings.ai_model in AI_MODELS) {
         if (settings.api_key_enabled && settings.api_key && settings.api_key.includes(':')) {
           try {
             settings.api_key = decrypt(settings.api_key);

@@ -4,7 +4,7 @@ from qdrant_client import QdrantClient, models
 from qdrant_client.models import Distance, VectorParams
 from qdrant_client.models import PointStruct
 from qdrant_client.models import Filter, FieldCondition, MatchValue
-from openai import OpenAI
+from llm import embed
 from dotenv import load_dotenv
 from vector_tools.data_sources.base_source import BaseDataSource
 from db.supabase import get_supabase
@@ -28,10 +28,7 @@ class VectorStoreActions:
             raise Exception(f"Error creating collection: {e}")
         
     def generate_vector(self, text: str):
-        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        response = client.embeddings.create(input=text, model="text-embedding-3-small")
-        vector = response.data[0].embedding
-        return vector
+        return embed(text)
         
     def add_vector_to_collection(self, vector: list[float], payload: dict):
         try:

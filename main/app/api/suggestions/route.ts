@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { openrouter, FAST_MODEL } from '@/lib/ai/openrouter';
 import { generateObject, generateText } from 'ai';
 import { tools } from '@/lib/ai/tools';
 import { suggestions_system_prompt } from '@/app/prompts/suggestions_system_prompt';
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   );
 
   const { object } = await generateObject({
-    model: openai('gpt-4o'),
+    model: openrouter(FAST_MODEL),
     system: suggestions_system_prompt,
     schema: z.object({
       suggestions: z.array(z.string()),

@@ -69,7 +69,8 @@ underlying API and returns both structured data and a ready-to-render UI compone
 | `nginx/`, `docker-compose*.yml` | Deployment configuration (reverse proxy, Celery/Flower, Redis, Datadog) |
 | `.github/workflows/` | GitHub Action that builds and publishes MCP server images |
 
-Main dependencies: Supabase (Postgres + Auth + Storage), Redis, Upstash Vector / Qdrant, OpenAI or OpenRouter.
+Main dependencies: Supabase (Postgres + Auth + Storage), Redis, Upstash Vector / Qdrant, OpenRouter (all LLM, embedding and
+speech-to-text calls; models are set in `aci_server/llm.py` and `main/lib/ai/openrouter.ts`).
 
 ## Integrations
 
@@ -253,9 +254,9 @@ At the end it prints where everything runs:
 The first run takes a few minutes (Docker images, npm packages); later runs take under a minute. Stop everything with
 `./quickstart.sh stop`; the database is kept.
 
-- Tools with an API key or no auth work right away. The agent, chat and flows need LLM keys: run
-  `OPENAI_API_KEY=... OPENROUTER_API_KEY=... ./quickstart.sh` before `.env` exists, or add them to `.env` and
-  `main/.env.local` later.
+- Tools with an API key or no auth work right away. The chat, agent and flows need an
+  [OpenRouter](https://openrouter.ai/keys) key: run `OPENROUTER_API_KEY=... ./quickstart.sh` before `.env` exists, or
+  add it to `.env` and `main/.env.local` later.
 - OAuth integrations (Slack, Notion, …) also need your own OAuth app credentials in `.env`.
 - If another local Supabase project already uses the default ports, the script runs this one on ports 544xx and
   prints the actual URLs.
@@ -270,7 +271,7 @@ The sections below are the manual version of what `./quickstart.sh` does.
 - Node.js 18+ (for the frontend)
 - [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started) for a local database,
   or a hosted Supabase project
-- An OpenAI API key and an OpenRouter API key
+- An [OpenRouter](https://openrouter.ai/keys) API key (every model call goes through OpenRouter)
 
 ### Database
 

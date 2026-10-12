@@ -4,8 +4,8 @@
 #   ./quickstart.sh          start everything (safe to re-run) and run a smoke test
 #   ./quickstart.sh stop     stop everything (database data is kept)
 #
-# Optional: OPENAI_API_KEY=... OPENROUTER_API_KEY=... ./quickstart.sh  (written into freshly created .env files;
-# needed for the agent, chat and flows, not for calling tools).
+# Optional: OPENROUTER_API_KEY=... ./quickstart.sh  (written into freshly created .env files; needed for the chat,
+# agent and flows, not for calling tools).
 set -euo pipefail
 trap 'printf "\033[31mquickstart.sh failed on line %s\033[0m\n" "$LINENO" >&2' ERR
 
@@ -92,7 +92,7 @@ const fs = require("fs");
 const env = process.env;
 const encryptionKey = require("crypto").randomBytes(32).toString("hex");
 const backendUrl = `http://host.docker.internal:${env.API_PORT}`;
-const llm = { OPENAI_API_KEY: env.OPENAI_API_KEY || "", OPENROUTER_API_KEY: env.OPENROUTER_API_KEY || "" };
+const llm = { OPENROUTER_API_KEY: env.OPENROUTER_API_KEY || "" };
 function fill(src, dst, values) {
   if (fs.existsSync(dst)) {
     const current = (fs.readFileSync(dst, "utf8").match(/^SUPABASE_URL=(.*)$/m) || [])[1];

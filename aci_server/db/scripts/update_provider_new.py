@@ -7,12 +7,12 @@ import argparse
 from typing import List, Dict, Any, Optional
 import yaml
 import datetime
-from openai import OpenAI
 from upstash_vector import Index, Vector
 
 sys.path.append('/app')
 
 from db.supabase import get_supabase
+from llm import embed
 from gpt_generation import generate_prompt
 from main import INTEGRATION_ROUTERS, get_router_tools
 
@@ -233,18 +233,8 @@ async def add_provider_to_providers_index(provider_id: str, provider_data: Dict[
         if provider_data.get('provider_tag'):
             text += f"{provider_data.get('provider_tag')}\n"
             
-        # Get OpenAI client for embeddings
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            return {"error": "Missing OpenAI API key"}
-        openai_client = OpenAI(api_key=api_key)
-        
         # Generate embedding
-        embedding_response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text
-        )
-        embedding = embedding_response.data[0].embedding
+        embedding = embed(text)
         
         # Get vector index for Providers
         url = os.getenv("UPSTASH_PROVIDERS_URL")

@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import { Index } from '@upstash/vector';
 import OpenAI from 'openai';
 import { VectorMatch, SearchResult, SearchResponse } from '@/app/modules/deploy/api/types.deploy';
+import { EMBEDDING_MODEL, OPENROUTER_BASE_URL, openrouterHeaders } from '@/lib/ai/openrouter';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: OPENROUTER_BASE_URL,
+  defaultHeaders: openrouterHeaders,
 });
 
 const vectorIndex = new Index({
@@ -22,7 +25,7 @@ export async function GET(request: Request) {
 
   try {
     const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: EMBEDDING_MODEL,
       input: query.trim(),
     });
     

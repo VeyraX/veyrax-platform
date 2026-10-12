@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { FAST_MODEL, OPENROUTER_BASE_URL } from '@/lib/ai/openrouter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     const dataUrl = `data:image/jpeg;base64,${base64Image}`;
     
     const client = new OpenAI({
-      baseURL: 'https://openrouter.ai/api/v1',
+      baseURL: OPENROUTER_BASE_URL,
       apiKey: apiKey,
     });
     
@@ -56,7 +57,7 @@ Format your response as a valid JSON object with only these two fields:
 `;
 
     const completion = await client.chat.completions.create({
-      model: 'openai/o4-mini',
+      model: FAST_MODEL,
       messages: [
         {
           role: 'user',

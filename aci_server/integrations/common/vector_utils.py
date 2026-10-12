@@ -1,6 +1,6 @@
 import os
 from upstash_vector import Index, Vector
-from openai import OpenAI
+from llm import embed
 from db.supabase import get_supabase
 import sentry_sdk
 from typing import Dict, Any, Optional
@@ -15,23 +15,11 @@ def get_vector_index():
         raise ValueError("Missing Upstash Vector credentials")
     return Index(url=url, token=token)
 
-def get_openai_client():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("Missing OpenAI API key")
-    return OpenAI(api_key=api_key)
-
 async def get_user_tools_with_vector_search(user_id: str, query: str, top_k: int = 4) -> Dict[str, Any]:
     try:
         supabase = get_supabase()
         vector_index = get_vector_index()
-        openai_client = get_openai_client()
-        
-        response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=query
-        )
-        query_embedding = response.data[0].embedding
+        query_embedding = embed(query)
         
         user_providers = supabase.table('users_providers') \
             .select('provider_id') \
@@ -121,13 +109,7 @@ async def get_user_mcp_repositories_with_vector_search(user_id: str, query: str,
     try:
         supabase = get_supabase()
         vector_index = get_vector_index()
-        openai_client = get_openai_client()
-        
-        response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=query
-        )
-        query_embedding = response.data[0].embedding
+        query_embedding = embed(query)
         
         user_repos = supabase.table('users_mcp') \
             .select('repo_id') \

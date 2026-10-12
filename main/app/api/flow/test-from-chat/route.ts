@@ -1,21 +1,16 @@
-import { openai } from '@ai-sdk/openai';
 import { Message, streamText, appendResponseMessages } from 'ai';
 import { NextResponse } from 'next/server';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 import { getFlowForPrompt } from '@/app/modules/flows/api/api.server.flow';
 import { flow_testing_prompt } from '@/app/prompts/flow_testing_prompt';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { openrouter, AGENT_MODEL } from '@/lib/ai/openrouter';
 import { createClient } from '@/lib/utils/supabase/server';
 import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
 import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
 
 export const maxDuration = 150;
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY || ''
-});
-
-const modelName = 'anthropic/claude-3.7-sonnet';
+const modelName = AGENT_MODEL;
 
 export async function POST(request: Request) {
   try {

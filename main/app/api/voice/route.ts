@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-import fs from 'fs/promises';
-import { createReadStream } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-
-const openai = new OpenAI();
+import { OPENROUTER_BASE_URL, TRANSCRIPTION_MODEL, openrouterHeaders } from '@/lib/ai/openrouter';
 
 export const runtime = 'nodejs';
+
+const AUDIO_FORMATS: Record<string, string> = { mp4: 'm4a', mpeg: 'mp3', ogg: 'ogg', wav: 'wav' };
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,20 +17,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-    const tempFileName = `audio-${crypto.randomUUID()}.webm`;
-    const tempFilePath = path.join('/tmp', tempFileName);
-
-    await fs.writeFile(tempFilePath, audioBuffer);
-    const fileStream = createReadStream(tempFilePath);
-
-    const transcription = await openai.audio.transcriptions.create({
-      file: fileStream,
-      model: 'whisper-1',
+    const subtype = audioFile.type.split('/')[1]?.split(';')[0] || '';
+    const response = await fetch(`${OPENROUTER_BASE_URL}/audio/transcriptions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
+        'Content-Type': 'application/json',
+        ...openrouterHeaders,
+      },
+      body: JSON.stringify({
+        model: TRANSCRIPTION_MODEL,
+        input_audio: {
+          data: Buffer.from(await audioFile.arrayBuffer()).toString('base64'),
+          format: AUDIO_FORMATS[subtype] || 'webm',
+        },
+      }),
     });
 
-    await fs.unlink(tempFilePath);
+    if (!response.ok) {
+      throw new Error(`OpenRouter transcription failed: ${response.status} ${await response.text()}`);
+    }
 
+    const transcription = await response.json();
     return NextResponse.json({ text: transcription.text });
 
   } catch (error) {

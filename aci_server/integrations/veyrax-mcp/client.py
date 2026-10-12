@@ -25,15 +25,10 @@ class VeyraxMcpClient:
 
     async def search_mcp(self, query: str, limit: int = 10, include_metadata: bool = True) -> List[Dict[str, Any]]:
         try:
-            from openai import OpenAI
-            openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            
+            from llm import embed
+
             # Generate embedding for query
-            response = openai_client.embeddings.create(
-                model="text-embedding-3-small",
-                input=query
-            )
-            embedding = response.data[0].embedding
+            embedding = embed(query)
             
             # Search vector database
             index = self.get_vector_index()

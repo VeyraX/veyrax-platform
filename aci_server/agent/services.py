@@ -1,36 +1,13 @@
-from openai import AsyncOpenAI
-from agents import set_default_openai_client, set_default_openai_api, set_tracing_disabled, set_tracing_export_api_key
+from agents import set_tracing_disabled
 import os
 import json
 from typing import Dict, Any, List, Optional, Union, Iterable
 import re
 import posthog
+from llm import use_openrouter_for_agents
 
 def setup_openrouter_client():
-    tracing_disabled = os.environ.get("OPENAI_AGENTS_DISABLE_TRACING", "0") == "1"
-    set_tracing_disabled(tracing_disabled)
-    
-    openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not openrouter_api_key:
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set or empty")
-    
-    site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
-    site_name = os.environ.get("SITE_NAME", "Veyrax")
-    
-    # Create a regular OpenAI client
-    custom_client = AsyncOpenAI(
-        api_key=openrouter_api_key,
-        base_url="https://openrouter.ai/api/v1",
-        default_headers={
-            "HTTP-Referer": site_url,
-            "X-Title": site_name
-        }
-    )
-
-    set_default_openai_api("chat_completions")
-    set_default_openai_client(custom_client)
-    
-    return custom_client
+    return use_openrouter_for_agents()
 
 def format_agent_result(result: Any) -> Dict[str, Any]:
     final_output = result.final_output if hasattr(result, "final_output") else ""

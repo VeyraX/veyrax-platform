@@ -4,6 +4,7 @@ import json
 import uuid
 from .tools import get_flow_by_id, get_available_tools, tool_call, set_api_key
 from .services import setup_openrouter_client, format_agent_result, setup_posthog_tracing
+from llm import AGENT_MODEL
 
 def create_agent(api_key: str, instructions: str = None, flow_id: str = None, run_id: str = None, user_id: str = None, trace_id: str = None) -> Agent:
     set_api_key(api_key)
@@ -17,7 +18,7 @@ def create_agent(api_key: str, instructions: str = None, flow_id: str = None, ru
         name="Veyrax Assistant",
         instructions=instructions,
         tools=tools,
-        model="anthropic/claude-3.7-sonnet"
+        model=AGENT_MODEL
     )
     
     return agent

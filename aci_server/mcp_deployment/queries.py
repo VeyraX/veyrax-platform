@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 import os
 from upstash_vector import Index, Vector
-from openai import OpenAI
+from llm import embed
 
 async def create_mcp_deployment_record(
     repository_id: str,
@@ -242,16 +242,7 @@ async def add_repository_to_providers_index(repo_id: str) -> Dict[str, Any]:
         if repo.get('image_name'):
             text += f"{repo.get('image_name')}\n"
             
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            return {"error": "Missing OpenAI API key"}
-        openai_client = OpenAI(api_key=api_key)
-        
-        embedding_response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text
-        )
-        embedding = embedding_response.data[0].embedding
+        embedding = embed(text)
         
         url = os.getenv("UPSTASH_PROVIDERS_URL")
         token = os.getenv("UPSTASH_PROVIDERS_TOKEN")

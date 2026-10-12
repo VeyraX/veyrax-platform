@@ -1,6 +1,5 @@
 from fastapi import HTTPException
-from openai import OpenAI
-from openai import AsyncOpenAI
+from llm import AGENT_MODEL, complete
 import os
 from .prompts import generate_dockerfile_prompt, extract_env_variables_prompt, extract_repo_metadata_prompt, generate_veyrax_yaml_prompt
 from dotenv import load_dotenv
@@ -13,58 +12,13 @@ from .queries import add_repository_to_providers_index
 
 load_dotenv()
 
-def setup_openrouter_client():
-    openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not openrouter_api_key:
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set or empty")
-    
-    site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
-    site_name = os.environ.get("SITE_NAME", "Veyrax")
-    
-    client = OpenAI(
-        api_key=openrouter_api_key,
-        base_url="https://openrouter.ai/api/v1",
-        default_headers={
-            "HTTP-Referer": site_url,
-            "X-Title": site_name
-        }
-    )
-    
-    return client
-
-def openai_call(system_message, human_message):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": human_message}
-        ],
-        temperature=0
-    )
-    
-    return response.choices[0].message.content
-
-def openrouter_claude_call(system_message, human_message):
-    client = setup_openrouter_client()
-    
-    response = client.chat.completions.create(
-        model="anthropic/claude-3-7-sonnet",
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": human_message}
-        ],
-        temperature=0
-    )
-    
-    return response.choices[0].message.content
+def llm_call(system_message, human_message):
+    return complete(system_message, human_message, model=AGENT_MODEL)
 
 def generate_dockerfile(context):
     system_message = generate_dockerfile_prompt
     human_message = context
-    # return openai_call(system_message, human_message)
-    return openrouter_claude_call(system_message, human_message)
+    return llm_call(system_message, human_message)
 
 def extract_env_variables(context, is_local: bool = False):
     system_message = extract_env_variables_prompt
@@ -73,8 +27,7 @@ def extract_env_variables(context, is_local: bool = False):
     human_message = json.dumps(context_with_flag)
     
     try:
-        # env_variables_json = openai_call(system_message, human_message)
-        env_variables_json = openrouter_claude_call(system_message, human_message)
+        env_variables_json = llm_call(system_message, human_message)
         return json.loads(env_variables_json)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse environment variables JSON")
@@ -85,8 +38,7 @@ def extract_repo_metadata(context):
     system_message = extract_repo_metadata_prompt
     human_message = context
     try:
-        # metadata_json = openai_call(system_message, human_message)
-        metadata_json = openrouter_claude_call(system_message, human_message)
+        metadata_json = llm_call(system_message, human_message)
         return json.loads(metadata_json)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse metadata JSON")
@@ -280,7 +232,7 @@ async def generate_veyrax_yaml(data):
             
             human_message = json.dumps(repo_context)
         
-        yaml_content = openrouter_claude_call(system_message, human_message)
+        yaml_content = llm_call(system_message, human_message)
         return yaml_content.strip()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate veyrax.yaml: {str(e)}")

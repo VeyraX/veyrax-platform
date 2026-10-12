@@ -4,6 +4,7 @@ import json
 import uuid
 from .tools import web_search, extract_page
 from .services import setup_openrouter_client, format_payload
+from llm import RESEARCH_MODEL
 from .prompts import AGENT_PROMPT, WEB_SEARCH_PROMPT
 import logging
 
@@ -18,7 +19,7 @@ def create_agent() -> Agent:
                 web_search,
                 extract_page
             ],
-            model="google/gemini-2.5-flash-preview:thinking"
+            model=RESEARCH_MODEL
         )
         
         return agent

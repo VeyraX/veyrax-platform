@@ -1,6 +1,5 @@
 import os
 from upstash_vector import Index, Vector
-from openai import OpenAI
 from dotenv import load_dotenv
 import sys
 from pathlib import Path
@@ -8,6 +7,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from db.supabase import get_supabase
+from llm import openrouter_client, EMBEDDING_MODEL
 load_dotenv()
 
 
@@ -19,10 +19,7 @@ def get_vector_index():
     return Index(url=url, token=token)
 
 def get_openai_client():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("Missing OpenAI API key")
-    return OpenAI(api_key=api_key)
+    return openrouter_client()
 
 def create_provider_text(provider: dict) -> str:
     # Create a text representation of the provider for embedding
@@ -35,9 +32,9 @@ def create_provider_text(provider: dict) -> str:
             text += f"- {scope['scope_name']} ({scope['scope']})\n"
     return text
 
-def get_embedding(client: OpenAI, text: str) -> list[float]:
+def get_embedding(client, text: str) -> list[float]:
     response = client.embeddings.create(
-        model="text-embedding-3-small",
+        model=EMBEDDING_MODEL,
         input=text
     )
     return response.data[0].embedding

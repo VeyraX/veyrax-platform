@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { openrouter, FAST_MODEL } from '@/lib/ai/openrouter';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { createClient } from '@/lib/utils/supabase/server';
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   }
 
   const { object } = await generateObject({
-    model: openai('gpt-4o'),
+    model: openrouter(FAST_MODEL),
     system: chatTitleSystemPrompt,
     schema: z.object({
       title: z.string(),

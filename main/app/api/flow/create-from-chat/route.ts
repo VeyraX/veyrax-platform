@@ -1,4 +1,3 @@
-import { openai } from '@ai-sdk/openai';
 import { Message, streamText, appendResponseMessages } from 'ai';
 import { NextResponse } from 'next/server';
 import { flow_improve_description } from '@/lib/ai/tools/flow-description';
@@ -6,7 +5,7 @@ import { getFlowForPrompt, getProviderActionsForFlow } from '@/app/modules/flows
 import { flow_improvement_prompt } from '@/app/prompts/flow_improvements_prompt';
 import { flow_builder_prompt } from '@/app/prompts/flow_builder_prompt';
 import { tool_call_builder, get_tools } from '@/lib/ai/tools/tool-call';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { openrouter, AGENT_MODEL } from '@/lib/ai/openrouter';
 import { getFlowSchedule } from '@/app/modules/flows/api/api.server.schedule.flows';
 import { flowScheduleTool, deleteFlowScheduleTool } from '@/lib/ai/tools/flow-schedule';
 import { traceModel, generateTraceId } from '@/lib/utils/posthog-tracing';
@@ -14,11 +13,7 @@ import { createClient } from '@/lib/utils/supabase/server';
 import { canUserSendMessageServer } from '@/app/modules/settings/api/api.server.settings';
 export const maxDuration = 300;
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY || ''
-});
-
-const modelName = 'anthropic/claude-3.7-sonnet';
+const modelName = AGENT_MODEL;
 
 export async function POST(request: Request) {
   const clonedReq = request.clone();

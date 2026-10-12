@@ -1,19 +1,14 @@
 import { appendResponseMessages, streamText } from 'ai';
 import { flowRunPrompt } from '@/app/prompts/flow_run_prompt';
 import { createClient } from '@supabase/supabase-js';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { openrouter, AGENT_MODEL } from '@/lib/ai/openrouter';
 import { type Message } from 'ai';
 import { tool_call_test_flow, get_flow } from '@/lib/ai/tools/tool-call'
 
 
 export const maxDuration = 300;
 
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY || ''
-});
-
-const modelName = 'anthropic/claude-3.7-sonnet';  
+const modelName = AGENT_MODEL;
 
 export async function POST(req: Request) {
   

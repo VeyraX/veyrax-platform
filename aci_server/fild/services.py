@@ -1,62 +1,29 @@
-from openai import AsyncOpenAI
-from agents import set_default_openai_client, set_default_openai_api, set_tracing_disabled, set_tracing_export_api_key
-import os
 import json
 from typing import Dict, Any, List, Optional, Union, Iterable
 import re
 import logging
 from agents import Runner
 from .queries import get_sheet_by_id, update_sheet_data
-from openai import OpenAI
+from llm import FAST_MODEL, openrouter_client, use_openrouter_for_agents
 from .prompts import STRUCTURED_OUTPUT_PROMPT
 from .schema import ExtractedValue, PersonResult, CompanyResult, RowRange
 import httpx
 
 
-def openai_llm_call(human_message, system_message, model_class=None, model_name='gpt-4o-mini'):
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    
+def openai_llm_call(human_message, system_message, model_class=None, model_name=FAST_MODEL):
+    client = openrouter_client()
+    messages = [{"role": "system", "content": system_message}, {"role": "user", "content": human_message}]
+
     if model_class:
-        response = client.responses.parse(
-            model=model_name,
-            input=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": human_message}
-            ],
-            text_format=model_class
-        )
-        return response.output_parsed
-    else:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": human_message}, {"role": "system", "content": system_message}],
-            response_format={"type": "json_object"}
-        )
-        return response.choices[0].message.content
+        response = client.beta.chat.completions.parse(model=model_name, messages=messages, response_format=model_class)
+        return response.choices[0].message.parsed
+    response = client.chat.completions.create(model=model_name, messages=messages, response_format={"type": "json_object"})
+    return response.choices[0].message.content
 
 
 def setup_openrouter_client():
     try:
-        set_tracing_disabled(True)
-        
-        openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-        
-        site_url = os.environ.get("SITE_URL", "https://veyraxapp.com")
-        site_name = os.environ.get("SITE_NAME", "Veyrax")
-        
-        custom_client = AsyncOpenAI(
-            api_key=openrouter_api_key,
-            base_url="https://openrouter.ai/api/v1",
-            default_headers={
-                "HTTP-Referer": site_url,
-                "X-Title": site_name
-            }
-        )
-
-        set_default_openai_api("chat_completions")
-        set_default_openai_client(custom_client)
-        
-        return custom_client
+        return use_openrouter_for_agents()
     except Exception as e:
         logging.exception("Error setting up OpenRouter client")
         raise

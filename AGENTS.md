@@ -15,6 +15,13 @@ contribution rules in [CONTRIBUTING.md](CONTRIBUTING.md).
 `./quickstart.sh` starts Supabase, writes `.env` files, starts backend + frontend and runs an end-to-end smoke test
 (non-zero exit on failure). `./quickstart.sh stop` stops it all. Use it to check that a change didn't break the stack.
 
+## LLM calls
+
+Every model call (chat, agents, flows, embeddings, speech-to-text) goes through OpenRouter with `OPENROUTER_API_KEY`.
+Model IDs live in one place per app: `aci_server/llm.py` (backend) and `main/lib/ai/openrouter.ts` (frontend), plus the
+playground list in `main/app/modules/agent/components/api/models.ts`. Use those helpers instead of creating OpenAI or
+Anthropic clients directly; check IDs against https://openrouter.ai/api/v1/models.
+
 ## Database
 
 - Local database: `supabase start` (applies `supabase/migrations/*` + `supabase/seed.sql`), `supabase db reset` to rebuild,

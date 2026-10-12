@@ -56,7 +56,7 @@ function PlaygroundSettings({
   useEffect(() => {
     if (!playgroundSettings) return;
     
-    setSelectedModelId(playgroundSettings.ai_model as ModelId || defaultModel);
+    setSelectedModelId(playgroundSettings.ai_model in AI_MODELS ? playgroundSettings.ai_model as ModelId : defaultModel);
     setPrompt(playgroundSettings.agent_prompt || "You are a helpful AI assistant.");
     setProvider(playgroundSettings.api_key_provider_name || "openai");
     setApiKey(playgroundSettings.api_key || "");

@@ -15,6 +15,7 @@ from integrations.common.utils import log_api_call
 from integrations.common.auth import get_user_from_request
 from mcp_deployment.queries import get_user_mcp_image_names, get_user_connected_mcp_actions
 from prompts import get_parameter_generation_prompt
+from llm import FAST_MODEL, async_openrouter_client, openrouter_client_kwargs
 
 class ToolsService:
     def __init__(self, integration_routers: Dict[str, Any]):
@@ -28,10 +29,6 @@ class ToolsService:
         prompt = get_parameter_generation_prompt(tool, method, question, tool_schema)
         
         try:
-            api_key = os.getenv("OPENROUTER_API_KEY")
-            if not api_key:
-                raise ValueError("OPENROUTER_API_KEY is not configured")
-            
             posthog_api_key = os.getenv("POSTHOG_API_KEY")
             posthog_host = os.getenv("POSTHOG_HOST", "https://us.i.posthog.com")
             posthog_client = None
@@ -43,12 +40,6 @@ class ToolsService:
             else:
                 print("Warning: POSTHOG_API_KEY not set. PostHog Observability for LLM parameter generation is disabled.")
             
-            client = PosthogAsyncOpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=api_key,
-                posthog_client=posthog_client
-            )
-            
             custom_properties = {
                 "endpoint": "tool-call-simplified",
                 "tool_name": tool,
@@ -56,17 +47,25 @@ class ToolsService:
                 "user_question": question[:400],
                 "user_id": user_id
             }
+
+            if posthog_client:
+                client = PosthogAsyncOpenAI(**openrouter_client_kwargs(), posthog_client=posthog_client)
+                tracking = {
+                    "posthog_properties": custom_properties,
+                    "posthog_distinct_id": user_id # Use distinct_id for user identification
+                }
+            else:
+                client = async_openrouter_client()
+                tracking = {}
             
             completion = await client.chat.completions.create(
-                model="openai/gpt-4.1",
+                model=FAST_MODEL,
                 messages=[
                     {"role": "system", "content": "You are an expert API parameter generator. When receiving a query, carefully analyze and reason through the user's intent. Consider the logical context provided by the intelligent AI agent. Your goal is to identify and produce the optimal JSON parameters that will effectively solve the user's request based on the given tool schema. Respond strictly with a JSON object containing these parameters."},
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0,
-                posthog_properties=custom_properties,
-                posthog_distinct_id=user_id # Use distinct_id for user identification
+                **tracking
             )
 
             if (completion is None) or (completion.choices is None) or (isinstance(completion.choices, list) and len(completion.choices) == 0):
