@@ -1,8 +1,34 @@
 # VeyraX — Agentic Component Interface
 
+<p align="center">
+  <img src="docs/assets/banner.png" alt="VeyraX is Agentic Component Interface" width="800">
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/python-3.11-blue.svg" alt="Python 3.11">
+  <img src="https://img.shields.io/badge/next.js-14-black.svg" alt="Next.js 14">
+  <a href="#integrations"><img src="https://img.shields.io/badge/integrations-83-brightgreen.svg" alt="83 integrations"></a>
+</p>
+
 VeyraX is an infrastructure layer that connects AI agents to the tools people actually use.
 One API key gives an agent (Claude, Cursor, your own LLM app) authenticated access to 80+ integrations
 and thousands of MCP servers, plus long-term memory and multi-step automation flows.
+
+## How it works
+
+![Integrations → VeyraX → UI component](docs/assets/how-it-works.png)
+
+The agent calls a tool through VeyraX; VeyraX authenticates on behalf of the user, calls the
+underlying API and returns both structured data and a ready-to-render UI component.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/assets/component-1.png" alt="Agent shows events as cards" width="260"></td>
+    <td align="center"><img src="docs/assets/component-2.png" alt="Agent renders a checkout form" width="260"></td>
+    <td align="center"><img src="docs/assets/component-3.png" alt="Agent adds an event to the calendar" width="260"></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -19,6 +45,18 @@ and thousands of MCP servers, plus long-term memory and multi-step automation fl
   run it on demand or on a schedule.
 - **Semantic tool search** — vector index over tools and providers so agents can find the right tool.
 - **UI components** — integrations return structured components (`component.json`) that the frontend renders.
+
+### Screenshots
+
+| Integrations catalog | Connect a tool |
+|---|---|
+| ![Integrations catalog](docs/assets/tools.png) | ![Connect a tool](docs/assets/connect-tools.gif) |
+| **Deploy an MCP server from GitHub** | **Create a flow from a prompt** |
+| ![Deploy MCP](docs/assets/deploy-mcp.gif) | ![Create a flow](docs/assets/create-flow.gif) |
+| **Memory** | **Flow overview & API** |
+| ![Memory](docs/assets/memory.png) | ![Flow](docs/assets/flow.png) |
+| **Auth for your users** | **Explore & deploy MCPs** |
+| ![Auth](docs/assets/auth.png) | ![Deploy](docs/assets/deploy.png) |
 
 ## Architecture
 
