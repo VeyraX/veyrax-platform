@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VeyraX web app
 
-## Getting Started
+Next.js 14 (App Router) frontend for VeyraX: landing pages, dashboard, integrations catalog,
+OAuth connection flows, agent playground, flows, MCP deployment and billing.
 
-First, run the development server:
+See the [root README](../readme.md) for the project overview and backend setup.
+
+## Getting started
 
 ```bash
+cp .env.example .env.local   # fill in at least the "Required" section
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The backend (`aci_server`) is expected at `NEXT_PUBLIC_API_URL`
+(default `http://localhost:8000`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Lint with `next lint` |
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Path | Description |
+|---|---|
+| `app/(landing)`, `app/(auth)`, `app/(app)` | Route groups: marketing pages, sign-in/up, authenticated dashboard |
+| `app/api/oauth/<provider>` | OAuth start/callback routes for every OAuth integration |
+| `app/api/*` | Server routes: chat, flows, integrations, MCP deploy, Stripe webhooks, email |
+| `app/modules/<feature>` | Feature modules (agent, flows, integrations, deploy, settings, landing, ...) |
+| `components/ui` | Shared UI components (shadcn/ui based) |
+| `lib` | Server actions, AI helpers, database clients, utilities |
+| `public` | Static assets: logos, landing images, demo videos |
