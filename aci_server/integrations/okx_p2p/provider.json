@@ -1,7 +1,0 @@
-{
-    "name": "OKX P2P",
-    "provider_tag": "okx_p2p",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//OKX_Logo.svg.png",
-    "description": "Get real-time data from OKX P2P marketplace. View buy and sell offers for cryptocurrencies across different fiat currencies.",
-    "auth_method": "none"
-} 

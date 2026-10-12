@@ -83,26 +83,26 @@ NEVER make up actions that are not in the list. NEVER.
         {
         provider_name: 'Linear',
         action_name: 'Create Issue Task',
-        logo_url: 'https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//linear-logo.svg'
+        logo_url: '/provider-logos/linear.svg'
         },
         {
         provider_name: 'Google Sheets',
         action_name: 'Update Spreadsheet Cells',
-        logo_url: 'https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//google-sheets-logo.svg'
+        logo_url: '/provider-logos/google-sheets.svg'
         }
         ]
 
         You MUST use all actions from the list in the workflow context: 
         <span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Linear" data-action="Create Issue Task">
           <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
-            <img src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//linear-logo.svg" alt="Create Issue Task" class="max-h-full max-w-full object-contain">
+            <img src="/provider-logos/linear.svg" alt="Create Issue Task" class="max-h-full max-w-full object-contain">
           </div>
           <span class="text-gray-900 !text-black text-xs font-medium">Create Issue Task</span>
         </span>
 
         <span class="inline-flex items-center gap-1 bg-white !bg-white border border-gray-200 rounded-md px-1 py-0.5 mx-0.5 action-item shadow-sm" contenteditable="false" data-provider="Google Sheets" data-action="Update Spreadsheet Cells">
           <div class="h-3.5 w-3.5 rounded-sm overflow-hidden flex items-center justify-center bg-white">
-            <img src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//google-sheets-logo.svg" alt="Update Spreadsheet Cells" class="max-h-full max-w-full object-contain">
+            <img src="/provider-logos/google-sheets.svg" alt="Update Spreadsheet Cells" class="max-h-full max-w-full object-contain">
           </div>
           <span class="text-gray-900 !text-black text-xs font-medium">Update Spreadsheet Cells</span>
         </span>

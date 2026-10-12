@@ -65,7 +65,7 @@ export default function TermsPage() {
               We handle your data in compliance with our Privacy Policy. All actions performed within third-party services are done based on the permissions you grant. You can manage or revoke these permissions at any time in your account settings.
             </p>
             <p className="mt-2 text-muted-foreground">
-              If you wish to delete all stored data, you may request data deletion by contacting us at korzhov.work2019@gmail.com.
+              If you wish to delete all stored data, you may request data deletion by contacting us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}.
             </p>
           </div>
           <div>
@@ -77,7 +77,7 @@ export default function TermsPage() {
           <div>
             <h2 className="text-2xl font-semibold">10. Contact Information</h2>
             <p className="mt-2 text-muted-foreground">
-              If you have any questions about these Terms of Service, please contact us at korzhov.work2019@gmail.com.
+              If you have any questions about these Terms of Service, please contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}.
             </p>
           </div>
         </div>

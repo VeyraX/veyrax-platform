@@ -46,7 +46,7 @@ export function McpUsage({
         "@veyrax/mcp-cli",
         "deploy",
         "--sse",
-        `http://${processId || "[process_id]"}.mcp.veyraxapp.com/sse`,
+        `http://${processId || "[process_id]"}.${process.env.NEXT_PUBLIC_MCP_BASE_URL || "mcp.localhost:8000"}/sse`,
         "--header",
         `VEYRAX_API_KEY:${apiKey || "API_KEY"}`
       ]

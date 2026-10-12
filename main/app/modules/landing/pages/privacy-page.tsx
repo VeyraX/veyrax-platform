@@ -5,7 +5,7 @@ export default function PrivacyPage() {
         <h1 className="text-4xl font-bold tracking-tight">Privacy Policy</h1>
         <p className="mt-4 text-sm text-muted-foreground">Last Updated: February 22, 2025</p>
         <p className="mt-4 text-lg text-muted-foreground">
-          This Privacy Policy explains how we collect, use, and process information when you use our service. By using our service, you agree to the collection and use of information as described in this policy. If you have any questions, you can contact us at korzhov.work2019@gmail.com.
+          This Privacy Policy explains how we collect, use, and process information when you use our service. By using our service, you agree to the collection and use of information as described in this policy. If you have any questions, you can contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}.
         </p>
         <div className="mt-12 space-y-8">
           <div>
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="mt-2 text-muted-foreground list-disc list-inside">
               <li>Manage and revoke access to third-party services through your account settings.</li>
-              <li>Request data deletion by contacting us at korzhov.work2019@gmail.com.</li>
+              <li>Request data deletion by contacting us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}.</li>
               <li>Completely remove all stored information associated with your account.</li>
             </ul>
           </div>
@@ -121,7 +121,7 @@ export default function PrivacyPage() {
           <div>
             <h2 className="text-2xl font-semibold">10. Contact Us</h2>
             <p className="mt-2 text-muted-foreground">
-              If you have any questions about this Privacy Policy or your data, you can contact us at korzhov.work2019@gmail.com.
+              If you have any questions about this Privacy Policy or your data, you can contact us at {process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}.
             </p>
           </div>
         </div>

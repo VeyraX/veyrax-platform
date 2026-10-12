@@ -100,7 +100,7 @@ export function McpCard({ repository, onSelect }: McpCardProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//github-logo.svg"
+              src="/provider-logos/github.svg"
               alt="GitHub"
               width={12}
               height={12}

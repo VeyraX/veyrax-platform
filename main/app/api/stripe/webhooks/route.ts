@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
           if (customerEmail) {
             
             const emailResult = await resend.emails.send({
-              from: 'service@veyrax.com',
+              from: process.env.RESEND_FROM_EMAIL || 'noreply@localhost',
               to: customerEmail,
               subject: 'Your VeyraX Subscription Confirmation',
               react: SubscriptionConfirmationEmail(),

@@ -244,7 +244,7 @@ export function WhatsAppConfigForm({ providerId, config, onChange, disabled = fa
           </div>
           
           <div className="text-sm text-left w-full space-y-2 mt-2">
-            <p>1. Open <img src='https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//WhatsApp.svg.png' className="inline-block h-4 w-4 -mr-1 -mt-1" alt="WhatsApp" /> <strong>WhatsApp</strong> on your phone</p>
+            <p>1. Open <img src='/provider-logos/whatsapp.png' className="inline-block h-4 w-4 -mr-1 -mt-1" alt="WhatsApp" /> <strong>WhatsApp</strong> on your phone</p>
             <p>2. Tap <strong>Settings</strong> ⚙️ on iPhone, or <strong>Menu</strong> ⋮ on Android</p>
             <p>3. Tap <strong>Linked devices</strong> and then <strong>Link a device</strong></p>
             <p>4. Point your phone at this screen to scan the QR code</p>

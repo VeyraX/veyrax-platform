@@ -121,7 +121,8 @@ export default function IntegrationDetailApiReferences({ providerDetails }: ApiR
       requestBody = JSON.stringify(firstExample.input, null, 2);
     }
     
-    return `curl -X POST 'https://veyraxapp.com/${provider.provider_tag}/${endpointName}' \\
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    return `curl -X POST '${apiBase}/${provider.provider_tag}/${endpointName}' \\
        -H 'VEYRAX_API_KEY: VEYRAX_API_KEY' \\
        -H 'Content-Type: application/json' \\
        -d $'${requestBody}'`;

@@ -13,7 +13,7 @@ export async function generateMetadata(
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://veyrax.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const ogImageUrl = `${baseUrl}/api/og?flowId=${params.id}`;
   
   const description = flow.plain_description 

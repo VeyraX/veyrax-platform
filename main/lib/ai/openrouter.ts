@@ -14,7 +14,7 @@ export const EMBEDDING_MODEL = 'openai/text-embedding-3-small';
 export const TRANSCRIPTION_MODEL = 'openai/whisper-large-v3-turbo';
 
 export const openrouterHeaders = {
-  'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://veyraxapp.com',
+  'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   'X-Title': 'Veyrax',
 };
 

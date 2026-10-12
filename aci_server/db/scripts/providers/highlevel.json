@@ -1,9 +1,0 @@
-{
-    "name": "High Level",
-    "provider_tag": "hilvl",
-    "description": "High Level is a sales and marketing automation platform that helps businesses manage contacts, automate workflows, and handle conversations.",
-    "auth_method": "api_key",
-    "categories": "CRM,Marketing",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//highlevel-logo.png",
-    "created_at": 1711641600
-  }

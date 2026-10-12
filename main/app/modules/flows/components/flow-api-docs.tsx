@@ -16,11 +16,12 @@ interface FlowApiDocsProps {
 export function FlowApiDocs({ flowName, flowId, isOwner, isAuthenticated }: FlowApiDocsProps) {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
 
-  const getFlowExample = `curl -X GET "https://veyraxapp.com/flow/get-flow/${flowId}" \\
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const getFlowExample = `curl -X GET "${apiBase}/flow/get-flow/${flowId}" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`;
 
-  const runFlowExample = `curl -X POST "https://veyraxapp.com/flow/run-flow/${flowId}" \\
+  const runFlowExample = `curl -X POST "${apiBase}/flow/run-flow/${flowId}" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`;
 

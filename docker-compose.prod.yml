@@ -37,7 +37,7 @@ services:
     command: >
       certonly --webroot -w /var/www/certbot --force-renewal 
       --email ${CERTBOT_EMAIL} 
-      -d veyraxapp.com -d www.veyraxapp.com -d flower.veyraxapp.com 
+      -d ${DOMAIN_NAME:-localhost} -d www.${DOMAIN_NAME:-localhost} -d flower.${DOMAIN_NAME:-localhost} 
       --agree-tos --no-eff-email
     depends_on:
       - nginx

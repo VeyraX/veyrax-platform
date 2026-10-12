@@ -1,9 +1,0 @@
-{
-    "name": "DuckDuckGo",
-    "provider_tag": "duckduckgo",
-    "description": "DuckDuckGo is a search engine that provides a fast and secure way to find information on the web.",
-    "auth_method": "none",
-    "categories": "Search",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//duckduckgo-logo.svg",
-    "created_at": 1711641600
-  } 

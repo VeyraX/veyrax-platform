@@ -130,7 +130,7 @@ export default function ContactUsPage() {
               </Button>
               
               <Button variant="outline" asChild>
-                <a href="mailto:hello@veyrax.com">
+                <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}`}>
                   <Mail className="h-4 w-4" />
                   Send us email instead
                 </a>

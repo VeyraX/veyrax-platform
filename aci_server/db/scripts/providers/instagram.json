@@ -1,9 +1,0 @@
-{
-    "name": "Instagram",
-    "provider_tag": "instagram",
-    "description": "Instagram API for accessing profile and post content",
-    "auth_method": "custom",
-    "categories": "Social, Communications",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos/instagram-logo.svg",
-    "created_at": 1715472000
-  } 

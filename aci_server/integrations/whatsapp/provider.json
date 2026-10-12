@@ -1,7 +1,0 @@
-{
-    "name": "WhatsApp",
-    "provider_tag": "whatsapp",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//WhatsApp.svg.png",
-    "description": "Connect your WhatsApp account to send and receive messages. Requires scanning a QR code with your phone.",
-    "auth_method": "whatsapp-qr"
-} 

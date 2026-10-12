@@ -31,7 +31,7 @@ def openrouter_client_kwargs() -> dict:
         "api_key": api_key,
         "base_url": OPENROUTER_BASE_URL,
         "default_headers": {
-            "HTTP-Referer": os.getenv("SITE_URL") or "https://veyraxapp.com",
+            "HTTP-Referer": os.getenv("SITE_URL") or "http://localhost:8000",
             "X-Title": os.getenv("SITE_NAME") or "Veyrax",
         },
     }

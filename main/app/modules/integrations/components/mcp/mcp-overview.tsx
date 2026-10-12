@@ -69,7 +69,7 @@ export function McpOverview({
             <a href={githubUrl} target="_blank" rel="noopener noreferrer" 
               className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400">
               <Image
-                src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//github-logo.svg"
+                src="/provider-logos/github.svg"
                 alt="GitHub"
                 width={14}
                 height={14}

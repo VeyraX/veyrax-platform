@@ -86,7 +86,8 @@ export function McpDocumentation({ mcpDetails, tools }: McpDocumentationProps) {
       ? JSON.stringify(exampleParams, null, 2) 
       : "{}";
     
-    return `curl -X POST 'https://veyraxapp.com/tool-call/${mcpDetails?.image_name || "mcp"}/${tool.name}' \\
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    return `curl -X POST '${apiBase}/tool-call/${mcpDetails?.image_name || "mcp"}/${tool.name}' \\
   -H 'VEYRAX_API_KEY: YOUR_API_KEY' \\
   -H 'Content-Type: application/json' \\
   -d '${paramsJson}'`;

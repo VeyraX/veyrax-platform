@@ -18,11 +18,13 @@ interface ApiDocumentationProps {
   endpoints?: ApiEndpoint[];
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const defaultEndpoints: ApiEndpoint[] = [
   {
     name: "Get All Flows",
     value: "get-flows",
-    example: `curl -X GET "https://veyraxapp.com/get-flows" \\
+    example: `curl -X GET "${API_BASE}/get-flows" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`,
     responseSchema: `{
@@ -44,7 +46,7 @@ const defaultEndpoints: ApiEndpoint[] = [
   {
     name: "Get Flow by ID",
     value: "get-flow",
-    example: (flowId: string) => `curl -X GET "https://veyraxapp.com/flow/get-flow/${flowId}" \\
+    example: (flowId: string) => `curl -X GET "${API_BASE}/flow/get-flow/${flowId}" \\
 -H "Content-Type: application/json" \\
 -H "Authorization: VEYRAX_API_KEY"`,
     responseSchema: `{

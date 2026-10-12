@@ -1,7 +1,0 @@
-{
-    "name": "Linear",
-    "provider_tag": "linear",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//linear-logo.svg",
-    "description": "Plan and track tasks, manage projects, and coordinate workflows across teams in Linear.",
-    "auth_method": "oauth"
-} 

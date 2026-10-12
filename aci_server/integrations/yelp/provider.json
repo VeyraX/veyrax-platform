@@ -1,9 +1,0 @@
-{
-    "name": "Yelp",
-    "provider_tag": "yelp",
-    "description": "Yelp API integration for searching businesses, accessing reviews, business details, and menus",
-    "auth_method": "none",
-    "categories": "Leads, Scrape, Search",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//yelp.svg",
-    "created_at": 1721641600
-} 

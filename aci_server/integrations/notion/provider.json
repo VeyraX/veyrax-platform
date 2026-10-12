@@ -1,7 +1,0 @@
-{
-    "name": "Notion",
-    "provider_tag": "notion",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos//notion-logo.svg",
-    "description": "Create and organize documents, manage knowledge bases, and collaborate on content.",
-    "auth_method": "oauth"
-}

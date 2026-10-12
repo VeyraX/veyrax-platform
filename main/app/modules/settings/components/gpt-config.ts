@@ -7,8 +7,8 @@ export const OPENAPI_SPEC = {
   },
   "servers": [
     {
-      "url": "https://veyraxapp.com",
-      "description": "VeyraX Production Server"
+      "url": process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+      "description": "VeyraX API Server"
     }
   ],
   "components": {

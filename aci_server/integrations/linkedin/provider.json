@@ -1,9 +1,0 @@
-{
-    "name": "LinkedIn",
-    "provider_tag": "linkedin",
-    "description": "LinkedIn API integration for accessing profiles, connections, posts, and other LinkedIn data",
-    "auth_method": "custom",
-    "categories": "Social, Scraping",
-    "logo_url": "https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos/linkedin-logo.svg",
-    "created_at": 1711641600
-  } 

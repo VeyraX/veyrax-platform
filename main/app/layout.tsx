@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "VeyraX",
     description: "VeyraX is Agentic Component Interface",
     type: "website",
-    url: "https://veyrax.com",
+    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     images: [
       {
         url: "/landing/social_cover.png",

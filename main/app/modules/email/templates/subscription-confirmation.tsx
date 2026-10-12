@@ -43,7 +43,7 @@ const SubscriptionConfirmationEmail = () => {
                 Visit Your Account
               </Button>
               <Text className="text-[16px] text-gray-800 mt-[24px]">
-                If you have any questions or need assistance, feel free to reply send message to <a href="mailto:veyraxservice@gmail.com">support@veyrax.com</a>.
+                If you have any questions or need assistance, feel free to reply send message to <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}`}>{process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@veyrax.com"}</a>.
               </Text>
               <Text className="text-[16px] text-gray-800 mb-[24px]">
                 Best regards,<br />
@@ -53,7 +53,7 @@ const SubscriptionConfirmationEmail = () => {
             <Hr className="border-gray-300 my-[24px]" />
             <Section>
               <Img
-                src="https://zpjxdtvecaxrdxvfaxom.supabase.co/storage/v1/object/public/logos/veyrax-logo.png"
+                src={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/provider-logos/veyrax.svg`}
                 alt="Veyrax Logo"
                 width="60"
                 height="auto"
