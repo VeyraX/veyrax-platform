@@ -1,0 +1,36 @@
+name: Feature / integration request
+description: Suggest a new integration or an improvement
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - New integration
+        - New actions for an existing integration
+        - Platform feature
+    validations:
+      required: true
+  - type: input
+    id: service
+    attributes:
+      label: Service / integration
+      placeholder: e.g. HubSpot
+  - type: input
+    id: docs
+    attributes:
+      label: API documentation link
+  - type: textarea
+    id: usecase
+    attributes:
+      label: What should an agent be able to do?
+      placeholder: e.g. create deals, search contacts, log calls
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd like to implement this myself (see CONTRIBUTING.md)

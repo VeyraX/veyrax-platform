@@ -231,17 +231,17 @@ Integrations marked with † are implemented but not registered in `INTEGRATION_
 - Docker and Docker Compose
 - Node.js 18+ (for the frontend)
 - A Supabase project
-- An OpenAI or OpenRouter API key
+- An OpenAI API key and an OpenRouter API key
 
 > Note: the Supabase database schema is not included in this repository yet.
 
 ### Configuration
 
-1. Backend: `cp .env.example .env` and fill in the values you need.
-2. Frontend: `cp main/.env.example main/.env.local` and fill in the values you need.
+1. Backend: `cp .env.example .env` and fill in the **REQUIRED** section.
+2. Frontend: `cp main/.env.example main/.env.local` and fill in the **REQUIRED** section.
 3. Never commit real `.env` files — they are git-ignored.
 
-Only the integrations you configure credentials for will work; the rest can stay empty.
+Everything in the **OPTIONAL** sections can stay empty: only the integrations and features you configure will work.
 
 ### Run the backend
 
@@ -275,9 +275,11 @@ docker-compose exec aci_server /app/run_tests.sh dropbox
 
 ## Adding an integration
 
-Create a new folder in `aci_server/integrations/` following the structure of an existing one
-(for example `openweather`), and register its router in `aci_server/main.py`.
-Conventions are described in `.cursor/rules/integration_rules.md`, `component_design.mdc` and `examples_rules.mdc`.
+See [CONTRIBUTING.md](CONTRIBUTING.md#adding-an-integration).
+
+## Contributing & security
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). To report a vulnerability, follow [SECURITY.md](SECURITY.md).
 
 ## License
 

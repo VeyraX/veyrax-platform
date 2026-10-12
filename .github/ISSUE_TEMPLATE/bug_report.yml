@@ -1,0 +1,54 @@
+name: Bug report
+description: Something is broken
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **do not** include API keys, tokens or personal data.
+        For security issues use [SECURITY.md](https://github.com/VeyraX/veyrax-platform/blob/main/SECURITY.md) instead.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend (aci_server)
+        - Integration
+        - Web app (main)
+        - MCP deployment
+        - Flows / agent
+        - WhatsApp bridge
+        - Docs / setup
+    validations:
+      required: true
+  - type: input
+    id: integration
+    attributes:
+      label: Integration (if applicable)
+      placeholder: e.g. notion, github, slack
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Call POST /notion/search with ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: e.g. docker-compose on macOS, commit abc1234
