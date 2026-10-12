@@ -1439,7 +1439,7 @@
     "description": "Create AI avatar videos, browse voices and templates, and translate videos with HeyGen.",
     "categories": "AI, Marketing",
     "auth_method": "api_key",
-    "logo_url": "/default-logo.svg",
+    "logo_url": "/provider-logos/heygen.svg",
     "created_at": 1760140800,
     "is_enabled": true
   },
